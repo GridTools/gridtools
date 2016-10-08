@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "stencil_on_vertexes.hpp"
+#include "stencil_on_vertices.hpp"
 #include "../Options.hpp"
 
 int main(int argc, char **argv) {

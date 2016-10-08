@@ -76,7 +76,7 @@ namespace gridtools {
     namespace {
         using cells = location_type< 0, 2 >;
         using edges = location_type< 1, 3 >;
-        using vertexes = location_type< 2, 1 >;
+        using vertices = location_type< 2, 1 >;
     }
 
     template < typename T, typename ValueType >
@@ -105,7 +105,7 @@ namespace gridtools {
     };
 
     template < typename ValueType >
-    struct return_type< from< cells >::template to< vertexes >, ValueType > {
+    struct return_type< from< cells >::template to< vertices >, ValueType > {
         typedef array< ValueType, 3 > type;
     };
 
@@ -120,22 +120,22 @@ namespace gridtools {
     };
 
     template < typename ValueType >
-    struct return_type< from< edges >::template to< vertexes >, ValueType > {
+    struct return_type< from< edges >::template to< vertices >, ValueType > {
         typedef array< ValueType, 2 > type;
     };
 
     template < typename ValueType >
-    struct return_type< from< vertexes >::template to< vertexes >, ValueType > {
+    struct return_type< from< vertices >::template to< vertices >, ValueType > {
         typedef array< ValueType, 6 > type;
     };
 
     template < typename ValueType >
-    struct return_type< from< vertexes >::template to< cells >, ValueType > {
+    struct return_type< from< vertices >::template to< cells >, ValueType > {
         typedef array< ValueType, 6 > type;
     };
 
     template < typename ValueType >
-    struct return_type< from< vertexes >::template to< edges >, ValueType > {
+    struct return_type< from< vertices >::template to< edges >, ValueType > {
         typedef array< ValueType, 6 > type;
     };
 
@@ -277,10 +277,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertexes >::to< vertexes >::with_color< static_uint< 0 > > {
+    struct from< vertices >::to< vertices >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< vertexes >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< vertices >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -438,10 +438,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< vertexes >::with_color< static_uint< 0 > > {
+    struct from< cells >::to< vertices >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< cells >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< cells >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -465,10 +465,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< vertexes >::with_color< static_uint< 1 > > {
+    struct from< cells >::to< vertices >::with_color< static_uint< 1 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< cells >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< cells >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -570,10 +570,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertexes >::with_color< static_uint< 0 > > {
+    struct from< edges >::to< vertices >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< edges >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -597,10 +597,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertexes >::with_color< static_uint< 1 > > {
+    struct from< edges >::to< vertices >::with_color< static_uint< 1 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< edges >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -625,10 +625,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertexes >::with_color< static_uint< 2 > > {
+    struct from< edges >::to< vertices >::with_color< static_uint< 2 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< edges >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -652,10 +652,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertexes >::to< cells >::with_color< static_uint< 0 > > {
+    struct from< vertices >::to< cells >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< vertexes >::to< cells >, ValueType >::type;
+        using return_t = typename return_type< from< vertices >::to< cells >, ValueType >::type;
 
         /*
          * neighbors order
@@ -681,10 +681,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertexes >::to< edges >::with_color< static_uint< 0 > > {
+    struct from< vertices >::to< edges >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< vertexes >::to< edges >, ValueType >::type;
+        using return_t = typename return_type< from< vertices >::to< edges >, ValueType >::type;
 
         /*
          * neighbors order
@@ -718,7 +718,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (!boost::is_same< SrcLocation, edges >::value || Color < 3), "Error: Color index beyond color length");
         GRIDTOOLS_STATIC_ASSERT(
-            (!boost::is_same< SrcLocation, vertexes >::value || Color < 1), "Error: Color index beyond color length");
+            (!boost::is_same< SrcLocation, vertices >::value || Color < 1), "Error: Color index beyond color length");
 
         GT_FUNCTION
         constexpr static
@@ -736,7 +736,7 @@ namespace gridtools {
       public:
         using cells = enumtype::cells;
         using edges = enumtype::edges;
-        using vertexes = enumtype::vertexes;
+        using vertices = enumtype::vertices;
         using layout_map_t = typename Backend::layout_map_t;
         using type = icosahedral_topology< Backend >;
 
@@ -879,9 +879,9 @@ namespace gridtools {
         }
 
         template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION typename return_type< typename from< vertexes >::template to< Location2 >, uint_t >::type
-            neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) const {
-            return connectivity_index(vertexes(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
+        GT_FUNCTION typename return_type< typename from< vertices >::template to< Location2 >, uint_t >::type
+            neighbors_indices_3(array< uint_t, 4 > const &i, vertices, Location2) const {
+            return connectivity_index(vertices(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
         }
     };
 

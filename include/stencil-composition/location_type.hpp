@@ -58,11 +58,11 @@ namespace gridtools {
     namespace enumtype {
         typedef static_int< 0 > cells_index;
         typedef static_int< 1 > edges_index;
-        typedef static_int< 2 > vertexes_index;
+        typedef static_int< 2 > vertices_index;
 
         typedef location_type< cells_index::value, 2 > cells;
         typedef location_type< edges_index::value, 3 > edges;
-        typedef location_type< vertexes_index::value, 1 > vertexes;
+        typedef location_type< vertices_index::value, 1 > vertices;
     }
 
 } // namespace gridtools

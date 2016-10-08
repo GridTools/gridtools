@@ -37,21 +37,21 @@ namespace ico_operators {
         using vertex_2d_storage_type = repository::vertex_2d_storage_type;
         using edge_2d_storage_type = repository::edge_2d_storage_type;
 
-        using vertexes_4d_storage_type = repository::vertexes_4d_storage_type;
-        using edges_of_vertexes_storage_type = repository::edges_of_vertexes_storage_type;
+        using vertices_4d_storage_type = repository::vertices_4d_storage_type;
+        using edges_of_vertices_storage_type = repository::edges_of_vertices_storage_type;
 
         auto &in_edges = repo.u();
         auto &dual_area_reciprocal = repo.dual_area_reciprocal();
         auto &dual_edge_length = repo.dual_edge_length();
-        auto &ref_vertexes = repo.curl_u_ref();
-        auto &out_vertexes = repo.out_vertex();
+        auto &ref_vertices = repo.curl_u_ref();
+        auto &out_vertices = repo.out_vertex();
 
-        vertexes_4d_storage_type curl_weights(
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertexes, double, selector< 1, 1, 1, 1, 1 > >(
+        vertices_4d_storage_type curl_weights(
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, selector< 1, 1, 1, 1, 1 > >(
                 "weights", 6));
-        edges_of_vertexes_storage_type &edge_orientation = repo.edge_orientation();
+        edges_of_vertices_storage_type &edge_orientation = repo.edge_orientation();
 
-        out_vertexes.initialize(0.0);
+        out_vertices.initialize(0.0);
         curl_weights.initialize(0.0);
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
@@ -66,8 +66,8 @@ namespace ico_operators {
         {
             typedef arg< 0, vertex_2d_storage_type > p_dual_area_reciprocal;
             typedef arg< 1, edge_2d_storage_type > p_dual_edge_length;
-            typedef arg< 2, vertexes_4d_storage_type > p_curl_weights;
-            typedef arg< 3, edges_of_vertexes_storage_type > p_edge_orientation;
+            typedef arg< 2, vertices_4d_storage_type > p_curl_weights;
+            typedef arg< 3, edges_of_vertices_storage_type > p_edge_orientation;
 
             typedef boost::mpl::vector< p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation >
                 accessor_list_t;
@@ -82,7 +82,7 @@ namespace ico_operators {
                 (execute< forward >(),
                     gridtools::make_stage< curl_prep_functor,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::vertexes >(
+                        icosahedral_topology_t::vertices >(
                         p_dual_area_reciprocal(), p_dual_edge_length(), p_curl_weights(), p_edge_orientation())));
             stencil_->ready();
             stencil_->steady();
@@ -98,13 +98,13 @@ namespace ico_operators {
 
         {
             typedef arg< 0, edge_storage_type > p_in_edges;
-            typedef arg< 1, vertexes_4d_storage_type > p_curl_weights;
-            typedef arg< 2, vertex_storage_type > p_out_vertexes;
+            typedef arg< 1, vertices_4d_storage_type > p_curl_weights;
+            typedef arg< 2, vertex_storage_type > p_out_vertices;
 
-            typedef boost::mpl::vector< p_in_edges, p_curl_weights, p_out_vertexes > accessor_list_t;
+            typedef boost::mpl::vector< p_in_edges, p_curl_weights, p_out_vertices > accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&in_edges, &curl_weights, &out_vertexes));
+                boost::fusion::make_vector(&in_edges, &curl_weights, &out_vertices));
 
             auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
@@ -113,7 +113,7 @@ namespace ico_operators {
                 (execute< forward >(),
                     gridtools::make_stage< curl_functor_weights,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::vertexes >(p_in_edges(), p_curl_weights(), p_out_vertexes())));
+                        icosahedral_topology_t::vertices >(p_in_edges(), p_curl_weights(), p_out_vertices())));
 
             stencil_->ready();
             stencil_->steady();
@@ -122,13 +122,13 @@ namespace ico_operators {
 #ifdef __CUDACC__
             in_edges.d2h_update();
             curl_weights.d2h_update();
-            out_vertexes.d2h_update();
+            out_vertices.d2h_update();
 #endif
 
             verifier ver(1e-10);
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
-            result = result && ver.verify(grid_, ref_vertexes, out_vertexes, halos);
+            result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);
 
 #ifdef BENCHMARK
             std::cout << "curl weights  ";
@@ -140,13 +140,13 @@ namespace ico_operators {
             typedef arg< 0, edge_storage_type > p_in_edges;
             typedef arg< 1, vertex_2d_storage_type > p_dual_area_reciprocal;
             typedef arg< 2, edge_2d_storage_type > p_dual_edge_length;
-            typedef arg< 3, vertex_storage_type > p_out_vertexes;
+            typedef arg< 3, vertex_storage_type > p_out_vertices;
 
-            typedef boost::mpl::vector< p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_out_vertexes >
+            typedef boost::mpl::vector< p_in_edges, p_dual_area_reciprocal, p_dual_edge_length, p_out_vertices >
                 accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&in_edges, &dual_area_reciprocal, &dual_edge_length, &out_vertexes));
+                boost::fusion::make_vector(&in_edges, &dual_area_reciprocal, &dual_edge_length, &out_vertices));
 
             auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
@@ -155,8 +155,8 @@ namespace ico_operators {
                 (execute< forward >(),
                     gridtools::make_stage< curl_functor_flow_convention,
                         icosahedral_topology_t,
-                        icosahedral_topology_t::vertexes >(
-                        p_in_edges(), p_dual_area_reciprocal(), p_dual_edge_length(), p_out_vertexes())));
+                        icosahedral_topology_t::vertices >(
+                        p_in_edges(), p_dual_area_reciprocal(), p_dual_edge_length(), p_out_vertices())));
 
             stencil_->ready();
             stencil_->steady();
@@ -166,13 +166,13 @@ namespace ico_operators {
             in_edges.d2h_update();
             dual_area_reciprocal.d2h_update();
             dual_edge_length.d2h_update();
-            out_vertexes.d2h_update();
+            out_vertices.d2h_update();
 #endif
 
             verifier ver(1e-10);
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
-            result = result && ver.verify(grid_, ref_vertexes, out_vertexes, halos);
+            result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);
 
 #ifdef BENCHMARK
             std::cout << "curl flow convention  ";

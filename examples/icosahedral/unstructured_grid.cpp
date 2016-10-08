@@ -67,20 +67,20 @@ namespace gridtools {
     template <>
     std::list< array< uint_t, 4 > > const &
         unstructured_grid::neighbours_of< typename unstructured_grid::grid_topology_t::edges,
-            typename unstructured_grid::grid_topology_t::vertexes >(array< uint_t, 4 > const &coords) {
-        return m_edge_to_vertexes.at(coords);
+            typename unstructured_grid::grid_topology_t::vertices >(array< uint_t, 4 > const &coords) {
+        return m_edge_to_vertices.at(coords);
     }
 
     template <>
     std::list< array< uint_t, 4 > > const &
-        unstructured_grid::neighbours_of< typename unstructured_grid::grid_topology_t::vertexes,
-            typename unstructured_grid::grid_topology_t::vertexes >(array< uint_t, 4 > const &coords) {
-        return m_vertex_to_vertexes.at(coords);
+        unstructured_grid::neighbours_of< typename unstructured_grid::grid_topology_t::vertices,
+            typename unstructured_grid::grid_topology_t::vertices >(array< uint_t, 4 > const &coords) {
+        return m_vertex_to_vertices.at(coords);
     }
 
     template <>
     std::list< array< uint_t, 4 > > const &
-        unstructured_grid::neighbours_of< typename unstructured_grid::grid_topology_t::vertexes,
+        unstructured_grid::neighbours_of< typename unstructured_grid::grid_topology_t::vertices,
             typename unstructured_grid::grid_topology_t::edges >(array< uint_t, 4 > const &coords) {
         return m_vertex_to_edges.at(coords);
     }

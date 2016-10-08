@@ -83,18 +83,18 @@ namespace gridtools {
         array< uint_t, 4 > m_vertexdims;
         neighbour_list m_cell_to_cells;
         neighbour_list m_cell_to_edges;
-        neighbour_list m_cell_to_vertexes;
+        neighbour_list m_cell_to_vertices;
         neighbour_list m_edge_to_edges;
         neighbour_list m_edge_to_cells;
-        neighbour_list m_edge_to_vertexes;
-        neighbour_list m_vertex_to_vertexes;
+        neighbour_list m_edge_to_vertices;
+        neighbour_list m_vertex_to_vertices;
         neighbour_list m_vertex_to_edges;
 
       public:
         explicit unstructured_grid(uint_t i, uint_t j, uint_t k)
             : m_celldims{i, 2, j, k}, m_edgedims{i, 3, j, k}, m_vertexdims{i, 1, j + 1, k}, m_cell_to_cells(m_celldims),
-              m_cell_to_edges(m_celldims), m_cell_to_vertexes(m_celldims), m_edge_to_edges(m_edgedims),
-              m_edge_to_cells(m_edgedims), m_edge_to_vertexes(m_edgedims), m_vertex_to_vertexes(m_vertexdims),
+              m_cell_to_edges(m_celldims), m_cell_to_vertices(m_celldims), m_edge_to_edges(m_edgedims),
+              m_edge_to_cells(m_edgedims), m_edge_to_vertices(m_edgedims), m_vertex_to_vertices(m_vertexdims),
               m_vertex_to_edges(m_vertexdims) {
             construct_grid();
         }
@@ -146,26 +146,26 @@ namespace gridtools {
                         m_edge_to_cells.insert_neighbour({i, 2, j, k}, {i, 1, j, k});
                         m_edge_to_cells.insert_neighbour({i, 2, j, k}, {i, 0, j, k});
 
-                        m_edge_to_vertexes.insert_neighbour({i, 0, j, k}, {i + 1, 0, j, k});
-                        m_edge_to_vertexes.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
+                        m_edge_to_vertices.insert_neighbour({i, 0, j, k}, {i + 1, 0, j, k});
+                        m_edge_to_vertices.insert_neighbour({i, 0, j, k}, {i, 0, j, k});
 
-                        m_edge_to_vertexes.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
-                        m_edge_to_vertexes.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
+                        m_edge_to_vertices.insert_neighbour({i, 1, j, k}, {i, 0, j, k});
+                        m_edge_to_vertices.insert_neighbour({i, 1, j, k}, {i, 0, j + 1, k});
 
-                        m_edge_to_vertexes.insert_neighbour({i, 2, j, k}, {i, 0, j + 1, k});
-                        m_edge_to_vertexes.insert_neighbour({i, 2, j, k}, {i + 1, 0, j, k});
+                        m_edge_to_vertices.insert_neighbour({i, 2, j, k}, {i, 0, j + 1, k});
+                        m_edge_to_vertices.insert_neighbour({i, 2, j, k}, {i + 1, 0, j, k});
                     }
                 }
             }
             for (uint_t k = 0; k < m_vertexdims[3]; ++k) {
                 for (uint_t i = 1; i < m_vertexdims[0] - 1; ++i) {
                     for (uint_t j = 1; j < m_vertexdims[2] - 1; ++j) {
-                        m_vertex_to_vertexes.insert_neighbour({i, 0, j, k}, {i, 0, j - 1, k});
-                        m_vertex_to_vertexes.insert_neighbour({i, 0, j, k}, {i, 0, j + 1, k});
-                        m_vertex_to_vertexes.insert_neighbour({i, 0, j, k}, {i + 1, 0, j, k});
-                        m_vertex_to_vertexes.insert_neighbour({i, 0, j, k}, {i - 1, 0, j, k});
-                        m_vertex_to_vertexes.insert_neighbour({i, 0, j, k}, {i + 1, 0, j - 1, k});
-                        m_vertex_to_vertexes.insert_neighbour({i, 0, j, k}, {i - 1, 0, j + 1, k});
+                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i, 0, j - 1, k});
+                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i, 0, j + 1, k});
+                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i + 1, 0, j, k});
+                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i - 1, 0, j, k});
+                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i + 1, 0, j - 1, k});
+                        m_vertex_to_vertices.insert_neighbour({i, 0, j, k}, {i - 1, 0, j + 1, k});
                     }
                 }
             }

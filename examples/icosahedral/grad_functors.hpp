@@ -63,15 +63,15 @@ namespace ico_operators {
 
     template < uint_t Color >
     struct grad_tau {
-        typedef in_accessor< 0, icosahedral_topology_t::vertexes, extent< 1 > > in_vertexes;
+        typedef in_accessor< 0, icosahedral_topology_t::vertices, extent< 1 > > in_vertices;
         typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > edge_length_reciprocal;
         typedef inout_accessor< 2, icosahedral_topology_t::edges > out_edges;
-        typedef boost::mpl::vector< in_vertexes, edge_length_reciprocal, out_edges > arg_list;
+        typedef boost::mpl::vector< in_vertices, edge_length_reciprocal, out_edges > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            constexpr auto neighbors_offsets = connectivity< edges, vertexes, Color >::offsets();
-            eval(out_edges()) = (eval(in_vertexes(neighbors_offsets[1])) - eval(in_vertexes(neighbors_offsets[0]))) *
+            constexpr auto neighbors_offsets = connectivity< edges, vertices, Color >::offsets();
+            eval(out_edges()) = (eval(in_vertices(neighbors_offsets[1])) - eval(in_vertices(neighbors_offsets[0]))) *
                                 eval(edge_length_reciprocal());
         }
     };

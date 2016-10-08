@@ -267,12 +267,12 @@ namespace gridtools {
     GT_FUNCTION on_neighbors< ValueType,
         typename maps_get_location_type< Maps... >::type,
         Reduction,
-        Maps... > constexpr on_vertexes(Reduction function, ValueType initial, Maps... mapf) {
+        Maps... > constexpr on_vertices(Reduction function, ValueType initial, Maps... mapf) {
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
             "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
 
         GRIDTOOLS_STATIC_ASSERT(maps_get_location_type< Maps... >::type::value == 2,
-            "The map function (for a nested call) provided to 'on_vertexes' is not on edges");
+            "The map function (for a nested call) provided to 'on_vertices' is not on edges");
         return reduce_on_something(function, initial, mapf...);
     }
 } // namespace gridtools

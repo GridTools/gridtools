@@ -71,7 +71,7 @@ namespace ico_operators {
         using vertex_2d_storage_type = repository::vertex_2d_storage_type;
         using edge_2d_storage_type = repository::edge_2d_storage_type;
 
-        using vertexes_4d_storage_type = repository::vertexes_4d_storage_type;
+        using vertices_4d_storage_type = repository::vertices_4d_storage_type;
         using cells_4d_storage_type = repository::cells_4d_storage_type;
         using edges_4d_storage_type = repository::edges_4d_storage_type;
         using edges_of_cells_storage_type = repository::edges_of_cells_storage_type;
