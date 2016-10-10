@@ -44,10 +44,11 @@ template <>
 struct is_int< int > : boost::mpl::true_ {};
 
 template < typename... Int, typename = is_pack_of< is_int, Int... > >
-constexpr int test_fn(Int...) {
+GT_FUNCTION constexpr int test_fn(Int...) {
     return 1;
 }
 
+GT_FUNCTION
 constexpr int test_fn(double, double) { return 2; }
 
 TEST(is_offset_of, int) { GRIDTOOLS_STATIC_ASSERT((test_fn(int(3), int(4)) == 1), "ERROR"); }
