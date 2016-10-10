@@ -63,6 +63,10 @@ namespace gridtools {
         typedef location_type< cells_index::value, 2 > cells;
         typedef location_type< edges_index::value, 3 > edges;
         typedef location_type< vertices_index::value, 1 > vertices;
+
+        // a null or default location type indicate the absence of location type, therefore coloring is not applied,
+        // and therefore the number of colors should be 1 (used in other parts of the code)
+        typedef location_type< -1, 1 > default_location_type;
     }
 
 } // namespace gridtools

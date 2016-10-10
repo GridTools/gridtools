@@ -98,7 +98,7 @@ namespace gridtools {
      */
     template < uint_t I,
         typename Storage,
-        typename LocationType = location_type< -1, 0 >,
+        typename LocationType = enumtype::default_location_type,
         typename is_temporary_storage = bool >
     struct arg {
         GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error");

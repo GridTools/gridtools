@@ -519,8 +519,7 @@ namespace gridtools {
             auto current_position = m_grid_position;
 
             // the neighbors are described as an array of {i,c,j,k} offsets wrt to current position, i.e. an array<
-            // array<uint_t, 4>,
-            // NumNeighbors>
+            // array<uint_t, 4>, NumNeighbors>
             constexpr auto neighbors = from< EsfLocationType >::template to< LocationTypeT >::template with_color<
                 static_uint< SrcColor::value > >::offsets();
 
