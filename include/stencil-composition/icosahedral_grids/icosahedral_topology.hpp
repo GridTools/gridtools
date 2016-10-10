@@ -771,10 +771,13 @@ namespace gridtools {
         template < typename LocationType,
             typename ValueType,
             typename Selector = selector< 1, 1, 1, 1 >,
-            typename... IntTypes,
-            typename Dummy = all_integers< IntTypes... > >
-        GT_FUNCTION storage_t< LocationType, ValueType, Selector > make_storage(
-            char const *name, IntTypes... extra_dims) const {
+            typename... IntTypes
+#if defined(CUDA8) || !defined(__CUDACC__)
+            ,
+            typename Dummy = all_integers< IntTypes... >
+#endif
+            >
+        storage_t< LocationType, ValueType, Selector > make_storage(char const *name, IntTypes... extra_dims) const {
             GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
             GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
 

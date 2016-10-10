@@ -192,7 +192,7 @@ namespace gridtools {
 
             typedef cache_storage< BlockSize,
                 typename boost::mpl::at< CacheExtendsMap, Cache >::type,
-                cache_parameter< Cache >::type::location_type::n_colors::value,
+                cache_parameter< Cache >::type::location_type_t::n_colors::value,
                 StoragePtr > type;
         };
 

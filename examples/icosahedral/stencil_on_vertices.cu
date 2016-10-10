@@ -1,2 +1,2 @@
 #define CUDA_EXAMPLE
-#include "stencil_on_vertexes.cpp"
+#include "stencil_on_vertices.cpp"
