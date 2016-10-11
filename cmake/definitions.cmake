@@ -38,7 +38,7 @@ if(Boost_FOUND)
     set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -mtune=native")
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 
 ## gnu coverage flag ##
