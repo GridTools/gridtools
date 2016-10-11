@@ -57,7 +57,7 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit hybrid_pointer()
-            : m_gpu_p(NULL), m_cpu_p(static_cast< T * >(NULL), false), m_pointer_to_use(NULL), m_size(0),
+            : m_gpu_p(NULL), m_cpu_p(static_cast< T * >(NULL), 0, false), m_pointer_to_use(NULL), m_size(0),
               m_allocated(false), m_up_to_date(true) {
 #ifdef VERBOSE
             printf("creating empty hybrid pointer %x \n", this);
@@ -65,20 +65,14 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        explicit hybrid_pointer(T *p, uint_t size_, bool externally_managed = false)
-            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(size_), m_allocated(false),
-              m_up_to_date(true) {
-            allocate_it(m_size);
-        }
-
-        explicit hybrid_pointer(T *p, bool externally_managed = false)
-            : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(1), m_allocated(false),
+        explicit hybrid_pointer(T *p, uint_t size_, bool externally_managed )
+            : m_gpu_p(NULL), m_cpu_p(p, size_,  externally_managed), m_pointer_to_use(p), m_size(size_), m_allocated(false),
               m_up_to_date(true) {
             allocate_it(m_size);
         }
 
         // GT_FUNCTION
-        explicit hybrid_pointer(uint_t size, bool externally_managed = false)
+        explicit hybrid_pointer(uint_t size, bool externally_managed)
             : m_gpu_p(NULL), m_cpu_p(size, externally_managed), m_pointer_to_use(m_cpu_p.get()), m_size(size),
               m_allocated(false), m_up_to_date(true) {
             allocate_it(size);

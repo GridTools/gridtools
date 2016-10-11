@@ -79,7 +79,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        wrap_pointer(T *p, bool externally_managed) : m_cpu_p(p), m_externally_managed(externally_managed) {}
+        wrap_pointer(T *p, uint_t /*size*/, bool externally_managed) : m_cpu_p(p), m_externally_managed(externally_managed) {}
 
         GT_FUNCTION
         wrap_pointer< T > &operator=(T const &p) {

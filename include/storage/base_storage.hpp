@@ -111,7 +111,7 @@ namespace gridtools {
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             assert(is_set && "allocation failed.");
-            initialize(init, 1);
+            initialize(init, 1u);
         }
 
         /**
@@ -124,7 +124,7 @@ namespace gridtools {
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             assert(is_set && "allocation failed.");
-            initialize(func, 1);
+            initialize(func, 1u);
         }
 
         /**
@@ -136,8 +136,8 @@ namespace gridtools {
          */
         template < typename FloatType >
         explicit base_storage(MetaData const *meta_data_, FloatType *ptr, char const *s = "externally managed storage")
-            : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
-            m_fields[0] = pointer_type(ptr, true);
+            : is_set(true), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
+            m_fields[0] = pointer_type(ptr, meta_data_->size(), true);
             if (FieldDimension > 1) {
                 allocate(FieldDimension, 1, true);
             }
