@@ -49,17 +49,23 @@ namespace test_expandable_parameters {
 
 #ifdef CUDA_EXAMPLE
         typedef layout_map< 2, 1, 0 > layout_t;
+        typedef layout_map< 1, 0, -1 > layout2_t;
 #else
         typedef layout_map< 0, 1, 2 > layout_t;
+        typedef layout_map< 0, 1, -1 > layout2_t;
 #endif
 
         typedef BACKEND::storage_info< 23, layout_t > meta_data_t;
+        typedef BACKEND::storage_info< 24, layout2_t > meta_data2_t;
         typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
+        typedef BACKEND::storage_type< float_type, meta_data2_t >::type storage2_t;
         typedef BACKEND::temporary_storage_type< float_type, meta_data_t >::type tmp_storage_t;
+        typedef BACKEND::temporary_storage_type< float_type, meta_data2_t >::type tmp_storage2_t;
 
         typedef storage_t storage_t;
 
         meta_data_t meta_data_(d1, d2, d3);
+        meta_data2_t meta_data2_(d1, d2, 1);
 
         storage_t storage1(meta_data_, 1., "storage1");
         storage_t storage2(meta_data_, 2., "storage2");
@@ -79,10 +85,14 @@ namespace test_expandable_parameters {
         storage_t storage70(meta_data_, -7., "storage70");
         storage_t storage80(meta_data_, -8., "storage80");
 
+        storage2_t storage100(meta_data2_, -10., "storage100");
+        storage2_t storage200(meta_data2_, -20., "storage200");
+
         std::vector< pointer< storage_t > > list_out_ = {
-            &storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7, &storage8};
+            &storage1, &storage2 /*, &storage3, &storage4, &storage5, &storage6, &storage7, &storage8*/};
         std::vector< pointer< storage_t > > list_in_ = {
-            &storage10, &storage20, &storage30, &storage40, &storage50, &storage60, &storage70, &storage80};
+            &storage10, &storage20 /*, &storage30, &storage40, &storage50, &storage60, &storage70, &storage80*/};
+        std::vector< pointer< storage2_t > > list_tmp_ = {&storage100, &storage200};
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
@@ -93,17 +103,22 @@ namespace test_expandable_parameters {
 
         typedef arg< 0, std::vector< pointer< storage_t > > > p_list_out;
         typedef arg< 1, std::vector< pointer< storage_t > > > p_list_in;
-        typedef arg< 2, std::vector< pointer< tmp_storage_t > > > p_list_tmp;
+
+        // TODO switch
+        typedef arg< 2, std::vector< pointer< tmp_storage2_t > > > p_list_tmp;
+        //        typedef arg< 2, std::vector< pointer< storage2_t > > > p_list_tmp;
 
         typedef boost::mpl::vector< p_list_out, p_list_in, p_list_tmp > args_t;
 
+        // TODO switch
+        //        aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_, &list_tmp_));
         aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_));
 
-        auto comp_ = make_computation< BACKEND >(expand_factor< 3 >(),
+        auto comp_ = make_computation< BACKEND >(expand_factor< 2 >(),
             domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                                                     define_caches(cache< IJ, local >(p_list_tmp())),
+                                                     // define_caches(cache< IJ, local >(p_list_tmp())),
                                                      make_stage< functor_exp >(p_list_tmp(), p_list_in()),
                                                      make_stage< functor_exp >(p_list_out(), p_list_tmp())));
 
