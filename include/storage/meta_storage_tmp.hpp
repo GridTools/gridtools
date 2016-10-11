@@ -58,7 +58,7 @@ namespace gridtools {
     template < typename MetaStorageBase,
         typename FirstTile,
 #ifdef CXX11_ENABLED
-        typename... Tiles
+        typename ... Tiles
 #else
         uint_t Tile,
         uint_t Plus,
@@ -202,10 +202,11 @@ namespace gridtools {
         GT_FUNCTION void initialize(
             const int_t steps_, const uint_t block_, int_t *RESTRICT index_, StridesVector const &strides_) const {
 
+            GRIDTOOLS_STATIC_ASSERT((layout::template at_< Coordinate >::value >= -1), "wrong coordinate");
+
             // no blocking along k
-            if (Coordinate != 2) {
+            if (Coordinate != 2 && layout::template at_< Coordinate >::value >= 0) {
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
-                BOOST_STATIC_ASSERT(layout::template at_< Coordinate >::value >= 0);
                 *index_ += (steps_ - block_ * tile_ - m_initial_offsets[Coordinate]) *
                            basic_type::template strides< Coordinate >(strides_);
             } else {
@@ -231,8 +232,8 @@ namespace gridtools {
     struct is_meta_storage;
 
 #ifdef CXX11_ENABLED
-    template < typename MetaStorageBase, typename... Tiles >
-    struct is_meta_storage< meta_storage_tmp< MetaStorageBase, Tiles... > > : boost::mpl::true_ {};
+    template < typename MetaStorageBase, typename FirstTile, typename... Tiles >
+    struct is_meta_storage< meta_storage_tmp< MetaStorageBase, FirstTile, Tiles... > > : boost::mpl::true_ {};
 #else
     template < typename MetaStorageBase, typename TileI, typename TileJ >
     struct is_meta_storage< meta_storage_tmp< MetaStorageBase, TileI, TileJ > > : boost::mpl::true_ {};
@@ -242,8 +243,8 @@ namespace gridtools {
     struct is_meta_storage_tmp : boost::mpl::false_ {};
 
 #ifdef CXX11_ENABLED
-    template < typename MetaStorageBase, typename... Tiles >
-    struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, Tiles... > > : boost::mpl::true_ {};
+    template < typename MetaStorageBase, typename FirstTile, typename... Tiles >
+    struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, FirstTile, Tiles... > > : boost::mpl::true_ {};
 #else
     template < typename MetaStorageBase, typename TileI, typename TileJ >
     struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, TileI, TileJ > > : boost::mpl::true_ {};
