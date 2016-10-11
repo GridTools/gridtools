@@ -100,10 +100,10 @@ namespace gridtools {
             return ret;
         }
 
-        GT_FUNCTION array() {}
+        constexpr GT_FUNCTION array() {}
 
         template < typename... Vals >
-        GT_FUNCTION array(Vals... vals)
+        constexpr GT_FUNCTION array(Vals... vals)
             : _array{vals...} {
             GRIDTOOLS_STATIC_ASSERT(
                 is_variadic_pack_of(std::is_convertible< Vals, T >::value...), "array ctor types are not convertible");
