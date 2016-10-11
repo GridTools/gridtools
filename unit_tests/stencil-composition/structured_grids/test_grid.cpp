@@ -39,6 +39,13 @@
 #include <stencil-composition/structured_grids/grid.hpp>
 #include <boost/type_index.hpp>
 
+#define ASSERT_GRID_EQ(expect, actual)                         \
+    ASSERT_EQ(expect.direction_i(), actual.direction_i());     \
+    ASSERT_EQ(expect.direction_j(), actual.direction_j());     \
+    for (int i = 0; i < expect.value_list.size(); ++i) {       \
+        ASSERT_EQ(expect.value_list[i], actual.value_list[i]); \
+    }
+
 class structure_grids_grid : public ::testing::Test {
   protected:
     typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
@@ -61,12 +68,7 @@ class structure_grids_grid : public ::testing::Test {
 TEST_F(structure_grids_grid, copy_constructable) {
     gridtools::grid< axis > grid_copy(grid_orig);
 
-    ASSERT_EQ(grid_orig.direction_i(), grid_copy.direction_i());
-    ASSERT_EQ(grid_orig.direction_j(), grid_copy.direction_j());
-
-    for (int i = 0; i < grid_orig.value_list.size(); ++i) {
-        ASSERT_EQ(grid_orig.value_list[i], grid_copy.value_list[i]);
-    }
+    ASSERT_GRID_EQ(grid_orig, grid_copy);
 }
 
 #ifdef __CUDACC__
@@ -76,19 +78,14 @@ TEST_F(structure_grids_grid, copy_constructable_device_ptrs_differ) {
     ASSERT_NE(grid_orig.device_pointer(), grid_copy.device_pointer());
 }
 
-// TODO compare sizes on device
+// TODO write a test to compare sizes on device
 #endif
 
 TEST_F(structure_grids_grid, copy_constructor_with_array) {
     gridtools::array< gridtools::uint_t, 2 > k_levels((gridtools::uint_t)0, (gridtools::uint_t)(size_k - 1));
     gridtools::grid< axis > grid_copy(di, dj, k_levels);
 
-    ASSERT_EQ(grid_orig.direction_i(), grid_copy.direction_i());
-    ASSERT_EQ(grid_orig.direction_j(), grid_copy.direction_j());
-
-    for (int i = 0; i < grid_orig.value_list.size(); ++i) {
-        ASSERT_EQ(grid_orig.value_list[i], grid_copy.value_list[i]);
-    }
+    ASSERT_GRID_EQ(grid_orig, grid_copy);
 }
 
 #ifdef CXX11_ENABLED
@@ -96,11 +93,6 @@ TEST_F(structure_grids_grid, copy_constructor_make_k_levels) {
     gridtools::grid< axis > grid_copy(
         di, dj, gridtools::make_k_levels((gridtools::uint_t)0, (gridtools::uint_t)(size_k - 1)));
 
-    ASSERT_EQ(grid_orig.direction_i(), grid_copy.direction_i());
-    ASSERT_EQ(grid_orig.direction_j(), grid_copy.direction_j());
-
-    for (int i = 0; i < grid_orig.value_list.size(); ++i) {
-        ASSERT_EQ(grid_orig.value_list[i], grid_copy.value_list[i]);
-    }
+    ASSERT_GRID_EQ(grid_orig, grid_copy);
 }
 #endif
