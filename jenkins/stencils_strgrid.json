@@ -2367,7 +2367,7 @@
         }
     },
     "comments": [
-        "Something was wrong with the previous reference: cpu timings were in general too high"
+        "update file paths due to cmake refactoring. cxx03 timings increased slightly. no further investigations because cxx03 will be dropped soon."
     ],
     "stencils": {
         "horizontal_diffusion": {
@@ -2378,7 +2378,7 @@
                 2,
                 2
             ],
-            "exec": "build/interface1"
+            "exec": "examples/interface1"
         },
         "copy_stencil": {
             "stella_filter": "--gtest_filter=BasicBenchmarks.copyStencilTest",
@@ -2388,7 +2388,7 @@
                 0,
                 0
             ],
-            "exec": "build/copy_stencil"
+            "exec": "examples/copy_stencil"
         },
         "vertical_advection": {
             "stella_filter": "--gtest_filter=VerticalAdvectionBenchmark.U",
@@ -2398,7 +2398,7 @@
                 3,
                 3
             ],
-            "exec": "build/vertical_advection_dycore"
+            "exec": "examples/vertical_advection_dycore"
         },
         "simple_hori_diff": {
             "stella_filter": "--gtest_filter=HoriDiffBenchmark.SingleVar",
@@ -2408,7 +2408,7 @@
                 2,
                 2
             ],
-            "exec": "build/simple_hori_diff"
+            "exec": "examples/simple_hori_diff"
         },
         "advection_pd_bott": {
             "stella_filter": "--gtest_filter=AdvectionPDBottPrepareTracersBenchmark.MultipleTracers",
@@ -2418,7 +2418,7 @@
                 0,
                 0
             ],
-            "exec": "build/advection_pdbott_prepare_tracers"
+            "exec": "examples/advection_pdbott_prepare_tracers"
         }
     }
 }
