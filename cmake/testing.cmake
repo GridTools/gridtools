@@ -4,7 +4,6 @@ enable_testing()
 ####################################################################################
 ########################### GET GTEST LIBRARY ############################ 
 ####################################################################################
-#add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/include)
 add_library(gtest STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest-all.cc)
