@@ -49,6 +49,10 @@
 #include "generic_metafunctions/accumulate.hpp"
 //#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 
+#ifdef CXX11_ENABLED
+#include "generic_metafunctions/is_variadic_pack_of.hpp"
+#endif
+
 namespace gridtools {
 
     template < typename T >
@@ -94,6 +98,16 @@ namespace gridtools {
             }
             ret[0] = val;
             return ret;
+        }
+
+        GT_FUNCTION array() {}
+
+        template < typename... Vals >
+        GT_FUNCTION array(Vals... vals)
+            : _array{vals...} {
+            GRIDTOOLS_STATIC_ASSERT(
+                is_variadic_pack_of(std::is_convertible< Vals, T >::value...), "array ctor types are not convertible");
+            GRIDTOOLS_STATIC_ASSERT((!is_array< T >::value), "internal error");
         }
 
 #else

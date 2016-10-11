@@ -36,6 +36,9 @@
 #pragma once
 #include "storage/partitioner.hpp"
 #include "stencil-composition/axis.hpp"
+#ifdef CXX11_ENABLED
+#include "../../common/generic_metafunctions/is_variadic_pack_of.hpp"
+#endif
 
 namespace gridtools {
 
@@ -51,9 +54,25 @@ namespace gridtools {
 
         array< uint_t, size_type::value > value_list;
 
+        GT_FUNCTION grid(const grid< Axis, Partitioner > &other)
+            : m_partitioner(other.partitioner()), m_direction_i(other.direction_i()),
+              m_direction_j(other.direction_j()) {
+            value_list = other.value_list;
+        }
+
         GT_FUNCTION
         explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : m_partitioner(partitioner_dummy()), m_direction_i(direction_i), m_direction_j(direction_j) {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
+                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+        }
+
+        GT_FUNCTION
+        explicit grid(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            array< uint_t, size_type::value > const &value_list)
+            : m_partitioner(partitioner_dummy()), m_direction_i(direction_i), m_direction_j(direction_j),
+              value_list(value_list) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
         }
@@ -149,4 +168,13 @@ namespace gridtools {
 
     template < typename Axis, typename Partitioner >
     struct is_grid< grid< Axis, Partitioner > > : boost::mpl::true_ {};
+
+#ifdef CXX11_ENABLED
+    template < typename... IntTypes,
+        typename = typename std::enable_if< is_variadic_pack_of(
+            std::is_convertible< IntTypes, uint_t >::type::value...) >::type >
+    GT_FUNCTION array< uint_t, sizeof...(IntTypes) > make_k_levels(IntTypes... values) {
+        return array< uint_t, sizeof...(IntTypes) >(values...);
+    }
+#endif
 }
