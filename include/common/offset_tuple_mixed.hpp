@@ -42,13 +42,21 @@ namespace gridtools {
 
         typedef ArgType offset_tuple_t;
 
+        offset_tuple_t m_tuple_runtime;
       private:
         static const constexpr offset_tuple_t s_tuple_constexpr{get_dim< Pair >()...};
-        offset_tuple_t m_tuple_runtime;
         typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates_t;
 
       public:
         GT_FUNCTION constexpr offset_tuple_mixed() : m_tuple_runtime() {}
+
+        template < typename... ArgsRuntime>
+        GT_FUNCTION constexpr
+        offset_tuple_mixed(ArgsRuntime const &... args){
+            /*always failing*/
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(ArgsRuntime) && !sizeof...(ArgsRuntime)
+                                    , "Passing the wrong offset to an alias accessor, or trying to construct it with wrong arguments");
+        }
 
         template < typename... ArgsRuntime,
             typename T = typename boost::enable_if_c< accumulate(logical_and(),
@@ -57,9 +65,12 @@ namespace gridtools {
         GT_FUNCTION constexpr offset_tuple_mixed(ArgsRuntime const &... args)
             : m_tuple_runtime(args...) {}
 
-        template < typename OffsetTuple,
-            typename T = typename boost::enable_if_c< is_offset_tuple< OffsetTuple >::value >::type >
-        GT_FUNCTION constexpr offset_tuple_mixed(OffsetTuple const &arg_)
+        template< int_t I, int_t N >
+        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< offset_tuple<I, N> > const &other_)
+            : m_tuple_runtime(other_.m_tuple_runtime) {}
+
+        template < typename OffsetTuple, int_t I, int_t N>
+        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple<I, N> const &arg_)
             : m_tuple_runtime(arg_) {}
 
         template < typename OtherAcc >
@@ -98,8 +109,8 @@ namespace gridtools {
         }
     };
 
-    template < typename... T >
-    struct is_offset_tuple< offset_tuple_mixed< T... > > : boost::mpl::true_ {};
+    template < typename ArgType, typename... T >
+    struct is_offset_tuple< offset_tuple_mixed< ArgType, T... > > : boost::mpl::true_ {};
 
     template < typename ArgType, typename... Pair >
     constexpr typename offset_tuple_mixed< ArgType, Pair... >::offset_tuple_t

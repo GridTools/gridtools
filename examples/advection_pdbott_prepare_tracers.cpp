@@ -1,6 +1,11 @@
 #include "gtest/gtest.h"
 #include "Options.hpp"
+#include "common/defs.hpp"
+#ifdef CXX11_ENABLED
 #include "advection_pdbott_prepare_tracers.hpp"
+#else
+#include "advection_pdbott_prepare_tracers_cxx03.hpp"
+#endif
 
 int main(int argc, char **argv) {
 
@@ -26,6 +31,7 @@ TEST(advection_pdbott_prepare_tracers, test) {
     gridtools::uint_t z = Options::getInstance().m_size[2];
     gridtools::uint_t tsteps = Options::getInstance().m_size[3];
 
-    if(tsteps==0) tsteps =1;
+    if (tsteps == 0)
+        tsteps = 1;
     ASSERT_TRUE(adv_prepare_tracers::test(x, y, z, tsteps));
 }

@@ -1,17 +1,37 @@
 /*
-   Copyright 2016 GridTools Consortium
+  GridTools Libraries
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
 
-       http://www.apache.org/licenses/LICENSE-2.0
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
 #include "storage_list.hpp"
@@ -56,14 +76,14 @@ namespace gridtools {
         typedef dimension_extension_null super;
     };
 
-    template <typename T>
-    struct is_dimension_extension_traits : boost::mpl::false_{};
+    template < typename T >
+    struct is_dimension_extension_traits : boost::mpl::false_ {};
 
-    template <typename ... T>
-    struct is_dimension_extension_traits<dimension_extension_traits<T ...> > : boost::mpl::true_{};
+    template < typename... T >
+    struct is_dimension_extension_traits< dimension_extension_traits< T... > > : boost::mpl::true_ {};
 
     template <>
-    struct is_dimension_extension_traits<dimension_extension_null > : boost::mpl::true_{};
+    struct is_dimension_extension_traits< dimension_extension_null > : boost::mpl::true_ {};
 
     template < typename T >
     struct get_fields {
@@ -104,16 +124,17 @@ namespace gridtools {
         typedef typename Storage::super next_storage_t;
 
         GRIDTOOLS_STATIC_ASSERT(IdMax >= Id && Id >= 0, "Library internal error");
-        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits<Storage>::value, "Library internal error");
-        typedef typename get_width< typename compute_storage_list_width< next_storage_t, Id + 1, IdMax >::next_storage_t >::type type;
+        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
+        typedef typename get_width<
+            typename compute_storage_list_width< next_storage_t, Id + 1, IdMax >::next_storage_t >::type type;
         static const uint_t value = type::value;
     };
 
-    //recursion anchor
+    // recursion anchor
     template < typename Storage, uint_t IdMax >
-    struct compute_storage_list_width<Storage, IdMax, IdMax> {
+    struct compute_storage_list_width< Storage, IdMax, IdMax > {
         GRIDTOOLS_STATIC_ASSERT(IdMax >= 0, "Library internal error");
-        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits<Storage>::value, "Library internal error");
+        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
         typedef Storage next_storage_t;
         typedef typename get_width< Storage >::type type;
         static const uint_t value = type::value;
@@ -179,7 +200,7 @@ namespace gridtools {
 
             template < typename Id >
             void operator()(Id) {
-                swap<Id::value-1, Dim>::template with<Id::value, Dim>::apply(m_storage);
+                swap< Id::value - 1, Dim >::template with< Id::value, Dim >::apply(m_storage);
             }
         };
 
@@ -188,30 +209,35 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
                 "\"advance\" can only be called with instanced of type \"data_field\" ");
 
-            boost::mpl::for_each< boost::mpl::range_c<ushort_t, 1, impl_::width_t< typename Storage::super, Dim >::value> >(shift< Storage >(storage_));
+            boost::mpl::for_each<
+                boost::mpl::range_c< ushort_t, 1, impl_::width_t< typename Storage::super, Dim >::value > >(
+                shift< Storage >(storage_));
         }
     };
 
     struct cycle_all {
 
-        template <typename Storage>
-        struct call_apply{
-        private:
-            Storage& m_storage;
-        public:
-            call_apply(Storage& storage_) : m_storage(storage_){}
+        template < typename Storage >
+        struct call_apply {
+          private:
+            Storage &m_storage;
 
-            template <typename Id>
-            void operator()(Id){
-                cycle<Id::value>::apply(m_storage);
+          public:
+            call_apply(Storage &storage_) : m_storage(storage_) {}
+
+            template < typename Id >
+            void operator()(Id) {
+                cycle< Id::value >::apply(m_storage);
             }
         };
 
-        template <typename Storage>
-        static void apply(Storage& storage_){
+        template < typename Storage >
+        static void apply(Storage &storage_) {
             GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
-                                    "\"advance\" can only be called with instanced of type \"data_field\" ");
-            boost::mpl::for_each<typename boost::mpl::range_c<ushort_t, 0, Storage::super::traits::n_dimensions>::type>(call_apply<Storage>(storage_));
+                "\"advance\" can only be called with instanced of type \"data_field\" ");
+            boost::mpl::for_each<
+                typename boost::mpl::range_c< ushort_t, 0, Storage::super::traits::n_dimensions >::type >(
+                call_apply< Storage >(storage_));
         }
     };
 
@@ -232,6 +258,7 @@ namespace gridtools {
         typedef typename dimension_extension_traits< First, StorageExtended... >::type super;
         typedef dimension_extension_traits< First, StorageExtended... > traits;
         typedef typename super::pointer_type pointer_type;
+        typedef typename super::value_type value_type;
         typedef typename super::basic_type basic_type;
         static const short_t n_width = sizeof...(StorageExtended) + 1;
 
@@ -277,7 +304,7 @@ namespace gridtools {
             push_front< dimension >(field);
         }
 
-        /**@biref sets the given storage as the nth snapshot of a specific field dimension
+        /**@brief sets the given storage as the nth snapshot of a specific field dimension
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot of dimension field_dim to be set
@@ -292,7 +319,7 @@ namespace gridtools {
             super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot] = field;
         }
 
-        /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
+        /**@brief sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
            with an input constant value
 
            @tparam field_dim the given field dimenisons
@@ -310,7 +337,7 @@ namespace gridtools {
                 (super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot])[i] = val;
         }
 
-        /**@biref sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
+        /**@brief sets the given storage as the nth snapshot of a specific field dimension and initialize the storage
            with an input lambda function
            TODO: this should be merged with the boundary conditions code (repetition)
 
@@ -332,14 +359,13 @@ namespace gridtools {
                                          snapshot])[this->m_meta_data->index(i, j, k)] = lambda(i, j, k);
         }
 
-        /**@biref gets the given storage as the nth snapshot of a specific field dimension
+        /**@brief gets the given storage as the nth snapshot of a specific field dimension
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot of dimension field_dim to be set
         */
         template < short_t snapshot = 0, short_t field_dim = 0 >
         pointer_type &get() {
-
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
@@ -354,7 +380,6 @@ namespace gridtools {
 
         template < short_t snapshot = 0, short_t field_dim = 0 >
         pointer_type const &get() const {
-
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
@@ -367,7 +392,7 @@ namespace gridtools {
             return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
         }
 
-        /**@biref gets a given value at the given field i,j,k coordinates
+        /**@brief gets a given value at the given field i,j,k coordinates
 
            @tparam field_dim the given field dimenisons
            @tparam snapshot the snapshot (relative to the dimension field_dim) to be acessed
@@ -381,10 +406,11 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
-            return get< snapshot, field_dim >()[this->m_meta_data->index(args...)];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
+                                   snapshot][this->m_meta_data->index(args...)];
         }
 
-        /**@biref gets a given value at the given field i,j,k coordinates
+        /**@brief gets a given value at the given field i,j,k coordinates
 
            same as the previous one, but returning a constant reference
         */
@@ -394,7 +420,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field_dimension out of bound");
-            return get< snapshot, field_dim >()[this->m_meta_data->index(args...)];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
+                                   snapshot][this->m_meta_data->index(args...)];
         }
     };
 
