@@ -8,8 +8,6 @@ using namespace gridtools;
 using namespace gdl;
 using namespace gdl::enumtype;
 
-typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
-
 constexpr unsigned int dof_per_dim_0(4);
 constexpr unsigned int dof_per_dim_1(4);
 constexpr unsigned int dof_per_dim_2(4);
@@ -42,19 +40,19 @@ int main() {
 
     //![storages]
     // Problem matrix
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<5> >;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<5> >;// or 3,4
     using matrix_type=storage_t< matrix_storage_info_t >;
     matrix_storage_info_t A_(d1,d2,d3,d4,d4);
     matrix_type A(A_, 0.e0, "A");// This is the unassembled problem matrix
 
     // RHS vector
-    using rhs_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;
+    using rhs_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;// or 3
     using rhs_vector_type=storage_t< rhs_vector_storage_info_t >;
     rhs_vector_storage_info_t b_(d1,d2,d3,d4);
     rhs_vector_type b(b_, 0.e0, "b");// This is the unassembled right hand side vector
 
     // Unknowns vector
-    using unk_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;
+    using unk_vector_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;// or 3
     using unk_vector_type = storage<assemble_storage< unk_vector_storage_info_t, dof_per_dim_0, dof_per_dim_1, dof_per_dim_2> >;
     unk_vector_storage_info_t x_(d1,d2,d3,d4);
     unk_vector_type x(x_, 0.e0, "x");// This is the assembled unknowns vector

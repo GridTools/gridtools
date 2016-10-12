@@ -10,6 +10,10 @@ add_executable( cg_linear_solver cg_linear_solver.cpp )
 set_target_properties( cg_linear_solver PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
 target_link_libraries( cg_linear_solver ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS} ${INTREPID_LIB}  ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} )
 
+add_executable( test_matvec test_matvec.cpp )
+set_target_properties( test_matvec PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
+target_link_libraries( test_matvec ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS} ${INTREPID_LIB}  ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} )
+
 cuda_add_executable( test_interpolation_cuda interpolation.cu )
 set_target_properties( test_interpolation_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
 target_link_libraries( test_interpolation_cuda ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB}  ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES}  ${LAPACK_LIBRARIES} ${BLAS_LIBS} )

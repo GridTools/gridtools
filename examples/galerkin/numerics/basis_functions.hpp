@@ -18,12 +18,12 @@ namespace gdl{
 
 //! [storage definition]
 #ifdef CUDA_EXAMPLE
-#define BACKEND gt::backend<gt::enumtype::Cuda, GRIDBACKEND, gt::enumtype::Block >
+#define BACKEND ::gdl::gt::backend<::gdl::gt::enumtype::Cuda, ::gdl::gt::GRIDBACKEND, ::gdl::gt::enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND gt::backend<gt::enumtype::Host, GRIDBACKEND, gt::enumtype::Block >
+#define BACKEND ::gdl::gt::backend<::gdl::gt::enumtype::Host, ::gdl::gt::GRIDBACKEND, ::gdl::gt::enumtype::Block >
 #else
-#define BACKEND gt::backend<gt::enumtype::Host, GRIDBACKEND, gt::enumtype::Naive >
+#define BACKEND ::gdl::gt::backend<::gdl::gt::enumtype::Host, ::gdl::gt::GRIDBACKEND, ::gdl::gt::enumtype::Naive >
 #endif
 #endif
 

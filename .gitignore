@@ -48,3 +48,6 @@ unit_tests/cmake_install.cmake
 !mainpage.dox
 !Vagrant_bootstrap.sh
 !Vagrantfile
+
+# Eclipse files
+*.ptp-sync-folder

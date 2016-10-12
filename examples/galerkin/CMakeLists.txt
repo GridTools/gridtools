@@ -89,7 +89,7 @@ endif(ENABLE_INTREPID)
 ######################################################################
 
 ######################## add the example executables #############
-list( APPEND EXAMPLES stiffness mass mass_2D mass_IGA dg_flux gather dg_advection legendre)
+list( APPEND EXAMPLES stiffness mass mass_2D mass_IGA dg_flux gather dg_advection legendre linear_solver)
 foreach(example IN LISTS EXAMPLES)
 add_executable( ${example} examples/${example}.cpp )
 set_target_properties( ${example} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )

@@ -15,7 +15,7 @@ int main(){
     using namespace enumtype;
     using namespace gridtools;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;// OR 3?
     using matrix_type=storage_t< matrix_storage_info_t >;
 
     using geo_map=reference_element<1, Lagrange, Hexa>;
@@ -34,7 +34,8 @@ int main(){
     //![instantiation_stiffness]
     //defining the stiffness matrix: d1xd2xd3 elements
     matrix_storage_info_t meta_in_(d1,d2,d3,geo_map::basisCardinality);
-    matrix_storage_info_t meta_out_(d1,d2,d3,geo_t::bd_geo_map::basisCardinality*4);
+    //    matrix_storage_info_t meta_out_(d1,d2,d3,geo_t::bd_geo_map::basisCardinality*4);
+    matrix_storage_info_t meta_out_(d1,d2,d3,geo_map::basisCardinality);
     matrix_type in_(meta_in_, 1., "in");
     matrix_type out_(meta_out_, 0., "out");
     for (int i=0; i<d1; ++i)
@@ -43,6 +44,7 @@ int main(){
             {
                 for (int basis_=0; basis_<geo_map::basisCardinality; ++basis_)
                 {
+		  in_(i,j,k,basis_) = i+j*10+k*100
                     out_(i,j,k,basis_) = i+j*10+k*100;
                 }
             }

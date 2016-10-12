@@ -180,15 +180,15 @@ namespace intrepid{
                 	for (uint_t q=0; q<cub::numCubPoints(); ++q)
                             for (uint_t j=0; j<fe::space_dim(); ++j)
                                 (*m_grad_at_cub_points_s)(m_permutations[i],q,j)=grad_at_cub_points_i(i,q,j);
-
-                // for (uint_t q=0; q<cub::numCubPoints(); ++q)
-                //     for (uint_t j=0; j<fe::spaceDim; ++j)
-                //     {
-                //         (*m_grad_at_cub_points_s)(2,q,j)=grad_at_cub_points_i(3,q,j);
-                //         (*m_grad_at_cub_points_s)(3,q,j)=grad_at_cub_points_i(2,q,j);
-                //         (*m_grad_at_cub_points_s)(6,q,j)=grad_at_cub_points_i(7,q,j);
-                //         (*m_grad_at_cub_points_s)(7,q,j)=grad_at_cub_points_i(6,q,j);
-                //     }
+		
+                for (uint_t q=0; q<cub::numCubPoints(); ++q)
+		  for (uint_t j=0; j<fe::spaceDim; ++j)
+                    {
+		      (*m_grad_at_cub_points_s)(2,q,j)=grad_at_cub_points_i(3,q,j);
+		      (*m_grad_at_cub_points_s)(3,q,j)=grad_at_cub_points_i(2,q,j);
+		      (*m_grad_at_cub_points_s)(6,q,j)=grad_at_cub_points_i(7,q,j);
+		      (*m_grad_at_cub_points_s)(7,q,j)=grad_at_cub_points_i(6,q,j);
+		    }
 
                 break;
             }

@@ -2,6 +2,24 @@ namespace gdl{
 namespace functors{
 
     // [counter transformation]
+
+  //    template<typename Function>
+  //    struct evaluate {
+  //
+  //          using phi   =gt::accessor<0, enumtype::in   , gt::extent<> , 3> const;
+  //          using weights  =gt::accessor<1, enumtype::in, gt::extent<> , 3> ;
+  //          using jac_det  =gt::accessor<2, enumtype::in, gt::extent<> , 4> ;
+  //          using grid_points  =gt::accessor<3, enumtype::in, gt::extent<> , 5> ;
+  //          using out   =gt::accessor<4, enumtype::inout, gt::extent<> , 4> ;
+  //
+  //          using arg_list=boost::mpl::vector< phi, weights, jac_det, grid_points, out > ;
+  //
+  //          template <typename Evaluation>
+  //          GT_FUNCTION
+  //          static void Do(Evaluation const & eval, x_interval) {
+  //          }
+  //      };
+
     struct evaluate {
 
         using phi   =gt::accessor<0, enumtype::in   , gt::extent<> , 3> const;

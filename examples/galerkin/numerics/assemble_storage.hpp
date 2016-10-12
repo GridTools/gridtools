@@ -448,11 +448,36 @@ namespace gdl {
             ushort_t j2;
             ushort_t k2;
 
+            // TODO: check the following if and return
             if(m_local_dof.apply(i_Id1,i_Jd1,i_Kd1,i_Id2,i_Jd2,i_Kd2,I1,J1,K1,i1,j1,k1,I2,J2,K2,i2,j2,k2))
                 return base_storage_type::operator()(I1,J1,K1,m_indexing.index(i1,j1,k1),m_indexing.index(i2,j2,k2));
 
             return 0;
         }
+
+        float_type& set_value(ushort_t i_Id1, ushort_t i_Jd1, ushort_t i_Kd1, ushort_t i_Id2, ushort_t i_Jd2, ushort_t i_Kd2) //const
+        {
+            ushort_t I1;
+            ushort_t J1;
+            ushort_t K1;
+            ushort_t i1;
+            ushort_t j1;
+            ushort_t k1;
+            ushort_t I2;
+            ushort_t J2;
+            ushort_t K2;
+            ushort_t i2;
+            ushort_t j2;
+            ushort_t k2;
+
+//            // TODO: check the following if and return
+//            if(m_local_dof.apply(i_Id1,i_Jd1,i_Kd1,i_Id2,i_Jd2,i_Kd2,I1,J1,K1,i1,j1,k1,I2,J2,K2,i2,j2,k2))
+            m_local_dof.apply(i_Id1,i_Jd1,i_Kd1,i_Id2,i_Jd2,i_Kd2,I1,J1,K1,i1,j1,k1,I2,J2,K2,i2,j2,k2);
+            return base_storage_type::operator()(I1,J1,K1,m_indexing.index(i1,j1,k1),m_indexing.index(i2,j2,k2));
+
+//            return 0;
+        }
+
 
         // TODO: unify with case above and add dimensional checks
         float_type get_value(ushort_t i_Id1, ushort_t i_Jd1, ushort_t i_Kd1) //const
@@ -482,12 +507,11 @@ namespace gdl {
             ushort_t j1;
             ushort_t k1;
 
-//            std::cout<<"get value "<<i_Id1<<" "<<i_Jd1<<" "<<i_Kd1<<std::endl;
+            //            std::cout<<"get value "<<i_Id1<<" "<<i_Jd1<<" "<<i_Kd1<<std::endl;
 
-            if(m_local_dof.apply(i_Id1,i_Jd1,i_Kd1,I1,J1,K1,i1,j1,k1))
-                return base_storage_type::operator()(I1,J1,K1,m_indexing.index(i1,j1,k1));
+            m_local_dof.apply(i_Id1,i_Jd1,i_Kd1,I1,J1,K1,i1,j1,k1);
+            return base_storage_type::operator()(I1,J1,K1,m_indexing.index(i1,j1,k1));
 
-            return 0;
         }
 
         /**
@@ -502,16 +526,31 @@ namespace gdl {
         float_type get_value(uint_t i_I, uint_t i_J) //const
         {
 
-            const ushort_t k1 = i_I/(s_max_dof_1*s_max_dof_2);
-            const ushort_t k2 = i_J/(s_max_dof_1*s_max_dof_2);
+            const ushort_t k1 = i_I/((s_max_dof_1+1)*(s_max_dof_2+1));
+            const ushort_t k2 = i_J/((s_max_dof_1+1)*(s_max_dof_2+1));
 
-            const ushort_t j1 = (i_I%(s_max_dof_1*s_max_dof_2))/s_max_dof_1;
-            const ushort_t j2 = (i_J%(s_max_dof_1*s_max_dof_2))/s_max_dof_1;
+            const ushort_t j1 = (i_I%((s_max_dof_1+1)*(s_max_dof_2+1)))/(s_max_dof_1+1);
+            const ushort_t j2 = (i_J%((s_max_dof_1+1)*(s_max_dof_2+1)))/(s_max_dof_1+1);
 
-            const ushort_t i1 = (i_I%(s_max_dof_1*s_max_dof_2))%s_max_dof_1;
-            const ushort_t i2 = (i_J%(s_max_dof_1*s_max_dof_2))%s_max_dof_1;
+            const ushort_t i1 = (i_I%((s_max_dof_1+1)*(s_max_dof_2+1)))%(s_max_dof_1+1);
+            const ushort_t i2 = (i_J%((s_max_dof_1+1)*(s_max_dof_2+1)))%(s_max_dof_1+1);
 
             return get_value(i1, j1, k1, i2, j2, k2);
+        }
+
+        float_type& set_value(uint_t i_I, uint_t i_J) //const
+        {
+
+            const ushort_t k1 = i_I/((s_max_dof_1+1)*(s_max_dof_2+1));
+            const ushort_t k2 = i_J/((s_max_dof_1+1)*(s_max_dof_2+1));
+
+            const ushort_t j1 = (i_I%((s_max_dof_1+1)*(s_max_dof_2+1)))/(s_max_dof_1+1);
+            const ushort_t j2 = (i_J%((s_max_dof_1+1)*(s_max_dof_2+1)))/(s_max_dof_1+1);
+
+            const ushort_t i1 = (i_I%((s_max_dof_1+1)*(s_max_dof_2+1)))%(s_max_dof_1+1);
+            const ushort_t i2 = (i_J%((s_max_dof_1+1)*(s_max_dof_2+1)))%(s_max_dof_1+1);
+
+            return set_value(i1, j1, k1, i2, j2, k2);
         }
 
         // TODO: unify with case above
@@ -527,6 +566,7 @@ namespace gdl {
             return get_value(i1, j1, k1);
         }
 
+        // TODO: unify with case above
         float_type& set_value(uint_t i_I) //const
         {
 

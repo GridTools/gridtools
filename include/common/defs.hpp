@@ -195,6 +195,7 @@ namespace gridtools {
     template <>
     struct is_backend_enum< enumtype::platform > : boost::mpl::true_ {};
 
+   /*
 #ifdef CXX11_ENABLED
     struct error_no_operator_overload {};
 
@@ -218,7 +219,7 @@ namespace gridtools {
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
     error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {}
 #endif
-
+*/
     template < typename T >
     struct is_execution_engine : boost::mpl::false_ {};
 
