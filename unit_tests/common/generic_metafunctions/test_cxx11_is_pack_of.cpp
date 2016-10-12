@@ -33,38 +33,42 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "accumulate.hpp"
-#include <boost/mpl/placeholders.hpp>
+#include "gtest/gtest.h"
+#include <common/generic_metafunctions/is_pack_of.hpp>
 
-namespace gridtools {
-#ifdef CXX11_ENABLED
+using namespace gridtools;
 
-    /**
-     * SFINAE for the case in which all the components of a parameter pack are of type determined by the predicate
-     * Returns true also if the variadic pack is empty
-     * Example of use:
-     * template<typename ...Args, typename = is_pack_of<is_static_integral, Args...> >
-     * void fn(Args... args) {}
-     */
-    template < template < typename > class Pred, typename... IntTypes >
-    using is_pack_of =
-        typename boost::enable_if_c< ((sizeof...(IntTypes) == 0) ||
-                                         accumulate(logical_and(), true, Pred< IntTypes >::type::value...)),
-            bool >::type;
+template < typename T >
+struct is_int : boost::mpl::false_ {};
+template <>
+struct is_int< int > : boost::mpl::true_ {};
 
-    /**
-    * Same functionality as is_pack_of but with boost::mpl::placeholders for traits with more than one argument, e.g.
-    * is_same, is_convertible.
-    * The following versions are equivalent:
-    * is_pack_of<is_int, ...> and is_pack_of_with_placeholder<is_int<boost::mpl::_>, ...>
-    */
-    template < typename Pred, typename... IntTypes >
-    using is_pack_of_with_placeholder =
-        typename boost::enable_if_c< ((sizeof...(IntTypes) == 0) ||
-                                         accumulate(
-                                             logical_and(), true, boost::mpl::apply< Pred, IntTypes >::type::value...)),
-            bool >::type;
-
-#endif
+template < typename... Int, typename = is_pack_of< is_int, Int... > >
+GT_FUNCTION constexpr int test_fn(Int...) {
+    return 1;
 }
+
+GT_FUNCTION
+constexpr int test_fn(double, double) { return 2; }
+
+TEST(is_offset_of, int) { GRIDTOOLS_STATIC_ASSERT((test_fn(int(3), int(4)) == 1), "ERROR"); }
+
+TEST(is_offset_of, empty) { GRIDTOOLS_STATIC_ASSERT((test_fn() == 1), "ERROR"); }
+
+TEST(is_offset_of, long) { GRIDTOOLS_STATIC_ASSERT((test_fn(long(3), int(4)) == 2), "ERROR"); }
+
+template < typename... Ts, typename = is_pack_of_with_placeholder< std::is_same< int, boost::mpl::_ >, Ts... > >
+GT_FUNCTION constexpr int test_is_same_as_int(Ts...) {
+    return 1;
+}
+
+GT_FUNCTION
+constexpr int test_is_same_as_int(double, double) { return 2; }
+
+TEST(is_pack_of_with_placeholder, int_is_same_as_int) {
+    GRIDTOOLS_STATIC_ASSERT((test_is_same_as_int(int(), int()) == 1), "ERROR");
+}
+TEST(is_pack_of_with_placeholder, unsigned_int_is_not_same_as_int) {
+    GRIDTOOLS_STATIC_ASSERT((test_is_same_as_int(uint_t(), int()) == 2), "ERROR");
+}
+TEST(is_pack_of_with_placeholder, empty_is_accepted) { GRIDTOOLS_STATIC_ASSERT((test_is_same_as_int() == 1), "ERROR"); }
