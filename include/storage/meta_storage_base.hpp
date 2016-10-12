@@ -1,17 +1,37 @@
 /*
-   Copyright 2016 GridTools Consortium
+  GridTools Libraries
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
 
-       http://www.apache.org/licenses/LICENSE-2.0
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
 
@@ -194,9 +214,8 @@ namespace gridtools {
                     typename boost::mpl::at_c< boost::mpl::vector< IntTypes... >, 0 >::type >::type::value,
                 bool >::type >
         GT_FUNCTION constexpr meta_storage_base(IntTypes... dims_)
-            :
-            m_dims {(uint_t) dims_ ...}
-        , m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
+            : m_dims{(uint_t)dims_...},
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments smaller than its number of dimensions. \
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
@@ -227,10 +246,8 @@ namespace gridtools {
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
  a \"1\" on the dimension you want to kill. Otherwise you can use a proper lower dimensional storage\
  by defining the storage type using another layout_map.");
-                GRIDTOOLS_STATIC_ASSERT(
-                     is_variadic_pack_of(boost::is_integral<IntTypes>::type::value...),
-                     "Error: Dimensions of metastorage must be specified as integer types. "
-                );
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(boost::is_integral< IntTypes >::type::value...),
+                "Error: Dimensions of metastorage must be specified as integer types. ");
         }
 
 #else  //__CUDACC__
@@ -253,9 +270,10 @@ namespace gridtools {
                 "Error: Dimensions of metastorage must be specified as integer types. ");
         }
 #endif //__CUDACC__
-#else // CXX11_ENABLED
+#else  // CXX11_ENABLED
         // TODO This is a bug, we should generate a constructor for array of dimensions space_dimensions
-        GRIDTOOLS_STATIC_ASSERT((space_dimensions == 3), "multidimensional storages are available only when C++11 is ON");
+        GRIDTOOLS_STATIC_ASSERT(
+            (space_dimensions == 3), "multidimensional storages are available only when C++11 is ON");
         GT_FUNCTION
         meta_storage_base(array< uint_t, 3 > const &a) : m_dims(a) {
             m_strides[0] = (((layout::template at_< 0 >::value < 0) ? 1 : m_dims[0]) *
@@ -466,14 +484,14 @@ namespace gridtools {
            This method returns signed integers of type int_t (used e.g. in iterate_domain)
         */
 
-        template < typename Offset, typename StridesVector >
+        template < typename StridesVector, typename Offset >
         GT_FUNCTION static constexpr int_t _index(StridesVector const &RESTRICT strides_,
             Offset const &offset,
             typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
             return _impl::compute_offset< space_dimensions, layout >::apply(strides_, offset);
         }
 
-        template < typename LayoutT, typename StridesVector >
+        template < typename StridesVector, typename LayoutT >
         GT_FUNCTION static constexpr int_t _index(
             StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
             return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);

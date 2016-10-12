@@ -1,17 +1,37 @@
 /*
-   Copyright 2016 GridTools Consortium
+  GridTools Libraries
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
 
-       http://www.apache.org/licenses/LICENSE-2.0
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
 
@@ -93,13 +113,13 @@ namespace assembly {
         using quad = dimension< 4 >;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            dimension< 1 >::Index i;
-            dimension< 2 >::Index j;
-            dimension< 3 >::Index k;
-            dimension< 4 >::Index di;
-            dimension< 5 >::Index dj;
-            dimension< 6 >::Index dk;
-            quad::Index qp;
+            dimension< 1 > i;
+            dimension< 2 > j;
+            dimension< 3 > k;
+            dimension< 4 > di;
+            dimension< 5 > dj;
+            dimension< 6 > dk;
+            quad qp;
             // projection of f on a (e.g.) P1 FE space:
             // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
@@ -107,21 +127,25 @@ namespace assembly {
                 for (short_t J = 0; J < 2; ++J)
                     for (short_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
-                        assert(eval(result{di + I, dj + J, dk + K}) == 0.);
+                        assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
-                            eval(result{di + I, dj + J, dk + K}) +=
-                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{qp + q} * jac{qp + q} * f{} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, qp + q} * jac{qp + q} * f{di + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, qp + q} * jac{qp + q} * f{dj + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, qp + q} * jac{qp + q} * f{dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, qp + q} * jac{qp + q} *
-                                         f{di + 1, dj + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, k + 1, qp + q} * jac{qp + q} *
-                                         f{di + 1, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, k + 1, qp + q} * jac{qp + q} *
-                                         f{dj + 1, dk + 1} +
+                            eval(result{di + I, dj + J, dk + K, qp}) +=
+                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i, j, k, qp + q} * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di, dj, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, j, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, j, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, k, k, di, dj, dk + 1} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k + 1, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk + 1} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i, j + 1, k + 1, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk + 1} +
                                      !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k + 1, qp + q} *
-                                         jac{qp + q} * f{di + 1, dj + 1, dk + 1}) /
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk + 1}) /
                                 8;
                         }
                     }

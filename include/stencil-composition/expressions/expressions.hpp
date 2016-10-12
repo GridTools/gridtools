@@ -37,18 +37,18 @@ namespace gridtools {
             return gt_pow< Exponent >::apply(arg1);
         }
 
-        /**
-           Expressions defining the interface for specifiyng a given offset for a specified dimension
-           \tparam Left: argument of type dimension<>::Index, specifying the offset in the given direction
+        /**Expressions defining the interface for specifiyng a given offset for a specified dimension
+           \tparam Coordinate: direction in which to apply the offset
+           \param offset: the offset to be applied in the Coordinate direction
         */
-        template < typename Left >
-        GT_FUNCTION constexpr typename Left::super operator+(Left d1, int const &offset) {
-            return typename Left::super(offset);
+        template < ushort_t Coordinate >
+        GT_FUNCTION constexpr dimension< Coordinate > operator+(dimension< Coordinate > d1, int const &offset) {
+            return dimension< Coordinate >(offset);
         }
 
-        template < typename Left >
-        GT_FUNCTION constexpr typename Left::super operator-(Left d1, int const &offset) {
-            return typename Left::super(-offset);
+        template < ushort_t Coordinate >
+        GT_FUNCTION constexpr dimension< Coordinate > operator-(dimension< Coordinate > d1, int const &offset) {
+            return dimension< Coordinate >(-offset);
         }
 
     } // namespace expressions
