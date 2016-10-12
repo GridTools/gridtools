@@ -37,7 +37,7 @@
 #include "storage/partitioner.hpp"
 #include "stencil-composition/axis.hpp"
 #ifdef CXX11_ENABLED
-#include "../../common/generic_metafunctions/is_variadic_pack_of.hpp"
+#include "../../common/generic_metafunctions/is_pack_of.hpp"
 #endif
 
 namespace gridtools {
@@ -55,8 +55,8 @@ namespace gridtools {
         array< uint_t, size_type::value > value_list;
 
         GT_FUNCTION grid(const grid< Axis, Partitioner > &other)
-            : m_partitioner(other.partitioner()), m_direction_i(other.direction_i()),
-              m_direction_j(other.direction_j()) {
+            : m_partitioner(other.m_partitioner), m_direction_i(other.m_direction_i),
+              m_direction_j(other.m_direction_j) {
             value_list = other.value_list;
         }
 
@@ -171,10 +171,9 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
     template < typename... IntTypes,
-        typename = typename std::enable_if< is_variadic_pack_of(
-            std::is_convertible< IntTypes, uint_t >::type::value...) >::type >
+        typename = is_pack_of_with_placeholder< std::is_convertible< uint_t, boost::mpl::_ >, IntTypes... > >
     GT_FUNCTION array< uint_t, sizeof...(IntTypes) > make_k_levels(IntTypes... values) {
-        return array< uint_t, sizeof...(IntTypes) >(values...);
+        return array< uint_t, sizeof...(IntTypes) >{values...};
     }
 #endif
 }

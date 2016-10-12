@@ -82,7 +82,13 @@ TEST_F(structure_grids_grid, copy_constructable_device_ptrs_differ) {
 #endif
 
 TEST_F(structure_grids_grid, copy_constructor_with_array) {
+#ifdef CXX11_ENABLED
+    gridtools::array< gridtools::uint_t, 2 > k_levels{(gridtools::uint_t)0, (gridtools::uint_t)(size_k - 1)};
+#else
+    // TODO we should have the same ctors available in c++03 and c++11 but changing it clashes with c-style
+    // initialization in other code
     gridtools::array< gridtools::uint_t, 2 > k_levels((gridtools::uint_t)0, (gridtools::uint_t)(size_k - 1));
+#endif
     gridtools::grid< axis > grid_copy(di, dj, k_levels);
 
     ASSERT_GRID_EQ(grid_orig, grid_copy);
