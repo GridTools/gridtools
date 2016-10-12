@@ -1,17 +1,37 @@
 /*
-   Copyright 2016 GridTools Consortium
+  GridTools Libraries
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
 
-       http://www.apache.org/licenses/LICENSE-2.0
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
 
@@ -61,9 +81,16 @@ namespace gridtools {
         struct function_aggregator {
 
             GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+                (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
+                "The first argument must be an iterate_domain or a function_aggregator");
+
             CallerAggregator const &m_caller_aggregator;
             ReturnType *__restrict__ m_result;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             function_aggregator(CallerAggregator const &caller_aggregator, ReturnType &result)
@@ -150,12 +177,18 @@ namespace gridtools {
             int OutArg >
         struct function_aggregator_offsets {
             GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+                (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
+                "The first argument must be an iterate_domain or a function_aggregator");
 
             typedef typename boost::fusion::result_of::as_vector< PassedAccessors >::type accessors_list_t;
             CallerAggregator const &m_caller_aggregator;
             ReturnType *__restrict__ m_result;
             accessors_list_t const &m_accessors_list;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             constexpr function_aggregator_offsets(
@@ -251,8 +284,10 @@ namespace gridtools {
         GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with_offsets(
             Evaluator const &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+
             GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
@@ -279,8 +314,10 @@ namespace gridtools {
         GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(
             Evaluator const &eval, Args const &...) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+
             GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
@@ -327,7 +364,8 @@ namespace gridtools {
         struct function_aggregator_procedure_offsets {
 
             GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+                (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
+                "The first argument must be an iterate_domain or a function_aggregator");
 
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments
@@ -344,6 +382,11 @@ namespace gridtools {
 
             CallerAggregator const &m_caller_aggregator;
             accessors_list_t const &m_accessors_list;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             constexpr function_aggregator_procedure_offsets(
@@ -401,7 +444,8 @@ namespace gridtools {
         struct function_aggregator_procedure {
 
             GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+                (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
+                "The first argument must be an iterate_domain or a function_aggregator");
 
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments
@@ -416,6 +460,11 @@ namespace gridtools {
 
             CallerAggregator const &m_caller_aggregator;
             accessors_list_t const &m_accessors_list;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             function_aggregator_procedure(CallerAggregator const &caller_aggregator, accessors_list_t const &list)
@@ -490,7 +539,8 @@ namespace gridtools {
         template < typename Evaluator, typename... Args >
         GT_FUNCTION static void with(Evaluator const &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::function_aggregator_procedure< Evaluator,
@@ -512,7 +562,8 @@ namespace gridtools {
         template < typename Evaluator, typename... Args >
         GT_FUNCTION static void with_offsets(Evaluator const &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::function_aggregator_procedure_offsets< Evaluator,

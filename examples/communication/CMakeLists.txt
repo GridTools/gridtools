@@ -1,5 +1,5 @@
 set( OLD_OPTIONS "${CMAKE_CXX_FLAGS}" )
-
+set(CUDA_SEPARABLE_COMPILATION OFF)
 
 ### Executables
 if(GCL_ONLY)
