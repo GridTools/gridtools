@@ -56,7 +56,7 @@ namespace gdl{
             template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
-                gt::dimension<4>::Index row;
+                gt::dimension<4> row;
                 uint_t const num_rows=eval.get().template get_storage_dim<3>(in1());
 
                 // Loop over vector elements
@@ -85,7 +85,7 @@ namespace gdl{
             template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
-                gt::dimension<4>::Index row;
+                gt::dimension<4> row;
                 uint_t const num_rows=eval.get().template get_storage_dim<3>(in1());
 
                 // Loop over vector elements
@@ -107,8 +107,8 @@ namespace gdl{
             template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
-                gt::dimension<4>::Index row;
-                gt::dimension<5>::Index col;
+                gt::dimension<4> row;
+                gt::dimension<5> col;
                 uint_t const num_rows=eval.get().template get_storage_dim<3>(in1());
                 uint_t const num_cols=eval.get().template get_storage_dim<4>(in1());
 
@@ -135,8 +135,8 @@ namespace gdl{
             template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
-                gt::dimension<4>::Index row;
-                gt::dimension<5>::Index col;
+                gt::dimension<4> row;
+                gt::dimension<5> col;
                 uint_t const cardinality_i=eval.get().template get_storage_dim<3>(in2());
                 uint_t const cardinality_j=eval.get().template get_storage_dim<4>(in2());
 
@@ -163,9 +163,9 @@ namespace gdl{
             template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
-                gt::dimension<4>::Index row;
-                gt::dimension<5>::Index col;
-                gt::dimension<6>::Index face;
+                gt::dimension<4> row;
+                gt::dimension<5> col;
+                gt::dimension<6> face;
 
                 uint_t const cardinality_i=eval.get().template get_storage_dim<3>(in2());
                 uint_t const cardinality_j=eval.get().template get_storage_dim<4>(in2());
@@ -194,9 +194,9 @@ namespace gdl{
             template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
-                gt::dimension<4>::Index row;
-                gt::dimension<5>::Index col;
-                gt::dimension<6>::Index face;
+                gt::dimension<4> row;
+                gt::dimension<5> col;
+                gt::dimension<6> face;
 
                 uint_t const cardinality_i=eval.get().template get_storage_dim<3>(in2());
                 uint_t const cardinality_j=eval.get().template get_storage_dim<4>(in2());

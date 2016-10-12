@@ -42,6 +42,22 @@ if(ENABLE_INTREPID)
     message("teuchos found in " ${TEUCHOS_LIB})
     find_library( TEUCHOS_NUMERICS_LIB teuchosnumerics ${INTREPID_LIB_DIR})
     message("teuchos numerics found in " ${TEUCHOS_NUMERICS_LIB})
+
+    find_library( TEUCHOS_KOKKOS_COMM_LIB teuchoskokkoscomm ${INTREPID_LIB_DIR})
+    message("teuchos kokkos comms found in " ${TEUCHOS_KOKKOS_COMM_LIB})
+
+    find_library( TEUCHOS_KOKKOS_COMPAT_LIB teuchoskokkoscompat ${INTREPID_LIB_DIR})
+    message("teuchos kokkos compat found in " ${TEUCHOS_KOKKOS_COMPAT_LIB})
+
+    find_library( TEUCHOS_PARAMETER_LIST_LIB teuchosparameterlist ${INTREPID_LIB_DIR})
+    message("teuchos parameter list found in " ${TEUCHOS_PARAMETER_LIST_LIB})
+
+    find_library( TEUCHOS_REMAINDER_LIB teuchosremainder ${INTREPID_LIB_DIR})
+    message("teuchos remainder found in " ${TEUCHOS_REMAINDER_LIB})
+
+    find_library( TEUCHOS_COMM_LIB teuchoscomm ${INTREPID_LIB_DIR})
+    message("teuchos numerics found in " ${TEUCHOS_COMM_LIB})
+
     find_library( SHARDS_LIB shards ${INTREPID_LIB_DIR})
     message("shards found in " ${SHARDS_LIB})
 
@@ -92,14 +108,14 @@ endif(ENABLE_INTREPID)
 list( APPEND EXAMPLES stiffness mass mass_2D mass_IGA dg_flux gather dg_advection legendre linear_solver)
 foreach(example IN LISTS EXAMPLES)
 add_executable( ${example} examples/${example}.cpp )
-set_target_properties( ${example} PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
+set_target_properties( ${example} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} )
 target_link_libraries( ${example} ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB}  ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES}  ${LAPACK_LIBRARIES} ${BLAS_LIBS} )
 endforeach(example)
 ##################################################################
 
 #TODO: remove this test?
 add_executable( legendre2 examples/legendre/legendre.cpp examples/legendre/main.cpp examples/legendre/mesh.cpp examples/legendre/compute_jacobian.cpp examples/legendre/compute_assembly.cpp)
-set_target_properties( legendre2 PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS} )
+set_target_properties( legendre2 PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} )
 target_link_libraries( legendre2 ${exe_LIBS}  ${INTREPID_LIB} ${SHARDS_LIB}  ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS})
 
 if(CUDA_FOUND)
