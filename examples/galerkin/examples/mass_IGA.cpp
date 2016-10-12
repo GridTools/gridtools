@@ -29,7 +29,7 @@ namespace functors{
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
                 //quadrature points dimension
-                dimension<4>::Index qp;
+                dimension<4> qp;
                 uint_t const num_cub_points=eval.template get_storage_dim<3>(jac_det());
                 uint_t const basis_cardinality=eval.template get_storage_dim<0>(psi());
 

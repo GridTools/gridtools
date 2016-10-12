@@ -43,7 +43,7 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index I;
+            gt::dimension<4> I;
 
             uint_t const n_dofs=eval.template get_storage_dim<3>(rhs());
 
@@ -61,7 +61,7 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-        gt::dimension<4>::Index I;
+        gt::dimension<4> I;
 
         //assign the points on face 3 (x=0)
         //TODO hardcoded

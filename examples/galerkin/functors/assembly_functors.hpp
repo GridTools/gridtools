@@ -28,12 +28,12 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index qp;
-            gt::dimension<5>::Index dimx;
-            gt::dimension<6>::Index dimy;
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
+            gt::dimension<4> qp;
+            gt::dimension<5> dimx;
+            gt::dimension<6> dimy;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
 
             uint_t const num_cub_points=eval.get().template get_storage_dim<1>(dphi());
             uint_t const basis_cardinality=eval.get().template get_storage_dim<0>(dphi());
@@ -79,9 +79,9 @@ namespace gdl{
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
 
-                gt::dimension<4>::Index qp;
-                gt::dimension<5>::Index dimx;
-                gt::dimension<6>::Index dimy;
+                gt::dimension<4> qp;
+                gt::dimension<5> dimx;
+                gt::dimension<6> dimy;
                 uint_t const num_cub_points=eval.get().template get_storage_dim<3>(jac());
 
 #ifdef __CUDACC__
@@ -106,7 +106,7 @@ namespace gdl{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void DoCompute(Evaluation const & eval, const gt::dimension<4>::Index& i_qp, const gt::dimension<5>::Index& i_dimx, const gt::dimension<6>::Index& i_dimy, const short_t i_q) {
+        static void DoCompute(Evaluation const & eval, const gt::dimension<4>& i_qp, const gt::dimension<5>::Index& i_dimx, const gt::dimension<6>::Index& i_dimy, const short_t i_q) {
 	  eval( jacobian_det(i_qp+i_q) )= eval((
 				jacobian(        i_qp+i_q)*jacobian(i_dimx+1, i_dimy+1, i_qp+i_q)*jacobian(i_dimx+2, i_dimy+2, i_qp+i_q) +
 				jacobian(i_dimx+1, i_qp+i_q)*jacobian(i_dimx+2, i_dimy+1, i_qp+i_q)*jacobian(i_dimy+2,         i_qp+i_q) +
@@ -128,7 +128,7 @@ namespace gdl{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void DoCompute(Evaluation const & eval, const gt::dimension<4>::Index& i_qp, const gt::dimension<5>::Index& i_dimx, const gt::dimension<6>::Index& i_dimy, const short_t i_q) {
+        static void DoCompute(Evaluation const & eval, const gt::dimension<4>& i_qp, const gt::dimension<5>::Index& i_dimx, const gt::dimension<6>::Index& i_dimy, const short_t i_q) {
             eval( jacobian_det(i_qp+i_q) )= eval((
 		     jacobian(        i_qp+i_q)*jacobian(i_dimx+1, i_dimy+1, i_qp+i_q) -
 		     jacobian(i_dimx+1, i_qp+i_q)*jacobian(i_dimy+1, i_qp+i_q)));
@@ -177,11 +177,11 @@ namespace gdl{
         GT_FUNCTION
         static void DoCompute(Evaluation const & eval) {
 
-            gt::dimension<4>::Index qp;
+            gt::dimension<4> qp;
             using dimx=gt::dimension<5>;
             using dimy=gt::dimension<6>;
-            dimx::Index X;
-            dimy::Index Y;
+            dimx X;
+            dimy Y;
             uint_t const num_cub_points=eval.get().template get_storage_dim<3>(jac());
 
             typedef typename Geometry::cub cub;
@@ -263,11 +263,11 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void DoCompute(Evaluation const & eval) {
-            gt::dimension<4>::Index qp;
+            gt::dimension<4> qp;
             using dimx=gt::dimension<5>;
             using dimy=gt::dimension<6>;
-            dimx::Index X;
-            dimy::Index Y;
+            dimx X;
+            dimy Y;
             uint_t const num_cub_points=eval.get().template get_storage_dim<3>(jac());
 
 #ifdef __CUDACC__
@@ -317,11 +317,11 @@ namespace gdl{
         GT_FUNCTION
         static void DoCompute(Evaluation const & eval) {
 
-            gt::dimension<4>::Index qp;
+            gt::dimension<4> qp;
             using dimx=gt::dimension<5>;
             using dimy=gt::dimension<6>;
-            dimx::Index X;
-            dimy::Index Y;
+            dimx X;
+            dimy Y;
             uint_t const num_cub_points=eval.get().template get_storage_dim<3>(jac());
 
 
@@ -368,10 +368,10 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
-            gt::dimension<4>::Index row;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
+            gt::dimension<4> row;
 
 
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
@@ -509,10 +509,10 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
-            gt::dimension<4>::Index row;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
+            gt::dimension<4> row;
 
 
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
@@ -809,11 +809,11 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index k;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index i;
-            gt::dimension<4>::Index dof1;
-            gt::dimension<5>::Index dof2;
+            gt::dimension<1> k;
+            gt::dimension<2> j;
+            gt::dimension<3> i;
+            gt::dimension<4> dof1;
+            gt::dimension<5> dof2;
 
             constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 
@@ -1242,10 +1242,10 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index k;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index i;
-            gt::dimension<4>::Index dof;
+            gt::dimension<1> k;
+            gt::dimension<2> j;
+            gt::dimension<3> i;
+            gt::dimension<4> dof;
 
             constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 
@@ -1316,11 +1316,11 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index k;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index i;
-            gt::dimension<4>::Index dof1;
-            gt::dimension<5>::Index dof2;
+            gt::dimension<1> k;
+            gt::dimension<2> j;
+            gt::dimension<3> i;
+            gt::dimension<4> dof1;
+            gt::dimension<5> dof2;
 
             constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 
@@ -1740,10 +1740,10 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index k;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index i;
-            gt::dimension<4>::Index dof;
+            gt::dimension<1> k;
+            gt::dimension<2> j;
+            gt::dimension<3> i;
+            gt::dimension<4> dof;
 
             constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 
@@ -1836,8 +1836,8 @@ namespace gdl{
 //        static void Do(Evaluation const & eval, x_interval) {
 //
 //
-//            gt::dimension<4>::Index dof1;
-//            gt::dimension<5>::Index dof2;
+//            gt::dimension<4> dof1;
+//            gt::dimension<5> dof2;
 //
 //            constexpr gt::meta_storage_base<__COUNTER__,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 //
@@ -2328,7 +2328,7 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index dof;
+            gt::dimension<4> dof;
 
             for(uint_t i=0; i<N_DOF; i++)
                  eval(out(dof+i)) = eval(in(dof+i));

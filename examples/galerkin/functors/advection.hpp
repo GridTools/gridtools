@@ -31,11 +31,11 @@ namespace functors{
             uint_t const basis_cardinality=eval.template get_storage_dim<0>(psi());
 
             //quadrature points dimension
-            gt::dimension<4>::Index qp;
+            gt::dimension<4> qp;
             //dimension 'i' in the advection matrix
-            gt::dimension<5>::Index dimx;
+            gt::dimension<5> dimx;
             //dimension 'j' in the advection matrix
-            gt::dimension<6>::Index dimy;
+            gt::dimension<6> dimy;
 
 
             double inner_product=0.;

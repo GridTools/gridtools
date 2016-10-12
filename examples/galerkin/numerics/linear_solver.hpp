@@ -751,10 +751,10 @@ namespace gdl {
             gridtools::domain_type<accessor_list> domain(boost::fusion::make_vector(&i_A, &i_b, &b_test, &i_x, &io_x_upd, &err, &scaled_err, &scaled_err_ass, &scaled_err_ass, &omega));
 
 
-            gt::dimension<1>::Index I;
-            gt::dimension<2>::Index J;
-            gt::dimension<3>::Index K;
-            gt::dimension<4>::Index R;
+            gt::dimension<1> I;
+            gt::dimension<2> J;
+            gt::dimension<3> K;
+            gt::dimension<4> R;
 
             auto richardson_iteration=gridtools::make_computation<BACKEND>(domain,
                                                                            mesh_coords,

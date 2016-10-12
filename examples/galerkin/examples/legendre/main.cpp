@@ -17,7 +17,7 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index I;
+            gt::dimension<4> I;
 
             uint_t const n_points=eval.template get_storage_dim<3>(bc());
 

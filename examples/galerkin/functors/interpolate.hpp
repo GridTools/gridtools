@@ -33,7 +33,7 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index dof;
+            gt::dimension<4> dof;
 
             uint_t const num_cub_points=eval.template get_storage_dim<1>(phi());
             uint_t const basis_cardinality=eval.template get_storage_dim<0>(phi());
@@ -71,8 +71,8 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index qp;
-            gt::dimension<5>::Index dimx;
+            gt::dimension<4> qp;
+            gt::dimension<5> dimx;
 
             uint_t const num_cub_points=eval.template get_storage_dim<1>(phi());
             uint_t const basis_cardinality=eval.template get_storage_dim<0>(phi());
@@ -117,8 +117,8 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index qp;
-            gt::dimension<5>::Index dimx;
+            gt::dimension<4> qp;
+            gt::dimension<5> dimx;
 
             uint_t const num_cub_points=eval.template get_storage_dim<1>(phi());
             uint_t const basis_cardinality=eval.template get_storage_dim<0>(phi());
@@ -162,8 +162,8 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index qp;
-            gt::dimension<5>::Index dimx;
+            gt::dimension<4> qp;
+            gt::dimension<5> dimx;
 
             uint_t const num_cub_points=eval.template get_storage_dim<1>(phi());
             uint_t const basis_cardinality=eval.template get_storage_dim<0>(phi());

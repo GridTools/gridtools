@@ -47,9 +47,9 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index quad;
-            gt::dimension<4>::Index dofI;
-            gt::dimension<5>::Index dofJ;
+            gt::dimension<4> quad;
+            gt::dimension<4> dofI;
+            gt::dimension<5> dofJ;
 
             uint_t const num_cub_points=eval.template get_storage_dim<3>(jac_det());
             uint_t const basis_cardinality = eval.template get_storage_dim<3>(phi_trace());

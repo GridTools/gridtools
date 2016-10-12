@@ -22,11 +22,11 @@ namespace functors{
             uint_t const num_cub_points = eval.template get_storage_dim<1>(phi());
             uint_t const basis_cardinality = eval.template get_storage_dim<0>(phi());
 
-            quad::Index qp;
-            gt::dimension<5>::Index dimx;
-            gt::dimension<6>::Index dimy;
-            gt::dimension<4>::Index dof_i;
-            gt::dimension<5>::Index dof_j;
+            quad qp;
+            gt::dimension<5> dimx;
+            gt::dimension<6> dimy;
+            gt::dimension<4> dof_i;
+            gt::dimension<5> dof_j;
             // static int_t dd=fe::hypercube_t::boundary_w_codim<2>::n_points::value;
 
             // printf("cub points: %d\n", num_cub_points);

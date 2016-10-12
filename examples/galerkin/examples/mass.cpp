@@ -44,9 +44,9 @@ int main( int argc, char ** argv){
 #ifdef NDEBUG
     constexpr
 #endif
-    gt::dimension<1>::Index i;
-    gt::dimension<2>::Index j;
-    gt::dimension<4>::Index row;
+    gt::dimension<1> i;
+    gt::dimension<2> j;
+    gt::dimension<4> row;
 
     using as=assembly<geo_t>;
     using as_base=assembly_base<geo_t>;

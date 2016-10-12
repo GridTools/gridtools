@@ -21,10 +21,10 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
-            gt::dimension<4>::Index row;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
+            gt::dimension<4> row;
 
 
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
@@ -85,10 +85,10 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
-            gt::dimension<4>::Index row;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
+            gt::dimension<4> row;
 
             using namespace gt::expressions;
             //hypothesis here: the cardinaxlity is order^3 (isotropic 3D tensor product element)
@@ -159,15 +159,15 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
-            gt::dimension<4>::Index row;
-            gt::dimension<5>::Index face;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
+            gt::dimension<4> row;
+            gt::dimension<5> face;
 
             //definitions for the matrix gt::accessor
-            gt::dimension<5>::Index col;
-            gt::dimension<6>::Index Mface;
+            gt::dimension<5> col;
+            gt::dimension<6> Mface;
 
 
             uint_t const n_dofs=eval.template get_storage_dim<4>(bd_mass_uu());//N_DOFS
@@ -338,15 +338,15 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
-            gt::dimension<4>::Index row;
-            gt::dimension<5>::Index face;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
+            gt::dimension<4> row;
+            gt::dimension<5> face;
 
             //definitions for the matrix gt::accessor
-            gt::dimension<5>::Index col;
-            gt::dimension<6>::Index Mface;
+            gt::dimension<5> col;
+            gt::dimension<6> Mface;
 
 
             uint_t const n_dofs=eval.template get_storage_dim<4>(bd_mass_uu());//N_DOFS

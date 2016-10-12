@@ -70,10 +70,10 @@ namespace gdl{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index k;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index i;
-            gt::dimension<4>::Index dof;
+            gt::dimension<1> k;
+            gt::dimension<2> j;
+            gt::dimension<3> i;
+            gt::dimension<4> dof;
 
             constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 

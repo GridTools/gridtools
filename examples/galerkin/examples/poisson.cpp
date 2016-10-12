@@ -28,7 +28,7 @@ namespace gdl {
             template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
-                gt::dimension<4>::Index row;
+                gt::dimension<4> row;
                 uint_t const num_rows=eval.get().template get_storage_dims<3>(in1());
 
                 // Loop over vector elements
@@ -56,7 +56,7 @@ namespace gdl {
             template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
-                gt::dimension<4>::Index dof;
+                gt::dimension<4> dof;
 
                 constexpr gt::meta_storage_base<static_int<__COUNTER__>,gt::layout_map<2,1,0>,false> indexing{N_DOF0,N_DOF1,N_DOF2};
 

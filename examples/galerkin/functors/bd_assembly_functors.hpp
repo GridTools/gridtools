@@ -27,12 +27,12 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index qp;
-            gt::dimension<5>::Index dimx;
-            gt::dimension<6>::Index dimy;
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
+            gt::dimension<4> qp;
+            gt::dimension<5> dimx;
+            gt::dimension<6> dimy;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
 
             uint_t const num_cub_points=eval.template get_storage_dim<1>(dphi());
             uint_t const basis_cardinality=eval.template get_storage_dim<0>(dphi());
@@ -81,9 +81,9 @@ namespace functors{
     //     template <typename Evaluation>
     //     GT_FUNCTION
     //     static void Do(Evaluation const & eval, x_interval) {
-    //         dimension<4>::Index qp;
-    //         dimension<5>::Index dimx;
-    //         dimension<6>::Index dimy;
+    //         dimension<4> qp;
+    //         dimension<5> dimx;
+    //         dimension<6> dimy;
 
     //         uint_t const num_cub_points=eval.get_storage_dim(jac())[3];
 
@@ -141,9 +141,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index quad;
-            gt::dimension<4>::Index dofI;
-            gt::dimension<5>::Index dofJ;
+            gt::dimension<4> quad;
+            gt::dimension<4> dofI;
+            gt::dimension<5> dofJ;
 
             uint_t const num_cub_points=eval.template get_storage_dim<3>(jac_det());
             uint_t const basis_cardinality = eval.template get_storage_dim<0>(phi_trace());
@@ -205,9 +205,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index quad;
-            gt::dimension<4>::Index dofI;
-            gt::dimension<5>::Index dofJ;
+            gt::dimension<4> quad;
+            gt::dimension<4> dofI;
+            gt::dimension<5> dofJ;
 
             uint_t const num_cub_points=eval.template get_storage_dim<3>(jac_det());
             uint_t const basis_cardinality = eval.template get_storage_dim<0>(phi_trace());
@@ -265,9 +265,9 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<4>::Index qp;
-            gt::dimension<5>::Index dimx;
-            gt::dimension<6>::Index dimy;
+            gt::dimension<4> qp;
+            gt::dimension<5> dimx;
+            gt::dimension<6> dimy;
 
             //HARDCODED
             uint_t const num_faces=eval.template get_storage_dim<4>(jac_det());
@@ -294,8 +294,8 @@ namespace functors{
                 }
 #else
 
-                gt::dimension<7>::Index D7;
-                gt::dimension<5>::Index D5;
+                gt::dimension<7> D7;
+                gt::dimension<5> D5;
 
                 for(short_t q=0; q< num_cub_points; ++q)
                 {
@@ -334,9 +334,9 @@ namespace functors{
     //     template <typename Evaluation>
     //     GT_FUNCTION
     //     static void Do(Evaluation const & eval, x_interval) {
-    //         gt::dimension<4>::Index qp;
-    //         gt::dimension<5>::Index dimx;
-    //         gt::dimension<6>::Index dimy;
+    //         gt::dimension<4> qp;
+    //         gt::dimension<5> dimx;
+    //         gt::dimension<6> dimy;
 
     //         uint_t const num_faces=eval.template get_storage_dim<4>(jac_det());
     //         uint_t const num_cub_points=eval.template get_storage_dim<3>(jac_det());
@@ -391,13 +391,13 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
-            gt::dimension<4>::Index quad;
-            gt::dimension<5>::Index dimI;
-            gt::dimension<6>::Index dimJ;
-            gt::dimension<7>::Index f;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
+            gt::dimension<4> quad;
+            gt::dimension<5> dimI;
+            gt::dimension<6> dimJ;
+            gt::dimension<7> f;
             uint_t const num_cub_points=eval.template get_storage_dim<3>(jac());
             uint_t const num_faces=eval.template get_storage_dim<6>(jac());
 
@@ -441,13 +441,13 @@ namespace functors{
         template <typename Evaluation>
         GT_FUNCTION
         static void Do(Evaluation const & eval, x_interval) {
-            gt::dimension<1>::Index i;
-            gt::dimension<2>::Index j;
-            gt::dimension<3>::Index k;
-            gt::dimension<4>::Index quad;
-            gt::dimension<4>::Index dimI;
-            gt::dimension<5>::Index sdim;
-            gt::dimension<6>::Index f;
+            gt::dimension<1> i;
+            gt::dimension<2> j;
+            gt::dimension<3> k;
+            gt::dimension<4> quad;
+            gt::dimension<4> dimI;
+            gt::dimension<5> sdim;
+            gt::dimension<6> f;
 
             uint_t const basis_cardinality = eval.template get_storage_dim<0>(phi_trace());
             uint_t const num_cub_points=eval.template get_storage_dim<1>(phi_trace());
@@ -494,12 +494,12 @@ namespace functors{
     //     template <typename Evaluation>
     //     GT_FUNCTION
     //     static void Do(Evaluation const & eval, x_interval) {
-    //         x::Index i;
-    //         y::Index j;
-    //         z::Index k;
-    //         gt::dimension<4>::Index quad;
-    //         gt::dimension<5>::Index dimI;
-    //         gt::dimension<6>::Index dimJ;
+    //         x i;
+    //         y j;
+    //         z k;
+    //         gt::dimension<4> quad;
+    //         gt::dimension<5> dimI;
+    //         gt::dimension<6> dimJ;
 
     //         uint_t const num_cub_points=eval.get_storage_dim(jac())[3];
 

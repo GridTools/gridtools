@@ -29,13 +29,13 @@ namespace functors{
             uint_t const basis_cardinality=eval.template get_storage_dim<0>(dphi());
 
             //quadrature points dimension
-            gt::dimension<4>::Index qp;
+            gt::dimension<4> qp;
             //dimension 'i' in the stiffness matrix
-            gt::dimension<5>::Index dimx;
+            gt::dimension<5> dimx;
             //dimension 'j' in the stiffness matrix
-            gt::dimension<6>::Index dimy;
-            gt::dimension<4>::Index dof_i;
-            gt::dimension<5>::Index dof_j;
+            gt::dimension<6> dimy;
+            gt::dimension<4> dof_i;
+            gt::dimension<5> dof_j;
             //loop on the basis functions
             for(short_t P_i=0; P_i<basis_cardinality; ++P_i) // current dof
             {

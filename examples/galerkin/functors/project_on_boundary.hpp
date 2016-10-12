@@ -16,11 +16,11 @@ namespace gdl{
             template <typename Evaluation>
             GT_FUNCTION
             static void Do(Evaluation const & eval, x_interval) {
-                gt::dimension<4>::Index row;
-                gt::dimension<5>::Index face;
-                gt::dimension<5>::Index col;
-                gt::dimension<5>::Index dim;
-                gt::dimension<6>::Index Mface;
+                gt::dimension<4> row;
+                gt::dimension<5> face;
+                gt::dimension<5> col;
+                gt::dimension<5> dim;
+                gt::dimension<6> Mface;
 
                 const auto N_dofs=eval.template get_storage_dim<3>(out());//N_DOFS
                 const auto N_faces=eval.template get_storage_dim<5>(int_normals());//6

@@ -28,10 +28,10 @@ namespace gdl {
 //                GRIDTOOLS_STATIC_ASSERT(eval.get().template get_storage_dims<0>(matrix())==eval.get().template get_storage_dims<0>(unkowns()), "GDL Error: ???");
 //                GRIDTOOLS_STATIC_ASSERT(n_problems==eval.get().template get_storage_dims<1>(unkowns()), "GDL Error: ???");
 
-                gt::dimension<1>::Index row_vec;
-                gt::dimension<2>::Index col_matrix;
-                gt::dimension<2>::Index probl_vec;
-                gt::dimension<3>::Index last_vec;
+                gt::dimension<1> row_vec;
+                gt::dimension<2> col_matrix;
+                gt::dimension<2> probl_vec;
+                gt::dimension<3> last_vec;
 
 
                 // TODO: do not forgot halo!!!
