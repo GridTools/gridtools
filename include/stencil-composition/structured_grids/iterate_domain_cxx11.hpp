@@ -354,7 +354,7 @@ namespace gridtools {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
             return (data_pointer())
-                [current_storage< (acc_t::index_type::value == 0), local_domain_t, typename acc_t::type >::value];
+                [current_storage< (acc_t::index_type::value == 0), local_domain_t, acc_t >::value];
         }
 
 #ifdef CXX11_ENABLED
@@ -500,12 +500,18 @@ namespace gridtools {
         }
 
 
+        //some aliases to ease the notation
+        template< typename Accessor >
+        using cached = typename cache_access_accessor< Accessor, all_caches_t >::type;
+
+        template< typename Accessor >
+        using std_accessor = typename mem_access_with_standard_accessor< Accessor, all_caches_t >::type;
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of
            data fields with the same dimension and memory layout)*/
         template < typename Accessor >
-        GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor, all_caches_t >::type,
+        GT_FUNCTION typename boost::enable_if< cached< Accessor>,
             typename accessor_return_type< Accessor >::type >::type
         operator()( Accessor  const &accessor_) const {
 
@@ -516,13 +522,13 @@ namespace gridtools {
         }
 
         template < typename Accessor >
-        GT_FUNCTION typename boost::disable_if< typename cache_access_accessor< Accessor, all_caches_t >::type,
+        GT_FUNCTION typename boost::disable_if< typename boost::mpl::or_< cached< Accessor >, std_accessor< Accessor > >::type,
             typename accessor_return_type< Accessor >::type >::type
         operator()( Accessor const &accessor) const;
 
         template < typename Accessor >
         GT_FUNCTION
-            typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor, all_caches_t >::type,
+            typename boost::enable_if< std_accessor< Accessor >,
                 typename accessor_return_type< Accessor >::type >::type
             operator()( Accessor const &accessor) const {
             GRIDTOOLS_STATIC_ASSERT(
@@ -644,8 +650,10 @@ namespace gridtools {
     template < typename IterateDomainImpl >
     template < typename Accessor >
     GT_FUNCTION typename boost::disable_if<
-        typename iterate_domain< IterateDomainImpl >::template cache_access_accessor< Accessor,
-            typename iterate_domain< IterateDomainImpl >::all_caches_t >::type,
+        typename boost::mpl::or_<
+            typename iterate_domain< IterateDomainImpl >::template cached< Accessor >,
+            typename iterate_domain< IterateDomainImpl >::template std_accessor< Accessor > >::type
+        ,
         typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type >::type
         iterate_domain< IterateDomainImpl >::
         operator()(Accessor const &accessor_) const {

@@ -462,14 +462,14 @@ namespace gridtools {
            This method returns signed integers of type int_t (used e.g. in iterate_domain)
         */
 
-        template < typename Offset, typename StridesVector >
+        template < typename StridesVector, typename Offset >
         GT_FUNCTION static constexpr int_t _index(StridesVector const &RESTRICT strides_,
             Offset const &offset,
             typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
             return _impl::compute_offset< space_dimensions, layout >::apply(strides_, offset);
         }
 
-        template < typename LayoutT, typename StridesVector >
+        template < typename StridesVector, typename LayoutT >
         GT_FUNCTION static constexpr int_t _index(
             StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
             return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);

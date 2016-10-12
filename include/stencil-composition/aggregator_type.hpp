@@ -260,7 +260,7 @@ namespace gridtools {
                 "Add at least one storage to the aggregator_type "
                 "definition.");
 
-            assign_pointers(m_metadata_set, args...);
+            assign_pointers(m_metadata_set, pairs_...);
         }
 #else
         template < typename... Pair >

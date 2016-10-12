@@ -161,6 +161,15 @@ namespace gridtools {
         typedef offset_tuple< Index - 1, NDim > super;
         static const short_t n_args = super::n_args + 1;
 
+        /**copy constructor
+
+           recursively assigning m_offset one by one. Works with offset_tuple of dimension lower of equal w.r.t. this one.
+         */
+        template<int_t I>
+        GT_FUNCTION constexpr offset_tuple(offset_tuple<I, NDim> const& other) : super(other), m_offset(other.get<n_args-1>()){
+            GRIDTOOLS_STATIC_ASSERT((I <= NDim), "Internal error");
+        }
+
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
             : super(pos + 1, offsets), m_offset(offsets[pos]) {}
 #ifdef CXX11_ENABLED

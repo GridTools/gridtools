@@ -60,7 +60,7 @@ namespace test_cycle_and_swap {
         }
     };
 
-    constexpr x i;
+    constexpr dimension< 1 > i;
 
     struct functor_avg {
         typedef inout_accessor< 0, extent<>, 4 > p_data;

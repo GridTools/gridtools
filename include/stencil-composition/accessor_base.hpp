@@ -50,9 +50,6 @@
 #include "../common/offset_tuple_mixed.hpp"
 #include "extent.hpp"
 
-#ifdef CXX11_ENABLED
-#include "stencil-composition/expressions.hpp"
-#endif
 #include "dimension_fwd.hpp"
 
 namespace gridtools {
