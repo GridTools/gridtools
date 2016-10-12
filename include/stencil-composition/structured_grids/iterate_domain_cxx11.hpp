@@ -550,23 +550,23 @@ namespace gridtools {
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             expr_direct_access< Accessor > const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
-        /** @brief method called in the Do methods of the functors. */
-        template < typename... Arguments,
-            template < typename... Args > class Expression,
-            typename boost::enable_if< is_expr< Expression< Arguments... > >, int >::type = 0 >
-        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
-            -> decltype(expressions::evaluation::value(*this, arg)) {
-            //arg.to_string();
-            return expressions::evaluation::value((*this), arg);
-        }
+//         /** @brief method called in the Do methods of the functors. */
+//         template < typename... Arguments,
+//             template < typename... Args > class Expression,
+//             typename boost::enable_if< is_expr< Expression< Arguments... > >, int >::type = 0 >
+//         GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
+//             -> decltype(expressions::evaluation::value(*this, arg)) {
+//             //arg.to_string();
+//             return expressions::evaluation::value((*this), arg);
+//         }
 
-        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int int_argument >
-        GT_FUNCTION auto operator()(Expression< Argument, int_argument > const &arg) const
-            -> decltype(expressions::evaluation::value((*this), arg)) {
+//         template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int int_argument >
+//         GT_FUNCTION auto operator()(Expression< Argument, int_argument > const &arg) const
+//             -> decltype(expressions::evaluation::value((*this), arg)) {
 
-            GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, int_argument> >::value), "invalid expression");
-            return expressions::evaluation::value((*this), arg);
-        }
+//             GRIDTOOLS_STATIC_ASSERT((is_expr<Expression<Argument, int_argument> >::value), "invalid expression");
+//             return expressions::evaluation::value((*this), arg);
+//         }
     };
 
     //    ################## IMPLEMENTATION ##############################
