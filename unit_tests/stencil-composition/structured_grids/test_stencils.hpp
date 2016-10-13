@@ -90,7 +90,7 @@ namespace copy_stencils_3D_2D_1D_0D {
 
     void handle_error(int) { std::cout << "error" << std::endl; }
 
-    template < typename SrcLayout, typename DstLayout >
+    template < typename SrcLayout, typename DstLayout, typename T = double >
     bool test(int x, int y, int z) {
 
 #ifdef USE_PAPI_WRAP
@@ -114,8 +114,8 @@ namespace copy_stencils_3D_2D_1D_0D {
 
         typedef gridtools::BACKEND::storage_info< 0, DstLayout > meta_dst_t;
         typedef gridtools::BACKEND::storage_info< 0, SrcLayout > meta_src_t;
-        typedef typename gridtools::BACKEND::storage_type< double, meta_dst_t >::type storage_type;
-        typedef typename gridtools::BACKEND::storage_type< double, meta_src_t >::type src_storage_type;
+        typedef typename gridtools::BACKEND::storage_type< T, meta_dst_t >::type storage_type;
+        typedef typename gridtools::BACKEND::storage_type< T, meta_src_t >::type src_storage_type;
 
         meta_dst_t meta_dst_(d1, d2, d3);
         meta_src_t meta_src_(d1, d2, d3);
@@ -125,10 +125,10 @@ namespace copy_stencils_3D_2D_1D_0D {
         for (int i = 0; i < d1; ++i)
             for (int j = 0; j < d2; ++j)
                 for (int k = 0; k < d3; ++k) {
-                    in(i, j, k) = i + j + k;
+                    in(i, j, k) = (T)(i + j + k);
                 }
 
-        storage_type out(meta_dst_, 1.5, "out");
+        storage_type out(meta_dst_, (T)1.5, "out");
 
         // in.print();
 
@@ -375,5 +375,12 @@ TEST(TESTCLASS, copies2DkDst) {
 TEST(TESTCLASS, copies2DScalarDst) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, -1, -1 >, gridtools::layout_map< 2, 0, 1 > >(
                   __Size0, __Size1, __Size2)),
+        true);
+}
+
+TEST(TESTCLASS, copies3D_bool) {
+    EXPECT_EQ(
+        (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, 1, 2 >, gridtools::layout_map< 0, 1, 2 >, bool >(
+            __Size0, __Size1, __Size2)),
         true);
 }
