@@ -63,6 +63,7 @@ class test_expressions : public testing::Test {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
+
     const uint_t d1 = 13;
     const uint_t d2 = 9;
     const uint_t d3 = 7;
@@ -137,6 +138,9 @@ class test_expressions : public testing::Test {
         typedef boost::mpl::vector< val2, val3, out > arg_list;                                     \
         template < typename Evaluation >                                                            \
         GT_FUNCTION static void Do(Evaluation const &eval, test_expressions_detail::x_interval) {   \
+            constexpr gridtools::dimension< 1 > i{};                                                \
+            constexpr gridtools::dimension< 2 > j{};                                                \
+            constexpr gridtools::dimension< 3 > k{};                                                \
             eval(out()) = eval(EXPR);                                                               \
         }                                                                                           \
     };                                                                                              \
@@ -154,12 +158,23 @@ class test_expressions : public testing::Test {
 #define EXPRESSION_TEST_DISABLED(NAME, EXPR, RESULT) \
     TEST_F(test_expressions, DISABLED_##NAME) {}
 
+#ifdef CUDA8 // issue #342
 EXPRESSION_TEST(accessor_mult_accessor, val3() * val2(), 6.)
-EXPRESSION_TEST(accessor_div_accessor, val3() / val2(), 1.5)
 EXPRESSION_TEST(accessor_plus_accessor, val3() + val2(), 5.)
 EXPRESSION_TEST(accessor_minus_accessor, val3() - val2(), 1.)
+#endif
+EXPRESSION_TEST(accessor_div_accessor, val3() / val2(), 1.5)
 
+EXPRESSION_TEST(accessor_mult_accessor_with_ijk_syntax, val3(i, j, k) * val2(i, j, k), 6.)
+EXPRESSION_TEST(accessor_plus_accessor_with_ijk_syntax, val3(i, j, k) + val2(i, j, k), 5.)
+EXPRESSION_TEST(accessor_minus_accessor_with_ijk_syntax, val3(i, j, k) - val2(i, j, k), 1.)
+EXPRESSION_TEST(accessor_div_accessor_with_ijk_syntax, val3(i, j, k) / val2(i, j, k), 1.5)
+
+#ifdef CUDA8 // issue #342
 EXPRESSION_TEST(accessor_mult_double, val3() * 3., 9.)
+#else
+EXPRESSION_TEST(accessor_mult_double, val3(i, j, k) * 3., 9.)
+#endif
 EXPRESSION_TEST_DISABLED(double_mult_accessor, 3. * val3(), 9.)
 EXPRESSION_TEST_DISABLED(accessor_mult_int, val3() * 3, 9.)
 EXPRESSION_TEST_DISABLED(int_mult_accessor, 3 * val3(), 9.)
@@ -182,9 +197,6 @@ EXPRESSION_TEST_DISABLED(int_minus_accessor, 3 - val2(), 1.)
 EXPRESSION_TEST_DISABLED(minus_sign, -val2(), -2.)
 EXPRESSION_TEST_DISABLED(plus_sign, +val2(), 2.)
 
-EXPRESSION_TEST(accessor_mult_double_minus_double, val3() * 3. - 2., 7.)
-EXPRESSION_TEST(accessor_mult_double_minus_accessor, val3() * 3. - val2(), 7.)
-EXPRESSION_TEST(accessor_minus_double_mult_double, val3() - 2. * 0.5, 2.)
 EXPRESSION_TEST_DISABLED(accessor_plus_double_mult_accessor, val3() + 2. * val2(), 7.)
 
 EXPRESSION_TEST(pow_2_accessor, pow< 2 >(val3()), 9.)
