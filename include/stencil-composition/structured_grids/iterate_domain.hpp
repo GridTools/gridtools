@@ -58,7 +58,6 @@
 #ifdef CUDA8
 #include "iterate_domain_cxx11.hpp"
 #else
-
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly
@@ -723,7 +722,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
 #ifdef PEDANTIC // storages may have less than 3 dimensions in non pedantic mode
-        GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim > 4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+        GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim >= 4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 #endif
 
         //getting information about the storage

@@ -43,7 +43,7 @@ namespace gridtools {
         typedef ArgType offset_tuple_t;
 
         offset_tuple_t m_tuple_runtime;
-      private:
+      protected:
         static const constexpr offset_tuple_t s_tuple_constexpr{get_dim< Pair >()...};
         typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates_t;
 

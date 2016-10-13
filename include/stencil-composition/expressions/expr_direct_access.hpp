@@ -40,6 +40,7 @@ namespace gridtools {
         GT_FUNCTION constexpr expr_direct_access< ArgType1 > operator!(ArgType1 arg1) {
             return expr_direct_access< ArgType1 >(arg1);
         }
+
     } // namespace expressions
 
 } // namespace gridtools

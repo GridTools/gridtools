@@ -74,7 +74,7 @@ namespace gridtools {
 
       public:
         template < typename PT, typename MD, ushort_t FD >
-        using type_tt = expandable_parameters< typename super::template type_tt< PT, MD, Size >, Size >;
+        using type_tt = expandable_parameters< typename Storage::template type_tt< PT, MD, Size >, Size >;
 
         // public methods:
 

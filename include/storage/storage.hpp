@@ -598,8 +598,8 @@ namespace gridtools {
     template < typename T, uint_t U >
     struct is_storage< storage_list< T, U > > : boost::mpl::true_ {};
 
-    template < typename... T >
-    struct is_storage< data_field< T... > > : boost::mpl::true_ {};
+    template < typename First, typename... T >
+    struct is_storage< data_field< First, T... > > : boost::mpl::true_ {};
 
 #endif
 

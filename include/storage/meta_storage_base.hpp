@@ -125,7 +125,6 @@ namespace gridtools {
         typedef meta_storage_base< Index, Layout, IsTemporary > basic_type;
 
       protected:
-      public:
         array< uint_t, space_dimensions > m_dims;
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
@@ -192,8 +191,8 @@ namespace gridtools {
             // we only use a constexpr in no debug mode, because we want to assert the sizes are uint in debug mode
             // constexpr does not allow code in the body
             constexpr meta_storage_base(IntTypes const &... dims_)
-            : m_dims{(uint_t)dims_...},
-              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply((uint_t)dims_...)) {
+                : m_dims{(uint_t)dims_...},
+                  m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply((uint_t)dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments smaller than its number of dimensions. \
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
