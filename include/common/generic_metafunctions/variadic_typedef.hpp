@@ -42,6 +42,8 @@ namespace gridtools {
 
     template < typename First, typename... Args >
     struct variadic_typedef;
+    template < typename Value, Value First, Value... Args >
+    struct variadic_typedef_c;
 
     namespace impl_ {
 
@@ -54,6 +56,17 @@ namespace gridtools {
         template < typename First, typename... Args >
         struct get_elem< 0, First, Args... > {
             typedef First type;
+        };
+
+        template < ushort_t Idx, typename Value, Value First, Value... Args >
+        struct get_elem_c {
+            GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
+            typedef typename ::gridtools::variadic_typedef_c< Value, Args... >::template get_elem< Idx - 1 >::type type;
+        };
+
+        template < typename Value, Value First, Value... Args >
+        struct get_elem_c< 0, Value, First, Args... > {
+            typedef boost::mpl::integral_c< Value, First > type;
         };
     }
 
@@ -71,6 +84,24 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
             typedef typename impl_::template get_elem< Idx, First, Args... >::type type;
         };
+        static constexpr ushort_t length = sizeof...(Args) + 1;
+    };
+
+    /**
+     * metafunction is to simply "store" a variadic pack. A typical use case is when we need to typedef a variadic pack
+     * template<typename ... Args>
+     * struct a { typedef variadic_typedef<Args...> type; }
+     */
+    template < typename Value, Value First, Value... Args >
+    struct variadic_typedef_c {
+
+        // metafunction that returns a type of a variadic pack by index
+        template < ushort_t Idx >
+        struct get_elem {
+            GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
+            typedef typename impl_::template get_elem_c< Idx, Value, First, Args... >::type type;
+        };
+        static constexpr ushort_t length = sizeof...(Args) + 1;
     };
 
     /**

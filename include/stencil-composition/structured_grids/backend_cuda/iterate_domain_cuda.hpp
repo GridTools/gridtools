@@ -43,9 +43,6 @@
 
 namespace gridtools {
 
-    template < typename T >
-    struct accessor_return_type;
-
     /**
      * @brief iterate domain class for the CUDA backend
      */
@@ -62,17 +59,16 @@ namespace gridtools {
         typedef typename local_domain_t::esf_args local_domain_args_t;
 
       public:
-        template < typename Accessor >
-        struct accessor_return_type {
-            typedef typename super::template accessor_return_type< Accessor >::type type;
-        };
-
         /**
          * metafunction that computes the return type of all operator() of an accessor.
          *
          * If the temaplate argument is not an accessor ::type is mpl::void_
          *
          */
+        template < typename Accessor >
+        struct accessor_return_type {
+            typedef typename super::template accessor_return_type< Accessor >::type type;
+        };
 
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
@@ -253,7 +249,7 @@ namespace gridtools {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within
             // the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_type::value > >().at(
+            return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_type::value > >().at< 0 >(
                 m_thread_pos, accessor_);
         }
 

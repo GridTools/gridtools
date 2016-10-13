@@ -33,23 +33,45 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include <common/string_c.hpp>
-namespace gridtools {
-    template < int I, ushort_t NColors >
-    struct location_type {
-        static const int value = I;
-        using n_colors = static_ushort< NColors >; //! <- is the number of locations of this type
-    };
+#include "gtest/gtest.h"
+#include "div.hpp"
+#include "../Options.hpp"
 
-    template < typename T >
-    struct is_location_type : boost::mpl::false_ {};
+int main(int argc, char **argv) {
 
-    template < int I, ushort_t NColors >
-    struct is_location_type< location_type< I, NColors > > : boost::mpl::true_ {};
+    // Pass command line arguments to googltest
+    ::testing::InitGoogleTest(&argc, argv);
 
-    template < int I, ushort_t NColors >
-    std::ostream &operator<<(std::ostream &s, location_type< I, NColors >) {
-        return s << "location_type<" << I << "> with " << NColors << " colors";
+    if (argc < 4) {
+        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
+        return 1;
     }
-} // namespace gridtools
+
+    for (int i = 0; i != 3; ++i) {
+        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+    }
+
+    if (argc > 4) {
+        Options::getInstance().m_size[3] = atoi(argv[4]);
+    }
+
+    if (argc == 6) {
+        if ((std::string(argv[5]) == "-d"))
+            Options::getInstance().m_verify = false;
+    }
+
+    return RUN_ALL_TESTS();
+}
+
+TEST(Div, Test) {
+    uint_t x = Options::getInstance().m_size[0];
+    uint_t y = Options::getInstance().m_size[1];
+    uint_t z = Options::getInstance().m_size[2];
+    uint_t t = Options::getInstance().m_size[3];
+    bool verify = Options::getInstance().m_verify;
+
+    if (t == 0)
+        t = 1;
+
+    ASSERT_TRUE(ico_operators::test_div(x, y, z, t, verify));
+}

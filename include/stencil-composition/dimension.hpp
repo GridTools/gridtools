@@ -97,4 +97,16 @@ namespace gridtools {
 
     template < ushort_t Id >
     struct is_dimension< dimension< Id > > : boost::mpl::true_ {};
+
+#ifdef CXX11_ENABLED
+    // metafunction that determines if a variadic pack are valid accessor ctr arguments
+    template < typename... Types >
+    struct all_dimensions {
+        typedef typename boost::enable_if_c< accumulate(logical_and(), is_dimension< Types >::type::value...),
+            bool >::type type;
+    };
+    template <>
+    struct all_dimensions<> : boost::mpl::true_ {};
+#endif
+
 } // namespace gridtools

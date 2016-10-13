@@ -62,9 +62,9 @@ namespace sov {
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     template < uint_t Color >
-    struct test_on_vertexes_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::vertexes, extent< 1 > > in;
-        typedef inout_accessor< 1, icosahedral_topology_t::vertexes > out;
+    struct test_on_vertices_functor {
+        typedef in_accessor< 0, icosahedral_topology_t::vertices, extent< -1, 1, -1, 1 > > in;
+        typedef inout_accessor< 1, icosahedral_topology_t::vertices > out;
         typedef boost::mpl::vector2< in, out > arg_list;
 
         template < typename Evaluation >
@@ -74,7 +74,7 @@ namespace sov {
             /**
                This interface checks that the location types are compatible with the accessors
              */
-            eval(out()) = eval(on_vertexes(ff, 0.0, in()));
+            eval(out()) = eval(on_vertices(ff, 0.0, in()));
         }
     };
 
@@ -84,36 +84,37 @@ namespace sov {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::vertexes, double >;
+        using cell_storage_type =
+            typename icosahedral_topology_t::storage_t< icosahedral_topology_t::vertices, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
         const uint_t halo_k = 0;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_vertexes = icosahedral_grid.make_storage< icosahedral_topology_t::vertexes, double >("in");
-        auto out_vertexes = icosahedral_grid.make_storage< icosahedral_topology_t::vertexes, double >("out");
-        auto ref_vertexes = icosahedral_grid.make_storage< icosahedral_topology_t::vertexes, double >("ref");
+        auto in_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double >("in");
+        auto out_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double >("out");
+        auto ref_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double >("ref");
 
         for (int i = 0; i < d1; ++i) {
-            for (int c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c) {
+            for (int c = 0; c < icosahedral_topology_t::vertices::n_colors::value; ++c) {
                 for (int j = 0; j < d2; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        in_vertexes(i, c, j, k) = (uint_t)in_vertexes.meta_data().index(
+                        in_vertices(i, c, j, k) = (uint_t)in_vertices.meta_data().index(
                             array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
                     }
                 }
             }
         }
-        out_vertexes.initialize(0.0);
-        ref_vertexes.initialize(0.0);
+        out_vertices.initialize(0.0);
+        ref_vertices.initialize(0.0);
 
-        typedef arg< 0, cell_storage_type > p_in_vertexes;
-        typedef arg< 1, cell_storage_type > p_out_vertexes;
+        typedef arg< 0, cell_storage_type > p_in_vertices;
+        typedef arg< 1, cell_storage_type > p_out_vertices;
 
-        typedef boost::mpl::vector< p_in_vertexes, p_out_vertexes > accessor_list_t;
+        typedef boost::mpl::vector< p_in_vertices, p_out_vertices > accessor_list_t;
 
-        gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_vertexes, &out_vertexes));
+        gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_vertices, &out_vertices));
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -126,29 +127,29 @@ namespace sov {
             grid_,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                gridtools::make_stage< test_on_vertexes_functor,
+                gridtools::make_stage< test_on_vertices_functor,
                     icosahedral_topology_t,
-                    icosahedral_topology_t::vertexes >(p_in_vertexes(), p_out_vertexes())));
+                    icosahedral_topology_t::vertices >(p_in_vertices(), p_out_vertices())));
         stencil_->ready();
         stencil_->steady();
         stencil_->run();
 
 #ifdef __CUDACC__
-        out_vertexes.d2h_update();
-        in_vertexes.d2h_update();
+        out_vertices.d2h_update();
+        in_vertices.d2h_update();
 #endif
 
         bool result = true;
         if (verify) {
             unstructured_grid ugrid(d1, d2, d3);
             for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
-                for (uint_t c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c) {
-                    for (uint_t j = halo_mc; j < d2 - halo_mc + 1; ++j) {
+                for (uint_t c = 0; c < icosahedral_topology_t::vertices::n_colors::value; ++c) {
+                    for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
                         for (uint_t k = 0; k < d3; ++k) {
-                            auto neighbours = ugrid.neighbours_of< icosahedral_topology_t::vertexes,
-                                icosahedral_topology_t::vertexes >({i, c, j, k});
+                            auto neighbours = ugrid.neighbours_of< icosahedral_topology_t::vertices,
+                                icosahedral_topology_t::vertices >({i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                                ref_vertexes(i, c, j, k) += in_vertexes(*iter);
+                                ref_vertices(i, c, j, k) += in_vertices(*iter);
                             }
                         }
                     }
@@ -158,7 +159,7 @@ namespace sov {
             verifier ver(1e-10);
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
-            bool result = ver.verify(grid_, ref_vertexes, out_vertexes, halos);
+            bool result = ver.verify(grid_, ref_vertices, out_vertices, halos);
         }
 #ifdef BENCHMARK
         benchmarker::run(stencil_, t_steps);

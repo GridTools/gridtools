@@ -39,9 +39,10 @@
 #include "common/offset_tuple.hpp"
 #include "common/layout_map.hpp"
 
+using namespace gridtools;
+
 GT_FUNCTION
 void test_layout_accessors(bool *result) {
-    using namespace gridtools;
 
     *result = true;
 #ifdef CXX11_ENABLED
@@ -166,7 +167,6 @@ void test_layout_accessors(bool *result) {
 
 GT_FUNCTION
 void test_layout_find_val(bool *result) {
-    using namespace gridtools;
 
     *result = true;
 

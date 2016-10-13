@@ -38,6 +38,8 @@
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/find.hpp>
 #include "defs.hpp"
+#include "generic_metafunctions/accumulate.hpp"
+#include "generic_metafunctions/logical_ops.hpp"
 #include "../stencil-composition/dimension.hpp"
 #include "../stencil-composition/dimension_defs.hpp"
 #include "generic_metafunctions/logical_ops.hpp"
@@ -158,9 +160,14 @@ namespace gridtools {
         typedef offset_tuple< Index - 1, NDim > super;
         static const short_t n_args = super::n_args + 1;
 
+#ifdef CXX11_ENABLED
+
+        template < typename... Dimensions, typename Dummy = typename all_dimensions< Dimensions... >::type >
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets, Dimensions... d)
+            : super(pos + 1, offsets, d...), m_offset(offsets[pos] + initialize< super::n_dim - n_args >(d...)) {}
+
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
             : super(pos + 1, offsets), m_offset(offsets[pos]) {}
-#ifdef CXX11_ENABLED
 
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base
@@ -178,18 +185,12 @@ namespace gridtools {
            This allows to specify the extra arguments out of order. Note that 'dimension' is a
            language keyword used at the interface level.
         */
-        template < ushort_t Idx, typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(dimension< Idx > const t, GenericElements const... x)
+        template < ushort_t Idx,
+            typename... GenericElements,
+            typename Dummy = typename all_dimensions< dimension< Idx >, GenericElements... >::type >
+        GT_FUNCTION constexpr offset_tuple(dimension< Idx > const t, GenericElements... x)
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {}
 
-        /**@brief constructor taking the dimension::Index class as argument.
-           This allows to specify the extra arguments out of order. Note that 'dimension' is a
-           language keyword used at the interface level.
-        */
-        template < ushort_t Idx, typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(typename dimension< Idx >::Index const t, GenericElements const... x)
-            : super(dimension< Idx >(0), x...),
-              m_offset(initialize< super::n_dim - n_args + 1 >(dimension< Idx >(0), x...)) {}
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base
@@ -285,9 +286,11 @@ namespace gridtools {
     struct offset_tuple< 0, NDim > {
         static const int_t n_dim = NDim;
 
-        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets) {}
-
 #ifdef CXX11_ENABLED
+        template < typename... Dimensions,
+            typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets, Dimensions... d) {}
+
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >

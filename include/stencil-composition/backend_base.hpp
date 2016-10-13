@@ -91,9 +91,10 @@ namespace gridtools {
                 typedef typename boost::mpl::second< MapElem >::type extent_t;
                 typedef typename boost::mpl::first< MapElem >::type temporary;
 
-                typedef pair_type< typename StrategyTraits::template get_tmp_storage< typename temporary::storage_type,
-                                       tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
-                                       tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > >::type,
+                typedef pair_type<
+                    typename StrategyTraits::template get_tmp_storage< typename temporary::storage_type,
+                        tile< BI, -extent_get_iminus< extent_t >::value, extent_get_iplus< extent_t >::value >,
+                        tile< BJ, -extent_get_jminus< extent_t >::value, extent_get_jplus< extent_t >::value > >::type,
                     typename temporary::index_type > type;
             };
         };

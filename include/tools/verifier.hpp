@@ -70,7 +70,7 @@ namespace gridtools {
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
             typename StorageType::storage_info_type const &meta = m_exp_field.meta_data();
 
-            const gridtools::uint_t size = meta.template dim< NDim - 1 >();
+            const gridtools::uint_t size = meta.template unaligned_dim< NDim - 1 >();
             bool verified = true;
 
             verify_helper< NDim - 1, NCoord + 1, StorageType > next_loop(
@@ -140,7 +140,7 @@ namespace gridtools {
         assert(exp_field.is_on_host());
         typename StorageType::storage_info_type const &meta = exp_field.meta_data();
 
-        const gridtools::uint_t size = meta.template dim< NDim - 1 >();
+        const gridtools::uint_t size = meta.template unaligned_dim< NDim - 1 >();
         bool verified = true;
         verify_helper< NDim - 1, 1, StorageType > next_loop(exp_field, actual_field, field_id, halos, precision);
 
@@ -185,9 +185,9 @@ namespace gridtools {
             StorageType const &field2,
             const array< array< uint_t, 2 >, StorageType::space_dimensions > halos) {
 
-            const gridtools::uint_t idim = metadata_.get_metadata().template dim< 0 >();
-            const gridtools::uint_t jdim = metadata_.get_metadata().template dim< 1 >();
-            const gridtools::uint_t kdim = metadata_.get_metadata().template dim< 2 >();
+            const gridtools::uint_t idim = metadata_.get_metadata().template unaligned_dim< 0 >();
+            const gridtools::uint_t jdim = metadata_.get_metadata().template unaligned_dim< 1 >();
+            const gridtools::uint_t kdim = metadata_.get_metadata().template unaligned_dim< 2 >();
 
             bool verified = true;
 
@@ -261,9 +261,9 @@ namespace gridtools {
             StorageType const &field1,
             StorageType const &field2) {
 
-            const gridtools::uint_t idim = metadata_.get_metadata().template dim< 0 >();
-            const gridtools::uint_t jdim = metadata_.get_metadata().template dim< 1 >();
-            const gridtools::uint_t kdim = metadata_.get_metadata().template dim< 2 >();
+            const gridtools::uint_t idim = metadata_.get_metadata().template unaligned_dim< 0 >();
+            const gridtools::uint_t jdim = metadata_.get_metadata().template unaligned_dim< 1 >();
+            const gridtools::uint_t kdim = metadata_.get_metadata().template unaligned_dim< 2 >();
 
             bool verified = true;
 

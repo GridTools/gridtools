@@ -96,7 +96,7 @@ namespace soeov {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;

@@ -107,6 +107,9 @@ namespace gridtools {
         int
 #endif
         > {
+
+        GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), "ERROR");
+
         typedef meta_storage_base< Index,
             Layout,
             IsTemporary
@@ -232,7 +235,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
            NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
            at compile-time (e.g. in template metafunctions)
          */
-        template < typename... IntTypes, typename Dummy = all_static_integers< IntTypes... > >
+        template < typename... IntTypes, typename Dummy = is_pack_of< is_static_integral, IntTypes... > >
         constexpr meta_storage_base(IntTypes... dims_)
             : m_dims{IntTypes::value...},
               m_strides(_impl::assign_all_strides< (short_t)(space_dimensions), layout >::apply(IntTypes()...)) {

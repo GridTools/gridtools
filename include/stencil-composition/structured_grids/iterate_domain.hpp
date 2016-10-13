@@ -41,6 +41,7 @@
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/vector.hpp>
+#include "stencil-composition/expressions.hpp"
 #ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
 #endif
@@ -142,20 +143,18 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_holds_data_field {
-            typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
-                arg_holds_data_field_h< get_arg_from_accessor< Accessor, iterate_domain_arguments_t > >,
-                boost::mpl::identity< boost::mpl::false_ > >::type type;
+            typedef typename aux::accessor_holds_data_field< Accessor, iterate_domain_arguments_t >::type type;
         };
 
         /**
          * metafunction that determines if a given accessor is associated with an arg holding a data field
          * and the parameter refers to a storage in main memory (i.e. is not cached)
          */
-        template < typename Accessor, typename CachesMap >
+        template < typename Accessor >
         struct mem_access_with_data_field_accessor {
-            typedef typename boost::mpl::and_<
-                typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
-                typename accessor_holds_data_field< Accessor >::type >::type type;
+            typedef typename aux::mem_access_with_data_field_accessor< Accessor,
+                all_caches_t,
+                iterate_domain_arguments_t >::type type;
         };
 
         /**
@@ -163,21 +162,19 @@ namespace gridtools {
          * standard field (i.e. not a data field)
          * and the parameter refers to a storage in main memory (i.e. is not cached)
          */
-        template < typename Accessor, typename CachesMap >
+        template < typename Accessor >
         struct mem_access_with_standard_accessor {
-            typedef typename boost::mpl::and_<
-                typename boost::mpl::and_<
-                    typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
-                    typename boost::mpl::not_< typename accessor_holds_data_field< Accessor >::type >::type >::type,
-                typename is_accessor< Accessor >::type > type;
+            typedef typename aux::mem_access_with_standard_accessor< Accessor,
+                all_caches_t,
+                iterate_domain_arguments_t >::type type;
         };
 
         /**
          * metafunction that determines if a given accessor is associated with an arg that is cached
          */
-        template < typename Accessor, typename CachesMap >
+        template < typename Accessor >
         struct cache_access_accessor {
-            typedef typename accessor_is_cached< Accessor, CachesMap >::type type;
+            typedef typename accessor_is_cached< Accessor, all_caches_t >::type type;
         };
 
         /**
@@ -188,7 +185,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_return_type {
-            typedef typename accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type type;
+            typedef typename ::gridtools::accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type type;
         };
 
         typedef typename local_domain_t::storage_metadata_map metadata_map_t;
@@ -535,9 +532,9 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             ,
             const int_t pointer_offset) const {
-#ifdef CUDA8
-            assert(storage_pointer);
-#endif
+
+            GTASSERT(storage_pointer);
+
             return *(storage_pointer + pointer_offset);
         }
 
@@ -550,10 +547,9 @@ namespace gridtools {
            definitions)
         */
         template < typename Accessor >
-        GT_FUNCTION
-            typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor, all_caches_t >::type,
-                typename accessor_return_type< Accessor >::type >::type
-            operator()(Accessor const &accessor) const {
+        GT_FUNCTION typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(Accessor const &accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
@@ -561,7 +557,7 @@ namespace gridtools {
         }
 
         template < typename Accessor >
-        GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor, all_caches_t >::type,
+        GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor >::type,
             typename accessor_return_type< Accessor >::type >::type
         operator()(Accessor const &accessor_) const {
             GRIDTOOLS_STATIC_ASSERT(
@@ -580,10 +576,9 @@ namespace gridtools {
             TODO: This and the above version will be eventually merged.
         */
         template < typename Accessor >
-        GT_FUNCTION
-            typename boost::enable_if< typename mem_access_with_data_field_accessor< Accessor, all_caches_t >::type,
-                typename accessor_return_type< Accessor >::type >::type
-            operator()(Accessor const &accessor) const;
+        GT_FUNCTION typename boost::enable_if< typename mem_access_with_data_field_accessor< Accessor >::type,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(Accessor const &accessor) const;
 
 #ifdef CUDA8
         /** @brief method called in the Do methods of the functors.
@@ -591,7 +586,7 @@ namespace gridtools {
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of
            data fields with the same dimension and memory layout)*/
         template < typename Accessor, typename... Pairs >
-        GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor, all_caches_t >::type,
+        GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor >::type,
             typename accessor_return_type< Accessor >::type >::type
         operator()(accessor_mixed< Accessor, Pairs... > const &accessor_) const {
 
@@ -602,7 +597,7 @@ namespace gridtools {
         }
 
         template < typename Accessor, typename... Pairs >
-        GT_FUNCTION typename boost::disable_if< typename cache_access_accessor< Accessor, all_caches_t >::type,
+        GT_FUNCTION typename boost::disable_if< typename cache_access_accessor< Accessor >::type,
             typename accessor_return_type< Accessor >::type >::type
         operator()(accessor_mixed< Accessor, Pairs... > const &accessor) const;
 
@@ -724,15 +719,13 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
-#ifdef CUDA8
-        assert(storage_pointer);
-#endif
+        GTASSERT(storage_pointer);
+
         typename storage_t::value_type *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
 
-#ifdef CUDA8
-        assert(real_storage_pointer);
-#endif
+        GTASSERT(real_storage_pointer);
+
         // getting information about the metadata
         typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
@@ -782,8 +775,7 @@ namespace gridtools {
     template < typename IterateDomainImpl >
     template < typename Accessor >
     GT_FUNCTION typename boost::enable_if<
-        typename iterate_domain< IterateDomainImpl >::template mem_access_with_data_field_accessor< Accessor,
-            typename iterate_domain< IterateDomainImpl >::all_caches_t >::type,
+        typename iterate_domain< IterateDomainImpl >::template mem_access_with_data_field_accessor< Accessor >::type,
         typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type >::type
         iterate_domain< IterateDomainImpl >::
         operator()(Accessor const &accessor) const {
@@ -859,8 +851,7 @@ namespace gridtools {
     template < typename IterateDomainImpl >
     template < typename Accessor, typename... Pairs >
     GT_FUNCTION typename boost::disable_if<
-        typename iterate_domain< IterateDomainImpl >::template cache_access_accessor< Accessor,
-            typename iterate_domain< IterateDomainImpl >::all_caches_t >::type,
+        typename iterate_domain< IterateDomainImpl >::template cache_access_accessor< Accessor >::type,
         typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type >::type
         iterate_domain< IterateDomainImpl >::
         operator()(accessor_mixed< Accessor, Pairs... > const &accessor_) const {

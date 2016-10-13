@@ -40,7 +40,7 @@
 #include "stencil-composition/accessor.hpp"
 #include "stencil-composition/structured_grids/accessor_metafunctions.hpp"
 #include "stencil-composition/expressions.hpp"
-#include "stencil-composition/expandable_parameters/vector_accessor.hpp"
+#include "stencil-composition/structured_grids/vector_accessor.hpp"
 
 using namespace gridtools;
 
@@ -50,6 +50,20 @@ namespace interface {
     bool test_trivial() {
         accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(3, 2, -1);
         return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
+    }
+
+    bool test_array() {
+        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
+        GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1), "ERROR");
+        return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
+    }
+
+    bool test_array_and_dim() {
+        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(
+            array< int_t, 3 >{3, 2, -1}, dimension< 1 >(2));
+
+        GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1), "ERROR");
+        return first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1;
     }
 
     /** @brief interface with out-of-order optional arguments
@@ -131,6 +145,8 @@ TEST(Accessor, is_accessor) {
 }
 
 TEST(Accessor, Trivial) { EXPECT_TRUE(test_trivial()); }
+
+TEST(Accessor, Array) { EXPECT_TRUE(test_array()); }
 
 TEST(Accessor, Alternative) { EXPECT_TRUE(test_alternative1()); }
 

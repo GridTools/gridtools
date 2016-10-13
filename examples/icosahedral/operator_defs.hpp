@@ -33,44 +33,25 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include <boost/mpl/max.hpp>
+using namespace gridtools;
 
-namespace gridtools {
+namespace ico_operators {
+#ifdef __CUDACC__
+#define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
+#else
+#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
+#endif
+#endif
 
-    template < int_t R = 0 >
-    struct extent {
-        static const int_t value = R;
-    };
+    using backend_t = BACKEND;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-    template < typename T >
-    struct is_extent : boost::mpl::false_ {};
-
-    template < int R >
-    struct is_extent< extent< R > > : boost::mpl::true_ {};
-
-    /**
-     * Metafunction taking two extents and yielding a extent containing them
-     */
-    template < typename Extent1, typename Extent2 >
-    struct enclosing_extent {
-        BOOST_MPL_ASSERT((is_extent< Extent1 >));
-        BOOST_MPL_ASSERT((is_extent< Extent2 >));
-
-        typedef extent< boost::mpl::max< static_uint< Extent1::value >, static_uint< Extent2::value > >::type::value >
-            type;
-    };
-
-    /**
-     * Metafunction to add two extents
-     */
-    template < typename Extent1, typename Extent2 >
-    struct sum_extent {
-        BOOST_MPL_ASSERT((is_extent< Extent1 >));
-        BOOST_MPL_ASSERT((is_extent< Extent2 >));
-
-        typedef extent< Extent1::value + Extent2::value > type;
-    };
-
-} // namespace gridtools
+    using icosahedral_topology_t = icosahedral_topology< backend_t >;
+}
