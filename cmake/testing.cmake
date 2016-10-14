@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.8)
 enable_testing()
 
 ####################################################################################
-########################### GET GTEST LIBRARY ############################ 
+########################### GET GTEST LIBRARY ############################
 ####################################################################################
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/include)
@@ -10,7 +10,7 @@ add_library(gtest STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest
 add_library(gtest_main STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest_main.cc)
 
 ####################################################################################
-######################### ADDITIONAL TEST MODULE FUNCTIONS ######################### 
+######################### ADDITIONAL TEST MODULE FUNCTIONS #########################
 ####################################################################################
 
 # This function will fetch all test cases in the given directory.
@@ -47,12 +47,12 @@ function(fetch_host_tests subfolder)
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
         # create the test
         add_executable (${unit_test} ${test_source})
-        target_link_libraries(${unit_test} ${exe_LIBS} ${CMAKE_BINARY_DIR}/libgtest.a ${CMAKE_BINARY_DIR}/libgtest_main.a)
+        target_link_libraries(${unit_test} ${exe_LIBS} ${CMAKE_BINARY_DIR}/libgtest_main.a ${CMAKE_BINARY_DIR}/libgtest.a )
         add_test (NAME ${unit_test} COMMAND ${exe} )
-        gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})        
-        # message( "added test " ${unit_test} )         
+        gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
+        # message( "added test " ${unit_test} )
     endforeach(test_source)
-endfunction(fetch_host_tests)  
+endfunction(fetch_host_tests)
 
 # This function will fetch all gpu test cases in the given directory.
 # Only used for nvcc compilations
@@ -93,13 +93,13 @@ function(fetch_gpu_tests subfolder)
             # create the gpu test
             set(CUDA_SEPARABLE_COMPILATION OFF)
             cuda_add_executable (${unit_test} ${test_source})
-            set_target_properties(${unit_test} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} LINKER_LANGUAGE CXX )            
-            target_link_libraries(${unit_test} ${exe_LIBS} ${CMAKE_BINARY_DIR}/libgtest.a ${CMAKE_BINARY_DIR}/libgtest_main.a) 
+            set_target_properties(${unit_test} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} LINKER_LANGUAGE CXX )
+            target_link_libraries(${unit_test} ${exe_LIBS} ${CMAKE_BINARY_DIR}/libgtest_main.a ${CMAKE_BINARY_DIR}/libgtest.a )
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
-            # message( "added gpu test " ${unit_test} )         
+            # message( "added gpu test " ${unit_test} )
         endforeach(test_source)
     endif(USE_GPU)
-endfunction(fetch_gpu_tests)  
+endfunction(fetch_gpu_tests)
 
 # This function can be used to add a custom host test
 function(add_custom_host_test name sources cc_flags ld_flags)
@@ -114,11 +114,11 @@ function(add_custom_host_test name sources cc_flags ld_flags)
     # create the test
     add_executable (${name} ${sources})
     set(cflags "${cc_flags} ${CMAKE_CXX_FLAGS}" )
-    set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS ${ld_flags} LINKER_LANGUAGE CXX )            
-    target_link_libraries(${name} ${exe_LIBS} ${CMAKE_BINARY_DIR}/libgtest.a ${CMAKE_BINARY_DIR}/libgtest_main.a)
+    set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS ${ld_flags} LINKER_LANGUAGE CXX )
+    target_link_libraries(${name} ${exe_LIBS} ${CMAKE_BINARY_DIR}/libgtest_main.a ${CMAKE_BINARY_DIR}/libgtest.a )
     add_test (NAME ${name} COMMAND ${exe} )
     gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
-endfunction(add_custom_host_test) 
+endfunction(add_custom_host_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_gpu_test name sources cc_flags ld_flags)
@@ -134,7 +134,7 @@ function(add_custom_gpu_test name sources cc_flags ld_flags)
     set(CUDA_SEPARABLE_COMPILATION OFF)
     cuda_add_executable (${name} ${test_source})
     set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags})
-    set_target_properties(${name} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )            
-    target_link_libraries(${name} ${exe_LIBS} ${CMAKE_BINARY_DIR}/libgtest.a ${CMAKE_BINARY_DIR}/libgtest_main.a)
+    set_target_properties(${name} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )
+    target_link_libraries(${name} ${exe_LIBS} ${CMAKE_BINARY_DIR}/libgtest_main.a ${CMAKE_BINARY_DIR}/libgtest.a )
     gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
-endfunction(add_custom_gpu_test) 
+endfunction(add_custom_gpu_test)
