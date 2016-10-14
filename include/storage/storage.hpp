@@ -384,8 +384,8 @@ namespace gridtools {
 
         explicit storage(storage_info_type const &meta_data_, const char *name_, bool do_allocate)
             : m_meta_data(new storage_info_type(meta_data_), 1, false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), name_, do_allocate), 1, false), m_on_host(true) {
-        }
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), name_, do_allocate), 1, false),
+              m_on_host(true) {}
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init)
             : m_meta_data(new storage_info_type(meta_data_), 1, false),
@@ -404,7 +404,8 @@ namespace gridtools {
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg)
             : m_meta_data(new storage_info_type(meta_data_), 1, false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg), 1, false), m_on_host(true) {}
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg), 1, false),
+              m_on_host(true) {}
 
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char *name)

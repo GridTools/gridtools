@@ -68,26 +68,19 @@ namespace gridtools {
         /**
            @brief construct from raw pointer
          */
-        GT_FUNCTION pointer(T *t_)
-            : m_t(t_) {
-            assert(m_t);
-        }
+        GT_FUNCTION pointer(T *t_) : m_t(t_) { assert(m_t); }
 
         /**
            @brief copy constructor
          */
-        GT_FUNCTION pointer(pointer< T > const &other_) : m_t(other_.m_t) {
-            assert(m_t);
-        }
+        GT_FUNCTION pointer(pointer< T > const &other_) : m_t(other_.m_t) { assert(m_t); }
 
-        GT_FUNCTION ~pointer(){ m_t=NULL; }
+        GT_FUNCTION ~pointer() { m_t = NULL; }
 
         /**
            @brief assign operator
          */
-        GT_FUNCTION void operator=(T *t_) {
-            m_t = t_;
-        }
+        GT_FUNCTION void operator=(T *t_) { m_t = t_; }
 
         /**
            @brief assign operator
