@@ -260,13 +260,6 @@ namespace gridtools {
                 "Add at least one storage to the aggregator_type "
                 "definition.");
 
-            assign_pointers(m_metadata_set, pairs_...);
-        }
-#else
-        template < typename... Pair >
-        aggregator_type(Pair... pairs_)
-            : m_storage_pointers(), m_metadata_set() {
-
             typedef boost::fusion::filter_view< arg_list, is_not_tmp_storage< boost::mpl::_1 > > view_type;
 
             GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::size< view_type >::type::value == sizeof...(Pairs)),

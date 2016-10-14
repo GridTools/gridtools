@@ -227,7 +227,7 @@ namespace gridtools {
         */
         template < ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
         GT_FUNCTION offset_tuple(
-            dimension< Idx1 > const t&, dimension< Idx2 > const& u, dimension< Idx3 > const& v, dimension< Idx4 > const& h)
+            dimension< Idx1 > const &t, dimension< Idx2 > const& u, dimension< Idx3 > const& v, dimension< Idx4 > const& h)
             : super(t, u, v, h), m_offset(initialize< super::n_dim - n_args + 1 >(t, u, v, h)) {}
 
         /**@brief constructor taking the Dimension class as argument.

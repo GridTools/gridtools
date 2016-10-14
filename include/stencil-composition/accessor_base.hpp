@@ -157,7 +157,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        constexpr accessor_base(const int_t x) : m_offsets(x) {}
+        constexpr accessor_base(const int_t & x) : m_offsets(x) {}
 
 /**@brief constructor taking the dimension class as argument.
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -208,12 +208,6 @@ namespace gridtools {
         template < typename X, typename Y >
         GT_FUNCTION constexpr accessor_base(X x, Y y)
             : m_offsets(x, y) {}
-
-        template < ushort_t DimIndex >
-        GT_FUNCTION constexpr accessor_base(dimension< DimIndex > x)
-            : m_offsets(x) {}
-
-        GT_FUNCTION constexpr accessor_base(int_t x) : m_offsets(x) {}
 
 #endif
 
