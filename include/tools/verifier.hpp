@@ -165,15 +165,15 @@ namespace gridtools {
 
         template < typename Grid, typename StorageType >
         bool verify(Grid const &grid_,
-            StorageType const &field1,
-            StorageType const &field2,
+            StorageType const &exp_field,
+            StorageType const &actual_field,
             const array< array< uint_t, 2 >, StorageType::space_dimensions > halos) {
 
             bool verified = true;
 
             for (gridtools::uint_t f = 0; f < StorageType::field_dimensions; ++f) {
-                verified =
-                    verify_functor< StorageType::space_dimensions >(grid_, field1, field2, f, halos, m_precision);
+                verified = verify_functor< StorageType::space_dimensions >(
+                    grid_, exp_field, actual_field, f, halos, m_precision);
             }
             return verified;
         }

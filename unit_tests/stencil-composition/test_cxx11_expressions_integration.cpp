@@ -36,6 +36,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
+/**
+ * Integration test for testing expressions inside a computation.
+ * The test setup is not very nice but it was designed that way to minimize compilation time, i.e. to test everything
+ * within one make_computation call.
+ */
+
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
@@ -44,10 +51,9 @@ using namespace gridtools;
 using namespace gridtools::enumtype;
 using namespace gridtools::expressions;
 
-// TODO this is actually not a proper unit test
-// as it is not standalone testing expressions
+namespace {
+    const double DEFAULT_VALUE = -999.;
 
-namespace test_expressions_detail {
     typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
     typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 }
@@ -64,7 +70,7 @@ class test_expressions : public testing::Test {
 #endif
 #endif
 
-    const uint_t d1 = 13;
+    const uint_t d1 = 100;
     const uint_t d2 = 9;
     const uint_t d3 = 7;
     const uint_t halo_size = 0;
@@ -77,7 +83,7 @@ class test_expressions : public testing::Test {
 
     halo_descriptor di;
     halo_descriptor dj;
-    gridtools::grid< test_expressions_detail::axis > grid;
+    gridtools::grid<::axis > grid;
 
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
@@ -104,7 +110,7 @@ class test_expressions : public testing::Test {
 #endif
           verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
           val2(meta_, 2., "val2"), val3(meta_, 3., "val3"), out(meta_, -555, "out"),
-          reference(meta_, -999., "reference"), domain(boost::fusion::make_vector(&val2, &val3, &out)) {
+          reference(meta_, ::DEFAULT_VALUE, "reference"), domain(boost::fusion::make_vector(&val2, &val3, &out)) {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
     }
@@ -120,81 +126,118 @@ class test_expressions : public testing::Test {
     }
 };
 
-/*
- * Macro for building an expression test:
- * - NAME test name
- * - EXPR expression to test, e.g. val2()*val3(), this is placed inside an eval(...)
- * - RESULT result of the expression assuming the same operation on all points
- *
- * Two accessors are defined:
- *  val2 initialized to 2.
- *  val3 initialized to 3.
- */
-#define EXPRESSION_TEST(NAME, EXPR, RESULT)                                                         \
-    struct NAME {                                                                                   \
-        typedef in_accessor< 0, extent<>, 3 > val2;                                                 \
-        typedef in_accessor< 1, extent<>, 3 > val3;                                                 \
-        typedef inout_accessor< 2, extent<>, 3 > out;                                               \
-        typedef boost::mpl::vector< val2, val3, out > arg_list;                                     \
-        template < typename Evaluation >                                                            \
-        GT_FUNCTION static void Do(Evaluation const &eval, test_expressions_detail::x_interval) {   \
-            constexpr gridtools::dimension< 1 > i{};                                                \
-            constexpr gridtools::dimension< 2 > j{};                                                \
-            constexpr gridtools::dimension< 3 > k{};                                                \
-            eval(out()) = eval(EXPR);                                                               \
-        }                                                                                           \
-    };                                                                                              \
-    TEST_F(test_expressions, NAME) {                                                                \
-        reference.initialize(RESULT);                                                               \
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(                              \
-            domain,                                                                                 \
-            grid,                                                                                   \
-            gridtools::make_multistage(                                                             \
-                execute< forward >(), gridtools::make_stage< NAME >(p_val2(), p_val3(), p_out()))); \
-        execute_computation(comp);                                                                  \
-        ASSERT_TRUE(verifier_.verify(grid, out, reference, verifier_halos));                        \
-    }
+#define EXPRESSION_TEST(INDEX, EXPR) \
+    else if (eval.i() == INDEX && eval.j() == 0 && eval.k() == 0) eval(out()) = eval(EXPR);
+#define EXPRESSION_TEST_RESULT(INDEX, RESULT) reference(INDEX, 0, 0) = RESULT;
 
-#define EXPRESSION_TEST_DISABLED(NAME, EXPR, RESULT) \
-    TEST_F(test_expressions, DISABLED_##NAME) {}
+#define EXPRESSION_TEST_DISABLED(INDEX, EXPR)
+#define EXPRESSION_TEST_RESULT_DISABLED(INDEX, RESULT) reference(INDEX, 0, 0) = ::DEFAULT_VALUE;
 
-EXPRESSION_TEST(accessor_mult_accessor, val3() * val2(), 6.)
-EXPRESSION_TEST(accessor_plus_accessor, val3() + val2(), 5.)
-EXPRESSION_TEST(accessor_minus_accessor, val3() - val2(), 1.)
-EXPRESSION_TEST(accessor_div_accessor, val3() / val2(), 1.5)
+namespace {
+    struct test_functor {
+        typedef in_accessor< 0, extent<>, 3 > val2;
+        typedef in_accessor< 1, extent<>, 3 > val3;
+        typedef inout_accessor< 2, extent<>, 3 > out;
+        typedef boost::mpl::vector< val2, val3, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            constexpr gridtools::dimension< 1 > i{};
+            constexpr gridtools::dimension< 2 > j{};
+            constexpr gridtools::dimension< 3 > k{};
 
-EXPRESSION_TEST(accessor_mult_accessor_with_ijk_syntax, val3(i, j, k) * val2(i, j, k), 6.)
-EXPRESSION_TEST(accessor_plus_accessor_with_ijk_syntax, val3(i, j, k) + val2(i, j, k), 5.)
-EXPRESSION_TEST(accessor_minus_accessor_with_ijk_syntax, val3(i, j, k) - val2(i, j, k), 1.)
-EXPRESSION_TEST(accessor_div_accessor_with_ijk_syntax, val3(i, j, k) / val2(i, j, k), 1.5)
+            if (false) // starts the cascade
+                assert(false);
 
-#ifdef CUDA8
-EXPRESSION_TEST(accessor_mult_double, val3() * 3., 9.)
+            EXPRESSION_TEST(0, val3() * val2())
+            EXPRESSION_TEST(1, val3() + val2())
+            EXPRESSION_TEST(2, val3() - val2())
+            EXPRESSION_TEST(3, val3() / val2())
+
+            EXPRESSION_TEST(4, val3(i, j, k) * val2(i, j, k))
+            EXPRESSION_TEST(5, val3(i, j, k) + val2(i, j, k))
+            EXPRESSION_TEST(6, val3(i, j, k) - val2(i, j, k))
+            EXPRESSION_TEST(7, val3(i, j, k) / val2(i, j, k))
+
+#ifdef CUDA8 // workaround for issue #342
+            EXPRESSION_TEST(8, val3() * 3.)
 #else
-EXPRESSION_TEST(accessor_mult_double, val3(i, j, k) * 3., 9.)
+            EXPRESSION_TEST(8, val3(i, j, k) * 3.)
 #endif
-EXPRESSION_TEST_DISABLED(double_mult_accessor, 3. * val3(), 9.)
-EXPRESSION_TEST_DISABLED(accessor_mult_int, val3() * 3, 9.)
-EXPRESSION_TEST_DISABLED(int_mult_accessor, 3 * val3(), 9.)
+            EXPRESSION_TEST_DISABLED(9, 3. * val3())
+            EXPRESSION_TEST_DISABLED(10, val3() * 3) // accessor<double> mult int
+            EXPRESSION_TEST_DISABLED(11, 3 * val3()) // int mult accessor<double>
 
-EXPRESSION_TEST(accessor_div_double, val3() / 3., 1.)
-EXPRESSION_TEST_DISABLED(double_div_accessor, 3. / val3(), 1.)
-EXPRESSION_TEST_DISABLED(accessor_div_int, val3() / 3, 1.)
-EXPRESSION_TEST_DISABLED(int_div_accessor, 3 / val3(), 1.)
+            EXPRESSION_TEST(12, val3() + 3.)
+            EXPRESSION_TEST_DISABLED(13, 3. + val3())
+            EXPRESSION_TEST_DISABLED(14, val3() + 3) // accessor<double> plus int
+            EXPRESSION_TEST_DISABLED(15, 3 + val3()) // int plus accessor<double>
 
-EXPRESSION_TEST(accessor_plus_double, val2() + 3., 5.)
-EXPRESSION_TEST_DISABLED(double_plus_accessor, 3. + val2(), 5.)
-EXPRESSION_TEST_DISABLED(accessor_plus_int, val2() + 3, 5.)
-EXPRESSION_TEST_DISABLED(int_plus_accessor, 3 + val2(), 5.)
+            EXPRESSION_TEST(16, val3() - 2.)
+            EXPRESSION_TEST_DISABLED(17, 3. - val2())
+            EXPRESSION_TEST_DISABLED(18, val3() - 2) // accessor<double> minus int
+            EXPRESSION_TEST_DISABLED(19, 3 - val2()) // int minus accessor<double>
 
-EXPRESSION_TEST(accessor_minus_double, val3() - 2., 1.)
-EXPRESSION_TEST_DISABLED(double_minus_accessor, 3. - val2(), 1.)
-EXPRESSION_TEST_DISABLED(accessor_minus_int, val3() - 2, 1.)
-EXPRESSION_TEST_DISABLED(int_minus_accessor, 3 - val2(), 1.)
+            EXPRESSION_TEST(20, val3() / 2.)
+            EXPRESSION_TEST_DISABLED(21, 3. / val2())
+            EXPRESSION_TEST_DISABLED(22, val3() / 2) // accessor<double> div int
+            EXPRESSION_TEST_DISABLED(23, 3 / val2()) // int div accessor<double>
 
-EXPRESSION_TEST_DISABLED(minus_sign, -val2(), -2.)
-EXPRESSION_TEST_DISABLED(plus_sign, +val2(), 2.)
+            EXPRESSION_TEST_DISABLED(24, -val2())
+            EXPRESSION_TEST_DISABLED(25, +val2())
 
-EXPRESSION_TEST_DISABLED(accessor_plus_double_mult_accessor, val3() + 2. * val2(), 7.)
+            EXPRESSION_TEST_DISABLED(26, val3() + 2. * val2())
 
-EXPRESSION_TEST(pow_2_accessor, pow< 2 >(val3()), 9.)
+            EXPRESSION_TEST(27, pow< 2 >(val3()))
+
+            else eval(out()) = DEFAULT_VALUE;
+        }
+    };
+}
+
+TEST_F(test_expressions, test) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(
+            execute< forward >(), gridtools::make_stage<::test_functor >(p_val2(), p_val3(), p_out())));
+
+    EXPRESSION_TEST_RESULT(0, 6.);
+    EXPRESSION_TEST_RESULT(1, 5.);
+    EXPRESSION_TEST_RESULT(2, 1.);
+    EXPRESSION_TEST_RESULT(3, 1.5);
+
+    EXPRESSION_TEST_RESULT(4, 6.);
+    EXPRESSION_TEST_RESULT(5, 5.);
+    EXPRESSION_TEST_RESULT(6, 1.);
+    EXPRESSION_TEST_RESULT(7, 1.5);
+
+    EXPRESSION_TEST_RESULT(8, 9.);
+    EXPRESSION_TEST_RESULT_DISABLED(9, 9.);
+    EXPRESSION_TEST_RESULT_DISABLED(10, 9.);
+    EXPRESSION_TEST_RESULT_DISABLED(11, 9.);
+
+    EXPRESSION_TEST_RESULT(12, 6.);
+    EXPRESSION_TEST_RESULT_DISABLED(13, 6.);
+    EXPRESSION_TEST_RESULT_DISABLED(14, 6.);
+    EXPRESSION_TEST_RESULT_DISABLED(15, 6.);
+
+    EXPRESSION_TEST_RESULT(16, 1.);
+    EXPRESSION_TEST_RESULT_DISABLED(17, 1.);
+    EXPRESSION_TEST_RESULT_DISABLED(18, 1.);
+    EXPRESSION_TEST_RESULT_DISABLED(19, 1.);
+
+    EXPRESSION_TEST_RESULT(20, 1.5);
+    EXPRESSION_TEST_RESULT_DISABLED(21, 1.5);
+    EXPRESSION_TEST_RESULT_DISABLED(22, 1.5);
+    EXPRESSION_TEST_RESULT_DISABLED(23, 1.5);
+
+    EXPRESSION_TEST_RESULT_DISABLED(24, -2.);
+    EXPRESSION_TEST_RESULT_DISABLED(25, +2.);
+
+    EXPRESSION_TEST_RESULT_DISABLED(26, 7.);
+
+    EXPRESSION_TEST_RESULT(27, 9.);
+
+    execute_computation(comp);
+    ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
+}
