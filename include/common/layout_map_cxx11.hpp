@@ -88,6 +88,8 @@ namespace gridtools {
         static const constexpr short_t layout_vector[sizeof...(Args)] = {Args...};
         typedef boost::mpl::vector_c< short_t, Args... > layout_vector_t;
 
+        constexpr layout_map(){};
+
         template < class Layout >
         struct append {
 
