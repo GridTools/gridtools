@@ -36,11 +36,12 @@
 #pragma once
 #include "../defs.hpp"
 #include "../host_device.hpp"
+#include "is_not_same.hpp"
 
 namespace gridtools {
 #ifdef CXX11_ENABLED
 
-    template < typename First, typename... Args >
+    template < typename... Args >
     struct variadic_typedef;
     template < typename Value, Value First, Value... Args >
     struct variadic_typedef_c;
@@ -76,7 +77,7 @@ namespace gridtools {
      * struct a { typedef variadic_typedef<Args...> type; }
      */
     template < typename First, typename... Args >
-    struct variadic_typedef {
+    struct variadic_typedef< First, Args... > {
 
         // metafunction that returns a type of a variadic pack by index
         template < ushort_t Idx >
@@ -84,7 +85,31 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
             typedef typename impl_::template get_elem< Idx, First, Args... >::type type;
         };
+
+        template < typename Elem >
+        static constexpr int_t find(const ushort_t pos = 0) {
+            return (boost::is_same< First, Elem >::value) ? pos
+                                                          : variadic_typedef< Args... >::template find< Elem >(pos + 1);
+        }
+
         static constexpr ushort_t length = sizeof...(Args) + 1;
+    };
+
+    template <>
+    struct variadic_typedef<> {
+
+        // metafunction that returns a type of a variadic pack by index
+        template < ushort_t Idx >
+        struct get_elem {
+            static_assert((Idx >= 0), "ERROR");
+        };
+
+        template < typename Elem >
+        static constexpr int_t find(const ushort_t pos = 0) {
+            return -1;
+        }
+
+        static constexpr ushort_t length = 0;
     };
 
     /**

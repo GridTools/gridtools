@@ -380,6 +380,7 @@ namespace gridtools {
         explicit storage(storage_info_type const &meta_data_, ExtraArgs const &... args)
             : m_meta_data(new storage_info_type(meta_data_), false),
               m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), args...), false), m_on_host(true) {}
+
 #else // CXX11_ENABLED
 
         explicit storage(storage_info_type const &meta_data_, const char *name_, bool do_allocate)

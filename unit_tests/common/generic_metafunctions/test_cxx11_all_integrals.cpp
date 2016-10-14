@@ -33,45 +33,28 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
-
 #include "gtest/gtest.h"
-
-#include "common/generic_metafunctions/variadic_typedef.hpp"
+#include <common/generic_metafunctions/all_integrals.hpp>
 
 using namespace gridtools;
 
-TEST(variadic_typedef, test) {
-
-    typedef variadic_typedef< int, double, unsigned int > tt;
-
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< tt::template get_elem< 0 >::type, int >::value), "Error");
-
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< tt::template get_elem< 1 >::type, double >::value), "Error");
-
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< tt::template get_elem< 2 >::type, unsigned int >::value), "Error");
-
-    ASSERT_TRUE(true);
+template < typename... Int,
+    typename =
+#if defined(CUDA8) || !defined(__CUDACC__)
+        all_integers< Int... >
+#else
+        is_pack_of< boost::is_integral, Int... >
+#endif
+    >
+GT_FUNCTION constexpr int test_fn(Int...) {
+    return 1;
 }
 
-TEST(variadic_typedef, get_from_variadic_pack) {
+GT_FUNCTION
+constexpr int test_fn(double, double) { return 2; }
 
-    GRIDTOOLS_STATIC_ASSERT((static_int< get_from_variadic_pack< 3 >::apply(2, 6, 8, 3, 5) >::value == 3), "Error");
+TEST(is_offset_of, int) { GRIDTOOLS_STATIC_ASSERT((test_fn(int(3), int(4)) == 1), "ERROR"); }
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (static_int< get_from_variadic_pack< 7 >::apply(2, 6, 8, 3, 5, 4, 6, -8, 4, 3, 1, 54, 67) >::value == -8),
-        "Error");
+TEST(is_offset_of, empty) { GRIDTOOLS_STATIC_ASSERT((test_fn() == 1), "ERROR"); }
 
-    ASSERT_TRUE(true);
-}
-
-TEST(variadic_typedef, find) {
-
-    typedef variadic_typedef< int, double, unsigned int, double > tt;
-
-    static_assert((tt::find< int >() == 0), "ERROR");
-    static_assert((tt::find< double >() == 1), "ERROR");
-    static_assert((tt::find< unsigned int >() == 2), "ERROR");
-
-    ASSERT_TRUE(true);
-}
+TEST(is_offset_of, long) { GRIDTOOLS_STATIC_ASSERT((test_fn(long(3), int(4)) == 1), "ERROR"); }

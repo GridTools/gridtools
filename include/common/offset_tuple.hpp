@@ -125,6 +125,12 @@ namespace gridtools {
                 boost::mpl::false_,
                 boost::mpl::or_< boost::mpl::_1, boost::mpl::_2 > >::type type;
         };
+
+        template < size_t ArrayDim >
+        static constexpr int_t assign_offset(uint_t pos, array< int_t, ArrayDim > const &offsets) {
+            return (pos < ArrayDim) ? offsets[pos] : 0;
+        }
+
 #endif
     }
 
@@ -162,9 +168,15 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
 
-        template < typename... Dimensions, typename Dummy = typename all_dimensions< Dimensions... >::type >
-        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets, Dimensions... d)
-            : super(pos + 1, offsets, d...), m_offset(offsets[pos] + initialize< super::n_dim - n_args >(d...)) {}
+        template < size_t ArrayDim,
+            typename... Dimensions,
+            typename Dummy = typename all_dimensions< Dimensions... >::type >
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d)
+            : super(pos + 1, offsets, d...),
+              m_offset(_impl::assign_offset(pos, offsets) + initialize< super::n_dim - n_args >(d...)) {
+            static_assert(
+                (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
+        }
 
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
             : super(pos + 1, offsets), m_offset(offsets[pos]) {}
@@ -287,9 +299,13 @@ namespace gridtools {
         static const int_t n_dim = NDim;
 
 #ifdef CXX11_ENABLED
-        template < typename... Dimensions,
+        template < size_t ArrayDim,
+            typename... Dimensions,
             typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
-        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets, Dimensions... d) {}
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d) {
+            static_assert(
+                (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
+        }
 
         template < typename... GenericElements,
             typename =

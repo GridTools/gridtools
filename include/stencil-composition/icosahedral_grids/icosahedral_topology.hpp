@@ -794,6 +794,36 @@ namespace gridtools {
             return storage_t< LocationType, ValueType, Selector >(ameta, name);
         }
 
+        // HACKICO this is a hacked until the new storage fixes the problems with the ownership of the storage,
+        // since currently we can not move nor copy storages
+        template < typename LocationType,
+            typename ValueType,
+            typename Selector = selector< 1, 1, 1, 1 >,
+            typename... IntTypes
+#if defined(CUDA8) || !defined(__CUDACC__)
+            ,
+            typename Dummy = all_integers< IntTypes... >
+#endif
+            >
+        void make_storage(storage_t< LocationType, ValueType, Selector > *&storage_ptr,
+            char const *name,
+            IntTypes... extra_dims) const {
+            GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
+            GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
+
+            static_assert((Selector::length == sizeof...(IntTypes) + 4), "Error");
+
+            using meta_storage_type = meta_storage_t< LocationType, Selector >;
+            static_assert((Selector::length == meta_storage_type::space_dimensions), "Error");
+
+            array< uint_t, meta_storage_type::space_dimensions > metastorage_sizes =
+                impl::array_dim_initializers< uint_t, meta_storage_type::space_dimensions, LocationType, Selector >::
+                    apply(m_dims, extra_dims...);
+
+            auto ameta = meta_storage_type(metastorage_sizes);
+            storage_ptr = new storage_t< LocationType, ValueType, Selector >(ameta, name);
+        }
+
         template < typename LocationType >
         GT_FUNCTION array< int_t, 4 > ll_indices(array< int_t, 3 > const &i, LocationType) const {
             auto out = array< int_t, 4 >{i[0],

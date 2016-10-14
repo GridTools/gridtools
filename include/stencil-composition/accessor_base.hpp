@@ -128,9 +128,10 @@ namespace gridtools {
         constexpr explicit accessor_base() : m_offsets() {}
 
 #ifdef CXX11_ENABLED
-        template < typename... Dimensions,
+        template < size_t ArrayDim,
+            typename... Dimensions,
             typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
-        GT_FUNCTION constexpr explicit accessor_base(array< int_t, Dim > const &offsets, Dimensions... d)
+        GT_FUNCTION constexpr explicit accessor_base(array< int_t, ArrayDim > const &offsets, Dimensions... d)
             : m_offsets(0, offsets, d...) {}
 #endif
 
