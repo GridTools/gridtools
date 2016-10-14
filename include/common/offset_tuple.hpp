@@ -166,7 +166,7 @@ namespace gridtools {
            recursively assigning m_offset one by one. Works with offset_tuple of dimension lower of equal w.r.t. this one.
          */
         template<int_t I>
-        GT_FUNCTION constexpr offset_tuple(offset_tuple<I, NDim> const& other) : super(other), m_offset(other.get<n_args-1>()){
+        GT_FUNCTION constexpr offset_tuple(offset_tuple<I, NDim> const& other) : super(other), m_offset(other.template get<n_args-1>()){
             GRIDTOOLS_STATIC_ASSERT((I <= NDim), "Internal error");
         }
 

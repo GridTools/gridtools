@@ -36,7 +36,6 @@ namespace gridtools{
         typedef typename ArgType::extent_t extent_t;
 
         using super = offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...>;
-
         /**inheriting all constructors from offset_tuple*/
         using typename super::offset_tuple_mixed;
 
