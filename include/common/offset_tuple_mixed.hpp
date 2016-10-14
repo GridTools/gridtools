@@ -50,20 +50,33 @@ namespace gridtools {
       public:
         GT_FUNCTION constexpr offset_tuple_mixed() : m_tuple_runtime() {}
 
+#ifndef __CUDACC__
         template < typename... ArgsRuntime>
         GT_FUNCTION constexpr
         offset_tuple_mixed(ArgsRuntime const &... args){
             /*always failing*/
             GRIDTOOLS_STATIC_ASSERT(sizeof...(ArgsRuntime) && !sizeof...(ArgsRuntime)
-                                    , "Passing the wrong offset to an alias accessor, or trying to construct it with wrong arguments");
+                                    , "Passing the wrong argument to an alias accessor, or trying to construct it with wrong arguments");
         }
+#endif
 
-        template < typename... ArgsRuntime,
-            typename T = typename boost::enable_if_c< accumulate(logical_and(),
+#ifndef __CUDACC__
+        template < typename... ArgsRuntime
+             , typename T = typename boost::enable_if_c< accumulate(logical_and(),
                 boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime > >::type::value...) >::
-                type >
+                type
+                   >
         GT_FUNCTION constexpr offset_tuple_mixed(ArgsRuntime const &... args)
             : m_tuple_runtime(args...) {}
+#else
+        template < typename First, typename... ArgsRuntime
+             , typename T = typename boost::enable_if_c< accumulate(logical_and(),
+                boost::mpl::or_< boost::is_integral< First >, is_dimension< First > >::type::value) >::
+                type
+                   >
+        GT_FUNCTION constexpr offset_tuple_mixed(First const& first_, ArgsRuntime const&... args)
+            : m_tuple_runtime(first_, args...) {}
+#endif
 
         template< int_t I, int_t N >
         GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< offset_tuple<I, N> > const &other_)

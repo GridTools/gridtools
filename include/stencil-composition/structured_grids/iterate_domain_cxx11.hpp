@@ -94,7 +94,7 @@ namespace gridtools {
     struct iterate_domain
         : public iterate_domain_reduction< typename iterate_domain_impl_arguments< IterateDomainImpl >::type > {
 
-        // *************** type definitions **************
+        // *************** internal type definitions **************
         typedef typename iterate_domain_impl_arguments< IterateDomainImpl >::type iterate_domain_arguments_t;
         typedef typename iterate_domain_arguments_t::local_domain_t local_domain_t;
         typedef iterate_domain_reduction< iterate_domain_arguments_t > iterate_domain_reduction_t;
@@ -105,8 +105,12 @@ namespace gridtools {
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), "Internal Error: wrong type");
-        // **************** end of type definitions
-
+        // **************** end of internal type definitions
+        //***************** types exposed in API
+        typedef typename compute_readonly_args_indices< typename iterate_domain_arguments_t::esf_sequence_t >::type
+            readonly_args_indices_t;
+        typedef typename local_domain_t::esf_args esf_args_t;
+        //*****************
         /**
          * metafunction that determines if a given accessor is associated with an placeholder holding a data field
          */
