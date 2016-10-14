@@ -95,6 +95,7 @@ TEST(storage_info, test_interface) {
     using halo_t = gridtools::halo< 0, 0, 0 >;
     using align_t = gridtools::aligned< 32 >;
 
+#ifndef __CUDACC__
     constexpr gridtools::meta_storage_aligned<
         gridtools::meta_storage_base< static_int< 0 >, gridtools::layout_map< 0, 1, 2 >, false >,
         align_t,
@@ -159,6 +160,7 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(2) == 32), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(1) == 32 * 12), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(0) == 32 * 12 * 13), "error");
+#endif
 #else  // CUDA8
 
     typedef gridtools::layout_map< 0, 1, 2 > layout_t;

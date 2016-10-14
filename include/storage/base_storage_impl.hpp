@@ -82,10 +82,10 @@ namespace gridtools{
             using lambda = next_stride< MaxIndex - T, MaxIndex, Layout >;
 
             template < typename... UIntType, typename Dummy = all_integers< UIntType... > >
-            static constexpr array< int_t, MaxIndex > apply(UIntType... args) {
+            static constexpr array< int_t, MaxIndex+1 > apply(UIntType... args) {
                 using seq =
                     apply_gt_integer_sequence< typename make_gt_integer_sequence< int_t, sizeof...(args) >::type >;
-                return seq::template apply< array< int_t, MaxIndex >, lambda >((int_t)args...);
+                return seq::template apply< array< int_t, MaxIndex+1 >, lambda >((int_t)args...);
             }
         };
 
@@ -141,8 +141,8 @@ namespace gridtools{
                 Offset const &indices_,
                 typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
                 return (int_t)strides_[space_dimensions - Id] *
-                           Layout::template find_val< space_dimensions - Id, uint_t, 0 >(indices_) +
-                       compute_offset< Id - 1, Layout >::apply(strides_, indices_);
+                    Layout::template find_val< space_dimensions - Id, uint_t, 0 >(indices_) +
+                    compute_offset< Id - 1, Layout >::apply(strides_, indices_);
             }
 
         };

@@ -108,7 +108,7 @@ namespace gridtools {
         */
         template < ushort_t I >
         GT_FUNCTION static constexpr short_t at() {
-            BOOST_STATIC_ASSERT(I < length);
+            GRIDTOOLS_STATIC_ASSERT(I < length, "out of bound");
             return layout_vector[I];
         }
 
@@ -124,10 +124,12 @@ namespace gridtools {
         /** Given a parameter pack of values and a static index, the function
             returns the reference to the value in the position indicated
             at position 'I' in the map.
+            NOTE: counting from 0.
 
             \code
             gridtools::layout_map<1,2,0>::select<1>(a,b,c) == c
             \endcode
+            because the position 1 in the layout map contains a 2, which means the third argument
 
             \tparam I Index to be queried
             \tparam T Sequence of types
@@ -256,7 +258,7 @@ namespace gridtools {
             typename First,
             typename Dummy = all_integers< T, First, Indices... > >
         GT_FUNCTION static constexpr T find_val(First const &first, Indices const &... indices) {
-            static_assert(sizeof...(Indices) <= length, "Too many arguments");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices) <= length, "Too many arguments");
             // lazy template instantiation
             typedef typename boost::mpl::eval_if_c< (pos_< I >::value >= sizeof...(Indices) + 1),
                 identity< T, DefaultVal >,
@@ -300,10 +302,11 @@ namespace gridtools {
         GT_FUNCTION static constexpr T find_val(OffsetTuple const &indices) {
             GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value),
                 "the find_val method must be used with tuples of offset_tuple type");
+
             // GRIDTOOLS_STATIC_ASSERT(length <= OffsetTuple::n_dim, "pedantic check: an accessor's dimension is smaller than the corresponding storage space dimension. Check the functor definition, and the domain_type passed to the make_computation.");
             // GRIDTOOLS_STATIC_ASSERT((OffsetTuple::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_< I >::value >= length)) ? DefaultVal
-                                                  : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
+                : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
             // this calls accessor::get
         }
 
@@ -314,7 +317,7 @@ namespace gridtools {
 
         template < ushort_t I, typename MplVector >
         GT_FUNCTION static constexpr uint_t find() {
-            static_assert(I < length, "Index out of bound");
+            GRIDTOOLS_STATIC_ASSERT(I < length, "Index out of bound");
             return boost::mpl::at_c< MplVector, pos_< I >::value >::type::value;
         }
 
@@ -333,14 +336,14 @@ namespace gridtools {
         */
         template < ushort_t I, typename T >
         GT_FUNCTION static uint_t find(const T *indices) {
-            static_assert(I < length, "Index out of bound");
+            GRIDTOOLS_STATIC_ASSERT(I < length, "Index out of bound");
             return indices[pos_< I >::value];
         }
 
         template < ushort_t I >
         struct at_ {
 #ifdef PEDANTIC
-            static_assert(I < length,
+            GRIDTOOLS_STATIC_ASSERT(I < length,
                 "Index out of bound: accessing an object with a layout map (a storage) using too many indices.");
 #endif
             static const short_t value = I < length ? layout_vector[I] : -1;
@@ -348,42 +351,29 @@ namespace gridtools {
 
         template < ushort_t I, short_t DefaultVal >
         struct at_default {
-            static_assert(I < length, "Index out of bound");
+            GRIDTOOLS_STATIC_ASSERT(I < length, "Index out of bound");
             static const short_t _value = layout_vector[I];
             static const short_t value = (_value < 0) ? DefaultVal : _value;
         };
 
         // Gives the position at which I is. e.g., I want to know which is the stride of i (0)?
         // then if pos_<0> is 0, then the index i has stride 1, and so on ...
-        template < ushort_t I >
+        template < short_t I >
         struct pos_ {
-            static_assert(I <= length, "Index out of bound");
-            static_assert(I >= 0, "Accessing a negative dimension");
+            GRIDTOOLS_STATIC_ASSERT(I <= length, "Index out of bound");
+            GRIDTOOLS_STATIC_ASSERT(I >= 0, "Accessing a negative dimension");
 
-            template < ushort_t X, bool IsHere >
-            struct _find_pos {
-                static constexpr ushort_t value = _find_pos< X + 1,
-                    boost::mpl::at_c< layout_vector_t, (X + 1 >= length) ? X : X + 1 >::type::value == I >::value;
+            GT_FUNCTION static short_t constexpr find_pos( short_t const& x, bool is_here=false )
+            {
+                return
+                    is_here
+                    ? x
+                    : x==length
+                    ? -2
+                    : find_pos( x+1 , layout_vector[(x + 1 >= length) ? x : x + 1]==I );
             };
 
-            template < ushort_t X >
-            struct _find_pos< X, true > {
-                static constexpr ushort_t value = X;
-            };
-
-            template < bool IsHere >
-            struct _find_pos< length + 1, IsHere > {
-                static constexpr short_t value = -2;
-            };
-
-            // stops the recursion and returns a nonsense value
-            template < bool IsHere >
-            struct _find_pos< length, IsHere > {
-                static constexpr ushort_t value = ~ushort_t();
-            };
-
-            static constexpr ushort_t value =
-                _find_pos< 0, boost::mpl::at_c< layout_vector_t, 0 >::type::value == I >::value;
+            static constexpr short_t value = find_pos( 0, layout_vector[ 0 ] == I );
         };
     };
 
