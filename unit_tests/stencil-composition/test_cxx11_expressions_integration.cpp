@@ -158,11 +158,9 @@ class test_expressions : public testing::Test {
 #define EXPRESSION_TEST_DISABLED(NAME, EXPR, RESULT) \
     TEST_F(test_expressions, DISABLED_##NAME) {}
 
-#ifdef CUDA8 // issue #342
 EXPRESSION_TEST(accessor_mult_accessor, val3() * val2(), 6.)
 EXPRESSION_TEST(accessor_plus_accessor, val3() + val2(), 5.)
 EXPRESSION_TEST(accessor_minus_accessor, val3() - val2(), 1.)
-#endif
 EXPRESSION_TEST(accessor_div_accessor, val3() / val2(), 1.5)
 
 EXPRESSION_TEST(accessor_mult_accessor_with_ijk_syntax, val3(i, j, k) * val2(i, j, k), 6.)
@@ -170,7 +168,7 @@ EXPRESSION_TEST(accessor_plus_accessor_with_ijk_syntax, val3(i, j, k) + val2(i, 
 EXPRESSION_TEST(accessor_minus_accessor_with_ijk_syntax, val3(i, j, k) - val2(i, j, k), 1.)
 EXPRESSION_TEST(accessor_div_accessor_with_ijk_syntax, val3(i, j, k) / val2(i, j, k), 1.5)
 
-#ifdef CUDA8 // issue #342
+#ifdef CUDA8
 EXPRESSION_TEST(accessor_mult_double, val3() * 3., 9.)
 #else
 EXPRESSION_TEST(accessor_mult_double, val3(i, j, k) * 3., 9.)
