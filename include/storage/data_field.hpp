@@ -365,7 +365,7 @@ namespace gridtools {
            @tparam snapshot the snapshot of dimension field_dim to be set
         */
         template < short_t snapshot = 0, short_t field_dim = 0 >
-        value_type &get() {
+        pointer_type &get() {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
@@ -375,11 +375,11 @@ namespace gridtools {
                                         super::super::field_dimensions),
                 "nasty error");
 #endif
-            return *super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
         }
 
         template < short_t snapshot = 0, short_t field_dim = 0 >
-        value_type const &get() const {
+        pointer_type const &get() const {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
@@ -389,7 +389,7 @@ namespace gridtools {
                                         super::super::field_dimensions),
                 "nasty error");
 #endif
-            return *super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
         }
 
         /**@brief gets a given value at the given field i,j,k coordinates
