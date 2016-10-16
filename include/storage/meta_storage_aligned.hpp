@@ -244,7 +244,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         /** @brief returns the unaligned dimensions
          */
-        GT_FUNCTION constexpr auto unaligned_dims() -> array< uint_t, MetaStorageBase::space_dimensions > const {
+        GT_FUNCTION constexpr auto unaligned_dims() const -> array< uint_t, MetaStorageBase::space_dimensions > {
             return m_unaligned_dims;
         }
 
