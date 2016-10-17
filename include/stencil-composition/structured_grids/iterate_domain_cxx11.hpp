@@ -437,7 +437,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
 
-            uint_t idx = get_data_field_index<storage_type::traits::n_fields % storage_type::traits::n_width == 0, Accessor, local_domain_t>::apply(accessor);
+            uint_t idx = get_data_field_index<storage_type::traits::is_rectangular, Accessor, local_domain_t>::apply(accessor);
 
             return (data_pointer())[idx];
         }

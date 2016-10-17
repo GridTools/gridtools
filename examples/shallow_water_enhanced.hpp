@@ -166,7 +166,7 @@ namespace shallow_water {
             const float_type &tl = 2.;
 #ifndef CUDA8
             comp c;
-            dimension<1> i;
+            dimension< 1 > i;
             //! [expression]
             eval(tmpx()) =
                 eval((sol(i - 0) + sol(i - 1)) / tl - (dt() / (2 * dx())) * (sol(c + 1) - sol(c + 1, i - 1)));
