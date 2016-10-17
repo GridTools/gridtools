@@ -12,7 +12,7 @@ using gridtools::int_t;
 struct A : gridtools::clonable_to_gpu< A > {
     gridtools::hybrid_pointer< int > p;
 
-    A(uint_t n) : p(n) {
+    A(uint_t n) : p(n, false) {
 #ifndef NDEBUG
         p.out();
 #endif

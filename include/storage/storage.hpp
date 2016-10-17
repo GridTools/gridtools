@@ -433,7 +433,7 @@ namespace gridtools {
         BaseStorage *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
 
         explicit storage(storage_info_type const &meta_data_)
-            : m_meta_data(new storage_info_type(meta_data_), false),
+            : m_meta_data(new storage_info_type(meta_data_), 1, false),
               m_storage(new BaseStorage(m_meta_data.get_pointer_to_use()), 1, false), m_on_host(true) {}
 
         template < typename UInt >

@@ -41,10 +41,14 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 
+#ifndef __CUDACC__
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
+#endif
+#else
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #endif
 
 using gridtools::level;

@@ -21,7 +21,7 @@ template < typename value_type >
 struct derived : public base< derived< value_type > > {
     hybrid_pointer< value_type > data;
 
-    derived(uint_t s) : base< derived< value_type > >(s), data(s) {
+    derived(uint_t s) : base< derived< value_type > >(s), data(s, false) {
         for (uint_t i = 0; i < data.get_size(); ++i)
             data[i] = data.get_size() - i;
         data.update_gpu();
