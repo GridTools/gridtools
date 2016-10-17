@@ -56,7 +56,7 @@
    - the addresses of the first element of all the data fields in the storages involved in this stencil are saved in an
    array (m_storage_pointers)
    - the index of the storages is saved in another array (m_index)
-   - when the functor gets called, the 'offsets' become visible (in the perfect worls they could possibly be known at
+   - when the functor gets called, the 'offsets' become visible (in the perfect world they could possibly be known at
    compile time). In particular the index is moved to point to the correct address, and the correct data snapshot is
    selected.
 
@@ -530,6 +530,34 @@ namespace gridtools {
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return get_value(accessor, get_data_pointer(accessor));
         }
+
+#ifdef CXX11_ENABLED
+        /** @brief method called in the Do methods of the functors
+
+            Overload of the operator() for expressions.
+        */
+        template < typename... Arguments, template < typename... Args > class Expression >
+        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
+            -> decltype(expressions::evaluation::value(*this, arg)) {
+            // arg.to_string();
+            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
+            return expressions::evaluation::value((*this), arg);
+        }
+
+        /** @brief method called in the Do methods of the functors.
+
+            partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would
+           be polluted with casting
+            (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
+           expression)*/
+        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
+        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg) const
+            -> decltype(expressions::evaluation::value((*this), arg)) {
+
+            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
+            return expressions::evaluation::value((*this), arg);
+        }
+#endif
     };
 
     //    ################## IMPLEMENTATION ##############################
