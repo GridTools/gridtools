@@ -15,7 +15,7 @@ int main(){
     using namespace enumtype;
     using namespace gridtools;
     //defining the assembler, based on the Intrepid definitions for the numerics
-    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;// OR 3?
+    using matrix_storage_info_t=storage_info< __COUNTER__, layout_tt<4> >;// TODO: or 3?
     using matrix_type=storage_t< matrix_storage_info_t >;
 
     using geo_map=reference_element<1, Lagrange, Hexa>;

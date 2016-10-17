@@ -99,7 +99,7 @@ else()
     add_subdirectory( communication )
   endif()
 
-  ## where should we put this?
+  ## TODO: where should we put this?
   add_subdirectory( galerkin ) 
 
 endif(NOT STRUCTURED_GRIDS)
