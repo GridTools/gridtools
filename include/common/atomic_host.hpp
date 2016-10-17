@@ -105,7 +105,7 @@ namespace gridtools {
         static T atomic_exch(T &var, const T val) {
 #if _OPENMP > 201106
             T old;
-#pragma omp atomic capture
+#pragma omp atomic
             {
                 old = var;
                 var = val;
