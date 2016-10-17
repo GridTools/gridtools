@@ -303,10 +303,12 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value),
                 "the find_val method must be used with tuples of offset_tuple type");
 
-            // GRIDTOOLS_STATIC_ASSERT(length <= OffsetTuple::n_dim, "pedantic check: an accessor's dimension is smaller than the corresponding storage space dimension. Check the functor definition, and the domain_type passed to the make_computation.");
+            // GRIDTOOLS_STATIC_ASSERT(length <= OffsetTuple::n_dim, "pedantic check: an accessor's dimension is smaller
+            // than the corresponding storage space dimension. Check the functor definition, and the domain_type passed
+            // to the make_computation.");
             // GRIDTOOLS_STATIC_ASSERT((OffsetTuple::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_< I >::value >= length)) ? DefaultVal
-                : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
+                                                  : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
             // this calls accessor::get
         }
 
@@ -358,22 +360,17 @@ namespace gridtools {
 
         // Gives the position at which I is. e.g., I want to know which is the stride of i (0)?
         // then if pos_<0> is 0, then the index i has stride 1, and so on ...
-        template < short_t I >
+        template < ushort_t I >
         struct pos_ {
             GRIDTOOLS_STATIC_ASSERT(I <= length, "Index out of bound");
-            GRIDTOOLS_STATIC_ASSERT(I >= 0, "Accessing a negative dimension");
+            GRIDTOOLS_STATIC_ASSERT((short_t)I >= 0, "Accessing a negative dimension");
 
-            GT_FUNCTION static short_t constexpr find_pos( short_t const& x, bool is_here=false )
-            {
-                return
-                    is_here
-                    ? x
-                    : x==length
-                    ? -2
-                    : find_pos( x+1 , layout_vector[(x + 1 >= length) ? x : x + 1]==I );
+            GT_FUNCTION static short_t constexpr find_pos(short_t const &x, bool is_here = false) {
+                return is_here ? x : x == length ? -2
+                                                 : find_pos(x + 1, layout_vector[(x + 1 >= length) ? x : x + 1] == I);
             };
 
-            static constexpr short_t value = find_pos( 0, layout_vector[ 0 ] == I );
+            static constexpr short_t value = find_pos(0, layout_vector[0] == I);
         };
     };
 
