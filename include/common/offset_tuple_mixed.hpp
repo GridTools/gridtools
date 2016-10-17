@@ -43,6 +43,7 @@ namespace gridtools {
         typedef ArgType offset_tuple_t;
 
         offset_tuple_t m_tuple_runtime;
+
       protected:
         static const constexpr offset_tuple_t s_tuple_constexpr{get_dim< Pair >()...};
         typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates_t;
@@ -53,38 +54,38 @@ namespace gridtools {
 #ifndef __CUDACC__
         // template < typename... ArgsRuntime
         //            , typename T = typename boost::disable_if_c< accumulate(logical_and(),
-        //              boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime > >::type::value...) >::
+        //              boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime >
+        //              >::type::value...) >::
         //         type >
         // GT_FUNCTION constexpr
         // offset_tuple_mixed(ArgsRuntime const &... args){
         //     /*always failing*/
         //     GRIDTOOLS_STATIC_ASSERT(sizeof...(ArgsRuntime) && !sizeof...(ArgsRuntime)
-        //                             , "Passing the wrong argument to an alias accessor, or trying to construct it with wrong arguments");
+        //                             , "Passing the wrong argument to an alias accessor, or trying to construct it
+        //                             with wrong arguments");
         // }
 
-        template < typename... ArgsRuntime
-             , typename T = typename boost::enable_if_c< accumulate(logical_and(),
+        template < typename... ArgsRuntime,
+            typename T = typename boost::enable_if_c< accumulate(logical_and(),
                 boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime > >::type::value...) >::
-                type
-                   >
+                type >
         GT_FUNCTION constexpr offset_tuple_mixed(ArgsRuntime const &... args)
             : m_tuple_runtime(args...) {}
 #else
-        template < typename First, typename... ArgsRuntime
-             , typename T = typename boost::enable_if_c< accumulate(logical_and(),
-                boost::mpl::or_< boost::is_integral< First >, is_dimension< First > >::type::value) >::
-                type
-                   >
-        GT_FUNCTION constexpr offset_tuple_mixed(First const& first_, ArgsRuntime const&... args)
+        template < typename First,
+            typename... ArgsRuntime,
+            typename T = typename boost::enable_if_c< accumulate(logical_and(),
+                boost::mpl::or_< boost::is_integral< First >, is_dimension< First > >::type::value) >::type >
+        GT_FUNCTION constexpr offset_tuple_mixed(First const &first_, ArgsRuntime const &... args)
             : m_tuple_runtime(first_, args...) {}
 #endif
 
-        template< int_t I, int_t N >
-        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< offset_tuple<I, N> > const &other_)
+        template < int_t I, int_t N >
+        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< offset_tuple< I, N > > const &other_)
             : m_tuple_runtime(other_.m_tuple_runtime) {}
 
-        template < typename OffsetTuple, int_t I, int_t N>
-        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple<I, N> const &arg_)
+        template < typename OffsetTuple, int_t I, int_t N >
+        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple< I, N > const &arg_)
             : m_tuple_runtime(arg_) {}
 
         template < typename OtherAcc >

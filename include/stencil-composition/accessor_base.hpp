@@ -157,7 +157,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        constexpr accessor_base(const int_t & x) : m_offsets(x) {}
+        constexpr accessor_base(const int_t &x) : m_offsets(x) {}
 
 /**@brief constructor taking the dimension class as argument.
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -220,9 +220,10 @@ namespace gridtools {
 
         template < short_t Idx >
         GT_FUNCTION int_t constexpr get() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx < 0 || Idx <= n_dim, "requested accessor index larger than the available "
-                                                             "dimensions. Maybe you made a mistake when setting the "
-                                                             "accessor dimensionality?");
+            GRIDTOOLS_STATIC_ASSERT(Idx < 0 || Idx <= n_dim,
+                "requested accessor index larger than the available "
+                "dimensions. Maybe you made a mistake when setting the "
+                "accessor dimensionality?");
             return m_offsets.template get< Idx >();
         }
 

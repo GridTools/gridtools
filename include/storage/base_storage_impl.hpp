@@ -42,21 +42,20 @@
 #include "../common/generic_metafunctions/all_integrals.hpp"
 #include "../common/offset_metafunctions.hpp"
 
-namespace gridtools{
+namespace gridtools {
 
     template < typename Tuple >
     struct is_arg_tuple;
 
-    namespace _impl
-    {
+    namespace _impl {
 
 #ifdef CXX11_ENABLED
         /**@brief metafunction to recursively compute the next stride
            ID goes from space_dimensions-2 to 0
            MaxIndex is space_dimensions-1
         */
-        template<short_t ID, short_t MaxIndex,  typename Layout>
-        struct next_stride{
+        template < short_t ID, short_t MaxIndex, typename Layout >
+        struct next_stride {
 
             template < typename First, typename... IntTypes >
             GT_FUNCTION static constexpr First apply(First const &first, IntTypes const &... args) {
@@ -66,11 +65,11 @@ namespace gridtools{
         };
 
         /**@brief template specialization to stop the recursion*/
-        template< short_t MaxIndex, typename Layout>
-        struct next_stride<0, MaxIndex, Layout>{
+        template < short_t MaxIndex, typename Layout >
+        struct next_stride< 0, MaxIndex, Layout > {
             template < typename First, typename... IntTypes >
             GT_FUNCTION static constexpr First apply(First const &first, IntTypes const &... args) {
-                return Layout::template find_val<MaxIndex,short_t,1>(first, args...);
+                return Layout::template find_val< MaxIndex, short_t, 1 >(first, args...);
             }
         };
 
@@ -82,10 +81,10 @@ namespace gridtools{
             using lambda = next_stride< MaxIndex - T, MaxIndex, Layout >;
 
             template < typename... UIntType, typename Dummy = all_integers< UIntType... > >
-            static constexpr array< int_t, MaxIndex+1 > apply(UIntType... args) {
+            static constexpr array< int_t, MaxIndex + 1 > apply(UIntType... args) {
                 using seq =
                     apply_gt_integer_sequence< typename make_gt_integer_sequence< int_t, sizeof...(args) >::type >;
-                return seq::template apply< array< int_t, MaxIndex+1 >, lambda >((int_t)args...);
+                return seq::template apply< array< int_t, MaxIndex + 1 >, lambda >((int_t)args...);
             }
         };
 
@@ -141,10 +140,9 @@ namespace gridtools{
                 Offset const &indices_,
                 typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
                 return (int_t)strides_[space_dimensions - Id] *
-                    Layout::template find_val< space_dimensions - Id, uint_t, 0 >(indices_) +
-                    compute_offset< Id - 1, Layout >::apply(strides_, indices_);
+                           Layout::template find_val< space_dimensions - Id, uint_t, 0 >(indices_) +
+                       compute_offset< Id - 1, Layout >::apply(strides_, indices_);
             }
-
         };
 
         /**@brief stops the recursion
@@ -252,7 +250,7 @@ namespace gridtools{
         struct print_pointer {
             template < typename StorageType >
             GT_FUNCTION_WARNING void operator()(pointer< StorageType > s) const {
-                printf("Pointer Value %x\n",  s);
+                printf("Pointer Value %x\n", s);
             }
         };
 #endif

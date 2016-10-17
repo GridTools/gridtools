@@ -151,7 +151,7 @@ namespace gridtools {
         GT_FUNCTION void setup(IntTypes const &... dims_) {
             m_dims = array< uint_t, space_dimensions >(dims_...);
             m_strides = array< int_t, space_dimensions >(
-                _impl::assign_all_strides< (short_t)(space_dimensions-1), layout >::apply(dims_...));
+                _impl::assign_all_strides< (short_t)(space_dimensions - 1), layout >::apply(dims_...));
         }
 #else
         template < class First,
@@ -162,14 +162,14 @@ namespace gridtools {
         GT_FUNCTION void setup(First first_, IntTypes const &... dims_) {
             m_dims = array< uint_t, space_dimensions >{first_, dims_...};
             m_strides = array< int_t, space_dimensions >(
-                _impl::assign_all_strides< (short_t)(space_dimensions-1), layout >::apply(first_, dims_...));
+                _impl::assign_all_strides< (short_t)(space_dimensions - 1), layout >::apply(first_, dims_...));
         }
 #endif //__CUDACC__
 
         GT_FUNCTION
         constexpr meta_storage_base(array< uint_t, space_dimensions > const &a)
             : m_dims(a), m_strides(explode< array< int_t, (short_t)(space_dimensions) >,
-                             _impl::assign_all_strides< (short_t)(space_dimensions-1), layout > >(a)) {}
+                             _impl::assign_all_strides< (short_t)(space_dimensions - 1), layout > >(a)) {}
 
 // variadic constexpr constructor
 
@@ -191,8 +191,8 @@ namespace gridtools {
             // we only use a constexpr in no debug mode, because we want to assert the sizes are uint in debug mode
             // constexpr does not allow code in the body
             constexpr meta_storage_base(IntTypes const &... dims_)
-                : m_dims{(uint_t)dims_...},
-                  m_strides(_impl::assign_all_strides< (short_t)(space_dimensions-1), layout >::apply((uint_t)dims_...)) {
+            : m_dims{(uint_t)dims_...},
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions - 1), layout >::apply((uint_t)dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments smaller than its number of dimensions. \
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
@@ -214,7 +214,7 @@ namespace gridtools {
                 bool >::type >
         GT_FUNCTION constexpr meta_storage_base(IntTypes... dims_)
             : m_dims{(uint_t)dims_...},
-              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions-1), layout >::apply(dims_...)) {
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions - 1), layout >::apply(dims_...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) >= space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments smaller than its number of dimensions. \
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
@@ -239,7 +239,7 @@ namespace gridtools {
         template < typename... IntTypes, typename Dummy = all_static_integers< IntTypes... > >
         constexpr meta_storage_base(IntTypes... dims_)
             : m_dims{IntTypes::value...},
-              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions-1), layout >::apply(IntTypes()...)) {
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions - 1), layout >::apply(IntTypes()...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) == space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments different from its number of dimensions. \
  This is not allowed. If you want to fake a lower dimensional storage, you have to add explicitly\
@@ -258,7 +258,7 @@ namespace gridtools {
             >
         constexpr meta_storage_base(First first_, IntTypes... dims_)
             : m_dims{First::value, IntTypes::value...},
-              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions-1), layout >::apply(
+              m_strides(_impl::assign_all_strides< (short_t)(space_dimensions - 1), layout >::apply(
                   First::value, IntTypes::value...)) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(IntTypes) + 1 == space_dimensions, "you tried to initialize\
  a storage with a number of integer arguments different from its number of dimensions. \

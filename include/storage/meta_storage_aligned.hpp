@@ -151,7 +151,7 @@ namespace gridtools {
             : super(apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t,
                       sizeof...(IntTypes) >::type >::template apply_zipped< super, lambda_t >(dims_...)),
               m_unaligned_dims{(uint_t)dims_...},
-              m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions -1),
+              m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions - 1),
                   typename MetaStorageBase::layout >::apply((uint_t)dims_...)) {
             static_assert(MetaStorageBase::space_dimensions == sizeof...(dims_),
                 "stride container size is not matching number of given dimensions");
@@ -164,7 +164,7 @@ namespace gridtools {
             : super(apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t,
                       sizeof...(IntTypes) + 1 >::type >::template apply_zipped< super, lambda_t >(f_, dims_...)),
               m_unaligned_dims{(uint_t)f_, (uint_t)dims_...},
-              m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions-1 ),
+              m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions - 1),
                   typename MetaStorageBase::layout >::apply((uint_t)f_, (uint_t)dims_...)) {
             static_assert(MetaStorageBase::space_dimensions == sizeof...(dims_) + 1,
                 "stride container size is not matching number of given dimensions");

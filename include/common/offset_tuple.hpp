@@ -53,7 +53,7 @@ namespace gridtools {
        the dimension index (X::direction)
     */
     template < ushort_t N, typename X >
-    GT_FUNCTION constexpr int_t initialize(X const& x) {
+    GT_FUNCTION constexpr int_t initialize(X const &x) {
         GRIDTOOLS_STATIC_ASSERT(is_dimension< X >::value,
             "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
         return (X::direction == N ? x.value : 0);
@@ -67,7 +67,7 @@ namespace gridtools {
        \param rest are the remaining arguments, which get considered one at a time in by means of recursive calls
     */
     template < ushort_t N, typename X, typename... Rest >
-    GT_FUNCTION constexpr int_t initialize(X const& x, Rest const& ... rest) {
+    GT_FUNCTION constexpr int_t initialize(X const &x, Rest const &... rest) {
         GRIDTOOLS_STATIC_ASSERT(is_dimension< X >::value,
             "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
         return X::direction == N ? x.value : initialize< N >(rest...);
@@ -82,7 +82,7 @@ namespace gridtools {
        dimension index (Y::direction)
     */
     template < ushort_t N, typename X, typename Y >
-    GT_FUNCTION constexpr int_t initialize(X const& x, Y const& y) {
+    GT_FUNCTION constexpr int_t initialize(X const &x, Y const &y) {
         return X::direction == N ? x.value : Y::direction == N ? y.value : 0;
     }
 
@@ -96,7 +96,7 @@ namespace gridtools {
        dimension index (Z::direction)
     */
     template < ushort_t N, typename X, typename Y, typename Z >
-    GT_FUNCTION constexpr int_t initialize(X const& x, Y const& y, Z const& z) {
+    GT_FUNCTION constexpr int_t initialize(X const &x, Y const &y, Z const &z) {
         return X::direction == N ? x.value : Y::direction == N ? y.value : Z::direction == N ? z.value : 0;
     }
 
@@ -110,7 +110,7 @@ namespace gridtools {
        dimension index (Z::direction)
     */
     template < ushort_t N, typename X, typename Y, typename Z, typename T >
-    GT_FUNCTION constexpr int_t initialize(X const& x, Y const& y, Z const& z, T const& t) {
+    GT_FUNCTION constexpr int_t initialize(X const &x, Y const &y, Z const &z, T const &t) {
         return X::direction == N ? x.value : Y::direction == N ? y.value : Z::direction == N
                                                                                ? z.value
                                                                                : T::direction == N ? t.value : 0;
@@ -163,14 +163,16 @@ namespace gridtools {
 
         /**copy constructor
 
-           recursively assigning m_offset one by one. Works with offset_tuple of dimension lower of equal w.r.t. this one.
+           recursively assigning m_offset one by one. Works with offset_tuple of dimension lower of equal w.r.t. this
+           one.
          */
-        template<int_t I>
-        GT_FUNCTION constexpr offset_tuple(offset_tuple<I, NDim> const& other) : super(other), m_offset(other.template get<n_args-1>()){
+        template < int_t I >
+        GT_FUNCTION constexpr offset_tuple(offset_tuple< I, NDim > const &other)
+            : super(other), m_offset(other.template get< n_args - 1 >()) {
             GRIDTOOLS_STATIC_ASSERT((I <= NDim), "Internal error");
         }
 
-        GT_FUNCTION constexpr offset_tuple(const uint_t& pos, array< int_t, NDim > const &offsets)
+        GT_FUNCTION constexpr offset_tuple(const uint_t &pos, array< int_t, NDim > const &offsets)
             : super(pos + 1, offsets), m_offset(offsets[pos]) {}
 #ifdef CXX11_ENABLED
 
@@ -183,7 +185,7 @@ namespace gridtools {
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
-        GT_FUNCTION constexpr offset_tuple(int const& t, GenericElements const& ... x)
+        GT_FUNCTION constexpr offset_tuple(int const &t, GenericElements const &... x)
             : super(x...), m_offset(t) {}
 
         /**@brief constructor taking the dimension class as argument.
@@ -191,7 +193,7 @@ namespace gridtools {
            language keyword used at the interface level.
         */
         template < ushort_t Idx, typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(dimension< Idx > const& t, GenericElements const& ... x)
+        GT_FUNCTION constexpr offset_tuple(dimension< Idx > const &t, GenericElements const &... x)
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {
             GRIDTOOLS_STATIC_ASSERT(
                 (Index <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
@@ -202,7 +204,7 @@ namespace gridtools {
            language keyword used at the interface level.
         */
         template < ushort_t Idx, typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(typename dimension< Idx >::Index const& t, GenericElements const& ... x)
+        GT_FUNCTION constexpr offset_tuple(typename dimension< Idx >::Index const &t, GenericElements const &... x)
             : super(dimension< Idx >(0), x...),
               m_offset(initialize< super::n_dim - n_args + 1 >(dimension< Idx >(0), x...)) {
             GRIDTOOLS_STATIC_ASSERT(
@@ -215,19 +217,21 @@ namespace gridtools {
            (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in
            order. No check is done on the order*/
-        GT_FUNCTION offset_tuple(int const& i, int const& j, int const& k) : super(j, k), m_offset(i) {}
+        GT_FUNCTION offset_tuple(int const &i, int const &j, int const &k) : super(j, k), m_offset(i) {}
         GT_FUNCTION
-        offset_tuple(int const& i, int const& j) : super(j), m_offset(i) {}
+        offset_tuple(int const &i, int const &j) : super(j), m_offset(i) {}
         GT_FUNCTION
-        offset_tuple(int const& i) : m_offset(i) {}
+        offset_tuple(int const &i) : m_offset(i) {}
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::dimension' is a
            language keyword used at the interface level.
         */
         template < ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
-        GT_FUNCTION offset_tuple(
-            dimension< Idx1 > const &t, dimension< Idx2 > const& u, dimension< Idx3 > const& v, dimension< Idx4 > const& h)
+        GT_FUNCTION offset_tuple(dimension< Idx1 > const &t,
+            dimension< Idx2 > const &u,
+            dimension< Idx3 > const &v,
+            dimension< Idx4 > const &h)
             : super(t, u, v, h), m_offset(initialize< super::n_dim - n_args + 1 >(t, u, v, h)) {}
 
         /**@brief constructor taking the Dimension class as argument.
@@ -235,7 +239,7 @@ namespace gridtools {
            language keyword used at the interface level.
         */
         template < ushort_t Idx1, ushort_t Idx2, ushort_t Idx3 >
-        GT_FUNCTION offset_tuple(dimension< Idx1 > const& t, dimension< Idx2 > const& u, dimension< Idx3 > const& v)
+        GT_FUNCTION offset_tuple(dimension< Idx1 > const &t, dimension< Idx2 > const &u, dimension< Idx3 > const &v)
             : super(t, u, v), m_offset(initialize< super::n_dim - n_args + 1 >(t, u, v)) {}
 
         /**@brief constructor taking the Dimension class as argument.
@@ -243,7 +247,7 @@ namespace gridtools {
            language keyword used at the interface level.
         */
         template < ushort_t Idx1, ushort_t Idx2 >
-        GT_FUNCTION offset_tuple(dimension< Idx1 > const& t, dimension< Idx2 > const& u)
+        GT_FUNCTION offset_tuple(dimension< Idx1 > const &t, dimension< Idx2 > const &u)
             : super(t, u), m_offset(initialize< super::n_dim - n_args + 1 >(t, u)) {}
 
         /**@brief constructor taking the Dimension class as argument.
@@ -251,7 +255,7 @@ namespace gridtools {
            language keyword used at the interface level.
         */
         template < ushort_t Idx >
-        GT_FUNCTION offset_tuple(dimension< Idx > const& t)
+        GT_FUNCTION offset_tuple(dimension< Idx > const &t)
             : super(t), m_offset(initialize< super::n_dim - n_args + 1 >(t)) {}
 #endif
 
@@ -309,7 +313,7 @@ namespace gridtools {
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
-        GT_FUNCTION constexpr offset_tuple(GenericElements const&... x) {
+        GT_FUNCTION constexpr offset_tuple(GenericElements const &... x) {
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< GenericElements >::type::value...),
                 "wrong type for the argument of an offset_tuple");
         }
@@ -319,16 +323,16 @@ namespace gridtools {
         constexpr offset_tuple(const offset_tuple &other) {}
 #else
         template < typename X, typename Y, typename Z, typename T >
-        GT_FUNCTION constexpr offset_tuple(X const& x, Y const& y, Z const& z, T const& t) {}
+        GT_FUNCTION constexpr offset_tuple(X const &x, Y const &y, Z const &z, T const &t) {}
 
         template < typename X, typename Y, typename Z >
-        GT_FUNCTION constexpr offset_tuple(X const& x, Y const& y, Z const& z) {}
+        GT_FUNCTION constexpr offset_tuple(X const &x, Y const &y, Z const &z) {}
 
         template < typename X, typename Y >
-        GT_FUNCTION constexpr offset_tuple(X const& x, Y const& y) {}
+        GT_FUNCTION constexpr offset_tuple(X const &x, Y const &y) {}
 
         template < typename X >
-        GT_FUNCTION constexpr offset_tuple(X const& x) {}
+        GT_FUNCTION constexpr offset_tuple(X const &x) {}
 #endif
 
         GT_FUNCTION

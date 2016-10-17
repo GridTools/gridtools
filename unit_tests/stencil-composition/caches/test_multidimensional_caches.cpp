@@ -60,7 +60,7 @@ namespace test_multidimensional_caches {
         GRIDTOOLS_STATIC_ASSERT(m_.value().dim(5) == 4, "error");
 
 #ifndef __CUDACC__ // compiler internal catastrophic error until CUDA8
-        //for the layout_map::find_val (bug report)
+        // for the layout_map::find_val (bug report)
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(1, 0, 0, 0, 0, 0)) == 1, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(2, 0, 0, 0, 0, 0)) == 2, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(3, 0, 0, 0, 0, 0)) == 3, "error");
