@@ -109,9 +109,6 @@ namespace shallow_water {
         static float_type g() { return 9.81; }
     };
 
-    constexpr x i;
-    constexpr y j;
-
     template < uint_t Component = 0, uint_t Snapshot = 0 >
     struct bc_periodic : functor_traits {
         // periodic boundary conditions in I
