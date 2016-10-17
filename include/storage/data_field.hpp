@@ -43,7 +43,7 @@ namespace gridtools {
      */
     template < typename First, typename... StorageExtended >
     struct dimension_extension_traits {
-        static const bool is_rectangular = accumulate(logical_and(), (StorageExtended::n_width == First::n_width) ...);
+        static const bool is_rectangular = accumulate(logical_and(), (StorageExtended::n_width == First::n_width)...);
         // total number of snapshots in the discretized data field
         static const ushort_t n_fields = First::n_width + dimension_extension_traits< StorageExtended... >::n_fields;
         // the buffer size of the current dimension (i.e. the number of snapshots in one dimension)

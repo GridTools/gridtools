@@ -184,6 +184,7 @@ namespace shallow_water {
                     (dt() / (2 * dx())));
 
 #else
+            dimension< 1 > i;
             //![alias]
             using hx = alias< tmpx, comp >::set< 0 >;
             using h = alias< sol, comp >::set< 0 >;
@@ -239,6 +240,7 @@ namespace shallow_water {
                          (dt() / (tl * dy())));
 
 #else
+            dimension< 2 > j;
             using h = alias< sol, comp >::set< 0 >;
             using hy = alias< tmpy, comp >::set< 0 >;
             using u = alias< sol, comp >::set< 1 >;
@@ -304,6 +306,8 @@ namespace shallow_water {
                          ((dt() / dy())));
 
 #else
+            dimension< 1 > i;
+            dimension< 2 > j;
             using hx = alias< tmpx, comp >::set< 0 >;
             using h = alias< sol, comp >::set< 0 >;
             using hy = alias< tmpy, comp >::set< 0 >;
