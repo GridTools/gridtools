@@ -106,7 +106,7 @@ namespace gdl{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void DoCompute(Evaluation const & eval, const gt::dimension<4>& i_qp, const gt::dimension<5>::Index& i_dimx, const gt::dimension<6>::Index& i_dimy, const short_t i_q) {
+        static void DoCompute(Evaluation const & eval, const gt::dimension<4>& i_qp, const gt::dimension<5>& i_dimx, const gt::dimension<6>& i_dimy, const short_t i_q) {
 	  eval( jacobian_det(i_qp+i_q) )= eval((
 				jacobian(        i_qp+i_q)*jacobian(i_dimx+1, i_dimy+1, i_qp+i_q)*jacobian(i_dimx+2, i_dimy+2, i_qp+i_q) +
 				jacobian(i_dimx+1, i_qp+i_q)*jacobian(i_dimx+2, i_dimy+1, i_qp+i_q)*jacobian(i_dimy+2,         i_qp+i_q) +
@@ -128,7 +128,7 @@ namespace gdl{
 
         template <typename Evaluation>
         GT_FUNCTION
-        static void DoCompute(Evaluation const & eval, const gt::dimension<4>& i_qp, const gt::dimension<5>::Index& i_dimx, const gt::dimension<6>::Index& i_dimy, const short_t i_q) {
+        static void DoCompute(Evaluation const & eval, const gt::dimension<4>& i_qp, const gt::dimension<5>& i_dimx, const gt::dimension<6>& i_dimy, const short_t i_q) {
             eval( jacobian_det(i_qp+i_q) )= eval((
 		     jacobian(        i_qp+i_q)*jacobian(i_dimx+1, i_dimy+1, i_qp+i_q) -
 		     jacobian(i_dimx+1, i_qp+i_q)*jacobian(i_dimy+1, i_qp+i_q)));
