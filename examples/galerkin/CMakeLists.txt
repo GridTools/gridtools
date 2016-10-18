@@ -36,10 +36,13 @@ if(ENABLE_INTREPID)
   else()
     find_library( INTREPID_LIB intrepid ${INTREPID_LIB_DIR})
     message("intrepid found in " ${INTREPID_LIB})
+
     find_library( KOKKOS_LIB kokkoscore ${INTREPID_LIB_DIR})
     message("kokkos found in " ${KOKKOS_LIB})
+
     find_library( TEUCHOS_LIB teuchoscore ${INTREPID_LIB_DIR})
     message("teuchos found in " ${TEUCHOS_LIB})
+
     find_library( TEUCHOS_NUMERICS_LIB teuchosnumerics ${INTREPID_LIB_DIR})
     message("teuchos numerics found in " ${TEUCHOS_NUMERICS_LIB})
 
@@ -109,7 +112,7 @@ list( APPEND EXAMPLES stiffness mass mass_2D mass_IGA dg_flux gather dg_advectio
 foreach(example IN LISTS EXAMPLES)
 add_executable( ${example} examples/${example}.cpp )
 set_target_properties( ${example} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} )
-target_link_libraries( ${example} ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB}  ${SHARDS_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${LAPACK_LIBRARIES}  ${LAPACK_LIBRARIES} ${BLAS_LIBS} )
+target_link_libraries( ${example} ${exe_LIBS} gcl ${MPI_ADDITIONAL_LIBS}  ${INTREPID_LIB}  ${SHARDS_LIB} ${TEUCHOS_COMM_LIB} ${TEUCHOS_PARAMETER_LIST_LIB} ${TEUCHOS_NUMERICS_LIB} ${TEUCHOS_LIB} ${KOKKOS_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBS} )
 endforeach(example)
 ##################################################################
 
