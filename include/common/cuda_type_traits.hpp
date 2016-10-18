@@ -59,8 +59,20 @@ namespace gridtools {
     } // namespace _impl
 
     template < typename T >
-    struct is_texture_type : boost::mpl::has_key< _impl::texture_types,
-                                 typename boost::remove_cv< typename boost::remove_reference< T >::type >::type > {};
+    struct remove_restrict {
+        typedef T type;
+    };
+
+    template < typename T >
+    struct remove_restrict< T __restrict__ > {
+        typedef T type;
+    };
+
+    template < typename T >
+    struct is_texture_type
+        : boost::mpl::has_key< _impl::texture_types,
+              typename boost::remove_cv< typename boost::remove_reference<
+                  typename boost::remove_pointer< typename remove_restrict< T >::type >::type >::type >::type > {};
 
 #ifdef CXX11_ENABLED
     template < typename T >

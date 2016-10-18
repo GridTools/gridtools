@@ -57,6 +57,10 @@ TEST(texture_type_traits, cv_int_is_texture_type) {
     ASSERT_TRUE(gridtools::is_texture_type< const volatile int >::value);
 }
 
+TEST(texture_type_traits, restrict_int_ref_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< int &__restrict__ >::value);
+}
+
 #ifdef CXX11_ENABLED
 TEST(texture_type_traits, is_texture_type_t) {
     using result = gridtools::is_texture_type_t< int >;
