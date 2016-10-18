@@ -29,13 +29,13 @@ private:
     using TestInfo = testing::TestInfo;
     using TestPartResult = testing::TestPartResult;
 
-    int rank_;
-    int size_;
+    int rank_=0;
+    int size_=0;
     std::ofstream fid_;
     char buffer_[1024];
-    int test_case_failures_;
-    int test_case_tests_;
-    int test_failures_;
+    int test_case_failures_=0;
+    int test_case_tests_=0;
+    int test_failures_=0;
 
     bool does_print() const {
         return rank_==0;
@@ -106,7 +106,7 @@ public:
 
     // Called before a test starts.
     virtual void OnTestStart(const TestInfo& test_info) override {
-        printf_helper( "  TEST  %s::%s\n", test_info.test_case_name(), test_info.name());
+        printf_helper("  TEST  %s::%s\n", test_info.test_case_name(), test_info.name());
         test_failures_ = 0;
     }
 
@@ -144,7 +144,7 @@ public:
 
         // count the number of ranks that had errors
         int global_errors{};
-        MPI_Reduce(&global_errors, &test_failures_, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+        MPI_Reduce(&test_failures_, &global_errors, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
 
         if (global_errors>0) {
             test_case_failures_++;

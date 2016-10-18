@@ -30,9 +30,9 @@ int main(int argc, char **argv) {
     //      0 : success
     //      1 : failure
     auto result = RUN_ALL_TESTS();
-    decltype(result) global_result;
+    decltype(result) global_result{};
 
-    MPI_Allreduce(&global_result, &result, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(&result, &global_result, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
     MPI_Finalize();
     // perform global collective, to ensure that all ranks return
