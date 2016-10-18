@@ -41,6 +41,8 @@
  * Integration test for testing expressions inside a computation.
  * The test setup is not very nice but it was designed that way to minimize compilation time, i.e. to test everything
  * within one make_computation call.
+ *
+ *
  */
 
 #include "gtest/gtest.h"
@@ -126,12 +128,21 @@ class test_expressions : public testing::Test {
     }
 };
 
-#define EXPRESSION_TEST(INDEX, EXPR) \
-    else if (eval.i() == INDEX && eval.j() == 0 && eval.k() == 0) eval(out()) = eval(EXPR);
-#define EXPRESSION_TEST_RESULT(INDEX, RESULT) reference(INDEX, 0, 0) = RESULT;
+#define EXPRESSION_TEST(EXPR)                                         \
+    else if (eval.i() == index++ && eval.j() == 0 && eval.k() == 0) { \
+        eval(out()) = eval(EXPR);                                     \
+    }
+#define EXPRESSION_TEST_RESULT(RESULT) \
+    reference(index, 0, 0) = RESULT;   \
+    index++;
 
-#define EXPRESSION_TEST_DISABLED(INDEX, EXPR)
-#define EXPRESSION_TEST_RESULT_DISABLED(INDEX, RESULT) reference(INDEX, 0, 0) = ::DEFAULT_VALUE;
+#define EXPRESSION_TEST_DISABLED(EXPR)                                \
+    else if (eval.i() == index++ && eval.j() == 0 && eval.k() == 0) { \
+        eval(out()) = ::DEFAULT_VALUE;                                \
+    }
+#define EXPRESSION_TEST_RESULT_DISABLED(RESULT) \
+    reference(index, 0, 0) = ::DEFAULT_VALUE;   \
+    index++;
 
 namespace {
     struct test_functor {
@@ -145,98 +156,109 @@ namespace {
             constexpr gridtools::dimension< 2 > j{};
             constexpr gridtools::dimension< 3 > k{};
 
-            if (false) // starts the cascade
+            // starts the cascade
+            int index = 0;
+            if (false)
                 assert(false);
+            /*
+             * Put expression test here in the form
+             * EXPRESSION_TEST( <expr> ) where <expr> is the expression to test.
+             * Then put the result below. The order of EXPRESSION_TESTs and EXPRESSION_TEST_RESULTs has to be presevered
+             */
+            EXPRESSION_TEST(val3() * val2())
+            EXPRESSION_TEST(val3() + val2())
+            EXPRESSION_TEST(val3() - val2())
+            EXPRESSION_TEST(val3() / val2())
 
-            EXPRESSION_TEST(0, val3() * val2())
-            EXPRESSION_TEST(1, val3() + val2())
-            EXPRESSION_TEST(2, val3() - val2())
-            EXPRESSION_TEST(3, val3() / val2())
-
-            EXPRESSION_TEST(4, val3(i, j, k) * val2(i, j, k))
-            EXPRESSION_TEST(5, val3(i, j, k) + val2(i, j, k))
-            EXPRESSION_TEST(6, val3(i, j, k) - val2(i, j, k))
-            EXPRESSION_TEST(7, val3(i, j, k) / val2(i, j, k))
+            EXPRESSION_TEST(val3(i, j, k) * val2(i, j, k))
+            EXPRESSION_TEST(val3(i, j, k) + val2(i, j, k))
+            EXPRESSION_TEST(val3(i, j, k) - val2(i, j, k))
+            EXPRESSION_TEST(val3(i, j, k) / val2(i, j, k))
 
 #ifdef CUDA8 // workaround for issue #342
-            EXPRESSION_TEST(8, val3() * 3.)
+            EXPRESSION_TEST(val3() * 3.)
 #else
-            EXPRESSION_TEST(8, val3(i, j, k) * 3.)
+            EXPRESSION_TEST(val3(i, j, k) * 3.)
 #endif
-            EXPRESSION_TEST_DISABLED(9, 3. * val3())
-            EXPRESSION_TEST_DISABLED(10, val3() * 3) // accessor<double> mult int
-            EXPRESSION_TEST_DISABLED(11, 3 * val3()) // int mult accessor<double>
+            EXPRESSION_TEST_DISABLED(3. * val3())
+            EXPRESSION_TEST_DISABLED(val3() * 3) // accessor<double> mult int
+            EXPRESSION_TEST_DISABLED(3 * val3()) // int mult accessor<double>
 
-            EXPRESSION_TEST(12, val3() + 3.)
-            EXPRESSION_TEST_DISABLED(13, 3. + val3())
-            EXPRESSION_TEST_DISABLED(14, val3() + 3) // accessor<double> plus int
-            EXPRESSION_TEST_DISABLED(15, 3 + val3()) // int plus accessor<double>
+            EXPRESSION_TEST(val3() + 3.)
+            EXPRESSION_TEST_DISABLED(3. + val3())
+            EXPRESSION_TEST_DISABLED(val3() + 3) // accessor<double> plus int
+            EXPRESSION_TEST_DISABLED(3 + val3()) // int plus accessor<double>
 
-            EXPRESSION_TEST(16, val3() - 2.)
-            EXPRESSION_TEST_DISABLED(17, 3. - val2())
-            EXPRESSION_TEST_DISABLED(18, val3() - 2) // accessor<double> minus int
-            EXPRESSION_TEST_DISABLED(19, 3 - val2()) // int minus accessor<double>
+            EXPRESSION_TEST(val3() - 2.)
+            EXPRESSION_TEST_DISABLED(3. - val2())
+            EXPRESSION_TEST_DISABLED(val3() - 2) // accessor<double> minus int
+            EXPRESSION_TEST_DISABLED(3 - val2()) // int minus accessor<double>
 
-            EXPRESSION_TEST(20, val3() / 2.)
-            EXPRESSION_TEST_DISABLED(21, 3. / val2())
-            EXPRESSION_TEST_DISABLED(22, val3() / 2) // accessor<double> div int
-            EXPRESSION_TEST_DISABLED(23, 3 / val2()) // int div accessor<double>
+            EXPRESSION_TEST(val3() / 2.)
+            EXPRESSION_TEST_DISABLED(3. / val2())
+            EXPRESSION_TEST_DISABLED(val3() / 2) // accessor<double> div int
+            EXPRESSION_TEST_DISABLED(3 / val2()) // int div accessor<double>
 
-            EXPRESSION_TEST_DISABLED(24, -val2())
-            EXPRESSION_TEST_DISABLED(25, +val2())
+            EXPRESSION_TEST_DISABLED(-val2())
+            EXPRESSION_TEST_DISABLED(+val2())
 
-            EXPRESSION_TEST_DISABLED(26, val3() + 2. * val2())
+            EXPRESSION_TEST_DISABLED(val3() + 2. * val2())
 
-            EXPRESSION_TEST(27, pow< 2 >(val3()))
+            EXPRESSION_TEST(pow< 2 >(val3()))
 
             else eval(out()) = DEFAULT_VALUE;
         }
     };
 }
 
-TEST_F(test_expressions, test) {
+TEST_F(test_expressions, integration_test) {
     auto comp = gridtools::make_computation< gridtools::BACKEND >(
         domain,
         grid,
         gridtools::make_multistage(
             execute< forward >(), gridtools::make_stage<::test_functor >(p_val2(), p_val3(), p_out())));
 
-    EXPRESSION_TEST_RESULT(0, 6.);
-    EXPRESSION_TEST_RESULT(1, 5.);
-    EXPRESSION_TEST_RESULT(2, 1.);
-    EXPRESSION_TEST_RESULT(3, 1.5);
+    int index = 0;
 
-    EXPRESSION_TEST_RESULT(4, 6.);
-    EXPRESSION_TEST_RESULT(5, 5.);
-    EXPRESSION_TEST_RESULT(6, 1.);
-    EXPRESSION_TEST_RESULT(7, 1.5);
+    /*
+     * Put test result here in the same order as the expressions were given above.
+     */
+    EXPRESSION_TEST_RESULT(6.);
+    EXPRESSION_TEST_RESULT(5.);
+    EXPRESSION_TEST_RESULT(1.);
+    EXPRESSION_TEST_RESULT(1.5);
 
-    EXPRESSION_TEST_RESULT(8, 9.);
-    EXPRESSION_TEST_RESULT_DISABLED(9, 9.);
-    EXPRESSION_TEST_RESULT_DISABLED(10, 9.);
-    EXPRESSION_TEST_RESULT_DISABLED(11, 9.);
+    EXPRESSION_TEST_RESULT(6.);
+    EXPRESSION_TEST_RESULT(5.);
+    EXPRESSION_TEST_RESULT(1.);
+    EXPRESSION_TEST_RESULT(1.5);
 
-    EXPRESSION_TEST_RESULT(12, 6.);
-    EXPRESSION_TEST_RESULT_DISABLED(13, 6.);
-    EXPRESSION_TEST_RESULT_DISABLED(14, 6.);
-    EXPRESSION_TEST_RESULT_DISABLED(15, 6.);
+    EXPRESSION_TEST_RESULT(9.);
+    EXPRESSION_TEST_RESULT_DISABLED(9.);
+    EXPRESSION_TEST_RESULT_DISABLED(9.);
+    EXPRESSION_TEST_RESULT_DISABLED(9.);
 
-    EXPRESSION_TEST_RESULT(16, 1.);
-    EXPRESSION_TEST_RESULT_DISABLED(17, 1.);
-    EXPRESSION_TEST_RESULT_DISABLED(18, 1.);
-    EXPRESSION_TEST_RESULT_DISABLED(19, 1.);
+    EXPRESSION_TEST_RESULT(6.);
+    EXPRESSION_TEST_RESULT_DISABLED(6.);
+    EXPRESSION_TEST_RESULT_DISABLED(6.);
+    EXPRESSION_TEST_RESULT_DISABLED(6.);
 
-    EXPRESSION_TEST_RESULT(20, 1.5);
-    EXPRESSION_TEST_RESULT_DISABLED(21, 1.5);
-    EXPRESSION_TEST_RESULT_DISABLED(22, 1.5);
-    EXPRESSION_TEST_RESULT_DISABLED(23, 1.5);
+    EXPRESSION_TEST_RESULT(1.);
+    EXPRESSION_TEST_RESULT_DISABLED(1.);
+    EXPRESSION_TEST_RESULT_DISABLED(1.);
+    EXPRESSION_TEST_RESULT_DISABLED(1.);
 
-    EXPRESSION_TEST_RESULT_DISABLED(24, -2.);
-    EXPRESSION_TEST_RESULT_DISABLED(25, +2.);
+    EXPRESSION_TEST_RESULT(1.5);
+    EXPRESSION_TEST_RESULT_DISABLED(1.5);
+    EXPRESSION_TEST_RESULT_DISABLED(1.5);
+    EXPRESSION_TEST_RESULT_DISABLED(1.5);
 
-    EXPRESSION_TEST_RESULT_DISABLED(26, 7.);
+    EXPRESSION_TEST_RESULT_DISABLED(-2.);
+    EXPRESSION_TEST_RESULT_DISABLED(+2.);
 
-    EXPRESSION_TEST_RESULT(27, 9.);
+    EXPRESSION_TEST_RESULT_DISABLED(7.);
+
+    EXPRESSION_TEST_RESULT(9.);
 
     execute_computation(comp);
     ASSERT_TRUE(verifier_.verify(grid, reference, out, verifier_halos));
