@@ -45,11 +45,10 @@ using namespace gridtools::enumtype;
 using namespace gridtools::expressions;
 
 /*
- * Mocking the iterate domain
+ * Mocking accessor and iterate domain
  */
 template < typename T >
 struct accessor_mock {
-    //    GT_FUNCTION accessor_mock(T value) : value(value) {}
     using return_type = T;
     T value;
 };
@@ -81,29 +80,13 @@ namespace gridtools {
     struct is_iterate_domain< iterate_domain_mock > : boost::mpl::true_ {};
 }
 
-template < typename Arg0, typename Arg1 >
-GT_FUNCTION expr_plus< Arg0, Arg1 > make_expr_plus(const Arg0 &arg0, const Arg1 &arg1) {
-    return expr_plus< Arg0, Arg1 >(arg0, arg1);
-}
-
 using mocked_domain = gridtools::iterate_domain_expandable_parameters< iterate_domain_mock, 0 >;
 using val = accessor_mock< float >;
-
-template < typename T, int Val >
-struct static_accessor_mock {
-    using return_type = T;
-    T value = (T)Val;
-};
-
-namespace gridtools {
-    template < typename T, int Val >
-    struct is_accessor< static_accessor_mock< T, Val > > : boost::mpl::true_ {};
-}
 
 /*
  * User API tests
  */
-CUDA_TEST(mocked_expandable_paramters_domain, works) {
+CUDA_TEST(test_expressions, add_accessors) {
     mocked_domain eval(0);
 
     auto add = val{1} + val{2};
@@ -112,28 +95,32 @@ CUDA_TEST(mocked_expandable_paramters_domain, works) {
     ASSERT_FLOAT_EQ(result, (float)3.);
 }
 
-CUDA_TEST(mocked_expandable_paramters_domain, works2) {
+CUDA_TEST(test_expressions, sub_accessors) {
     mocked_domain eval(0);
 
-    auto add = val{1} + val{2};
+    auto add = val{1} - val{2};
 
     auto result = eval(add);
-    ASSERT_FLOAT_EQ(result, (float)3.);
+    ASSERT_FLOAT_EQ(result, (float)-1.);
 }
 
-CUDA_TEST(mocked_expandable_paramters_domain, works3) {
+CUDA_TEST(test_expressions, with_parenthesis) {
     mocked_domain eval(0);
-    using arg1 = static_accessor_mock< float, 1 >;
-    using arg2 = static_accessor_mock< float, 2 >;
-    auto result = eval(arg1() * arg2());
-    ASSERT_FLOAT_EQ(result, (float)2.);
+
+    auto add = (val{1} + val{2}) * (val{1} - val{2});
+
+    auto result = eval(add);
+    ASSERT_FLOAT_EQ(result, (float)-3.);
 }
 
-TEST(expression_unit_test, test) {
+/*
+ * Library tests illustrating how expressions are evaluated
+ */
+TEST(test_expressions, expr_plus_by_ctor) {
     accessor_mock< double > a{1};
     accessor_mock< double > b{2};
 
-    auto add = make_expr_plus(a, b);
+    expr_plus< accessor_mock< double >, accessor_mock< double > > add(a, b);
 
     iterate_domain_mock iterate;
 
@@ -142,8 +129,7 @@ TEST(expression_unit_test, test) {
     ASSERT_DOUBLE_EQ(result, 3);
 }
 
-TEST(expression_unit_test, test2) {
-    using val = accessor_mock< double >;
+TEST(expression_unit_test, expr_plus_by_operator_overload) {
     iterate_domain_mock iterate;
 
     auto add = val{1} + val{2};
@@ -152,49 +138,3 @@ TEST(expression_unit_test, test2) {
 
     ASSERT_DOUBLE_EQ(result, 3);
 }
-
-//#ifdef __CUDACC__
-//
-//__global__ void test_kernel(double *result) {
-//    accessor_mock< double > a{1};
-//    accessor_mock< double > b{2};
-//    auto add = make_expr_plus(a, b);
-//
-//    iterate_domain_mock iterate;
-//
-//    result[0] = evaluation::value(iterate, add);
-//}
-//
-// TEST(expression_unit_test, testcuda) {
-//    double out;
-//    double *d_out;
-//    cudaMalloc(&d_out, sizeof(double));
-//
-//    test_kernel< < < 1, 1 > > >(d_out);
-//
-//    cudaMemcpy(&out, d_out, sizeof(double), cudaMemcpyDeviceToHost);
-//    ASSERT_DOUBLE_EQ(out, 3);
-//
-//    cudaFree(d_out);
-//}
-//__global__ void test_kernel2(double *result) {
-//    mocked_domain eval(0);
-//
-//    auto add = val{1} + val{2};
-//
-//    result[0] = eval(add);
-//}
-//
-// TEST(expression_unit_test, testcuda2) {
-//    double out;
-//    double *d_out;
-//    cudaMalloc(&d_out, sizeof(double));
-//
-//    test_kernel2< < < 1, 1 > > >(d_out);
-//
-//    cudaMemcpy(&out, d_out, sizeof(double), cudaMemcpyDeviceToHost);
-//    ASSERT_DOUBLE_EQ(out, 3);
-//
-//    cudaFree(d_out);
-//}
-//#endif
