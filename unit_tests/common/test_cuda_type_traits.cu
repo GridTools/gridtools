@@ -35,8 +35,8 @@
 */
 #include "gtest/gtest.h"
 
-#include <common/cuda_type_traits.hpp>
 #include <common/defs.hpp>
+#include <common/cuda_type_traits.hpp>
 
 TEST(texture_type_traits, int_is_texture_type) { ASSERT_TRUE(gridtools::is_texture_type< int >::value); }
 
@@ -50,3 +50,16 @@ TEST(texture_type_traits, real_typedef_is_texture_type) {
 TEST(texture_type_traits, gridtools_uint_is_texture_type) {
     ASSERT_TRUE(gridtools::is_texture_type< gridtools::uint_t >::value);
 }
+
+TEST(texture_type_traits, int_ref_is_texture_type) { ASSERT_TRUE(gridtools::is_texture_type< int & >::value); }
+
+TEST(texture_type_traits, cv_int_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< const volatile int >::value);
+}
+
+#ifdef CXX11_ENABLED
+TEST(texture_type_traits, is_texture_type_t) {
+    using result = gridtools::is_texture_type_t< int >;
+    ASSERT_TRUE(result::value);
+}
+#endif

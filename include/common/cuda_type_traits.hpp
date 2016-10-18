@@ -36,6 +36,7 @@
 #pragma once
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/set.hpp>
+#include <boost/type_traits.hpp>
 
 namespace gridtools {
     namespace _impl {
@@ -58,6 +59,12 @@ namespace gridtools {
     } // namespace _impl
 
     template < typename T >
-    struct is_texture_type : boost::mpl::has_key< _impl::texture_types, T > {};
+    struct is_texture_type : boost::mpl::has_key< _impl::texture_types,
+                                 typename boost::remove_cv< typename boost::remove_reference< T >::type >::type > {};
+
+#ifdef CXX11_ENABLED
+    template < typename T >
+    using is_texture_type_t = typename is_texture_type< T >::type;
+#endif
 
 } // namespace gridtools
