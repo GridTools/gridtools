@@ -12,7 +12,7 @@ if [[ ${COMPILER} == "gcc" ]]; then
   if [[ ${VERSION} == "5.3" ]]; then
       module load GCC/5.3.0
   else
-      module load GCC/4.8.4
+      module load GCC/4.9.2
   fi
 elif [[ ${COMPILER} == "clang" ]]; then
   module load Clang/3.7.1-GCC-4.9.3-2.25
