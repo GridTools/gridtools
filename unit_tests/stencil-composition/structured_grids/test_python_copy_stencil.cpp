@@ -168,7 +168,11 @@ namespace copystencil_python {
 #ifdef CXX11_ENABLED
         auto
 #else
+#ifndef __CUDACC__
         boost::shared_ptr< gridtools::stencil >
+#else
+            gridtools::stencil*
+#endif
 #endif
             comp_copystencil = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
