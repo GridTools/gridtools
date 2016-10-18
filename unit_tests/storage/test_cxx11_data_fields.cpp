@@ -33,20 +33,20 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifdef CXX11_ENABLED
 #include "gtest/gtest.h"
-#include "storage/meta_storage.hpp"
-#include "storage/storage.hpp"
-#include "storage/wrap_pointer.hpp"
+#include <storage/data_field.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
+using namespace gridtools::enumtype;
 
 TEST(storage, test_data_field) {
-    typedef base_storage< wrap_pointer< int >, backend< Host, Naive >::storage_info< 0, layout_map< 0, 1 > > >
+#ifdef STRUCTURED_GRIDS
+    typedef base_storage< wrap_pointer< int >, backend< Host, structured, Naive >::storage_info< 0, layout_map< 0, 1 > > >
         storage_t;
-    backend< Host, Naive >::storage_info< 0, layout_map< 0, 1 > > meta_(1, 1);
+    backend< Host, structured, Naive >::storage_info< 0, layout_map< 0, 1 > > meta_(1, 1);
 
-    field< storage_t, 3, 2, 4 >::type datafield(meta_, 0, "data");
+    field< storage_t, 3, 2, 4 >::type datafield(&meta_, 0, "data");
 
     datafield.get_value< 1, 0 >(0, 0) = 1;
     datafield.get_value< 2, 0 >(0, 0) = 2;
@@ -66,12 +66,6 @@ TEST(storage, test_data_field) {
     std::cout << "STORAGE VALUES BEFORE: " << datafield.get_value< 0, 2 >(0, 0) << " "
               << datafield.get_value< 1, 2 >(0, 0) << " " << datafield.get_value< 2, 2 >(0, 0) << " "
               << datafield.get_value< 3, 2 >(0, 0) << std::endl;
-
-    /*advance the third dimension*/
-    advance< 2 >::apply(datafield);
-    assert((datafield.get_value< 0, 2 >(0, 0) == 103 && datafield.get_value< 1, 2 >(0, 0) == 100 &&
-            datafield.get_value< 2, 2 >(0, 0) == 101 && datafield.get_value< 3, 2 >(0, 0) == 102));
-
+#endif
     ASSERT_TRUE(true);
 }
-#endif

@@ -4,8 +4,10 @@ enable_testing()
 ####################################################################################
 ########################### GET GTEST LIBRARY ############################ 
 ####################################################################################
-add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest)
+include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/include)
+add_library(gtest STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest-all.cc)
+add_library(gtest_main STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest_main.cc)
 
 ####################################################################################
 ######################### ADDITIONAL TEST MODULE FUNCTIONS ######################### 
@@ -92,7 +94,7 @@ function(fetch_gpu_tests subfolder)
             set(CUDA_SEPARABLE_COMPILATION OFF)
             cuda_add_executable (${unit_test} ${test_source})
             set_target_properties(${unit_test} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} LINKER_LANGUAGE CXX )            
-            target_link_libraries(${unit_test} ${exe_LIBS} gtest gtest_main)
+            target_link_libraries(${unit_test} ${exe_LIBS} gtest gtest_main) 
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added gpu test " ${unit_test} )         
         endforeach(test_source)
