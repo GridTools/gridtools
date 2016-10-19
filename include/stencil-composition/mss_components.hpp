@@ -39,6 +39,7 @@
 #include "esf_metafunctions.hpp"
 #include "mss_metafunctions.hpp"
 #include "./linearize_mss_functions.hpp"
+#include "functor_decorator.hpp"
 
 namespace gridtools {
 
@@ -49,7 +50,8 @@ namespace gridtools {
     struct functor_id_pair {
         typedef Repeat repeat_t;
         typedef T1 id;
-        typedef T2 f_type;
+        typedef functor_decorator<T2> f_type;
+        typedef typename T2::arg_list arg_list;
     };
 
     /**

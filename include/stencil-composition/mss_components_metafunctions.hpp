@@ -39,6 +39,7 @@
 #include "mss_components.hpp"
 #include "reductions/reduction_descriptor.hpp"
 #include "../common/meta_array.hpp"
+#include "functor_decorator.hpp"
 
 namespace gridtools {
 
@@ -179,6 +180,7 @@ namespace gridtools {
             Condition > type;
     }; // build_mss_components_array
 
+
     /**
      * @brief metafunction that computes the mss functor do methods
      */
@@ -191,7 +193,7 @@ namespace gridtools {
          */
         template < typename Functor >
         struct inserter_ {
-            typedef typename compute_functor_do_methods< Functor, typename Grid::axis_type >::type type;
+            typedef typename compute_functor_do_methods< functor_decorator<Functor>, typename Grid::axis_type >::type type;
         };
 
         typedef typename boost::mpl::transform< typename MssComponents::functors_seq_t,

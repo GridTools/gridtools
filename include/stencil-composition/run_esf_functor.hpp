@@ -67,9 +67,9 @@ namespace gridtools {
 
                 Functor::f_type::Do(
                     *static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
-                    Interval());
+                    Interval() );
 
-                call_repeated< ID - 1, Functor, IterateDomain, Interval >::Do(it_domain_);
+                call_repeated< ID - 1, Functor, IterateDomain, Interval>::Do(it_domain_);
             }
         };
 
@@ -140,7 +140,7 @@ namespace gridtools {
             }
         }
 
-      protected:
-        iterate_domain_t &m_iterate_domain;
+    protected:
+      iterate_domain_t &m_iterate_domain;
     };
 } // namespace gridtools
