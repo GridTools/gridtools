@@ -86,8 +86,8 @@ namespace gridtools {
 
         // check the do method from and to level offsets do not max out the level offset limits
         // (otherwise we cannot guarantee a correct loop level computation afterwards)
-        BOOST_MPL_ASSERT_MSG((-cLevelOffsetLimit < FromOffset::value && FromOffset::value < cLevelOffsetLimit &&
-                                 -cLevelOffsetLimit < ToOffset::value && ToOffset::value < cLevelOffsetLimit),
+        BOOST_MPL_ASSERT_MSG((-cLevelOffsetLimit <= FromOffset::value && FromOffset::value <= cLevelOffsetLimit &&
+                                 -cLevelOffsetLimit <= ToOffset::value && ToOffset::value <= cLevelOffsetLimit),
             DO_METHOD_DEFINITION_REACHES_LEVEL_OFFSET_LIMIT,
             (TFunctor, DoMethod));
 

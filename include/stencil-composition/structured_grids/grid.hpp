@@ -175,5 +175,43 @@ namespace gridtools {
     GT_FUNCTION array< uint_t, sizeof...(IntTypes) > make_k_levels(IntTypes... values) {
         return array< uint_t, sizeof...(IntTypes) >{values...};
     }
+
+    template < typename... IntTypes,
+        typename = is_pack_of_with_placeholder< std::is_convertible< uint_t, boost::mpl::_ >, IntTypes... > >
+    GT_FUNCTION array< uint_t, sizeof...(IntTypes) + 1 > make_k_axis(IntTypes... values) {
+
+        GRIDTOOLS_STATIC_ASSERT(
+            (sizeof...(IntTypes) >= 1), "You need to pass at least 1 argument to define the k-axis.");
+
+        array< uint_t, sizeof...(IntTypes) > sizes{values...};
+        array< uint_t, sizeof...(IntTypes) + 1 > value_list;
+
+        value_list[0] = -1;
+
+        for (uint_t i = 1; i <= sizeof...(IntTypes); ++i) {
+            value_list[i] = value_list[i - 1] + sizes[i - 1];
+        }
+        return value_list;
+    }
+
+    template < size_t n_splitters >
+    auto make_grid(halo_descriptor const &direction_i,
+        halo_descriptor const &direction_j,
+        array< uint_t, n_splitters > const &value_list)
+        -> grid< interval< level< 0, -1 >, level< n_splitters - 1, 1 > > > {
+        return grid< interval< level< 0, -1 >, level< n_splitters - 1, 1 > > >(direction_i, direction_j, value_list);
+    }
+
+    template < uint_t from, uint_t to >
+    using define_interval = interval< level< from, 1 >, level< to, -1 > >;
+
+    halo_descriptor make_ij_axis(uint_t halo_minus, uint_t compute_interval, uint_t halo_plus) {
+        return halo_descriptor(halo_minus,
+            halo_plus,
+            halo_minus,
+            halo_minus + compute_interval - 1,
+            halo_minus + compute_interval + halo_plus);
+    }
+
 #endif
 }
