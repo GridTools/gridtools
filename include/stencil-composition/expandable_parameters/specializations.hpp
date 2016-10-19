@@ -65,6 +65,19 @@ namespace gridtools {
     template < typename T >
     struct storage_holds_data_field< std::vector< pointer< T > > > : boost::mpl::true_ {};
 
+    template < uint_t I, typename Storage, typename Cond >
+    struct arg;
+
+    template < ushort_t I, typename T, typename C >
+    struct arg_holds_data_field_h< arg< I, pointer< T >, C > > {
+        typedef typename boost::mpl::bool_< (T::field_dimensions > 1) > type;
+    };
+
+    template < ushort_t I, typename T, typename C >
+    struct arg_holds_data_field_h< arg< I, std::vector< T >, C > > {
+        typedef typename boost::mpl::true_ type;
+    };
+
     template < typename T >
     struct is_actual_storage< pointer< std::vector< pointer< T > > > > : public boost::mpl::bool_< !T::is_temporary > {
     };

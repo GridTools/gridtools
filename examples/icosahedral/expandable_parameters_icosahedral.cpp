@@ -33,36 +33,36 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "gtest/gtest.h"
+#include "expandable_parameters_icosahedral.hpp"
+#include "../Options.hpp"
 
-namespace gridtools {
+int main(int argc, char **argv) {
 
-    /**
-     * @struct arg_hods_data_field_h
-     * high order metafunction of arg_holds_data_field
-     */
-    template < typename Arg >
-    struct arg_holds_data_field_h {
-        typedef typename arg_holds_data_field< typename Arg::type >::type type;
-    };
+    // Pass command line arguments to googltest
+    ::testing::InitGoogleTest(&argc, argv);
 
-    // metafunction to access the storage type given the arg
-    template < typename T >
-    struct arg2storage {
-        typedef typename T::storage_type type;
-    };
+    if (argc < 4) {
+        printf("Usage: expandable_parameters_icosahedral_<whatever> dimx dimy dimz\n where args are integer sizes of "
+               "the data fields\n");
+        return 1;
+    }
 
-    // metafunction to access the metadata type given the arg
-    template < typename T >
-    struct arg2metadata {
-        typedef typename arg2storage< T >::type::storage_info_type type;
-    };
+    for (int i = 0; i != 3; ++i) {
+        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+    }
 
-    /** metafunction extracting the location type from the storage*/
-    template < typename T >
-    struct get_location_type {
-        typedef typename T::storage_info_type::index_type type;
-    };
+    return RUN_ALL_TESTS();
+}
 
-} // namespace gridtools
+TEST(StencilOnCells, Test) {
+    gridtools::uint_t x = Options::getInstance().m_size[0];
+    gridtools::uint_t y = Options::getInstance().m_size[1];
+    gridtools::uint_t z = Options::getInstance().m_size[2];
+    gridtools::uint_t t = Options::getInstance().m_size[3];
+
+    if (t == 0)
+        t = 1;
+
+    ASSERT_TRUE(test_expandable_parameters_icosahedral::test(x, y, z, t));
+}

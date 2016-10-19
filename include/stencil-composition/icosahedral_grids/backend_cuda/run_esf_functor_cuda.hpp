@@ -90,7 +90,8 @@ namespace gridtools {
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
             // call the user functor at the core of the block
-            functor_t::Do(iterate_domain_remapper, IntervalType());
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::Do(
+                iterate_domain_remapper);
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, static_uint< 1 > >();
         }
@@ -182,7 +183,9 @@ namespace gridtools {
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, color_t >();
 
-            functor_t::Do(iterate_domain_remapper, IntervalType());
+            // call the user functor at the core of the block
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::Do(
+                iterate_domain_remapper);
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                     static_int< -color_t::value > >();

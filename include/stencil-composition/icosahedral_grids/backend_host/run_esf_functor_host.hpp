@@ -95,8 +95,7 @@ namespace gridtools {
             typename boost::disable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
 
-            typedef typename EsfArguments::esf_t esf_t;
-            typedef typename esf_t::template esf_function< run_functor_arguments_t::color_t::color_t::value > functor_t;
+            typedef typename EsfArguments::functor_t functor_t;
 
             using n_colors_t = typename EsfArguments::esf_t::location_type::n_colors;
 
@@ -106,7 +105,8 @@ namespace gridtools {
 
             iterate_domain_remapper_t iterate_domain_remapper(this->m_iterate_domain);
 
-            functor_t::Do(iterate_domain_remapper, IntervalType());
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::Do(
+                iterate_domain_remapper);
         }
 
         /*

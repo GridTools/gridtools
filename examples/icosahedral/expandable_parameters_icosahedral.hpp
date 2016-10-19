@@ -1,0 +1,126 @@
+#pragma once
+#define FUSION_MAX_VECTOR_SIZE 40
+#define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
+#define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
+#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+
+#include <stencil-composition/stencil-composition.hpp>
+#include <tools/verifier.hpp>
+
+namespace test_expandable_parameters_icosahedral {
+
+    using namespace gridtools;
+    using namespace expressions;
+    using namespace enumtype;
+
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Block >
+#else
+#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
+#endif
+#endif
+
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology< BACKEND >;
+
+    template < uint_t Color >
+    struct functor_exp {
+
+        typedef vector_accessor< 0, enumtype::inout, icosahedral_topology_t::cells > parameters_out;
+        typedef vector_accessor< 1, enumtype::in, icosahedral_topology_t::cells > parameters_in;
+        typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(parameters_out{}) = eval(parameters_in{});
+        }
+    };
+
+    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
+
+        using backend_t = BACKEND;
+        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+
+        const uint_t halo_nc = 0;
+        const uint_t halo_mc = 0;
+        const uint_t halo_k = 0;
+
+        icosahedral_topology_t icosahedral_grid(d1, d2, d3);
+
+        auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
+        auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
+        auto ref_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref");
+
+        for (int i = 1; i < d1 - 1; ++i) {
+            for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
+                for (int j = 1; j < d2 - 1; ++j) {
+                    for (int k = 0; k < d3; ++k) {
+                        in_cells(i, c, j, k) =
+                            in_cells.meta_data().index(array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
+                    }
+                }
+            }
+        }
+        out_cells.initialize(0.0);
+        ref_cells.initialize(0.0);
+        auto storage1 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage1");
+        auto storage2 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage2");
+        auto storage3 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage3");
+        auto storage4 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage4");
+        auto storage5 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage5");
+        auto storage6 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage6");
+        auto storage7 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage7");
+        auto storage8 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage8");
+
+        auto storage10 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage10");
+        auto storage20 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage20");
+        auto storage30 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage30");
+        auto storage40 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage40");
+        auto storage50 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage50");
+        auto storage60 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage60");
+        auto storage70 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage70");
+        auto storage80 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage80");
+
+        std::vector< pointer< decltype(storage1) > > list_out_ = {
+            &storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7, &storage8};
+
+        std::vector< pointer< decltype(storage10) > > list_in_ = {
+            &storage10, &storage20, &storage30, &storage40, &storage50, &storage60, &storage70, &storage80};
+
+        array< uint_t, 5 > di = {1, 1, 1, d1 - 2, d1};
+        array< uint_t, 5 > dj = {1, 1, 1, d2 - 2, d2};
+
+        gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
+        grid_.value_list[0] = 0;
+        grid_.value_list[1] = d3 - 1;
+
+        typedef arg< 0, std::vector< pointer< decltype(storage1) > > > p_list_out;
+        typedef arg< 1, std::vector< pointer< decltype(storage10) > > > p_list_in;
+
+        typedef boost::mpl::vector< p_list_out, p_list_in > args_t;
+
+        aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_));
+
+        auto comp_ = make_computation< BACKEND >(
+            expand_factor< 3 >(),
+            domain_,
+            grid_,
+            make_multistage(enumtype::execute< enumtype::forward >(),
+                make_stage< functor_exp, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                                p_list_out(), p_list_in())));
+
+        comp_->ready();
+        comp_->steady();
+        comp_->run();
+        comp_->finalize();
+
+        bool success = true;
+
+        return success;
+    }
+} // namespace test_expandable_parameters_icosahedral
