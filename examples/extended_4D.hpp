@@ -113,9 +113,9 @@ namespace assembly {
         using quad = dimension< 4 >;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            x i;
-            y j;
-            z k;
+            dimension< 1 > i;
+            dimension< 2 > j;
+            dimension< 3 > k;
             dimension< 4 > di;
             dimension< 5 > dj;
             dimension< 6 > dk;

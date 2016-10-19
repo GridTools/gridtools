@@ -190,10 +190,6 @@ void test_layout_find_val(bool *result) {
                                     offset_tuple< 3, 3 >(7, 9, 11)) >::value == 7),
         "Error");
 
-    GRIDTOOLS_STATIC_ASSERT((static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(
-                                    offset_tuple< 3, 3 >(7, 9, 11)) >::value == 666),
-        "Error");
-
 #ifndef __CUDACC__
     GRIDTOOLS_STATIC_ASSERT(
         (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
@@ -207,10 +203,6 @@ void test_layout_find_val(bool *result) {
         (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
             7),
         "Error");
-    GRIDTOOLS_STATIC_ASSERT(
-        (static_int< gridtools::layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) >::value ==
-            666),
-        "Error");
 #endif
 
 #endif
@@ -218,17 +210,14 @@ void test_layout_find_val(bool *result) {
     *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(7, 9, 11) == 9));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(7, 9, 11) == 11));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(7, 9, 11) == 7));
-    *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(7, 9, 11) == 666));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 9));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 11));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 7));
 
 #ifdef CXX11_ENABLED
     // TODO: the find_val method does not return default value with cxx03
-    *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(offset_tuple< 3, 3 >(7, 9, 11)) == 666));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 0, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 9));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 1, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 11));
     *result &= ((layout_map< 2, 0, 1 >::find_val< 2, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 7));
-    *result &= ((layout_map< 2, 0, 1 >::find_val< 3, int, 666 >(array< uint_t, 3 >{7, 9, 11}) == 666));
 #endif
 }

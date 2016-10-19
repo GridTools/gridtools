@@ -125,6 +125,7 @@ namespace gridtools {
         using type_tt = typename BaseStorage::template type_tt< PT, MD, FD >;
 #endif
         typedef BaseStorage super;
+        typedef typename super::layout layout;
         typedef typename BaseStorage::basic_type basic_type;
         typedef storage< BaseStorage > this_type;
         typedef typename BaseStorage::storage_info_type storage_info_type;
@@ -485,7 +486,12 @@ namespace gridtools {
 #endif
 
         GT_FUNCTION
-        void set_on_device() { m_on_host = false; }
+        void set_on_device() {
+            m_on_host = false;
+            m_storage->set_on_device();
+            m_storage.set_on_device();
+            m_meta_data.set_on_device();
+        }
 
         GT_FUNCTION
         void set_on_host() { m_on_host = true; }
@@ -592,8 +598,8 @@ namespace gridtools {
     template < typename T, uint_t U >
     struct is_storage< storage_list< T, U > > : boost::mpl::true_ {};
 
-    template < typename... T >
-    struct is_storage< data_field< T... > > : boost::mpl::true_ {};
+    template < typename First, typename... T >
+    struct is_storage< data_field< First, T... > > : boost::mpl::true_ {};
 
 #endif
 

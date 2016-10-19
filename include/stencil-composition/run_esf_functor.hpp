@@ -133,7 +133,7 @@ namespace gridtools {
 	            (constructed during the computation) is the same as the number of arguments referenced\n \
 	            in the functor definition (in the high level interface). This means that we cannot\n \
 	            (although in theory we could) pass placeholders to the computation which are not\n \
-	            also referenced in the functor.");
+	            also referenced in the functor. You get this error if you specify twice the same placeholder");
 #endif
 
                 static_cast< const RunEsfFunctorImpl * >(this)->template do_impl< interval_type, esf_arguments_t >();
