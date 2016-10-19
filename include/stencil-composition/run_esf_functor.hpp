@@ -41,6 +41,7 @@
 #include "icosahedral_grids/iterate_domain_expandable_parameters.hpp"
 #endif
 #include "run_functor_arguments.hpp"
+#include "functor_decorator.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -65,11 +66,21 @@ namespace gridtools {
             GT_FUNCTION
             static void Do(IterateDomain &it_domain_) {
 
-                Functor::f_type::Do(
-                    *static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
-                    Interval() );
+                typedef typename boost::mpl::if_<
+                    typename boost::is_same<Interval, default_interval>::type
+                    , typename boost::mpl::if_<
+                        typename has_do<typename Functor::f_type::type, default_interval>::type
+                          , typename Functor::f_type::type
+                          , typename Functor::f_type
+                          >::type
+                    , typename Functor::f_type::type >::type functor_t;
 
-                call_repeated< ID - 1, Functor, IterateDomain, Interval>::Do(it_domain_);
+
+                functor_t::Do(
+                    *static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
+                    Interval());
+
+                call_repeated< ID - 1, Functor, IterateDomain, Interval >::Do(it_domain_);
             }
         };
 
@@ -140,7 +151,7 @@ namespace gridtools {
             }
         }
 
-    protected:
-      iterate_domain_t &m_iterate_domain;
+      protected:
+        iterate_domain_t &m_iterate_domain;
     };
 } // namespace gridtools
