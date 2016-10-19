@@ -86,6 +86,24 @@ namespace test_expandable_parameters_icosahedral {
         auto storage70 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage70");
         auto storage80 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage80");
 
+        storage1.initialize(1.);
+        storage2.initialize(2.);
+        storage3.initialize(3.);
+        storage4.initialize(4.);
+        storage5.initialize(5.);
+        storage6.initialize(6.);
+        storage7.initialize(7.);
+        storage8.initialize(8.);
+
+        storage10.initialize(10.);
+        storage20.initialize(20.);
+        storage30.initialize(30.);
+        storage40.initialize(40.);
+        storage50.initialize(50.);
+        storage60.initialize(60.);
+        storage70.initialize(70.);
+        storage80.initialize(80.);
+
         std::vector< pointer< decltype(storage1) > > list_out_ = {
             &storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7, &storage8};
 
