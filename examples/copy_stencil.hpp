@@ -131,7 +131,9 @@ namespace copy_stencil {
         gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
 
 #ifdef CXX11_ENABLED
-        auto grid = make_grid(make_ij_axis(0, d1, 0), make_ij_axis(0, d2, 0), make_k_axis(d3));
+        auto grid = make_grid(make_ij_axis(d1), make_ij_axis(d2), make_k_axis(d3));
+// OR
+// auto grid = make_grid(make_ij_axis(0, d1, 0), make_ij_axis(0, d2, 0), make_k_axis(d3));
 #else
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
