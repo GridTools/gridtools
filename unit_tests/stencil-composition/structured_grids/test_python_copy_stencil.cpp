@@ -235,6 +235,8 @@ bool test_copystencil_python() {
 }
 
 TEST(python_test, copy_stencil) {
-    // expect false because of return 0...
+// expect false because of return 0...
+#if !defined(__CUDACC__) || defined(CXX11_ENABLED)
     EXPECT_EQ(test_copystencil_python(), false);
+#endif
 }
