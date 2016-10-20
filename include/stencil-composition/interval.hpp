@@ -41,6 +41,7 @@
 #include <boost/mpl/range_c.hpp>
 #include "level.hpp"
 #include "../common/host_device.hpp"
+#include "sfinae.hpp"
 
 namespace gridtools {
     /**
@@ -53,6 +54,8 @@ namespace gridtools {
         // (due to this trick we can search all do method overloads starting at a given from position)
         GT_FUNCTION
         interval(){};
+
+        interval( _impl::dummy_type ) { assert(false); } // using this just for SFINAE
 
         GT_FUNCTION
         interval(TFromLevel){};

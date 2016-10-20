@@ -40,6 +40,7 @@
 #include "reductions/reduction_descriptor.hpp"
 #include "../common/meta_array.hpp"
 #include "functor_decorator.hpp"
+#include "sfinae.hpp"
 
 namespace gridtools {
 
@@ -192,7 +193,13 @@ namespace gridtools {
          */
         template < typename Functor >
         struct inserter_ {
-            typedef typename compute_functor_do_methods< functor_decorator< Functor >, typename Grid::axis_type >::type
+
+            typedef typename boost::mpl::if_<typename has_two_args<Functor>::type
+                                             , Functor
+                                             , functor_decorator< Functor > >::type functor_t;
+
+            typedef typename compute_functor_do_methods< functor_t
+                                                         , typename Grid::axis_type >::type
                 type;
         };
 
