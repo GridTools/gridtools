@@ -171,7 +171,7 @@ namespace copystencil_python {
 #ifndef __CUDACC__
         boost::shared_ptr< gridtools::stencil >
 #else
-            gridtools::stencil*
+        gridtools::stencil *
 #endif
 #endif
             comp_copystencil = gridtools::make_computation< gridtools::BACKEND >(
