@@ -211,8 +211,8 @@ bool test_copystencil_python() {
     int d2 = 2;
     int d3 = 1;
 
-    double *in_dat = (double *)malloc(d1 * d2 * d3 * sizeof(double));
-    double *out_dat = (double *)malloc(d1 * d2 * d3 * sizeof(double));
+    float_type *in_dat = (float_type *)malloc(d1 * d2 * d3 * sizeof(float_type));
+    float_type *out_dat = (float_type *)malloc(d1 * d2 * d3 * sizeof(float_type));
 
     for (int i = 0; i < d1 * d2 * d3; i++)
         in_dat[i] = i + 1.0;
