@@ -55,7 +55,7 @@ namespace gridtools {
         GT_FUNCTION
         interval(){};
 
-        interval( _impl::dummy_type ) { assert(false); } // using this just for SFINAE
+        interval(_impl::dummy_type) { assert(false); } // using this just for SFINAE
 
         GT_FUNCTION
         interval(TFromLevel){};

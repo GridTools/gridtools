@@ -66,17 +66,13 @@ namespace gridtools {
             GT_FUNCTION
             static void Do(IterateDomain &it_domain_) {
 
-                typedef typename boost::mpl::if_<
-                    typename boost::is_same<Interval, default_interval>::type
-                    , typename boost::mpl::if_<
-                        typename has_do<typename Functor::f_type::type, Interval>::type
-                          , typename Functor::f_type::type
-                          , typename Functor::f_type
-                          >::type
-                    , typename Functor::f_type::type >::type functor_t;
+                typedef typename boost::mpl::if_< typename boost::is_same< Interval, default_interval >::type,
+                    typename boost::mpl::if_< typename has_do< typename Functor::f_type::type, Interval >::type,
+                                                      typename Functor::f_type::type,
+                                                      typename Functor::f_type >::type,
+                    typename Functor::f_type::type >::type functor_t;
 
-                functor_t::Do(
-                    *static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
+                functor_t::Do(*static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
                     Interval());
 
                 call_repeated< ID - 1, Functor, IterateDomain, Interval >::Do(it_domain_);
