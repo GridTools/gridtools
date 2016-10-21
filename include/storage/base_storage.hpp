@@ -60,7 +60,7 @@ namespace gridtools {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = base_storage< PT, MD, FD >;
 #endif
-        GRIDTOOLS_STATIC_ASSERT(is_meta_storage< MetaData >::type::value, "wrong meta_storage type");
+        GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaData >::type::value), "wrong meta_storage type");
         typedef base_storage< PointerType, MetaData, FieldDimension > basic_type;
         typedef PointerType pointer_type;
         typedef typename pointer_type::pointee_t value_type;
