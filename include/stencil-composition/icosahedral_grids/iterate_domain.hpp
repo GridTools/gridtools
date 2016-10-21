@@ -682,7 +682,7 @@ namespace gridtools {
                 metadata_->index(m_grid_position) +
                 metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
-            assert(metadata_->size() > metadata_->index(m_grid_position) + pointer_offset);
+            assert(metadata_->size() > pointer_offset);
 
             return *(real_storage_pointer + pointer_offset);
         }
