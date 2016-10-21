@@ -1,10 +1,14 @@
 #pragma once
 namespace gridtools {
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > default_interval;
-
-    template < typename F >
+    template < typename F, typename Axis >
     struct functor_decorator {
+        static constexpr int_t to_offset = Axis::ToLevel::Offset::value;
+        static constexpr uint_t to_splitter = Axis::ToLevel::Splitter::value;
+
+        typedef gridtools::interval< typename Axis::FromLevel,
+            level< to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2 > > default_interval;
+
         typedef F type;
 
         typedef typename F::arg_list arg_list;

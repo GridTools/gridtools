@@ -46,11 +46,11 @@ namespace gridtools {
     /**
        @brief MPL pair wrapper with more meaningful type names for the specific use case.
     */
-    template < typename T1, typename T2, typename Repeat >
+    template < typename T1, typename T2, typename Repeat, typename Axis >
     struct functor_id_pair {
         typedef Repeat repeat_t;
         typedef T1 id;
-        typedef functor_decorator< T2 > f_type;
+        typedef functor_decorator< T2, Axis > f_type;
         typedef typename T2::arg_list arg_list;
     };
 
@@ -62,7 +62,7 @@ namespace gridtools {
      * @tparam RepeatFunctor the length of the chunks for expandable parameters, see @ref
      * gridtools::expandable_parameters
      */
-    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis >
     struct mss_components {
         GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT(
@@ -100,12 +100,14 @@ namespace gridtools {
           times in an MSS both as dependent or independent, we cannot use the plain functor type as key for the
           abovementioned map, and we need to attach a unique index to its type.
         */
-        typedef typename boost::mpl::fold<
-            boost::mpl::range_c< ushort_t, 0, boost::mpl::size< functors_seq_t >::value >,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1,
-                functor_id_pair< boost::mpl::_2, boost::mpl::at< functors_seq_t, boost::mpl::_2 >, RepeatFunctor > > >::
-            type functors_list_t;
+        typedef
+            typename boost::mpl::fold< boost::mpl::range_c< ushort_t, 0, boost::mpl::size< functors_seq_t >::value >,
+                boost::mpl::vector0<>,
+                boost::mpl::push_back< boost::mpl::_1,
+                                           functor_id_pair< boost::mpl::_2,
+                                               boost::mpl::at< functors_seq_t, boost::mpl::_2 >,
+                                               RepeatFunctor,
+                                               Axis > > >::type functors_list_t;
 
         typedef ExtentSizes extent_sizes_t;
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
@@ -114,7 +116,8 @@ namespace gridtools {
     template < typename T >
     struct is_mss_components : boost::mpl::false_ {};
 
-    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
-    struct is_mss_components< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor > > : boost::mpl::true_ {};
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis >
+    struct is_mss_components< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor, Axis > > : boost::mpl::true_ {
+    };
 
 } // namespace gridtools

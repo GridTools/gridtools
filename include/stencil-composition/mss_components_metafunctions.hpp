@@ -47,8 +47,8 @@ namespace gridtools {
     template < typename T >
     struct mss_components_is_reduction;
 
-    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
-    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor > >
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis >
+    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor, Axis > >
         : MssDescriptor::is_reduction_t {};
 
     // TODOCOSUNA unittest this
@@ -100,7 +100,11 @@ namespace gridtools {
      * @tparam MssDescriptorArray meta array of mss descriptors
      * @tparam extent_sizes sequence of sequence of extents
      */
-    template < enumtype::platform BackendId, typename MssDescriptorArray, typename ExtentSizes, typename RepeatFunctor >
+    template < enumtype::platform BackendId,
+        typename MssDescriptorArray,
+        typename ExtentSizes,
+        typename RepeatFunctor,
+        typename Axis >
     struct build_mss_components_array {
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
@@ -141,7 +145,8 @@ namespace gridtools {
                                 boost::mpl::push_back< boost::mpl::_1,
                                     mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
                                                            boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
-                                                           RepeatFunctor > > >::type,
+                                                           RepeatFunctor,
+                                                           Axis > > >::type,
             boost::mpl::quote1< is_mss_components > > type;
     }; // struct build_mss_components_array
 
@@ -161,11 +166,13 @@ namespace gridtools {
         typename Condition,
         typename ExtentSizes1,
         typename ExtentSizes2,
-        typename RepeatFunctor >
+        typename RepeatFunctor,
+        typename Axis >
     struct build_mss_components_array< BackendId,
         meta_array< condition< MssDescriptorArray1, MssDescriptorArray2, Condition >, Predicate >,
         condition< ExtentSizes1, ExtentSizes2, Condition >,
-        RepeatFunctor > {
+        RepeatFunctor,
+        Axis > {
         // typedef typename pair<
         //     typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type
         //     , typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type >
@@ -173,11 +180,13 @@ namespace gridtools {
         typedef condition< typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray1, Predicate >,
                                ExtentSizes1,
-                               RepeatFunctor >::type,
+                               RepeatFunctor,
+                               Axis >::type,
             typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray2, Predicate >,
                                ExtentSizes2,
-                               RepeatFunctor >::type,
+                               RepeatFunctor,
+                               Axis >::type,
             Condition > type;
     }; // build_mss_components_array
 
@@ -196,7 +205,7 @@ namespace gridtools {
 
             typedef typename boost::mpl::if_< typename has_two_args< Functor >::type,
                 Functor,
-                functor_decorator< Functor > >::type functor_t;
+                functor_decorator< Functor, typename Grid::axis_type > >::type functor_t;
 
             typedef typename compute_functor_do_methods< functor_t, typename Grid::axis_type >::type type;
         };

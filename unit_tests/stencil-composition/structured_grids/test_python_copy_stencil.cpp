@@ -223,10 +223,14 @@ bool test_copystencil_python() {
     std::cout << "Copied " << d1 * d2 * d3 << " values ... ok!" << std::endl;
 #endif
 
+    free(in_dat);
+    free(out_dat);
+
     return EXIT_SUCCESS;
 }
 
 TEST(python_test, copy_stencil) {
     // expect false because of return 0...
     EXPECT_EQ(test_copystencil_python(), false);
+#endi
 }
