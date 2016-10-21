@@ -101,7 +101,7 @@ namespace copystencil_python {
     //
     std::ostream &operator<<(std::ostream &s, functor_4647 const) { return s << "functor_4647"; }
 
-    bool test(uint_t d1, uint_t d2, uint_t d3, void *in_data_buff, void *out_data_buff) {
+    bool test(uint_t d1, uint_t d2, uint_t d3, float_type *in_data_buff, float_type *out_data_buff) {
         //
         // C-like memory layout
         //
@@ -113,7 +113,7 @@ namespace copystencil_python {
         //
         typedef gridtools::BACKEND::storage_type< float_type, meta_t >::type storage_type;
 
-        meta_t meta_((uint_t)3, (uint_t)2, (uint_t)1);
+        meta_t meta_(d1, d2, d3);
         //
         // parameter data fields use the memory buffers received from NumPy arrays
         //
@@ -198,7 +198,7 @@ namespace copystencil_python {
 } // namespace copystencil_python
 
 extern "C" {
-int run(uint_t dim1, uint_t dim2, uint_t dim3, void *in_data_buff, void *out_data_buff) {
+int run(uint_t dim1, uint_t dim2, uint_t dim3, float_type *in_data_buff, float_type *out_data_buff) {
     return !copystencil_python::test(dim1, dim2, dim3, in_data_buff, out_data_buff);
 }
 }
@@ -208,9 +208,9 @@ int run(uint_t dim1, uint_t dim2, uint_t dim3, void *in_data_buff, void *out_dat
 */
 bool test_copystencil_python() {
     // interface
-    int d1 = 3;
-    int d2 = 2;
-    int d3 = 1;
+    int d1 = 32;
+    int d2 = 32;
+    int d3 = 32;
 
     float_type *in_dat = (float_type *)malloc(d1 * d2 * d3 * sizeof(float_type));
     float_type *out_dat = (float_type *)malloc(d1 * d2 * d3 * sizeof(float_type));
@@ -220,6 +220,7 @@ bool test_copystencil_python() {
 
     run(d1, d2, d3, in_dat, out_dat);
 
+    // note: only works when there is no padding!
     for (int i = 0; i < d1 * d2 * d3; i++) {
         assert(in_dat[i] != 0.0);
         assert(in_dat[i] == out_dat[i]);
