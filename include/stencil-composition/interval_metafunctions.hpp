@@ -40,46 +40,55 @@
 #include <boost/mpl/back.hpp>
 #include <boost/mpl/sort.hpp>
 #include "interval_metafunctions_fwd.hpp"
+#include "level_metafunctions.hpp"
 
 namespace gridtools {
 #ifdef CXX11_ENABLED
-    template < typename TInterval1 >
-    struct check_interval {
-        template < typename TInterval2, typename Enable = void >
-        struct is_subset_of : boost::mpl::false_ {};
-        template < typename TInterval2 >
-        struct is_subset_of<
-            TInterval2,
-            typename std::enable_if<
-                level_geq< typename TInterval1::FromLevel, typename TInterval2::FromLevel >::value &&
-                level_leq< typename TInterval1::ToLevel, typename TInterval2::ToLevel >::value >::type >
-            : boost::mpl::true_ {};
 
-        template < typename TInterval2, typename Enable = void >
-        struct is_strict_subset_of : boost::mpl::false_ {};
-        template < typename TInterval2 >
-        struct is_strict_subset_of<
-            TInterval2,
-            typename std::enable_if<
-                level_gt< typename TInterval1::FromLevel, typename TInterval2::FromLevel >::value &&
-                level_lt< typename TInterval1::ToLevel, typename TInterval2::ToLevel >::value >::type >
+    namespace _impl {
+        /**
+         * @brief Meta function to test if an interval is (strict-)subset of another interval
+         */
+        template < typename TInterval1 >
+        struct check_interval {
+            template < typename TInterval2, typename Enable = void >
+            struct is_subset_of : boost::mpl::false_ {};
+            template < typename TInterval2 >
+            struct is_subset_of<
+                TInterval2,
+                typename std::enable_if<
+                    level_geq< typename TInterval1::FromLevel, typename TInterval2::FromLevel >::value &&
+                    level_leq< typename TInterval1::ToLevel, typename TInterval2::ToLevel >::value >::type >
+                : boost::mpl::true_ {};
+
+            template < typename TInterval2, typename Enable = void >
+            struct is_strict_subset_of : boost::mpl::false_ {};
+            template < typename TInterval2 >
+            struct is_strict_subset_of<
+                TInterval2,
+                typename std::enable_if<
+                    level_gt< typename TInterval1::FromLevel, typename TInterval2::FromLevel >::value &&
+                    level_lt< typename TInterval1::ToLevel, typename TInterval2::ToLevel >::value >::type >
+                : boost::mpl::true_ {};
+        };
+
+        /**
+         * @brief Meta function to test if the union of two intervals is contiguous
+         */
+        template < typename TIntervalLeft, typename TIntervalRight, typename Enable = void >
+        struct join_interval_is_contiguous : boost::mpl::false_ {};
+
+        template < typename TIntervalLeft, typename TIntervalRight >
+        struct join_interval_is_contiguous< TIntervalLeft,
+            TIntervalRight,
+            typename std::enable_if< (level_to_index< typename TIntervalLeft::ToLevel >::value + 1 >=
+                                      level_to_index< typename TIntervalRight::FromLevel >::value) >::type >
             : boost::mpl::true_ {};
-    };
+    }
 
     /**
-     * @struct join_interval_is_contiguous
-     * Meta function to test if the union of two intervals is contiguous
+     * @brief Meta function to join to intervals
      */
-    template < typename TIntervalLeft, typename TIntervalRight, typename Enable = void >
-    struct join_interval_is_contiguous : boost::mpl::false_ {};
-
-    template < typename TIntervalLeft, typename TIntervalRight >
-    struct join_interval_is_contiguous< TIntervalLeft,
-        TIntervalRight,
-        typename std::enable_if< (level_to_index< typename TIntervalLeft::ToLevel >::value + 1 >=
-                                  level_to_index< typename TIntervalRight::FromLevel >::value) >::type >
-        : boost::mpl::true_ {};
-
     template < typename TIntervalLeft, typename TIntervalRight >
     struct join_interval {
         GRIDTOOLS_STATIC_ASSERT(
@@ -97,7 +106,7 @@ namespace gridtools {
                 level_geq< typename TIntervalRight::ToLevel, typename TIntervalLeft::ToLevel >::value),
             "check that the intervals are provided in order and are not subsets of each other");
 
-        GRIDTOOLS_STATIC_ASSERT((join_interval_is_contiguous< TIntervalLeft, TIntervalRight >::value),
+        GRIDTOOLS_STATIC_ASSERT((_impl::join_interval_is_contiguous< TIntervalLeft, TIntervalRight >::value),
             "check that the intervals are contiguous");
 
         using type = interval< typename TIntervalLeft::FromLevel, typename TIntervalRight::ToLevel >;
@@ -106,6 +115,9 @@ namespace gridtools {
     template < typename TIntervalLeft, typename TIntervalRight >
     using join_interval_t = typename join_interval< TIntervalLeft, TIntervalRight >::type;
 
+    /**
+     * @brief Meta function to construct an axis, i.e. an interval such that all passed intervals are a subset
+     */
     template < typename... TIntervals >
     struct make_axis {
         using levels = boost::mpl::vector< typename TIntervals::FromLevel..., typename TIntervals::ToLevel... >;
