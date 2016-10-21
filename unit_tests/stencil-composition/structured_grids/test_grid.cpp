@@ -48,7 +48,7 @@
 
 class structure_grids_grid : public ::testing::Test {
   protected:
-    typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
+    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, 1 > > axis;
 
     static const gridtools::uint_t size_i = 22;
     static const gridtools::uint_t size_j = 33;
@@ -81,7 +81,7 @@ TEST_F(structure_grids_grid, copy_constructable_device_ptrs_differ) {
 // TODO write a test to compare sizes on device
 #endif
 
-TEST_F(structure_grids_grid, copy_constructor_with_array) {
+TEST_F(structure_grids_grid, constructor_with_array) {
 #ifdef CXX11_ENABLED
     gridtools::array< gridtools::uint_t, 2 > k_levels{(gridtools::uint_t)0, (gridtools::uint_t)(size_k - 1)};
 #else
@@ -95,9 +95,8 @@ TEST_F(structure_grids_grid, copy_constructor_with_array) {
 }
 
 #ifdef CXX11_ENABLED
-TEST_F(structure_grids_grid, copy_constructor_make_k_levels) {
-    gridtools::grid< axis > grid_copy(
-        di, dj, gridtools::make_k_levels((gridtools::uint_t)0, (gridtools::uint_t)(size_k - 1)));
+TEST_F(structure_grids_grid, constructor_make_grid) {
+    auto grid_copy = gridtools::make_grid(di, dj, gridtools::make_k_axis(size_k));
 
     ASSERT_GRID_EQ(grid_orig, grid_copy);
 }
