@@ -207,6 +207,9 @@ int run(uint_t dim1, uint_t dim2, uint_t dim3, void *in_data_buff, void *out_dat
 * Entry point of the test case
 */
 bool test_copystencil_python() {
+    // error in jenkins, failed to reproduce locally
+    // #if defined( DOUBLE_PRECISION ) || !defined(__CUDACC__)
+    // interface
     int d1 = 3;
     int d2 = 2;
     int d3 = 1;
@@ -221,22 +224,18 @@ bool test_copystencil_python() {
 
     for (int i = 0; i < d1 * d2 * d3; i++) {
         assert(in_dat[i] != 0.0);
-#ifdef DOUBLE_PRECISION // hack while waititng for a proper handling of arbitrary precision floats from the python
-                        // interface
         assert(in_dat[i] == out_dat[i]);
-#endif
     }
 
 #ifdef VERBOSE
     std::cout << "Copied " << d1 * d2 * d3 << " values ... ok!" << std::endl;
 #endif
-
-    return EXIT_SUCCESS;
+    free(in_dat) free(out_dat) return EXIT_SUCCESS;
 }
 
 TEST(python_test, copy_stencil) {
 // expect false because of return 0...
 #if !defined(__CUDACC__) || defined(CXX11_ENABLED)
     EXPECT_EQ(test_copystencil_python(), false);
-#endif
+    // #endif
 }
