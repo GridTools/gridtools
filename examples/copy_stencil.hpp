@@ -63,7 +63,7 @@ namespace copy_stencil {
 
 // This is the definition of the special regions in the "vertical" direction
 #ifdef CXX11_ENABLED
-    using x_interval = define_interval< 0, 1 >;
+    using x_interval = get_interval< 0 >;
 #else
     typedef gridtools::interval< level< 0, 1 >, level< 1, -1 > > x_interval;
 #endif

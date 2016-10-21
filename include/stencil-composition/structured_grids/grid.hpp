@@ -170,12 +170,6 @@ namespace gridtools {
     struct is_grid< grid< Axis, Partitioner > > : boost::mpl::true_ {};
 
 #ifdef CXX11_ENABLED
-    template < typename... IntTypes,
-        typename = is_pack_of_with_placeholder< std::is_convertible< uint_t, boost::mpl::_ >, IntTypes... > >
-    GT_FUNCTION array< uint_t, sizeof...(IntTypes) > make_k_levels(IntTypes... values) {
-        return array< uint_t, sizeof...(IntTypes) >{values...};
-    }
-
     namespace _impl {
         template < size_t n_sizes >
         array< uint_t, n_sizes + 1 > interval_sizes_to_value_list(const array< uint_t, n_sizes > &sizes) {
@@ -197,7 +191,7 @@ namespace gridtools {
      */
     template < typename... IntTypes,
         typename = is_pack_of_with_placeholder< std::is_convertible< uint_t, boost::mpl::_ >, IntTypes... > >
-    GT_FUNCTION array< uint_t, sizeof...(IntTypes) + 1 > make_k_axis(IntTypes... values) {
+    array< uint_t, sizeof...(IntTypes) + 1 > make_k_axis(IntTypes... values) {
         GRIDTOOLS_STATIC_ASSERT(
             (sizeof...(IntTypes) >= 1), "You need to pass at least 1 argument to define the k-axis.");
 
@@ -220,8 +214,8 @@ namespace gridtools {
      * @brief defines an interval between two splitters following the convention that each interval starts at
      * <from,+1> and ends at <to,-1>
      */
-    template < uint_t from, uint_t to >
-    using define_interval = interval< level< from, 1 >, level< to, -1 > >;
+    template < uint_t id >
+    using get_interval = interval< level< id, 1 >, level< id + 1, -1 > >;
 
     /*
      * @brief make axis without halo or padding
