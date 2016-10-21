@@ -33,39 +33,32 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/*
- * test_computation.cpp
- *
- *  Created on: Mar 9, 2015
- *      Author: carlosos
- */
+#pragma once
 
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
+namespace gridtools {
+    namespace _impl {
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct function_aggregator;
 
-#include <gridtools.hpp>
-#include <boost/mpl/equal.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct function_aggregator_offsets;
 
-#include "gtest/gtest.h"
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        struct function_aggregator_procedure;
 
-#include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
-
-using namespace gridtools;
-
-namespace make_computation_test {
-
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
-    struct test_functor {
-        typedef accessor< 0 > in;
-        typedef boost::mpl::vector1< in > arg_list;
-
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
-    };
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        struct function_aggregator_procedure_offsets;
+    }
 }
-
-TEST(MakeComputation, Basic) {}

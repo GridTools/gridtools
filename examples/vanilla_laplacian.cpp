@@ -35,6 +35,8 @@
 */
 #include <iostream>
 #include <fstream>
+#include <ctime>
+
 #include <gridtools.hpp>
 #include <common/defs.hpp>
 #define offs_(i, j, k, n, m, l) ((i) * (m) * (l) + (j) * (l) + (k))
