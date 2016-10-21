@@ -207,8 +207,6 @@ int run(uint_t dim1, uint_t dim2, uint_t dim3, void *in_data_buff, void *out_dat
 * Entry point of the test case
 */
 bool test_copystencil_python() {
-    // error in jenkins, failed to reproduce locally
-    // #if defined( DOUBLE_PRECISION ) || !defined(__CUDACC__)
     // interface
     int d1 = 3;
     int d2 = 2;
@@ -230,7 +228,9 @@ bool test_copystencil_python() {
 #ifdef VERBOSE
     std::cout << "Copied " << d1 * d2 * d3 << " values ... ok!" << std::endl;
 #endif
-    free(in_dat) free(out_dat) return EXIT_SUCCESS;
+    free(in_dat);
+    free(out_dat);
+    return EXIT_SUCCESS;
 }
 
 TEST(python_test, copy_stencil) {
