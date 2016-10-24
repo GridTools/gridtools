@@ -42,7 +42,7 @@ while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
         ;;
     b) BUILD_TYPE=$OPTARG
         ;;
-    t) TARGET=$OPTARG
+    t) TARGET_=$OPTARG
         ;;
     f) FLOAT_TYPE=$OPTARG
         ;;
@@ -81,9 +81,10 @@ if [[ "$BUILD_TYPE" != "debug" ]] && [[ "$BUILD_TYPE" != "release" ]]; then
    help
 fi
 
-if [[ "$TARGET" != "gpu" ]] && [[ "$TARGET" != "cpu" ]]; then
+if [[ "$TARGET_" != "gpu" ]] && [[ "$TARGET_" != "cpu" ]]; then
    help
 fi
+export TARGET=${TARGET_}
 
 if [[ "$FLOAT_TYPE" != "float" ]] && [[ "$FLOAT_TYPE" != "double" ]]; then
    help

@@ -1,6 +1,6 @@
 #/bin/bash
 
-if [[ ${VERSION} == "5.3" ]]; then
+if [[ ${VERSION} == "5.3" ]] && [[ "${TARGET}" != "gpu" ]]; then
   module unload GCC/4.9.3-binutils-2.25
   module load GCC/5.3.0-binutils-2.25
 else
