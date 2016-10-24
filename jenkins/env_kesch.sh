@@ -2,6 +2,7 @@
 
 if [[ ${VERSION} == "5.3" ]] && [[ "${TARGET}" != "gpu" ]]; then
   module unload GCC/4.9.3-binutils-2.25
+  module load mvapich2gdr_gnu/2.1_cuda_7.0
   module load GCC/5.3.0-binutils-2.25
 else
   module load PrgEnv-gnu
