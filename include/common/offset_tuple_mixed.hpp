@@ -98,8 +98,8 @@ namespace gridtools {
         }
     };
 
-    template < typename... T >
-    struct is_offset_tuple< offset_tuple_mixed< T... > > : boost::mpl::true_ {};
+    template < typename T1, typename... T >
+    struct is_offset_tuple< offset_tuple_mixed< T1, T... > > : boost::mpl::true_ {};
 
     template < typename ArgType, typename... Pair >
     constexpr typename offset_tuple_mixed< ArgType, Pair... >::offset_tuple_t

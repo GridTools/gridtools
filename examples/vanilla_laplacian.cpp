@@ -35,6 +35,8 @@
 */
 #include <iostream>
 #include <fstream>
+#include <ctime>
+
 #include <gridtools.hpp>
 #include <common/defs.hpp>
 #include <ctime>

@@ -33,39 +33,50 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/*
- * test_computation.cpp
- *
- *  Created on: Mar 9, 2015
- *      Author: carlosos
- */
+#pragma once
+#include <boost/mpl/has_key.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/type_traits.hpp>
 
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
+namespace gridtools {
+    namespace _impl {
+        typedef boost::mpl::set< char,
+            short,
+            int,
+            long long unsigned char,
+            unsigned short,
+            unsigned int,
+            unsigned long long,
+            int2,
+            int4,
+            uint2,
+            uint4,
+            float,
+            float2,
+            float4,
+            double,
+            double2 > texture_types;
+    } // namespace _impl
 
-#include <gridtools.hpp>
-#include <boost/mpl/equal.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-
-#include "gtest/gtest.h"
-
-#include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
-
-using namespace gridtools;
-
-namespace make_computation_test {
-
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
-    struct test_functor {
-        typedef accessor< 0 > in;
-        typedef boost::mpl::vector1< in > arg_list;
-
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    template < typename T >
+    struct remove_restrict {
+        typedef T type;
     };
-}
 
-TEST(MakeComputation, Basic) {}
+    template < typename T >
+    struct remove_restrict< T __restrict__ > {
+        typedef T type;
+    };
+
+    template < typename T >
+    struct is_texture_type
+        : boost::mpl::has_key< _impl::texture_types,
+              typename boost::remove_cv< typename boost::remove_reference<
+                  typename boost::remove_pointer< typename remove_restrict< T >::type >::type >::type >::type > {};
+
+#ifdef CXX11_ENABLED
+    template < typename T >
+    using is_texture_type_t = typename is_texture_type< T >::type;
+#endif
+
+} // namespace gridtools

@@ -33,39 +33,37 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/*
- * test_computation.cpp
- *
- *  Created on: Mar 9, 2015
- *      Author: carlosos
- */
-
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
-
-#include <gridtools.hpp>
-#include <boost/mpl/equal.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-
 #include "gtest/gtest.h"
 
-#include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
+#include <common/defs.hpp>
+#include <common/cuda_type_traits.hpp>
 
-using namespace gridtools;
+TEST(texture_type_traits, int_is_texture_type) { ASSERT_TRUE(gridtools::is_texture_type< int >::value); }
 
-namespace make_computation_test {
+TEST(texture_type_traits, bool_is_NOT_texture_type) { ASSERT_FALSE(gridtools::is_texture_type< bool >::value); }
 
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
-    struct test_functor {
-        typedef accessor< 0 > in;
-        typedef boost::mpl::vector1< in > arg_list;
-
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
-    };
+TEST(texture_type_traits, real_typedef_is_texture_type) {
+    typedef double Real;
+    ASSERT_TRUE(gridtools::is_texture_type< Real >::value);
 }
 
-TEST(MakeComputation, Basic) {}
+TEST(texture_type_traits, gridtools_uint_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< gridtools::uint_t >::value);
+}
+
+TEST(texture_type_traits, int_ref_is_texture_type) { ASSERT_TRUE(gridtools::is_texture_type< int & >::value); }
+
+TEST(texture_type_traits, cv_int_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< const volatile int >::value);
+}
+
+TEST(texture_type_traits, restrict_int_ref_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< int &__restrict__ >::value);
+}
+
+#ifdef CXX11_ENABLED
+TEST(texture_type_traits, is_texture_type_t) {
+    using result = gridtools::is_texture_type_t< int >;
+    ASSERT_TRUE(result::value);
+}
+#endif

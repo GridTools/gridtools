@@ -40,6 +40,7 @@
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "../../../common/cuda_type_traits.hpp"
 
 namespace gridtools {
 
@@ -224,10 +225,10 @@ namespace gridtools {
             typedef typename boost::mpl::and_<
                 typename boost::mpl::and_< typename accessor_points_to_readonly_arg< Accessor >::type,
                     typename boost::mpl::not_< typename boost::mpl::has_key< bypass_caches_set_t,
-                        static_uint< Accessor::index_type::value > >::type // mpl::has_key
-                                               >::type                     // mpl::not,
-                    >::type,                                               // mpl::(inner)and_
-                typename boost::is_arithmetic< typename accessor_return_type< Accessor >::type >::type // is_arithmetic
+                        static_uint< Accessor::index_type::value > >::type                        // mpl::has_key
+                                               >::type                                            // mpl::not,
+                    >::type,                                                                      // mpl::(inner)and_
+                typename is_texture_type< typename accessor_return_type< Accessor >::type >::type // is_texture_type
                 >::type type;
         };
 

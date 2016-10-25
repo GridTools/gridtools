@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <vector>
+#include <boost/mpl/int.hpp>
+
 #include <storage/storage-facility.hpp>
 
 using namespace gridtools;
