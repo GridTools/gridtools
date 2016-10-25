@@ -172,7 +172,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
     namespace _impl {
         template < size_t n_sizes >
-        array< uint_t, n_sizes + 1 > interval_sizes_to_value_list(const array< uint_t, n_sizes > &sizes) {
+        GT_FUNCTION array< uint_t, n_sizes + 1 > interval_sizes_to_value_list(const array< uint_t, n_sizes > &sizes) {
             array< uint_t, n_sizes + 1 > value_list;
 
             value_list[0] = -1;
@@ -191,7 +191,7 @@ namespace gridtools {
      */
     template < typename... IntTypes,
         typename = is_pack_of_with_placeholder< std::is_convertible< uint_t, boost::mpl::_ >, IntTypes... > >
-    array< uint_t, sizeof...(IntTypes) + 1 > make_k_axis(IntTypes... values) {
+    GT_FUNCTION array< uint_t, sizeof...(IntTypes) + 1 > make_k_axis(IntTypes... values) {
         GRIDTOOLS_STATIC_ASSERT(
             (sizeof...(IntTypes) >= 1), "You need to pass at least 1 argument to define the k-axis.");
 
@@ -203,7 +203,7 @@ namespace gridtools {
      * @brief builds a grid
      */
     template < size_t n_splitters >
-    auto make_grid(halo_descriptor const &direction_i,
+    GT_FUNCTION auto make_grid(halo_descriptor const &direction_i,
         halo_descriptor const &direction_j,
         array< uint_t, n_splitters > const &value_list)
         -> grid< interval< level< 0, -1 >, level< n_splitters - 1, 1 > > > {
@@ -220,14 +220,14 @@ namespace gridtools {
     /*
      * @brief make axis without halo or padding
      */
-    halo_descriptor make_ij_axis(uint_t compute_interval) {
+    GT_FUNCTION halo_descriptor make_ij_axis(uint_t compute_interval) {
         return halo_descriptor(0, 0, 0, compute_interval - 1, compute_interval);
     }
 
     /*
      * @brief make axis with halo
      */
-    halo_descriptor make_ij_axis(uint_t halo_minus, uint_t compute_interval, uint_t halo_plus) {
+    GT_FUNCTION halo_descriptor make_ij_axis(uint_t halo_minus, uint_t compute_interval, uint_t halo_plus) {
         return halo_descriptor(halo_minus,
             halo_plus,
             halo_minus,
@@ -238,7 +238,7 @@ namespace gridtools {
     /*
      * @brief make axis with halo and padding
      */
-    halo_descriptor make_ij_axis_padded(
+    GT_FUNCTION halo_descriptor make_ij_axis_padded(
         uint_t pad_minus, uint_t halo_minus, uint_t compute_interval, uint_t halo_plus, uint_t pad_plus) {
         return halo_descriptor(halo_minus,
             halo_plus,
