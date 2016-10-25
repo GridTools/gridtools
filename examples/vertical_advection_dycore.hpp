@@ -55,13 +55,24 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace vertical_advection_dycore {
-    // This is the definition of the special regions in the "vertical" direction
+#ifdef CXX11_ENABLED
+#define USE_NEW_GRID_API
+#endif
+
+// This is the definition of the special regions in the "vertical" direction
+#ifdef USE_NEW_GRID_API
+    using kminimum = get_interval< 0 >;
+    using kbody = get_interval< 1 >;
+    using kmaximum = get_interval< 2 >;
+    using kbody_low = interval< level< 0, 1 >, level< 2, -1 > >; // TODO should be get_interval<0,1>
+#else
+    typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
     typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
     typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kbody_low;
-    typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
     typedef gridtools::interval< level< 1, -1 >, level< 1, -1 > > kmaximum;
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+#endif
 
     template < typename T >
     struct u_forward_function {
@@ -269,6 +280,11 @@ namespace vertical_advection_dycore {
 
 #endif
 
+#ifdef USE_NEW_GRID_API
+        auto grid = make_grid(make_ij_axis(halo_size, d1 - 2 * halo_size, halo_size), //
+            make_ij_axis(halo_size, d2 - 2 * halo_size, halo_size),                   //
+            make_k_axis(1, d3 - 2, 1));
+#else
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -279,6 +295,7 @@ namespace vertical_advection_dycore {
         gridtools::grid< axis > grid(di, dj);
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
+#endif
 
 #ifdef CXX11_ENABLED
         auto
