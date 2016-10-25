@@ -44,7 +44,7 @@
 
 namespace gridtools {
     // define the level offset limit
-    const short_t cLevelOffsetLimit = 1;
+    const short_t cLevelOffsetLimit = 3;
     /**
      * @struct Level
      * Structure defining an axis position relative to a splitter
