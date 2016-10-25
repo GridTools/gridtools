@@ -62,9 +62,10 @@ namespace vertical_advection_dycore {
 // This is the definition of the special regions in the "vertical" direction
 #ifdef USE_NEW_GRID_API
     using kminimum = get_interval< 0 >;
-    using kbody = get_interval< 1 >;
-    using kmaximum = get_interval< 2 >;
-    using kbody_low = interval< level< 0, 1 >, level< 2, -1 > >; // TODO should be get_interval<0,1>
+    //    using kbody = get_interval< 1 >;
+    using kbody = interval< level< 1, 1 >, level< 12, -1 > >;
+    using kmaximum = get_interval< 12 >;
+    using kbody_low = interval< level< 0, 1 >, level< 12, -1 > >; // TODO should be get_interval<0,1>
 #else
     typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
     typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
@@ -283,7 +284,7 @@ namespace vertical_advection_dycore {
 #ifdef USE_NEW_GRID_API
         auto grid = make_grid(make_ij_axis(halo_size, d1 - 2 * halo_size, halo_size), //
             make_ij_axis(halo_size, d2 - 2 * halo_size, halo_size),                   //
-            make_k_axis(1, d3 - 2, 1));
+            make_k_axis(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, d3 - 2 - 10, 1));
 #else
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
