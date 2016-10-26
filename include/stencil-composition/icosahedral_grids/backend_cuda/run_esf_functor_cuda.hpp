@@ -85,9 +85,11 @@ namespace gridtools {
                 Index::value >::type iterate_domain_remapper_t;
 
             typedef typename EsfArguments::esf_t esf_t;
-            typedef typename esf_t::template esf_function< Index::value > functor_t;
 
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
+
+            // typedef typename esf_t::template esf_function< Index::value > functor_t;
+            typedef typename EsfArguments::functor_t functor_t;
 
             // call the user functor at the core of the block
             _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::Do(

@@ -164,8 +164,8 @@ namespace gridtools {
    language keyword used at the interface level.
 */
 #if defined(CXX11_ENABLED)
-        template < typename... Indices, typename Dummy = all_accessor_ctr_args< Indices... > >
-        GT_FUNCTION constexpr accessor_base(Indices... x)
+        template < typename... Indices, typename Dummy = all_integers< Indices... > >
+        GT_FUNCTION constexpr accessor_base(Indices const &... x)
             : m_offsets(x...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
@@ -178,7 +178,7 @@ namespace gridtools {
             typename T = typename boost::enable_if_c< accumulate(
                 logical_and(), is_dimension< First >::type::value, is_dimension< Whatever >::type::value...) >::type >
 
-        GT_FUNCTION constexpr accessor_base(First f, Whatever... x)
+        GT_FUNCTION constexpr accessor_base(First const &f, Whatever const &... x)
             : m_offsets(f, x...) {
             GRIDTOOLS_STATIC_ASSERT(
                 accumulate(logical_and(), (First::direction <= n_dim), (Whatever::direction <= n_dim)...),

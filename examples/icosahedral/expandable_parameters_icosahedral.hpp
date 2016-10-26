@@ -16,7 +16,7 @@ namespace test_expandable_parameters_icosahedral {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK

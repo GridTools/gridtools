@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#incldue "expandable_parameters_icosahedral.cpp"
+#include "expandable_parameters_icosahedral.cpp"

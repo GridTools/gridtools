@@ -468,7 +468,7 @@ namespace gridtools {
             return _impl::compute_offset< space_dimensions, layout >::apply(strides_, offset);
         }
 
-        template < typename StridesVector, typename LayoutT >
+        template < typename LayoutT, typename StridesVector >
         GT_FUNCTION static constexpr int_t _index(
             StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
             return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);
