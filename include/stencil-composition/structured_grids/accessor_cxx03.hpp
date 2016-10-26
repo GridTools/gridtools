@@ -34,13 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
-#include "../accessor_base.hpp"
-#include "../arg.hpp"
-#include "../dimension.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
-#include "../../common/generic_metafunctions/static_if.hpp"
-
 /**
    @file
 
@@ -64,9 +57,6 @@
 
 namespace gridtools {
 
-    template < typename ArgType, typename... Pair >
-    struct accessor_mixed;
-
     /**
        @brief the definition of accessor visible to the user
 
@@ -89,50 +79,61 @@ namespace gridtools {
         enumtype::intend Intend = enumtype::in,
         typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t Number = 3 >
-    struct accessor_impl : public accessor_base< ID, Intend, Extent, Number > {
+    struct accessor : public accessor_base< ID, Intend, Extent, Number > {
         typedef accessor_base< ID, Intend, Extent, Number > super;
         typedef typename super::index_type index_type;
         typedef typename super::offset_tuple_t offset_tuple_t;
 
-        GT_FUNCTION
-        constexpr accessor_impl() : super() {}
+#ifdef CXX11_ENABLED
 
-#ifndef __CUDACC__
+        GT_FUNCTION
+        constexpr accessor() : super() {}
+
         /**inheriting all constructors from offset_tuple*/
         using super::accessor_base;
-#else
-        /**@brief constructor forwarding all the arguments
-        */
-        template < typename... ForwardedArgs >
-        GT_FUNCTION constexpr accessor_impl(ForwardedArgs... x)
-            : super(x...) {
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(ForwardedArgs) <= Number),
-                "too many arguments for an accessor. Check that the accessor dimension is valid.");
-        }
 
-        // move ctor
-        GT_FUNCTION
-        constexpr explicit accessor_impl(accessor_impl< ID, Intend, Extent, Number > &&other)
-            : super(std::move(other)) {}
+#else
 
         // copy ctor
         GT_FUNCTION
-        constexpr accessor_impl(accessor_impl< ID, Intend, Extent, Number > const &other) : super(other) {}
+        constexpr explicit accessor(accessor< ID, Intend, Extent, Number > const &other) : super(other) {}
+
+        // copy ctor from an accessor with different ID
+        template < ushort_t OtherID >
+        GT_FUNCTION constexpr explicit accessor(const accessor< OtherID, Intend, Extent, Number > &other)
+            : super(static_cast< accessor_base< OtherID, Intend, Extent, Number > >(other)) {}
+
+        GT_FUNCTION
+        constexpr explicit accessor() : super() {}
+
+        /** @brief constructor forwarding all the arguments*/
+        template < typename X, typename Y, typename Z, typename T >
+        GT_FUNCTION constexpr accessor(X x, Y y, Z z, T t)
+            : super(x, y, z, t) {}
+
+        /** @brief constructor forwarding all the arguments*/
+        template < typename X, typename Y, typename Z >
+        GT_FUNCTION constexpr accessor(X x, Y y, Z z)
+            : super(x, y, z) {}
+
+        /** @brief constructor forwarding all the arguments*/
+        template < typename X >
+        GT_FUNCTION constexpr accessor(X x)
+            : super(x) {}
+
+        /** @brief constructor forwarding all the arguments*/
+        template < typename X, typename Y >
+        GT_FUNCTION constexpr accessor(X x, Y y)
+            : super(x, y) {}
+
 #endif
     };
 
-    template < uint_t ID,
-        enumtype::intend Intend = enumtype::in,
-        typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
-        ushort_t Number = 3 >
-    struct accessor : accessor_mixed< accessor_impl< ID, Intend, Extent, Number > > {
-        using accessor_mixed< accessor_impl< ID, Intend, Extent, Number > >::accessor_mixed;
-    };
-
+#ifdef CXX11_ENABLED
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
     using in_accessor = accessor< ID, enumtype::in, Extent, Number >;
 
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
     using inout_accessor = accessor< ID, enumtype::inout, Extent, Number >;
-
+#endif
 } // namespace gridtools

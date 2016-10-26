@@ -17,7 +17,7 @@
 #pragma once
 #include "accessor_fwd.hpp"
 
-namespace gridtools{
+namespace gridtools {
 #ifdef CUDA8 // (i.e. CXX11_ENABLED for cpu)
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
@@ -29,41 +29,26 @@ namespace gridtools{
        lookup is anyway done at compile time, i.e. the get() method returns in constant time.
      */
     template < typename ArgType, typename... Pair >
-    struct accessor_mixed : public offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...> {
+    struct accessor_mixed : public offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... > {
         typedef typename ArgType::index_type index_type;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::offset_tuple_t offset_tuple_t;
         typedef typename ArgType::extent_t extent_t;
 
-        using super = offset_tuple_mixed<typename ArgType::offset_tuple_t, Pair ...>;
+        using super = offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... >;
         /**inheriting all constructors from offset_tuple*/
         using typename super::offset_tuple_mixed;
 
-#if defined( __CUDACC__ ) || defined(__clang__)
+#if defined(__CUDACC__) || defined(__clang__)
         // the protection for the arguments is done in offset_tuple constructors
-        template <typename ... T>
-        GT_FUNCTION
-        constexpr accessor_mixed(T const& ... t_):super(t_ ...){}
+        template < typename... T >
+        GT_FUNCTION constexpr accessor_mixed(T const &... t_)
+            : super(t_...) {}
 #endif
 
         GT_FUNCTION
-        constexpr const super& offsets() const { return *this; }
-
+        constexpr const super &offsets() const { return *this; }
     };
-
-    template < uint_t ID,
-               enumtype::intend Intend = enumtype::in,
-               typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
-               ushort_t Number = 3 >
-    struct accessor : accessor_mixed<accessor_impl<ID, Intend, Extent, Number> >{
-        using accessor_mixed<accessor_impl<ID, Intend, Extent, Number> >::accessor_mixed;
-    };
-
-    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
-    using in_accessor = accessor< ID, enumtype::in, Extent, Number >;
-
-    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
-    using inout_accessor = accessor< ID, enumtype::inout, Extent, Number >;
 
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
@@ -103,14 +88,14 @@ the dimension is chosen
            This type alias allows to embed some of the offsets directly inside the type of the accessor placeholder.
            For a usage example check the examples folder
         */
-        template < int_t ... Args >
+        template < int_t... Args >
         using set = accessor_mixed< AccessorType, pair_< Known::direction, Args >... >;
 
         /**@brief constructor
        \param args are the offsets which are already known*/
         template < typename... Args >
         GT_FUNCTION constexpr alias(Args /*&&*/... args)
-            : m_knowns{(int_t) args...} {}
+            : m_knowns{(int_t)args...} {}
 
         typedef boost::mpl::vector< Known... > dim_vector;
 
@@ -135,4 +120,4 @@ the dimension is chosen
         int_t m_knowns[sizeof...(Known)];
     };
 #endif // CUDA8 (i.e. CXX11_ENABLED for cpu)
-}// namespace gridtools
+} // namespace gridtools
