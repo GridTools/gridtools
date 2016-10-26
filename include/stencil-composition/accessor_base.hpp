@@ -41,18 +41,16 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
 
-#include "common/layout_map.hpp"
-#include "common/is_temporary_storage.hpp"
+#include "../../gridtools.hpp"
+#include "../../common/is_temporary_storage.hpp"
 
-#include "storage/storage.hpp"
-#include "storage/storage_metafunctions.hpp"
+#include "../../storage/storage.hpp"
+#include "../../storage/storage_metafunctions.hpp"
 
 #include "../common/offset_tuple_mixed.hpp"
-#include "stencil-composition/extent.hpp"
+#include "extent.hpp"
 
-#ifdef CXX11_ENABLED
-#include "stencil-composition/expressions.hpp"
-#endif
+#include "dimension_fwd.hpp"
 
 namespace gridtools {
 
@@ -60,11 +58,23 @@ namespace gridtools {
     template < int_t Index, int_t NDim >
     struct offset_tuple;
 
-    template < ushort_t >
-    struct dimension;
-
     template < uint_t I, typename T, typename Cond >
     struct arg;
+
+#ifdef CXX11_ENABLED
+    // metafunction that determines if a type is a valid accessor ctr argument
+    template < typename T >
+    struct is_accessor_ctr_args {
+        typedef typename boost::mpl::or_< typename boost::is_integral< T >::type,
+            typename is_dimension< T >::type >::type type;
+    };
+
+    // metafunction that determines if a variadic pack are valid accessor ctr arguments
+    template < typename... Types >
+    using all_accessor_ctr_args =
+        typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
+            bool >::type;
+#endif
 
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
@@ -122,57 +132,70 @@ namespace gridtools {
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
         // move ctor
         GT_FUNCTION
-        constexpr accessor_base(const type &&other_) : m_offsets(other_.m_offsets) {}
+        constexpr accessor_base(const type &&other) : m_offsets(other.m_offsets) {}
 
         // move ctor from another accessor_base with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(accessor_base< OtherIndex, Intend, Extend, Dim > &&other)
             : m_offsets(other.offsets()) {}
-
 #endif
         // copy ctor
         GT_FUNCTION
-        constexpr accessor_base(accessor_base const &other) : m_offsets(other.m_offsets) {}
+        constexpr accessor_base(type const &other) : m_offsets(other.m_offsets) {}
 
         // copy ctor from another accessor_base with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
             : m_offsets(other.offsets()) {}
 
-        // ctor with one argument have to provide specific arguments in order to avoid ambiguous instantiation
+        // ctor with one argument: have to provide specific arguments in order to avoid ambiguous instantiation
         // by the compiler
         template < uint_t Idx >
-        GT_FUNCTION constexpr accessor_base(dimension< Idx > x)
-            : m_offsets(x) {}
+        GT_FUNCTION constexpr accessor_base(dimension< Idx > const &x)
+            : m_offsets(x) {
+            GRIDTOOLS_STATIC_ASSERT((Idx <= n_dim), "too high dimension accessor");
+        }
 
         GT_FUNCTION
-        constexpr accessor_base(const int_t x) : m_offsets(x) {}
+        constexpr accessor_base(const int_t &x) : m_offsets(x) {}
 
 /**@brief constructor taking the dimension class as argument.
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
    language keyword used at the interface level.
 */
-#if defined(CUDA8) // cuda<8 messing up
+#if defined(CXX11_ENABLED)
+        template < typename... Indices, typename Dummy = all_accessor_ctr_args< Indices... > >
+        GT_FUNCTION constexpr accessor_base(Indices... x)
+            : m_offsets(x...) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
+                "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
+                "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
+                "D of the accessor (accessor<Id, extent, D>)");
+        }
+
         template < typename First,
             typename... Whatever,
-            typename T = typename boost::enable_if_c< accumulate(logical_and(),
-                boost::mpl::or_< boost::is_integral< Whatever >, is_dimension< Whatever > >::type::value...) >::type >
+            typename T = typename boost::enable_if_c< accumulate(
+                logical_and(), is_dimension< First >::type::value, is_dimension< Whatever >::type::value...) >::type >
 
         GT_FUNCTION constexpr accessor_base(First f, Whatever... x)
             : m_offsets(f, x...) {
+            GRIDTOOLS_STATIC_ASSERT(
+                accumulate(logical_and(), (First::direction <= n_dim), (Whatever::direction <= n_dim)...),
+                "trying to access a too high dimension for accessor");
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim - 1,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
                 "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
                 "D of the accessor (accessor<Id, extent, D>)");
         }
 #else
-        template < typename X, typename Y, typename Z, typename T, typename P, typename Q >
-        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, P p, Q q)
-            : m_offsets(x, y, z, t, p, q) {}
+        template < typename X, typename Y, typename Z, typename T, typename U, typename V >
+        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, U u, V v)
+            : m_offsets(x, y, z, t, u, v) {}
 
-        template < typename X, typename Y, typename Z, typename T, typename P >
-        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, P p)
-            : m_offsets(x, y, z, t, p) {}
+        template < typename X, typename Y, typename Z, typename T, typename U >
+        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, U u)
+            : m_offsets(x, y, z, t, u) {}
 
         template < typename X, typename Y, typename Z, typename T >
         GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t)
@@ -185,6 +208,7 @@ namespace gridtools {
         template < typename X, typename Y >
         GT_FUNCTION constexpr accessor_base(X x, Y y)
             : m_offsets(x, y) {}
+
 #endif
 
         static void info() { std::cout << "Arg_type storage with index " << I << " and extent " << Extend() << " "; }
@@ -196,10 +220,10 @@ namespace gridtools {
 
         template < short_t Idx >
         GT_FUNCTION int_t constexpr get() const {
-            GRIDTOOLS_STATIC_ASSERT(
-                Idx < 0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
-            // the assert below is triggered when the accessor has a lower dimensionality than the layout
-            // GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+            GRIDTOOLS_STATIC_ASSERT(Idx < 0 || Idx <= n_dim,
+                "requested accessor index larger than the available "
+                "dimensions. Maybe you made a mistake when setting the "
+                "accessor dimensionality?");
             return m_offsets.template get< Idx >();
         }
 

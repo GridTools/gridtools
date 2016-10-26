@@ -45,10 +45,18 @@
 #define __device__
 #endif
 
+#ifdef __GNUC__
+#define GT_FORCE_INLINE inline __attribute__((always_inline))
+#elif defined(_MSC_VER)
+#define GT_FORCE_INLINE inline __forceinline
+#else
+#define GT_FORCE_INLINE inline
+#endif
+
 #ifdef __CUDACC__
 #define GT_FUNCTION __host__ __device__ __forceinline__
 #else
-#define GT_FUNCTION inline
+#define GT_FUNCTION GT_FORCE_INLINE
 #endif
 
 #define GT_FUNCTION_WARNING __host__ __device__

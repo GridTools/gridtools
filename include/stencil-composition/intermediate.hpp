@@ -175,7 +175,7 @@ namespace gridtools {
                     "Could not find a temporary, defined in the user aggregator_type, in the list of storage types "
                     "used in "
                     "all mss/esfs. \n"
-                    " Check that all temporaries are actually used in at least one user functor");
+                    " Check that all temporaries are actually used in at least one user functor as inout_accessor");
 
                 typedef typename boost::mpl::deref< iter >::type::first type;
             };
@@ -636,7 +636,9 @@ namespace gridtools {
                                         m_actual_arg_ptr_list, m_actual_metadata_list));
 
 #ifdef VERBOSE
+#ifndef NDEBUG
             m_domain.info();
+#endif
 #endif
             m_grid.clone_to_device();
         }

@@ -72,9 +72,7 @@ void test_offset_tuple(bool *result) {
     }
 
 #if !defined(__CUDACC__) && defined(CXX11_ENABLED)
-    typedef offset_tuple_mixed< offset_tuple< 3, 3 >,
-                                pair_< 1, 8 >,
-                                pair_< 2, 7 > > offset_tuple_mixed_t;
+    typedef offset_tuple_mixed< offset_tuple< 3, 3 >, pair_< 1, 8 >, pair_< 2, 7 > > offset_tuple_mixed_t;
 
     offset_tuple_mixed_t offset(11, 12, 13);
     GRIDTOOLS_STATIC_ASSERT((static_uint< offset.template get_constexpr< 2 >() >::value == 8), "ER\

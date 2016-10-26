@@ -81,9 +81,16 @@ namespace gridtools {
         struct function_aggregator {
 
             GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+                (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
+                "The first argument must be an iterate_domain or a function_aggregator");
+
             CallerAggregator const &m_caller_aggregator;
             ReturnType *__restrict__ m_result;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             function_aggregator(CallerAggregator const &caller_aggregator, ReturnType &result)
@@ -122,9 +129,9 @@ namespace gridtools {
             /** @brief method called in the Do methods of the functors. */
             template < typename... Arguments, template < typename... Args > class Expression >
             GT_FUNCTION constexpr auto operator()(Expression< Arguments... > const &arg) const
-                -> decltype(evaluation::value(*this, arg)) {
+                -> decltype(expressions::evaluation::value(*this, arg)) {
                 // arg.to_string();
-                return evaluation::value((*this), arg);
+                return expressions::evaluation::value((*this), arg);
             }
 
             /** @brief method called in the Do methods of the functors.
@@ -134,9 +141,9 @@ namespace gridtools {
                 typename FloatType,
                 typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
             GT_FUNCTION constexpr auto operator()(Expression< Accessor, FloatType > const &arg) const
-                -> decltype(evaluation::value_scalar(*this, arg)) {
-                // TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
-                return evaluation::value_scalar((*this), arg);
+                -> decltype(expressions::evaluation::value(*this, arg)) {
+                //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
+                return expressions::evaluation::value((*this), arg);
             }
         };
 
@@ -170,12 +177,18 @@ namespace gridtools {
             int OutArg >
         struct function_aggregator_offsets {
             GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+                (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
+                "The first argument must be an iterate_domain or a function_aggregator");
 
             typedef typename boost::fusion::result_of::as_vector< PassedAccessors >::type accessors_list_t;
             CallerAggregator const &m_caller_aggregator;
             ReturnType *__restrict__ m_result;
             accessors_list_t const &m_accessors_list;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             constexpr function_aggregator_offsets(
@@ -271,8 +284,10 @@ namespace gridtools {
         GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with_offsets(
             Evaluator const &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+
             GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
@@ -299,8 +314,10 @@ namespace gridtools {
         GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(
             Evaluator const &eval, Args const &...) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+
             GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
@@ -347,7 +364,8 @@ namespace gridtools {
         struct function_aggregator_procedure_offsets {
 
             GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+                (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
+                "The first argument must be an iterate_domain or a function_aggregator");
 
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments
@@ -364,6 +382,11 @@ namespace gridtools {
 
             CallerAggregator const &m_caller_aggregator;
             accessors_list_t const &m_accessors_list;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             constexpr function_aggregator_procedure_offsets(
@@ -421,7 +444,8 @@ namespace gridtools {
         struct function_aggregator_procedure {
 
             GRIDTOOLS_STATIC_ASSERT(
-                is_iterate_domain< CallerAggregator >::value, "The first argument must be an iterate_domain");
+                (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
+                "The first argument must be an iterate_domain or a function_aggregator");
 
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments
@@ -436,6 +460,11 @@ namespace gridtools {
 
             CallerAggregator const &m_caller_aggregator;
             accessors_list_t const &m_accessors_list;
+
+            template < typename Accessor >
+            struct accessor_return_type {
+                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+            };
 
             GT_FUNCTION
             function_aggregator_procedure(CallerAggregator const &caller_aggregator, accessors_list_t const &list)
@@ -510,7 +539,8 @@ namespace gridtools {
         template < typename Evaluator, typename... Args >
         GT_FUNCTION static void with(Evaluator const &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::function_aggregator_procedure< Evaluator,
@@ -532,7 +562,8 @@ namespace gridtools {
         template < typename Evaluator, typename... Args >
         GT_FUNCTION static void with_offsets(Evaluator const &eval, Args const &... args) {
 
-            GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< Evaluator >::value,
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::function_aggregator_procedure_offsets< Evaluator,

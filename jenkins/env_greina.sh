@@ -33,17 +33,5 @@ export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
 
-if [[ ${VERSION} == "5.3" ]] && [[ ${COMPILER} == "gcc" ]]; then
-    export GTEST_LIB=/users/cosuna/software/googletest/install/5.3/lib/libgtest.a
-    export GTEST_MAINLIB=/users/cosuna/software/googletest/install/5.3/lib/libgtest_main.a
-    export GTEST_INC=/users/cosuna/software/googletest/install/5.3/include
-else
-    export GTEST_LIB=/users/crosetto/gtest-1.7.0/libgtest.a
-    export GTEST_MAINLIB=/users/crosetto/gtest-1.7.0/libgtest_main.a
-    export GTEST_INC=/users/crosetto/gtest-1.7.0/include
-
-fi
-
 export CUDA_ARCH=sm_35
-export CUDA_VERSION=75
 export DEFAULT_QUEUE=k80

@@ -184,7 +184,7 @@ void m_packYL_generic(array_t const &fields, typename array_t::value_type::value
         exit(-1);
       }
 #endif
-            // clang-format on
+      // clang-format on
         }
     }
 
