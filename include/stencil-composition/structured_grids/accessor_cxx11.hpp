@@ -64,7 +64,6 @@
 
 namespace gridtools {
 
-
     template < typename ArgType, typename... Pair >
     struct accessor_mixed;
 
@@ -113,20 +112,21 @@ namespace gridtools {
 
         // move ctor
         GT_FUNCTION
-        constexpr explicit accessor_impl(accessor_impl< ID, Intend, Extent, Number > &&other) : super(std::move(other)) {}
+        constexpr explicit accessor_impl(accessor_impl< ID, Intend, Extent, Number > &&other)
+            : super(std::move(other)) {}
 
         // copy ctor
         GT_FUNCTION
         constexpr accessor_impl(accessor_impl< ID, Intend, Extent, Number > const &other) : super(other) {}
 #endif
-   };
+    };
 
     template < uint_t ID,
-               enumtype::intend Intend = enumtype::in,
-               typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
-               ushort_t Number = 3 >
-    struct accessor : accessor_mixed<accessor_impl<ID, Intend, Extent, Number> >{
-        using accessor_mixed<accessor_impl<ID, Intend, Extent, Number> >::accessor_mixed;
+        enumtype::intend Intend = enumtype::in,
+        typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
+        ushort_t Number = 3 >
+    struct accessor : accessor_mixed< accessor_impl< ID, Intend, Extent, Number > > {
+        using accessor_mixed< accessor_impl< ID, Intend, Extent, Number > >::accessor_mixed;
     };
 
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
@@ -134,6 +134,5 @@ namespace gridtools {
 
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
     using inout_accessor = accessor< ID, enumtype::inout, Extent, Number >;
-
 
 } // namespace gridtools

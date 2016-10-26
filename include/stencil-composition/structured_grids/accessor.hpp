@@ -45,4 +45,4 @@
 #include "accessor_cxx11.hpp"
 #else
 #include "accessor_cxx03.hpp"
-#endif //CUDA8
+#endif // CUDA8
