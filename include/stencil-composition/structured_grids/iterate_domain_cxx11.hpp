@@ -531,7 +531,6 @@ namespace gridtools {
             return get_value(accessor, get_data_pointer(accessor));
         }
 
-#ifdef CXX11_ENABLED
         /** @brief method called in the Do methods of the functors
 
             Overload of the operator() for expressions.
@@ -557,7 +556,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
             return expressions::evaluation::value((*this), arg);
         }
-#endif
     };
 
     //    ################## IMPLEMENTATION ##############################

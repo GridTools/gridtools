@@ -808,5 +808,3 @@ namespace gridtools {
 #endif // defined (CXX11_ENABLED)
 
 } // namespace gridtools
-
-#endif // CUDA8
