@@ -56,7 +56,7 @@ using namespace enumtype;
 
 namespace vertical_advection_dycore {
 #ifdef CXX11_ENABLED
-#define USE_NEW_GRID_API
+//#define USE_NEW_GRID_API
 #endif
 
 // This is the definition of the special regions in the "vertical" direction
