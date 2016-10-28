@@ -56,26 +56,26 @@ using namespace enumtype;
 
 namespace vertical_advection_dycore {
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 1, 1 >, level< 12, -1 > > kbody;
+    typedef gridtools::interval< level< 1, -1 >, level< 12, -2 > > kbody;
 
-    typedef gridtools::interval< level< 1, 1 >, level< 2, -1 > > interval0;
-    typedef gridtools::interval< level< 2, 1 >, level< 3, -1 > > interval1;
-    typedef gridtools::interval< level< 3, 1 >, level< 4, -1 > > interval2;
-    typedef gridtools::interval< level< 4, 1 >, level< 5, -1 > > interval3;
-    typedef gridtools::interval< level< 5, 1 >, level< 6, -1 > > interval4;
-    typedef gridtools::interval< level< 6, 1 >, level< 7, -1 > > interval5;
-    typedef gridtools::interval< level< 7, 1 >, level< 8, -1 > > interval6;
-    typedef gridtools::interval< level< 8, 1 >, level< 9, -1 > > interval7;
-    typedef gridtools::interval< level< 9, 1 >, level< 10, -1 > > interval8;
-    typedef gridtools::interval< level< 10, 1 >, level< 11, -1 > > interval9;
-    typedef gridtools::interval< level< 11, 1 >, level< 12, -1 > > interval10;
+    typedef gridtools::interval< level< 1, -1 >, level< 2, -2 > > interval0;
+    typedef gridtools::interval< level< 2, -1 >, level< 3, -2 > > interval1;
+    typedef gridtools::interval< level< 3, -1 >, level< 4, -2 > > interval2;
+    typedef gridtools::interval< level< 4, -1 >, level< 5, -2 > > interval3;
+    typedef gridtools::interval< level< 5, -1 >, level< 6, -2 > > interval4;
+    typedef gridtools::interval< level< 6, -1 >, level< 7, -2 > > interval5;
+    typedef gridtools::interval< level< 7, -1 >, level< 8, -2 > > interval6;
+    typedef gridtools::interval< level< 8, -1 >, level< 9, -2 > > interval7;
+    typedef gridtools::interval< level< 9, -1 >, level< 10, -2 > > interval8;
+    typedef gridtools::interval< level< 10, -1 >, level< 11, -2 > > interval9;
+    typedef gridtools::interval< level< 11, -1 >, level< 12, -2 > > interval10;
 
-    typedef gridtools::interval< level< 0, 1 >, level< 12, -1 > > kbody_low;
+    typedef gridtools::interval< level< 0, -1 >, level< 12, -2 > > kbody_low;
 
-    typedef gridtools::interval< level< 0, 1 >, level< 1, -1 > > kminimum;
-    typedef gridtools::interval< level< 12, 1 >, level< 13, -1 > > kmaximum;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kminimum;
+    typedef gridtools::interval< level< 12, -1 >, level< 13, -2 > > kmaximum;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 13, 1 > > axis;
+    typedef gridtools::interval< level< 0, -2 >, level< 13, 1 > > axis;
 
     template < typename T >
     struct u_forward_function {
@@ -473,34 +473,34 @@ namespace vertical_advection_dycore {
 
 #endif
 
-// Definition of the physical dimensions of the problem.
-// The constructor takes the horizontal plane dimensions,
-// while the vertical ones are set according the the axis property soon after
-// gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-#ifdef CXX11_ENABLED
-        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
-        auto grid = make_grid(di, dj, make_k_axis(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, d3 - 12, 1));
-#else
+        // Definition of the physical dimensions of the problem.
+        // The constructor takes the horizontal plane dimensions,
+        // while the vertical ones are set according the the axis property soon after
+        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
+        //#ifdef CXX11_ENABLED
+        //        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        //        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        //        auto grid = make_grid(di, dj, make_k_axis(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, d3 - 12, 1));
+        //#else
         uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
         gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = -1;
-        grid.value_list[1] = 0;
-        grid.value_list[2] = 1;
-        grid.value_list[3] = 2;
-        grid.value_list[4] = 3;
-        grid.value_list[5] = 4;
-        grid.value_list[6] = 5;
-        grid.value_list[7] = 6;
-        grid.value_list[8] = 7;
-        grid.value_list[9] = 8;
-        grid.value_list[10] = 9;
-        grid.value_list[11] = 10;
-        grid.value_list[12] = d3 - 2;
-        grid.value_list[13] = d3 - 1;
-#endif
+        grid.value_list[0] = 0;
+        grid.value_list[1] = 1;
+        grid.value_list[2] = 2;
+        grid.value_list[3] = 3;
+        grid.value_list[4] = 4;
+        grid.value_list[5] = 5;
+        grid.value_list[6] = 6;
+        grid.value_list[7] = 7;
+        grid.value_list[8] = 8;
+        grid.value_list[9] = 9;
+        grid.value_list[10] = 10;
+        grid.value_list[11] = 11;
+        grid.value_list[12] = d3 - 1;
+        grid.value_list[13] = d3;
+//#endif
 
 #ifdef CXX11_ENABLED
         auto
