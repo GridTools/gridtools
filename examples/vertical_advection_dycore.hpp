@@ -94,7 +94,197 @@ namespace vertical_advection_dycore {
             arg_list;
 
         template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kbody interval) {
+        GT_FUNCTION static void Do(Eval const &eval, interval0 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval1 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval2 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval3 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval4 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval5 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval6 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval7 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval8 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval9 interval) {
+            // TODO use Average function here
+            T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
+            T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
+
+            T as = gav * BET_M;
+            T cs = gcv * BET_M;
+
+            eval(acol()) = gav * BET_P;
+            eval(ccol()) = gcv * BET_P;
+            eval(bcol()) = eval(dtr_stage()) - eval(acol()) - eval(ccol());
+
+            T correctionTerm =
+                -as * (eval(u_stage(0, 0, -1)) - eval(u_stage())) - cs * (eval(u_stage(0, 0, 1)) - eval(u_stage()));
+            // update the d column
+            computeDColumn(eval, correctionTerm);
+            thomas_forward(eval, interval);
+        }
+        template < typename Eval >
+        GT_FUNCTION static void Do(Eval const &eval, interval10 interval) {
             // TODO use Average function here
             T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
             T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
