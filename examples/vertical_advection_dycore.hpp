@@ -473,10 +473,15 @@ namespace vertical_advection_dycore {
 
 #endif
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
+// Definition of the physical dimensions of the problem.
+// The constructor takes the horizontal plane dimensions,
+// while the vertical ones are set according the the axis property soon after
+// gridtools::grid<axis> grid(2,d1-2,2,d2-2);
+#ifdef CXX11_ENABLED
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        auto grid = make_grid(di, dj, make_k_axis(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, d3 - 12, 1));
+#else
         uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
@@ -495,6 +500,7 @@ namespace vertical_advection_dycore {
         grid.value_list[11] = 10;
         grid.value_list[12] = d3 - 2;
         grid.value_list[13] = d3 - 1;
+#endif
 
 #ifdef CXX11_ENABLED
         auto

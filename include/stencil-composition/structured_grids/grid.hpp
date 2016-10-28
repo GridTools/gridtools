@@ -52,6 +52,16 @@ namespace gridtools {
         array< uint_t, size_type::value > value_list;
 
         GT_FUNCTION
+        explicit grid(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            array< uint_t, size_type::value > const &value_list)
+            : m_partitioner(partitioner_dummy()), m_direction_i(direction_i), m_direction_j(direction_j),
+              value_list(value_list) {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
+                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+        }
+
+        GT_FUNCTION
         explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : m_partitioner(partitioner_dummy()), m_direction_i(direction_i), m_direction_j(direction_j) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
@@ -149,4 +159,37 @@ namespace gridtools {
 
     template < typename Axis, typename Partitioner >
     struct is_grid< grid< Axis, Partitioner > > : boost::mpl::true_ {};
+
+#ifdef CXX11_ENABLED
+    namespace _impl {
+        template < size_t n_sizes >
+        GT_FUNCTION array< uint_t, n_sizes + 1 > interval_sizes_to_value_list(const array< uint_t, n_sizes > &sizes) {
+            array< uint_t, n_sizes + 1 > value_list;
+
+            value_list[0] = -1;
+            for (uint_t i = 1; i <= n_sizes; ++i) {
+                assert(sizes[i - 1] > 0);
+                value_list[i] = value_list[i - 1] + sizes[i - 1];
+            }
+            return value_list;
+        }
+    }
+
+    template < typename... IntTypes >
+    GT_FUNCTION array< uint_t, sizeof...(IntTypes) + 1 > make_k_axis(IntTypes... values) {
+        GRIDTOOLS_STATIC_ASSERT(
+            (sizeof...(IntTypes) >= 1), "You need to pass at least 1 argument to define the k-axis.");
+
+        array< uint_t, sizeof...(IntTypes) > sizes{values...};
+        return _impl::interval_sizes_to_value_list(sizes);
+    }
+
+    template < size_t n_splitters >
+    GT_FUNCTION auto make_grid(halo_descriptor const &direction_i,
+        halo_descriptor const &direction_j,
+        array< uint_t, n_splitters > const &value_list)
+        -> grid< interval< level< 0, -1 >, level< n_splitters - 1, 1 > > > {
+        return grid< interval< level< 0, -1 >, level< n_splitters - 1, 1 > > >(direction_i, direction_j, value_list);
+    }
+#endif
 }
