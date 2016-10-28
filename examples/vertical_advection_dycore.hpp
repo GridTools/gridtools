@@ -338,8 +338,8 @@ namespace vertical_advection_dycore {
             eval(dcol()) = eval(dtr_stage()) * eval(u_pos()) + eval(utens()) + eval(utens_stage()) + correctionTerm;
         }
 
-        template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kbody) {
+        template < typename Eval, typename Interval >
+        GT_FUNCTION static void thomas_forward(Eval const &eval, Interval) {
             T divided = (T)1.0 / (eval(bcol()) - (eval(ccol(0, 0, -1)) * eval(acol())));
             eval(ccol()) = eval(ccol()) * divided;
             eval(dcol()) = (eval(dcol()) - (eval(dcol(0, 0, -1)) * eval(acol()))) * divided;
