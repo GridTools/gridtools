@@ -232,7 +232,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
      */
 
     // Start timer
+    boost::timer::cpu_times lapse_time_ReadySteady = {0,0,0};
     boost::timer::cpu_times lapse_time_run = {0,0,0};
+    boost::timer::cpu_times lapse_time_finalize = {0,0,0};
     boost::timer::cpu_timer time;
 
     /**
@@ -279,12 +281,26 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
             ).apply(*ptr_x);
 
         // Prepare and run single step of CG computation
+        boost::timer::cpu_timer time_ReadySteady;
         stencil->ready();
         stencil->steady();
+        lapse_time_ReadySteady = time_ReadySteady.elapsed();
+        std::cout << "TIME SPENT IN Ready/Steady:" << boost::timer::format(lapse_time_ReadySteady);
+
         boost::timer::cpu_timer time_run;
         stencil->run();
         lapse_time_run = lapse_time_run + time_run.elapsed();
+        std::cout << "TIME SPENT IN Run:" << boost::timer::format(time_run.elapsed());
+
+        boost::timer::cpu_timer time_finalize;
         stencil->finalize();
+        lapse_time_finalize = time_finalize.elapsed();
+        std::cout << "TIME SPENT IN Finalize:" << boost::timer::format(lapse_time_finalize);
+
+        // #ifdef __CUDACC__
+        // out.d2h_update();
+        // in.d2h_update();
+        // #endif
 
         //communicate halos //TODO - what about halo exchange before first computation? is it done automatically by partitioner?
         std::vector<pointer_type::pointee_t*> vec(1);
@@ -311,6 +327,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
         std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl; //TODO: multiple processes??
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl << std::endl;
+
+        boost::timer::cpu_times total_time = lapse_time_run + lapse_time_finalize + lapse_time_ReadySteady;
+        std::cout << "d3point7+comm MFLOPS: " << MFLOPS(7,d1,d2,d3,TIME_STEPS,total_time.wall) << std::endl; //TODO: multiple processes??
+        std::cout << "d3point7+comm MLUPs: " << MLUPS(d1,d2,d3,TIME_STEPS,total_time.wall) << std::endl << std::endl;
     }
 
 #ifdef DEBUG
