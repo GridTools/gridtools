@@ -90,49 +90,49 @@ namespace gdl{
 
     template<>
     struct basis_select<1, enumtype::Lagrange, enumtype::Hexa>{
-        using type=Intrepid::Basis_HGRAD_HEX_C1_FEM<double, Intrepid::FieldContainer<double> >;
+        using type=Intrepid::Basis_HGRAD_HEX_C1_FEM<gt::float_type, Intrepid::FieldContainer<gt::float_type> >;
         static type instance(){return type();}
     };
 
     template<ushort_t order>
     struct basis_select<order, enumtype::Lagrange, enumtype::Hexa>{
-        using type=Intrepid::Basis_HGRAD_HEX_Cn_FEM<double, Intrepid::FieldContainer<double> >;
+        using type=Intrepid::Basis_HGRAD_HEX_Cn_FEM<gt::float_type, Intrepid::FieldContainer<gt::float_type> >;
         static type instance(){return type(order, Intrepid::POINTTYPE_EQUISPACED);}
     };
 
     template<>
     struct basis_select<1, enumtype::Lagrange, enumtype::Tetra>{
-        using type=Intrepid::Basis_HGRAD_TET_C1_FEM<double, Intrepid::FieldContainer<double> >;
+        using type=Intrepid::Basis_HGRAD_TET_C1_FEM<gt::float_type, Intrepid::FieldContainer<gt::float_type> >;
         static type instance(){return type();}
     };
 
     template<ushort_t order>
     struct basis_select<order, enumtype::Lagrange, enumtype::Tetra>{
-        using type=Intrepid::Basis_HGRAD_TET_Cn_FEM<double, Intrepid::FieldContainer<double> >;
+        using type=Intrepid::Basis_HGRAD_TET_Cn_FEM<gt::float_type, Intrepid::FieldContainer<gt::float_type> >;
         static type instance(){return type(order, Intrepid::POINTTYPE_EQUISPACED);}
     };
 
     template<ushort_t order>
     struct basis_select<order, enumtype::Lagrange, enumtype::Quad>{
-        using type=Intrepid::Basis_HGRAD_QUAD_Cn_FEM<double, Intrepid::FieldContainer<double> >;
+        using type=Intrepid::Basis_HGRAD_QUAD_Cn_FEM<gt::float_type, Intrepid::FieldContainer<gt::float_type> >;
         static type instance(){return type(order, Intrepid::POINTTYPE_EQUISPACED);}
     };
 
     template<>
     struct basis_select<1, enumtype::Lagrange, enumtype::Quad>{
-        using type=Intrepid::Basis_HGRAD_QUAD_C1_FEM<double, Intrepid::FieldContainer<double> >;
+        using type=Intrepid::Basis_HGRAD_QUAD_C1_FEM<gt::float_type, Intrepid::FieldContainer<gt::float_type> >;
         static type instance(){return type();}
     };
 
     template<ushort_t order>
     struct basis_select<order, enumtype::Lagrange, enumtype::Tri>{
-        using type=Intrepid::Basis_HGRAD_TRI_Cn_FEM<double, Intrepid::FieldContainer<double> >;
+        using type=Intrepid::Basis_HGRAD_TRI_Cn_FEM<gt::float_type, Intrepid::FieldContainer<gt::float_type> >;
         static type instance(){return type(order, Intrepid::POINTTYPE_EQUISPACED);}
     };
 
     template<>
     struct basis_select<1, enumtype::Lagrange, enumtype::Tri>{
-        using type=Intrepid::Basis_HGRAD_TRI_C1_FEM<double, Intrepid::FieldContainer<double> >;
+        using type=Intrepid::Basis_HGRAD_TRI_C1_FEM<gt::float_type, Intrepid::FieldContainer<gt::float_type> >;
         static type instance(){return type();}
     };
 

@@ -75,7 +75,7 @@ namespace gdl{
             return basis_select<Order, BasisType, ShapeType>::instance();
 
         }
-        //static const Basis_HDIV_HEX_In_FEM<double, Intrepid::FieldContainer<double> > hexBasis(2, POINTTYPE_EQUISPACED);
+        //static const Basis_HDIV_HEX_In_FEM<gt::float_type, Intrepid::FieldContainer<double> > hexBasis(2, POINTTYPE_EQUISPACED);
 
         // choices for Gauss-Lobatto:
         // POINTTYPE_EQUISPACED = 0,

@@ -141,13 +141,13 @@ namespace intrepid{
         void compute(Intrepid::EOperator const& operator_){
 
             // storage_t<layout_map<0,1,2> > cub_points_i(m_cub_points_s, 2);
-            Intrepid::FieldContainer<double> cub_points_i(cub::numCubPoints(), fe::space_dim());
+            Intrepid::FieldContainer<gt::float_type> cub_points_i(cub::numCubPoints(), fe::space_dim());
 
             // storage_t<layout_map<0,1,2> > cub_weights_i(m_cub_weights_s, 1);
-            Intrepid::FieldContainer<double> cub_weights_i(cub::numCubPoints());
+            Intrepid::FieldContainer<gt::float_type> cub_weights_i(cub::numCubPoints());
 
             // storage_t<layout_map<0,1,2> > grad_at_cub_points_i(m_grad_at_cub_points_s);
-            Intrepid::FieldContainer<double> grad_at_cub_points_i(fe::basis_cardinality(), cub::numCubPoints(), fe::space_dim());
+            Intrepid::FieldContainer<gt::float_type> grad_at_cub_points_i(fe::basis_cardinality(), cub::numCubPoints(), fe::space_dim());
 
             // retrieve cub points and weights
             cub::cub()->getCubature(cub_points_i, cub_weights_i);
@@ -180,9 +180,9 @@ namespace intrepid{
                 	for (uint_t q=0; q<cub::numCubPoints(); ++q)
                             for (uint_t j=0; j<fe::space_dim(); ++j)
                                 (*m_grad_at_cub_points_s)(m_permutations[i],q,j)=grad_at_cub_points_i(i,q,j);
-		
+
                 for (uint_t q=0; q<cub::numCubPoints(); ++q)
-		  for (uint_t j=0; j<fe::spaceDim; ++j)
+                    for (uint_t j=0; j<fe::space_dim(); ++j)
                     {
 		      (*m_grad_at_cub_points_s)(2,q,j)=grad_at_cub_points_i(3,q,j);
 		      (*m_grad_at_cub_points_s)(3,q,j)=grad_at_cub_points_i(2,q,j);
@@ -205,7 +205,7 @@ namespace intrepid{
                     (new basis_function_storage_t
                      (*m_phi_at_cub_points_s_info, 0., "phi at cub points"));
 
-                Intrepid::FieldContainer<double> phi_at_cub_points_i(fe::basis_cardinality()
+                Intrepid::FieldContainer<gt::float_type> phi_at_cub_points_i(fe::basis_cardinality()
                                                                      , cub::numCubPoints());
 
                 fe::hex_basis().getValues(phi_at_cub_points_i, cub_points_i, Intrepid::OPERATOR_VALUE);
@@ -294,7 +294,7 @@ namespace intrepid{
 #endif
             {
                 // storage_t<layout_map<0,1,2> > local_grid_i(m_local_grid_s, 2);
-                Intrepid::FieldContainer<double> local_grid_i(geo_map::basis_cardinality(), geo_map::space_dim());
+                Intrepid::FieldContainer<gt::float_type> local_grid_i(geo_map::basis_cardinality(), geo_map::space_dim());
                 geo_map::hex_basis().getDofCoords(local_grid_i);
                 for (uint_t i=0; i<geo_map::basis_cardinality(); ++i)
                     for (uint_t j=0; j<geo_map::space_dim(); ++j)
@@ -510,7 +510,7 @@ namespace intrepid{
                 switch (operator_){
                 case Intrepid::OPERATOR_GRAD :
                 {
-                    Intrepid::FieldContainer<double> grad_at_cub_points(geo_map::basis_cardinality(), rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension);
+                    Intrepid::FieldContainer<gt::float_type> grad_at_cub_points(geo_map::basis_cardinality(), rule_t::bd_cub::numCubPoints(), shape_property<rule_t::/*bd*/parent_shape>::dimension);
                     // evaluate grad operator at the face cub points
                     //NOTE: geo_map has the parent element basis, not the boundary one
                     geo_map::hex_basis().getValues(grad_at_cub_points, face_quad_, Intrepid::OPERATOR_GRAD);
@@ -525,7 +525,7 @@ namespace intrepid{
                 }
                 case Intrepid::OPERATOR_VALUE :
                 {
-                    Intrepid::FieldContainer<double> phi_at_cub_points(geo_map::basis_cardinality(), rule_t::bd_cub::numCubPoints());
+                    Intrepid::FieldContainer<gt::float_type> phi_at_cub_points(geo_map::basis_cardinality(), rule_t::bd_cub::numCubPoints());
                     // evaluate grad operator at the face cub points
                     geo_map::hex_basis().getValues(phi_at_cub_points, face_quad_, Intrepid::OPERATOR_VALUE);
 
@@ -555,8 +555,8 @@ namespace intrepid{
         void compute_tangents(){
 
             for(ushort_t face_=0; face_< m_face_ord.size(); ++face_){
-                Intrepid::FieldContainer<double> tangent_u(shape_property<rule_t::parent_shape>::dimension);
-                Intrepid::FieldContainer<double> tangent_v(shape_property<rule_t::parent_shape>::dimension);
+                Intrepid::FieldContainer<gt::float_type> tangent_u(shape_property<rule_t::parent_shape>::dimension);
+                Intrepid::FieldContainer<gt::float_type> tangent_v(shape_property<rule_t::parent_shape>::dimension);
                 Intrepid::CellTools<value_t>::getReferenceFaceTangents(tangent_u, tangent_v, m_face_ord[face_], geo_map::cell_t::value);
 
                 for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
@@ -577,9 +577,9 @@ namespace intrepid{
             assert(m_tangent_computed);
 
             for(ushort_t face_=0; face_< m_face_ord.size(); ++face_){
-                gt::array<double, 3> tg_u{m_ref_face_tg_u(0,face_,0), m_ref_face_tg_u(1,face_,0), m_ref_face_tg_u(2,face_,0)};
-                gt::array<double, 3> tg_v{m_ref_face_tg_v(0,face_,0), m_ref_face_tg_v(1,face_,0), m_ref_face_tg_v(2,face_,0)};
-                gt::array<double, 3> normal(vec_product(tg_u, tg_v));
+                gt::array<gt::float_type, 3> tg_u{m_ref_face_tg_u(0,face_,0), m_ref_face_tg_u(1,face_,0), m_ref_face_tg_u(2,face_,0)};
+                gt::array<gt::float_type, 3> tg_v{m_ref_face_tg_v(0,face_,0), m_ref_face_tg_v(1,face_,0), m_ref_face_tg_v(2,face_,0)};
+                gt::array<gt::float_type, 3> normal(vec_product(tg_u, tg_v));
 
                 for (uint_t j=0; j<shape_property<rule_t::parent_shape>::dimension; ++j)
                 {

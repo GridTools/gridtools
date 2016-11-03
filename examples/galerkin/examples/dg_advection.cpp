@@ -412,7 +412,7 @@ int main( int argc, char ** argv){
             , gt::make_multistage
             (
                 execute<forward>()
-                , gt::define_caches(gt::cache< gt::shared<32,8,3,1/*geo_map::basis_cardinality()*/>, gt::local >(it::p_result()))
+                // , gt::define_caches(gt::cache< gt::shared<32,8,3,1/*geo_map::basis_cardinality()*/>, gt::local >(it::p_result()))
                 , gt::make_stage< functors::assign<4, zero<int> > >( it::p_result() )
                 // add the advection term: result+=A*u
                 , gt::make_stage< functors::matvec>( it::p_advection(), it::p_u(),it::p_result() )

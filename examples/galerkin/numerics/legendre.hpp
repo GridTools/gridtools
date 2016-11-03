@@ -18,7 +18,7 @@ namespace gdl{
     struct evaluate_polynomial< 3, Order >{
 
         template <typename Storage>
-        static void apply(Storage& storage_, Intrepid::FieldContainer<double> const& val_per_line_, int_t on_boundary_){
+        static void apply(Storage& storage_, Intrepid::FieldContainer<gt::float_type> const& val_per_line_, int_t on_boundary_){
 
             switch (on_boundary_){
             case 0 :
@@ -217,7 +217,7 @@ namespace gdl{
         }
 
         template <typename Storage>
-        static void derivative(Storage& storage_, Intrepid::FieldContainer<double> const& val_per_line_, Intrepid::FieldContainer<double> const& der_per_line_, int on_boundary_){
+        static void derivative(Storage& storage_, Intrepid::FieldContainer<gt::float_type> const& val_per_line_, Intrepid::FieldContainer<gt::float_type> const& der_per_line_, int on_boundary_){
 
 
             uint_t m=0;
@@ -260,7 +260,7 @@ namespace gdl{
     template <uint_t Order>
     struct evaluate_polynomial<2, Order >{
         template <typename Storage>
-        static void apply(Storage& storage_, Intrepid::FieldContainer<double> const& val_per_line_){
+        static void apply(Storage& storage_, Intrepid::FieldContainer<gt::float_type> const& val_per_line_){
 
 
             uint_t m=0;
@@ -286,7 +286,7 @@ namespace gdl{
         }
 
         template <typename Storage>
-        static void derivative(Storage& storage_, Intrepid::FieldContainer<double> val_per_line_, Intrepid::FieldContainer<double> der_per_line_){
+        static void derivative(Storage& storage_, Intrepid::FieldContainer<gt::float_type> val_per_line_, Intrepid::FieldContainer<gt::float_type> der_per_line_){
 
 
             uint_t m=0;
@@ -336,13 +336,13 @@ namespace gdl{
     template <uint_t Order>
     struct evaluate_polynomial< 1, Order >{
         template <typename Storage, typename Quad>
-        static void apply(Storage& storage_, Quad const& quad_points_, Intrepid::FieldContainer<double> const& val_per_line_){
+        static void apply(Storage& storage_, Quad const& quad_points_, Intrepid::FieldContainer<gt::float_type> const& val_per_line_){
             assert(false); //1D not supported
         }
 
 
         template <typename Storage, typename Quad>
-        static void derivative(Storage& storage_, Quad const& quad_points_, Intrepid::FieldContainer<double> const& val_per_line_){
+        static void derivative(Storage& storage_, Quad const& quad_points_, Intrepid::FieldContainer<gt::float_type> const& val_per_line_){
             assert(false); //1D not supported
         }
     };
@@ -351,7 +351,7 @@ namespace gdl{
     struct legendre{
 
     private:
-        Intrepid::Basis_HGRAD_LINE_Cn_FEM_JACOBI<gt::float_type, Intrepid::FieldContainer<double> > line_polynomial;
+        Intrepid::Basis_HGRAD_LINE_Cn_FEM_JACOBI<gt::float_type, Intrepid::FieldContainer<gt::float_type> > line_polynomial;
         // std::unique_ptr<Intrepid::FieldArray> line_values;
     public:
 
@@ -387,8 +387,8 @@ namespace gdl{
         {
 
             // typedef cubature<QOrder+1, enumtype::Line> cub;
-            // Intrepid::FieldContainer<double> cub_points_i(cub::numCubPoints(), 1);
-            // Intrepid::FieldContainer<double> cub_weights_i(cub::numCubPoints());
+            // Intrepid::FieldContainer<gt::float_type> cub_points_i(cub::numCubPoints(), 1);
+            // Intrepid::FieldContainer<gt::float_type> cub_weights_i(cub::numCubPoints());
             // cub::cub()->getCubature(cub_points_i, cub_weights_i);
 
             // Important hypothesis: the quadrature points form a tensor product grid on the element
@@ -463,7 +463,7 @@ namespace gdl{
 
             assert(cubic_root); // this happens e.g. in case all the quad points lay on an edge
 
-            Intrepid::FieldContainer<double> cub_points_i(cubic_root, 1);
+            Intrepid::FieldContainer<gt::float_type> cub_points_i(cubic_root, 1);
             for(uint_t k=0; k<cubic_root; ++k){
                 cub_points_i(k,0)=ordered_quad_points_(k,0);
             }
@@ -491,7 +491,7 @@ namespace gdl{
             case Intrepid::OPERATOR_VALUE :
             {
                 Storage storage_ordered_(storage_);
-                Intrepid::FieldContainer<double> val_per_line_i(line_polynomial.getCardinality(), cubic_root);
+                Intrepid::FieldContainer<gt::float_type> val_per_line_i(line_polynomial.getCardinality(), cubic_root);
                 line_polynomial.getValues(val_per_line_i, cub_points_i, op);
                 evaluate_polynomial< Dim, Order+1 >::apply(storage_ordered_, val_per_line_i, on_boundary);
 
@@ -505,8 +505,8 @@ namespace gdl{
             case Intrepid::OPERATOR_GRAD :
             {
                 Storage storage_ordered_(storage_);
-                Intrepid::FieldContainer<double> der_per_line_i(line_polynomial.getCardinality(), cubic_root, 1);
-                Intrepid::FieldContainer<double> val_per_line_i(line_polynomial.getCardinality(), cubic_root);
+                Intrepid::FieldContainer<gt::float_type> der_per_line_i(line_polynomial.getCardinality(), cubic_root, 1);
+                Intrepid::FieldContainer<gt::float_type> val_per_line_i(line_polynomial.getCardinality(), cubic_root);
                 line_polynomial.getValues(der_per_line_i, cub_points_i, Intrepid::OPERATOR_GRAD);
                 line_polynomial.getValues(val_per_line_i, cub_points_i, Intrepid::OPERATOR_VALUE);
                 evaluate_polynomial< Dim, Order+1 >::derivative(storage_ordered_, val_per_line_i, der_per_line_i, on_boundary);

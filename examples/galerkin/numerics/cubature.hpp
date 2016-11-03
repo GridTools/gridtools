@@ -19,19 +19,19 @@ namespace gdl{
         static const int cubDegree = Order;
         static const enumtype::Shape shape = CellType;
         // create cubature factory
-        static Intrepid::DefaultCubatureFactory<double,  Intrepid::FieldContainer<double> >
+        static Intrepid::DefaultCubatureFactory<gt::float_type,  Intrepid::FieldContainer<gt::float_type> >
         cubFactory(){
 
-            static Intrepid::DefaultCubatureFactory<double,  Intrepid::FieldContainer<double> > cub_factory;
+            static Intrepid::DefaultCubatureFactory<gt::float_type,  Intrepid::FieldContainer<gt::float_type> > cub_factory;
             return cub_factory;
         }
         // create default cubature
-        static Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > >
+        static Teuchos::RCP<Intrepid::Cubature<gt::float_type, Intrepid::FieldContainer<gt::float_type> > >
         cub(){
             static const auto cub_=cubFactory().create(cell_t::value, cubature<cubDegree, CellType>::cubDegree);
             return cub_;
         }
-        // static Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > cub;
+        // static Teuchos::RCP<Intrepid::Cubature<gt::float_type, Intrepid::FieldContainer<gt::float_type> > > cub;
         // retrieve number of cubature points
         static // constexpr
         int numCubPoints(){
@@ -41,10 +41,10 @@ namespace gdl{
 
 
     // template <ushort_t Order, enumtype::Shape  CellType>
-    // Intrepid::DefaultCubatureFactory<double,  Intrepid::FieldContainer<double> > cubature<Order, CellType>::cubFactory;
+    // Intrepid::DefaultCubatureFactory<gt::float_type,  Intrepid::FieldContainer<gt::float_type> > cubature<Order, CellType>::cubFactory;
 
     // template <ushort_t Order, enumtype::Shape CellType>
-    // const Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > cubature<Order, CellType>::
+    // const Teuchos::RCP<Intrepid::Cubature<gt::float_type, Intrepid::FieldContainer<gt::float_type> > > cubature<Order, CellType>::
     // cub = cubature<Order, CellType>::cubFactory.create(cell_t::value, cubature<Order, CellType>::cubDegree);
 
     // template <ushort_t Order, enumtype::Shape CellType>
@@ -54,7 +54,7 @@ namespace gdl{
     template <typename Cubature>
     struct boundary_cubature{
 
-        static const Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > bd_cub;
+        static const Teuchos::RCP<Intrepid::Cubature<gt::float_type, Intrepid::FieldContainer<gt::float_type> > > bd_cub;
         static const enumtype::Shape shape = shape_property<Cubature::shape>::boundary;
 
 
@@ -80,7 +80,7 @@ namespace gdl{
     };
 
     template <typename Cubature>
-    const Teuchos::RCP<Intrepid::Cubature<double, Intrepid::FieldContainer<double> > > boundary_cubature<Cubature>::
+    const Teuchos::RCP<Intrepid::Cubature<gt::float_type, Intrepid::FieldContainer<gt::float_type> > > boundary_cubature<Cubature>::
     bd_cub = Cubature::cubFactory.create(
         cell<Cubature::cubDegree, shape_property<Cubature::shape>::boundary>::value
         , Cubature::cubDegree);
