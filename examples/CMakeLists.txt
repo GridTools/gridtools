@@ -62,6 +62,13 @@ else()
         target_link_libraries(copy_stencil_parallel gcl ${ADD_MPI_LIBS} ${exe_LIBS} gtest gtest_main)
         set_target_properties(copy_stencil_parallel PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
     endif()
+    
+    if ( SERIALBOX_FOUND )
+        add_executable(stencil_serialization stencil_serialization.cpp)
+        target_include_directories(stencil_serialization SYSTEM PUBLIC ${SERIALBOX_INCLUDE_DIRS})
+        target_link_libraries(stencil_serialization gtest gtest_main ${SERIALBOX_CXX_LIBRARIES})
+    endif()
+    
   endif()
 
   if(CUDA_FOUND)
