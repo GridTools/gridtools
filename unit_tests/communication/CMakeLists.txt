@@ -10,6 +10,7 @@ if( NOT GCL_ONLY )
 
 set(COMMUNICATION_SOURCES
     halo_exchange_3D.cpp
+    ../../examples/communication/test_halo_exchange_3D_all
 
     # unit test driver
     test_driver.cpp
