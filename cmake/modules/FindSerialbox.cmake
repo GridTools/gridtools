@@ -72,7 +72,7 @@ if(SERIALBOX_ROOT_ENV)
 endif()
 
 if(NOT(DEFINED SERIALBOX_ROOT))
-  find_path(SERIALBOX_ROOT NAMES include/serialbox/Core/Config.h)
+  find_path(SERIALBOX_ROOT NAMES include/serialbox/core/Config.h)
 else()
   get_filename_component(_SERIALBOX_ROOT_ABSOLUTE ${SERIALBOX_ROOT} ABSOLUTE)
   set(SERIALBOX_ROOT ${_SERIALBOX_ROOT_ABSOLUTE} CACHE PATH "Serialbox install path.")
@@ -99,14 +99,14 @@ endif(NOT Serialbox_FIND_VERSION)
 #   Find serialbox headers
 #====--------------------------------------------------------------------------------------------===
 if(SERIALBOX_ROOT)
-  find_path(SERIALBOX_INCLUDE_DIRS NAMES serialbox/Core/Config.h HINTS ${SERIALBOX_ROOT}/include)
+  find_path(SERIALBOX_INCLUDE_DIRS NAMES serialbox/core/Config.h HINTS ${SERIALBOX_ROOT}/include)
 endif()
 
 #===---------------------------------------------------------------------------------------------===
-#   Read config file (serialbox/Core/Config.h)
+#   Read config file (serialbox/core/Config.h)
 #====--------------------------------------------------------------------------------------------===
 if(SERIALBOX_ROOT)
-  file(READ ${SERIALBOX_ROOT}/include/serialbox/Core/Config.h _CONFIG_FILE)
+  file(READ ${SERIALBOX_ROOT}/include/serialbox/core/Config.h _CONFIG_FILE)
 
   # Get version  
   string(REGEX MATCH "define[ \t]+SERIALBOX_VERSION_MAJOR[ \t]+([0-9]+)" _MAJOR "${_CONFIG_FILE}")
@@ -233,14 +233,27 @@ if(SERIALBOX_ROOT AND NOT(DEFINED SERIALBOX_NO_EXTERNAL_LIBS))
   endif()
   
   find_package(Boost 
-               ${SERIALBOX_BOOST_VERSION} EXACT COMPONENTS ${_REQUIRED_BOOST_COMPONENTS} QUIET)
+               ${SERIALBOX_BOOST_VERSION} EXACT COMPONENTS ${_REQUIRED_BOOST_COMPONENTS})
   if(Boost_FOUND)
     list(APPEND SERIALBOX_INCLUDE_DIRS ${Boost_INCLUDE_DIRS})
     list(APPEND SERIALBOX_EXTERNAL_LIBRARIES ${Boost_LIBRARIES})
   else()
-    message(WARNING 
-            "Serialbox depends on the following Boost (${SERIALBOX_BOOST_VERSION}) libraries:"
-            " ${_REQUIRED_BOOST_COMPONENTS}")
+  
+    # Give some diagnostic infos
+    set(WARN_STR "Serialbox: Boost (${SERIALBOX_BOOST_VERSION}) NOT found!")
+  
+    if(DEFINED Boost_LIB_VERSION)
+      string(REPLACE "_" "." FOUND_BOOST_VERSION ${Boost_LIB_VERSION})
+      list(APPEND WARN_STR " (Found Boost ${FOUND_BOOST_VERSION})")  
+    endif()
+    
+    list(APPEND WARN_STR "\nRequired components:")
+    
+    foreach(component ${_REQUIRED_BOOST_COMPONENTS})
+      list(APPEND WARN_STR "\n - ${component}")
+    endforeach()
+    
+    message(WARNING ${WARN_STR} "\n")
   endif()
   
   #
