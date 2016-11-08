@@ -77,6 +77,7 @@
 #include "./amss_descriptor.hpp"
 #include "./compute_extents_metafunctions.hpp"
 #include "./global_parameter.hpp"
+#include "../common/stencil_serializer.hpp"
 
 /**
  * @file
@@ -735,6 +736,24 @@ namespace gridtools {
                 accumulate(logical_and(), is_arg< Args >::value...), "wrong storage type in a call to reassign");
             m_domain.reassign(args...);
             copy_domain_storage_pointers();
+        }
+        
+        template < class SerializerType >
+        reduction_type_t run(SerializerType &serializer, std::string stencil_name = "stencil") {
+            typedef typename boost::fusion::result_of::has_key< conditionals_set_t,
+                typename if_condition_extract_index_t< mss_components_array_t >::type >::type is_present_t;
+        
+            // run_conditionally< is_present_t, mss_components_array_t, Backend >::apply(
+            //      m_conditionals_set, m_grid, m_mss_local_domain_list, m_reduction_data);
+        
+            stencil_serializer<SerializerType> stencil_ser(stencil_name, serializer);    
+            
+            m_meter.start();
+            Backend::template run_and_serialize< mss_components_array_t >(m_grid, m_mss_local_domain_list, 
+                                                                          m_reduction_data, stencil_ser);
+            m_meter.pause();
+        
+            return m_reduction_data.reduced_value();
         }
 #endif
     };

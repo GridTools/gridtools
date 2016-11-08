@@ -137,7 +137,7 @@ namespace gridtools {
         };
 #endif
 
-      private:
+      protected:
         MssLocalDomainArray &m_local_domain_lists;
         const Grid &m_grid;
         ReductionData &m_reduction_data;
