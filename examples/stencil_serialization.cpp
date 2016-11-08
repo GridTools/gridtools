@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#if defined(USE_SERIALBOX) && defined(CXX11_ENABLED) 
+#if defined(USE_SERIALBOX) && defined(CXX11_ENABLED)
 
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
@@ -84,7 +84,7 @@ TEST(StencilSerialization, Test) {
     typedef boost::mpl::vector< p_in, p_out > accessor_list;
 
     gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out));
-    
+
     // Grid
     uint_t di[5] = {0, 0, 0, d1 - 1, d1};
     uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
@@ -107,11 +107,11 @@ TEST(StencilSerialization, Test) {
         copy->steady();
         copy->run(serializer, "copy");
         copy->finalize();
-        
+
         // Check serialized data
         ASSERT_EQ(serializer.savepoints().size(), 2);
         ASSERT_EQ(serializer.fieldnames().size(), 2);
-        
+
     } catch (std::exception &e) {
         ASSERT_TRUE(false) << e.what();
     }

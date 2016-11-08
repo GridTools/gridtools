@@ -62,7 +62,7 @@ namespace gridtools {
          * \brief Access name of the stencil currently being serialized
          */
         const std::string &get_stencil_name() const { return m_stencil_name; }
-    
+
         /**
          * \brief Get the current stage id and increment it afterwards
          */
