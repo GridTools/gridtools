@@ -40,7 +40,7 @@
 #include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
 #include "../../storage/meta_storage.hpp"
 #include "../tile.hpp"
-#include "../common/stencil_serializer.hpp"
+#include "../../common/stencil_serializer.hpp"
 
 namespace gridtools {
 
