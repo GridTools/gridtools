@@ -76,7 +76,7 @@ namespace gridtools {
 
         constexpr layout_map(){};
 
-        GT_FUNCTION short_t operator[](ushort_t id_) { return layout_vector[id_]; }
+        GT_FUNCTION constexpr short_t operator[](ushort_t id_) const { return layout_vector[id_]; }
 
         /**
            @brief metafunction for appending a layout_map to another existing layout_map
