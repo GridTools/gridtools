@@ -40,9 +40,10 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -mtune=native")
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") //default for clang is 256
+#default for clang is 256
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=500")
-endif
+endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 
 set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
 

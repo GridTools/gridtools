@@ -386,6 +386,24 @@ namespace gridtools {
     template < short_t... Args >
     struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
 
+    /**
+       @biref Metafunction to get a submap of a layout_map
+
+       \tparam Map input \ref gridtools::layout_map
+       \tparam Pre position of the fist index for the subsequence
+       \tparam Post position of the last index for the subsequence
+
+       Example ofusage":
+
+       @code
+       typename sub_map<layout_map<2,1,0,-1,3,4,5,6>,2,5 >::type
+       @endcode
+       gives
+       @code
+       layout_map<0,-1,3,4>
+       @endcode
+
+     */
     template < typename Map, ushort_t Pre, ushort_t Post >
     struct sub_map {
         typedef typename gt_expand< typename Map::layout_vector_t, layout_map, Pre, Post >::type type;
