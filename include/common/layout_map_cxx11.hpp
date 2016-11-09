@@ -130,14 +130,6 @@ namespace gridtools {
             return layout_vector[I];
         }
 
-        template < typename T >
-        struct remove_refref;
-
-        template < typename T >
-        struct remove_refref< T && > {
-            using type = T;
-        };
-
 #ifndef __CUDACC__
         /** Given a parameter pack of values and a static index, the function
             returns the reference to the value in the position indicated
@@ -155,8 +147,8 @@ namespace gridtools {
            layout_map length)
         */
         template < ushort_t I, typename... T >
-        GT_FUNCTION static auto constexpr select(T &... args) ->
-            typename remove_refref< decltype(std::template get< layout_vector[I] >(std::make_tuple(args...))) >::type {
+        GT_FUNCTION static auto constexpr select(T &... args) -> typename boost::remove_reference< decltype(
+            std::template get< layout_vector[I] >(std::make_tuple(args...))) >::type {
 
             GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(boost::is_integral< T >::type::value...)), "wrong type");
             return gt_get< layout_vector[I] >::apply(args...);
