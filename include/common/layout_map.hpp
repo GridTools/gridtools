@@ -42,85 +42,83 @@
 #endif
 
 namespace gridtools {
-    template <typename LM>
+    template < typename LM >
     struct reverse_map;
 
-    template <short_t I1, short_t I2>
-    struct reverse_map<layout_map<I1, I2> > {
-        typedef layout_map<I2,I1> type;
+    template < short_t I1, short_t I2 >
+    struct reverse_map< layout_map< I1, I2 > > {
+        typedef layout_map< I2, I1 > type;
     };
 
-    template <short_t I1, short_t I2, short_t I3>
-    struct reverse_map<layout_map<I1, I2,I3> > {
-        template <short_t I, short_t Dummy>
+    template < short_t I1, short_t I2, short_t I3 >
+    struct reverse_map< layout_map< I1, I2, I3 > > {
+        template < short_t I, short_t Dummy >
         struct new_value;
 
-        template <short_t Dummy>
-        struct new_value<0, Dummy> {
+        template < short_t Dummy >
+        struct new_value< 0, Dummy > {
             static const short_t value = 2;
         };
 
-        template <short_t Dummy>
-        struct new_value<1, Dummy> {
+        template < short_t Dummy >
+        struct new_value< 1, Dummy > {
             static const short_t value = 1;
         };
 
-        template <short_t Dummy>
-        struct new_value<2, Dummy> {
+        template < short_t Dummy >
+        struct new_value< 2, Dummy > {
             static const short_t value = 0;
         };
 
-        typedef layout_map<new_value<I1,0>::value, new_value<I2,0>::value, new_value<I3,0>::value > type;
+        typedef layout_map< new_value< I1, 0 >::value, new_value< I2, 0 >::value, new_value< I3, 0 >::value > type;
     };
 
-    template <typename DATALO, typename PROCLO>
+    template < typename DATALO, typename PROCLO >
     struct layout_transform;
 
-    template <short_t I1, short_t I2, short_t P1, short_t P2>
-    struct layout_transform<layout_map<I1,I2>, layout_map<P1,P2> > {
-        typedef layout_map<I1,I2> L1;
-        typedef layout_map<P1,P2> L2;
+    template < short_t I1, short_t I2, short_t P1, short_t P2 >
+    struct layout_transform< layout_map< I1, I2 >, layout_map< P1, P2 > > {
+        typedef layout_map< I1, I2 > L1;
+        typedef layout_map< P1, P2 > L2;
 
-        static const short_t N1 = boost::mpl::at_c<typename L1::layout_vector_t, P1>::type::value;
-        static const short_t N2 = boost::mpl::at_c<typename L1::layout_vector_t, P2>::type::value;
+        static const short_t N1 = boost::mpl::at_c< typename L1::layout_vector_t, P1 >::type::value;
+        static const short_t N2 = boost::mpl::at_c< typename L1::layout_vector_t, P2 >::type::value;
 
-        typedef layout_map<N1,N2> type;
-
+        typedef layout_map< N1, N2 > type;
     };
 
-    template <short_t I1, short_t I2, short_t I3, short_t P1, short_t P2, short_t P3>
-    struct layout_transform<layout_map<I1,I2,I3>, layout_map<P1,P2,P3> > {
-        typedef layout_map<I1,I2,I3> L1;
-        typedef layout_map<P1,P2,P3> L2;
+    template < short_t I1, short_t I2, short_t I3, short_t P1, short_t P2, short_t P3 >
+    struct layout_transform< layout_map< I1, I2, I3 >, layout_map< P1, P2, P3 > > {
+        typedef layout_map< I1, I2, I3 > L1;
+        typedef layout_map< P1, P2, P3 > L2;
 
-        static const short_t N1 = boost::mpl::at_c<typename L1::layout_vector_t, P1>::type::value;
-        static const short_t N2 = boost::mpl::at_c<typename L1::layout_vector_t, P2>::type::value;
-        static const short_t N3 = boost::mpl::at_c<typename L1::layout_vector_t, P3>::type::value;
+        static const short_t N1 = boost::mpl::at_c< typename L1::layout_vector_t, P1 >::type::value;
+        static const short_t N2 = boost::mpl::at_c< typename L1::layout_vector_t, P2 >::type::value;
+        static const short_t N3 = boost::mpl::at_c< typename L1::layout_vector_t, P3 >::type::value;
 
-        typedef layout_map<N1,N2,N3> type;
-
+        typedef layout_map< N1, N2, N3 > type;
     };
 
-    template <short_t D>
+    template < short_t D >
     struct default_layout_map;
 
     template <>
-    struct default_layout_map<1> {
-        typedef layout_map<0> type;
+    struct default_layout_map< 1 > {
+        typedef layout_map< 0 > type;
     };
 
     template <>
-    struct default_layout_map<2> {
-        typedef layout_map<0,1> type;
+    struct default_layout_map< 2 > {
+        typedef layout_map< 0, 1 > type;
     };
 
     template <>
-    struct default_layout_map<3> {
-        typedef layout_map<0,1,2> type;
+    struct default_layout_map< 3 > {
+        typedef layout_map< 0, 1, 2 > type;
     };
 
     template <>
-    struct default_layout_map<4> {
-        typedef layout_map<0,1,2,3> type;
+    struct default_layout_map< 4 > {
+        typedef layout_map< 0, 1, 2, 3 > type;
     };
 } // namespace gridtools

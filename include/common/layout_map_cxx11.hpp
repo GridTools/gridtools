@@ -39,28 +39,28 @@ namespace gridtools {
     template < typename T >
     struct is_layout_map;
 
-    /**
-       @struct
-       @brief Used as template argument in the storage.
-       In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time,
-       by
-       leaving the interface unchanged.
-    */
     namespace _impl {
 
-        template < int index >
+        template < int Index >
         GT_FUNCTION constexpr static int __get(int i) {
             return -1;
         }
 
-        template < int index, int first, int... Vals >
+        template < int Index, int First, int... Vals >
         GT_FUNCTION constexpr static int __get(int i) {
-            return (i == index) ? first : __get< index + 1, Vals... >(i);
+            return (i == Index) ? First : __get< Index + 1, Vals... >(i);
         }
 
     } // namespace _impl
 
     /**
+       @struct
+       @brief Used as template argument in the storage.
+
+       In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time,
+       by
+       leaving the interface unchanged.
+
        Layout maps are simple sequences of integers specified
        statically. The specification happens as
 
@@ -93,11 +93,14 @@ namespace gridtools {
         template < class Layout >
         struct append {
 
-            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "internal error");
+            static const short_t real_length = accumulate(add_functor(), (Args >= 0 ? 1 : 0)...);
 
-            typedef typename boost::mpl::fold< typename Layout::layout_vector_t,
-                layout_map< Args... >,
-                layout_map< Args..., boost::mpl::plus< boost::mpl::_2, static_ushort< length > >::value > >::type type;
+            template < short_t... Idx >
+            constexpr static layout_map< Args..., Idx + real_length... > sum_to_map_indices(layout_map< Idx... >) {
+                return layout_map< Args..., Idx + real_length... >();
+            }
+
+            typedef decltype(sum_to_map_indices(Layout())) type;
         };
 
         /** This function returns the value in the map that is stored at
@@ -154,9 +157,9 @@ namespace gridtools {
 #endif // __CUDACC__
 
         // returns the dimension corresponding to the given strides (get<0> for stride 1)
-        template < ushort_t i >
+        template < ushort_t I >
         GT_FUNCTION static constexpr ushort_t get() {
-            return layout_vector[i];
+            return layout_vector[I];
         }
 
         GT_FUNCTION
