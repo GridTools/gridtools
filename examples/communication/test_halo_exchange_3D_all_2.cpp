@@ -183,11 +183,54 @@ namespace halo_exchange_3D_all_2 {
 
         /* This is self explanatory now
          */
+#ifdef __CUDACC__
+        file << "GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU \n";
 
+        triple_t< USE_DOUBLE > *gpu_a = 0;
+        triple_t< USE_DOUBLE > *gpu_b = 0;
+        triple_t< USE_DOUBLE > *gpu_c = 0;
+        cudaError_t status;
+        status = cudaMalloc(&gpu_a, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >));
+        if (!checkCudaStatus(status))
+            return false;
+        status = cudaMalloc(&gpu_b, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >));
+        if (!checkCudaStatus(status))
+            return false;
+        status = cudaMalloc(&gpu_c, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >));
+        if (!checkCudaStatus(status))
+            return false;
+
+        status = cudaMemcpy(gpu_a,
+                            a.ptr,
+                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+                            cudaMemcpyHostToDevice);
+        if (!checkCudaStatus(status))
+            return false;
+
+        status = cudaMemcpy(gpu_b,
+                            b.ptr,
+                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+                            cudaMemcpyHostToDevice);
+        if (!checkCudaStatus(status))
+            return false;
+
+        status = cudaMemcpy(gpu_c,
+                            c.ptr,
+                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+                            cudaMemcpyHostToDevice);
+        if (!checkCudaStatus(status))
+            return false;
+
+        std::vector< triple_t< USE_DOUBLE >::data_type * > vect(3);
+        vect[0] = reinterpret_cast< triple_t< USE_DOUBLE >::data_type * >(gpu_a);
+        vect[1] = reinterpret_cast< triple_t< USE_DOUBLE >::data_type * >(gpu_b);
+        vect[2] = reinterpret_cast< triple_t< USE_DOUBLE >::data_type * >(gpu_c);
+#else
         std::vector< triple_t< USE_DOUBLE >::data_type * > vect(3);
         vect[0] = reinterpret_cast< triple_t< USE_DOUBLE >::data_type * >(a.ptr);
         vect[1] = reinterpret_cast< triple_t< USE_DOUBLE >::data_type * >(b.ptr);
         vect[2] = reinterpret_cast< triple_t< USE_DOUBLE >::data_type * >(c.ptr);
+#endif
 
         // std::vector<triple_t<USE_DOUBLE>*> vect(3);
         // vect[0] = a.ptr;
@@ -244,6 +287,38 @@ namespace halo_exchange_3D_all_2 {
 
         file << "\n********************************************************************************\n";
 
+#ifdef __CUDACC__
+        status = cudaMemcpy(a.ptr,
+                            gpu_a,
+                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+                            cudaMemcpyDeviceToHost);
+        if (!checkCudaStatus(status))
+            return false;
+
+        status = cudaMemcpy(b.ptr,
+                            gpu_b,
+                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+                            cudaMemcpyDeviceToHost);
+        if (!checkCudaStatus(status))
+            return false;
+
+        status = cudaMemcpy(c.ptr,
+                            gpu_c,
+                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+                            cudaMemcpyDeviceToHost);
+        if (!checkCudaStatus(status))
+            return false;
+
+        status = cudaFree(gpu_a);
+        if (!checkCudaStatus(status))
+            return false;
+        status = cudaFree(gpu_b);
+        if (!checkCudaStatus(status))
+            return false;
+        status = cudaFree(gpu_c);
+        if (!checkCudaStatus(status))
+            return false;
+#endif
         printbuff(file, a, DIM1 + 2 * H1, DIM2 + 2 * H2, DIM3 + 2 * H3);
 
         int passed = true;
