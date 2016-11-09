@@ -78,6 +78,7 @@ namespace gridtools {
 
         GT_FUNCTION constexpr short_t operator[](ushort_t id_) const { return layout_vector[id_]; }
 
+#ifdef CUDA8
         /**
            @brief metafunction for appending a layout_map to another existing layout_map
 
@@ -105,6 +106,7 @@ namespace gridtools {
 
             typedef decltype(sum_to_map_indices(Layout())) type;
         };
+#endif
 
         /** This function returns the value in the map that is stored at
             position 'I', where 'I' is passed in input as template
