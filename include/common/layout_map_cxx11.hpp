@@ -90,6 +90,20 @@ namespace gridtools {
 
         constexpr layout_map(){};
 
+        /**
+           @brief metafunction for appending a layout_map to another existing layout_map
+
+           \tparam Layout input layout_map
+
+           Usage:
+           @code
+           layout_map<0,-1,2>::append<layout_map<0,1> >::type
+           @endcode
+           gives
+           @code
+           layout_map<0,-1,2,3,4>
+           @endcode
+        */
         template < class Layout >
         struct append {
 
