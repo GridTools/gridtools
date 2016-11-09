@@ -1,3 +1,5 @@
+#include <mpi.h>
+#include "./check_flags.hpp"
 #include <iostream>
 #include <fstream>
 //#include <numeric>
