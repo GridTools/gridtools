@@ -233,4 +233,7 @@ void test_layout_find_val(bool *result) {
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename layout_map< 0, 1, -1, 2 >::append< layout_map< 0, 1, 2 > >::type,
                                 layout_map< 0, 1, -1, 2, 3, 4, 5 > >::type::value),
         "bf error");
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename layout_map< 0, 1, 2, 3 >::append< layout_map< 0, -1, 1 > >::type,
+                                layout_map< 0, 1, 2, 3, 4, -1, 5 > >::type::value),
+        "bf error");
 }

@@ -110,8 +110,9 @@ namespace gridtools {
             static const short_t real_length = accumulate(add_functor(), (Args >= 0 ? 1 : 0)...);
 
             template < short_t... Idx >
-            constexpr static layout_map< Args..., Idx + real_length... > sum_to_map_indices(layout_map< Idx... >) {
-                return layout_map< Args..., Idx + real_length... >();
+            constexpr static layout_map< Args..., ((Idx >= 0) ? (Idx + real_length) : (-1))... > sum_to_map_indices(
+                layout_map< Idx... >) {
+                return layout_map< Args..., ((Idx >= 0) ? (Idx + real_length) : (-1))... >();
             }
 
             typedef decltype(sum_to_map_indices(Layout())) type;
