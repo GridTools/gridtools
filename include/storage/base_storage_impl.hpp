@@ -58,7 +58,7 @@ namespace gridtools {
         struct next_stride {
 
             template < typename First, typename... IntTypes >
-            GT_FUNCTION static constexpr First apply(First const &first, IntTypes const &... args) {
+            GT_FUNCTION static constexpr First apply(First first, IntTypes... args) {
                 return Layout::template find_val< MaxIndex - ID, short_t, 1 >(first, args...) *
                        next_stride< ID - 1, MaxIndex, Layout >::apply(first, args...);
             }
@@ -68,7 +68,7 @@ namespace gridtools {
         template < short_t MaxIndex, typename Layout >
         struct next_stride< 0, MaxIndex, Layout > {
             template < typename First, typename... IntTypes >
-            GT_FUNCTION static constexpr First apply(First const &first, IntTypes const &... args) {
+            GT_FUNCTION static constexpr First apply(First first, IntTypes... args) {
                 return Layout::template find_val< MaxIndex, short_t, 1 >(first, args...);
             }
         };
@@ -250,7 +250,7 @@ namespace gridtools {
         struct print_pointer {
             template < typename StorageType >
             GT_FUNCTION_WARNING void operator()(pointer< StorageType > s) const {
-                printf("Pointer Value %x\n", s);
+                printf("Pointer Value %x\n", s.get());
             }
         };
 #endif

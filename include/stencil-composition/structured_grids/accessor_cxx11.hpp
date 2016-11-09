@@ -98,7 +98,7 @@ namespace gridtools {
         constexpr accessor_impl() : super() {}
 
 #ifndef __CUDACC__
-        /**inheriting all constructors from offset_tuple*/
+        /**inheriting all constructors from accessor_base*/
         using super::accessor_base;
 #else
         /**@brief constructor forwarding all the arguments
@@ -109,15 +109,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((sizeof...(ForwardedArgs) <= Number),
                 "too many arguments for an accessor. Check that the accessor dimension is valid.");
         }
-
-        // move ctor
-        GT_FUNCTION
-        constexpr explicit accessor_impl(accessor_impl< ID, Intend, Extent, Number > &&other)
-            : super(std::move(other)) {}
-
-        // copy ctor
-        GT_FUNCTION
-        constexpr accessor_impl(accessor_impl< ID, Intend, Extent, Number > const &other) : super(other) {}
 #endif
     };
 
