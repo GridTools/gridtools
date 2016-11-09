@@ -13,16 +13,16 @@ namespace gridtools {
         The expression should be a static constexpr object, instantiated once for all at the beginning of the run.
     */
     template < typename First, typename Second >
-    struct expr {
+    struct binary_expr {
 
         static const ushort_t size = 2;
 
         /**@brief generic expression constructor*/
         GT_FUNCTION
-        constexpr expr(First const &first_, Second const &second_) : first_operand(first_), second_operand(second_) {}
+        constexpr binary_expr(First const &first_, Second const &second_) : first_operand(first_), second_operand(second_) {}
 
         template < typename Arg1, typename Arg2 >
-        GT_FUNCTION constexpr expr(expr< Arg1, Arg2 > const &other)
+        GT_FUNCTION constexpr binary_expr(binary_expr< Arg1, Arg2 > const &other)
             : first_operand(other.first_operand), second_operand(other.second_operand) {}
 
         First const first_operand;
@@ -33,7 +33,7 @@ namespace gridtools {
 #endif
         /**@brief default empty constructor*/
         GT_FUNCTION
-        constexpr expr() {}
+        constexpr binary_expr() {}
     };
 
     template < typename Arg >
@@ -41,6 +41,9 @@ namespace gridtools {
 
     template < typename ArgType1 >
     struct unary_expr {
+
+        static const ushort_t size = 1;
+
         /**@brief generic expression constructor*/
         GT_FUNCTION
         constexpr unary_expr(ArgType1 const &first_operand) : first_operand{first_operand} {}
@@ -61,6 +64,8 @@ namespace gridtools {
 
     template < typename ArgType1, typename ArgType2, typename ArgType3 >
     struct ternary_expr {
+
+        static const ushort_t size = 3;
 
         /**@brief generic expression constructor*/
         GT_FUNCTION
@@ -91,7 +96,7 @@ namespace gridtools {
     struct is_expr : boost::mpl::false_ {};
 
     template < typename... Args >
-    struct is_expr< expr< Args... > > : boost::mpl::true_ {};
+    struct is_expr< binary_expr< Args... > > : boost::mpl::true_ {};
 
     template < typename Arg >
     struct is_expr< unary_expr< Arg > > : boost::mpl::true_ {};

@@ -2,8 +2,8 @@ namespace gridtools {
 
     /**@brief Expression dividing two arguments*/
     template < typename ArgType1, typename ArgType2 >
-    struct expr_divide : public expr< ArgType1, ArgType2 > {
-        typedef expr< ArgType1, ArgType2 > super;
+    struct expr_divide : public binary_expr< ArgType1, ArgType2 > {
+        typedef binary_expr< ArgType1, ArgType2 > super;
         GT_FUNCTION
         constexpr expr_divide(ArgType1 const &first_operand, ArgType2 const &second_operand)
             : super(first_operand, second_operand) {}

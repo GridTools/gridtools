@@ -2,8 +2,8 @@ namespace gridtools {
 
     /**@brief Expression subrtracting two arguments*/
     template < typename ArgType1, typename ArgType2 >
-    struct expr_minus : public expr< ArgType1, ArgType2 > {
-        typedef expr< ArgType1, ArgType2 > super;
+    struct expr_minus : public binary_expr< ArgType1, ArgType2 > {
+        typedef binary_expr< ArgType1, ArgType2 > super;
 
         GT_FUNCTION
         constexpr expr_minus(ArgType1 const &first_operand, ArgType2 const &second_operand)
