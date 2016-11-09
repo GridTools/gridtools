@@ -26,12 +26,6 @@ namespace gridtools {
 #endif
     };
 
-    template < typename Arg >
-    struct is_binary_expr;
-
-    template < typename Arg1, typename Arg2 >
-    struct no_expr_nor_accessor_types;
-
     template < typename ArgType1, typename ArgType2 >
     struct is_binary_expr< expr_times< ArgType1, ArgType2 > > : boost::mpl::true_ {};
 
@@ -73,7 +67,7 @@ namespace gridtools {
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_times< FloatType, ArgType2 > const &arg)
-                -> decltype(arg.first_operand * it_domain(arg.second_operand) ) {
+                -> decltype(arg.first_operand *it_domain(arg.second_operand)) {
                 return arg.first_operand * it_domain(arg.second_operand);
             }
 
@@ -111,6 +105,6 @@ namespace gridtools {
             }
 
         } // namespace evaluation
-    } // namespace expressions
+    }     // namespace expressions
 
 } // namespace gridtools

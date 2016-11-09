@@ -15,11 +15,10 @@ namespace gridtools {
     template < typename First, typename Second >
     struct binary_expr {
 
-        static const ushort_t size = 2;
-
         /**@brief generic expression constructor*/
         GT_FUNCTION
-        constexpr binary_expr(First const &first_, Second const &second_) : first_operand(first_), second_operand(second_) {}
+        constexpr binary_expr(First const &first_, Second const &second_)
+            : first_operand(first_), second_operand(second_) {}
 
         template < typename Arg1, typename Arg2 >
         GT_FUNCTION constexpr binary_expr(binary_expr< Arg1, Arg2 > const &other)
@@ -37,12 +36,13 @@ namespace gridtools {
     };
 
     template < typename Arg >
-    struct is_binary_expr : boost::mpl::bool_< Arg::size == 2 > {};
+    struct is_binary_expr : boost::mpl::false_ {};
+
+    template < typename Arg1, typename Arg2 >
+    struct is_binary_expr< binary_expr< Arg1, Arg2 > > : boost::mpl::true_ {};
 
     template < typename ArgType1 >
     struct unary_expr {
-
-        static const ushort_t size = 1;
 
         /**@brief generic expression constructor*/
         GT_FUNCTION
@@ -64,8 +64,6 @@ namespace gridtools {
 
     template < typename ArgType1, typename ArgType2, typename ArgType3 >
     struct ternary_expr {
-
-        static const ushort_t size = 3;
 
         /**@brief generic expression constructor*/
         GT_FUNCTION

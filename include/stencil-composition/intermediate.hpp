@@ -636,9 +636,7 @@ namespace gridtools {
                                         m_actual_arg_ptr_list, m_actual_metadata_list));
 
 #ifdef VERBOSE
-#ifndef NDEBUG
             m_domain.info();
-#endif
 #endif
             m_grid.clone_to_device();
         }

@@ -29,6 +29,9 @@ namespace gridtools {
 #endif
     };
 
+    template < typename ArgType1, typename ArgType2 >
+    struct is_binary_expr< expr_minus< ArgType1, ArgType2 > > : boost::mpl::true_ {};
+
     namespace expressions {
         /** minus expression*/
         template < typename ArgType1,
@@ -104,6 +107,6 @@ namespace gridtools {
             }
 
         } // namespace evaluation
-    } // namespace expressions
+    }     // namespace expressions
 
 } // namespace gridtools

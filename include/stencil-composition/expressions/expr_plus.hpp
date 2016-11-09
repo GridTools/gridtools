@@ -71,9 +71,8 @@ namespace gridtools {
             GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_plus< FloatType, ArgType2 > const &arg)
                 -> decltype(arg.first_operand + it_domain(arg.second_operand)) {
-                return arg.first_operand + it_domain(arg.second_operand) ;
+                return arg.first_operand + it_domain(arg.second_operand);
             }
-
 
             // automatic differentiation
             /** plus derivative evaluation*/
@@ -109,11 +108,11 @@ namespace gridtools {
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_derivative< expr_plus< FloatType, ArgType2 > > const &arg)
-                -> decltype(it_domain(arg.second_operand)) {
+                -> decltype(it_domain(expr_derivative< ArgType2 >(arg.second_operand))) {
                 return it_domain(expr_derivative< ArgType2 >(arg.second_operand));
             }
 
         } // namespace evaluation
-    } // namespace expressions
+    }     // namespace expressions
 
 } // namespace gridtools
