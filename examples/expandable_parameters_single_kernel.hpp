@@ -4,6 +4,8 @@
 #define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 
+#pragma once
+
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
@@ -190,9 +192,6 @@ namespace test_expandable_parameters {
             &storage60,
             &storage70,
             &storage80));
-#ifdef __clang__
-        return true; // default template instantiation depth (256) exceeded
-#else
         auto comp_ = make_computation< BACKEND >(
             domain_,
             grid_,
@@ -251,6 +250,5 @@ namespace test_expandable_parameters {
                     }
 
         return success;
-#endif
     }
 } // namespace test_expandable_parameters
