@@ -39,20 +39,6 @@ namespace gridtools {
     template < typename T >
     struct is_layout_map;
 
-    namespace _impl {
-
-        template < int Index >
-        GT_FUNCTION constexpr static int __get(int i) {
-            return -1;
-        }
-
-        template < int Index, int First, int... Vals >
-        GT_FUNCTION constexpr static int __get(int i) {
-            return (i == Index) ? First : __get< Index + 1, Vals... >(i);
-        }
-
-    } // namespace _impl
-
     /**
        @struct
        @brief Used as template argument in the storage.
@@ -130,22 +116,22 @@ namespace gridtools {
             return layout_vector[I];
         }
 
+/** Given a parameter pack of values and a static index, the function
+    returns the reference to the value in the position indicated
+    at position 'I' in the map.
+    NOTE: counting from 0.
+
+    \code
+    gridtools::layout_map<1,2,0>::select<1>(a,b,c) == c
+    \endcode
+    because the position 1 in the layout map contains a 2, which means the third argument
+
+    \tparam I Index to be queried
+    \tparam T Sequence of types
+    \param[in] args Values from where to select the element  (length must be equal to the length of the
+   layout_map length)
+*/
 #ifndef __CUDACC__
-        /** Given a parameter pack of values and a static index, the function
-            returns the reference to the value in the position indicated
-            at position 'I' in the map.
-            NOTE: counting from 0.
-
-            \code
-            gridtools::layout_map<1,2,0>::select<1>(a,b,c) == c
-            \endcode
-            because the position 1 in the layout map contains a 2, which means the third argument
-
-            \tparam I Index to be queried
-            \tparam T Sequence of types
-            \param[in] args Values from where to select the element  (length must be equal to the length of the
-           layout_map length)
-        */
         template < ushort_t I, typename... T >
         GT_FUNCTION static auto constexpr select(T &... args) -> typename boost::remove_reference< decltype(
             std::template get< layout_vector[I] >(std::make_tuple(args...))) >::type {
@@ -168,21 +154,6 @@ namespace gridtools {
         GT_FUNCTION static constexpr ushort_t get() {
             return layout_vector[I];
         }
-
-        GT_FUNCTION
-        constexpr short_t operator[](ushort_t i) const { return _impl::__get< 0, Args... >(i); }
-
-        struct transform_in_type {
-            template < ushort_t T >
-            struct apply {
-                typedef static_ushort< T > type;
-            };
-        };
-
-        template < ushort_t I, ushort_t T >
-        struct predicate {
-            typedef typename boost::mpl::bool_< T == I >::type type;
-        };
 
         /** Given a parameter pack of values and a static index I, the function
             returns the reference to the element whose position
