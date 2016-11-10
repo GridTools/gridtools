@@ -34,15 +34,28 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-/**
-   @file specialization for expandable parameters
-*/
 #pragma once
-#ifdef CXX11_ENABLED
+namespace gridtools {
 
-#include "../../gridtools.hpp"
-#include "arg_metafunctions.hpp"
-#include "metadata_set_metafunctions.hpp"
-#include "storage_metafunctions.hpp"
+    template < typename Storage, uint_t Size >
+    struct expandable_parameters;
 
-#endif
+    template < uint_t I, typename Storage, typename Cond >
+    struct arg;
+
+    // metafunction to access the storage type given the arg
+    template < ushort_t ID, typename T >
+    struct arg2storage< arg< ID, std::vector< pointer< T > > > > {
+        typedef T type;
+    };
+
+    template < ushort_t I, typename T, typename C >
+    struct arg_holds_data_field_h< arg< I, pointer< T >, C > > {
+        typedef typename boost::mpl::bool_< (T::field_dimensions > 1) > type;
+    };
+
+    template < ushort_t I, typename T, typename C >
+    struct arg_holds_data_field_h< arg< I, std::vector< T >, C > > {
+        typedef typename boost::mpl::true_ type;
+    };
+}

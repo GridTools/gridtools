@@ -34,15 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-/**
-   @file specialization for expandable parameters
-*/
 #pragma once
-#ifdef CXX11_ENABLED
-
-#include "../../gridtools.hpp"
-#include "arg_metafunctions.hpp"
-#include "metadata_set_metafunctions.hpp"
-#include "storage_metafunctions.hpp"
-
-#endif
+namespace gridtools {
+    template < typename Sequence, typename Arg >
+    struct insert_if_not_present< Sequence, std::vector< pointer< Arg > > > : insert_if_not_present< Sequence, Arg > {
+        using insert_if_not_present< Sequence, Arg >::insert_if_not_present;
+    };
+} // namespace gridtools

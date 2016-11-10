@@ -33,16 +33,42 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
-/**
-   @file specialization for expandable parameters
-*/
 #pragma once
-#ifdef CXX11_ENABLED
+namespace gridtools {
 
-#include "../../gridtools.hpp"
-#include "arg_metafunctions.hpp"
-#include "metadata_set_metafunctions.hpp"
-#include "storage_metafunctions.hpp"
+    template < typename T >
+    struct storage_holds_data_field< std::vector< pointer< T > > > : boost::mpl::true_ {};
 
-#endif
+    template < typename T >
+    struct is_actual_storage< pointer< std::vector< pointer< T > > > > : public boost::mpl::bool_< !T::is_temporary > {
+    };
+
+    template < typename Storage >
+    struct is_storage< std::vector< pointer< Storage > > > : is_storage< Storage > {};
+
+    template < typename T >
+    struct is_temporary_storage< std::vector< pointer< T > > > : public is_temporary_storage< T > {};
+
+    template < typename T >
+    struct is_any_storage< std::vector< T > > : is_any_storage< T > {};
+
+    template < typename T >
+    struct extract_storage_info_type< std::vector< pointer< T > > > {
+        typedef typename T::storage_info_type type;
+    };
+
+    template < typename T >
+    static typename T::basic_type::storage_info_type const &extract_meta_data(
+        pointer< std::vector< pointer< T > > > &st_) {
+        return (*st_)[0]->meta_data();
+    }
+
+    template < typename T, uint_t ID >
+    struct is_actual_storage< pointer< storage< expandable_parameters< T, ID > > > >
+        : public boost::mpl::bool_< !T::is_temporary > {};
+
+    template < typename T, ushort_t Dim >
+    struct is_temporary_storage< storage< expandable_parameters< T, Dim > > >
+        : public boost::mpl::bool_< T::is_temporary > {};
+
+} // namespace gridtools
