@@ -38,6 +38,7 @@
 #include "../../run_esf_functor.hpp"
 #include "../../block_size.hpp"
 #include "../iterate_domain_remapper.hpp"
+#include "../../functor_id_pair.hpp"
 
 namespace gridtools {
     /*
@@ -93,6 +94,8 @@ namespace gridtools {
 
             typedef typename EsfArguments::functor_t functor_t;
             typedef typename EsfArguments::extent_t extent_t;
+
+            GRIDTOOLS_STATIC_ASSERT(is_functor_id_pair< functor_t >::value, "wrong type");
 
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size

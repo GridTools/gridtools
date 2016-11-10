@@ -37,6 +37,7 @@
 
 #include "../../run_esf_functor.hpp"
 #include "../iterate_domain_remapper.hpp"
+#include "../../functor_id_pair.hpp"
 
 namespace gridtools {
 
@@ -96,6 +97,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
 
             typedef typename EsfArguments::functor_t functor_t;
+
+            GRIDTOOLS_STATIC_ASSERT(is_functor_id_pair< functor_t >::value, "wrong type");
 
             using n_colors_t = typename EsfArguments::esf_t::location_type::n_colors;
 
