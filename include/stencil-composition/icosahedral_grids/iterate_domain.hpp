@@ -390,9 +390,7 @@ namespace gridtools {
             I.e., if we are dealing with  storage lists or data fields (see concepts page for definitions).
         */
         template < typename Accessor >
-        GT_FUNCTION
-            typename boost::enable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
-            get_data_pointer(Accessor const &accessor) const {
+        GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 

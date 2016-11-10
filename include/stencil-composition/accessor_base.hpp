@@ -165,7 +165,7 @@ namespace gridtools {
 */
 #if defined(CXX11_ENABLED)
         template < typename... Indices, typename Dummy = all_integers< Indices... > >
-        GT_FUNCTION constexpr accessor_base(Indices const &... x)
+        GT_FUNCTION constexpr accessor_base(Indices... x)
             : m_offsets(x...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
