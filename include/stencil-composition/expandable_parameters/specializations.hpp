@@ -90,6 +90,18 @@ namespace gridtools {
 
     template < typename T >
     struct is_any_storage< std::vector< T > > : is_any_storage< T > {};
+
+    template < typename T >
+    struct extract_storage_info_type< std::vector< pointer< T > > > {
+        typedef typename T::storage_info_type type;
+    };
+
+    template < typename T >
+    static typename T::basic_type::storage_info_type const &extract_meta_data(
+        pointer< std::vector< pointer< T > > > &st_) {
+        return (*st_)[0]->meta_data();
+    }
+
 #endif
 
 #ifdef CXX11_ENABLED

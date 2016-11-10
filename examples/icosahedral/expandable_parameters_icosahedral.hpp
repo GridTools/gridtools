@@ -46,10 +46,6 @@ namespace test_expandable_parameters_icosahedral {
         using backend_t = BACKEND;
         using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
 
-        const uint_t halo_nc = 0;
-        const uint_t halo_mc = 0;
-        const uint_t halo_k = 0;
-
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
         auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
@@ -110,19 +106,19 @@ namespace test_expandable_parameters_icosahedral {
         std::vector< pointer< decltype(storage10) > > list_in_ = {
             &storage10, &storage20, &storage30, &storage40, &storage50, &storage60, &storage70, &storage80};
 
-        array< uint_t, 5 > di = {1, 1, 1, d1 - 2, d1};
-        array< uint_t, 5 > dj = {1, 1, 1, d2 - 2, d2};
+        array< uint_t, 5 > di = {0, 0, 0, d1 - 1, d1};
+        array< uint_t, 5 > dj = {0, 0, 0, d2 - 1, d2};
 
         gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        typedef arg< 0, std::vector< pointer< decltype(storage1) > > > p_list_out;
-        typedef arg< 1, std::vector< pointer< decltype(storage10) > > > p_list_in;
+        using p_list_out = arg< 0, std::vector< pointer< decltype(storage1) > > >;
+        using p_list_in = arg< 1, std::vector< pointer< decltype(storage10) > > >;
 
         typedef boost::mpl::vector< p_list_out, p_list_in > args_t;
 
-        aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_));
+        aggregator_type< args_t > domain_((p_list_out() = list_out_), (p_list_in() = list_in_));
 
         auto comp_ = make_computation< BACKEND >(
             expand_factor< 3 >(),

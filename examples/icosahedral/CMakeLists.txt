@@ -1,5 +1,5 @@
 list( APPEND SRCFILES #laplace
-      expandable_parameters_icosahedral stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields)
+      copy_stencil_icosahedral expandable_parameters_icosahedral stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields)
 
 set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)
 

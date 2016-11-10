@@ -86,13 +86,13 @@ namespace test_expandable_parameters {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        typedef arg< 0, std::vector< pointer< storage_t > > > p_list_out;
-        typedef arg< 1, std::vector< pointer< storage_t > > > p_list_in;
-        typedef arg< 2, std::vector< pointer< tmp_storage_t > > > p_list_tmp;
+        using p_list_out = arg< 0, std::vector< pointer< storage_t > > >;
+        using p_list_in = arg< 1, std::vector< pointer< storage_t > > >;
+        using p_list_tmp = arg< 2, std::vector< pointer< tmp_storage_t > > >;
 
         typedef boost::mpl::vector< p_list_out, p_list_in, p_list_tmp > args_t;
 
-        aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_));
+        aggregator_type< args_t > domain_((p_out() = list_out_), (p_in() = list_in_));
 
         auto comp_ = make_computation< BACKEND >(expand_factor< 3 >(),
             domain_,
