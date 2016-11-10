@@ -740,12 +740,6 @@ namespace gridtools {
 
         template < class SerializerType >
         reduction_type_t run(SerializerType &serializer, std::string stencil_name = "stencil") {
-            typedef typename boost::fusion::result_of::has_key< conditionals_set_t,
-                typename if_condition_extract_index_t< mss_components_array_t >::type >::type is_present_t;
-
-            // run_conditionally< is_present_t, mss_components_array_t, Backend >::apply(
-            //      m_conditionals_set, m_grid, m_mss_local_domain_list, m_reduction_data);
-
             stencil_serializer< SerializerType > stencil_ser(stencil_name, serializer);
 
             m_meter.start();

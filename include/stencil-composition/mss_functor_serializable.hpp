@@ -46,17 +46,22 @@ namespace gridtools {
 
     namespace _impl {
 
-        template < class SerilaizerType, class SavepointType >
+        template < class SerializerType, class SavepointType >
         struct serialize_storages {
-            SerilaizerType &m_serializer;
+            SerializerType &m_serializer;
             SavepointType &m_savepoint;
+            int_t *m_tmp_id;
 
             template < typename T >
             void operator()(T const &storage_ptr) const {
-                using base_storage_t = const typename T::value_type;
-                const base_storage_t &storage = *storage_ptr;
+                using storage_t = const typename T::value_type;
+                const storage_t &storage = *storage_ptr;
 
-                m_serializer.write(storage.get_name(), m_savepoint, storage, *storage.meta_data());
+                if (is_temporary_storage< T >::value) {
+                    std::string tmp_name("tmp_" + std::to_string((*m_tmp_id)++));
+                    m_serializer.write(tmp_name, m_savepoint, storage, *storage.meta_data());
+                } else
+                    m_serializer.write(storage.get_name(), m_savepoint, storage, *storage.meta_data());
             }
         };
 
@@ -103,27 +108,38 @@ namespace gridtools {
             local_domain_t &local_domain =
                 (local_domain_t &)boost::fusion::at< boost::mpl::int_< 0 > >(local_domain_list);
 
-            // Get the functor at position Index
-            typedef typename boost::mpl::at< typename mss_components_t::functors_list_t, Index >::type functor_pair_t;
+            // Get current functor
+            typedef typename boost::mpl::at_c< typename mss_components_t::functors_list_t, 0 >::type functor_pair_t;
             typedef typename functor_pair_t::f_type functor_t;
+
+            auto stage_id = m_stencil_serializer.get_and_increment_stage_id();
+            auto invocation_count = m_stencil_serializer.stencil_invocation_count();
+            std::string stage_name(type_name< functor_t >());
 
             // Create the input savepoint of the current stage
             typedef typename SerializerType::savepoint_t savepoint_t;
-            savepoint_t savepoint_in(m_stencil_serializer.get_stencil_name() + "-in");
-            savepoint_in.add_meta_info("stage_id", m_stencil_serializer.get_and_increment_stage_id());
-            savepoint_in.add_meta_info("stage_name", type_name< functor_t >());
+            savepoint_t savepoint_in(m_stencil_serializer.get_stencil_name() + "__in");
+            savepoint_in.add_meta_info("stage_id", stage_id);
+            savepoint_in.add_meta_info("stage_name", stage_name);
+            savepoint_in.add_meta_info("invocation_count", invocation_count);
 
             // Serialize all input storages
+            int_t tmp_id = 0;
             boost::fusion::for_each(local_domain.m_local_args,
-                _impl::serialize_storages< SerializerType, savepoint_t >{serializer, savepoint_in});
+                _impl::serialize_storages< SerializerType, savepoint_t >{serializer, savepoint_in, &tmp_id});
 
             // Run the functor
             base_t::operator()(index);
 
             // Serialize output storages at the output savepoint
-            savepoint_t savepoint_out(m_stencil_serializer.get_stencil_name() + "-out");
+            savepoint_t savepoint_out(m_stencil_serializer.get_stencil_name() + "__out");
+            savepoint_out.add_meta_info("stage_id", stage_id);
+            savepoint_out.add_meta_info("stage_name", stage_name);
+            savepoint_out.add_meta_info("invocation_count", invocation_count);
+
+            tmp_id = 0;
             boost::fusion::for_each(local_domain.m_local_args,
-                _impl::serialize_storages< SerializerType, savepoint_t >{serializer, savepoint_out});
+                _impl::serialize_storages< SerializerType, savepoint_t >{serializer, savepoint_out, &tmp_id});
         }
     };
 
