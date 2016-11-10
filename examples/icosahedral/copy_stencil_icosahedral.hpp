@@ -92,8 +92,11 @@ namespace test_copy_stencil_icosahedral {
         comp_->run();
         comp_->finalize();
 
-        bool success = true;
+        verifier ver(1e-10);
 
-        return success;
+        array< array< uint_t, 2 >, 4 > halos = {{{0, 0}, {0, 0}, {0, 0}, {0, 0}}};
+        bool result = ver.verify(grid_, storage1, storage10, halos);
+
+        return result;
     }
 } // namespace test_expandable_parameters_icosahedral

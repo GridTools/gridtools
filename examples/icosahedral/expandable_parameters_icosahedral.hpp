@@ -135,6 +135,19 @@ namespace test_expandable_parameters_icosahedral {
 
         bool success = true;
 
+        verifier ver(1e-10);
+
+        array< array< uint_t, 2 >, 4 > halos = {{{0, 0}, {0, 0}, {0, 0}, {0, 0}}};
+        bool result = ver.verify(grid_, storage1, storage10, halos);
+        result = result & ver.verify(grid_, storage2, storage20, halos);
+        result = result & ver.verify(grid_, storage3, storage30, halos);
+        result = result & ver.verify(grid_, storage4, storage40, halos);
+        result = result & ver.verify(grid_, storage5, storage50, halos);
+        result = result & ver.verify(grid_, storage6, storage60, halos);
+        result = result & ver.verify(grid_, storage7, storage70, halos);
+        result = result & ver.verify(grid_, storage8, storage80, halos);
+        return result;
+
         return success;
     }
 } // namespace test_expandable_parameters_icosahedral
