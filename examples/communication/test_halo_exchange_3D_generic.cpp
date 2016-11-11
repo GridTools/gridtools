@@ -49,7 +49,7 @@ std::ostream *filep;
 
 #include "triplet.hpp"
 
-namespace test_halo_exchange_3D_generic {
+namespace halo_exchange_3D_generic {
     int pid;
     int nprocs;
     MPI_Comm CartComm;
@@ -635,9 +635,28 @@ namespace test_halo_exchange_3D_generic {
         return passed;
     }
 
-
-    TEST(Communication, test_halo_exchange_3D_generic) {
-        bool passed = test(89, 45, 104, 3, 1, 2);
-        EXPECT_TRUE(passed);
-    }
 }
+
+#ifdef STANDALONE
+int main(int argc, char** argv) {
+    if (argc != 7) {
+        std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz dim_halo1 dim_halo2 din_halo3\n where args are integer sizes of the data fields and halo width"
+                  << std::endl;
+        return 1;
+    }
+    int DIM1 = atoi(argv[1]);
+    int DIM2 = atoi(argv[2]);
+    int DIM3 = atoi(argv[3]);
+    int H1 = atoi(argv[4]);
+    int H2 = atoi(argv[5]);
+    int H3 = atoi(argv[6]);
+
+    halo_exchange_3D_generic::test(DIM1, DIM2, DIM3, H1, H2, H3);
+
+}
+#else
+TEST(Communication, test_halo_exchange_3D_generic) {
+    bool passed = test(89, 45, 104, 3, 1, 2);
+    EXPECT_TRUE(passed);
+}
+#endif

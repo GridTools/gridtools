@@ -44,7 +44,10 @@
 #include <common/layout_map.hpp>
 #include <common/boollist.hpp>
 #include <sys/time.h>
+
+#ifdef STANDALONE
 #include "gtest/gtest.h"
+#endif
 
 #include "triplet.hpp"
 
@@ -645,27 +648,27 @@ namespace halo_exchange_3D_all {
         return passed;
     }
 
+}
 
 #ifdef STANDALONE
-    int main(int argc, char** argv) {
-        if (argc != 5) {
-            std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz dim_halo\n where args are integer sizes of the data "
-                "fields and halo width"
-                      << std::endl;
-            return 1;
-        }
-        int DIM1 = atoi(argv[1]);
-        int DIM2 = atoi(argv[2]);
-        int DIM3 = atoi(argv[3]);
-        int H = atoi(argv[4]);
-
-        test(DIM1, DIM2, DIM3, H);
-
+int main(int argc, char** argv) {
+    if (argc != 5) {
+        std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz dim_halo\n where args are integer sizes of the data "
+            "fields and halo width"
+                  << std::endl;
+        return 1;
     }
-#else
-    TEST(Communication, test_halo_exchange_3D_all) {
-        bool passed = test(123, 46, 78, 5);
-        EXPECT_TRUE(passed);
-    }
-#endif
+    int DIM1 = atoi(argv[1]);
+    int DIM2 = atoi(argv[2]);
+    int DIM3 = atoi(argv[3]);
+    int H = atoi(argv[4]);
+
+    halo_exchange_3D_all::test(DIM1, DIM2, DIM3, H);
+
 }
+#else
+TEST(Communication, test_halo_exchange_3D_all) {
+    bool passed = halo_exchange_3D_all::test(123, 46, 78, 5);
+    EXPECT_TRUE(passed);
+}
+#endif

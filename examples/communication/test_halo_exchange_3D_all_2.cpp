@@ -624,23 +624,28 @@ namespace halo_exchange_3D_all_2 {
 
         return passed;
     }
+}
 
 #ifdef STANDALONE
-    /* Each process will hold a tile of size
-       (DIM1+2*H)x(DIM2+2*H)x(DIM3+2*H). The DIM1xDIM2xDIM3 area inside
-       the H width border is the inner region of an hypothetical stencil
-       computation whise halo width is H.
-    */
+int main(int argc, char** argv) {
+    if (argc != 7) {
+        std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz dim_halo1 dim_halo2 din_halo3\n where args are integer sizes of the data fields and halo width"
+                  << std::endl;
+        return 1;
+    }
+
     int DIM1 = atoi(argv[1]);
     int DIM2 = atoi(argv[2]);
     int DIM3 = atoi(argv[3]);
     int H1 = atoi(argv[4]);
     int H2 = atoi(argv[5]);
     int H3 = atoi(argv[6]);
-#else
-    TEST(Communication, test_halo_exchange_3D_all_2) {
-        bool passed = test(234, 124, 67, 2, 4, 3);
-        EXPECT_TRUE(passed);
-    }
-#endif
+
+    halo_exchange_3D_all_2::test(DIM1, DIM2, DIM3, H1, H2, H3);
 }
+#else
+TEST(Communication, test_halo_exchange_3D_all_2) {
+    bool passed = halo_exchange_3D_all_2::test(234, 124, 67, 2, 4, 3);
+    EXPECT_TRUE(passed);
+}
+#endif

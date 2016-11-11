@@ -47,7 +47,7 @@
 
 #include "triplet.hpp"
 
-namespace test_halo_exchange_3D_generic_full {
+namespace halo_exchange_3D_generic_full {
     int pid;
     int nprocs;
     MPI_Comm CartComm;
@@ -2025,8 +2025,15 @@ namespace test_halo_exchange_3D_generic_full {
 
         return passed;
     }
+}
 
 #ifdef STANDALONE
+int main(int argc, char** argv) {
+    if (argc != 22) {
+        std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz h1m1 hip1 h2m1 h2m1 h3m1 h3p1 h1m2 hip2 h2m2 h2m2 h3m2 h3p2 h1m3 hip3 h2m3 h2m3 h3m3 h3p3\n where args are integer sizes of the data fields and halo width"
+                  << std::endl;
+        return 1;
+    }
     int DIM1 = atoi(argv[1]);
     int DIM2 = atoi(argv[2]);
     int DIM3 = atoi(argv[3]);
@@ -2048,10 +2055,16 @@ namespace test_halo_exchange_3D_generic_full {
     int H2p3 = atoi(argv[19]);
     int H3m3 = atoi(argv[20]);
     int H3p3 = atoi(argv[21]);
+
+    halo_exchange_3D_generic_full::test(DIM1, DIM2, DIM3,
+                                        H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
+                                        H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
+                                        H1m3, H1p3, H2m3, H2p3, H3m3, H3p3);
+
+}
 #else
     TEST(Communication, test_halo_exchange_3D_generic_full) {
         bool passed = test(98, 54, 87, 0,1,2,3,2,1,0,1,2,3,2,1,0,1,2,3,0,1);
         EXPECT_TRUE(passed);
     }
 #endif
-}

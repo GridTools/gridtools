@@ -51,7 +51,7 @@
 #include "triplet.hpp"
 
 
-namespace test_halo_exchange_3D_all_3 {
+namespace halo_exchange_3D_all_3 {
     int pid;
     int nprocs;
     MPI_Comm CartComm;
@@ -648,14 +648,17 @@ namespace test_halo_exchange_3D_all_3 {
 
         return passed;
     }
-
+}
 
 #ifdef STANDALONE
-    /* Each process will hold a tile of size
-       (DIM1+2*H)x(DIM2+2*H)x(DIM3+2*H). The DIM1xDIM2xDIM3 area inside
-       the H width border is the inner region of an hypothetical stencil
-       computation whise halo width is H.
-    */
+int main(int argc, char** argv) {
+    if (argc != 10) {
+        std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz halo1minus halo1plus halo2minus halo2plus halo3minus halo3plus\n where args are integer sizes of the data "
+            "fields and halo width"
+                  << std::endl;
+        return 1;
+    }
+
     int DIM1 = atoi(argv[1]);
     int DIM2 = atoi(argv[2]);
     int DIM3 = atoi(argv[3]);
@@ -665,11 +668,12 @@ namespace test_halo_exchange_3D_all_3 {
     int H2p = atoi(argv[7]);
     int H3m = atoi(argv[8]);
     int H3p = atoi(argv[9]);
-#else
-    TEST(Communication, test_halo_exchange_3D_all_3) {
-        bool passed = test(123, 56, 76, 2, 3, 1, 2, 2, 1);
-        EXPECT_TRUE(passed);
-    }
-#endif
 
+    halo_exchange_3D_all_3::test(DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p);
 }
+#else
+TEST(Communication, test_halo_exchange_3D_all_3) {
+    bool passed = halo_exchange_3D_all_3::test(123, 56, 76, 2, 3, 1, 2, 2, 1);
+    EXPECT_TRUE(passed);
+}
+#endif
