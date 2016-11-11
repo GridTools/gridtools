@@ -51,7 +51,7 @@ struct functor {
     GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
 };
 
-#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 
 bool predicate() { return false; }
 

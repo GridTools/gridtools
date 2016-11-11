@@ -18,12 +18,12 @@ namespace test_expandable_parameters {
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
 
