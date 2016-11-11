@@ -14,6 +14,7 @@ if( NOT GCL_ONLY )
             ../../examples/communication/test_halo_exchange_3D_all_2.cpp
             ../../examples/communication/test_halo_exchange_3D_all_3.cpp
             ../../examples/communication/test_halo_exchange_3D_generic.cpp
+            ../../examples/communication/test_halo_exchange_3D_generic_full.cpp
 
             # unit test driver
             test_driver.cpp
@@ -31,6 +32,7 @@ if( NOT GCL_ONLY )
                    ../../examples/communication/test_halo_exchange_3D_all_2.cu
                    ../../examples/communication/test_halo_exchange_3D_all_3.cu
                    ../../examples/communication/test_halo_exchange_3D_generic.cu
+                   ../../examples/communication/test_halo_exchange_3D_generic_full.cu
 
                    # unit test driver
                    test_driver.cpp
