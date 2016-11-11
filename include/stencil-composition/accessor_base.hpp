@@ -148,14 +148,6 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
             : m_offsets(other.offsets()) {}
 
-        // ctor with one argument: have to provide specific arguments in order to avoid ambiguous instantiation
-        // by the compiler
-        template < uint_t Idx >
-        GT_FUNCTION constexpr accessor_base(dimension< Idx > const &x)
-            : m_offsets(x) {
-            GRIDTOOLS_STATIC_ASSERT((Idx <= n_dim), "too high dimension accessor");
-        }
-
         GT_FUNCTION
         constexpr accessor_base(const int_t &x) : m_offsets(x) {}
 

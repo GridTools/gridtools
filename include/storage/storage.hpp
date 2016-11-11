@@ -210,7 +210,8 @@ namespace gridtools {
             m_on_host = false;
         }
 
-        /* Following method are just forwarding methods to the base_storage. */
+        /** @brief returning the meta_data instance on the host
+        */
         storage_info_type const &meta_data() const {
             assert(m_on_host);
             return *m_meta_data;

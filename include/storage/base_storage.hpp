@@ -384,7 +384,7 @@ namespace gridtools {
 
         /** @brief returns a const ref to the meta data field*/
         GT_FUNCTION
-        pointer< const storage_info_type > meta_data() const { return m_meta_data; }
+        pointer< const storage_info_type > meta_data_ptr() const { return m_meta_data; }
 
         GT_FUNCTION
         void set_meta_data(const storage_info_type *st) { m_meta_data = st; }
