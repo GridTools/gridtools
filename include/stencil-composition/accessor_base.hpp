@@ -41,11 +41,11 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
 
-#include "../../gridtools.hpp"
-#include "../../common/is_temporary_storage.hpp"
+#include "../gridtools.hpp"
+#include "../common/is_temporary_storage.hpp"
 
-#include "../../storage/storage.hpp"
-#include "../../storage/storage_metafunctions.hpp"
+#include "../storage/storage.hpp"
+#include "../storage/storage_metafunctions.hpp"
 
 #include "../common/offset_tuple_mixed.hpp"
 #include "extent.hpp"
