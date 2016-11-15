@@ -285,17 +285,17 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
         stencil->ready();
         stencil->steady();
         lapse_time_ReadySteady = time_ReadySteady.elapsed();
-        std::cout << "TIME SPENT IN Ready/Steady:" << boost::timer::format(lapse_time_ReadySteady);
+        //std::cout << "TIME SPENT IN Ready/Steady:" << boost::timer::format(lapse_time_ReadySteady);
 
         boost::timer::cpu_timer time_run;
         stencil->run();
         lapse_time_run = lapse_time_run + time_run.elapsed();
-        std::cout << "TIME SPENT IN Run:" << boost::timer::format(time_run.elapsed());
+        //std::cout << "TIME SPENT IN Run:" << boost::timer::format(time_run.elapsed());
 
         boost::timer::cpu_timer time_finalize;
         stencil->finalize();
         lapse_time_finalize = time_finalize.elapsed();
-        std::cout << "TIME SPENT IN Finalize:" << boost::timer::format(lapse_time_finalize);
+        //std::cout << "TIME SPENT IN Finalize:" << boost::timer::format(lapse_time_finalize);
 
         // #ifdef __CUDACC__
         // out.d2h_update();
@@ -323,8 +323,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt) {
     boost::timer::cpu_times lapse_time = time.elapsed();
 
     if (gridtools::PID == 0){
-        std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
-        std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
+        //std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time);
+        //std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run);
         std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl; //TODO: multiple processes??
         std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,TIME_STEPS,lapse_time_run.wall) << std::endl << std::endl;
 

@@ -97,7 +97,7 @@ int main_naive(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    //std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     delete[] in;
     delete[] out;
@@ -173,7 +173,7 @@ int main_naive_inc(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    //std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     delete[] in;
     delete[] out;
@@ -337,7 +337,7 @@ int main_block(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    //std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     return 0;
 }
@@ -535,7 +535,7 @@ int main_block_inc(int argc, char** argv) {
 
     print(out, d1, d2, d3, file_o);
 
-    std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
+    //std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
     return 0;
 }
