@@ -490,6 +490,26 @@ namespace gridtools {
         GT_FUNCTION constexpr FloatType pow(FloatType arg1) {
             return gridtools::gt_pow< Exponent >::apply(arg1);
         }
+
+#ifndef CUDA8
+        /*
+         * Fixes issue #342
+         * The issue is a compiler problem of CUDA <= 7.5 where a binary operator is treated as a unary operator.
+         * Workaround: If the unary operator is the defined, the correct binary operator is picked...
+         */
+        template < typename ArgType1 >
+        GT_FUNCTION void operator*(ArgType1 arg1) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof(ArgType1) < 0, "Error: Should never be instantiated");
+        }
+        template < typename ArgType1 >
+        GT_FUNCTION void operator+(ArgType1 arg1) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof(ArgType1) < 0, "Error: Should never be instantiated");
+        }
+        template < typename ArgType1 >
+        GT_FUNCTION void operator-(ArgType1 arg1) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof(ArgType1) < 0, "Error: Should never be instantiated");
+        }
+#endif
     }
 #endif
     namespace expressions {
