@@ -21,6 +21,7 @@
 #include <boundary-conditions/apply.hpp>
 
 #include <boost/timer/timer.hpp>
+#include "Timers.hpp"
 #include "cg.h"
 
 //time t is in ns, returns MFLOPS
@@ -232,17 +233,16 @@ struct boundary_conditions {
 /*******************************************************************************/
 /*******************************************************************************/
 
-bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) {
+bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t MAX_ITER, const double EPS, Timers *timers) {
 
     // Initialize MPI
-    gridtools::GCL_Init();
+    //gridtools::GCL_Init();
 
     // Domain is encapsulated in boundary layer from both sides in each dimension,
     // Boundary is added as extra layer to each dimension 
     uint_t d1 = xdim;
     uint_t d2 = ydim;
     uint_t d3 = zdim;
-    uint_t TIME_STEPS = nt;
 
     // Enforce square domain
     // if (!(xdim==ydim && ydim==zdim)) {
@@ -251,12 +251,11 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     // }
 
     // Step size, add +2 for boundary layer
-    double h = 1./(d1+2+1);//TODO boundary layer
+    double h = 1./(d1+2+1);
     double h2 = h*h;
 
     if (PID == 0){
-        printf("Running for %d x %d x %d, %d iterations, tolerance %f\n", xdim, ydim, zdim, nt, EPS);
-        // printf("Step size: %f\n", h);
+        printf("Running CG for domain %d x %d x %d, %d iterations, tolerance %.4f\n", xdim, ydim, zdim, MAX_ITER, EPS);
     }
 
 #ifdef BACKEND_BLOCK
@@ -269,6 +268,8 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     boost::timer::cpu_times lapse_time_run = {0,0,0};
     boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
     boost::timer::cpu_timer time;
+
+    timers->start(Timers::TIMER_GLOBAL);
 
     //--------------------------------------------------------------------------
     // Create processor grid
@@ -349,13 +350,15 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     //std::cout << "I #" << PID << ": " << meta_.get_low_bound(0) << " - " << meta_.get_up_bound(0) << std::endl;
     //std::cout << "J #" << PID << ": " << meta_.get_low_bound(1) << " - " << meta_.get_up_bound(1) << std::endl;
 
-    // Initialize the RHS vector domain
-    // for (uint_t i=0; i<metadata_.template dims<0>(); ++i)
-    //     for (uint_t j=0; j<metadata_.template dims<1>(); ++j)
-    //         for (uint_t k=0; k<metadata_.template dims<2>(); ++k)
-    //         {
-    //             b(i,j,k) = h2 * f(I+i, J+j, K+k); //TODO
-    //         }
+    // Initialize the local RHS vector domain
+    //std::srand(std::time(0));
+    std::srand(42);
+    for (uint_t i=0; i<metadata_.template dims<0>(); ++i)
+        for (uint_t j=0; j<metadata_.template dims<1>(); ++j)
+            for (uint_t k=0; k<metadata_.template dims<2>(); ++k)
+            {
+                b(i,j,k) = (std::rand()/(double)RAND_MAX > 0.5 ? 1.0 : -1.0);
+            }
 
     //--------------------------------------------------------------------------
     // Definition of placeholders. The order of them reflect the order the user
@@ -491,7 +494,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     MPI_Allreduce(&rTr, &rTr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     rTr_init = sqrt(rTr_global); //initial residual
 
-    #ifdef MY_VERBOSE
+    #ifndef MY_VERBOSE
     if (PID == 0) {
         #ifdef REL_TOL
         std::cout << "Iteration 0: [residual] " << sqrt(rTr_global)/rTr_init << std::endl << std::endl;
@@ -518,7 +521,7 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     int iter;
     double residual;
 
-    for(iter=1; iter <= TIME_STEPS; iter++) {
+    for(iter=1; iter <= MAX_ITER; iter++) {
 
         // construction of the domains for the steps of CG
         gridtools::domain_type<accessor_list_step0> domain_step0
@@ -616,7 +619,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         CG_step0->ready();
         CG_step0->steady();
         boost::timer::cpu_timer time_run0;
+        timers->start(Timers::TIMER_COMPUTE_STENCIL_INNER);
         CG_step0->run();
+        timers->stop(Timers::TIMER_COMPUTE_STENCIL_INNER);
         lapse_time_d3point7 = lapse_time_d3point7 + time_run0.elapsed();
         lapse_time_run = lapse_time_run + time_run0.elapsed();
         CG_step0->finalize();
@@ -648,7 +653,9 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         CG_step2->ready();
         CG_step2->steady();
         boost::timer::cpu_timer time_run2;
+        timers->start(Timers::TIMER_COMPUTE_DOTPROD); //measure r_i - a*Ad and r*'r and reduction
         rTrnew = CG_step2->run();
+        timers->stop(Timers::TIMER_COMPUTE_DOTPROD);
         lapse_time_run = lapse_time_run + time_run2.elapsed();
         CG_step2->finalize();
         MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
@@ -674,9 +681,18 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         vec[0]=d.data().get();
         vec[1]=dNew.data().get();
 
+        timers->start(Timers::TIMER_HALO_PACK);
         he.pack(vec);
+        timers->stop(Timers::TIMER_HALO_PACK);
+        
+        timers->start(Timers::TIMER_HALO_ISEND_IRECV);
         he.exchange();
+        timers->stop(Timers::TIMER_HALO_ISEND_IRECV);
+
+        //timer UNPACK_WAIT is used to measure only unpack
+        timers->start(Timers::TIMER_HALO_UNPACK_WAIT);
         he.unpack(vec);
+        timers->stop(Timers::TIMER_HALO_UNPACK_WAIT);
 
         MPI_Barrier(GCL_WORLD);
 
@@ -700,10 +716,10 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
         residual =  sqrt(rTrnew_global);
         #endif
 
-        #ifdef MY_VERBOSE
+        #ifndef MY_VERBOSE
         if (PID == 0)
         {
-            std::cout << "Iteration " << iter << ": [time]" << boost::timer::format(lapse_time_iteration,8,"%w") << std::endl;
+            std::cout << "Iteration " << iter << ": [time] " << boost::timer::format(lapse_time_iteration,8,"%w") << std::endl;
             std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
         }
         #endif
@@ -714,83 +730,22 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t nt, const double EPS) 
     }
 
     boost::timer::cpu_times lapse_time = time.elapsed();
+    timers->stop(Timers::TIMER_GLOBAL);
 
+    //------------------------------------------------------------------------
     #ifndef MY_VERBOSE
     if (PID == 0) {
-        std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
+        std::cout << "Total iteration count: " << iter-1 << std::endl;
+        std::cout << "Residual: " << residual << std::endl;
+
+        std::cout << std::endl << "Total time: " << boost::timer::format(lapse_time,8,"%w") << std::endl;
+        std::cout << "Total time in run stage: " << boost::timer::format(lapse_time_run,8,"%w") << std::endl;
+        std::cout << "Stencil performance MFLOPS: " << MFLOPS(7,d1,d2,d3,MAX_ITER,lapse_time_d3point7.wall) << std::endl;
+        std::cout << "Stencil performance MLUPs: " << MLUPS(d1,d2,d3,MAX_ITER,lapse_time_d3point7.wall) << std::endl << std::endl;
     }
     #endif
 
-    if (gridtools::PID == 0){
-        std::cout << std::endl << "TOTAL TIME: " << boost::timer::format(lapse_time,8,"%w") << std::endl;
-        std::cout << "TIME SPENT IN RUN STAGE:" << boost::timer::format(lapse_time_run,8,"%w") << std::endl;
-        std::cout << "d3point7 MFLOPS: " << MFLOPS(7,d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl;
-        std::cout << "d3point7 MLUPs: " << MLUPS(d1,d2,d3,nt,lapse_time_d3point7.wall) << std::endl << std::endl;
-    }
-
-
-#ifdef DEBUG
-    {
-        std::stringstream ss;
-        ss << PID;
-        std::string filename = "x" + ss.str() + ".txt";
-        std::ofstream file(filename.c_str());
-        x.print(file);
-    }
-    {
-        std::stringstream ss;
-        ss << PID;
-        std::string filename = "xNew" + ss.str() + ".txt";
-        std::ofstream file(filename.c_str());
-        xNew.print(file);
-    }
-    {
-        std::stringstream ss;
-        ss << PID;
-        std::string filename = "Ax" + ss.str() + ".txt";
-        std::ofstream file(filename.c_str());
-        Ax.print(file);
-    }
-    {
-        std::stringstream ss;
-        ss << PID;
-        std::string filename = "r" + ss.str() + ".txt";
-        std::ofstream file(filename.c_str());
-        r.print(file);
-    }
-    {
-        std::stringstream ss;
-        ss << PID;
-        std::string filename = "rNew" + ss.str() + ".txt";
-        std::ofstream file(filename.c_str());
-        rNew.print(file);
-    }
-      
-    {
-        std::stringstream ss;
-        ss << PID;
-        std::string filename = "b" + ss.str() + ".txt";
-        std::ofstream file(filename.c_str());
-        b.print(file);
-    }
-    {
-        std::stringstream ss;
-        ss << PID;
-        std::string filename = "d" + ss.str() + ".txt";
-        std::ofstream file(filename.c_str());
-        d.print(file);
-    }
-    {
-        std::stringstream ss;
-        ss << PID;
-        std::string filename = "dNew" + ss.str() + ".txt";
-        std::ofstream file(filename.c_str());
-        dNew.print(file);
-    }
-
-#endif
-
-    gridtools::GCL_Finalize();
+    //gridtools::GCL_Finalize();
 
     return true;
     }

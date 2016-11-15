@@ -3,13 +3,31 @@
 int main(int argc, char** argv)
 {
 #ifdef CXX11_ENABLED
+    // Initialize MPI
+    gridtools::GCL_Init();
+
     if (argc != 6) {
         std::cout << "Usage: cg_naive<whatever> dimx dimy dimz maxit eps\n where args are integer sizes of the data fields, max number of iterations and eps is required tolerance" << std::endl;
         return 1;
     }
 
-    return cg_naive::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), std::stod(argv[5]));
+    //create timing class
+    Timers timers;
 
+    //run GC solver for NS samples
+    int NS = 10;
+    for (int i = 0; i < NS; i++)
+    {
+        cg_naive::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), std::stod(argv[5]), &timers);
+    }
+
+    //print timing info
+    if(gridtools::PID == 0)
+    {
+        timers.print_timers();
+    }
+    
+    gridtools::GCL_Finalize();
 #else
     assert(false);
     return -1;
