@@ -45,9 +45,7 @@
 #include <common/boollist.hpp>
 #include <sys/time.h>
 
-#ifdef STANDALONE
 #include "gtest/gtest.h"
-#endif
 
 #include "triplet.hpp"
 

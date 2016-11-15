@@ -4,7 +4,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # ===============
 # Load some cmake modules.
-# 1) define what flags should be available, 
+# 1) define what flags should be available,
 # 2) package by name finder
 # 3) testing methods
 # 4) build configurator (include path, compiler flags, etc.
@@ -28,6 +28,15 @@ set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}" )
 set(exe_LIBS ${exe_LIBS} gcl)
 
 # ===============
+if( NOT GCL_ONLY )
+    if( GCL_MPI )
+        add_library( mpi_gtest_main src/GCL.cpp unit_tests/communication/test_driver.cpp )
+        set_target_properties(mpi_gtest_main PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}" )
+    endif()
+endif()
+# ===============
+
+# ===============
 # add all cpp files in src:
 # ===============
 file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" )
@@ -35,7 +44,7 @@ list(REMOVE_ITEM sources "${CMAKE_CURRENT_SOURCE_DIR}/src/GCL.cpp")
 foreach( src_file ${sources} )
     get_filename_component (exec ${src_file} NAME_WE )
     add_executable (${exec} ${src_file})
-    target_link_libraries(${exec} ${exe_LIBS})    
+    target_link_libraries(${exec} ${exe_LIBS})
 endforeach(src_file)
 
 # ===============

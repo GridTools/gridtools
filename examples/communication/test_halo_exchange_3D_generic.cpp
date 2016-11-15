@@ -635,7 +635,7 @@ namespace halo_exchange_3D_generic {
         return passed;
     }
 
-}
+} // namespace halo_exchange_3D_generic
 
 #ifdef STANDALONE
 int main(int argc, char** argv) {
@@ -656,7 +656,7 @@ int main(int argc, char** argv) {
 }
 #else
 TEST(Communication, test_halo_exchange_3D_generic) {
-    bool passed = test(89, 45, 104, 3, 1, 2);
+    bool passed = halo_exchange_3D_generic::test(89, 45, 104, 3, 1, 2);
     EXPECT_TRUE(passed);
 }
 #endif

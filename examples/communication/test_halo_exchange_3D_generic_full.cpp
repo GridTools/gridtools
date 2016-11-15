@@ -2064,7 +2064,7 @@ int main(int argc, char** argv) {
 }
 #else
     TEST(Communication, test_halo_exchange_3D_generic_full) {
-        bool passed = test(98, 54, 87, 0,1,2,3,2,1,0,1,2,3,2,1,0,1,2,3,0,1);
+        bool passed = halo_exchange_3D_generic_full::test(98, 54, 87, 0,1,2,3,2,1,0,1,2,3,2,1,0,1,2,3,0,1);
         EXPECT_TRUE(passed);
     }
 #endif
