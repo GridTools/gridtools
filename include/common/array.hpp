@@ -49,6 +49,10 @@
 #include "generic_metafunctions/accumulate.hpp"
 //#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 
+#ifdef CXX11_ENABLED
+#include "generic_metafunctions/is_variadic_pack_of.hpp"
+#endif
+
 namespace gridtools {
 
     template < typename T >

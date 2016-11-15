@@ -34,19 +34,37 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "accumulate.hpp"
+#include <boost/mpl/placeholders.hpp>
 
 namespace gridtools {
-
 #ifdef CXX11_ENABLED
-    /**@brief specialization to stop the recursion*/
-    template < typename... Args >
-    GT_FUNCTION static constexpr bool is_variadic_pack_of(Args... args) {
-        return accumulate(logical_and(), args...);
-    }
-    template <>
-    GT_FUNCTION constexpr bool is_variadic_pack_of() {
-        return false;
-    }
+
+    /**
+     * SFINAE for the case in which all the components of a parameter pack are of type determined by the predicate
+     * Returns true also if the variadic pack is empty
+     * Example of use:
+     * template<typename ...Args, typename = is_pack_of<is_static_integral, Args...> >
+     * void fn(Args... args) {}
+     */
+    template < template < typename > class Pred, typename... IntTypes >
+    using is_pack_of =
+        typename boost::enable_if_c< ((sizeof...(IntTypes) == 0) ||
+                                         accumulate(logical_and(), true, Pred< IntTypes >::type::value...)),
+            bool >::type;
+
+    /**
+    * Same functionality as is_pack_of but with boost::mpl::placeholders for traits with more than one argument, e.g.
+    * is_same, is_convertible.
+    * The following versions are equivalent:
+    * is_pack_of<is_int, ...> and is_pack_of_with_placeholder<is_int<boost::mpl::_>, ...>
+    */
+    template < typename Pred, typename... IntTypes >
+    using is_pack_of_with_placeholder =
+        typename boost::enable_if_c< ((sizeof...(IntTypes) == 0) ||
+                                         accumulate(
+                                             logical_and(), true, boost::mpl::apply< Pred, IntTypes >::type::value...)),
+            bool >::type;
 
 #endif
-} // namespace gridtools
+}

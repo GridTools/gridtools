@@ -39,6 +39,7 @@
 
 #include <gridtools.hpp>
 #include <common/defs.hpp>
+#include <ctime>
 #define offs_(i, j, k, n, m, l) ((i) * (m) * (l) + (j) * (l) + (k))
 
 using gridtools::uint_t;
@@ -61,9 +62,9 @@ void print(double *that, uint_t n, uint_t m, uint_t l, Stream &stream) {
         for (uint_t j = 0; j < m; j += std::max((uint_t)1, m / MJ)) {
             for (uint_t k = 0; k < l; k += std::max((uint_t)1, l / MK)) {
                 stream << "[" /*("
-                                  << i << ","
-                                  << j << ","
-                                  << k << ")"*/
+                                   << i << ","
+                                   << j << ","
+                                   << k << ")"*/
                        << that[offs_(i, j, k, n, m, l)] << "] ";
             }
             stream << std::endl;

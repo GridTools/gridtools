@@ -232,6 +232,11 @@ namespace gridtools {
         GT_FUNCTION void set_begin(uint_t value) { m_begin = value; }
         GT_FUNCTION void set_end(uint_t value) { m_end = value; }
         GT_FUNCTION void set_total_length(uint_t value) { m_total_length = value; }
+
+        GT_FUNCTION bool operator==(const halo_descriptor &rhs) const {
+            return (m_minus == rhs.m_minus) && (m_plus == rhs.m_plus) && (m_begin == rhs.m_begin) &&
+                   (m_end == rhs.m_end) && (m_total_length == rhs.m_total_length);
+        }
     };
 
     inline std::ostream &operator<<(std::ostream &s, halo_descriptor const &hd) {

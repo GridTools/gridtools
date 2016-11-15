@@ -61,9 +61,12 @@ namespace copy_stencil {
     typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
 #endif
 
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+// This is the definition of the special regions in the "vertical" direction
+#ifdef CXX11_ENABLED
+    using x_interval = get_interval< 0 >;
+#else
+    typedef gridtools::interval< level< 0, 1 >, level< 1, -1 > > x_interval;
+#endif
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
@@ -127,16 +130,23 @@ namespace copy_stencil {
         // order. (I don't particularly like this)
         gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
 
+#ifdef CXX11_ENABLED
+        auto grid = make_grid(make_ij_axis(d1), make_ij_axis(d2), make_k_axis(d3));
+// OR
+// auto grid = make_grid(make_ij_axis(0, d1, 0), make_ij_axis(0, d2, 0), make_k_axis(d3));
+#else
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
+        typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
         gridtools::grid< axis > grid(di, dj);
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
+#endif
 
 /*
   Here we do lot of stuff

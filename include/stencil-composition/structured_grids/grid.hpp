@@ -36,6 +36,9 @@
 #pragma once
 #include "storage/partitioner.hpp"
 #include "stencil-composition/axis.hpp"
+#ifdef CXX11_ENABLED
+#include "../../common/generic_metafunctions/is_pack_of.hpp"
+#endif
 
 namespace gridtools {
 
@@ -51,9 +54,25 @@ namespace gridtools {
 
         array< uint_t, size_type::value > value_list;
 
+        GT_FUNCTION grid(const grid< Axis, Partitioner > &other)
+            : m_partitioner(other.m_partitioner), m_direction_i(other.m_direction_i),
+              m_direction_j(other.m_direction_j) {
+            value_list = other.value_list;
+        }
+
         GT_FUNCTION
         explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : m_partitioner(partitioner_dummy()), m_direction_i(direction_i), m_direction_j(direction_j) {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
+                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+        }
+
+        GT_FUNCTION
+        explicit grid(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            array< uint_t, size_type::value > const &value_list)
+            : m_partitioner(partitioner_dummy()), m_direction_i(direction_i), m_direction_j(direction_j),
+              value_list(value_list) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
         }
@@ -149,4 +168,84 @@ namespace gridtools {
 
     template < typename Axis, typename Partitioner >
     struct is_grid< grid< Axis, Partitioner > > : boost::mpl::true_ {};
+
+#ifdef CXX11_ENABLED
+    namespace _impl {
+        template < size_t n_sizes >
+        GT_FUNCTION array< uint_t, n_sizes + 1 > interval_sizes_to_value_list(const array< uint_t, n_sizes > &sizes) {
+            array< uint_t, n_sizes + 1 > value_list;
+
+            value_list[0] = -1;
+            for (uint_t i = 1; i <= n_sizes; ++i) {
+                assert(sizes[i - 1] > 0);
+                value_list[i] = value_list[i - 1] + sizes[i - 1];
+            }
+            return value_list;
+        }
+    }
+
+    /**
+     * @brief Pass the sizes of the k interval (do not include empty intervals). Will return an array with runtime
+     * values for the splitters. We define splitters at top and bottom, i.e. one splitter more than arguments passed.
+     * The axis is then defined from <first_splitter,-1> to <last_splitter,+1>.
+     */
+    template < typename... IntTypes,
+        typename = is_pack_of_with_placeholder< std::is_convertible< uint_t, boost::mpl::_ >, IntTypes... > >
+    GT_FUNCTION array< uint_t, sizeof...(IntTypes) + 1 > make_k_axis(IntTypes... values) {
+        GRIDTOOLS_STATIC_ASSERT(
+            (sizeof...(IntTypes) >= 1), "You need to pass at least 1 argument to define the k-axis.");
+
+        array< uint_t, sizeof...(IntTypes) > sizes{values...};
+        return _impl::interval_sizes_to_value_list(sizes);
+    }
+
+    /*
+     * @brief builds a grid
+     */
+    template < size_t n_splitters >
+    GT_FUNCTION auto make_grid(halo_descriptor const &direction_i,
+        halo_descriptor const &direction_j,
+        array< uint_t, n_splitters > const &value_list)
+        -> grid< interval< level< 0, -1 >, level< n_splitters - 1, 1 > > > {
+        return grid< interval< level< 0, -1 >, level< n_splitters - 1, 1 > > >(direction_i, direction_j, value_list);
+    }
+
+    /*
+     * @brief defines an interval between two splitters following the convention that each interval starts at
+     * <from,+1> and ends at <to,-1>
+     */
+    template < uint_t id >
+    using get_interval = interval< level< id, 1 >, level< id + 1, -1 > >;
+
+    /*
+     * @brief make axis without halo or padding
+     */
+    GT_FUNCTION halo_descriptor make_ij_axis(uint_t compute_interval) {
+        return halo_descriptor(0, 0, 0, compute_interval - 1, compute_interval);
+    }
+
+    /*
+     * @brief make axis with halo
+     */
+    GT_FUNCTION halo_descriptor make_ij_axis(uint_t halo_minus, uint_t compute_interval, uint_t halo_plus) {
+        return halo_descriptor(halo_minus,
+            halo_plus,
+            halo_minus,
+            halo_minus + compute_interval - 1,
+            halo_minus + compute_interval + halo_plus);
+    }
+
+    /*
+     * @brief make axis with halo and padding
+     */
+    GT_FUNCTION halo_descriptor make_ij_axis_padded(
+        uint_t pad_minus, uint_t halo_minus, uint_t compute_interval, uint_t halo_plus, uint_t pad_plus) {
+        return halo_descriptor(halo_minus,
+            halo_plus,
+            pad_minus + halo_minus,
+            pad_minus + halo_minus + compute_interval - 1,
+            pad_minus + halo_minus + compute_interval + halo_plus + pad_plus);
+    }
+
+#endif
 }
