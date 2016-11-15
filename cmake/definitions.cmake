@@ -189,10 +189,9 @@ function(gridtools_add_test test_name test_script test_exec)
 endfunction(gridtools_add_test)
 
 ## test script generator for MPI tests ##
-file(WRITE ${TEST_MPI_SCRIPT} "#!/bin/sh\n")
 file(APPEND ${TEST_MPI_SCRIPT} "res=0\n")
 function(gridtools_add_mpi_test test_name mpi_test_script test_exec)
-  file(APPEND ${mpi_test_script} "${LAUNCH_MPI_TEST} ${test_exec}" " ${ARGN}" "\n")
+  file(APPEND ${mpi_test_script} "\$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${mpi_test_script} "res=$((res || $? ))\n")
 endfunction(gridtools_add_mpi_test)
 

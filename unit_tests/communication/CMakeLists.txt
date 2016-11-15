@@ -11,7 +11,7 @@ if( NOT GCL_ONLY )
     if( GCL_MPI )
         set(ccflags " ${HOST_SPECIFIC_OPTIONS}")
         set(ldflags " ${MPI_ADDITIONAL_LIBS}")
-message ("CAZZO" ${ccflags})
+
         add_custom_mpi_host_test(halo_exchange_3D halo_exchange_3D.cpp ${ccflags} ${ldflags})
         add_custom_mpi_host_test(halo_exchange_3D_all ${CMAKE_CURRENT_SOURCE_DIR}/../../examples/communication/test_halo_exchange_3D_all.cpp ${ccflags} ${ldflags})
         add_custom_mpi_host_test(halo_exchange_3D_all_2 ${CMAKE_CURRENT_SOURCE_DIR}/../../examples/communication/test_halo_exchange_3D_all_2.cpp ${ccflags} ${ldflags})
