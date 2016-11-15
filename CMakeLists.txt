@@ -65,7 +65,7 @@ configure_file(GridToolsConfigVersion.cmake.in
 
 # Install the GridToolsConfig.cmake and GridToolsConfigVersion.cmake
 install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
-  "${PROJECT_BINARY_DIR}/GridToolsConfigVersion.cmake"
+  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
 
 install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
