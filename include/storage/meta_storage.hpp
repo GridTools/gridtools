@@ -121,6 +121,21 @@ namespace gridtools {
 
 #endif
 
+#ifndef STRUCTURED_GRIDS
+        // API for icosahedral grid only
+        /**@brief straightforward interface*/
+        template < typename... T >
+        constexpr GT_FUNCTION static int _index(T const &... args_) {
+            return super::_index(args_...);
+        }
+
+        template < typename LayoutT, typename StridesVector >
+        GT_FUNCTION static constexpr int_t _index(
+            StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
+            return super::template _index< StridesVector, LayoutT >(strides_, offsets);
+        }
+#endif // GRIDBACKEND==icosahedral
+
 #ifndef __CUDACC__
       private:
 #endif
