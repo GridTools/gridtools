@@ -121,7 +121,7 @@ namespace gridtools {
 
 #endif
 
-#if (GRIDBACKEND == icosahedral)
+#ifndef STRUCTURED_GRIDS
         // API for icosahedral grid only
         /**@brief straightforward interface*/
         template < typename... T >
