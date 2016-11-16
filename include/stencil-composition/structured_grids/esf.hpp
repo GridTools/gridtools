@@ -114,7 +114,7 @@ namespace gridtools {
             "arg_list=boost::mpl::vector<v1, v3>;");
 
         GRIDTOOLS_STATIC_ASSERT(_impl::check_arg_list< typename esf_function::arg_list >::value,
-            "Arg List of functor is not listed by increasing index");
+                                "The list of accessors in a user functor (i.e. the arg_list type to be defined on each functor) does not have increasing index");
 
         /**
          * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the
