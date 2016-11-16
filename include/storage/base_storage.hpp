@@ -60,7 +60,7 @@ namespace gridtools {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = base_storage< PT, MD, FD >;
 #endif
-        GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaData >::type::value ), "wrong meta_storage type");
+        GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaData >::type::value), "wrong meta_storage type");
         typedef base_storage< PointerType, MetaData, FieldDimension > basic_type;
         typedef PointerType pointer_type;
         typedef typename pointer_type::pointee_t value_type;
@@ -217,6 +217,24 @@ namespace gridtools {
             }
         }
 
+        /**
+           @brief swapping two storages
+
+           \param other the storage we want to swap with
+
+           The storage pointer, or all the fields/snapshots in case of a data field/storage list, get
+           replaced by the corresponding pointers in another storage, while the other storage's
+           pointers get replaced by the corresponding ones in this storage.
+
+           NOTE: the two storages must have the same size, i.e. the same number of snapshot/dimensions,
+           and the same storage_info.
+         */
+        GT_FUNCTION
+        void swap_pointers(base_storage &other) {
+            for (ushort_t i = 0; i < field_dimensions; ++i)
+                m_fields[i].swap(other.m_fields[i]);
+        }
+
         /** @brief initializes with a lambda function
                 NOTE: valid for 3D storages only
          */
@@ -366,7 +384,7 @@ namespace gridtools {
 
         /** @brief returns a const ref to the meta data field*/
         GT_FUNCTION
-        pointer< const storage_info_type > meta_data() const { return m_meta_data; }
+        pointer< const storage_info_type > meta_data_ptr() const { return m_meta_data; }
 
         GT_FUNCTION
         void set_meta_data(const storage_info_type *st) { m_meta_data = st; }

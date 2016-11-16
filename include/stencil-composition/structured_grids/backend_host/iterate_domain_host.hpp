@@ -99,6 +99,8 @@ namespace gridtools {
             m_strides = strides;
         }
 
+        iterate_domain_host const &get() const { return *this; }
+
         template < ushort_t Coordinate, typename Execution >
         GT_FUNCTION void increment_impl() {}
 

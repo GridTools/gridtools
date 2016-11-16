@@ -24,7 +24,7 @@ void print_me(T &storage, int splitter) {
 }
 
 TEST(aligned_index_test, unaligned_access) {
-    typedef meta_storage< meta_storage_base< 0, layout, false > > meta_storage_t;
+    typedef meta_storage< meta_storage_base< static_int< 0 >, layout, false > > meta_storage_t;
     typedef storage< base_storage< wrap_pointer< double, true >, meta_storage_t, 1 > > storage_t;
     meta_storage_t meta(3, 3);
     storage_t data(meta, 0.0, "data");
@@ -43,7 +43,8 @@ TEST(aligned_index_test, unaligned_access) {
 }
 
 TEST(aligned_index_test, aligned_access) {
-    typedef meta_storage< meta_storage_aligned< meta_storage_base< 0, layout, false >, aligned< 4 >, halo< 1, 0 > > >
+    typedef meta_storage<
+        meta_storage_aligned< meta_storage_base< static_int< 0 >, layout, false >, aligned< 4 >, halo< 1, 0 > > >
         meta_storage_t;
     typedef storage< base_storage< wrap_pointer< double, true >, meta_storage_t, 1 > > storage_t;
     meta_storage_t meta(3, 3);

@@ -50,14 +50,12 @@ namespace gridtools {
         struct cartesian {};
     } // namespace topology
 
-    using namespace topology;
-
-    template < typename TopologyType >
-    class cell_topology {};
+    template<typename TopologyType>
+    class cell_topology{};
 
     template < typename Layout >
-    class cell_topology< cartesian< Layout > > {
-      public:
-        static const ushort_t space_dimensions = Layout::length;
+    class cell_topology< topology::cartesian< Layout > > {
+    public:
+        static const ushort_t space_dimensions=Layout::length;
     };
 } // namespace gridtools

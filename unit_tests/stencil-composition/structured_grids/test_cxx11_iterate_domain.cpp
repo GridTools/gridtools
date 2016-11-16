@@ -275,7 +275,24 @@ namespace test_iterate_domain {
 
         // check index initialization and increment
 
-        array< int_t, 3 > index;
+        assert(it_domain(accessor<2, enumtype::inout,extent<0,0,0,0>, 4>())==0.);
+        assert(it_domain(accessor<2, enumtype::inout,extent<0,0,0,0>, 4>(dimension<3>(1)))==1.);
+        assert(it_domain(accessor<2, enumtype::inout,extent<0,0,0,0>, 4>(dimension<4>(1)))==10.);
+        assert(it_domain(accessor<2, enumtype::inout,extent<0,0,0,0>, 4>(dimension<4>(1), dimension<3>(1)))==11.);
+        assert(it_domain(accessor<2, enumtype::inout,extent<0,0,0,0>, 4>(dimension<4>(2)))==20.);
+        assert(it_domain(accessor<2, enumtype::inout,extent<0,0,0,0>, 4>(dimension<4>(2), dimension<3>(1)))==21.);
+
+
+        assert(it_domain(inout_accessor<2, extent<0,0,0,0>, 4>(0,0,0,0) ) == 0.);
+        assert(it_domain(inout_accessor<2, extent<0,0,0,0>, 4>(0,0,1,0) ) == 1.);
+        assert(it_domain(inout_accessor<2, extent<0,0,0,0>, 4>(0,0,0,1) ) == 10.);
+        assert(it_domain(inout_accessor<2, extent<0,0,0,0>, 4>(0,0,1,1) ) == 11.);
+        assert(it_domain(inout_accessor<2, extent<0,0,0,0>, 4>(0,0,0,2) ) == 20.);
+        assert(it_domain(inout_accessor<2, extent<0,0,0,0>, 4>(0,0,1,2) ) == 21.);
+
+        //check index initialization and increment
+
+        array<int_t, 3> index;
         it_domain.get_index(index);
         assert(index[0] == 0 && index[1] == 0 && index[2] == 0);
         index[0] += 3;
@@ -357,6 +374,12 @@ namespace test_iterate_domain {
 
         assert(((float_type *)(out.get< 1, 1 >() + new_index[0] +
                                out.meta_data().strides< 1 >(out.meta_data().strides())) == &it_domain(c2_)));
+
+        //check runtime alias arguments
+        alias<accessor<2, enumtype::inout,extent<0,0,0,0>, 4>, dimension<3>, dimension<4> > acc_(1,1);
+        using acc_t = alias<accessor<2, enumtype::inout,extent<0,0,0,0>, 4>, dimension<3>, dimension<4> >::set<1,1>;
+        assert(&it_domain(acc_t(dimension<1>(1)))==&it_domain(acc_(dimension<1>(1))));
+
 #endif
 
         // check strides initialization

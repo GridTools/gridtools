@@ -58,7 +58,7 @@ namespace gridtools {
     template < typename MetaStorageBase,
         typename FirstTile,
 #ifdef CXX11_ENABLED
-        typename ... Tiles
+        typename... Tiles
 #else
         uint_t Tile,
         uint_t Plus,
@@ -150,8 +150,9 @@ namespace gridtools {
 
         /**
            @brief returns the index (in the array of data snapshots) corresponding to the specified offset
-           basically it returns offset unless it is negative or it exceeds the size of the internal array of snapshots.
-           In the latter case it returns offset modulo the size of the array.
+
+           It returns offset unless it is negative or it exceeds the size of the internal array of snapshots. In the
+           latter case it returns offset modulo the size of the array.
            In the former case it returns the array size's complement of -offset.
         */
         GT_FUNCTION

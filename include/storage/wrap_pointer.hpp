@@ -68,10 +68,10 @@ namespace gridtools {
 
         GT_FUNCTION
         wrap_pointer(wrap_pointer const &other)
-            : m_cpu_p(other.m_cpu_p), m_externally_managed(true), m_size(other.m_size) {}
+            : m_cpu_p(other.m_cpu_p), m_externally_managed(true){}
 
         GT_FUNCTION
-        wrap_pointer(uint_t size, bool externally_managed) : m_externally_managed(externally_managed), m_size(size) {
+        wrap_pointer(uint_t size, bool externally_managed) : m_externally_managed(externally_managed) {
             allocate_it(size);
 #ifdef VERBOSE
             printf("CONSTRUCT pointer - %X %d\n", m_cpu_p, size);
@@ -192,19 +192,30 @@ namespace gridtools {
             return &m_cpu_p[i];
         }
 
+        /**
+           @brief swapping two pointers
+        */
         GT_FUNCTION
-        int get_size() { return m_size; }
+        void swap(wrap_pointer &other) {
 
-        GT_FUNCTION
-        T *get_cpu_p() { return m_cpu_p; }
+            T *tmp = m_cpu_p;
+            m_cpu_p = other.m_cpu_p;
+            other.m_cpu_p = tmp;
 
-        GT_FUNCTION
-        T *get_gpu_p() { assert(false); }
+            bool tmp_bool = m_externally_managed;
+            m_externally_managed = other.m_externally_managed;
+            other.m_externally_managed = tmp_bool;
+    }
 
-      protected:
-        T *m_cpu_p;
-        uint_t m_size;
-        bool m_externally_managed;
+    GT_FUNCTION
+    T *get_cpu_p() { return m_cpu_p; }
+
+    GT_FUNCTION
+    T *get_gpu_p() { assert(false); }
+
+  protected:
+    T *m_cpu_p;
+    bool m_externally_managed;
     };
 
 } // namespace gridtools
