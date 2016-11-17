@@ -105,6 +105,7 @@ if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
     test -e build
     if [ $? -ne 0 ] ; then
+        echo "REMOVING ALL FILES"
         rm -rf build
     fi
 fi
@@ -160,18 +161,20 @@ WHERE_=`pwd`
 
 export JENKINS_COMMUNICATION_TESTS=1
 
-if [[ ${COMPILER} == "gcc" ]] ; then
-    HOST_COMPILER=`which g++`
-elif [[ ${COMPILER} == "clang" ]] ; then
-    HOST_COMPILER=`which clang++`
-    ADDITIONAL_FLAGS="-ftemplate-depth=1024"
-    if [[ ${USE_GPU} == "ON" ]]; then
-       echo "Clang not supported with nvcc"
-       exit_if_error 334
+if [[ -z ${HOST_COMPILER} ]]; then
+    if [[ ${COMPILER} == "gcc" ]] ; then
+        HOST_COMPILER=`which g++`
+    elif [[ ${COMPILER} == "clang" ]] ; then
+        HOST_COMPILER=`which clang++`
+        ADDITIONAL_FLAGS="-ftemplate-depth=1024"
+        if [[ ${USE_GPU} == "ON" ]]; then
+            echo "Clang not supported with nvcc"
+            exit_if_error 334
+        fi
+    else
+        echo "COMPILER ${COMPILER} not supported"
+        exit_if_error 333
     fi
-else
-    echo "COMPILER ${COMPILER} not supported"
-    exit_if_error 333
 fi
 
 if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
@@ -182,6 +185,7 @@ fi
 
 # echo "Printing ENV"
 # env
+
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
@@ -196,7 +200,7 @@ cmake \
 -DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}" \
 -DCUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
 -DUSE_MPI:BOOL=$USE_MPI \
--DUSE_MPI_COMPILER:BOOL=$USE_MPI  \
+-DUSE_MPI_COMPILER:BOOL=$USE_MPI_COMPILER  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
 -DENABLE_CXX11:BOOL=$CXX_11 \
 -DENABLE_PYTHON:BOOL=$USE_PYTHON \
@@ -206,6 +210,8 @@ cmake \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
  ../
+
+CC --version
 
 exit_if_error $?
 
@@ -255,7 +261,11 @@ if [[ ${QUEUE} ]] ; then
 fi
 
 
-bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
+if [[ "$RUN_MPI_TESTS" == "ON" ]]; then
+    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS
+else
+    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
+fi
 
 exit_if_error $?
 

@@ -35,3 +35,4 @@ export CUDATOOLKIT_HOME=${CUDA_PATH}
 
 export CUDA_ARCH=sm_35
 export DEFAULT_QUEUE=k80
+export LAUNCH_MPI_TEST="srun -N4 -n4"

@@ -2,7 +2,7 @@
 
 module load PrgEnv-gnu
 #we need a decent cmake version in order to pass the HOST_COMPILER to nvcc
-module load CMake/3.3.2 
+module load CMake/3.3.2
 #module load python/3.4.3
 #module load boost/1.56_gcc4.8.4
 #module load mvapich2/gcc/64/2.0-gcc-4.8.2-cuda-6.0
@@ -19,3 +19,6 @@ export BOOST_ROOT=/scratch/cosuna/software/boost_1_59_0/
 export BOOST_INCLUDE=/scratch/cosuna/software/boost_1_59_0/include/
 export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
+export LAUNCH_MPI_TEST="srun"
+export CPU_JOB_ENV="export CUDA_AUTO_BOOST=0; export GCLOCK=875; export G2G=1; export CUDA_AUTO_BOOST=0;"
+export GPU_JOB_ENV="export CUDA_AUTO_BOOST=0; export GCLOCK=875; export G2G=1; export CUDA_AUTO_BOOST=0;"
