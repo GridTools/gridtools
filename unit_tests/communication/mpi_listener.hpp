@@ -95,13 +95,23 @@ public:
         test_case_tests_ = 0;
     }
     virtual void OnTestCaseEnd(const TestCase& test_case) override {
-        printf_helper(
-                      "[PASSED %3d; FAILED %3d] of %3d tests in %s\n\n",
-                      test_case_tests_-test_case_failures_,
-                      test_case_failures_,
-                      test_case_tests_,
-                      test_case.name()
-                      );
+
+        if (test_case_failures_) {
+            printf_helper(
+                          "[PASSED %3d; FAILED %3d] of %3d tests in %s\n\n",
+                          test_case_tests_-test_case_failures_,
+                          test_case_failures_,
+                          test_case_tests_,
+                          test_case.name()
+                          );
+        } else {
+            printf_helper(
+                          "[ALL PASSED %3d; ] of %3d tests in %s\n\n",
+                          test_case_tests_,
+                          test_case_tests_,
+                          test_case.name()
+                          );
+        }
     }
 
     // Called before a test starts.
