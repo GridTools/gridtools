@@ -211,8 +211,6 @@ cmake \
 -DVERBOSE=$VERBOSE_RUN \
  ../
 
-CC --version
-
 exit_if_error $?
 
 #number of trials for compilation. We add this here because sometime intermediate links of nvcc are missing

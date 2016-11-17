@@ -20,5 +20,8 @@ export BOOST_INCLUDE=/scratch/cosuna/software/boost_1_59_0/include/
 export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
 export LAUNCH_MPI_TEST="srun"
-export CPU_JOB_ENV="export CUDA_AUTO_BOOST=0; export GCLOCK=875; export G2G=1; export CUDA_AUTO_BOOST=0;"
-export GPU_JOB_ENV="export CUDA_AUTO_BOOST=0; export GCLOCK=875; export G2G=1; export CUDA_AUTO_BOOST=0;"
+export JOB_ENV="export CUDA_AUTO_BOOST=0; export GCLOCK=875; export G2G=1; export CUDA_AUTO_BOOST=0;"
+export DEFAULT_QUEUE=dev
+export USE_MPI_COMPILER=ON
+export MPI_NODES=1
+export MPI_TASKS=4

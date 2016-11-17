@@ -3,11 +3,10 @@
 #SBATCH --nodes=<MPI_NODES>
 #SBATCH --ntasks=<MPI_TASKS>
 #SBATCH --ntasks-per-node=<MPI_PPN>
-#SBATCH --ntasks-per-socket=1
-#SBATCH --output=test<MPI_TASKS>.out
+#SBATCH --output=<OUTPUTFILE>
 #SBATCH --partition=<QUEUE>
 #SBATCH --time=00:30:00
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:<MPI_TASKS>
 #SBATCH --distribution block:block
 #SBATCH --cpus-per-task=<CPUSPERTASK>
 
