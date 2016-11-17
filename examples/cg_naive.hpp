@@ -733,11 +733,15 @@ bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t MAX_ITER, const double
     timers->stop(Timers::TIMER_GLOBAL);
 
     //------------------------------------------------------------------------
-    #ifndef MY_VERBOSE
+    #ifdef MY_VERBOSE
     if (PID == 0) {
         std::cout << "Total iteration count: " << iter-1 << std::endl;
         std::cout << "Residual: " << residual << std::endl;
+    }
+    #endif
 
+    #ifndef MY_VERBOSE
+    if (PID == 0) {
         std::cout << std::endl << "Total time: " << boost::timer::format(lapse_time,8,"%w") << std::endl;
         std::cout << "Total time in run stage: " << boost::timer::format(lapse_time_run,8,"%w") << std::endl;
         std::cout << "Stencil performance MFLOPS: " << MFLOPS(7,d1,d2,d3,MAX_ITER,lapse_time_d3point7.wall) << std::endl;
