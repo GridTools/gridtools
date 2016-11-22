@@ -33,17 +33,44 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include <boost/mpl/copy.hpp>
-#include <boost/mpl/inserter.hpp>
-#include <boost/mpl/insert.hpp>
 
-namespace gridtools {
-    // similar to boost::mpl::copy but it copies into an associative set container
-    template < typename ToInsert, typename Seq >
-    struct copy_into_set {
-        typedef typename boost::mpl::copy< ToInsert,
-            boost::mpl::inserter< Seq, boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > >::type type;
-    };
+#include "gtest/gtest.h"
+#include "stencil-composition/esf_metafunctions.hpp"
 
-} // namespace
+using namespace gridtools;
+
+template < int >
+struct myt {};
+
+TEST(copy_into_set, all_elements_unique) {
+    typedef boost::mpl::vector< myt< 0 >, myt< 1 > > my_vec1;
+    typedef boost::mpl::vector< myt< 2 >, myt< 3 > > my_vec2;
+
+    typedef boost::mpl::set< my_vec1, my_vec2 > set_of_vecs;
+
+    typedef typename boost::mpl::fold< set_of_vecs,
+        boost::mpl::set0<>,
+        copy_into_set< boost::mpl::_2, boost::mpl::_1 > >::type result;
+
+    ASSERT_EQ(4, boost::mpl::size< result >::type::value);
+    ASSERT_TRUE((boost::mpl::contains< result, myt< 0 > >::type::value));
+    ASSERT_TRUE((boost::mpl::contains< result, myt< 1 > >::type::value));
+    ASSERT_TRUE((boost::mpl::contains< result, myt< 2 > >::type::value));
+    ASSERT_TRUE((boost::mpl::contains< result, myt< 3 > >::type::value));
+}
+
+TEST(copy_into_set, repeating_element) {
+    typedef boost::mpl::vector< myt< 0 >, myt< 1 > > my_vec1;
+    typedef boost::mpl::vector< myt< 2 >, myt< 0 > > my_vec2;
+
+    typedef boost::mpl::set< my_vec1, my_vec2 > set_of_vecs;
+
+    typedef typename boost::mpl::fold< set_of_vecs,
+        boost::mpl::set0<>,
+        copy_into_set< boost::mpl::_2, boost::mpl::_1 > >::type result;
+
+    ASSERT_EQ(3, boost::mpl::size< result >::type::value);
+    ASSERT_TRUE((boost::mpl::contains< result, myt< 0 > >::type::value));
+    ASSERT_TRUE((boost::mpl::contains< result, myt< 1 > >::type::value));
+    ASSERT_TRUE((boost::mpl::contains< result, myt< 2 > >::type::value));
+}
