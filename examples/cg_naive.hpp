@@ -5,7 +5,7 @@
 
 #define REL_TOL
 #define MY_VERBOSE
-#define a_i 0.1
+#define a_i 0.00001
 
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
@@ -367,26 +367,10 @@ namespace cg_naive{
             for (uint_t j=1; j<metadata_.template dims<1>() - 1; ++j)
                 for (uint_t k=1; k<metadata_.template dims<2>() -1 ; ++k)
                 {
-                    //b(i,j,k) = (std::rand()/(double)RAND_MAX > 0.5 ? 1.0 : -1.0);
-                    x(i,j,k) = 100*(i+I) + 10*(j+J) + k;
-                    b(i,j,k) = 100*(i+I) + 10*(j+J) + k;
+                    b(i,j,k) = (std::rand()/(double)RAND_MAX > 0.5 ? 1.0 : -1.0);
+                    //x(i,j,k) = 100*(i+I) + 10*(j+J) + k;
+                    //b(i,j,k) = 100*(i+I) + 10*(j+J) + k;
                 }
-
-        // if(PID==0) b.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==1) b.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==2) b.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==3) b.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==4) b.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==5) b.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==6) b.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==7) b.print();
 
         //--------------------------------------------------------------------------
         // Definition of placeholders. The order of them reflect the order the user
