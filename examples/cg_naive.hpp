@@ -5,6 +5,7 @@
 
 #define REL_TOL
 #define MY_VERBOSE
+#define a_i 0.1
 
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
@@ -366,9 +367,9 @@ namespace cg_naive{
             for (uint_t j=1; j<metadata_.template dims<1>() - 1; ++j)
                 for (uint_t k=1; k<metadata_.template dims<2>() -1 ; ++k)
                 {
-                    b(i,j,k) = (std::rand()/(double)RAND_MAX > 0.5 ? 1.0 : -1.0);
-                    //x(i,j,k) = 100*(i+I) + 10*(j+J) + k;
-                    //b(i,j,k) = 100*(i+I) + 10*(j+J) + k;
+                    //b(i,j,k) = (std::rand()/(double)RAND_MAX > 0.5 ? 1.0 : -1.0);
+                    x(i,j,k) = 100*(i+I) + 10*(j+J) + k;
+                    b(i,j,k) = 100*(i+I) + 10*(j+J) + k;
                 }
 
         // if(PID==0) b.print();
@@ -419,14 +420,6 @@ namespace cg_naive{
         typedef boost::mpl::vector<p_Ad_step0,
                 p_d_step0 > accessor_list_step0;
 
-        typedef arg<0, storage_type > p_Ad_step00;  // Ad
-        typedef arg<1, storage_type > p_BCx_step00; // BCx
-        typedef arg<2, parameter> p_alpha_step00;  //alpha
-
-        typedef boost::mpl::vector<p_Ad_step00,
-                p_BCx_step00,
-                p_alpha_step00 > accessor_list_step00;
-        
         typedef arg<0, storage_type > p_xNew_step1;  //solution
         typedef arg<1, storage_type > p_x_step1;     //solution
         typedef arg<2, storage_type > p_d_step1;     //search direction
@@ -535,77 +528,6 @@ namespace cg_naive{
         he.exchange();
         he.unpack(vec);
 
-        /** Add boundary conditions
-         *   1. allreduce the first and last edge of the domain in x direction
-         *   2. perform dense mat-vec that represents addition of BC
-         *   3. add the BC to the domain Ax
-         */
-        timers->start(Timers::TIMER_COMPUTE_STENCIL_BORDER);
-
-        // get local dims of the domain
-        int xdim_local = metadata_.template dims<0>() - 2;
-        int ydim_local = metadata_.template dims<1>() - 2;
-        int zdim_local = metadata_.template dims<2>() - 2;
-
-        //get pointer to the domain X data
-        double *x_data = x.data().get();
-
-        double *xedge = (double *)malloc(sizeof(double) * xdim);
-
-        //gather the first edge (x,y=0,z=0) of the domain
-        if (PID % yprocs == 0)
-        {
-            //get index [1,1,0] to skip halo/BC of the local domain
-            int start = (xdim_local+2)*(ydim_local+2) + (xdim_local+2) + 1;
-
-            // Gather all partial averages down to all the processes
-            MPI_Allgather(&x_data[start], xdim_local, MPI_DOUBLE, xedge, xdim_local, MPI_DOUBLE,  xdim_comm);
-
-            double *BCx_data = &(BCx.data().get())[start]; 
-            size_t offset  = meta_.get_low_bound(0); //row offset
-            for (int row = 0; row < xdim_local; row++)
-            {
-                int row_g = row + offset;
-
-                BCx_data[row] = 0.0; 
-                for (int col = 0; col < xdim; col++)
-                {
-                    double a_i = 0.1;
-
-                    //BC * x
-                    BCx_data[row] += a_i * xedge[col]; 
-                }
-            }
-
-        }
-
-        //colect back edge (x,y=N,z=N)
-        if (PID % yprocs == yprocs - 1)
-        {
-            int start = ((xdim_local + 2 ) * (ydim_local + 2) * (zdim_local )) + (xdim_local + 2) * (ydim_local ) + 1;
-
-            // Gather all partial averages down to all the processes
-            MPI_Allgather(&x_data[start], xdim_local, MPI_DOUBLE, xedge, xdim_local, MPI_DOUBLE,  xdim_comm);
-
-            double *BCx_data = &(BCx.data().get())[start]; //index [1,1] to skip halo/BC
-            size_t offset  = meta_.get_low_bound(0); //row offset
-            for (int row = 0; row < xdim_local; row++)
-            {
-                int row_g = row + offset;
-
-                BCx_data[row] = 0.0; 
-                for (int col = 0; col < xdim; col++)
-                {
-                    double a_i = 0.1;
-
-                    //BC * x
-                    BCx_data[row] += a_i * xedge[col]; 
-                }
-            }
-        }
-
-        timers->stop(Timers::TIMER_COMPUTE_STENCIL_BORDER);
-
         //do the initial phase of CG
         CG_init->ready();
         CG_init->steady();
@@ -616,21 +538,6 @@ namespace cg_naive{
         MPI_Allreduce(&rTr, &rTr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         rTr_init = sqrt(rTr_global); //initial residual
 
-        // if(PID==0) Ax.print(), BCx.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==1) Ax.print(), BCx.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==2) Ax.print(), BCx.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==3) Ax.print(), BCx.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==4) Ax.print(), BCx.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==5) Ax.print(), BCx.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==6) Ax.print(), BCx.print();
-        // MPI_Barrier(MPI_COMM_WORLD);
-        // if(PID==7) Ax.print(), BCx.print();
 
 
 #ifndef MY_VERBOSE
@@ -659,14 +566,19 @@ namespace cg_naive{
         int iter;
         double residual;
 
+        // get local dims of the domain
+        int xdim_local = metadata_.template dims<0>() - 2;
+        int ydim_local = metadata_.template dims<1>() - 2;
+        int zdim_local = metadata_.template dims<2>() - 2;
+
+        // allocate edge for BC
+        double *xedge = (double *)malloc(sizeof(double) * xdim);
+
         for(iter=1; iter <= MAX_ITER; iter++) {
 
             // construction of the domains for the steps of CG
             gridtools::domain_type<accessor_list_step0> domain_step0
                 (boost::fusion::make_vector(&Ad, ptr_d));
-
-            gridtools::domain_type<accessor_list_step00> domain_step00
-                (boost::fusion::make_vector(&Ad, &BCx, &alpha));
 
             gridtools::domain_type<accessor_list_step1> domain_step1
                 (boost::fusion::make_vector(ptr_xNew, ptr_x, ptr_d, &alpha));
@@ -696,19 +608,6 @@ namespace cg_naive{
                   execute<forward>(),
                   gridtools::make_esf<d3point7>( p_Ad_step0(),
                       p_d_step0() ) // A * d
-                 )
-                );
-
-            auto CG_step00 = gridtools::make_computation<gridtools::BACKEND>
-                (
-                 domain_step00, coords3d7pt,
-                 gridtools::make_mss // mss_descriptor
-                 (
-                  execute<forward>(),
-                  gridtools::make_esf<add_functor>( p_Ad_step00(),
-                      p_Ad_step00(),
-                      p_BCx_step00(),
-                      p_alpha_step00() ) // Ad = Ad + BCx
                  )
                 );
 
@@ -779,74 +678,115 @@ namespace cg_naive{
             lapse_time_run = lapse_time_run + time_run0.elapsed();
             CG_step0->finalize();
 
-            /** 
-             * 1.apply BC to vector d
+            // if(PID==0) { printf("d\n"); ptr_d->print(); }
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==1) {  printf("d\n"); ptr_d->print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==2) {  printf("d\n"); ptr_d->print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==3) {  printf("d\n"); ptr_d->print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==4) {  printf("d\n"); ptr_d->print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==5) {  printf("d\n"); ptr_d->print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==6) {  printf("d\n"); ptr_d->print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==7) {  printf("d\n"); ptr_d->print();}
+
+            // if(PID==0) {printf("Ad\n"); Ad.print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==1)  {printf("Ad\n"); Ad.print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==2)  {printf("Ad\n"); Ad.print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==3)  {printf("Ad\n"); Ad.print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==4)  {printf("Ad\n"); Ad.print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==5)  {printf("Ad\n"); Ad.print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==6)  {printf("Ad\n"); Ad.print();}
+            // MPI_Barrier(MPI_COMM_WORLD);
+            // if(PID==7) { printf("Ad\n"); Ad.print();}
+           
+            /** Apply BC to domain d
+             *   1. allreduce the first and last edge of the domain in x direction
+             *   2. perform dense mat-vec that represents addition of BC
+             *   3. add the BC to the domain Ax
              */
             timers->start(Timers::TIMER_COMPUTE_STENCIL_BORDER);
 
             //get pointer to the domain X data
-            x_data = d.data().get();
+            double *d_data = ptr_d->data().get();
 
-            //gather the first edge (x,y=0,z=0) of the domain
+            // apply BC to the  (x,y=0,z=0) edge of the domain
             if (PID % yprocs == 0)
             {
                 //get index [1,1,0] to skip halo/BC of the local domain
                 int start = (xdim_local+2)*(ydim_local+2) + (xdim_local+2) + 1;
 
                 // Gather all partial averages down to all the processes
-                MPI_Allgather(&x_data[start], xdim_local, MPI_DOUBLE, xedge, xdim_local, MPI_DOUBLE,  xdim_comm);
+                MPI_Allgather(&d_data[start], xdim_local, MPI_DOUBLE, xedge, xdim_local, MPI_DOUBLE,  xdim_comm);
 
-                double *BCx_data = &(BCx.data().get())[start]; 
-                size_t offset  = meta_.get_low_bound(0); //row offset
+                double *Ad_data = &(Ad.data().get())[start]; 
+                
+                double tmp = 0.0;
+                for (int col = 0; col < xdim; col++)
+                {
+                    //BC * x
+                    tmp += a_i * xedge[col]; 
+                }
+                
                 for (int row = 0; row < xdim_local; row++)
                 {
-                    int row_g = row + offset;
-
-                    BCx_data[row] = 0.0; 
-                    for (int col = 0; col < xdim; col++)
-                    {
-                        double a_i = 0.1;
-
-                        //BC * x
-                        BCx_data[row] += a_i * xedge[col]; 
-                    }
+                    //add BD to the stencil
+                    Ad_data[row] += tmp; 
                 }
 
             }
 
-            //colect back edge (x,y=N,z=N)
+            // apply BC to the edge (x,y=N,z=N)
             if (PID % yprocs == yprocs - 1)
             {
                 int start = ((xdim_local + 2 ) * (ydim_local + 2) * (zdim_local )) + (xdim_local + 2) * (ydim_local ) + 1;
 
                 // Gather all partial averages down to all the processes
-                MPI_Allgather(&x_data[start], xdim_local, MPI_DOUBLE, xedge, xdim_local, MPI_DOUBLE,  xdim_comm);
+                MPI_Allgather(&d_data[start], xdim_local, MPI_DOUBLE, xedge, xdim_local, MPI_DOUBLE,  xdim_comm);
 
-                double *BCx_data = &(BCx.data().get())[start]; //index [1,1] to skip halo/BC
-                size_t offset  = meta_.get_low_bound(0); //row offset
+                double *Ad_data = &(Ad.data().get())[start]; 
+                
+                double tmp = 0.0;
+                for (int col = 0; col < xdim; col++)
+                {
+                    //BC * x
+                    tmp += a_i * xedge[col]; 
+                }
+                
                 for (int row = 0; row < xdim_local; row++)
                 {
-                    int row_g = row + offset;
-
-                    BCx_data[row] = 0.0; 
-                    for (int col = 0; col < xdim; col++)
-                    {
-                        double a_i = 0.1;
-
-                        //BC * x
-                        BCx_data[row] += a_i * xedge[col]; 
-                    }
+                    //add BD to the stencil
+                    Ad_data[row] += tmp; 
                 }
+
             }
 
-            // add BC to AD, AD = A * d + BC * d
-            alpha.setValue(+1.0);
-            CG_step00->ready();
-            CG_step00->steady();
-            boost::timer::cpu_timer time_run00;
-            CG_step00->run();
-            lapse_time_run = lapse_time_run + time_run0.elapsed();
-            CG_step00->finalize();
+            //  if(PID==0) {printf("Ad\n"); Ad.print();}
+            //  MPI_Barrier(MPI_COMM_WORLD);
+            //  if(PID==1)  {printf("Ad\n"); Ad.print();}
+            //  MPI_Barrier(MPI_COMM_WORLD);
+            //  if(PID==2)  {printf("Ad\n"); Ad.print();}
+            //  MPI_Barrier(MPI_COMM_WORLD);
+            //  if(PID==3)  {printf("Ad\n"); Ad.print();}
+            //  MPI_Barrier(MPI_COMM_WORLD);
+            //  if(PID==4)  {printf("Ad\n"); Ad.print();}
+            //  MPI_Barrier(MPI_COMM_WORLD);
+            //  if(PID==5)  {printf("Ad\n"); Ad.print();}
+            //  MPI_Barrier(MPI_COMM_WORLD);
+            //  if(PID==6)  {printf("Ad\n"); Ad.print();}
+            //  MPI_Barrier(MPI_COMM_WORLD);
+            //  if(PID==7) { printf("Ad\n"); Ad.print();}
+
             timers->stop(Timers::TIMER_COMPUTE_STENCIL_BORDER);
 
             // Denominator of alpha
