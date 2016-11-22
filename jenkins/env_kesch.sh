@@ -17,15 +17,6 @@ export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
-if [[ ${VERSION} == "5.3" ]]; then
-    export GTEST_LIB=/scratch/cosuna/software/gtest-1.7.0_gcc5.3/lib/libgtest.a
-    export GTEST_MAINLIB=/scratch/cosuna/software/gtest-1.7.0_gcc5.3/lib/libgtest_main.a
-    export GTEST_INC=/scratch/cosuna/software/gtest-1.7.0_gcc5.3/include
-else
-    export GTEST_LIB=/scratch/cosuna/software/gtest-1.7.0/lib/libgtest.a
-    export GTEST_MAINLIB=/scratch/cosuna/software/gtest-1.7.0/lib/libgtest_main.a
-    export GTEST_INC=/scratch/cosuna/software/gtest-1.7.0/include
-fi
 export BOOST_ROOT=/scratch/cosuna/software/boost_1_59_0/
 export BOOST_INCLUDE=/scratch/cosuna/software/boost_1_59_0/include/
 export CUDA_ARCH=sm_37
