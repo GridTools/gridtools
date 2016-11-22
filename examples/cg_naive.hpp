@@ -368,8 +368,8 @@ namespace cg_naive{
                 for (uint_t k=1; k<metadata_.template dims<2>() -1 ; ++k)
                 {
                     b(i,j,k) = (std::rand()/(double)RAND_MAX > 0.5 ? 1.0 : -1.0);
-                    //x(i,j,k) = 100*(i+I) + 10*(j+J) + k;
-                    //b(i,j,k) = 100*(i+I) + 10*(j+J) + k;
+                    //x(i,j,k) = 0;
+                    //b(i,j,k) = 1.0;
                 }
 
         //--------------------------------------------------------------------------
