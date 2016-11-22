@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include <iosfwd>
@@ -42,17 +77,23 @@ namespace gridtools {
         typedef typename RegularStorageType::basic_type type;
         typedef typename type::storage_info_type storage_info_type;
         typedef typename type::layout layout;
-        typedef typename type::const_iterator_type const_iterator_type;
+        typedef typename type::const_iterator const_iterator;
         typedef typename type::basic_type basic_type;
         typedef typename type::pointer_type pointer_type;
         static const ushort_t n_width = basic_type::n_width;
         static const ushort_t field_dimensions = basic_type::field_dimensions;
         typedef void storage_type;
-        typedef typename type::iterator_type iterator_type;
+        typedef typename type::iterator iterator;
         typedef typename type::value_type value_type;
+        typedef typename RegularStorageType::storage_ptr_t storage_ptr_t;
         static const ushort_t space_dimensions = RegularStorageType::space_dimensions;
         static const bool is_temporary = RegularStorageType::is_temporary;
         static void text() { std::cout << "text: no_storage_type_yet<" << RegularStorageType() << ">" << std::endl; }
+        storage_ptr_t storage_pointer() const { assert(false); }
+        void clone_to_device() { assert(false); }
+        void set_on_device() { assert(false); }
+        void d2h_update() { assert(false); }
+        pointer< const storage_ptr_t > get_storage_pointer() const { assert(false); }
         void info(std::ostream &out_s) const {
             out_s << "No sorage type yet for storage type " << RegularStorageType() << "\n";
         }
@@ -83,10 +124,12 @@ namespace gridtools {
         template < typename PT, typename MD, ushort_t FD >
         using type_tt = typename BaseStorage::template type_tt< PT, MD, FD >;
 #endif
-        typedef BaseStorage basic_type;
+        typedef BaseStorage super;
+        typedef typename super::layout layout;
+        typedef typename BaseStorage::basic_type basic_type;
         typedef storage< BaseStorage > this_type;
         typedef typename BaseStorage::storage_info_type storage_info_type;
-        typedef typename BaseStorage::iterator_type iterator_type;
+        typedef typename BaseStorage::iterator iterator;
         typedef typename BaseStorage::value_type value_type;
         typedef typename BaseStorage::pointer_type pointer_type;
         static const bool is_temporary = BaseStorage::is_temporary;
@@ -106,7 +149,7 @@ namespace gridtools {
                                               hybrid_pointer< const storage_info_type, false >,
                                               boost::mpl::void_ >::type >::type meta_data_ptr_t;
 
-      private:
+      protected:
         meta_data_ptr_t m_meta_data;
         storage_ptr_t m_storage;
         bool m_on_host;
@@ -118,12 +161,15 @@ namespace gridtools {
 
         void clone_to_device() {
 #ifdef _USE_GPU_
-            if (!m_on_host)
-                return;
+            // if (!m_on_host)
+            //     return;
             // clone meta dato to device
-            m_meta_data.update_gpu();
+            m_meta_data.update_gpu(); // useless if meta data is constexpr
             // set the new meta data pointer in the storage
-            (*m_storage).set_meta_data(m_meta_data.get_pointer_to_use());
+            m_storage.set_on_host();
+            m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
+            // m_storage.set_on_host();
+            // m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
             // update the storage itself
             m_storage.update_gpu();
 #endif
@@ -133,15 +179,16 @@ namespace gridtools {
         void d2h_update() {
             if (m_on_host)
                 return;
-            // clone meta dato to device
-            m_meta_data.update_cpu();
+            // no need to copy result back, just switch the pointers
+            m_meta_data.set_on_host();
             // clone the storage itself from device
-            m_storage.update_cpu();
+            // m_storage.update_cpu();
+            // no need to copy result back, just switch the pointers
+            m_storage.set_on_host();
             // set the new meta data pointer in the storage
             (*m_storage).set_meta_data(m_meta_data.get_pointer_to_use());
             // clone storage contents from device
             (*m_storage).d2h_update();
-            // set m_on_host to true
             m_on_host = true;
         }
 
@@ -150,21 +197,24 @@ namespace gridtools {
             if (!m_on_host)
                 return;
             // clone meta dato to device
+            m_storage.set_on_host();
             m_meta_data.update_gpu();
+            // m_meta_data.set_on_host();
             // set the new meta data pointer in the storage
-            (*m_storage).set_meta_data(m_meta_data.get_pointer_to_use());
+            (*m_storage).set_meta_data(m_meta_data.get_gpu_p());
             // clone storage contents to device
             (*m_storage).h2d_update();
             // clone the storage itself to device
             m_storage.update_gpu();
             // set m_on_host to false
-                m_on_host = false;
-            }
+            m_on_host = false;
+        }
 
-            /* Following method are just forwarding methods to the base_storage. */
-            storage_info_type const &meta_data() const {
-                assert(m_on_host);
-                return *m_meta_data;
+        /** @brief returning the meta_data instance on the host
+        */
+        storage_info_type const &meta_data() const {
+            assert(m_on_host);
+            return *m_meta_data;
         }
 
         pointer< storage_info_type const > get_meta_data_pointer() const {
@@ -191,6 +241,7 @@ namespace gridtools {
             return (*m_storage).template access_value< ID >();
         }
 
+        GT_FUNCTION
         pointer_type *fields_view() {
             assert(m_on_host);
             return (*m_storage).fields_view();
@@ -213,10 +264,20 @@ namespace gridtools {
             (*m_storage).allocate(dims, offset);
         }
 
+        GT_FUNCTION
         pointer< storage_ptr_t > get_storage_pointer() { return pointer< storage_ptr_t >(&m_storage); }
 
+        GT_FUNCTION
+        storage_ptr_t storage_pointer() { return m_storage; }
+
+        GT_FUNCTION
         pointer< const storage_ptr_t > get_storage_pointer() const {
             return pointer< const storage_ptr_t >(&m_storage);
+        }
+
+        void print() {
+            assert(m_on_host);
+            (*m_storage).print();
         }
 
         template < typename T >
@@ -225,52 +286,95 @@ namespace gridtools {
             (*m_storage).print(s);
         }
 
+        GT_FUNCTION
         void print_value(uint_t i, uint_t j, uint_t k) {
             assert(m_on_host);
             (*m_storage).print_value(i, j, k);
         }
 
+        GT_FUNCTION
         char const *get_name() const {
             assert(m_on_host);
             return (*m_storage).get_name();
         }
 
+        GT_FUNCTION
         void set_name(char const *const &string) {
             assert(m_on_host);
             (*m_storage).set_name(string);
         }
 
 #if defined(CXX11_ENABLED)
-        template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
-        value_type &get_value(Int... args) {
-            return (*m_storage).template get_value< snapshot, field_dim, Int... >(args...);
+
+        /** @brief method to return an element of a specific storage in a data field of storages
+
+            \tparam Snapshot the index of the snapshot in the current storage list
+            \tparam FieldDim the index of the storage list (there is one storage_list per field dimension)
+            \param args the indices used to access the storage, once it has been identified by the Snaphot and FieldDim
+           coordinates
+         */
+        template < short_t Snapshot = 0, short_t FieldDim = 0, typename... Int >
+        GT_FUNCTION value_type &get_value(Int... args) {
+            GRIDTOOLS_STATIC_ASSERT(
+                is_data_field< super >::value, "the get_value API is available only for data field storages.");
+            return (*m_storage).template get_value< Snapshot, FieldDim, Int... >(args...);
         }
 
-        template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
-        value_type const &get_value(Int... args) const {
-            return (*m_storage).template get_value< snapshot, field_dim, Int... >(args...);
+        /** @brief method to return an element of a specific storage in a data field of storages
+
+            \tparam Snapshot the index of the snapshot in the current storage list
+            \tparam FieldDim the index of the storage list (there is one storage_list per field dimension)
+            \param args the indices used to access the storage, once it has been identified by the Snaphot and FieldDim
+           coordinates
+         */
+        template < short_t Snapshot = 0, short_t FieldDim = 0, typename... Int >
+        GT_FUNCTION value_type const &get_value(Int... args) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                is_data_field< super >::value, "the get_value API is available only for data field storages.");
+            return (*m_storage).template get_value< Snapshot, FieldDim, Int... >(args...);
         }
 
+        /** @brief method to return the pointer to a specific storage in a data field of storages
+
+            \tparam Snapshot the index of the snapshot in the current storage list
+            \tparam FieldDim the index of the storage list (there is one storage_list per field dimension)
+         */
         template < short_t snapshot = 0, short_t field_dim = 0 >
-        pointer_type const &get() const {
+        GT_FUNCTION pointer_type const &get() const {
+            GRIDTOOLS_STATIC_ASSERT(
+                is_data_field< super >::value, "the get_value API is available only for data field storages.");
             return (*m_storage)
-                .fields_view()[_impl::access< basic_type::n_width - (field_dim),
-                                   typename basic_type::traits >::type::n_fields +
+                .fields_view()[_impl::access< super::n_width - (field_dim), typename super::traits >::type::n_fields +
                                snapshot];
         }
 
-        template < short_t snapshot = 0, short_t field_dim = 0 >
-        pointer_type &get() {
+        /** @brief method to return the pointer to a specific storage in a data field of storages
+
+            \tparam Snapshot the index of the snapshot in the current storage list
+            \tparam FieldDim the index of the storage list (there is one storage_list per field dimension)
+         */
+        template < short_t Snapshot = 0, short_t FieldDim = 0 >
+        GT_FUNCTION pointer_type &get() {
+            GRIDTOOLS_STATIC_ASSERT(
+                is_data_field< super >::value, "the get_value API is available only for data field storages.");
             return (*m_storage)
-                .fields_view()[_impl::access< basic_type::n_width - (field_dim),
-                                   typename basic_type::traits >::type::n_fields +
-                               snapshot];
+                .fields_view()[_impl::access< super::n_width - (FieldDim), typename super::traits >::type::n_fields +
+                               Snapshot];
         }
 
-        template < short_t snapshot = 0, short_t field_dim = 0, typename F >
-        void set(F f) {
+        /** @brief method to set the pointer to a specific storage in a data field of storages
+
+            \tparam Snapshot the index of the snapshot in the current storage list
+            \tparam FieldDim the index of the storage list (there is one storage_list per field dimension)
+            \tparam F can be several thongs, e.g. a pointer to a storage, an initialization value value, or a lambda
+         */
+        template < short_t Snapshot = 0, short_t FieldDim = 0, typename F >
+        GT_FUNCTION void set(F f) {
+            GRIDTOOLS_STATIC_ASSERT(
+                is_data_field< super >::value, "the get_value API is available only for data field storages.");
+            // F is protected inside data_field
             assert(m_on_host);
-            (*m_storage).set< snapshot, field_dim >(f);
+            (*m_storage).set< Snapshot, FieldDim >(f);
         }
 
         // forwarding constructor
@@ -280,9 +384,15 @@ namespace gridtools {
               m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), args...), false), m_on_host(true) {}
 #else // CXX11_ENABLED
 
+        explicit storage(storage_info_type const &meta_data_, const char *name_, bool do_allocate)
+            : m_meta_data(new storage_info_type(meta_data_), false),
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), name_, do_allocate), false), m_on_host(true) {
+        }
+
         explicit storage(storage_info_type const &meta_data_, value_type const &init)
             : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init), false), m_on_host(true) {}
+              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, "default storage"), false),
+              m_on_host(true) {}
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init, const char *name)
             : m_meta_data(new storage_info_type(meta_data_), false),
@@ -306,6 +416,8 @@ namespace gridtools {
 
 #endif // CXX11_ENABLED
 
+        /** @brief destructor freeing up the pointers to the storages
+         */
         ~storage() {
             m_storage.free_it();
             m_meta_data.free_it();
@@ -317,6 +429,7 @@ namespace gridtools {
             (*m_storage).release();
         }
 
+        GT_FUNCTION
         BaseStorage *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
 
         explicit storage(storage_info_type const &meta_data_)
@@ -324,7 +437,7 @@ namespace gridtools {
               m_storage(new BaseStorage(m_meta_data.get_pointer_to_use()), false), m_on_host(true) {}
 
         template < typename UInt >
-        value_type const &operator[](UInt const &index_) const {
+        GT_FUNCTION value_type const &operator[](UInt const &index_) const {
             assert(m_on_host && "The accessed storage was not copied back from the device yet.");
             return (*m_storage)[index_];
         }
@@ -333,7 +446,7 @@ namespace gridtools {
 
         /**
          * explicitly disables the case in which the storage_info is passed as r- or x-value.
-        */
+         */
         template < typename... T >
         storage(storage_info_type &&, T...) = delete;
 
@@ -341,7 +454,7 @@ namespace gridtools {
          *  this api is callable from the host only. The function that is used to .
          */
         template < typename... UInt >
-        value_type &operator()(UInt... dims) {
+        GT_FUNCTION value_type &operator()(UInt... dims) {
             assert(m_on_host && "The accessed storage was not copied back from the device yet.");
             return (*m_storage)(dims...);
         }
@@ -350,7 +463,7 @@ namespace gridtools {
          *  this api is callable from the host only. The function that is used to .
          */
         template < typename... UInt >
-        value_type const &operator()(UInt const &... dims) const {
+        GT_FUNCTION value_type const &operator()(UInt const &... dims) const {
             assert(m_on_host && "The accessed storage was not copied back from the device yet.");
             return (*m_storage)(dims...);
         }
@@ -360,19 +473,32 @@ namespace gridtools {
         /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
          *  this api is callable from the host only. The function that is used to .
          */
+        GT_FUNCTION
         value_type &operator()(uint_t const &i, uint_t const &j, uint_t const &k) {
             assert(m_on_host && "The accessed storage was not copied back from the device yet.");
             return (*m_storage)(i, j, k);
         }
 
-        /** @brief returns (by reference) the value of the data field at the coordinates (i, j, k)
-         *  this api is callable from the host only. The function that is used to .
-         */
+        GT_FUNCTION
         const value_type &operator()(uint_t const &i, uint_t const &j, uint_t const &k) const {
             assert(m_on_host && "The accessed storage was not copied back from the device yet.");
             return (*m_storage)(i, j, k);
         }
 #endif
+
+        GT_FUNCTION
+        void set_on_device() {
+            m_on_host = false;
+            m_storage->set_on_device();
+            m_storage.set_on_device();
+            m_meta_data.set_on_device();
+        }
+
+        GT_FUNCTION
+        void set_on_host() { m_on_host = true; }
+
+        GT_FUNCTION
+        void set_externally_managed(bool val_) { m_storage->set_externally_managed(val_); }
 
     }; // closing struct storage
 
@@ -383,11 +509,14 @@ namespace gridtools {
 */
 #if defined(CXX11_ENABLED)
 
+    template < typename T >
+    struct is_any_storage;
+
     /** @brief syntactic sugar for defining a data field
 
-        Given a storage type and the dimension number it generates the correct data field type
-        @tparam Storage the basic storage used
-        @tparam Number the number of snapshots in each dimension
+            Given a storage type and the dimension number it generates the correct data field type
+            @tparam Storage the basic storage used
+            @tparam Number the number of snapshots in each dimension
      */
     template < class Storage, uint_t... Number >
     struct field_reversed;
@@ -436,12 +565,22 @@ namespace gridtools {
 
        @tparam Storage the basic storage type shared by all the snapshots
        @tparam First  all the subsequent parameters define the dimensionality of the snapshot arrays
-        in all the data field dimensions
+            in all the data field dimensions
      */
     template < class Storage, uint_t First, uint_t... Number >
     struct field {
+        GRIDTOOLS_STATIC_ASSERT(is_any_storage< Storage >::value, "wrong type");
         typedef typename reverse_pack< Number... >::template apply< field_reversed, Storage, First >::type::type type;
     };
+
+    template < class... Storage, uint_t First, uint_t... Number >
+    struct field< data_field< Storage... >, First, Number... > {
+        // GRIDTOOLS_STATIC_ASSERT(accumulate(logical_and(), is_storage<Storage>::value ...), "wrong type");
+        typedef typename reverse_pack< Number... >::template apply< field_reversed,
+            typename data_field< Storage... >::basic_type,
+            First >::type::type type;
+    };
+
 #endif
 
     template < typename T >
@@ -460,8 +599,8 @@ namespace gridtools {
     template < typename T, uint_t U >
     struct is_storage< storage_list< T, U > > : boost::mpl::true_ {};
 
-    template < typename... T >
-    struct is_storage< data_field< T... > > : boost::mpl::true_ {};
+    template < typename First, typename... T >
+    struct is_storage< data_field< First, T... > > : boost::mpl::true_ {};
 
 #endif
 

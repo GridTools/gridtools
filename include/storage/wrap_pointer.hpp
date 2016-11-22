@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "../gridtools.hpp"
 
@@ -19,11 +54,21 @@ namespace gridtools {
         // TODO: turn into value_type?
         typedef T pointee_t;
 
+        /**
+           @brief access operator
+         */
+        GT_FUNCTION
+        T *operator->() const {
+            assert(m_cpu_p);
+            return m_cpu_p;
+        }
+
         GT_FUNCTION
         wrap_pointer() : m_cpu_p(NULL), m_externally_managed(false) {}
 
         GT_FUNCTION
-        wrap_pointer(wrap_pointer const &other) : m_cpu_p(other.m_cpu_p), m_externally_managed(true) {}
+        wrap_pointer(wrap_pointer const &other)
+            : m_cpu_p(other.m_cpu_p), m_externally_managed(true){}
 
         GT_FUNCTION
         wrap_pointer(uint_t size, bool externally_managed) : m_externally_managed(externally_managed) {
@@ -62,7 +107,7 @@ namespace gridtools {
         bool is_externally_managed() const { return m_externally_managed; }
 
         GT_FUNCTION
-        virtual ~wrap_pointer() {
+        ~wrap_pointer() {
 #ifdef VERBOSE
 #ifndef __CUDACC__
             std::cout << "deleting wrap pointer " << this << std::endl;
@@ -71,10 +116,16 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void update_gpu() { assert(false); } //\todo find a way to remove this method
+        void set_on_device() {}
 
         GT_FUNCTION
-        void update_cpu() { assert(false); } //\todo find a way to remove this method
+        void set_on_host() {}
+
+        GT_FUNCTION
+        void update_gpu() {} //\todo find a way to remove this method
+
+        GT_FUNCTION
+        void update_cpu() {} //\todo find a way to remove this method
 
         GT_FUNCTION
         void allocate_it(uint_t size) { m_cpu_p = (Array) ? new T[size] : new T; }
@@ -141,15 +192,30 @@ namespace gridtools {
             return &m_cpu_p[i];
         }
 
+        /**
+           @brief swapping two pointers
+        */
         GT_FUNCTION
-        T *get_cpu_p() { return m_cpu_p; }
+        void swap(wrap_pointer &other) {
 
-        GT_FUNCTION
-        T *get_gpu_p() { assert(false); }
+            T *tmp = m_cpu_p;
+            m_cpu_p = other.m_cpu_p;
+            other.m_cpu_p = tmp;
 
-      protected:
-        T *m_cpu_p;
-        bool m_externally_managed;
+            bool tmp_bool = m_externally_managed;
+            m_externally_managed = other.m_externally_managed;
+            other.m_externally_managed = tmp_bool;
+    }
+
+    GT_FUNCTION
+    T *get_cpu_p() { return m_cpu_p; }
+
+    GT_FUNCTION
+    T *get_gpu_p() { assert(false); }
+
+  protected:
+    T *m_cpu_p;
+    bool m_externally_managed;
     };
 
 } // namespace gridtools

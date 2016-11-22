@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include <boost/mpl/assert.hpp>
 #include "mss_metafunctions.hpp"
@@ -10,9 +45,9 @@ namespace gridtools {
     template < typename T >
     struct mss_components_is_reduction;
 
-    template < typename MssDescriptor, typename ExtentSizes >
-    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes > > : MssDescriptor::is_reduction_t {
-    };
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
+    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor > >
+        : MssDescriptor::is_reduction_t {};
 
     // TODOCOSUNA unittest this
     /**
@@ -23,11 +58,11 @@ namespace gridtools {
     template < typename MssArray >
     struct split_mss_into_independent_esfs {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssArray, is_amss_descriptor >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssArray, is_computation_token >::value), "Internal Error: wrong type");
 
         template < typename MssDescriptor >
         struct mss_split_esfs {
-            GRIDTOOLS_STATIC_ASSERT((is_amss_descriptor< MssDescriptor >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), "Internal Error: wrong type");
 
             typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;
 
@@ -54,7 +89,7 @@ namespace gridtools {
                 boost::mpl::vector0<>,
                 boost::mpl::copy< boost::mpl::_1, boost::mpl::back_inserter< mss_split_esfs< boost::mpl::_2 > > > >::
                 type,
-            boost::mpl::quote1< is_amss_descriptor > > type;
+            boost::mpl::quote1< is_computation_token > > type;
     };
 
     /**
@@ -63,10 +98,10 @@ namespace gridtools {
      * @tparam MssDescriptorArray meta array of mss descriptors
      * @tparam extent_sizes sequence of sequence of extents
      */
-    template < enumtype::platform BackendId, typename MssDescriptorArray, typename ExtentSizes >
+    template < enumtype::platform BackendId, typename MssDescriptorArray, typename ExtentSizes, typename RepeatFunctor >
     struct build_mss_components_array {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_amss_descriptor >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename MssDescriptorArray::elements >::value ==
                                     boost::mpl::size< ExtentSizes >::value),
@@ -98,13 +133,13 @@ namespace gridtools {
                                     boost::mpl::size< extent_sizes_unrolled_t >::value),
             "wrong size of the arg_type vector defined inside at least one of the user functions");
 
-        typedef meta_array<
-            typename boost::mpl::fold<
-                boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1,
-                    mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
-                                           boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 > > > >::type,
+        typedef meta_array< typename boost::mpl::fold<
+                                boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
+                                boost::mpl::vector0<>,
+                                boost::mpl::push_back< boost::mpl::_1,
+                                    mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
+                                                           boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
+                                                           RepeatFunctor > > >::type,
             boost::mpl::quote1< is_mss_components > > type;
     }; // struct build_mss_components_array
 
@@ -123,20 +158,24 @@ namespace gridtools {
         typename Predicate,
         typename Condition,
         typename ExtentSizes1,
-        typename ExtentSizes2 >
+        typename ExtentSizes2,
+        typename RepeatFunctor >
     struct build_mss_components_array< BackendId,
         meta_array< condition< MssDescriptorArray1, MssDescriptorArray2, Condition >, Predicate >,
-        condition< ExtentSizes1, ExtentSizes2, Condition > > {
+        condition< ExtentSizes1, ExtentSizes2, Condition >,
+        RepeatFunctor > {
         // typedef typename pair<
         //     typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type
         //     , typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type >
         // ::type type;
         typedef condition< typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray1, Predicate >,
-                               ExtentSizes1 >::type,
+                               ExtentSizes1,
+                               RepeatFunctor >::type,
             typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray2, Predicate >,
-                               ExtentSizes2 >::type,
+                               ExtentSizes2,
+                               RepeatFunctor >::type,
             Condition > type;
     }; // build_mss_components_array
 

@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #ifndef CXX11_ENABLED
@@ -7,10 +42,11 @@
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/modulus.hpp>
 #include <boost/mpl/for_each.hpp>
-#include "expressions.hpp"
-#include "stencil-composition/accessor.hpp"
-#include "common/meta_array.hpp"
-#include "common/array.hpp"
+#ifdef CXX11_ENABLED
+#include "expressions/expressions.hpp"
+#endif
+#include "../common/meta_array.hpp"
+#include "../common/array.hpp"
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/reversed_range.hpp"
 #include "stencil-composition/total_storages.hpp"
@@ -56,6 +92,8 @@ namespace gridtools {
     // TODOCOSUNA this is just an array, no need for special class, looks like
     template < ushort_t ID, typename StorageList >
     struct strides_cached : public strides_cached< ID - 1, StorageList > {
+        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< StorageList >::value > ID,
+            "Library internal error: strides index exceeds the number of storages");
         typedef typename boost::mpl::at_c< StorageList, ID >::type storage_type;
         typedef strides_cached< ID - 1, StorageList > super;
         typedef array< int_t, storage_type::space_dimensions - 1 > data_array_t;
@@ -76,10 +114,7 @@ namespace gridtools {
 
         /**@brief constructor, doing nothing more than allocating the space*/
         GT_FUNCTION
-        strides_cached() : super() {
-            GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< StorageList >::value > ID,
-                "Library internal error: strides index exceeds the number of storages");
-        }
+        strides_cached() : super() {}
 
         template < short_t Idx >
         GT_FUNCTION
@@ -654,6 +689,16 @@ If you are not using generic accessors then you are using an unsupported storage
             typename get_storage_accessor< LocalDomain, Accessor >::type::value_type::value_type >::type type;
     };
 
+    template < typename T >
+    struct get_storage_type {
+        typedef T type;
+    };
+
+    template < typename T >
+    struct get_storage_type< std::vector< pointer< T > > > {
+        typedef T type;
+    };
+
     /**
      * metafunction that retrieves the arg type associated with an accessor
      */
@@ -669,7 +714,8 @@ If you are not using generic accessors then you are using an unsupported storage
     struct get_arg_value_type_from_accessor {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
 
-        typedef typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::value_type type;
+        typedef typename get_storage_type< typename get_arg_from_accessor< Accessor,
+            IterateDomainArguments >::type::storage_type >::type::value_type type;
     };
 
     /**
@@ -689,14 +735,15 @@ If you are not using generic accessors then you are using an unsupported storage
      * metafunction that computes the return type of all operator() of an accessor
      */
     template < typename Accessor, typename IterateDomainArguments >
-    struct accessor_return_type {
+    struct accessor_return_type_impl {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
+        typedef typename boost::remove_reference< Accessor >::type acc_t;
 
-        typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
-            get_arg_value_type_from_accessor< Accessor, IterateDomainArguments >,
+        typedef typename boost::mpl::eval_if< boost::mpl::or_< is_accessor< acc_t >, is_vector_accessor< acc_t > >,
+            get_arg_value_type_from_accessor< acc_t, IterateDomainArguments >,
             boost::mpl::identity< boost::mpl::void_ > >::type accessor_value_type;
 
-        typedef typename boost::mpl::if_< is_accessor_readonly< Accessor >,
+        typedef typename boost::mpl::if_< is_accessor_readonly< acc_t >,
             typename boost::add_const< accessor_value_type >::type,
             typename boost::add_reference< accessor_value_type >::type RESTRICT >::type type;
     };

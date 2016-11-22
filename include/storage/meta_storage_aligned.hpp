@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "../common/generic_metafunctions/all_integrals.hpp"
 #include "align.hpp"
@@ -110,27 +145,31 @@ namespace gridtools {
    super(lambda<0>::apply(d1), lambda<1>::apply(d2), lambda<2>::apply(d3), ...)
 */
 #ifdef CXX11_ENABLED
-        template < class... IntTypes
-#ifndef __CUDACC__ // nvcc does not get it
-            ,
-            typename Dummy = all_integers< IntTypes... >
-#else
-            ,
-            typename Dummy = typename boost::enable_if_c<
-                boost::is_integral<
-                    typename boost::mpl::at_c< boost::mpl::vector< IntTypes... >, 0 >::type >::type::value,
-                bool >::type
-#endif
-            >
+#ifndef __CUDACC__
+        template < typename... IntTypes, typename Dummy = all_integers< IntTypes... > >
         GT_FUNCTION constexpr meta_storage_aligned(IntTypes... dims_)
             : super(apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t,
                       sizeof...(IntTypes) >::type >::template apply_zipped< super, lambda_t >(dims_...)),
               m_unaligned_dims{(uint_t)dims_...},
-              m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions),
+              m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions - 1),
                   typename MetaStorageBase::layout >::apply((uint_t)dims_...)) {
             static_assert(MetaStorageBase::space_dimensions == sizeof...(dims_),
                 "stride container size is not matching number of given dimensions");
         }
+#else
+        template < class First,
+            class... IntTypes,
+            typename Dummy = typename boost::enable_if_c< boost::is_integral< First >::type::value, bool >::type >
+        GT_FUNCTION constexpr meta_storage_aligned(First f_, IntTypes... dims_)
+            : super(apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t,
+                      sizeof...(IntTypes) + 1 >::type >::template apply_zipped< super, lambda_t >(f_, dims_...)),
+              m_unaligned_dims{(uint_t)f_, (uint_t)dims_...},
+              m_unaligned_strides(_impl::assign_all_strides< (short_t)(MetaStorageBase::space_dimensions - 1),
+                  typename MetaStorageBase::layout >::apply((uint_t)f_, (uint_t)dims_...)) {
+            static_assert(MetaStorageBase::space_dimensions == sizeof...(dims_) + 1,
+                "stride container size is not matching number of given dimensions");
+        }
+#endif
 
         /**@brief Constructor taking an array with the storage dimensions
 
@@ -141,6 +180,14 @@ namespace gridtools {
             : meta_storage_aligned(dims_, typename make_gt_integer_sequence< ushort_t, Array::n_dimensions >::type()) {
             GRIDTOOLS_STATIC_ASSERT(is_array< Array >::value, "type");
         }
+
+        /**@brief Constructor taking an array with the storage dimensions
+
+           forwarding to the constructor below
+         */
+        GT_FUNCTION constexpr meta_storage_aligned(array< uint_t, super::space_dimensions > const &dims_)
+            : meta_storage_aligned(
+                  dims_, typename make_gt_integer_sequence< ushort_t, super::space_dimensions >::type()) {}
 
         /**@brief Constructor taking an array with the storage dimensions
 

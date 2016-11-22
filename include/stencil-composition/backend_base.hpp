@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include <boost/mpl/filter_view.hpp>
@@ -5,28 +40,28 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "gridtools.hpp"
-#include "stencil-composition/heap_allocated_temps.hpp"
-#include "stencil-composition/backend_traits_fwd.hpp"
-#include "stencil-composition/run_functor_arguments.hpp"
+#include "./heap_allocated_temps.hpp"
+#include "./backend_traits_fwd.hpp"
+#include "./run_functor_arguments.hpp"
 
 #ifdef __CUDACC__
-#include "stencil-composition/backend_cuda/backend_cuda.hpp"
+#include "./backend_cuda/backend_cuda.hpp"
 #else
-#include "stencil-composition/backend_host/backend_host.hpp"
+#include "./backend_host/backend_host.hpp"
 #endif
 
-#include "common/pair.hpp"
-#include "accessor.hpp"
-#include "global_parameter.hpp"
-#include "stencil-composition/domain_type.hpp"
-#include "stencil-composition/mss_metafunctions.hpp"
-#include "stencil-composition/mss_local_domain.hpp"
-#include "stencil-composition/mss.hpp"
-#include "stencil-composition/axis.hpp"
-#include "common/meta_array.hpp"
-#include "stencil-composition/tile.hpp"
+#include "../common/pair.hpp"
+#include "./accessor.hpp"
+#include "./global_parameter.hpp"
+#include "./aggregator_type.hpp"
+#include "./mss_metafunctions.hpp"
+#include "./mss_local_domain.hpp"
+#include "./mss.hpp"
+#include "./axis.hpp"
+#include "../common/meta_array.hpp"
+#include "./tile.hpp"
 #include "../storage/storage-facility.hpp"
-#include "conditionals/condition.hpp"
+#include "./conditionals/condition.hpp"
 
 /**
    @file
@@ -49,12 +84,7 @@ namespace gridtools {
 
            \tparam Temporaries is the vector of temporary placeholder types.
         */
-        template < typename TemporariesExtendMap,
-            typename ValueType,
-            uint_t BI,
-            uint_t BJ,
-            typename StrategyTraits,
-            enumtype::platform BackendID >
+        template < typename ValueType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::platform BackendID >
         struct get_storage_type {
             template < typename MapElem >
             struct apply {
@@ -68,10 +98,6 @@ namespace gridtools {
             };
         };
     } // namespace _impl
-
-    /** metafunction to check whether the storage_type inside the PlcArgType is temporary */
-    template < typename PlcArgType >
-    struct is_temporary_arg : is_temporary_storage< typename PlcArgType::storage_type > {};
 
     /**
         this struct contains the 'run' method for all backends, with a
@@ -119,6 +145,13 @@ namespace gridtools {
     */
     template < enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId >
     struct backend_base {
+
+#ifdef __CUDACC__
+        GRIDTOOLS_STATIC_ASSERT(BackendId == enumtype::Cuda, "Beware: you are compiling with nvcc, and most probably "
+                                                             "want to use the cuda backend, but the backend you are "
+                                                             "instantiating is another one!!");
+#endif
+
         typedef backend_base< BackendId, GridId, StrategyId > this_type;
 
         typedef backend_ids< BackendId, GridId, StrategyId > backend_ids_t;
@@ -230,7 +263,7 @@ namespace gridtools {
          */
         template < typename Domain, typename MssComponents >
         struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
             typedef typename MssComponents::extent_sizes_t ExtendSizes;
 
@@ -280,7 +313,7 @@ namespace gridtools {
         struct obtain_map_extents_temporaries_mss_array {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
 
             typedef
                 typename boost::mpl::fold< typename MssComponentsArray::elements,
@@ -292,7 +325,7 @@ namespace gridtools {
 
         template < typename Domain, typename MssArray1, typename MssArray2, typename Cond >
         struct obtain_map_extents_temporaries_mss_array< Domain, condition< MssArray1, MssArray2, Cond > > {
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
 
             typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray1 >::type type1;
             typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray2 >::type type2;
@@ -314,14 +347,14 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_condition< MssComponentsArray >::value ||
                                         is_meta_array_of< MssComponentsArray, is_mss_components >::value),
                 "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_domain_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
 
             typedef typename backend_traits_t::template get_block_size< StrategyId >::type block_size_t;
 
             static const uint_t tileI = block_size_t::i_size_t::value;
             static const uint_t tileJ = block_size_t::j_size_t::value;
 
-            typedef boost::mpl::filter_view< typename Domain::placeholders, is_temporary_arg< boost::mpl::_ > >
+            typedef boost::mpl::filter_view< typename Domain::placeholders, is_plchldr_to_temp< boost::mpl::_ > >
                 temporaries;
             typedef
                 typename obtain_map_extents_temporaries_mss_array< Domain, MssComponentsArray >::type map_of_extents;
@@ -334,11 +367,10 @@ namespace gridtools {
 
             typedef typename boost::mpl::fold<
                 map_of_extents,
-                boost::mpl::vector<>,
+                boost::mpl::vector0<>,
                 typename boost::mpl::push_back< typename boost::mpl::_1,
-                    typename _impl::
-                        get_storage_type< map_of_extents, ValueType, tileI, tileJ, strategy_traits_t, s_backend_id >::
-                            template apply< boost::mpl::_2 > > >::type type;
+                    typename _impl::get_storage_type< ValueType, tileI, tileJ, strategy_traits_t, s_backend_id >::
+                        template apply< boost::mpl::_2 > > >::type type;
         };
 
         /**

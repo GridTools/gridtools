@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include <boost/fusion/include/for_each.hpp>
@@ -46,7 +81,7 @@ namespace gridtools {
             typedef MetaList metadata_set_t;
 
             /**
-               @brief instantiate the \ref gridtools::domain_type for the temporary storages
+               @brief instantiate the \ref gridtools::aggregator_type for the temporary storages
             */
             struct instantiate_tmps {
                 uint_t m_tile_i; // tile along i
@@ -72,7 +107,7 @@ namespace gridtools {
                     // ElemType::info_string.c_str();
                     // calls the constructor of the storage
                     meta_t meta_data(m_tile_i, m_tile_j, m_tile_k);
-                    e = new ElemType(meta_data, "default tmp storage");
+                    e = new ElemType(meta_data, "default tmp storage", true /*do_allocate*/);
 
                     // insert new type in the map only if not present already
                     if (!m_metadata_set.template present< pointer< typename ElemType::storage_info_type const > >())
@@ -95,7 +130,7 @@ namespace gridtools {
                     instantiate_tmps(metadata_,
                                             grid.direction_i().total_length(),
                                             grid.direction_j().total_length(),
-                                            grid.value_at_top() - grid.value_at_bottom() + 1));
+                                            grid.value_at_top() + 1));
             }
         };
 
@@ -118,7 +153,7 @@ namespace gridtools {
 
             typedef backend< BackendId, GridId, enumtype::Block > backend_type;
             /**
-               @brief instantiate the \ref gridtools::domain_type for the temporary storages
+               @brief instantiate the \ref gridtools::aggregator_type for the temporary storages
             */
             struct instantiate_tmps {
                 typedef MetaList metadata_set_t;
@@ -151,7 +186,7 @@ namespace gridtools {
 
                     // calls the constructor of the storage
                     meta_t meta_data(m_offset_i, m_offset_j, m_offset_k, m_n_i_threads, m_n_j_threads);
-                    e = new ElemType(meta_data, "blocked tmp storage");
+                    e = new ElemType(meta_data, "blocked tmp storage", true /*do_allocate*/);
 
                     // insert new type in the map only if not present already
                     if (!m_metadata_set.template present< pointer< const meta_t > >())
@@ -173,7 +208,7 @@ namespace gridtools {
                     instantiate_tmps(metadata_,
                                             grid.i_low_bound(),
                                             grid.j_low_bound(),
-                                            grid.value_at_top() - grid.value_at_bottom() + 1,
+                                            grid.value_at_top() + 1,
                                             backend_type::n_i_pes()(grid.i_high_bound() - grid.i_low_bound()),
                                             backend_type::n_j_pes()(grid.j_high_bound() - grid.j_low_bound())));
             }

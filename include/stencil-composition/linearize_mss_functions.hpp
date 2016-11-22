@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include "./mss.hpp"
@@ -72,17 +107,49 @@ namespace gridtools {
     };
 
     /**
+       @brief pushes an element in a vector based on the fact that an ESF is independent or not
+
+       Helper metafunction, used by other metafunctions
+    */
+    template < typename State, typename SubArray, typename VectorComponent >
+    struct keep_scanning_lambda
+        : boost::mpl::fold< typename SubArray::esf_list,
+              State,
+              boost::mpl::if_< is_independent< boost::mpl::_2 >,
+                                keep_scanning_lambda< boost::mpl::_1, boost::mpl::_2, VectorComponent >,
+                                boost::mpl::push_back< boost::mpl::_1, VectorComponent > > > {};
+
+    /**
+       @brief linearizes the ESF tree and returns a vector
+
+       Helper metafunction, used by other metafunctions
+    */
+    template < typename Array, typename Argument, template < typename, typename > class KeepScanning >
+    struct linearize_esf_array_lambda : boost::mpl::fold< Array,
+                                            boost::mpl::vector0<>,
+                                            boost::mpl::if_< is_independent< boost::mpl::_2 >,
+                                                              KeepScanning< boost::mpl::_1, boost::mpl::_2 >,
+                                                              boost::mpl::push_back< boost::mpl::_1, Argument > > > {};
+
+    /**
        @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag
        depending wether the esf is independent or not
 
        the code is very similar as in the metafunction above
-     */
+    */
     template < typename T >
     struct sequence_of_is_independent_esf;
 
     template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
     struct sequence_of_is_independent_esf< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
-        typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::false_type, boost::true_type >::type type;
+
+        template < typename State, typename SubArray >
+        struct keep_scanning : keep_scanning_lambda< State, SubArray, boost::mpl::true_ > {};
+
+        template < typename Array >
+        struct linearize_esf_array : linearize_esf_array_lambda< Array, boost::mpl::false_, keep_scanning > {};
+
+        typedef typename linearize_esf_array< EsfDescrSequence >::type type;
     };
 
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >

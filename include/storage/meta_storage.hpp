@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include "../common/gpu_clone.hpp"
@@ -43,7 +78,7 @@ namespace gridtools {
 
             forwarding to the base class
         */
-        GT_FUNCTION meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
+        GT_FUNCTION constexpr meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
 
 #if defined(CXX11_ENABLED)
         /** @brief ctor
@@ -55,7 +90,7 @@ namespace gridtools {
                 boost::is_integral< typename boost::mpl::at_c< typename variadic_to_vector< IntTypes... >::type,
                     0 >::type >::type::value,
                 bool >::type >
-        meta_storage(IntTypes... args)
+        constexpr meta_storage(IntTypes... args)
             : super(args...) {}
 
         /**@brief operator equals (same dimension size, etc.) */
@@ -68,13 +103,13 @@ namespace gridtools {
 
             forwarding to the base class
         */
-        explicit meta_storage(uint_t dim1, uint_t dim2, uint_t dim3) : super(dim1, dim2, dim3) {}
+        explicit constexpr meta_storage(uint_t dim1, uint_t dim2, uint_t dim3) : super(dim1, dim2, dim3) {}
 
         /** @brief ctor
 
             forwarding to the base class
         */
-        meta_storage(uint_t const &initial_offset_i,
+        constexpr meta_storage(uint_t const &initial_offset_i,
             uint_t const &initial_offset_j,
             uint_t const &dim3,
             uint_t const &n_i_threads,
@@ -85,6 +120,21 @@ namespace gridtools {
         bool operator==(const meta_storage &other) const { return super::operator==(other); }
 
 #endif
+
+#ifndef STRUCTURED_GRIDS
+        // API for icosahedral grid only
+        /**@brief straightforward interface*/
+        template < typename... T >
+        constexpr GT_FUNCTION static int _index(T const &... args_) {
+            return super::_index(args_...);
+        }
+
+        template < typename LayoutT, typename StridesVector >
+        GT_FUNCTION static constexpr int_t _index(
+            StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
+            return super::template _index< StridesVector, LayoutT >(strides_, offsets);
+        }
+#endif // GRIDBACKEND==icosahedral
 
 #ifndef __CUDACC__
       private:
@@ -115,10 +165,10 @@ namespace gridtools {
     struct is_meta_storage< no_meta_storage_type_yet< Storage > > : is_meta_storage< Storage > {};
 
 #ifdef CXX11_ENABLED
-    template < ushort_t Index, typename Layout, bool IsTemporary, typename... Whatever >
+    template < typename Index, typename Layout, bool IsTemporary, typename... Whatever >
     struct is_meta_storage< meta_storage_base< Index, Layout, IsTemporary, Whatever... > > : boost::mpl::true_ {};
 #else
-    template < ushort_t Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ >
+    template < typename Index, typename Layout, bool IsTemporary, typename TileI, typename TileJ >
     struct is_meta_storage< meta_storage_base< Index, Layout, IsTemporary, TileI, TileJ > > : boost::mpl::true_ {};
 #endif
 

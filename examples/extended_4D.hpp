@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
@@ -9,12 +44,12 @@ using namespace enumtype;
 using namespace expressions;
 
 #ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< Cuda, enumtype::GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
+#define BACKEND backend< Host, enumtype::GRIDBACKEND, Block >
 #else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define BACKEND backend< Host, enumtype::GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -78,13 +113,13 @@ namespace assembly {
         using quad = dimension< 4 >;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            x::Index i;
-            y::Index j;
-            z::Index k;
-            dimension< 4 >::Index di;
-            dimension< 5 >::Index dj;
-            dimension< 6 >::Index dk;
-            quad::Index qp;
+            dimension< 1 > i;
+            dimension< 2 > j;
+            dimension< 3 > k;
+            dimension< 4 > di;
+            dimension< 5 > dj;
+            dimension< 6 > dk;
+            quad qp;
             // projection of f on a (e.g.) P1 FE space:
             // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
@@ -92,21 +127,25 @@ namespace assembly {
                 for (short_t J = 0; J < 2; ++J)
                     for (short_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
-                        assert(eval(result{di + I, dj + J, dk + K}) == 0.);
+                        assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
-                            eval(result{di + I, dj + J, dk + K}) +=
-                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{qp + q} * jac{qp + q} * f{} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, qp + q} * jac{qp + q} * f{di + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, qp + q} * jac{qp + q} * f{dj + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, qp + q} * jac{qp + q} * f{dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, qp + q} * jac{qp + q} *
-                                         f{di + 1, dj + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, k + 1, qp + q} * jac{qp + q} *
-                                         f{di + 1, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, k + 1, qp + q} * jac{qp + q} *
-                                         f{dj + 1, dk + 1} +
+                            eval(result{di + I, dj + J, dk + K, qp}) +=
+                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i, j, k, qp + q} * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di, dj, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, j, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, j, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, k, k, di, dj, dk + 1} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k + 1, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk + 1} +
+                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i, j + 1, k + 1, qp + q} *
+                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk + 1} +
                                      !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k + 1, qp + q} *
-                                         jac{qp + q} * f{di + 1, dj + 1, dk + 1}) /
+                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk + 1}) /
                                 8;
                         }
                     }
@@ -158,7 +197,7 @@ namespace assembly {
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 
-        gridtools::domain_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
@@ -182,9 +221,9 @@ namespace assembly {
             fe_comp = make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
-                make_mss               //! \todo all the arguments in the call to make_mss are actually dummy.
+                make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                    make_esf< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+                    make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp->ready();
         fe_comp->steady();

@@ -1,7 +1,46 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include "../global_accessor.hpp"
 #include "./accessor.hpp"
+#include "./accessor_mixed.hpp"
+#ifdef CXX11_ENABLED
+#include "../expressions/expressions.hpp"
+#endif
 
 namespace gridtools {
 
@@ -11,10 +50,22 @@ namespace gridtools {
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
 
+    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    struct is_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_accessor< const T > : is_accessor< T > {};
+
     template < ushort_t ID, enumtype::intend Intend >
     struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
 
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__) && !defined(__INTEL_COMPILER)
+#ifdef CUDA8
+    template < typename ArgType >
+    struct is_accessor_mixed;
+
+    template < typename... Types >
+    struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
+
     template < typename ArgType, typename... Pair >
     struct is_accessor< accessor_mixed< ArgType, Pair... > > : boost::mpl::true_ {};
 #endif
@@ -51,6 +102,16 @@ namespace gridtools {
         typedef accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend, Extend, Number > type;
     };
 
+#ifdef CUDA8
+    template < typename Accessor, typename ArgsMap, typename... Pairs >
+    struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
+
+        typedef typename remap_accessor_type< Accessor, ArgsMap >::index_type_t index_type_t;
+
+        typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
+    };
+#endif
+
     template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
     struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
         typedef global_accessor< ID, Intend > accessor_t;
@@ -84,15 +145,6 @@ namespace gridtools {
         typedef Expression< typename remap_accessor_type< Arguments, ArgsMap >::type... > type;
     };
 
-    // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
-    template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
-    struct remap_accessor_type< Expression< Arguments... >,
-        ArgsMap,
-        typename boost::disable_if< typename is_expr< Expression< Arguments... > >::type, void >::type > {
-        // Workaround needed to prevent nvcc to instantiate the struct in enable_ifs
-        typedef boost::mpl::void_ type;
-    };
-
     template < typename ArgsMap >
     struct remap_accessor_type< float_type, ArgsMap > {
         // when a leaf is a float don't do anything
@@ -111,7 +163,7 @@ namespace gridtools {
     template < typename Accessor >
     struct is_accessor_readonly : boost::mpl::false_ {};
 
-#if defined(CXX11_ENABLED) && !defined(CUDA_CXX11_BUG_1) && !defined(__INTEL_COMPILER)
+#ifdef CUDA8
     template < typename Accessor, typename... Pair >
     struct is_accessor_readonly< accessor_mixed< Accessor, Pair... > > : is_accessor_readonly< Accessor > {};
 #endif

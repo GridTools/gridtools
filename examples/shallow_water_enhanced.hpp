@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 // [includes]
 #include <iostream>
@@ -72,18 +107,7 @@ namespace shallow_water {
         /**@brief gravity acceleration */
         GT_FUNCTION
         static float_type g() { return 9.81; }
-
-        //! [index]
-        static x::Index i;
-        static y::Index j;
-        //! [index]
-
-        typedef decltype(i) i_t;
-        typedef decltype(j) j_t;
     };
-    functor_traits::i_t functor_traits::i;
-    functor_traits::j_t functor_traits::j;
-    // [functor_traits]
 
     template < uint_t Component = 0, uint_t Snapshot = 0 >
     struct bc_periodic : functor_traits {
@@ -134,18 +158,18 @@ namespace shallow_water {
         //! [accessor]
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 5 >
             tmpx; /** (output) is the flux computed on the left edge of the cell */
-        using arg_list = boost::mpl::vector< tmpx, sol >;
+        using arg_list = boost::mpl::vector2< tmpx, sol >;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
-            comp::Index c;
-            x::Index i;
+#ifndef CUDA8
+            comp c;
+            dimension< 1 > i;
             //! [expression]
             eval(tmpx()) =
-                eval((sol(i - 0) + sol(i - 1)) / tl - (sol(c + 1) - sol(c + 1, i - 1)) * (dt() / (2 * dx())));
+                eval((sol(i - 0) + sol(i - 1)) / tl - (dt() / (2 * dx())) * (sol(c + 1) - sol(c + 1, i - 1)));
             // ! [expression]
 
             eval(tmpx(comp(1))) =
@@ -160,6 +184,7 @@ namespace shallow_water {
                     (dt() / (2 * dx())));
 
 #else
+            dimension< 1 > i;
             //![alias]
             using hx = alias< tmpx, comp >::set< 0 >;
             using h = alias< sol, comp >::set< 0 >;
@@ -198,7 +223,9 @@ namespace shallow_water {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
+            dimension< 1 > i;
+            dimension< 2 > j;
 
             eval(tmpy()) =
                 eval((sol(i - 0) + sol(j - 1)) / tl - (sol(comp(2)) - sol(comp(2), j - 1)) * (dt() / (2 * dy())));
@@ -215,6 +242,7 @@ namespace shallow_water {
                          (dt() / (tl * dy())));
 
 #else
+            dimension< 2 > j;
             using h = alias< sol, comp >::set< 0 >;
             using hy = alias< tmpy, comp >::set< 0 >;
             using u = alias< sol, comp >::set< 1 >;
@@ -256,7 +284,9 @@ namespace shallow_water {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
+            dimension< 1 > i;
+            dimension< 2 > j;
 
             eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
                                (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));
@@ -280,6 +310,8 @@ namespace shallow_water {
                          ((dt() / dy())));
 
 #else
+            dimension< 1 > i;
+            dimension< 2 > j;
             using hx = alias< tmpx, comp >::set< 0 >;
             using h = alias< sol, comp >::set< 0 >;
             using hy = alias< tmpy, comp >::set< 0 >;
@@ -461,10 +493,10 @@ namespace shallow_water {
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
-        //! [domain_type]
-        domain_type< accessor_list > domain(boost::fusion::make_vector( //&tmpx, &tmpy,
+        //! [aggregator_type]
+        aggregator_type< accessor_list > domain(boost::fusion::make_vector( //&tmpx, &tmpy,
             &sol));
-        //! [domain_type]
+        //! [aggregator_type]
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -479,10 +511,10 @@ namespace shallow_water {
         auto shallow_water_stencil = make_computation< gridtools::BACKEND >(
             domain,
             grid,
-            make_mss // mss_descriptor
+            make_multistage // mss_descriptor
             (execute< forward >(),
-                make_independent(make_esf< flux_x >(p_tmpx(), p_sol()), make_esf< flux_y >(p_tmpy(), p_sol())),
-                make_esf< final_step >(p_tmpx(), p_tmpy(), p_sol())));
+                make_independent(make_stage< flux_x >(p_tmpx(), p_sol()), make_stage< flux_y >(p_tmpy(), p_sol())),
+                make_stage< final_step >(p_tmpx(), p_tmpy(), p_sol())));
         //! [computation]
 
         //! [setup]

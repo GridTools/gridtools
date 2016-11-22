@@ -1,5 +1,41 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "extent.hpp"
+#include "location_type.hpp"
 #include "../accessor_base.hpp"
 
 namespace gridtools {
@@ -23,33 +59,14 @@ namespace gridtools {
 
         typedef accessor_base< ID, Intend, Extent, FieldDimensions > super;
 
-/**inheriting all constructors from offset_tuple*/
-#ifndef __CUDACC__
-        using super::accessor_base;
-#else
-        // move ctor
-        GT_FUNCTION
-        constexpr accessor(type &&other) : super(std::move(other)) {}
-
-        // copy ctor
-        GT_FUNCTION
-        constexpr accessor(type const &other) : super(other) {}
-#endif
-
         GT_FUNCTION
         constexpr accessor() : super() {}
 
-        // copy ctor from an accessor with different ID
-        template < uint_t OtherID >
-        GT_FUNCTION constexpr accessor(const accessor< OtherID, Intend, LocationType, Extent, FieldDimensions > &other)
-            : super(static_cast< const accessor_base< OtherID, Intend, Extent, FieldDimensions > >(other)) {}
+        /**inheriting all constructors from offset_tuple*/
+        using super::accessor_base;
 
         GT_FUNCTION
         constexpr explicit accessor(array< int_t, FieldDimensions > const &offsets) : super(offsets) {}
-
-        template < uint_t Idx >
-        GT_FUNCTION constexpr accessor(dimension< Idx > const &x)
-            : super(x) {}
     };
 
     template < uint_t ID, typename LocationType, typename Extent = extent< 0 >, ushort_t FieldDimensions = 4 >

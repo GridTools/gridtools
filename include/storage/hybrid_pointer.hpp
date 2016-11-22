@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "wrap_pointer.hpp"
 
@@ -30,13 +65,13 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        explicit hybrid_pointer(T *p, uint_t size_, bool externally_managed)
+        explicit hybrid_pointer(T *p, uint_t size_, bool externally_managed = false)
             : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(size_), m_allocated(false),
               m_up_to_date(true) {
             allocate_it(m_size);
         }
 
-        explicit hybrid_pointer(T *p, bool externally_managed)
+        explicit hybrid_pointer(T *p, bool externally_managed = false)
             : m_gpu_p(NULL), m_cpu_p(p, externally_managed), m_pointer_to_use(p), m_size(1), m_allocated(false),
               m_up_to_date(true) {
             allocate_it(m_size);
@@ -52,9 +87,9 @@ namespace gridtools {
             printf("allocating hybrid pointer %x \n", this);
             printf(" - %X %X %X %d\n", m_cpu_p.get(), m_gpu_p, m_pointer_to_use, m_size);
 #endif
-        }
+    }
 
-        // copy constructor passes on the ownership
+    // copy constructor passes on the ownership
         GT_FUNCTION
         hybrid_pointer(hybrid_pointer const &other)
             : m_gpu_p(other.m_gpu_p), m_cpu_p(other.m_cpu_p)
@@ -101,16 +136,21 @@ namespace gridtools {
         }
 
         void free_it() {
-            assert(m_gpu_p); // check for double free
-            cudaFree((void *)(m_gpu_p));
-            m_gpu_p = NULL;
+            if (m_gpu_p) // if the pointers are not allocated do nothing
+            {
+                assert(m_gpu_p); // check for double free
+                cudaError_t err = cudaFree((void *)(m_gpu_p));
+                assert(err == cudaSuccess);
+                m_gpu_p = NULL;
             m_cpu_p.free_it();
             m_up_to_date = true;
             m_pointer_to_use = NULL;
+            m_allocated = false;
 
 #ifdef VERBOSE
             printf("freeing hybrid pointer %x \n", this);
 #endif
+      }
         }
 
         void update_gpu() {
@@ -119,7 +159,9 @@ namespace gridtools {
             out();
 #endif
             if (on_host()) { // do not copy if the last version is already on the device
-                cudaMemcpy((void *)m_gpu_p, (void *)m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
+                cudaError_t err =
+                    cudaMemcpy((void *)m_gpu_p, (void *)m_cpu_p.get(), m_size * sizeof(T), cudaMemcpyHostToDevice);
+                assert(err == cudaSuccess);
                 m_up_to_date = false;
                 m_pointer_to_use = m_gpu_p;
             }
@@ -131,7 +173,9 @@ namespace gridtools {
             out();
 #endif
             if (on_device()) {
-                cudaMemcpy((void *)m_cpu_p.get(), (void *)m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
+                cudaError_t err =
+                    cudaMemcpy((void *)m_cpu_p.get(), (void *)m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
+                assert(err == cudaSuccess);
                 m_up_to_date = true;
                 m_pointer_to_use = m_cpu_p.get();
             }
@@ -139,7 +183,11 @@ namespace gridtools {
 
         void set(pointee_t const &value, uint_t const &index) {
             if (on_host()) { // do not copy if the last version is already on the device
-                cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice);
+                cudaError_t err =
+                    cudaMemcpy(&m_pointer_to_use[index], &value, sizeof(pointee_t), cudaMemcpyHostToDevice);
+#ifndef __CUDACC__
+                assert(err == cudaSuccess);
+#endif
                 m_up_to_date = false;
                 m_pointer_to_use = m_gpu_p;
             }
@@ -180,6 +228,17 @@ namespace gridtools {
             return m_pointer_to_use[i];
         }
 
+        /**
+           @brief access operator
+         */
+        GT_FUNCTION
+        T *operator->() const {
+#ifndef __CUDACC__
+            assert(m_pointer_to_use);
+#endif
+            return m_pointer_to_use;
+        }
+
         GT_FUNCTION
         T &operator*() {
             // assert(m_pointer_to_use);
@@ -206,13 +265,17 @@ namespace gridtools {
 
         GT_FUNCTION
         T *get_gpu_p() {
+#ifndef __CUDACC__
             assert(on_device());
+#endif
             return m_gpu_p;
         };
 
         GT_FUNCTION
         T *get_cpu_p() {
+#ifndef __CUDACC__
             assert(on_host());
+#endif
             return this->m_cpu_p.get();
         };
 
@@ -227,6 +290,18 @@ namespace gridtools {
 
         GT_FUNCTION
         int get_size() { return m_size; }
+
+        GT_FUNCTION
+        void set_on_device() {
+            m_up_to_date = false;
+            m_pointer_to_use = m_gpu_p;
+        }
+
+        GT_FUNCTION
+        void set_on_host() {
+            m_up_to_date = true;
+            m_pointer_to_use = m_cpu_p;
+        }
 
         GT_FUNCTION
         bool on_host() const { return m_up_to_date; }
@@ -292,13 +367,13 @@ namespace gridtools {
             m_up_to_date = other.m_up_to_date;
         }
 
-      private:
+    private:
         /** disable equal operator and constructor from raw pointer*/
-        T *operator=(T *);
-        hybrid_pointer(T *);
-        T *m_gpu_p;
-        wrap_pointer< T, Array > m_cpu_p;
-        T *m_pointer_to_use;
+      T *operator=(T *);
+      hybrid_pointer(T *);
+      T *m_gpu_p;
+      wrap_pointer< T, Array > m_cpu_p;
+      T *m_pointer_to_use;
         uint_t m_size;
         bool m_allocated;
         bool m_up_to_date;

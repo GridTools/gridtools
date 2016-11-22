@@ -1,4 +1,40 @@
 /*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
+
+/*
  * This shows how we can use multidimensional fields with a location type.
  * We illustrate this with a storage with location type cells, that we use to
  * store a value per neighbouring edge. Therefore the storage has 5 dimension,
@@ -45,7 +81,7 @@ namespace soeov {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             using edge_of_cell_dim = dimension< 5 >;
-            edge_of_cell_dim::Index edge;
+            edge_of_cell_dim edge;
 
             // we loop over the 3 edges of a cell, and compute and store a value
             for (uint_t i = 0; i < 3; ++i) {
@@ -95,7 +131,7 @@ namespace soeov {
 
         typedef boost::mpl::vector< p_cell_area, p_weight_edges > accessor_list_t;
 
-        gridtools::domain_type< accessor_list_t > domain(boost::fusion::make_vector(&cell_area, &weight_edges));
+        gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&cell_area, &weight_edges));
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -106,9 +142,9 @@ namespace soeov {
         auto stencil_ = gridtools::make_computation< backend_t >(
             domain,
             grid_,
-            gridtools::make_mss // mss_descriptor
+            gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                gridtools::make_esf< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                gridtools::make_stage< test_on_edges_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
                     p_cell_area(), p_weight_edges())));
         stencil_->ready();
         stencil_->steady();

@@ -1,9 +1,46 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include <boost/type_traits/is_const.hpp>
 
 #include "accessor.hpp"
-#include "../domain_type.hpp"
+#include "accessor_mixed.hpp"
+#include "../expandable_parameters/vector_accessor.hpp"
+#include "../aggregator_type.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../esf_fwd.hpp"
 #include "../esf_aux.hpp"
@@ -48,7 +85,7 @@ namespace gridtools {
     struct esf_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ArgArray, is_arg >::value),
             "wrong types for the list of parameter placeholders\n"
-            "check the make_esf syntax");
+            "check the make_stage syntax");
 
       public:
         typedef ESF esf_function;
@@ -77,7 +114,7 @@ namespace gridtools {
             "arg_list=boost::mpl::vector<v1, v3>;");
 
         GRIDTOOLS_STATIC_ASSERT(_impl::check_arg_list< typename esf_function::arg_list >::value,
-            "Arg List of functor is not listed by increasing index");
+                                "The list of accessors in a user functor (i.e. the arg_list type to be defined on each functor) does not have increasing index");
 
         /**
          * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the
@@ -91,7 +128,7 @@ namespace gridtools {
 
         // actual check if the user specified placeholder arguments with the same index
         GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size< index_set >::type::value),
-            "You specified different placeholders with the same index. Check the indexes of the arg_type definitions.");
+            "You specified different accessors with the same index. Check the indexes of the accessor definitions.");
 
         // checking if the index list contains holes (a common error is to define a list of types with indexes which are
         // not contiguous)
@@ -101,7 +138,7 @@ namespace gridtools {
         // not contiguous)
         GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename test::type, boost::mpl::void_ >::value),
             "the index list contains holes:\n "
-            "The numeration of the placeholders is not contiguous. You have to define each arg_type with a unique "
+            "The numeration of the placeholders is not contiguous. You have to define each accessor with a unique "
             "identifier ranging "
             " from 1 to N without \"holes\".");
         //////////////////////////////////////////////////////////////////////////////////////////////////////

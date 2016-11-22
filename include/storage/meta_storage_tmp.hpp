@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "meta_storage_base.hpp"
 
@@ -48,7 +83,7 @@ namespace gridtools {
 #else
         typedef tile< Tile, Plus, Minus > TileJ;
         typedef meta_storage_tmp< MetaStorageBase, FirstTile, TileJ > this_type;
-        typedef typename boost::mpl::vector< FirstTile, TileJ > tiles_vector_t;
+        typedef typename boost::mpl::vector2< FirstTile, TileJ > tiles_vector_t;
 #endif
         typedef typename super::type basic_type;
         typedef typename super::layout layout;
@@ -115,8 +150,9 @@ namespace gridtools {
 
         /**
            @brief returns the index (in the array of data snapshots) corresponding to the specified offset
-           basically it returns offset unless it is negative or it exceeds the size of the internal array of snapshots.
-           In the latter case it returns offset modulo the size of the array.
+
+           It returns offset unless it is negative or it exceeds the size of the internal array of snapshots. In the
+           latter case it returns offset modulo the size of the array.
            In the former case it returns the array size's complement of -offset.
         */
         GT_FUNCTION
@@ -167,10 +203,11 @@ namespace gridtools {
         GT_FUNCTION void initialize(
             const int_t steps_, const uint_t block_, int_t *RESTRICT index_, StridesVector const &strides_) const {
 
+            GRIDTOOLS_STATIC_ASSERT((layout::template at_< Coordinate >::value >= -1), "wrong coordinate");
+
             // no blocking along k
-            if (Coordinate != 2) {
+            if (Coordinate != 2 && layout::template at_< Coordinate >::value >= 0) {
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
-                BOOST_STATIC_ASSERT(layout::template at_< Coordinate >::value >= 0);
                 *index_ += (steps_ - block_ * tile_ - m_initial_offsets[Coordinate]) *
                            basic_type::template strides< Coordinate >(strides_);
             } else {
@@ -196,8 +233,8 @@ namespace gridtools {
     struct is_meta_storage;
 
 #ifdef CXX11_ENABLED
-    template < typename MetaStorageBase, typename... Tiles >
-    struct is_meta_storage< meta_storage_tmp< MetaStorageBase, Tiles... > > : boost::mpl::true_ {};
+    template < typename MetaStorageBase, typename FirstTile, typename... Tiles >
+    struct is_meta_storage< meta_storage_tmp< MetaStorageBase, FirstTile, Tiles... > > : boost::mpl::true_ {};
 #else
     template < typename MetaStorageBase, typename TileI, typename TileJ >
     struct is_meta_storage< meta_storage_tmp< MetaStorageBase, TileI, TileJ > > : boost::mpl::true_ {};
@@ -207,8 +244,8 @@ namespace gridtools {
     struct is_meta_storage_tmp : boost::mpl::false_ {};
 
 #ifdef CXX11_ENABLED
-    template < typename MetaStorageBase, typename... Tiles >
-    struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, Tiles... > > : boost::mpl::true_ {};
+    template < typename MetaStorageBase, typename FirstTile, typename... Tiles >
+    struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, FirstTile, Tiles... > > : boost::mpl::true_ {};
 #else
     template < typename MetaStorageBase, typename TileI, typename TileJ >
     struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, TileI, TileJ > > : boost::mpl::true_ {};

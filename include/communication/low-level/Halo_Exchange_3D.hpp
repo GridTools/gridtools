@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #ifndef HALO_EXCHANGE_3D_H_
 #define HALO_EXCHANGE_3D_H_
 
@@ -132,7 +167,8 @@ namespace gridtools {
      OUT CODE HERE AS IN 2D CASE
      \endcode
 
-     A running example can be found in the included example. \ example Halo_Exchange_test_3D.cpp
+       A running example can be found in the included example. \example test_halo_exchange_3D.cpp \example
+     test_halo_exchange_2D.cpp
     */
     template < typename PROC_GRID, int ALIGN = 1 >
     class Halo_Exchange_3D {
@@ -450,8 +486,8 @@ namespace gridtools {
           new pointer with a given destination.
 
            \param[in] p Pointer to the first element of type T to send
-           \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
-          sent.
+               \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
+              sent.
            \param[in] I Relative coordinates of the receiving process along the first dimension
            \param[in] J Relative coordinates of the receiving process along the second dimension
            \param[in] K Relative coordinates of the receiving process along the third dimension
@@ -492,8 +528,8 @@ namespace gridtools {
            \tparam J Relative coordinates of the receiving process along the second dimension
            \tparam K Relative coordinates of the receiving process along the third dimension
            \param[in] p Pointer to the first element of type T to send
-           \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
-           sent.
+               \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
+               sent.
         */
         template < int I, int J, int K >
         void register_send_to_buffer(void *p, int s) {
@@ -968,8 +1004,9 @@ namespace gridtools {
                      |         | |         | |      |  | |  |      | |      |  | |  |      | |-------  | |  -------|
                      |         | |---------| |      |  | |  |      | | r<R-1|  | |  | r<R-1| |      |  | |  |      |
                      |  r<R-1  | |         | | c<C-1|  | |  |      | | c<C-1|  | |  | c>0  | | r>0  |  | |  | r>0  |
-               WEST  |         | |   r>0   | |      |  | |  | c>0  | |      |  | |  |      | | c<C-1|  | |  | c>0  |
-               EAST
+                     WEST  |         | |   r>0   | |      |  | |  | c>0  | |      |  | |  |      | | c<C-1|  | |  | c>0
+               |
+                     EAST
                JMINUS|---------| |         | |      |  | |  |      | |      |  | |  |      | |      |  | |  | |JPLUS
                      |         | |         | |      |  | |  |      | |-------  | |  -------| |      |  | |  |      |
                      |---------| |---------| |---------| |---------| |---------| |---------| |---------| |---------|

@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 /**
@@ -59,7 +94,7 @@ namespace gridtools {
     struct is_actual_storage< pointer< no_storage_type_yet< U > > > : public boost::false_type {};
 
     template < typename U >
-    struct is_temporary_storage< pointer< no_storage_type_yet< U > > > : public boost::true_type {};
+    struct is_temporary_storage< pointer< U > > : public is_temporary_storage< U > {};
 
     // Decorator is e.g. of type storage
     template < typename BaseType, template < typename T > class Decorator >
@@ -100,13 +135,16 @@ namespace gridtools {
     struct is_any_storage< no_storage_type_yet< T > > : boost::mpl::true_ {};
 
     template < typename T >
-    struct is_any_storage< pointer< T > > : is_storage< T > {};
+    struct is_any_storage< pointer< T > > : is_any_storage< T > {};
 
     template < typename T >
     struct is_any_storage< pointer< no_storage_type_yet< T > > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_not_tmp_storage : boost::mpl::or_< is_actual_storage< T >, boost::mpl::not_< is_any_storage< T > > > {};
+
+    template < typename T >
+    struct is_not_tmp_storage_pointer : is_not_tmp_storage< typename T::value_type > {};
 
     template < typename T >
     struct storage_pointer_type {
@@ -120,7 +158,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_any_storage< typename T::value_type >::value || is_global_parameter< typename T::value_type >::value),
             "the passed pointer type does not contain a storage type");
-        typedef pointer< typename T::value_type::basic_type > type;
+        typedef pointer< typename T::value_type::super > type;
     };
 
     /** @brief metafunction that takes a pointer<storage<T>> type and returns a pointer<storage<T>::storage_ptr_t> type
