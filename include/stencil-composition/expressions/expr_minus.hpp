@@ -2,8 +2,8 @@ namespace gridtools {
 
     /**@brief Expression subrtracting two arguments*/
     template < typename ArgType1, typename ArgType2 >
-    struct expr_minus : public expr< ArgType1, ArgType2 > {
-        typedef expr< ArgType1, ArgType2 > super;
+    struct expr_minus : public binary_expr< ArgType1, ArgType2 > {
+        typedef binary_expr< ArgType1, ArgType2 > super;
 
         GT_FUNCTION
         constexpr expr_minus(ArgType1 const &first_operand, ArgType2 const &second_operand)
@@ -28,6 +28,9 @@ namespace gridtools {
         using to_string = concatenate< tokens::open_par, ArgType1, operation, ArgType2, tokens::closed_par >;
 #endif
     };
+
+    template < typename ArgType1, typename ArgType2 >
+    struct is_binary_expr< expr_minus< ArgType1, ArgType2 > > : boost::mpl::true_ {};
 
     namespace expressions {
         /** minus expression*/
@@ -104,6 +107,6 @@ namespace gridtools {
             }
 
         } // namespace evaluation
-    } // namespace expressions
+    }     // namespace expressions
 
 } // namespace gridtools

@@ -69,7 +69,7 @@ namespace copy_stencil {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            eval(in()) = eval(in(dimension<4>(1)));
+            eval(in()) = eval(in(dimension< 4 >(1)));
         }
     };
 

@@ -538,7 +538,7 @@ namespace gridtools {
         template < typename... Arguments, template < typename... Args > class Expression >
         GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
             -> decltype(expressions::evaluation::value(*this, arg)) {
-            // arg.to_string();
+
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
             return expressions::evaluation::value((*this), arg);
         }

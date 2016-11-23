@@ -152,21 +152,6 @@ namespace gridtools {
         typedef typename linearize_esf_array< EsfDescrSequence >::type type;
     };
 
-    // /**
-    //    @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag
-    //    depending wether the esf is independent or not
-
-    //    the code is very similar as in the metafunction above
-    //  */
-    // template < typename T >
-    // struct sequence_of_is_independent_esf;
-
-    // template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
-    // struct sequence_of_is_independent_esf< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
-    //     typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::false_type, boost::true_type >::type
-    //     type;
-    // };
-
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
     struct sequence_of_is_independent_esf< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
         typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::false_type, boost::true_type >::type type;

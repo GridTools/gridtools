@@ -44,12 +44,12 @@ using namespace enumtype;
 using namespace expressions;
 
 #ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< Cuda, enumtype::GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
+#define BACKEND backend< Host, enumtype::GRIDBACKEND, Block >
 #else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define BACKEND backend< Host, enumtype::GRIDBACKEND, Naive >
 #endif
 #endif
 

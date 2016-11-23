@@ -93,7 +93,7 @@ namespace gridtools {
     template < ushort_t ID, typename StorageList >
     struct strides_cached : public strides_cached< ID - 1, StorageList > {
         GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< StorageList >::value > ID,
-                                "Library internal error: strides index exceeds the number of storages");
+            "Library internal error: strides index exceeds the number of storages");
         typedef typename boost::mpl::at_c< StorageList, ID >::type storage_type;
         typedef strides_cached< ID - 1, StorageList > super;
         typedef array< int_t, storage_type::space_dimensions - 1 > data_array_t;
@@ -114,8 +114,7 @@ namespace gridtools {
 
         /**@brief constructor, doing nothing more than allocating the space*/
         GT_FUNCTION
-        strides_cached() : super() {
-        }
+        strides_cached() : super() {}
 
         template < short_t Idx >
         GT_FUNCTION
@@ -139,7 +138,7 @@ namespace gridtools {
             return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
         }
 
-    private:
+      private:
         data_array_t m_data;
         strides_cached(strides_cached const &);
     };
@@ -173,7 +172,7 @@ namespace gridtools {
             return m_data;
         }
 
-    private:
+      private:
         data_array_t m_data;
         strides_cached(strides_cached const &);
     };
@@ -218,12 +217,12 @@ namespace gridtools {
 If you are not using generic accessors then you are using an unsupported storage type ");
 #endif
 
-    private:
-      DataPointerArray &RESTRICT m_data_pointer_array;
-      pointer< storage_type > m_storage;
+      private:
+        DataPointerArray &RESTRICT m_data_pointer_array;
+        pointer< storage_type > m_storage;
         const uint_t m_offset;
 
-    public:
+      public:
         GT_FUNCTION
         assign_raw_data_functor(assign_raw_data_functor const &other)
             : m_data_pointer_array(other.m_data_pointer_array), m_storage(other.m_storage), m_offset(other.m_offset) {}
@@ -240,7 +239,7 @@ If you are not using generic accessors then you are using an unsupported storage
             impl< ID, storage_type >();
         }
 
-    private:
+      private:
         assign_raw_data_functor();
 
         // implementation of the assignment of the data pointer in case the storage is a temporary storage
@@ -313,7 +312,7 @@ If you are not using generic accessors then you are using an unsupported storage
             : m_storages(other.m_storages), m_increment(other.m_increment), m_index_array(other.m_index_array),
               m_strides_cached(other.m_strides_cached){};
 
-    private:
+      private:
         increment_index_functor();
 
         MetaStorageSequence const &m_storages;
@@ -357,7 +356,7 @@ If you are not using generic accessors then you are using an unsupported storage
             set_index_recur< ID - 1 >::set(index, out);
         }
 
-    private:
+      private:
         set_index_recur();
         set_index_recur(set_index_recur const &);
     };
@@ -390,19 +389,20 @@ If you are not using generic accessors then you are using an unsupported storage
      */
     template < uint_t Coordinate, typename Strides, typename MetaStorageSequence, typename ArrayIndex >
     struct initialize_index_functor {
-    private:
-      GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error: wrong type");
-      GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MetaStorageSequence, is_pointer >::value), "internal error: wrong type");
-      GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
+      private:
+        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_sequence_of< MetaStorageSequence, is_pointer >::value), "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
 
-      Strides &RESTRICT m_strides;
-      MetaStorageSequence const &RESTRICT m_storages;
+        Strides &RESTRICT m_strides;
+        MetaStorageSequence const &RESTRICT m_storages;
         const int_t m_initial_pos;
         const uint_t m_block;
         ArrayIndex &RESTRICT m_index_array;
         initialize_index_functor();
 
-    public:
+      public:
         GT_FUNCTION
         initialize_index_functor(initialize_index_functor const &other)
             : m_strides(other.m_strides), m_storages(other.m_storages), m_initial_pos(other.m_initial_pos),
@@ -462,15 +462,15 @@ If you are not using generic accessors then you are using an unsupported storage
             "then you are using an unsupported storage type ");
 #endif
 
-    private:
-      DataPointerArray &RESTRICT m_data_pointer_array;
-      StorageSequence const &RESTRICT m_storages;
-      MetaStorageSequence const &RESTRICT m_meta_storages;
+      private:
+        DataPointerArray &RESTRICT m_data_pointer_array;
+        StorageSequence const &RESTRICT m_storages;
+        MetaStorageSequence const &RESTRICT m_meta_storages;
         const int_t m_EU_id_i;
         const int_t m_EU_id_j;
         assign_storage_functor();
 
-    public:
+      public:
         GT_FUNCTION
         assign_storage_functor(assign_storage_functor const &other)
             : m_data_pointer_array(other.m_data_pointer_array), m_storages(other.m_storages),
@@ -563,13 +563,13 @@ If you are not using generic accessors then you are using an unsupported storage
     struct assign_strides_inner_functor {
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
 
-    private:
-      // while the strides are uint_t type in the storage metadata,
-      // we stored them as int in the strides cached object in order to force vectorization
-      int_t *RESTRICT m_left;
-      const int_t *RESTRICT m_right;
+      private:
+        // while the strides are uint_t type in the storage metadata,
+        // we stored them as int in the strides cached object in order to force vectorization
+        int_t *RESTRICT m_left;
+        const int_t *RESTRICT m_right;
 
-    public:
+      public:
         GT_FUNCTION
         assign_strides_inner_functor(int_t *RESTRICT l, const int_t *RESTRICT r) : m_left(l), m_right(r) {}
 
@@ -600,12 +600,12 @@ If you are not using generic accessors then you are using an unsupported storage
 
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesCached >::value), "internal error: wrong type");
 
-    private:
-      StridesCached &RESTRICT m_strides;
-      const MetaStorageSequence &RESTRICT m_storages;
+      private:
+        StridesCached &RESTRICT m_strides;
+        const MetaStorageSequence &RESTRICT m_storages;
         assign_strides_functor();
 
-    public:
+      public:
         GT_FUNCTION
         assign_strides_functor(assign_strides_functor const &other)
             : m_strides(other.m_strides), m_storages(other.m_storages) {}

@@ -43,26 +43,13 @@ namespace gridtools {
 
             /** derivative evaluation*/
             template < typename IterateDomain, typename ArgType1 >
-            GT_FUNCTION static float_type
-#ifdef NDEBUG
-                constexpr
-#endif
-                value(IterateDomain const &it_domain,
-                    expr_derivative< ArgType1 > const &arg,
-                    typename boost::enable_if< typename is_accessor< ArgType1 >::type, int >::type = 0) {
-#ifndef NDEBUG
-// if(!is_accessor<ArgType1>::value)
-// {
-//     printf("derivative not supported for operator: ");
-//     ArgType1::to_string::apply();
-//     printf("\n");
-//     exit (-1);
-// }
-#endif
+            GT_FUNCTION static float_type constexpr value(IterateDomain const &it_domain,
+                expr_derivative< ArgType1 > const &arg,
+                typename boost::enable_if< typename is_accessor< ArgType1 >::type, int >::type = 0) {
                 return 1.;
                 // each operator implements its own derivative
             }
 
         } // namespace evaluation
-    } // namespace expressions
+    }     // namespace expressions
 } // namespace gridtools

@@ -342,7 +342,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         /**@brief straightforward interface*/
         template < typename... UInt, typename Dummy = all_integers< UInt... > >
-        constexpr GT_FUNCTION int_t index(UInt const &... args_) const {
+        constexpr GT_FUNCTION int_t index(UInt... args_) const {
             return _index(strides(), args_...);
         }
 
@@ -354,7 +354,7 @@ namespace gridtools {
         };
 
         template < typename... UInt, typename Dummy = all_static_integers< UInt... > >
-        constexpr GT_FUNCTION uint_t index(uint_t const &first, UInt const &... args_) const {
+        constexpr GT_FUNCTION uint_t index(uint_t first, UInt... args_) const {
             return _index(strides(), first, args_...);
         }
 
@@ -371,7 +371,7 @@ namespace gridtools {
 #else
         /**@brief straightforward interface*/
         GT_FUNCTION
-        int_t index(uint_t const &i, uint_t const &j, uint_t const &k) const { return _index(strides(), i, j, k); }
+        int_t index(uint_t i, uint_t j, uint_t k) const { return _index(strides(), i, j, k); }
 
         /**@brief operator equals (same dimension size, etc.) */
         GT_FUNCTION
@@ -533,10 +533,8 @@ namespace gridtools {
            \param strides_ the strides array
          */
         template < uint_t Coordinate, typename StridesVector >
-        GT_FUNCTION static void initialize(uint_t const &steps_,
-            uint_t const & /*block*/,
-            int_t *RESTRICT index_,
-            StridesVector const &RESTRICT strides_) {
+        GT_FUNCTION static void initialize(
+            uint_t steps_, uint_t /*block*/, int_t *RESTRICT index_, StridesVector const &RESTRICT strides_) {
 
             if (Coordinate < space_dimensions && layout::template at_< Coordinate >::value >= 0) // static if
             {
