@@ -121,6 +121,18 @@ namespace gridtools {
             // return m_k_low_bound;
         }
 
+        /**
+         * The total length of the k dimension as defined by the axis.
+         */
+        GT_FUNCTION
+        uint_t k_total_length() const {
+            const uint_t begin_of_k = value_at< typename Axis::FromLevel >();
+            const uint_t end_of_k =
+                value_at< typename Axis::ToLevel >() -
+                1; // TODO FIXME -1 because the axis has to be one level bigger than the largest k interval
+            return end_of_k - begin_of_k + 1;
+        }
+
         halo_descriptor const &direction_i() const { return m_direction_i; }
 
         halo_descriptor const &direction_j() const { return m_direction_j; }
