@@ -1,36 +1,71 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
-namespace gridtools{
-        /**@brief metafunction for applying a parameter pack in reversed order
+namespace gridtools {
+/**@brief metafunction for applying a parameter pack in reversed order
 
-           usage example:
-           reverse<4, 3, 2>::apply<ToBeReversed, ExtraArgument, 8>::type::type
-           gives
-           ToBeReversed<ExtraArgument, 8, 2, 3, 4>::type
-         */
-        // forward decl
+   usage example:
+   reverse<4, 3, 2>::apply<ToBeReversed, ExtraArgument, 8>::type::type
+   gives
+   ToBeReversed<ExtraArgument, 8, 2, 3, 4>::type
+ */
+// forward decl
 #ifdef CXX11_ENABLED
-        template<uint_t ...Tn>
-            struct reverse_pack;
+    template < uint_t... Tn >
+    struct reverse_pack;
 
-        // recursion anchor
-        template<>
-            struct reverse_pack<>
-        {
-            template<template<typename , uint_t...> class ToBeReversed, typename ExtraArgument, uint_t ... Un>
-            struct apply{
-                typedef ToBeReversed<ExtraArgument, Un...> type;
-            };
+    // recursion anchor
+    template <>
+    struct reverse_pack<> {
+        template < template < typename, uint_t... > class ToBeReversed, typename ExtraArgument, uint_t... Un >
+        struct apply {
+            typedef ToBeReversed< ExtraArgument, Un... > type;
         };
+    };
 
-        // recursion
-        template<uint_t T, uint_t ...Tn>
-            struct reverse_pack<T, Tn...>
-        {
-            template <template <typename ExtraArgument, uint_t...> class ToBeReversed, typename ExtraArgument, uint_t ... Un >
-            struct apply{
-                // bubble 1st parameter backwards
-                typedef typename reverse_pack<Tn...>::template apply<ToBeReversed, ExtraArgument, T, Un...>::type type;
-            };
+    // recursion
+    template < uint_t T, uint_t... Tn >
+    struct reverse_pack< T, Tn... > {
+        template < template < typename ExtraArgument, uint_t... > class ToBeReversed,
+            typename ExtraArgument,
+            uint_t... Un >
+        struct apply {
+            // bubble 1st parameter backwards
+            typedef typename reverse_pack< Tn... >::template apply< ToBeReversed, ExtraArgument, T, Un... >::type type;
         };
+    };
 #endif
-}//namespace gridtools
+} // namespace gridtools

@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/map/map0.hpp>
@@ -7,22 +42,14 @@
 #include "../common/meta_array.hpp"
 #include "caches/cache_metafunctions.hpp"
 #include "independent_esf.hpp"
-#include "stencil-composition/sfinae.hpp"
+// #include "stencil-composition/sfinae.hpp"
 
 /**
 @file
 @brief descriptor of the Multi Stage Stencil (MSS)
 */
 namespace gridtools {
-    namespace _impl
-    {
-
-        struct extract_functor {
-            template <typename T>
-            struct apply {
-                typedef typename T::esf_function type;
-            };
-        };
+    namespace _impl {
 
         /**@brief Macro defining a sfinae metafunction
 
@@ -31,139 +58,69 @@ namespace gridtools {
            can be used to return the extent_type only when it is present, without giving compilation
            errors in case it is not defined.
          */
-        HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
-
+        // HAS_TYPE_SFINAE(extent_type, has_extent_type, get_extent_type)
     }
 
-    /** @brief Descriptors for  Multi Stage Stencil (MSS) */
-    template <typename ExecutionEngine,
-              typename EsfDescrSequence,
-              typename CacheSequence = boost::mpl::vector0<> >
-    struct mss_descriptor {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<EsfDescrSequence, is_esf_descriptor>::value), "Internal Error: invalid type");
+    template < typename Mss1, typename Mss2, typename Tag >
+    struct condition;
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of<CacheSequence, is_cache>::value),
-                "Internal Error: invalid type");
+    /** @brief Descriptors for  Multi Stage Stencil (MSS) */
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence = boost::mpl::vector0<> >
+    struct mss_descriptor {
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_sequence_of< EsfDescrSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
+
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: invalid type");
         typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;
+        typedef static_bool< false > is_reduction_t;
     };
 
-    template<typename mss>
-    struct is_mss_descriptor : boost::mpl::false_{};
+    template < typename mss >
+    struct is_mss_descriptor : boost::mpl::false_ {};
 
-    template <typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence>
-    struct is_mss_descriptor<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> > : boost::mpl::true_{};
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
+    struct is_mss_descriptor< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > : boost::mpl::true_ {
+    };
 
-    template<typename Mss>
+    template < typename Mss1, typename Mss2, typename C >
+    struct is_mss_descriptor< condition< Mss1, Mss2, C > >
+        : boost::mpl::and_< is_mss_descriptor< Mss1 >, is_mss_descriptor< Mss2 > >::type {};
+
+    template < typename Mss >
     struct mss_descriptor_esf_sequence {};
 
-    template <typename ExecutionEngine,
-              typename EsfDescrSequence,
-              typename CacheSequence>
-    struct mss_descriptor_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
-    {
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
+    struct mss_descriptor_esf_sequence< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
         typedef EsfDescrSequence type;
     };
 
+    template < typename Mss >
+    struct mss_descriptor_cache_sequence {};
 
-
-    /**
-       @brief pushes an element in a vector based on the fact that an ESF is independent or not
-
-       Helper metafunction, used by other metafunctions
-     */
-    template <typename State, typename SubArray, typename VectorComponent>
-    struct keep_scanning_lambda
-        : boost::mpl::fold<
-        typename SubArray::esf_list,
-        State,
-        boost::mpl::if_<
-            is_independent<boost::mpl::_2>,
-            keep_scanning_lambda<boost::mpl::_1, boost::mpl::_2, VectorComponent>,
-            boost::mpl::push_back<boost::mpl::_1, VectorComponent >
-            >
-        >
-    {};
-
-    /**
-       @brief linearizes the ESF tree and returns a vector
-
-       Helper metafunction, used by other metafunctions
-     */
-    template <typename Array, typename Argument, template<typename, typename> class KeepScanning>
-    struct linearize_esf_array_lambda : boost::mpl::fold<
-        Array,
-        boost::mpl::vector0<>,
-        boost::mpl::if_<
-            is_independent<boost::mpl::_2>,
-            KeepScanning<boost::mpl::_1, boost::mpl::_2>,
-            boost::mpl::push_back<boost::mpl::_1, Argument >
-            >
-        >{};
-
-
-
-    /**
-       @brief constructs an mpl vector of esf, linearizig the mss tree.
-
-       Looping over all the esfs at compile time.
-       if found independent esfs, they are also included in the linearized vector with a nested fold.
-
-       NOTE: the nested make_independent calls get also linearized
-     */
-    template<typename T>
-    struct mss_descriptor_linear_esf_sequence;
-
-    template <typename ExecutionEngine,
-              typename EsfDescrSequence,
-              typename CacheSequence>
-    struct mss_descriptor_linear_esf_sequence<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
-    {
-
-        template <typename State, typename SubArray>
-        struct keep_scanning : keep_scanning_lambda<State, SubArray, boost::mpl::_2>
-        {};
-
-        template <typename Array>
-        struct linearize_esf_array : linearize_esf_array_lambda<Array, boost::mpl::_2, keep_scanning>{};
-
-        typedef typename linearize_esf_array<EsfDescrSequence>::type type;
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
+    struct mss_descriptor_cache_sequence< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
+        typedef CacheSequence type;
     };
 
-    /**
-       @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag depending wether the esf is independent or not
+    template < typename Mss >
+    struct mss_descriptor_is_reduction;
 
-       the code is very similar as in the metafunction above
-     */
-    template<typename T>
-    struct sequence_of_is_independent_esf;
-
-    template <typename ExecutionEngine,
-              typename EsfDescrSequence,
-              typename CacheSequence>
-    struct sequence_of_is_independent_esf<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
-    {
-
-        template <typename State, typename SubArray>
-        struct keep_scanning : keep_scanning_lambda<State, SubArray, boost::mpl::true_>
-        {};
-
-        template <typename Array>
-        struct linearize_esf_array : linearize_esf_array_lambda<Array, boost::mpl::false_, keep_scanning> {};
-
-        typedef typename linearize_esf_array<EsfDescrSequence>::type type;
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
+    struct mss_descriptor_is_reduction< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
+        typedef static_bool< false > type;
     };
 
-
-
-    template<typename Mss>
+    template < typename Mss >
     struct mss_descriptor_execution_engine {};
 
-    template <typename ExecutionEngine,
-              typename EsfDescrSequence,
-              typename CacheSequence>
-    struct mss_descriptor_execution_engine<mss_descriptor<ExecutionEngine, EsfDescrSequence, CacheSequence> >
-    {
+    template < typename Mss1, typename Mss2, typename Cond >
+    struct mss_descriptor_execution_engine< condition< Mss1, Mss2, Cond > > {
+        typedef typename mss_descriptor_execution_engine< Mss1 >::type type;
+    };
+
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
+    struct mss_descriptor_execution_engine< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
         typedef ExecutionEngine type;
     };
 

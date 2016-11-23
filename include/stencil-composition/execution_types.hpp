@@ -1,34 +1,66 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 namespace gridtools {
-    namespace enumtype{
+    namespace enumtype {
 
-        enum isparallel {parallel_impl, serial} ;
-        enum execution  {forward, backward, parallel} ;
+        enum isparallel { parallel_impl, serial };
+        enum execution { forward, backward, parallel };
 
-        template<enumtype::isparallel T, enumtype::execution U=forward>
-        struct execute_impl{
-            static const enumtype::execution iteration=U;
-            static const enumtype::isparallel execution=T;
+        template < enumtype::isparallel T, enumtype::execution U = forward >
+        struct execute_impl {
+            static const enumtype::execution iteration = U;
+            static const enumtype::isparallel execution = T;
         };
 
-        template<enumtype::execution U>
-        struct execute
-        {
-            typedef execute_impl<serial, U> type;
+        template < enumtype::execution U >
+        struct execute {
+            typedef execute_impl< serial, U > type;
         };
 
-
-        template<>
-        struct execute<parallel>
-        {
-            typedef execute_impl<parallel_impl, forward> type;
+        template <>
+        struct execute< parallel > {
+            typedef execute_impl< parallel_impl, forward > type;
         };
     }
 
-    template<typename T>
-    struct is_execution_engine : boost::mpl::false_{};
+    template < typename T >
+    struct is_execution_engine : boost::mpl::false_ {};
 
-    template<enumtype::execution U>
-    struct is_execution_engine<enumtype::execute<U> > : boost::mpl::true_{};
+    template < enumtype::execution U >
+    struct is_execution_engine< enumtype::execute< U > > : boost::mpl::true_ {};
 
 } // namespace gridtools
