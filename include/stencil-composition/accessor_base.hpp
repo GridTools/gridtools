@@ -41,11 +41,11 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
 
-#include "../../gridtools.hpp"
-#include "../../common/is_temporary_storage.hpp"
+#include "../gridtools.hpp"
+#include "../common/is_temporary_storage.hpp"
 
-#include "../../storage/storage.hpp"
-#include "../../storage/storage_metafunctions.hpp"
+#include "../storage/storage.hpp"
+#include "../storage/storage_metafunctions.hpp"
 
 #include "../common/offset_tuple_mixed.hpp"
 #include "extent.hpp"
@@ -148,14 +148,6 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
             : m_offsets(other.offsets()) {}
 
-        // ctor with one argument: have to provide specific arguments in order to avoid ambiguous instantiation
-        // by the compiler
-        template < uint_t Idx >
-        GT_FUNCTION constexpr accessor_base(dimension< Idx > const &x)
-            : m_offsets(x) {
-            GRIDTOOLS_STATIC_ASSERT((Idx <= n_dim), "too high dimension accessor");
-        }
-
         GT_FUNCTION
         constexpr accessor_base(const int_t &x) : m_offsets(x) {}
 
@@ -174,14 +166,14 @@ namespace gridtools {
         }
 
         template < typename First,
-            typename... Whatever,
+            typename... Rest,
             typename T = typename boost::enable_if_c< accumulate(
-                logical_and(), is_dimension< First >::type::value, is_dimension< Whatever >::type::value...) >::type >
+                logical_and(), is_dimension< First >::type::value, is_dimension< Rest >::type::value...) >::type >
 
-        GT_FUNCTION constexpr accessor_base(First f, Whatever... x)
+        GT_FUNCTION constexpr accessor_base(First f, Rest... x)
             : m_offsets(f, x...) {
             GRIDTOOLS_STATIC_ASSERT(
-                accumulate(logical_and(), (First::direction <= n_dim), (Whatever::direction <= n_dim)...),
+                accumulate(logical_and(), (First::direction <= n_dim), (Rest::direction <= n_dim)...),
                 "trying to access a too high dimension for accessor");
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim - 1,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
@@ -208,6 +200,12 @@ namespace gridtools {
         template < typename X, typename Y >
         GT_FUNCTION constexpr accessor_base(X x, Y y)
             : m_offsets(x, y) {}
+
+        template < ushort_t DimIndex >
+        GT_FUNCTION constexpr accessor_base(dimension< DimIndex > x)
+            : m_offsets(x) {}
+
+        GT_FUNCTION constexpr accessor_base(int_t x) : m_offsets(x) {}
 
 #endif
 

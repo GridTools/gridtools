@@ -29,9 +29,6 @@ namespace gridtools {
 #endif
     };
 
-    template < typename ArgType1 >
-    struct is_unary_expr;
-
     template < typename ArgType1, int Exponent >
     struct is_unary_expr< expr_pow< ArgType1, Exponent > > : boost::mpl::true_ {};
 
@@ -69,7 +66,8 @@ namespace gridtools {
             template < typename IterateDomain, typename ArgType1, int Exponent >
             GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_derivative< expr_pow< ArgType1, Exponent > > const &arg)
-                -> decltype(it_domain(arg.first_operand)) {
+                -> decltype(it_domain(expr_pow< ArgType1, Exponent - 1 >(arg.first_operand) *
+                                      expr_derivative< ArgType1 >(arg.first_operand))) {
                 return (it_domain(expr_pow< ArgType1, Exponent - 1 >(arg.first_operand) *
                                   expr_derivative< ArgType1 >(arg.first_operand)));
             }

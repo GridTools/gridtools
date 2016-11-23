@@ -50,20 +50,6 @@ namespace gridtools {
         constexpr const super &offsets() const { return *this; }
     };
 
-    template < uint_t ID,
-        enumtype::intend Intend = enumtype::in,
-        typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
-        ushort_t Number = 3 >
-    struct accessor : accessor_mixed< accessor_impl< ID, Intend, Extent, Number > > {
-        using accessor_mixed< accessor_impl< ID, Intend, Extent, Number > >::accessor_mixed;
-    };
-
-    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
-    using in_accessor = accessor< ID, enumtype::in, Extent, Number >;
-
-    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
-    using inout_accessor = accessor< ID, enumtype::inout, Extent, Number >;
-
     /**
        @brief this struct allows the specification of SOME of the arguments before instantiating the offset_tuple.
        It is a language keyword. Usage examples can be found in the unit test \ref accessor_tests.hpp.

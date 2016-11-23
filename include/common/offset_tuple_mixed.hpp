@@ -52,19 +52,6 @@ namespace gridtools {
         GT_FUNCTION constexpr offset_tuple_mixed() : m_tuple_runtime() {}
 
 #ifndef __CUDACC__
-        // template < typename... ArgsRuntime
-        //            , typename T = typename boost::disable_if_c< accumulate(logical_and(),
-        //              boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime >
-        //              >::type::value...) >::
-        //         type >
-        // GT_FUNCTION constexpr
-        // offset_tuple_mixed(ArgsRuntime const &... args){
-        //     /*always failing*/
-        //     GRIDTOOLS_STATIC_ASSERT(sizeof...(ArgsRuntime) && !sizeof...(ArgsRuntime)
-        //                             , "Passing the wrong argument to an alias accessor, or trying to construct it
-        //                             with wrong arguments");
-        // }
-
         template < typename... ArgsRuntime,
             typename T = typename boost::enable_if_c< accumulate(logical_and(),
                 boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime > >::type::value...) >::

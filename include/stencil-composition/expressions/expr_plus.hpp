@@ -2,8 +2,8 @@ namespace gridtools {
 
     /**@brief Expression summing two arguments*/
     template < typename ArgType1, typename ArgType2 >
-    struct expr_plus : public expr< ArgType1, ArgType2 > {
-        typedef expr< ArgType1, ArgType2 > super;
+    struct expr_plus : public binary_expr< ArgType1, ArgType2 > {
+        typedef binary_expr< ArgType1, ArgType2 > super;
         GT_FUNCTION
         constexpr expr_plus(ArgType1 const &first_operand, ArgType2 const &second_operand)
             : super(first_operand, second_operand) {}
@@ -108,7 +108,7 @@ namespace gridtools {
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_derivative< expr_plus< FloatType, ArgType2 > > const &arg)
-                -> decltype(it_domain(arg.second_operand)) {
+                -> decltype(it_domain(expr_derivative< ArgType2 >(arg.second_operand))) {
                 return it_domain(expr_derivative< ArgType2 >(arg.second_operand));
             }
 

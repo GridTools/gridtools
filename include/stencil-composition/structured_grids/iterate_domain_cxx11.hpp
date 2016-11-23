@@ -531,7 +531,6 @@ namespace gridtools {
             return get_value(accessor, get_data_pointer(accessor));
         }
 
-#ifdef CXX11_ENABLED
         /** @brief method called in the Do methods of the functors
 
             Overload of the operator() for expressions.
@@ -539,7 +538,7 @@ namespace gridtools {
         template < typename... Arguments, template < typename... Args > class Expression >
         GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
             -> decltype(expressions::evaluation::value(*this, arg)) {
-            // arg.to_string();
+
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
             return expressions::evaluation::value((*this), arg);
         }
@@ -557,7 +556,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
             return expressions::evaluation::value((*this), arg);
         }
-#endif
     };
 
     //    ################## IMPLEMENTATION ##############################

@@ -42,25 +42,11 @@ namespace gridtools {
     /**
        @struct
        @brief Used as template argument in the storage.
+
        In particular in the \ref gridtools::base_storage class it regulate memory access order, defined at compile-time,
        by
        leaving the interface unchanged.
-    */
-    namespace _impl {
 
-        template < int index >
-        GT_FUNCTION constexpr static int __get(int i) {
-            return -1;
-        }
-
-        template < int index, int first, int... Vals >
-        GT_FUNCTION constexpr static int __get(int i) {
-            return (i == index) ? first : __get< index + 1, Vals... >(i);
-        }
-
-    } // namespace _impl
-
-    /**
        Layout maps are simple sequences of integers specified
        statically. The specification happens as
 
@@ -90,15 +76,37 @@ namespace gridtools {
 
         constexpr layout_map(){};
 
+        GT_FUNCTION constexpr short_t operator[](ushort_t id_) const { return layout_vector[id_]; }
+
+#ifdef CUDA8
+        /**
+           @brief metafunction for appending a layout_map to another existing layout_map
+
+           \tparam Layout input layout_map
+
+           Usage:
+           @code
+           layout_map<0,-1,2>::append<layout_map<0,1> >::type
+           @endcode
+           gives
+           @code
+           layout_map<0,-1,2,3,4>
+           @endcode
+        */
         template < class Layout >
         struct append {
 
-            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "internal error");
+            static const short_t real_length = accumulate(add_functor(), ((Args >= 0) ? 1 : 0)...);
 
-            typedef typename boost::mpl::fold< typename Layout::layout_vector_t,
-                layout_map< Args... >,
-                layout_map< Args..., boost::mpl::plus< boost::mpl::_2, static_ushort< length > >::value > >::type type;
+            template < short_t... Idx >
+            constexpr static layout_map< Args..., ((Idx >= 0) ? (Idx + real_length) : (-1))... > sum_to_map_indices(
+                layout_map< Idx... >) {
+                return layout_map< Args..., ((Idx >= 0) ? (Idx + real_length) : (-1))... >();
+            }
+
+            typedef decltype(sum_to_map_indices(Layout())) type;
         };
+#endif
 
         /** This function returns the value in the map that is stored at
             position 'I', where 'I' is passed in input as template
@@ -112,33 +120,25 @@ namespace gridtools {
             return layout_vector[I];
         }
 
-        template < typename T >
-        struct remove_refref;
+/** Given a parameter pack of values and a static index, the function
+    returns the reference to the value in the position indicated
+    at position 'I' in the map.
+    NOTE: counting from 0.
 
-        template < typename T >
-        struct remove_refref< T && > {
-            using type = T;
-        };
+    \code
+    gridtools::layout_map<1,2,0>::select<1>(a,b,c) == c
+    \endcode
+    because the position 1 in the layout map contains a 2, which means the third argument
 
+    \tparam I Index to be queried
+    \tparam T Sequence of types
+    \param[in] args Values from where to select the element  (length must be equal to the length of the
+   layout_map length)
+*/
 #ifndef __CUDACC__
-        /** Given a parameter pack of values and a static index, the function
-            returns the reference to the value in the position indicated
-            at position 'I' in the map.
-            NOTE: counting from 0.
-
-            \code
-            gridtools::layout_map<1,2,0>::select<1>(a,b,c) == c
-            \endcode
-            because the position 1 in the layout map contains a 2, which means the third argument
-
-            \tparam I Index to be queried
-            \tparam T Sequence of types
-            \param[in] args Values from where to select the element  (length must be equal to the length of the
-           layout_map length)
-        */
         template < ushort_t I, typename... T >
-        GT_FUNCTION static auto constexpr select(T &... args) ->
-            typename remove_refref< decltype(std::template get< layout_vector[I] >(std::make_tuple(args...))) >::type {
+        GT_FUNCTION static auto constexpr select(T &... args) -> typename boost::remove_reference< decltype(
+            std::template get< layout_vector[I] >(std::make_tuple(args...))) >::type {
 
             GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(boost::is_integral< T >::type::value...)), "wrong type");
             return gt_get< layout_vector[I] >::apply(args...);
@@ -154,25 +154,10 @@ namespace gridtools {
 #endif // __CUDACC__
 
         // returns the dimension corresponding to the given strides (get<0> for stride 1)
-        template < ushort_t i >
+        template < ushort_t I >
         GT_FUNCTION static constexpr ushort_t get() {
-            return layout_vector[i];
+            return layout_vector[I];
         }
-
-        GT_FUNCTION
-        constexpr short_t operator[](ushort_t i) const { return _impl::__get< 0, Args... >(i); }
-
-        struct transform_in_type {
-            template < ushort_t T >
-            struct apply {
-                typedef static_ushort< T > type;
-            };
-        };
-
-        template < ushort_t I, ushort_t T >
-        struct predicate {
-            typedef typename boost::mpl::bool_< T == I >::type type;
-        };
 
         /** Given a parameter pack of values and a static index I, the function
             returns the reference to the element whose position
@@ -386,6 +371,24 @@ namespace gridtools {
     template < short_t... Args >
     struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
 
+    /**
+       @biref Metafunction to get a submap of a layout_map
+
+       \tparam Map input \ref gridtools::layout_map
+       \tparam Pre position of the fist index for the subsequence
+       \tparam Post position of the last index for the subsequence
+
+       Example ofusage":
+
+       @code
+       typename sub_map<layout_map<2,1,0,-1,3,4,5,6>,2,5 >::type
+       @endcode
+       gives
+       @code
+       layout_map<0,-1,3,4>
+       @endcode
+
+     */
     template < typename Map, ushort_t Pre, ushort_t Post >
     struct sub_map {
         typedef typename gt_expand< typename Map::layout_vector_t, layout_map, Pre, Post >::type type;

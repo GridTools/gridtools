@@ -33,29 +33,37 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include <gridtools.hpp>
+#include "gtest/gtest.h"
 
-namespace vertical_advection {
+#include <common/defs.hpp>
+#include <common/cuda_type_traits.hpp>
 
-// define some physical constants
-#define BETA_V ((double)0.0)
-#define BET_M ((double)0.5 * ((double)1.0 - BETA_V))
-#define BET_P ((double)0.5 * ((double)1.0 + BETA_V))
+TEST(texture_type_traits, int_is_texture_type) { ASSERT_TRUE(gridtools::is_texture_type< int >::value); }
 
-#ifdef CUDA_EXAMPLE
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
-#else
-#ifdef BACKEND_BLOCK
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
-#else
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > va_backend;
-#endif
-#endif
+TEST(texture_type_traits, bool_is_NOT_texture_type) { ASSERT_FALSE(gridtools::is_texture_type< bool >::value); }
+
+TEST(texture_type_traits, real_typedef_is_texture_type) {
+    typedef double Real;
+    ASSERT_TRUE(gridtools::is_texture_type< Real >::value);
 }
+
+TEST(texture_type_traits, gridtools_uint_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< gridtools::uint_t >::value);
+}
+
+TEST(texture_type_traits, int_ref_is_texture_type) { ASSERT_TRUE(gridtools::is_texture_type< int & >::value); }
+
+TEST(texture_type_traits, cv_int_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< const volatile int >::value);
+}
+
+TEST(texture_type_traits, restrict_int_ref_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< int &__restrict__ >::value);
+}
+
+#ifdef CXX11_ENABLED
+TEST(texture_type_traits, is_texture_type_t) {
+    using result = gridtools::is_texture_type_t< int >;
+    ASSERT_TRUE(result::value);
+}
+#endif

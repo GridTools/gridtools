@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <boost/typeof/typeof.hpp>
+
 namespace gridtools {
 
     /**

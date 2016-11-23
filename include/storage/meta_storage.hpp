@@ -78,7 +78,7 @@ namespace gridtools {
 
             forwarding to the base class
         */
-        GT_FUNCTION meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
+        GT_FUNCTION constexpr meta_storage(meta_storage< BaseStorage > const &other) : super(other) {}
 
 #if defined(CXX11_ENABLED)
         /** @brief ctor
@@ -90,7 +90,7 @@ namespace gridtools {
                 boost::is_integral< typename boost::mpl::at_c< typename variadic_to_vector< IntTypes... >::type,
                     0 >::type >::type::value,
                 bool >::type >
-        meta_storage(IntTypes... args)
+        constexpr meta_storage(IntTypes... args)
             : super(args...) {}
 
         /**@brief operator equals (same dimension size, etc.) */
@@ -103,13 +103,13 @@ namespace gridtools {
 
             forwarding to the base class
         */
-        explicit meta_storage(uint_t dim1, uint_t dim2, uint_t dim3) : super(dim1, dim2, dim3) {}
+        explicit constexpr meta_storage(uint_t dim1, uint_t dim2, uint_t dim3) : super(dim1, dim2, dim3) {}
 
         /** @brief ctor
 
             forwarding to the base class
         */
-        meta_storage(uint_t const &initial_offset_i,
+        constexpr meta_storage(uint_t const &initial_offset_i,
             uint_t const &initial_offset_j,
             uint_t const &dim3,
             uint_t const &n_i_threads,
@@ -120,6 +120,21 @@ namespace gridtools {
         bool operator==(const meta_storage &other) const { return super::operator==(other); }
 
 #endif
+
+#ifndef STRUCTURED_GRIDS
+        // API for icosahedral grid only
+        /**@brief straightforward interface*/
+        template < typename... T >
+        constexpr GT_FUNCTION static int _index(T const &... args_) {
+            return super::_index(args_...);
+        }
+
+        template < typename LayoutT, typename StridesVector >
+        GT_FUNCTION static constexpr int_t _index(
+            StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
+            return super::template _index< StridesVector, LayoutT >(strides_, offsets);
+        }
+#endif // GRIDBACKEND==icosahedral
 
 #ifndef __CUDACC__
       private:
