@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 2.8)
 project(other_grid_structures CXX)
 
-set(Boost_USE_STATIC_LIBS OFF)
-set(Boost_USE_MULTITHREADED ON)
-find_package(Boost REQUIRED COMPONENTS timer system chrono)
-include_directories("${Boost_INCLUDE_DIRS}")
+### set(Boost_USE_STATIC_LIBS OFF)
+### set(Boost_USE_MULTITHREADED ON)
+### find_package(Boost REQUIRED)
+### include_directories("${Boost_INCLUDE_DIRS}")
 
 if(MSVC)
   set(CMAKE_CXX_FLAGS "/EHsc")

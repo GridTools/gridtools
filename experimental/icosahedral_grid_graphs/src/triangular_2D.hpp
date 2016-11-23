@@ -1,14 +1,48 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
-#include <vector>
-#include <list>
-#include <iostream>
-#include <iomanip>
 #include <algorithm>
-#include <iterator>
-#include <stdlib.h>
 #include <boost/timer/timer.hpp>
-
+#include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <list>
+#include <stdlib.h>
+#include <vector>
 
 /** This is the function which defines the structure
     i.e., define the offsets of a node.
@@ -26,12 +60,8 @@ struct triangular_offsets {
         m_offset[2] = a;
     }
 
-    int offset(int neighbor_index, int sign) const {
-        return sign*m_offset[neighbor_index];
-    }
-
+    int offset(int neighbor_index, int sign) const { return sign * m_offset[neighbor_index]; }
 };
-
 
 /** This is the storage class.
     The final plan would be to have generic
@@ -41,151 +71,122 @@ struct triangular_offsets {
     to compute the offsets, as for instance the
     'sign' bit in triangular_offsefs.
 */
-template <typename OffsetFunction>
+template < typename OffsetFunction >
 struct triangular_storage {
-    std::vector<double> data;
+    std::vector< double > data;
     OffsetFunction offset_function;
     int nRows, nColumns, haloSize;
 
-    struct iterator : public std::iterator<std::random_access_iterator_tag, double> {
+    struct iterator : public std::iterator< std::random_access_iterator_tag, double > {
         typedef double value_type;
 
-        std::vector<double>::iterator m_it;
-        OffsetFunction const& f;
+        std::vector< double >::iterator m_it;
+        OffsetFunction const &f;
         int toggle_direction;
 
-        iterator(std::vector<double>::iterator it, OffsetFunction const& f, int toggle_direction)
-        : m_it(it)
-        , f(f)
-        , toggle_direction(toggle_direction)
-        { }
+        iterator(std::vector< double >::iterator it, OffsetFunction const &f, int toggle_direction)
+            : m_it(it), f(f), toggle_direction(toggle_direction) {}
 
         /** I know, using [] to access neighbors may
             seem not good, but this should highlight
             the fact that the neighbors are random-access.
         */
-        double& operator[](int i) {
-            return *(m_it+f.offset(i, toggle_direction));
-        }
+        double &operator[](int i) { return *(m_it + f.offset(i, toggle_direction)); }
 
-        double const& operator[](int i) const {
-            return *(m_it+f.offset(i, toggle_direction));
-        }
+        double const &operator[](int i) const { return *(m_it + f.offset(i, toggle_direction)); }
 
-        double& operator*() {
-            return *m_it;
-        }
+        double &operator*() { return *m_it; }
 
-        iterator & operator++() {
+        iterator &operator++() {
             ++m_it;
-            toggle_direction = toggle_direction*(-1);
+            toggle_direction = toggle_direction * (-1);
             return *this;
         }
 
-        iterator operator++(int) const {
-            toggle_direction = toggle_direction*(-1);
-            return m_it+1;
+        iterator operator++(int)const {
+            toggle_direction = toggle_direction * (-1);
+            return m_it + 1;
         }
 
-        iterator & operator--() {
+        iterator &operator--() {
             --m_it;
-            toggle_direction = toggle_direction*(-1);
+            toggle_direction = toggle_direction * (-1);
             return *this;
         }
 
-        iterator operator--(int) const {
-            toggle_direction = toggle_direction*(-1);
-            return m_it-1;
+        iterator operator--(int)const {
+            toggle_direction = toggle_direction * (-1);
+            return m_it - 1;
         }
 
-        iterator & operator+=(int i) {
+        iterator &operator+=(int i) {
             m_it += i;
-            toggle_direction = toggle_direction*(i&1 ? -1 : 1);
+            toggle_direction = toggle_direction * (i & 1 ? -1 : 1);
             return *this;
         }
 
-        iterator & operator-=(int i) {
+        iterator &operator-=(int i) {
             m_it -= i;
-            toggle_direction = toggle_direction*(i&1 ? -1 : 1);
+            toggle_direction = toggle_direction * (i & 1 ? -1 : 1);
             return *this;
         }
 
-        iterator operator+(int i) const {
-            return iterator(m_it+i, f, toggle_direction*(i&1 ? -1 : 1));
-        }
+        iterator operator+(int i) const { return iterator(m_it + i, f, toggle_direction * (i & 1 ? -1 : 1)); }
 
-        iterator operator-(int i) const {
-            return iterator(m_it-i, f, toggle_direction*(i&1 ? -1 : 1));
-        }
+        iterator operator-(int i) const { return iterator(m_it - i, f, toggle_direction * (i & 1 ? -1 : 1)); }
 
-        bool operator==(iterator const& it) const {
-            return m_it==it.m_it;
-        }
+        bool operator==(iterator const &it) const { return m_it == it.m_it; }
 
-        bool operator!=(iterator const& it) const {
-            return m_it!=it.m_it;
-        }
+        bool operator!=(iterator const &it) const { return m_it != it.m_it; }
 
-        bool operator<(iterator const& it) const {
-            return m_it<it.m_it;
-        }
+        bool operator<(iterator const &it) const { return m_it < it.m_it; }
 
-        bool operator<=(iterator const& it) const {
-            return m_it<=it.m_it;
-        }
+        bool operator<=(iterator const &it) const { return m_it <= it.m_it; }
 
-        bool operator>(iterator const& it) const {
-            return m_it>it.m_it;
-        }
+        bool operator>(iterator const &it) const { return m_it > it.m_it; }
 
-        bool operator>=(iterator const& it) const {
-            return m_it>=it.m_it;
-        }
+        bool operator>=(iterator const &it) const { return m_it >= it.m_it; }
         iterator neighbor(int i) {
-            assert(i>=0 && i < 3);
-            return iterator(m_it+f.offset(i, toggle_direction), f, toggle_direction*(-1));
+            assert(i >= 0 && i < 3);
+            return iterator(m_it + f.offset(i, toggle_direction), f, toggle_direction * (-1));
         }
         int neighbor_off(int i) {
-            assert(i>=0 && i < 3);
+            assert(i >= 0 && i < 3);
             return f.offset(i, toggle_direction);
         }
     };
 
-    triangular_storage(std::vector<double> && data, int nrows, int ncolumns, int halosize, OffsetFunction const & offset_function)
-        : data(std::move(data))
-        , offset_function(offset_function), nRows(nrows), nColumns(ncolumns), haloSize(halosize)
-    { }
+    triangular_storage(
+        std::vector< double > &&data, int nrows, int ncolumns, int halosize, OffsetFunction const &offset_function)
+        : data(std::move(data)), offset_function(offset_function), nRows(nrows), nColumns(ncolumns),
+          haloSize(halosize) {}
 
     /** NOTE THE ARGUMENT GIVEN TO BEGIN IN ORDER TO SELECT
         WHAT NEIGHBORS ARE GOING TO BE ACCESSED
     */
-    iterator begin() {
-        return iterator(data.begin(), offset_function, 1);
-    }
+    iterator begin() { return iterator(data.begin(), offset_function, 1); }
 
-    iterator end() {
-        return iterator(data.end(), offset_function, 5);
-    }
+    iterator end() { return iterator(data.end(), offset_function, 5); }
 
     /** This is the main function to perform operations
         (stencils) on grid elements. It takes a function to
         be applied. This function is the same in both the
         examples.
     */
-    template <typename Functor>
-    double fold_neighbors(iterator it, Functor && f) const {
+    template < typename Functor >
+    double fold_neighbors(iterator it, Functor &&f) const {
         double v = 0;
-        for (int i=0; i<OffsetFunction::n_neighbors; ++i) {
+        for (int i = 0; i < OffsetFunction::n_neighbors; ++i) {
             v = f(v, it[i]);
         }
         return v;
     }
 
-    template <typename Functor>
-    double fold_neighbors_dbg(iterator it, double center, Functor && f) const {
-        double v = 3*center;
+    template < typename Functor >
+    double fold_neighbors_dbg(iterator it, double center, Functor &&f) const {
+        double v = 3 * center;
         std::cout << " c@ " << v;
-        for (int i=0; i<OffsetFunction::n_neighbors; ++i) {
+        for (int i = 0; i < OffsetFunction::n_neighbors; ++i) {
             std::cout << " f@ " << it.neighbor_off(i) << " @v " << it[i];
             v = f(v, it[i]);
         }
@@ -193,67 +194,58 @@ struct triangular_storage {
         return v;
     }
 
-
-    template <typename Functor>
-    double fold_2nd_neighbors(iterator it, double center, Functor && f) const {
+    template < typename Functor >
+    double fold_2nd_neighbors(iterator it, double center, Functor &&f) const {
         double v = center;
-        std::cout << " @2c " << center; //1.5
-        for (int i=0; i<OffsetFunction::n_neighbors; ++i) {
+        std::cout << " @2c " << center; // 1.5
+        for (int i = 0; i < OffsetFunction::n_neighbors; ++i) {
             std::cout << " n@ " << it.neighbor_off(i);
             v = f(v, fold_neighbors_dbg(it.neighbor(i), *it.neighbor(i), f));
-        }//-3
+        } //-3
         std::cout << " @2t " << v;
         return v;
     }
 
-    int StartComputationDomain() const
-    {
+    int StartComputationDomain() const {
         // n cells in halo of diamond 3
-        int pos = pow(haloSize,2)*2;
+        int pos = pow(haloSize, 2) * 2;
         // add cells from halo of diamond 2
-        pos += nColumns*haloSize*2;
+        pos += nColumns * haloSize * 2;
         // add cells from padding between diamonds 2 and 6
-        pos += (haloSize-1)*haloSize*2+1;
+        pos += (haloSize - 1) * haloSize * 2 + 1;
         // add cells of one halo row in diamonds 4 and 5
-        pos += haloSize*2;
+        pos += haloSize * 2;
         // return position of first cell in compuation domain
         return pos;
     }
-    int EndComputationDomain() const
-    {
+    int EndComputationDomain() const {
         // n cells in halo of diamond 3
-        int pos = pow(haloSize,2)*2;
+        int pos = pow(haloSize, 2) * 2;
         // add cells from halo of diamond 2
-        pos += nColumns*haloSize*2;
+        pos += nColumns * haloSize * 2;
         // add cells from padding between diamonds 2 and 6
-        pos += (haloSize-1)*haloSize*2+1;
+        pos += (haloSize - 1) * haloSize * 2 + 1;
         // add all cells in computation domain plus halos in diamonds 4-5/ and 6
-        pos+= (nColumns+haloSize*2)*nRows*2;
+        pos += (nColumns + haloSize * 2) * nRows * 2;
         // substract the last row in halo in diamond 6
-        pos -= haloSize*2;
+        pos -= haloSize * 2;
         return pos;
     }
-    int RowId(int cellId) const
-    {
-        int stride = (haloSize*2+nColumns)*2;
-        return (cellId - (StartComputationDomain() - haloSize*2))/stride;
+    int RowId(int cellId) const {
+        int stride = (haloSize * 2 + nColumns) * 2;
+        return (cellId - (StartComputationDomain() - haloSize * 2)) / stride;
     }
 
-    int ColumnId(int cellId) const
-    {
-        int stride = (haloSize*2+nColumns)*2;
-        int columnId = ((cellId - (StartComputationDomain() - haloSize*2))%stride - haloSize*2);
-        return columnId < 0 ? (columnId)/2 -1 : columnId/2;
+    int ColumnId(int cellId) const {
+        int stride = (haloSize * 2 + nColumns) * 2;
+        int columnId = ((cellId - (StartComputationDomain() - haloSize * 2)) % stride - haloSize * 2);
+        return columnId < 0 ? (columnId) / 2 - 1 : columnId / 2;
     }
 
-    bool CellInComputeDomain(int cellId) const
-    {
+    bool CellInComputeDomain(int cellId) const {
         int rowId = RowId(cellId);
         int columnId = ColumnId(cellId);
-        return cellId >= StartComputationDomain() &&
-                cellId < EndComputationDomain() &&
-                rowId >= 0 && rowId < nRows &&
-                columnId >= 0 && columnId < nColumns;
+        return cellId >= StartComputationDomain() && cellId < EndComputationDomain() && rowId >= 0 && rowId < nRows &&
+               columnId >= 0 && columnId < nColumns;
     }
-
 };
