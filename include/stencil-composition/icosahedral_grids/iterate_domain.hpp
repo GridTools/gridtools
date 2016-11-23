@@ -386,7 +386,7 @@ namespace gridtools {
             containg multiple snapshots of data fields with the same dimension and memory layout)
 
             this method is enabled only if the current placeholder dimension exceeds the number of space dimensions of
-           the storage class.
+            the storage class.
             I.e., if we are dealing with  storage lists or data fields (see concepts page for definitions).
         */
         template < typename Accessor >
@@ -408,8 +408,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim > storage_type::space_dimensions,
                 "You specified a too small dimension for the data_field");
 
-            // for the moment the extra dimensionality of the storage is limited to max 2
-            //(3 space dim + 2 extra= 5, which gives n_dim==4)
             GRIDTOOLS_STATIC_ASSERT(
                 N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
 

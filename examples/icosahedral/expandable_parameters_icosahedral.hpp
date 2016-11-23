@@ -133,8 +133,6 @@ namespace test_expandable_parameters_icosahedral {
         comp_->run();
         comp_->finalize();
 
-        bool success = true;
-
         verifier ver(1e-10);
 
         array< array< uint_t, 2 >, 4 > halos = {{{0, 0}, {0, 0}, {0, 0}, {0, 0}}};
@@ -147,7 +145,5 @@ namespace test_expandable_parameters_icosahedral {
         result = result & ver.verify(grid_, storage7, storage70, halos);
         result = result & ver.verify(grid_, storage8, storage80, halos);
         return result;
-
-        return success;
     }
 } // namespace test_expandable_parameters_icosahedral

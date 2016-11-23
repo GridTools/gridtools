@@ -89,18 +89,14 @@ namespace gridtools {
 
        \param arg the vector accessor
      */
-        // rvalue
         template < uint_t ACC_ID, enumtype::intend Intent, typename LocationType, typename Extent, uint_t Size >
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor< ACC_ID, Intent, LocationType, Extent, Size > >::type
         operator()(vector_accessor< ACC_ID, Intent, LocationType, Extent, Size > const &arg) const {
             typedef typename super::template accessor_return_type<
                 accessor< ACC_ID, Intent, LocationType, Extent, Size > >::type return_t;
-            // check that if the storage is written the accessor is inout
-            // GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "wrong type");
-            // const typename alias< accessor< ACC_ID, Intent, LocationType, Extent, Size >, dimension< Size - 1 >
-            // >::template set< ID >
-            //     tmp_(arg.offsets());
+
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "wrong type");
             accessor< ACC_ID, Intent, LocationType, Extent, Size > tmp_(arg);
             tmp_.template set< 1 >(ID);
             return super::operator()(tmp_);
