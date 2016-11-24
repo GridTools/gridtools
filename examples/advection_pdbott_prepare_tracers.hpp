@@ -34,7 +34,7 @@ namespace adv_prepare_tracers {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, interval_t) {
-            eval(data()) = eval(rho());// * eval(data_nnow());
+            eval(data()) = eval(rho()); // * eval(data_nnow());
         }
     };
 
