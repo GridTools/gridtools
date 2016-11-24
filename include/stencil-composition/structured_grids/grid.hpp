@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "../common_grids/grid_cg.hpp"
+#include "../common/gpu_clone.hpp"
 
 namespace gridtools {
 

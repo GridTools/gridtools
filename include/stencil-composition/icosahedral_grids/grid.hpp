@@ -36,6 +36,7 @@
 #pragma once
 #include "stencil-composition/common_grids/grid_cg.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
+#include "../common/gpu_clone.hpp"
 
 namespace gridtools {
 
@@ -54,8 +55,8 @@ namespace gridtools {
         // TODO make grid const
         // TODO should be removed (use ctor with halo_descriptor)
         explicit grid(GridTopology &grid_topology, const array< uint_t, 5 > &i, const array< uint_t, 5 > &j)
-            : grid_cg< Axis >(
-                  halo_descriptor(i[0], i[1], i[2], i[3], i[4]), halo_descriptor(j[0], j[1], j[2], j[3], j[4])),
+            : grid_cg< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
+                  halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
               m_grid_topology(grid_topology) {}
 
         GT_FUNCTION

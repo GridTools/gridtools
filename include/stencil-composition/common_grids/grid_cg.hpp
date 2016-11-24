@@ -34,11 +34,19 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "stencil-composition/axis.hpp"
 #include "common/halo_descriptor.hpp"
 #include "common/array.hpp"
+#include "storage/partitioner.hpp"
+#include "../interval.hpp"
 
 namespace gridtools {
+
+    // TODO should be removed once we removed all ctor(array) calls
+    namespace enumtype_axis {
+        enum coordinate_argument { minus, plus, begin, end, length };
+    } // namespace enumtype_axis
+
+    using namespace enumtype_axis;
 
     template < typename Axis, typename Partitioner = partitioner_dummy >
     struct grid_cg {
