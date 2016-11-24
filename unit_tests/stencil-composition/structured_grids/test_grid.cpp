@@ -41,8 +41,8 @@
 using namespace gridtools;
 
 TEST(test_grid, k_total_length) {
-    static const uint_t offset_from = -2;
-    static const uint_t offset_to = 2;
+    static const int_t offset_from = -2;
+    static const int_t offset_to = 2;
 
     uint_t splitter_begin = 5;
     uint_t splitter_end = 50;

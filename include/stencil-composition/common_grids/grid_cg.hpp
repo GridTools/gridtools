@@ -34,13 +34,17 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "stencil-composition/axis.hpp"
+#include "common/halo_descriptor.hpp"
+#include "common/array.hpp"
 
 namespace gridtools {
 
-    template < typename Axis >
+    template < typename Axis, typename Partitioner = partitioner_dummy >
     struct grid_cg {
         GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), "Internal Error: wrong type");
         typedef Axis axis_type;
+        typedef Partitioner partitioner_t;
 
         typedef typename boost::mpl::plus<
             boost::mpl::minus< typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter >,
@@ -50,20 +54,30 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit grid_cg(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : m_direction_i(direction_i), m_direction_j(direction_j) {}
+            : m_partitioner(partitioner_dummy()), m_direction_i(direction_i), m_direction_j(direction_j) {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
+                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+        }
+
+        template < typename ParallelStorage >
+        GT_FUNCTION explicit grid_cg(const Partitioner &part_, ParallelStorage const &storage_)
+            : m_partitioner(part_), m_direction_i(storage_.template get_halo_descriptor< 0 >()) // copy
+              ,
+              m_direction_j(storage_.template get_halo_descriptor< 1 >()) // copy
+        {
+            GRIDTOOLS_STATIC_ASSERT(!is_partitioner_dummy< Partitioner >::value,
+                "you have to add the partitioner to the grid template parameters");
+        }
 
         GT_FUNCTION
         explicit grid_cg(uint_t *i, uint_t *j /*, uint_t* k*/)
-            : m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
-              m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {}
-
-        GT_FUNCTION
-        explicit grid_cg(array< uint_t, 5 > const &i, array< uint_t, 5 > const &j)
-            : m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
-              m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {}
-
-        __device__ grid_cg(grid_cg< Axis > const &other)
-            : m_direction_i(other.m_direction_i), m_direction_j(other.m_direction_j), value_list(other.value_list) {}
+            : m_partitioner(partitioner_dummy()) // ok since partitioner_dummy is empty. Generates a warning
+              ,
+              m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
+              m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
+                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+        }
 
         GT_FUNCTION
         uint_t i_low_bound() const { return m_direction_i.begin(); }
@@ -86,23 +100,42 @@ namespace gridtools {
             return value_list[Level::Splitter::value] + offs;
         }
 
-        GT_FUNCTION
-        uint_t value_at_top() const {
-            return value_list[size_type::value - 1];
-            // return m_k_high_bound;
+        GT_FUNCTION uint_t k_min() const {
+            assert(value_at< typename Axis::FromLevel >() > 0);
+            return value_at< typename Axis::FromLevel >();
         }
 
+        GT_FUNCTION uint_t k_max() const {
+            // TODO -1 because the axis has to be one level bigger than the largest k interval
+            return value_at< typename Axis::ToLevel >() - 1;
+        }
+
+        /**
+         * The total length of the k dimension as defined by the axis.
+         */
         GT_FUNCTION
-        uint_t value_at_bottom() const {
-            return value_list[0];
-            // return m_k_low_bound;
+        uint_t k_total_length() const {
+            const uint_t begin_of_k = value_at< typename Axis::FromLevel >();
+            const uint_t end_of_k = value_at< typename Axis::ToLevel >() - 1;
+            return k_max() - k_min() + 1;
         }
 
         halo_descriptor const &direction_i() const { return m_direction_i; }
 
         halo_descriptor const &direction_j() const { return m_direction_j; }
 
+        const Partitioner &partitioner() const {
+            // the partitioner must be set
+            return m_partitioner;
+        }
+
+        template < typename Flag >
+        bool at_boundary(ushort_t const &coordinate_, Flag const &flag_) const {
+            return m_partitioner.at_boundary(coordinate_, flag_);
+        }
+
       private:
+        Partitioner const &m_partitioner;
         halo_descriptor m_direction_i;
         halo_descriptor m_direction_j;
     };

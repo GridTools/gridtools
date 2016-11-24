@@ -34,8 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "stencil-composition/axis.hpp"
-#include "common/halo_descriptor.hpp"
 #include "stencil-composition/common_grids/grid_cg.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
 
@@ -54,8 +52,16 @@ namespace gridtools {
       public:
         GT_FUNCTION
         // TODO make grid const
+        // TODO should be removed (use ctor with halo_descriptor)
         explicit grid(GridTopology &grid_topology, const array< uint_t, 5 > &i, const array< uint_t, 5 > &j)
-            : grid_cg< Axis >(i, j), m_grid_topology(grid_topology) {}
+            : grid_cg< Axis >(
+                  halo_descriptor(i[0], i[1], i[2], i[3], i[4]), halo_descriptor(j[0], j[1], j[2], j[3], j[4])),
+              m_grid_topology(grid_topology) {}
+
+        GT_FUNCTION
+        explicit grid(
+            GridTopology &grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j)
+            : grid_cg< Axis >(direction_i, direction_j), m_grid_topology(grid_topology) {}
 
         __device__ grid(grid const &other) : grid_cg< Axis >(other), m_grid_topology(other.m_grid_topology) {}
 
