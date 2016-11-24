@@ -108,10 +108,7 @@ namespace gridtools {
             return value_list[Level::Splitter::value] + offs;
         }
 
-        GT_FUNCTION uint_t k_min() const {
-            assert(value_at< typename Axis::FromLevel >() > 0);
-            return value_at< typename Axis::FromLevel >();
-        }
+        GT_FUNCTION uint_t k_min() const { return value_at< typename Axis::FromLevel >(); }
 
         GT_FUNCTION uint_t k_max() const {
             // TODO -1 because the axis has to be one level bigger than the largest k interval
