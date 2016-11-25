@@ -48,22 +48,6 @@ namespace test_expandable_parameters_icosahedral {
 
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
-        auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
-        auto ref_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref");
-
-        for (int i = 1; i < d1 - 1; ++i) {
-            for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
-                for (int j = 1; j < d2 - 1; ++j) {
-                    for (int k = 0; k < d3; ++k) {
-                        in_cells(i, c, j, k) =
-                            in_cells.meta_data().index(array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
-                    }
-                }
-            }
-        }
-        out_cells.initialize(0.0);
-        ref_cells.initialize(0.0);
         auto storage1 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage1");
         auto storage2 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage2");
         auto storage3 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage3");
