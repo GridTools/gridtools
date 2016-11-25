@@ -15,7 +15,8 @@ namespace gridtools {
        \tparam Intent flag stating wether or not this accessor is read only
        \tparam Extent specification of the minimum box containing the stencil access pattern
        \tparam NDim dimensionality of the vector accessor: should be the storage space dimensions plus two (the vector
-       field/snapshot dimensions). In case of icosahedral grids for a 3D field this dimension is 6 (3 space dimensions + 1 color + 2 field/snapshot dimensions)
+       field/snapshot dimensions). In case of icosahedral grids for a 3D field this dimension is 6 (3 space dimensions +
+       1 color + 2 field/snapshot dimensions)
     */
     template < uint_t ID,
         enumtype::intend Intent,
