@@ -273,8 +273,15 @@ namespace gridtools {
             value is not found a default value is returned, which is
             passed as template parameter. It works for intergal types.
 
+            NOTE: the tuple is e.g. and accessor.
+
+            NOTE: The dimensionality of the tuple and the layout map do not need to be the same,
+            we can access an element of a 3D storage with a 5D accessor (this happens e.g. for data_fields),
+            or a 2D storage with a 3D accessor.
+            In this case the extra dimensions are neglected
+
             \code
-            tuple=arg_type(a,b,c);
+            tuple=accessor(a,b,c);
             gridtools::layout_map<2,0,1>::find_val<1,type,default>(tuple) == c
             \endcode
 
@@ -288,10 +295,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value),
                 "the find_val method must be used with tuples of offset_tuple type");
 
-            // GRIDTOOLS_STATIC_ASSERT(length <= OffsetTuple::n_dim, "pedantic check: an accessor's dimension is smaller
-            // than the corresponding storage space dimension. Check the functor definition, and the domain_type passed
-            // to the make_computation.");
-            // GRIDTOOLS_STATIC_ASSERT((OffsetTuple::n_dim-pos_<I>::value-1>=0), "write a message here");
             return ((pos_< I >::value >= length)) ? DefaultVal
                                                   : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
             // this calls accessor::get

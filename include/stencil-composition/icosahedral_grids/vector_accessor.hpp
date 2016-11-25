@@ -14,14 +14,14 @@ namespace gridtools {
        \tparam ID integer identifier, to univocally specify the accessor
        \tparam Intent flag stating wether or not this accessor is read only
        \tparam Extent specification of the minimum box containing the stencil access pattern
-       \tparam NDim dimensionality of the vector accessor: should be the storage space dimensions plus one (the vector
-       field dimension)
+       \tparam NDim dimensionality of the vector accessor: should be the storage space dimensions plus two (the vector
+       field/snapshot dimensions). In case of icosahedral grids for a 3D field this dimension is 6 (3 space dimensions + 1 color + 2 field/snapshot dimensions)
     */
     template < uint_t ID,
         enumtype::intend Intent,
         typename LocationType,
         typename Extent = extent< 0 >,
-        ushort_t NDim = 5 >
+        ushort_t NDim = 6 >
     struct vector_accessor : accessor< ID, Intent, LocationType, Extent, NDim > {
 
 #ifdef CXX11_ENABLED
