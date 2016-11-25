@@ -44,7 +44,23 @@
    use the \ref gridtools::if_ statement from whithin the make_computation.
 */
 #ifdef CXX11_ENABLED
+#ifdef NVCC_GCC_53_BUG
+#include <functional>
+namespace gridtools {
+    struct condition_functor {
+        std::function< short_t() > m_1;
+        short_t m_2;
+        condition_functor(std::function< int() > t1_, short_t t2_) : m_1(t1_), m_2(t2_) {}
+        condition_functor() : m_1([]() { return 0; }), m_2(0) {}
+
+        bool value() { return m_1() == m_2; }
+        bool operator()() const { return m_1() == m_2; }
+    };
+}
+#define BOOL_FUNC(val) condition_functor val
+#else
 #define BOOL_FUNC(val) std::function< bool() > val
+#endif
 #else
 #define BOOL_FUNC(val) bool (*val)()
 #endif
@@ -67,10 +83,12 @@ namespace gridtools {
         conditional() // try to avoid this?
             : m_value(
 #ifdef CXX11_ENABLED
+#ifndef NVCC_GCC_53_BUG
                   []() {
                       assert(false);
                       return false;
                   }
+#endif
 #endif
                   ) {
         }
@@ -82,6 +100,8 @@ namespace gridtools {
 
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }
+        // private:
+        //     conditional(conditional const&);
     };
 
     template < typename T >

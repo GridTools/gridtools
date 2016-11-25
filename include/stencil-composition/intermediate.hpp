@@ -39,6 +39,7 @@
 #include <iostream>
 #endif
 
+#include <boost/shared_ptr.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/pair.hpp>
@@ -387,7 +388,7 @@ namespace gridtools {
     template < typename MssComponentsArray, typename Backend >
     struct run_conditionally< boost::mpl::true_, MssComponentsArray, Backend > {
         template < typename ConditionalSet, typename Grid, typename MssLocalDomainList, typename ReductionData >
-        static void apply(ConditionalSet const & /**/,
+        static void apply(boost::shared_ptr< ConditionalSet > /**/,
             Grid const &grid_,
             MssLocalDomainList const &mss_local_domain_list_,
             ReductionData &reduction_data) {
@@ -403,12 +404,12 @@ namespace gridtools {
     template < typename Array1, typename Array2, typename Cond, typename Backend >
     struct run_conditionally< boost::mpl::true_, condition< Array1, Array2, Cond >, Backend > {
         template < typename ConditionalSet, typename Grid, typename MssLocalDomainList, typename ReductionData >
-        static void apply(ConditionalSet const &conditionals_set_,
+        static void apply(boost::shared_ptr< ConditionalSet > conditionals_set_,
             Grid const &grid_,
             MssLocalDomainList const &mss_local_domain_list_,
             ReductionData &reduction_data) {
             // std::cout<<"true? "<<boost::fusion::at_key< Cond >(conditionals_set_).value()<<std::endl;
-            if (boost::fusion::at_key< Cond >(conditionals_set_).value()) {
+            if (boost::fusion::at_key< Cond >(*conditionals_set_).value()) {
                 run_conditionally< boost::mpl::true_, Array1, Backend >::apply(
                     conditionals_set_, grid_, mss_local_domain_list_, reduction_data);
             } else
@@ -575,13 +576,13 @@ namespace gridtools {
         bool is_storage_ready;
         performance_meter_t m_meter;
 
-        conditionals_set_t m_conditionals_set;
+        boost::shared_ptr< conditionals_set_t > m_conditionals_set;
         reduction_data_t m_reduction_data;
 
       public:
         intermediate(DomainType &domain,
             Grid const &grid,
-            ConditionalsSet conditionals_,
+            boost::shared_ptr< conditionals_set_t > conditionals_,
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
