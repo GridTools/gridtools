@@ -140,7 +140,7 @@ namespace gridtools {
             }
         }
 
-    protected:
-      iterate_domain_t &m_iterate_domain;
+      protected:
+        iterate_domain_t &m_iterate_domain;
     };
 } // namespace gridtools
