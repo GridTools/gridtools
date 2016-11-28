@@ -37,6 +37,12 @@
 #include "../../gridtools.hpp"
 namespace gridtools {
 
+    template <ushort_t I, typename T>
+    struct arg;
+
+    template <typename T, typename V>
+    struct arg_storage_pair;
+
     /**
        @brief struct containing conditionals for several types.
 

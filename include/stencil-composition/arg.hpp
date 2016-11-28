@@ -95,47 +95,13 @@ namespace gridtools {
      * @tparam I Integer index (unique) of the data field to identify it
      * @tparam T The type of the storage used to store data
      */
-    template < uint_t I, typename Storage, typename Condition = bool >
+    template < uint_t I, typename Storage >
     struct arg {
         typedef Storage storage_type;
         typedef typename Storage::iterator iterator;
         typedef typename Storage::value_type value_type;
         typedef static_uint< I > index_t;
         typedef static_uint< I > index;
-
-        template < typename Storage2 >
-        arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
-                "there is a mismatch between the storage types used by the arg placeholders and the storages really "
-                "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
-                "correctly assigned and that their type match the instantiated storages ones");
-
-            return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
-        }
-
-        static void info(std::ostream &out_s) {
-#ifdef VERBOSE
-            out_s << "Arg on real storage with index " << I;
-#endif
-        }
-    };
-
-    /**
-     * This specialization is made for the standard storages (not user-defined)
-     * which have to contain a storage_info type, and can define a location_type
-     */
-    template < uint_t I, typename Storage >
-    struct arg< I, Storage, typename boost::enable_if< typename is_any_storage< Storage >::type, bool >::type > {
-        typedef Storage storage_type;
-        typedef typename Storage::iterator iterator;
-        typedef typename Storage::value_type value_type;
-        typedef static_uint< I > index_t;
-        typedef static_uint< I > index;
-
-// location type is only used by other grids, supported only for cxx11
-#ifdef CXX11_ENABLED
-        typedef typename get_location_type< Storage >::type location_type;
-#endif
 
         template < typename Storage2 >
         arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {

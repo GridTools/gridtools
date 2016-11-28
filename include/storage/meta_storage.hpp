@@ -69,7 +69,7 @@ namespace gridtools {
         static const bool is_temporary = BaseStorage::is_temporary;
         typedef BaseStorage super;
         typedef typename BaseStorage::basic_type basic_type;
-        typedef typename BaseStorage::index_type index_type;
+        typedef typename BaseStorage::index_t index_t;
         typedef meta_storage< BaseStorage > original_storage;
 
         using super::space_dimensions;

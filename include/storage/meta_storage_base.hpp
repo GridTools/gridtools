@@ -64,7 +64,7 @@ namespace gridtools {
     template < typename RegularMetaStorageType >
     struct no_meta_storage_type_yet {
         typedef RegularMetaStorageType type;
-        typedef typename type::index_type index_type;
+        typedef typename type::index_t index_t;
         typedef typename type::layout layout;
         typedef typename type::alignment_t alignment_t;
         typedef typename type::halo_t halo_t;
@@ -117,7 +117,7 @@ namespace gridtools {
 #endif
             > type;
         typedef Layout layout;
-        typedef Index index_type;
+        typedef Index index_t;
 
         static const bool is_temporary = IsTemporary;
         static const ushort_t n_width = 1;

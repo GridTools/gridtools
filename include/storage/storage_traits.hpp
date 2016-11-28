@@ -51,7 +51,7 @@ namespace gridtools {
         struct get_temporary_storage_type_aux {
             GRIDTOOLS_STATIC_ASSERT(is_meta_storage< MetaData >::value, "wrong type for the storage_info");
             // convert the meta data type into a temporary meta data type
-            typedef typename storage_traits_aux::template select_meta_storage< typename MetaData::index_type,
+            typedef typename storage_traits_aux::template select_meta_storage< typename MetaData::index_t,
                 typename MetaData::layout,
                 true,
                 typename MetaData::halo_t,

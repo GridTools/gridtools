@@ -228,16 +228,16 @@ namespace gridtools {
             };
 
             // // specialization for base_storage
-            // template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
-            // struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< T1 > > >, Cond >,
-            //                  arg< ID, no_storage_type_yet< expandable_parameters< T2, Size > >, Cond > > {
+            // template < typename T1, typename T2, uint_t Size, ushort_t ID >
+            // struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< T1 > > > >,
+            //                  arg< ID, no_storage_type_yet< expandable_parameters< T2, Size > > > > {
             //     typedef typename boost::is_same< T1, T2 >::type type;
             // };
 
             // specialization for storage
-            template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
-            struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< storage< T1 > > > >, Cond >,
-                arg< ID, no_storage_type_yet< storage< expandable_parameters< T2, Size > > >, Cond > > {
+            template < typename T1, typename T2, uint_t Size, ushort_t ID >
+            struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< storage< T1 > > > > >,
+                arg< ID, no_storage_type_yet< storage< expandable_parameters< T2, Size > > > > > {
                 typedef typename boost::is_same< T1, T2 >::type type;
             };
 

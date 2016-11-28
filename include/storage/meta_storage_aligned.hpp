@@ -96,7 +96,7 @@ namespace gridtools {
         typedef align< s_alignment, typename super::layout > align_t;
         typedef Alignment alignment_t;
         typedef typename MetaStorageBase::basic_type basic_type;
-        typedef typename MetaStorageBase::index_type index_type;
+        typedef typename MetaStorageBase::index_t index_t;
 
 #ifdef CXX11_ENABLED
         array< uint_t, MetaStorageBase::space_dimensions > m_unaligned_dims;

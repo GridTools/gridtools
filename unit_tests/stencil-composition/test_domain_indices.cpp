@@ -65,7 +65,7 @@ struct print_plchld {
 
     template < typename T >
     void operator()(T const &v) const {
-        if (T::index_type::value != count) {
+        if (T::index_t::value != count) {
             result = false;
         }
         ++count;

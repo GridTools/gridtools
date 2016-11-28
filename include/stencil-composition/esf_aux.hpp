@@ -39,6 +39,9 @@
 
 namespace gridtools {
 
+    template <typename T>
+    struct is_any_accessor;
+
     namespace impl {
         /** metafunction that associates (in a mpl::map) placeholders to extents.
         * It returns a mpl::map between placeholders and extents of the local arguments.
