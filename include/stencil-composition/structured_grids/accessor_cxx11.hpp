@@ -35,11 +35,11 @@
 */
 
 #pragma once
+#include "../../common/generic_metafunctions/all_integrals.hpp"
+#include "../../common/generic_metafunctions/static_if.hpp"
 #include "../accessor_base.hpp"
 #include "../arg.hpp"
 #include "../dimension.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
-#include "../../common/generic_metafunctions/static_if.hpp"
 
 /**
    @file
@@ -91,7 +91,7 @@ namespace gridtools {
         ushort_t Number = 3 >
     struct accessor_impl : public accessor_base< ID, Intend, Extent, Number > {
         typedef accessor_base< ID, Intend, Extent, Number > super;
-        typedef typename super::index_type index_type;
+        typedef typename super::index_t index_t;
         typedef typename super::offset_tuple_t offset_tuple_t;
 
         GT_FUNCTION
@@ -104,8 +104,7 @@ namespace gridtools {
         /**@brief constructor forwarding all the arguments
         */
         template < typename... ForwardedArgs >
-        GT_FUNCTION constexpr accessor_impl(ForwardedArgs... x)
-            : super(x...) {
+        GT_FUNCTION constexpr accessor_impl(ForwardedArgs... x) : super(x...) {
             GRIDTOOLS_STATIC_ASSERT((sizeof...(ForwardedArgs) <= Number),
                 "too many arguments for an accessor. Check that the accessor dimension is valid.");
         }

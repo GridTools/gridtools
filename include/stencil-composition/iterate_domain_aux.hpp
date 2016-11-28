@@ -39,16 +39,16 @@
 #include <boost/typeof/typeof.hpp>
 #endif
 #include <boost/fusion/include/size.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/mpl/modulus.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/modulus.hpp>
+#include <boost/utility/enable_if.hpp>
 #ifdef CXX11_ENABLED
 #include "expressions/expressions.hpp"
 #endif
-#include "../common/meta_array.hpp"
 #include "../common/array.hpp"
-#include "common/generic_metafunctions/static_if.hpp"
+#include "../common/meta_array.hpp"
 #include "common/generic_metafunctions/reversed_range.hpp"
+#include "common/generic_metafunctions/static_if.hpp"
 #include "stencil-composition/total_storages.hpp"
 
 /**
@@ -669,11 +669,10 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "Wrong type");
 
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< typename LocalDomain::local_args_type >::value > Accessor::index_type::value),
+            (boost::mpl::size< typename LocalDomain::local_args_type >::value > Accessor::index_t::value),
             "Wrong type");
 
-        typedef
-            typename boost::mpl::at< typename LocalDomain::local_args_type, typename Accessor::index_type >::type type;
+        typedef typename boost::mpl::at< typename LocalDomain::local_args_type, typename Accessor::index_t >::type type;
     };
 
     template < typename LocalDomain, typename Accessor >
@@ -682,7 +681,7 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "Wrong type");
 
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< typename LocalDomain::local_args_type >::value > Accessor::index_type::value),
+            (boost::mpl::size< typename LocalDomain::local_args_type >::value > Accessor::index_t::value),
             "Wrong type");
 
         typedef typename boost::add_pointer<
@@ -707,7 +706,7 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
 
         typedef typename boost::mpl::at< typename IterateDomainArguments::local_domain_t::esf_args,
-            typename Accessor::index_type >::type type;
+            typename Accessor::index_t >::type type;
     };
 
     template < typename Accessor, typename IterateDomainArguments >

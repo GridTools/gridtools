@@ -34,23 +34,23 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "location_type.hpp"
-#include <type_traits>
-#include <boost/type_traits/remove_reference.hpp>
-#include "common/generic_metafunctions/is_not_same.hpp"
+#include "../../common/explode_array.hpp"
+#include "../iterate_domain_fwd.hpp"
+#include "common/array.hpp"
 #include "common/generic_metafunctions/apply_to_sequence.hpp"
-#include "common/generic_metafunctions/vector_to_set.hpp"
+#include "common/generic_metafunctions/is_not_same.hpp"
+#include "common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "common/generic_metafunctions/variadic_to_vector.hpp"
 #include "common/generic_metafunctions/variadic_typedef.hpp"
-#include "common/array.hpp"
-#include "../../common/explode_array.hpp"
-#include "common/generic_metafunctions/remove_restrict_reference.hpp"
+#include "common/generic_metafunctions/vector_to_set.hpp"
+#include "location_type.hpp"
+#include "on_neighbors.hpp"
+#include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_aux.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
-#include "stencil-composition/iterate_domain_aux.hpp"
-#include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
-#include "on_neighbors.hpp"
-#include "../iterate_domain_fwd.hpp"
+#include <boost/type_traits/remove_reference.hpp>
+#include <type_traits>
 
 namespace gridtools {
 
@@ -127,7 +127,7 @@ namespace gridtools {
         template < typename LocalD, typename Accessor >
         struct current_storage< false, LocalD, Accessor > {
             static const uint_t value =
-                (total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
+                (total_storages< typename LocalD::local_args_type, Accessor::index_t::value >::value);
         };
 
         /**
@@ -574,7 +574,7 @@ namespace gridtools {
             Accessor const &accessor, StoragePointer &RESTRICT storage_pointer) const {
 
             // getting information about the storage
-            typedef typename Accessor::index_type index_t;
+            typedef typename Accessor::index_t index_t;
 
             auto const storage_ = boost::fusion::at< index_t >(m_local_domain.m_local_args);
 
@@ -607,8 +607,8 @@ namespace gridtools {
             // in the placehoders definition.
             // If you are running a parallel simulation another common reason for this to happen is
             // the definition of an halo region which is too small in one direction
-            // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename
-            // Accessor::index_type>(local_domain.local_args))->_index(arg.template
+            // std::cout<<"Storage Index: "<<Accessor::index_t::value<<" + "<<(boost::fusion::at<typename
+            // Accessor::index_t>(local_domain.local_args))->_index(arg.template
             // n<Accessor::n_dim>())<<std::endl;
             assert((int_t)(metadata_->index(m_grid_position)) >= 0);
 
@@ -624,7 +624,7 @@ namespace gridtools {
             Accessor const &accessor, StoragePointer &RESTRICT storage_pointer, const uint_t offset) const {
 
             // getting information about the storage
-            typedef typename Accessor::index_type index_t;
+            typedef typename Accessor::index_t index_t;
 
             auto const storage_ = boost::fusion::at< index_t >(m_local_domain.m_local_args);
 
@@ -655,7 +655,7 @@ namespace gridtools {
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
 
             // getting information about the storage
-            typedef typename accessor_t::index_type index_t;
+            typedef typename accessor_t::index_t index_t;
 
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
             typedef typename get_storage_pointer_accessor< local_domain_t, accessor_t >::type storage_pointer_t;
@@ -675,7 +675,7 @@ namespace gridtools {
                                              strides().template get< metadata_index_t::value >(), position_offset);
 
             return get_raw_value(accessor_t(),
-                (data_pointer())[current_storage< (accessor_t::index_type::value == 0),
+                (data_pointer())[current_storage< (accessor_t::index_t::value == 0),
                     local_domain_t,
                     typename accessor_t::type >::value],
                 pointer_offset);
@@ -696,7 +696,7 @@ namespace gridtools {
             using location_type_t = typename accessor_t::location_type;
 
             return get_raw_value(accessor_t(),
-                (data_pointer())[current_storage< (accessor_t::index_type::value == 0),
+                (data_pointer())[current_storage< (accessor_t::index_t::value == 0),
                     local_domain_t,
                     typename accessor_t::type >::value],
                 offset);

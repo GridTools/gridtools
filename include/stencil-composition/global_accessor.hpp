@@ -45,7 +45,7 @@ namespace gridtools {
 
         typedef global_accessor< I, Intend > type;
 
-        typedef static_uint< I > index_type;
+        typedef static_uint< I > index_t;
 
         typedef empty_extent extent_t;
     };

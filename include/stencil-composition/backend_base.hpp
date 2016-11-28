@@ -36,13 +36,13 @@
 #pragma once
 
 #include <boost/mpl/filter_view.hpp>
-#include <boost/mpl/transform.hpp>
 #include <boost/mpl/reverse.hpp>
+#include <boost/mpl/transform.hpp>
 
-#include "gridtools.hpp"
-#include "./heap_allocated_temps.hpp"
 #include "./backend_traits_fwd.hpp"
+#include "./heap_allocated_temps.hpp"
 #include "./run_functor_arguments.hpp"
+#include "gridtools.hpp"
 
 #ifdef __CUDACC__
 #include "./backend_cuda/backend_cuda.hpp"
@@ -50,18 +50,18 @@
 #include "./backend_host/backend_host.hpp"
 #endif
 
-#include "../common/pair.hpp"
-#include "./accessor.hpp"
-#include "./global_parameter.hpp"
-#include "./aggregator_type.hpp"
-#include "./mss_metafunctions.hpp"
-#include "./mss_local_domain.hpp"
-#include "./mss.hpp"
-#include "./axis.hpp"
 #include "../common/meta_array.hpp"
-#include "./tile.hpp"
+#include "../common/pair.hpp"
 #include "../storage/storage-facility.hpp"
+#include "./accessor.hpp"
+#include "./aggregator_type.hpp"
+#include "./axis.hpp"
 #include "./conditionals/condition.hpp"
+#include "./global_parameter.hpp"
+#include "./mss.hpp"
+#include "./mss_local_domain.hpp"
+#include "./mss_metafunctions.hpp"
+#include "./tile.hpp"
 
 /**
    @file
@@ -94,7 +94,8 @@ namespace gridtools {
                 typedef pair_type< typename StrategyTraits::template get_tmp_storage< typename temporary::storage_type,
                                        tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
                                        tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > >::type,
-                    typename temporary::index_type > type;
+                    typename temporary::index_t >
+                    type;
             };
         };
     } // namespace _impl
@@ -176,7 +177,7 @@ namespace gridtools {
             typedef typename storage_traits< BackendId >::storage_traits_aux::template select_storage<
                 ValueType,
                 typename storage_traits< BackendId >::storage_traits_aux::template select_meta_storage<
-                    typename MetaDataType::index_type,
+                    typename MetaDataType::index_t,
                     typename MetaDataType::layout,
                     false,
                     typename MetaDataType::halo_t,
@@ -245,7 +246,7 @@ namespace gridtools {
             typedef typename storage_traits< BackendId >::storage_traits_aux::template select_storage<
                 ValueType,
                 typename storage_traits< BackendId >::storage_traits_aux::template select_meta_storage<
-                    typename MetaDataType::index_type,
+                    typename MetaDataType::index_t,
                     typename MetaDataType::layout,
                     true,
                     typename MetaDataType::halo_t,

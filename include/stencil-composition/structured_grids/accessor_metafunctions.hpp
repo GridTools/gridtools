@@ -74,7 +74,7 @@ namespace gridtools {
     template < typename Accessor >
     struct accessor_index {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Internal Error: wrong type");
-        typedef typename Accessor::index_type type;
+        typedef typename Accessor::index_t type;
     };
 
     /**
@@ -95,18 +95,18 @@ namespace gridtools {
                 int >::value),
             "Internal Error");
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        typedef typename boost::mpl::integral_c< int, (int)ID > index_t;
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), "Internal Error");
 
-        typedef accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend, Extend, Number > type;
+        typedef accessor< boost::mpl::at< ArgsMap, index_t >::type::value, Intend, Extend, Number > type;
     };
 
 #ifdef CUDA8
     template < typename Accessor, typename ArgsMap, typename... Pairs >
     struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
 
-        typedef typename remap_accessor_type< Accessor, ArgsMap >::index_type_t index_type_t;
+        typedef typename remap_accessor_type< Accessor, ArgsMap >::index_t index_t;
 
         typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
     };
@@ -123,11 +123,11 @@ namespace gridtools {
                 int >::value),
             "Internal Error");
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        typedef typename boost::mpl::integral_c< int, (int)ID > index_t;
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), "Internal Error");
 
-        typedef global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend > type;
+        typedef global_accessor< boost::mpl::at< ArgsMap, index_t >::type::value, Intend > type;
     };
 
 #ifdef CXX11_ENABLED

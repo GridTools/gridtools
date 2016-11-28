@@ -35,23 +35,23 @@
 */
 #pragma once
 
-#include <iosfwd>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/sort.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/set.hpp>
-#include <boost/fusion/view/zip_view.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/utility.hpp>
-#include <boost/mpl/for_each.hpp>
-#include "../common/host_device.hpp"
-#include "../common/gpu_clone.hpp"
-#include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
-#include "arg.hpp"
+#include "../common/gpu_clone.hpp"
+#include "../common/host_device.hpp"
+#include "../common/is_temporary_storage.hpp"
 #include "../storage/storage_metafunctions.hpp"
+#include "arg.hpp"
+#include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/view/zip_view.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/sort.hpp>
+#include <boost/utility.hpp>
+#include <iosfwd>
 
 #include <boost/fusion/include/as_set.hpp>
 
@@ -75,8 +75,9 @@ namespace gridtools {
             template < typename Id >
             GT_FUNCTION_WARNING void operator()(Id) const {
 
-                typedef typename boost::remove_reference<
-                    typename boost::mpl::at< IndicesList, Id >::type >::type::index_type index_t;
+                typedef
+                    typename boost::remove_reference< typename boost::mpl::at< IndicesList, Id >::type >::type::index_t
+                        index_t;
 
                 boost::fusion::at_c< Id::value >(m_local_list) =
                     boost::fusion::at_c< index_t::value >(m_arg_list)->get_pointer_to_use();
@@ -121,8 +122,8 @@ namespace gridtools {
         struct extract_types {
             template < typename ElemType >
             struct apply {
-                typedef typename boost::remove_reference< typename boost::fusion::result_of::at< StorageList,
-                    typename ElemType::index_type >::type >::type type;
+                typedef typename boost::remove_reference<
+                    typename boost::fusion::result_of::at< StorageList, typename ElemType::index_t >::type >::type type;
             };
         };
 
@@ -155,7 +156,7 @@ namespace gridtools {
             template < typename ElemType >
             struct apply {
                 typedef typename check_if_temporary< typename boost::remove_reference< typename boost::fusion::
-                        result_of::at< StorageList, typename ElemType::index_type >::type >::type >::type type;
+                        result_of::at< StorageList, typename ElemType::index_t >::type >::type >::type type;
             };
         };
     } // namespace gt_aux
@@ -177,7 +178,7 @@ namespace gridtools {
         : public clonable_to_gpu< local_domain< StoragePointers, MetaStoragePointers, EsfArgs, IsStateful > > {
         template < typename I >
         struct extract_index {
-            typedef typename I::index_type type;
+            typedef typename I::index_t type;
         };
 
         struct extract_index_lambda {
@@ -311,7 +312,7 @@ namespace gridtools {
         template < typename T >
         void info(T const &, std::ostream &out_s) const {
             T::info(out_s);
-            out_s << "[" << boost::mpl::at_c< esf_args, T::index_type::value >::type::index_type::value << "] ";
+            out_s << "[" << boost::mpl::at_c< esf_args, T::index_t::value >::type::index_t::value << "] ";
         }
 
         struct show_local_args_info {

@@ -40,16 +40,16 @@
  *      Author: cosuna
  */
 
-#include "gtest/gtest.h"
-#include <boost/mpl/equal.hpp>
 #include "common/defs.hpp"
-#include "stencil-composition/empty_extent.hpp"
+#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 #include "stencil-composition/backend.hpp"
 #include "stencil-composition/caches/cache_metafunctions.hpp"
+#include "stencil-composition/caches/extract_extent_caches.hpp"
+#include "stencil-composition/empty_extent.hpp"
 #include "stencil-composition/interval.hpp"
 #include "stencil-composition/stencil-composition.hpp"
-#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
-#include "stencil-composition/caches/extract_extent_caches.hpp"
+#include "gtest/gtest.h"
+#include <boost/mpl/equal.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -114,7 +114,8 @@ TEST(cache_metafunctions, extract_extents_for_caches) {
         block_size< 32, 4, 1 >,
         gridtools::grid< axis >,
         boost::mpl::false_,
-        notype > iterate_domain_arguments_t;
+        notype >
+        iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches< iterate_domain_arguments_t >::type extents_map_t;
 
@@ -149,14 +150,15 @@ TEST(cache_metafunctions, get_cache_storage_tuple) {
         block_size< 32, 4, 1 >,
         gridtools::grid< axis >,
         boost::mpl::false_,
-        notype > iterate_domain_arguments_t;
+        notype >
+        iterate_domain_arguments_t;
 
     typedef extract_extents_for_caches< iterate_domain_arguments_t >::type extents_map_t;
 
     typedef get_cache_storage_tuple< IJ, caches_t, extents_map_t, block_size< 32, 4, 1 >, local_domain_t >::type
         cache_storage_tuple_t;
 
-    // fusion::result_of::at_key<cache_storage_tuple_t, p_in::index_type> does not compile,
+    // fusion::result_of::at_key<cache_storage_tuple_t, p_in::index_t> does not compile,
     // therefore we convert into an mpl map and do all the metaprogramming operations on that map
     typedef fusion_map_to_mpl_map< cache_storage_tuple_t >::type cache_storage_mpl_map_t;
 
@@ -164,9 +166,9 @@ TEST(cache_metafunctions, get_cache_storage_tuple) {
         (boost::mpl::equal<
             cache_storage_tuple_t,
             boost::fusion::map<
-                boost::fusion::pair< p_in::index_type,
+                boost::fusion::pair< p_in::index_t,
                     cache_storage< block_size< 32, 4, 1 >, extent< -1, 2, -2, 1 >, pointer< storage_type > > >,
-                boost::fusion::pair< p_buff::index_type,
+                boost::fusion::pair< p_buff::index_t,
                     cache_storage< block_size< 32, 4, 1 >, extent< -2, 2, -3, 2 >, pointer< storage_type > > > > >::
                 value),
         "ERROR");

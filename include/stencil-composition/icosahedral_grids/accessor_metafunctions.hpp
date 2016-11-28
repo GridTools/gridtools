@@ -42,7 +42,7 @@ namespace gridtools {
     template < typename Accessor >
     struct accessor_index {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Internal Error: wrong type");
-        typedef typename Accessor::index_type type;
+        typedef typename Accessor::index_t type;
     };
 
     template < typename Accessor >
@@ -76,15 +76,16 @@ namespace gridtools {
                 int >::value),
             "Internal Error");
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        typedef typename boost::mpl::integral_c< int, (int)ID > index_t;
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), "Internal Error");
 
-        typedef accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value,
+        typedef accessor< boost::mpl::at< ArgsMap, index_t >::type::value,
             Intend,
             LocationType,
             Extent,
-            FieldDimensions > type;
+            FieldDimensions >
+            type;
     };
 
 } // namespace gridtools

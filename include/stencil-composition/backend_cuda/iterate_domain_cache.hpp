@@ -42,17 +42,17 @@
 
 #pragma once
 
-#include "common/defs.hpp"
-#include <boost/fusion/container/map/convert.hpp>
-#include <boost/fusion/include/as_map.hpp>
-#include <boost/fusion/support/pair.hpp>
-#include <boost/fusion/include/pair.hpp>
-#include <boost/mpl/copy_if.hpp>
-#include "common/generic_metafunctions/vector_to_map.hpp"
-#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
-#include "stencil-composition/iterate_domain_fwd.hpp"
 #include "../caches/cache_metafunctions.hpp"
 #include "../caches/extract_extent_caches.hpp"
+#include "common/defs.hpp"
+#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "common/generic_metafunctions/vector_to_map.hpp"
+#include "stencil-composition/iterate_domain_fwd.hpp"
+#include <boost/fusion/container/map/convert.hpp>
+#include <boost/fusion/include/as_map.hpp>
+#include <boost/fusion/include/pair.hpp>
+#include <boost/fusion/support/pair.hpp>
+#include <boost/mpl/copy_if.hpp>
 
 namespace gridtools {
 
@@ -95,7 +95,7 @@ namespace gridtools {
         // extract a sequence of extents for each cache
         typedef typename extract_extents_for_caches< IterateDomainArguments >::type cache_extents_map_t;
 
-        // compute the fusion vector of pair<index_type, cache_storage>
+        // compute the fusion vector of pair<index_t, cache_storage>
         typedef typename get_cache_storage_tuple< IJ,
             caches_t,
             cache_extents_map_t,

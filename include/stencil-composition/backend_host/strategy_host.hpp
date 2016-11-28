@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../../storage/meta_storage.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
-#include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
-#include "../../storage/meta_storage.hpp"
 #include "../tile.hpp"
+#include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
 
 namespace gridtools {
 
@@ -70,7 +70,8 @@ namespace gridtools {
 
             typedef boost::mpl::range_c< uint_t,
                 0,
-                boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
+                boost::mpl::size< typename MssComponentsArray::elements >::type::value >
+                iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
@@ -164,7 +165,7 @@ namespace gridtools {
                 base_storage
 #endif
                 < typename Storage::pointer_type,
-                    typename get_tmp_storage_info< typename Storage::storage_info_type::index_type,
+                    typename get_tmp_storage_info< typename Storage::storage_info_type::index_t,
                         typename Storage::storage_info_type::layout,
                         typename Storage::storage_info_type::halo_t,
                         typename Storage::storage_info_type::alignment_t,
@@ -175,7 +176,8 @@ namespace gridtools {
                         TileJ
 #endif
                         >::type,
-                    Storage::field_dimensions > > type;
+                    Storage::field_dimensions > >
+                type;
         };
     };
 
@@ -206,7 +208,8 @@ namespace gridtools {
 
             typedef boost::mpl::range_c< uint_t,
                 0,
-                boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
+                boost::mpl::size< typename MssComponentsArray::elements >::type::value >
+                iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
@@ -323,7 +326,8 @@ namespace gridtools {
                 TileI,
                 TileJ
 #endif
-                > type;
+                >
+                type;
         };
 
 /**
@@ -348,7 +352,7 @@ namespace gridtools {
                 base_storage
 #endif
                 < typename Storage::pointer_type,
-                    typename get_tmp_meta_storage< typename Storage::storage_info_type::index_type,
+                    typename get_tmp_meta_storage< typename Storage::storage_info_type::index_t,
                         typename Storage::storage_info_type::layout,
                         typename Storage::storage_info_type::halo_t,
 #ifdef CXX11_ENABLED
@@ -358,7 +362,8 @@ namespace gridtools {
                         TileJ
 #endif
                         >::type,
-                    Storage::field_dimensions > > type;
+                    Storage::field_dimensions > >
+                type;
         };
     };
 

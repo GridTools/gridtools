@@ -43,10 +43,10 @@
 
 #pragma once
 
-#include "stencil-composition/arg_metafunctions_fwd.hpp"
-#include <iosfwd>
-#include "storage/storage_metafunctions.hpp"
 #include "arg_metafunctions.hpp"
+#include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "storage/storage_metafunctions.hpp"
+#include <iosfwd>
 
 namespace gridtools {
 
@@ -100,7 +100,7 @@ namespace gridtools {
         typedef Storage storage_type;
         typedef typename Storage::iterator iterator;
         typedef typename Storage::value_type value_type;
-        typedef static_uint< I > index_type;
+        typedef static_uint< I > index_t;
         typedef static_uint< I > index;
 
         template < typename Storage2 >
@@ -129,7 +129,7 @@ namespace gridtools {
         typedef Storage storage_type;
         typedef typename Storage::iterator iterator;
         typedef typename Storage::value_type value_type;
-        typedef static_uint< I > index_type;
+        typedef static_uint< I > index_t;
         typedef static_uint< I > index;
 
 // location type is only used by other grids, supported only for cxx11

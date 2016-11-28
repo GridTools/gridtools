@@ -35,14 +35,14 @@
 */
 #pragma once
 
-#include <gridtools.hpp>
+#include "../level.hpp"
 #include <boost/fusion/include/value_at.hpp>
 #include <boost/mpl/has_key.hpp>
-#include "../level.hpp"
+#include <gridtools.hpp>
 
+#include "../../storage/meta_storage.hpp"
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
-#include "../../storage/meta_storage.hpp"
 #include "../tile.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "execute_kernel_functor_cuda.hpp"
@@ -81,7 +81,8 @@ namespace gridtools {
 
             typedef boost::mpl::range_c< uint_t,
                 0,
-                boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
+                boost::mpl::size< typename MssComponentsArray::elements >::type::value >
+                iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
@@ -126,7 +127,8 @@ namespace gridtools {
                 TileI,
                 TileJ
 #endif
-                > > type;
+                > >
+                type;
         };
 
 /**
@@ -152,7 +154,7 @@ namespace gridtools {
                 base_storage
 #endif
                 < typename Storage::pointer_type,
-                    typename get_tmp_storage_info< typename Storage::storage_info_type::index_type,
+                    typename get_tmp_storage_info< typename Storage::storage_info_type::index_t,
                         typename Storage::storage_info_type::layout,
                         typename Storage::storage_info_type::halo_t,
                         typename Storage::storage_info_type::alignment_t,
@@ -163,7 +165,8 @@ namespace gridtools {
                         TileJ
 #endif
                         >::type,
-                    Storage::field_dimensions > > type;
+                    Storage::field_dimensions > >
+                type;
         };
     };
 

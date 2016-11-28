@@ -47,13 +47,14 @@ namespace gridtools {
             static typename boost::remove_reference<
                 typename boost::fusion::result_of::at< Vec, static_ushort< ID > >::type >::type::value_type *
             apply(DomFull const &dom_full_) {
-                return new typename boost::remove_reference<
-                    typename boost::fusion::result_of::at< Vec, static_ushort< ID > >::type >::type::
-                    value_type(dom_full_.template storage_pointer< arg< ID, std::vector< pointer< T > > > >()
-                                   ->at(0)
-                                   ->meta_data(),
-                        "expandable params",
-                        false /*do_allocate*/);
+                return new typename boost::remove_reference< typename boost::fusion::result_of::at< Vec,
+                    static_ushort< ID > >::type >::type::value_type(dom_full_
+                                                                        .template storage_pointer<
+                                                                            arg< ID, std::vector< pointer< T > > > >()
+                                                                        ->at(0)
+                                                                        ->meta_data(),
+                    "expandable params",
+                    false /*do_allocate*/);
             }
         };
 
@@ -121,10 +122,9 @@ namespace gridtools {
             template < typename Arg >
             void operator()(Arg) const {
                 // error here means that the sizes of the expandable parameter lists do not match
-                if (!is_temporary_storage< typename boost::mpl::at< typename Domain::arg_list_mpl,
-                        typename Arg::index_type >::type >::value)
-                    assert(
-                        boost::fusion::at< typename Arg::index_type >(m_domain.m_storage_pointers)->size() == m_size);
+                if (!is_temporary_storage<
+                        typename boost::mpl::at< typename Domain::arg_list_mpl, typename Arg::index_t >::type >::value)
+                    assert(boost::fusion::at< typename Arg::index_t >(m_domain.m_storage_pointers)->size() == m_size);
             }
         };
 
@@ -143,11 +143,11 @@ namespace gridtools {
             template < typename T >
             void operator()(T) {
                 // unset the storage, so that it does not try to release the pointers it contains
-                boost::fusion::at< typename T::index_type >(m_vec_to)->storage_pointer()->unset();
+                boost::fusion::at< typename T::index_t >(m_vec_to)->storage_pointer()->unset();
                 // filtering out temporary storages
-                if (!boost::fusion::at< typename T::index_type >(m_vec_to)->is_temporary) {
+                if (!boost::fusion::at< typename T::index_t >(m_vec_to)->is_temporary) {
                     delete_pointer deleter;
-                    deleter(boost::fusion::at< typename T::index_type >(m_vec_to));
+                    deleter(boost::fusion::at< typename T::index_t >(m_vec_to));
                 }
             }
         };

@@ -30,7 +30,7 @@ namespace gridtools {
      */
     template < typename ArgType, typename... Pair >
     struct accessor_mixed : public offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... > {
-        typedef typename ArgType::index_type index_type;
+        typedef typename ArgType::index_t index_t;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::offset_tuple_t offset_tuple_t;
         typedef typename ArgType::extent_t extent_t;
@@ -42,8 +42,7 @@ namespace gridtools {
 #if defined(__CUDACC__) || defined(__clang__)
         // the protection for the arguments is done in offset_tuple constructors
         template < typename... T >
-        GT_FUNCTION constexpr accessor_mixed(T const &... t_)
-            : super(t_...) {}
+        GT_FUNCTION constexpr accessor_mixed(T const &... t_) : super(t_...) {}
 #endif
 
         GT_FUNCTION
@@ -94,8 +93,7 @@ the dimension is chosen
         /**@brief constructor
        \param args are the offsets which are already known*/
         template < typename... Args >
-        GT_FUNCTION constexpr alias(Args /*&&*/... args)
-            : m_knowns{(int_t)args...} {}
+        GT_FUNCTION constexpr alias(Args /*&&*/... args) : m_knowns{(int_t)args...} {}
 
         typedef boost::mpl::vector< Known... > dim_vector;
 

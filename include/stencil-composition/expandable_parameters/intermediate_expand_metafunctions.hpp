@@ -77,8 +77,8 @@ namespace gridtools {
 
         template < typename T >
         struct get_index {
-            typedef typename T::index_type type;
-            static const uint_t value = T::index_type::value;
+            typedef typename T::index_t type;
+            static const uint_t value = T::index_t::value;
         };
 
         template < enumtype::platform B >
@@ -96,8 +96,9 @@ namespace gridtools {
             template < typename T, typename ExpandFactor, uint_t ID >
             struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< T > > > >, ExpandFactor > {
                 typedef arg< ID,
-                    no_storage_type_yet< storage<
-                        expandable_parameters< typename T::basic_type, ExpandFactor::value > > > > type;
+                    no_storage_type_yet<
+                                 storage< expandable_parameters< typename T::basic_type, ExpandFactor::value > > > >
+                    type;
             };
         };
 
@@ -113,8 +114,9 @@ namespace gridtools {
             template < uint_t ID, typename T, typename ExpandFactor >
             struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< T > > > >, ExpandFactor > {
                 typedef arg< ID,
-                    no_storage_type_yet< storage<
-                        expandable_parameters< typename T::basic_type, ExpandFactor::value > > > > type;
+                    no_storage_type_yet<
+                                 storage< expandable_parameters< typename T::basic_type, ExpandFactor::value > > > >
+                    type;
             };
         };
 

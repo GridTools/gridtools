@@ -143,7 +143,8 @@ namespace gridtools {
                 typename boost::mpl::and_<
                     typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
                     typename boost::mpl::not_< typename accessor_holds_data_field< Accessor >::type >::type >::type,
-                typename is_accessor< Accessor >::type > type;
+                typename is_accessor< Accessor >::type >
+                type;
         };
 
         /**
@@ -374,7 +375,7 @@ namespace gridtools {
             typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
             get_data_pointer(Accessor const &accessor) const {
 
-            typedef typename Accessor::index_type index_t;
+            typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions,
@@ -385,7 +386,7 @@ namespace gridtools {
 
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
-            return (data_pointer())[current_storage< (acc_t::index_type::value == 0), local_domain_t, acc_t >::value];
+            return (data_pointer())[current_storage< (acc_t::index_t::value == 0), local_domain_t, acc_t >::value];
         }
 
         /** @brief method returning the data pointer of an accessor
@@ -397,7 +398,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return (
-                data_pointer())[current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value];
+                data_pointer())[current_storage< (Accessor::index_t::value == 0), local_domain_t, Accessor >::value];
         }
 
         /** @brief method returning the data pointer of an accessor
@@ -449,7 +450,7 @@ namespace gridtools {
             global_accessor< I, Intend > const &accessor) const {
 
             // getting information about the storage
-            typedef typename global_accessor< I, Intend >::index_type index_t;
+            typedef typename global_accessor< I, Intend >::index_t index_t;
 
             typedef
                 typename get_storage_accessor< local_domain_t, global_accessor< I, Intend > >::type storage_ptr_type;
@@ -467,7 +468,7 @@ namespace gridtools {
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "wrong type");
-            typedef typename Accessor::index_type index_t;
+            typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
             // getting information about the metadata
             typedef
@@ -571,7 +572,7 @@ namespace gridtools {
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
 
         // getting information about the storage
-        typedef typename Accessor::index_type index_t;
+        typedef typename Accessor::index_t index_t;
 
         typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
         typedef typename get_storage_pointer_accessor< local_domain_t, Accessor >::type storage_pointer_t;
@@ -595,7 +596,7 @@ namespace gridtools {
         // Most probably this is due to you specifying a positive offset which is larger than expected,
         // or maybe you did a mistake when specifying the ranges in the placehoders definition
         GTASSERT(metadata_->size() >
-                 m_index[ // Accessor::index_type::value
+                 m_index[ // Accessor::index_t::value
                      metadata_index_t::value] +
                      metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()));
 
@@ -607,8 +608,8 @@ namespace gridtools {
         // in the placehoders definition.
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
-        // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename
-        // Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
+        // std::cout<<"Storage Index: "<<Accessor::index_t::value<<" + "<<(boost::fusion::at<typename
+        // Accessor::index_t>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
         GTASSERT((int_t)(m_index[metadata_index_t::value]) +
                      metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()) >=
                  0);
@@ -639,7 +640,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
         // getting information about the storage
-        typedef typename Accessor::index_type index_t;
+        typedef typename Accessor::index_t index_t;
 
         typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
 

@@ -34,16 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/or.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/find.hpp>
-#include "defs.hpp"
 #include "../stencil-composition/dimension.hpp"
-#include "generic_metafunctions/logical_ops.hpp"
-#include "generic_metafunctions/variadic_to_vector.hpp"
+#include "array.hpp"
+#include "defs.hpp"
 #include "generic_metafunctions/accumulate.hpp"
 #include "generic_metafunctions/is_variadic_pack_of.hpp"
-#include "array.hpp"
+#include "generic_metafunctions/logical_ops.hpp"
+#include "generic_metafunctions/variadic_to_vector.hpp"
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/or.hpp>
 
 namespace gridtools {
 
@@ -135,7 +135,7 @@ namespace gridtools {
 
     /**@brief this is a decorator of the arg_type, which is matching the extra dimensions
        \param n_args is the current ID of the extra dimension
-       \param index_type is the index of the storage type
+       \param index_t is the index of the storage type
 
        EXAMPLE:
 
@@ -185,8 +185,7 @@ namespace gridtools {
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
-        GT_FUNCTION constexpr offset_tuple(int t, GenericElements const &... x)
-            : super(x...), m_offset(t) {}
+        GT_FUNCTION constexpr offset_tuple(int t, GenericElements const &... x) : super(x...), m_offset(t) {}
 
         /**@brief constructor taking the dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'dimension' is a

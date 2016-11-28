@@ -36,8 +36,8 @@
 #pragma once
 
 #include "../common/defs.hpp"
-#include "../storage/storage.hpp"
 #include "../storage/meta_storage.hpp"
+#include "../storage/storage.hpp"
 
 namespace gridtools {
 
@@ -57,7 +57,7 @@ namespace gridtools {
         typedef this_type value_type;
         static const ushort_t field_dimensions = 1;
         struct storage_info_type {
-            typedef void index_type;
+            typedef void index_t;
         };
 
 // TODO: This seems to be pretty static. Maybe we should ask

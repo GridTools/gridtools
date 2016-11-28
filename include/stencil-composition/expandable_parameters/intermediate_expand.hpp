@@ -38,11 +38,11 @@
 #include <boost/fusion/adapted/mpl.hpp>
 #include <boost/fusion/include/mpl.hpp>
 
-#include "../intermediate.hpp"
 #include "../../storage/storage.hpp"
+#include "../intermediate.hpp"
 
-#include "intermediate_expand_metafunctions.hpp"
 #include "intermediate_expand_impl.hpp"
+#include "intermediate_expand_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -132,7 +132,8 @@ namespace gridtools {
             ConditionalsSet,
             ReductionType,
             IsStateful,
-            ExpandFactor::value > intermediate_t;
+            ExpandFactor::value >
+            intermediate_t;
 
         // typedef to the intermediate type associated with the vector length of s_size%ExpandFactor::value
         typedef intermediate< Backend,
@@ -142,7 +143,8 @@ namespace gridtools {
             ConditionalsSet,
             ReductionType,
             IsStateful,
-            1 > intermediate_remainder_t;
+            1 >
+            intermediate_remainder_t;
 
       private:
         // private members
@@ -179,7 +181,7 @@ namespace gridtools {
                 _impl::initialize_storage< DomainType, expand_vec_t >(domain, expand_vec));
 
             auto const &storage_ptr_ =
-                boost::fusion::at< typename boost::mpl::at_c< expandable_params_t, 0 >::type::index_type >(
+                boost::fusion::at< typename boost::mpl::at_c< expandable_params_t, 0 >::type::index_t >(
                     domain.m_storage_pointers);
 
             m_size = storage_ptr_->size();

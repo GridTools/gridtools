@@ -35,39 +35,39 @@
 */
 #pragma once
 
-#include <iosfwd>
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/container/vector/convert.hpp>
 #include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/include/push_back.hpp>
-#include <boost/fusion/include/value_at.hpp>
+#include <boost/fusion/container/vector/convert.hpp>
+#include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/copy.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/set.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/sort.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/push_back.hpp>
+#include <boost/fusion/include/value_at.hpp>
 #include <boost/fusion/mpl.hpp>
+#include <boost/fusion/view/filter_view.hpp>
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/sort.hpp>
+#include <boost/mpl/transform.hpp>
+#include <iosfwd>
 
+#include "../common/generic_metafunctions/arg_comparator.hpp"
+#include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
-#include "../common/generic_metafunctions/arg_comparator.hpp"
 #include "../common/gpu_clone.hpp"
 
+#include "../storage/metadata_set.hpp"
 #include "../storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
-#include "../storage/metadata_set.hpp"
 
 #include "aggregator_type_impl.hpp"
-#include "arg_metafunctions.hpp"
 #include "arg.hpp"
+#include "arg_metafunctions.hpp"
 
 /**@file
    @brief This file contains the global list of placeholders to the storages
@@ -216,9 +216,9 @@ namespace gridtools {
         typename boost::enable_if_c< is_any_storage< typename ArgStoragePair0::storage_type >::type::value, void >::type
         assign_pointers(MetaDataSequence &sequence_, ArgStoragePair0 arg0, OtherArgs... other_args) {
             assert(arg0.ptr.get());
-            boost::fusion::at< typename ArgStoragePair0::arg_type::index_type >(m_storage_pointers) = arg0.ptr;
+            boost::fusion::at< typename ArgStoragePair0::arg_type::index_t >(m_storage_pointers) = arg0.ptr;
             // storing the value of the pointers in a 'backup' fusion vector
-            boost::fusion::at< typename ArgStoragePair0::arg_type::index_type >(m_original_pointers) = arg0.ptr;
+            boost::fusion::at< typename ArgStoragePair0::arg_type::index_t >(m_original_pointers) = arg0.ptr;
             if (!sequence_
                      .template present< pointer< const typename ArgStoragePair0::storage_type::storage_info_type > >())
                 sequence_.insert(pointer< const typename ArgStoragePair0::storage_type::storage_info_type >(
@@ -233,8 +233,8 @@ namespace gridtools {
             void >::type
         assign_pointers(MetaDataSequence &sequence_, ArgStoragePair0 arg0, OtherArgs... other_args) {
             assert(arg0.ptr.get());
-            boost::fusion::at< typename ArgStoragePair0::arg_type::index_type >(m_storage_pointers) = arg0.ptr;
-            boost::fusion::at< typename ArgStoragePair0::arg_type::index_type >(m_original_pointers) = arg0.ptr;
+            boost::fusion::at< typename ArgStoragePair0::arg_type::index_t >(m_storage_pointers) = arg0.ptr;
+            boost::fusion::at< typename ArgStoragePair0::arg_type::index_t >(m_original_pointers) = arg0.ptr;
             assign_pointers(sequence_, other_args...);
         }
 
@@ -251,8 +251,7 @@ namespace gridtools {
             \endverbatim
         */
         template < typename... Pairs >
-        aggregator_type(Pairs... pairs_)
-            : m_storage_pointers(), m_metadata_set() {
+        aggregator_type(Pairs... pairs_) : m_storage_pointers(), m_metadata_set() {
 
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< Pairs >::value...), "wrong type");
             GRIDTOOLS_STATIC_ASSERT((sizeof...(Pairs) > 0),
@@ -519,17 +518,16 @@ namespace gridtools {
            @brief given the placeholder type returns the corresponding storage gtidtools::pointer by reference
          */
         template < typename StoragePlaceholder >
-        typename boost::mpl::at< arg_list, typename StoragePlaceholder::index_type >::type &storage_pointer() {
-            return boost::fusion::at< typename StoragePlaceholder::index_type >(m_storage_pointers);
+        typename boost::mpl::at< arg_list, typename StoragePlaceholder::index_t >::type &storage_pointer() {
+            return boost::fusion::at< typename StoragePlaceholder::index_t >(m_storage_pointers);
         }
 
         /**
            @brief given the placeholder type returns the corresponding storage gridtools::pointer by const ref
          */
         template < typename StoragePlaceholder >
-        typename boost::mpl::at< arg_list, typename StoragePlaceholder::index_type >::type const &
-        storage_pointer() const {
-            return boost::fusion::at< typename StoragePlaceholder::index_type >(m_storage_pointers);
+        typename boost::mpl::at< arg_list, typename StoragePlaceholder::index_t >::type const &storage_pointer() const {
+            return boost::fusion::at< typename StoragePlaceholder::index_t >(m_storage_pointers);
         }
 
         /**
@@ -537,7 +535,7 @@ namespace gridtools {
          */
         template < typename T >
         struct storage_type {
-            typedef typename boost::mpl::at< arg_list_mpl, typename T::index_type >::type::value_type type;
+            typedef typename boost::mpl::at< arg_list_mpl, typename T::index_t >::type::value_type type;
         };
 
 #ifdef CXX11_ENABLED

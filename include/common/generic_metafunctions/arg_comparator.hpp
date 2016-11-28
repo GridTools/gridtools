@@ -49,7 +49,7 @@ namespace gridtools {
         /**specialization for storage pairs*/
         template < typename T1, typename T2, typename T3, typename T4 >
         struct apply< arg_storage_pair< T1, T2 >, arg_storage_pair< T3, T4 > >
-            : public boost::mpl::bool_< (T1::index_type::value < T3::index_type::value) > {};
+            : public boost::mpl::bool_< (T1::index_t::value < T3::index_t::value) > {};
 
         /**specialization for storage placeholders*/
         template < ushort_t I1, typename T1, ushort_t I2, typename T2 >

@@ -35,18 +35,18 @@
 */
 #pragma once
 
-#include <iosfwd>
 #include "accessor.hpp"
+#include <iosfwd>
 
+#include "arg.hpp"
+#include <boost/fusion/include/at.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/type_traits/remove_pointer.hpp>
 #include <gridtools.hpp>
 #include <stdio.h>
-#include <boost/type_traits/remove_pointer.hpp>
-#include <boost/fusion/include/at.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/set.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/for_each.hpp>
-#include "arg.hpp"
 template < typename RegularStorageType >
 struct no_storage_type_yet;
 
@@ -63,7 +63,7 @@ namespace gridtools {
         struct print_index {
             template < typename T >
             void operator()(T &) const {
-                std::cout << " *" << T() << " " << typename T::storage_type() << ", " << T::index_type::value << " * "
+                std::cout << " *" << T() << " " << typename T::storage_type() << ", " << T::index_t::value << " * "
                           << std::endl;
             }
         };
@@ -147,9 +147,9 @@ namespace gridtools {
             template < typename U >
             struct apply {
 #ifndef CXX11_ENABLED
-                typedef typename static_uint< U::index_type::value >::type
+                typedef typename static_uint< U::index_t::value >::type
 #else
-                typedef static_uint< U::index_type::value >
+                typedef static_uint< U::index_t::value >
 #endif
                     type;
             };

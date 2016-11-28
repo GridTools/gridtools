@@ -50,7 +50,7 @@ namespace gridtools {
     template < typename LocalD, typename Accessor >
     struct current_storage< false, LocalD, Accessor > {
         static const uint_t value =
-            (total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
+            (total_storages< typename LocalD::local_args_type, Accessor::index_t::value >::value);
     };
 
     template < bool cond, typename Accessor, typename LocalDomain >
@@ -87,7 +87,7 @@ namespace gridtools {
                                                                    // of
                        // storages
                        ) + //+ the offset of the other extra dimension
-                   current_storage< (Accessor::index_type::value == 0), LocalDomain, Accessor >::value;
+                   current_storage< (Accessor::index_t::value == 0), LocalDomain, Accessor >::value;
         }
     };
 
@@ -134,7 +134,7 @@ namespace gridtools {
                                      storage_t::traits::n_dimensions -
                                          1 >::value // stride of the current dimension inside the vector of storages
                        ) +                          //+ the offset of the other extra dimension
-                   current_storage< (Accessor::index_type::value == 0), LocalDomain, Accessor >::value;
+                   current_storage< (Accessor::index_t::value == 0), LocalDomain, Accessor >::value;
         }
     };
 } // namespace gridtools
