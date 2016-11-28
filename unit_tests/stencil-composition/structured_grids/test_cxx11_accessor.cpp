@@ -113,9 +113,12 @@ namespace interface {
         alias< arg_t, t > field1(-3); // records the offset -3 as dynamic values
         alias< arg_t, t > field2(-1); // records the offset -1 as static const
 
-        return field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 && field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 &&
-               field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -3 && field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 &&
-               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 && field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -1;
+        return field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 &&
+               field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 &&
+               field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -3 &&
+               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 &&
+               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 &&
+               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -1;
     }
 
 } // namespace interface

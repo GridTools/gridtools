@@ -142,7 +142,7 @@ namespace gridtools {
                 typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
             GT_FUNCTION constexpr auto operator()(Expression< Accessor, FloatType > const &arg) const
                 -> decltype(expressions::evaluation::value(*this, arg)) {
-                //TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
+                // TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
                 return expressions::evaluation::value((*this), arg);
             }
         };

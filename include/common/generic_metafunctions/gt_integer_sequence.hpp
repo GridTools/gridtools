@@ -196,9 +196,8 @@ namespace gridtools {
         /**
            @brief same as before, but with non-static lambda taking as first argument the index
         */
-        template<typename Container, class Lambda, typename ... ExtraTypes>
-        GT_FUNCTION
-        static constexpr Container apply(Lambda lambda, ExtraTypes& ... args_ ){
+        template < typename Container, class Lambda, typename... ExtraTypes >
+        GT_FUNCTION static constexpr Container apply(Lambda lambda, ExtraTypes &... args_) {
             return Container{lambda(Indices, args_...)...};
         }
     };

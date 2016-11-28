@@ -161,10 +161,10 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(1) == 32 * 12), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(0) == 32 * 12 * 13), "error");
 #endif
-#else  // CUDA8
+#else // CUDA8
 
     typedef gridtools::layout_map< 0, 1, 2 > layout_t;
-    gridtools::meta_storage_base< static_int<0> , layout_t, false > meta_(11, 12, 13);
+    gridtools::meta_storage_base< static_int< 0 >, layout_t, false > meta_(11, 12, 13);
     ASSERT_TRUE((meta_.dim< 0 >() == 11));
     ASSERT_TRUE((meta_.dim< 1 >() == 12));
     ASSERT_TRUE((meta_.dim< 2 >() == 13));

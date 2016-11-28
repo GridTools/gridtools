@@ -1,6 +1,6 @@
 #include "iterate_domain.hpp"
 
-namespace gridtools{
+namespace gridtools {
     /**@brief class handling the computation of the */
     template < typename IterateDomainImpl >
     struct positional_iterate_domain : public iterate_domain< IterateDomainImpl > {
