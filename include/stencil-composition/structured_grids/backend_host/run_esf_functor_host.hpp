@@ -36,7 +36,7 @@
 #pragma once
 
 #include "../../run_esf_functor.hpp"
-#include "../../functor_id_pair.hpp"
+#include "../../functor_decorator.hpp"
 
 namespace gridtools {
 
@@ -68,10 +68,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
             typedef typename EsfArguments::functor_t functor_t;
 
-            GRIDTOOLS_STATIC_ASSERT(is_functor_id_pair< functor_t >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, "wrong type");
 
-            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::Do(
-                this->m_iterate_domain);
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::
+                call_do_method(this->m_iterate_domain);
         }
 
         /*

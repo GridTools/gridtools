@@ -38,7 +38,7 @@
 #include "../../run_esf_functor.hpp"
 #include "../../block_size.hpp"
 #include "../iterate_domain_remapper.hpp"
-#include "../../functor_id_pair.hpp"
+#include "../../functor_decorator.hpp"
 
 namespace gridtools {
 
@@ -92,11 +92,11 @@ namespace gridtools {
             // typedef typename esf_t::template esf_function< Index::value > functor_t;
             typedef typename EsfArguments::functor_t functor_t;
 
-            GRIDTOOLS_STATIC_ASSERT(is_functor_id_pair< functor_t >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, "wrong type");
 
             // call the user functor at the core of the block
-            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::Do(
-                iterate_domain_remapper);
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
+                call_do_method(iterate_domain_remapper);
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, static_uint< 1 > >();
         }
@@ -182,7 +182,7 @@ namespace gridtools {
             typedef typename EsfArguments::esf_t esf_t;
             typedef typename esf_t::template esf_function< color_t::value > functor_t;
 
-            GRIDTOOLS_STATIC_ASSERT(is_functor_id_pair< functor_t >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, "wrong type");
 
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
 
@@ -191,8 +191,8 @@ namespace gridtools {
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, color_t >();
 
             // call the user functor at the core of the block
-            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::Do(
-                iterate_domain_remapper);
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
+                call_do_method(iterate_domain_remapper);
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                     static_int< -color_t::value > >();

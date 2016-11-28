@@ -36,6 +36,10 @@
 
 #pragma once
 namespace gridtools {
+    /** inserts an element in the set if it is not present
+
+        specialization for expandable parameters
+    */
     template < typename Sequence, typename Arg >
     struct insert_if_not_present< Sequence, std::vector< pointer< Arg > > > : insert_if_not_present< Sequence, Arg > {
         using insert_if_not_present< Sequence, Arg >::insert_if_not_present;

@@ -2,6 +2,7 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "benchmarker.hpp"
+#include <tools/verifier.hpp>
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -34,14 +35,22 @@ namespace adv_prepare_tracers {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, interval_t) {
-            eval(data()) = eval(rho());// * eval(data_nnow());
+            eval(data()) = eval(rho()) * eval(data_nnow());
         }
     };
+
+    template < typename Storage1, typename Storage2, typename Storage3 >
+    bool reference(Storage1 const &in_, Storage2 const &rho_, Storage3 &out_) {
+        for (int_t i = 0; i < in_.meta_data().template dim< 0 >(); ++i)
+            for (int_t j = 0; j < in_.meta_data().template dim< 1 >(); ++j)
+                for (int_t k = 0; k < in_.meta_data().template dim< 2 >(); ++k)
+                    out_(i, j, k) = rho_(i, j, k) * in_(i, j, k);
+    }
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
 
         typedef BACKEND::storage_info< 23, layout_t > meta_data_t;
-        typedef typename field< BACKEND::storage_type< float_type, meta_data_t >::type, 1 >::type storage_t;
+        typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
 
         meta_data_t meta_data_(d1, d2, d3);
 
@@ -79,6 +88,16 @@ namespace adv_prepare_tracers {
 #endif
         comp_->finalize();
 
-        return true;
+        verifier verif(1e-6);
+        array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
+        bool result = true;
+
+        for (int_t l = 0; l < 20; ++l) {
+            storage_t s_ref_(meta_data_, 0., "ref storage");
+            reference(*list_in_[l], rho, s_ref_);
+            result = result && verif.verify(grid_, *(list_out_[l]), s_ref_, halos);
+        }
+
+        return result;
     }
 }

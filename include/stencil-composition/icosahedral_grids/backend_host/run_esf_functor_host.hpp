@@ -37,7 +37,7 @@
 
 #include "../../run_esf_functor.hpp"
 #include "../iterate_domain_remapper.hpp"
-#include "../../functor_id_pair.hpp"
+#include "../../functor_decorator.hpp"
 
 namespace gridtools {
 
@@ -98,9 +98,7 @@ namespace gridtools {
 
             typedef typename EsfArguments::functor_t functor_t;
 
-            GRIDTOOLS_STATIC_ASSERT(is_functor_id_pair< functor_t >::value, "wrong type");
-
-            using n_colors_t = typename EsfArguments::esf_t::location_type::n_colors;
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, "wrong type");
 
             typedef typename get_trivial_iterate_domain_remapper< iterate_domain_t,
                 typename EsfArguments::esf_t,
@@ -108,8 +106,8 @@ namespace gridtools {
 
             iterate_domain_remapper_t iterate_domain_remapper(this->m_iterate_domain);
 
-            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::Do(
-                iterate_domain_remapper);
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
+                call_do_method(iterate_domain_remapper);
         }
 
         /*
