@@ -152,7 +152,7 @@ namespace gridtools {
         std::unique_ptr< intermediate_t > m_intermediate;
         std::unique_ptr< intermediate_remainder_t > m_intermediate_remainder;
         ushort_t m_size;
-        intermediate_t::performance_meter_t m_meter;
+        typename intermediate_t::performance_meter_t m_meter;
 
       public:
         typedef typename boost::fusion::result_of::as_vector< expand_storage_list >::type expand_vec_t;
@@ -168,7 +168,7 @@ namespace gridtools {
          */
         intermediate_expand(DomainType &domain, Grid const &grid, ConditionalsSet conditionals_)
             : m_domain_full(domain), m_domain_chunk(), m_domain_chunk_remainder(), m_intermediate(),
-              m_intermediate_remainder(), m_size(0) {
+              m_intermediate_remainder(), m_size(0), m_meter("NoName") {
 
             // fusion vector of storage lists
             expand_vec_t expand_vec;
@@ -263,7 +263,7 @@ namespace gridtools {
                 m_intermediate_remainder->reset_meter();
         }
 
-        virtual double get_meter() { retutn m_meter.total_time(); }
+        virtual double get_meter() { return m_meter.total_time(); }
 
         /**
            @brief forward the call to the members
