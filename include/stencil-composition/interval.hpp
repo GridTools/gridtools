@@ -42,6 +42,7 @@
 #include "level.hpp"
 #include "../common/host_device.hpp"
 #include "sfinae.hpp"
+#include "../common/gt_assert.hpp"
 
 namespace gridtools {
     /**

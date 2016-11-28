@@ -84,8 +84,8 @@ namespace gridtools {
             typedef typename EsfArguments::reduction_data_t::bin_op_t bin_op_t;
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
             typedef typename EsfArguments::functor_t functor_t;
-            this->m_iterate_domain.set_reduction_value(bin_op_t()(
-                this->m_iterate_domain.reduction_value(), functor_t::Do(this->m_iterate_domain, IntervalType())));
+            this->m_iterate_domain.set_reduction_value(bin_op_t()(this->m_iterate_domain.reduction_value(),
+                functor_t::f_type::type::Do(this->m_iterate_domain, IntervalType())));
         }
     };
 }
