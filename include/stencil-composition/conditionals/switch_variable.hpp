@@ -75,9 +75,13 @@ namespace gridtools {
         typedef static_uint< Tag > index_t;
         static const uint_t index_value = index_t::value;
 
+#ifdef CXX11_ENABLED
         std::unique_ptr< std::vector< BOOL_FUNC() > > m_conditions; // generated conditions
         std::unique_ptr< std::vector< T > > m_cases;                // all possible cases (redundant)
-        /**@brief enpty constructor*/
+#else                                                               /**@brief enpty constructor*/
+        boost::scoped_ptr< std::vector< BOOL_FUNC() > > m_conditions; // generated conditions
+        boost::scoped_ptr< std::vector< T > > m_cases;                // all possible cases (redundant)
+#endif
         constexpr switch_variable() // try to avoid this?
             : m_value(),
               m_conditions(new std::vector< BOOL_FUNC() >()),

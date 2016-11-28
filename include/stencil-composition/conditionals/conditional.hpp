@@ -100,8 +100,6 @@ namespace gridtools {
 
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }
-        // private:
-        //     conditional(conditional const&);
     };
 
     template < typename T >

@@ -76,20 +76,9 @@ namespace gridtools {
     make_computation_impl(Domain &domain, const Grid &grid, Mss... args_) {
         typedef typename _impl::create_conditionals_set< Domain, Grid, Mss... >::type conditionals_set_t;
 
-        boost::shared_ptr< conditionals_set_t > conditionals_set_(new conditionals_set_t());
+        conditionals_set_t conditionals_set_;
 
-        fill_conditionals(*conditionals_set_, args_...);
-
-        std::cout << "filled true??? "
-                  << boost::fusion::at_key< conditional< 4294967294U, 0U > >(*conditionals_set_).value() << std::endl;
-        std::cout << "filled true??? "
-                  << boost::fusion::at_key< conditional< 4294967295U, 0U > >(*conditionals_set_).value() << std::endl;
-        std::cout << "filled true??? "
-                  << boost::fusion::at_key< conditional< 4294967295U, 1U > >(*conditionals_set_).value() << std::endl;
-        std::cout << "filled true??? "
-                  << boost::fusion::at_key< conditional< 4294967294U, 2U > >(*conditionals_set_).value() << std::endl;
-        std::cout << "filled true??? "
-                  << boost::fusion::at_key< conditional< 4294967295U, 2U > >(*conditionals_set_).value() << std::endl;
+        fill_conditionals(conditionals_set_, args_...);
 
         return std::make_shared< intermediate< Backend,
             meta_array< typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
