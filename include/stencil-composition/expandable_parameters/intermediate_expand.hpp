@@ -152,6 +152,7 @@ namespace gridtools {
         std::unique_ptr< intermediate_t > m_intermediate;
         std::unique_ptr< intermediate_remainder_t > m_intermediate_remainder;
         ushort_t m_size;
+        intermediate_t::performance_meter_t m_meter;
 
       public:
         typedef typename boost::fusion::result_of::as_vector< expand_storage_list >::type expand_vec_t;
@@ -231,6 +232,7 @@ namespace gridtools {
                     _impl::assign_expandable_params< Backend, DomainType, aggregator_type< expand_arg_list > >(
                         m_domain_full, *m_domain_chunk, i));
                 m_intermediate->run();
+                m_meter.reset(m_meter.get_meter().total_time() + m_intermediate->get_meter().total_time());
             }
             for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
                 boost::mpl::for_each< expandable_params_t >(_impl::assign_expandable_params< Backend,
@@ -238,6 +240,7 @@ namespace gridtools {
                     aggregator_type< expand_arg_list_remainder > >(
                     m_domain_full, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
                 m_intermediate_remainder->run();
+                m_meter.reset(m_meter.get_meter().total_time() + m_intermediate_remainder->get_meter().total_time());
             }
             return 0.; // reduction disabled
         }
@@ -254,18 +257,13 @@ namespace gridtools {
            @brief forwards to the m_intermediate and m_intermediate_remainder members
          */
         virtual void reset_meter() {
+            m_meter.reset();
             m_intermediate->reset_meter();
             if (m_size % ExpandFactor::value)
                 m_intermediate_remainder->reset_meter();
         }
 
-        virtual double get_meter() {
-
-            if (m_size % ExpandFactor::value)
-                return m_intermediate->get_meter() + m_intermediate_remainder->get_meter();
-            else
-                return m_intermediate->get_meter();
-        }
+        virtual double get_meter() { retutn m_meter.total_time(); }
 
         /**
            @brief forward the call to the members

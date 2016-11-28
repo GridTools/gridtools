@@ -52,7 +52,7 @@ namespace gridtools {
         /**
         * Reset counters
         */
-        __host__ void reset_impl() {}
+        __host__ void reset_impl(double const & /*time_*/) {}
 
         /**
         * Start the stop watch

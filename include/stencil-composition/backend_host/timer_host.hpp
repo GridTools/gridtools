@@ -53,7 +53,7 @@ namespace gridtools {
         /**
         * Reset counters
         */
-        void reset_impl() { startTime_ = 0.0; }
+        void reset_impl(double const &time_) { startTime_ = time_; }
 
         /**
         * Start the stop watch
