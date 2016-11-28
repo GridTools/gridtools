@@ -132,7 +132,7 @@ namespace gridtools {
         template < typename LayoutT, typename StridesVector >
         GT_FUNCTION static constexpr int_t _index(
             StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
-            return super::template _index< StridesVector, LayoutT >(strides_, offsets);
+            return super::template _index<  LayoutT, StridesVector >(strides_, offsets);
         }
 #endif // GRIDBACKEND==icosahedral
 

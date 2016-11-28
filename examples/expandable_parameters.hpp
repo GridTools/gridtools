@@ -27,12 +27,17 @@ namespace test_expandable_parameters {
 
     struct functor_exp {
 
-        using icosahedral_topology_t = ::gridtools::icosahedral_topology< gridtools::BACKEND >;
+#ifdef REASSIGN_DOMAIN
+        typedef accessor< 0, enumtype::inout > parameters_out;
+        typedef accessor< 1, enumtype::in > parameters_in;
+#else
+        typedef vector_accessor< 0, enumtype::inout > parameters_out;
+        typedef vector_accessor< 1, enumtype::in > parameters_in;
+#endif
+        // typedef accessor<2, enumtype::in> scalar;
 
-        typedef accessor< 0, enumtype::inout, icosahedral_topology_t::cell > parameters_out;
-        typedef accessor< 1, enumtype::in, icosahedral_topology_t::cell > parameters_in;
-
-        typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
+        typedef boost::mpl::vector< parameters_out, parameters_in //, scalar
+            > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -86,13 +91,13 @@ namespace test_expandable_parameters {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        using p_list_out = arg< 0, std::vector< pointer< storage_t > > >;
-        using p_list_in = arg< 1, std::vector< pointer< storage_t > > >;
-        using p_list_tmp = arg< 2, std::vector< pointer< tmp_storage_t > > >;
+        typedef arg< 0, std::vector< pointer< storage_t > > > p_list_out;
+        typedef arg< 1, std::vector< pointer< storage_t > > > p_list_in;
+        typedef arg< 2, std::vector< pointer< tmp_storage_t > > > p_list_tmp;
 
         typedef boost::mpl::vector< p_list_out, p_list_in, p_list_tmp > args_t;
 
-        aggregator_type< args_t > domain_((p_out() = list_out_), (p_in() = list_in_));
+        aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_));
 
         auto comp_ = make_computation< BACKEND >(expand_factor< 3 >(),
             domain_,

@@ -468,12 +468,14 @@ namespace gridtools {
             return _impl::compute_offset< space_dimensions, layout >::apply(strides_, offset);
         }
 
+#ifndef STRUCTURED_GRIDS
+
         template < typename LayoutT, typename StridesVector >
         GT_FUNCTION static constexpr int_t _index(
             StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
             return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);
         }
-
+#endif
         template < typename OffsetTuple >
         GT_FUNCTION constexpr int_t _index(OffsetTuple const &tuple) const {
             GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value), "wrong type");
