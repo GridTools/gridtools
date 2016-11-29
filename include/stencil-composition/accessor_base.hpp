@@ -58,7 +58,7 @@ namespace gridtools {
     template < int_t Index, int_t NDim >
     struct offset_tuple;
 
-    template < uint_t I, typename T >
+    template < uint_t I, typename T, bool B >
     struct arg;
 
 #ifdef CXX11_ENABLED
@@ -250,8 +250,8 @@ namespace gridtools {
     /**
      * Struct to test if an argument is a placeholder - Specialization yielding true
      */
-    template < uint_t I, typename T >
-    struct is_plchldr< arg< I, T > > : boost::true_type {};
+    template < uint_t I, typename T, bool Temporary >
+    struct is_plchldr< arg< I, T, Temporary > > : boost::true_type {};
 
     /**
      * Struct to test if an argument (placeholder) is a temporary
@@ -259,15 +259,15 @@ namespace gridtools {
     template < typename T >
     struct is_plchldr_to_temp : boost::mpl::false_ {};
 
-    template < uint_t ID, typename T >
-    struct is_plchldr_to_temp< arg< ID, T > > : public is_temporary_storage< T > {};
+    template < uint_t ID, typename T, bool Temporary >
+    struct is_plchldr_to_temp< arg< ID, T, Temporary > > : public is_temporary_storage< T > {};
 
     template < typename T >
     struct global_parameter;
 
-    template < uint_t I, typename BaseType >
-    struct is_plchldr_to_temp< arg< I, global_parameter< BaseType > > >
-        : is_plchldr_to_temp< arg< I, typename global_parameter< BaseType >::wrapped_type > > {};
+    template < uint_t I, typename BaseType, bool Temporary >
+    struct is_plchldr_to_temp< arg< I, global_parameter< BaseType >, Temporary > >
+        : is_plchldr_to_temp< arg< I, typename global_parameter< BaseType >::wrapped_type, Temporary > > {};
 
     /**
      * Printing type information for debug purposes
@@ -296,8 +296,8 @@ namespace gridtools {
      * @param n/a Type selector for offset_tuple
      * @return ostream
      */
-    template < uint_t I, typename R >
-    std::ostream &operator<<(std::ostream &s, arg< I, no_storage_type_yet< R > > const &) {
+    template < uint_t I, typename R, bool Temporary >
+    std::ostream &operator<<(std::ostream &s, arg< I, no_storage_type_yet< R >, Temporary > const &) {
         return s << "[ arg< " << I << ", temporary<something>"
                  << " > ]";
     }
@@ -308,8 +308,8 @@ namespace gridtools {
      * @param n/a Type selector for arg to a NON temp
      * @return ostream
      */
-    template < uint_t I, typename R >
-    std::ostream &operator<<(std::ostream &s, arg< I, R > const &) {
+    template < uint_t I, typename R, bool Temporary >
+    std::ostream &operator<<(std::ostream &s, arg< I, R, Temporary > const &) {
         return s << "[ arg< " << I << ", NON TEMP"
                  << " > ]";
     }

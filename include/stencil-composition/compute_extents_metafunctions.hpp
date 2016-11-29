@@ -34,21 +34,21 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/reverse.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/fold.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/range_c.hpp>
+#include <boost/mpl/reverse.hpp>
 
-#include "./esf_metafunctions.hpp"
-#include "./wrap_type.hpp"
-#include "./mss.hpp"
 #include "./amss_descriptor.hpp"
+#include "./conditionals/condition.hpp"
+#include "./esf_metafunctions.hpp"
+#include "./grid_traits_metafunctions.hpp"
+#include "./linearize_mss_functions.hpp"
+#include "./mss.hpp"
 #include "./mss_metafunctions.hpp"
 #include "./reductions/reduction_descriptor.hpp"
-#include "./linearize_mss_functions.hpp"
-#include "./grid_traits_metafunctions.hpp"
-#include "./conditionals/condition.hpp"
+#include "./wrap_type.hpp"
 
 /** @file This file implements the metafunctions to perform data dependency analysis on a
     multi-stage computation (MSS). The idea is to assign to each placeholder used in the
@@ -72,15 +72,17 @@ namespace gridtools {
             typedef Placeholder type;
         };
 
-        template < ushort_t ID, typename Storage >
-        struct apply< arg< ID, std::vector< pointer< storage< Storage > > > > > {
-            typedef arg< ID, storage< expandable_parameters< typename Storage::basic_type, Size > > > type;
+        template < ushort_t ID, typename Storage, bool Temporary >
+        struct apply< arg< ID, std::vector< pointer< storage< Storage > > >, Temporary > > {
+            typedef arg< ID, storage< expandable_parameters< typename Storage::basic_type, Size > >, Temporary > type;
         };
 
-        template < ushort_t ID, typename Storage >
-        struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< storage< Storage > > > > > > {
+        template < ushort_t ID, typename Storage, bool Temporary >
+        struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< storage< Storage > > > >, Temporary > > {
             typedef arg< ID,
-                no_storage_type_yet< storage< expandable_parameters< typename Storage::basic_type, Size > > > > type;
+                no_storage_type_yet< storage< expandable_parameters< typename Storage::basic_type, Size > > >,
+                Temporary >
+                type;
         };
 
         template < typename Arg, typename Extent >

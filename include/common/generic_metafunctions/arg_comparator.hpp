@@ -37,10 +37,10 @@
 #include "../../gridtools.hpp"
 namespace gridtools {
 
-    template <ushort_t I, typename T>
+    template < ushort_t I, typename T, bool Temporary >
     struct arg;
 
-    template <typename T, typename V>
+    template < typename T, typename V >
     struct arg_storage_pair;
 
     /**
@@ -58,8 +58,8 @@ namespace gridtools {
             : public boost::mpl::bool_< (T1::index_t::value < T3::index_t::value) > {};
 
         /**specialization for storage placeholders*/
-        template < ushort_t I1, typename T1, ushort_t I2, typename T2 >
-        struct apply< arg< I1, T1 >, arg< I2, T2 > > : public boost::mpl::bool_< (I1 < I2) > {};
+        template < ushort_t I1, typename T1, bool Temporary1, ushort_t I2, typename T2, bool Temporary2 >
+        struct apply< arg< I1, T1, Temporary1 >, arg< I2, T2, Temporary2 > > : public boost::mpl::bool_< (I1 < I2) > {};
 
         /**specialization for static integers*/
         template < typename T, T T1, T T2 >

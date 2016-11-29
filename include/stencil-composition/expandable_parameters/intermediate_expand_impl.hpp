@@ -47,14 +47,13 @@ namespace gridtools {
             static typename boost::remove_reference<
                 typename boost::fusion::result_of::at< Vec, static_ushort< ID > >::type >::type::value_type *
             apply(DomFull const &dom_full_) {
-                return new typename boost::remove_reference< typename boost::fusion::result_of::at< Vec,
-                    static_ushort< ID > >::type >::type::value_type(dom_full_
-                                                                        .template storage_pointer<
-                                                                            arg< ID, std::vector< pointer< T > > > >()
-                                                                        ->at(0)
-                                                                        ->meta_data(),
-                    "expandable params",
-                    false /*do_allocate*/);
+                return new typename boost::remove_reference<
+                    typename boost::fusion::result_of::at< Vec, static_ushort< ID > >::type >::type::
+                    value_type(dom_full_.template storage_pointer< arg< ID, std::vector< pointer< T > >, false > >()
+                                   ->at(0)
+                                   ->meta_data(),
+                        "expandable params",
+                        false /*do_allocate*/);
             }
         };
 
@@ -87,25 +86,25 @@ namespace gridtools {
             /**
                @brief initialize the storage vector, specialization for the expandable args
              */
-            template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< pointer< T > > >) {
+            template < ushort_t ID, typename T, bool Temporary >
+            void operator()(arg< ID, std::vector< pointer< T > >, Temporary >) {
 
                 boost::fusion::at< static_ushort< ID > >(m_vec_to) = new_storage< T,
                     Vec,
                     ID,
                     !boost::remove_reference< decltype(
-                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >()->at(
+                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > >, Temporary > >()->at(
                             0)) >::type::value_type::is_temporary >::apply(m_dom_full);
             }
 
             /**
                @brief initialize the storage vector, specisalization for the normal args
              */
-            template < ushort_t ID, typename Storage >
-            void operator()(arg< ID, Storage >) {
+            template < ushort_t ID, typename Storage, bool Temporary >
+            void operator()(arg< ID, Storage, Temporary >) {
                 // copy the gridtools pointer
                 boost::fusion::at< static_ushort< ID > >(m_vec_to) =
-                    m_dom_full.template storage_pointer< arg< ID, Storage > >();
+                    m_dom_full.template storage_pointer< arg< ID, Storage, Temporary > >();
             }
         };
 
@@ -167,14 +166,14 @@ namespace gridtools {
             prepare_expandable_params(DomainFull const &dom_full_, DomainChunk &dom_chunk_, uint_t const &i_)
                 : m_dom_full(dom_full_), m_dom_chunk(dom_chunk_), m_idx(i_) {}
 
-            template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< pointer< T > > >) {
+            template < ushort_t ID, typename T, bool Temporary >
+            void operator()(arg< ID, std::vector< pointer< T > >, Temporary >) {
 
                 if (!is_temporary_storage<
                         typename boost::mpl::at_c< typename DomainChunk::arg_list_mpl, ID >::type >::value) {
                     // the vector of pointers
                     pointer< std::vector< pointer< T > > > const &ptr_full_ =
-                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
+                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > >, Temporary > >();
                     auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_storage_pointers);
                     // reset the pointer to the host version, since they'll be accessed from the host
                     (*(ptr_chunk_->storage_pointer())).set(*ptr_full_, m_idx);
@@ -200,14 +199,14 @@ namespace gridtools {
             assign_expandable_params(DomainFull const &dom_full_, DomainChunk &dom_chunk_, uint_t const &i_)
                 : m_dom_full(dom_full_), m_dom_chunk(dom_chunk_), m_idx(i_) {}
 
-            template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< pointer< T > > >) {
+            template < ushort_t ID, typename T, bool Temporary >
+            void operator()(arg< ID, std::vector< pointer< T > >, Temporary >) {
 
                 if (!is_temporary_storage<
                         typename boost::mpl::at_c< typename DomainChunk::arg_list_mpl, ID >::type >::value) {
                     // the vector of pointers
                     pointer< std::vector< pointer< T > > > const &ptr_full_ =
-                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > > > >();
+                        m_dom_full.template storage_pointer< arg< ID, std::vector< pointer< T > >, Temporary > >();
 
                     auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_storage_pointers);
 
@@ -238,8 +237,8 @@ namespace gridtools {
           public:
             finalize_expandable_params(DomainFull const &dom_full_) : m_dom_full(dom_full_) {}
 
-            template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< pointer< T > > >) {
+            template < ushort_t ID, typename T, bool Temporary >
+            void operator()(arg< ID, std::vector< pointer< T > >, Temporary >) {
 
                 auto ptr = boost::fusion::at< static_ushort< ID > >(m_dom_full.m_storage_pointers);
                 if (ptr.get()) { // if it's a temporary it might have been freed already

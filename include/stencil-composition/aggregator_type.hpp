@@ -88,7 +88,7 @@ namespace gridtools {
 
     /**
        @brief This struct contains the global list of placeholders to the storages
-     * @tparam Placeholders list of placeholders of type arg<I,T>
+     * @tparam Placeholders list of placeholders of type arg<I,T,B>
 
      NOTE: Note on the terminology: we call "global" the quantities having the "computation" granularity,
      and "local" the quantities having the "ESF" or "MSS" granularity. This class holds the global list
@@ -561,10 +561,10 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
 
-    template < uint_t... Indices, typename... Storages >
-    aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > > instantiate_aggregator_type(
+    template < uint_t... Indices, typename... Storages, bool... Temporary >
+    aggregator_type< boost::mpl::vector< arg< Indices, Storages, Temporary >... > > instantiate_aggregator_type(
         gt_integer_sequence< uint_t, Indices... > seq_, Storages &... storages_) {
-        auto dom_ = aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(
+        auto dom_ = aggregator_type< boost::mpl::vector< arg< Indices, Storages, Temporary >... > >(
             boost::fusion::make_vector(&storages_...));
         return dom_;
     }
