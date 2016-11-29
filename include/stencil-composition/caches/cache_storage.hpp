@@ -1,27 +1,5 @@
-<<<<<<< variant A
-#pragma once
-#include "../../common/array.hpp"
-#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../../common/gt_assert.hpp"
-#include "../../common/offset_tuple.hpp"
-#include "../block_size.hpp"
-#include "../extent.hpp"
-
-#ifdef CXX11_ENABLED
-#include "meta_storage_cache.hpp"
-#include "cache_storage_metafunctions.hpp"
-#endif
->>>>>>> variant B
 /*
   GridTools Libraries
-####### Ancestor
-#pragma once
-#include "common/gt_assert.hpp"
-#include "common/array.hpp"
-#include "stencil-composition/block_size.hpp"
-#include "stencil-composition/extent.hpp"
-#include "stencil-composition/offset_tuple.hpp"
-======= end
 
   Copyright (c) 2016, GridTools Consortium
   All rights reserved.

@@ -36,10 +36,6 @@
 
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
-<<<<<<< HEAD
-=======
-#include <stencil-composition/loop_hierarchy.hpp>
->>>>>>> master
 
 namespace loop_test {
     using namespace gridtools;

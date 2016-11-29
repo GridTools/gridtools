@@ -74,33 +74,24 @@ namespace copy_stencil {
         }
     };
 
-
-    template <typename Partitioner>
+    template < typename Partitioner >
     struct boundary_conditions {
-        Partitioner const& m_partitioner;
+        Partitioner const &m_partitioner;
 
-        boundary_conditions(Partitioner const& p)
-            : m_partitioner(p)
-        {}
+        boundary_conditions(Partitioner const &p) : m_partitioner(p) {}
 
-        template <typename Direction, typename DataField0, typename DataField1>
-        GT_FUNCTION
-        void operator()(Direction,
-                        DataField0 & data_field0,
-                        DataField1 & data_field1,
-                        uint_t i, uint_t j, uint_t k) const {
-            data_field0(i,j,k) = -(float)m_partitioner.boundary();
-            data_field1(i,j,k) = -(float)m_partitioner.boundary();
+        template < typename Direction, typename DataField0, typename DataField1 >
+        GT_FUNCTION void operator()(
+            Direction, DataField0 &data_field0, DataField1 &data_field1, uint_t i, uint_t j, uint_t k) const {
+            data_field0(i, j, k) = -(float)m_partitioner.boundary();
+            data_field1(i, j, k) = -(float)m_partitioner.boundary();
         }
-
     };
 
-/*
- * The following operators and structs are for debugging only
- */
-    std::ostream& operator<<(std::ostream& s, copy_functor const) {
-        return s << "copy_functor";
-    }
+    /*
+     * The following operators and structs are for debugging only
+     */
+    std::ostream &operator<<(std::ostream &s, copy_functor const) { return s << "copy_functor"; }
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
@@ -113,9 +104,9 @@ namespace copy_stencil {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
-        array<int, 3> dimensions{0,0,0};
-        MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
-        dimensions[2]=1;
+        array< int, 3 > dimensions{0, 0, 0};
+        MPI_3D_process_grid_t< 3 >::dims_create(PROCS, 2, dimensions);
+        dimensions[2] = 1;
 
         //                   strides  1 x xy
         //                      dims  x y z
@@ -163,11 +154,10 @@ namespace copy_stencil {
         storage_type in(metadata_, 0.);
         storage_type out(metadata_, 0.);
 
-
         // COMMUNICATION SETUP
-        he.add_halo<0>(meta_.template get_halo_gcl<0>());
-        he.add_halo<1>(meta_.template get_halo_gcl<1>());
-        he.add_halo<2>(meta_.template get_halo_gcl<2>());
+        he.add_halo< 0 >(meta_.template get_halo_gcl< 0 >());
+        he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
+        he.add_halo< 2 >(meta_.template get_halo_gcl< 2 >());
 
         he.setup(2);
 
@@ -252,17 +242,19 @@ namespace copy_stencil {
         printf("computation finalized\n");
 #endif
 
-        gridtools::array<gridtools::halo_descriptor, 3> halos;
-        halos[0] = meta_.template get_halo_descriptor<0>();
-        halos[1] = meta_.template get_halo_descriptor<1>();
-        halos[2] = meta_.template get_halo_descriptor<2>();
+        gridtools::array< gridtools::halo_descriptor, 3 > halos;
+        halos[0] = meta_.template get_halo_descriptor< 0 >();
+        halos[1] = meta_.template get_halo_descriptor< 1 >();
+        halos[2] = meta_.template get_halo_descriptor< 2 >();
 
-        typename gridtools::boundary_apply<boundary_conditions<partitioner_t>, typename gridtools::bitmap_predicate>
-            (halos, boundary_conditions<partitioner_t>(part), gridtools::bitmap_predicate(part.boundary())).apply(in, out);
+        typename gridtools::boundary_apply< boundary_conditions< partitioner_t >,
+            typename gridtools::bitmap_predicate >(
+            halos, boundary_conditions< partitioner_t >(part), gridtools::bitmap_predicate(part.boundary()))
+            .apply(in, out);
 
-        std::vector<pointer_type::pointee_t*> vec(2);
-        vec[0]=in.data().get();
-        vec[1]=out.data().get();
+        std::vector< pointer_type::pointee_t * > vec(2);
+        vec[0] = in.data().get();
+        vec[1] = out.data().get();
 
         he.pack(vec);
 

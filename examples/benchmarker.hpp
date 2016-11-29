@@ -33,17 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-<<<<<<< HEAD
 #pragma once
 #include <memory>
 #include "cache_flusher.hpp"
 #include "defs.hpp"
 #include "stencil-composition/stencil.hpp"
-=======
-#include "stencil-composition/stencil.hpp"
-#include "cache_flusher.hpp"
-#include "defs.hpp"
->>>>>>> master
 
 namespace gridtools {
 

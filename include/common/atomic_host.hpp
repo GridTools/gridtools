@@ -37,8 +37,6 @@
 #include <algorithm>
 namespace gridtools {
 
-namespace gridtools {
-
     template < typename T >
     class atomic_host {
 

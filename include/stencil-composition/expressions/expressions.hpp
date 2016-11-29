@@ -1,13 +1,8 @@
 #pragma once
 
 #include "common/defs.hpp"
-<<<<<<< HEAD
-#include "common/gt_math.hpp"
-#include "common/string_c.hpp"
-=======
 #include "common/string_c.hpp"
 #include "common/gt_math.hpp"
->>>>>>> master
 
 /**@file
    @brief Expression templates definition.
@@ -23,7 +18,6 @@
     @{
 */
 #include "expr_base.hpp"
-<<<<<<< HEAD
 #include "expr_derivative.hpp"
 #include "expr_direct_access.hpp"
 #include "expr_pow.hpp"
@@ -31,15 +25,6 @@
 #include "expr_minus.hpp"
 #include "expr_plus.hpp"
 #include "expr_times.hpp"
-=======
-#include "expr_plus.hpp"
-#include "expr_minus.hpp"
-#include "expr_times.hpp"
-#include "expr_pow.hpp"
-#include "expr_divide.hpp"
-#include "expr_direct_access.hpp"
-#include "expr_derivative.hpp"
->>>>>>> master
 
 namespace gridtools {
 

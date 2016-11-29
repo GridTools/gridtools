@@ -98,19 +98,11 @@ namespace test_conditional_switches {
         typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
         typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
         typedef BACKEND::storage_info< __COUNTER__, layout_t > tmp_meta_data_t;
-<<<<<<< HEAD
-        typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
-        typedef BACKEND::temporary_storage_type< float_type, tmp_meta_data_t >::type tmp_storage_t;
-
-        meta_data_t meta_data_(8, 8, 8);
-        storage_t dummy(meta_data_, 0., "dummy");
-=======
         typedef BACKEND::storage_type< uint_t, meta_data_t >::type storage_t;
         typedef BACKEND::temporary_storage_type< uint_t, tmp_meta_data_t >::type tmp_storage_t;
 
         meta_data_t meta_data_(8, 8, 8);
         storage_t dummy(meta_data_, 0, "dummy");
->>>>>>> master
         typedef arg< 0, storage_t > p_dummy;
         typedef arg< 1, tmp_storage_t > p_dummy_tmp;
 
@@ -191,10 +183,6 @@ namespace test_conditional_switches {
         dummy.d2h_update();
 #endif
         result = result && (dummy(0, 0, 0) == 842);
-<<<<<<< HEAD
-=======
-        std::cout << "dummy is: " << dummy(0, 0, 0) << std::endl;
->>>>>>> master
 
         p = false;
 #ifdef __CUDACC__
@@ -204,10 +192,6 @@ namespace test_conditional_switches {
         comp_->run();
         comp_->finalize();
         result = result && (dummy(0, 0, 0) == 5662);
-<<<<<<< HEAD
-=======
-        std::cout << "dummy became: " << dummy(0, 0, 0) << std::endl;
->>>>>>> master
 
         return result;
     }
