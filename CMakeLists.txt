@@ -61,12 +61,13 @@ foreach( src_file ${sources} )
 endforeach(src_file)
 
 # ===============
-# add all cpp files in examples:
-# ===============
-####add_subdirectory(examples)
-
-# ===============
 # tests
 # ===============
 include (fix_test_case_name)
 add_subdirectory(unit_tests)
+
+# ===============
+# add all cpp files in examples:
+# ===============
+add_subdirectory(examples)
+
