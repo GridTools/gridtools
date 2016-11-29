@@ -111,8 +111,9 @@ void m_unpackZL_generic(array_t const& fields,
     printf("UNPACK ZL Launch grid (%d,%d,%d) with (%d,%d) threads tot: %dx%dx%d\n", nbx, nby, nbz, ntx, nty, nx, ny, nz);
 #endif
 
-    if (nbx!=0 && nby!=0 && nbz!=0) {
-      // the actual kernel launch
+        if (nbx != 0 && nby != 0 && nbz != 0) {
+            // the actual kernel launch
+            // clang-format off
         m_unpackZLKernel_generic<<<blocks, threads, 0, ZL_stream>>>
         (fields[i].ptr,
          (d_msgbufTab_r),

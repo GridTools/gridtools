@@ -125,8 +125,10 @@ void m_packZL(array_t const& d_data_array, value_type** d_msgbufTab, const int d
   int niter = d_data_array.size();
   for(int i=0; i < niter; i++){
 
-     // the actual kernel launch
-      m_packZLKernel<<<blocks, threads, 0, ZL_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, ny, i); 
+        // the actual kernel launch
+        // clang-format off
+      m_packZLKernel<<<blocks, threads, 0, ZL_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
+// clang-format on
 #ifdef CUDAMSG
     int err = cudaGetLastError();
     if(err != cudaSuccess){

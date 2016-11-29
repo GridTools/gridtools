@@ -112,8 +112,10 @@ void m_packYL(array_t const& d_data_array, value_type** d_msgbufTab, int d_msgsi
   // more statistics
   for(int i=0; i < niter; i++){
 
-    // the actual kernel launch
-    m_packYLKernel<<<blocks, threads, 0, YL_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, nz, i); 
+        // the actual kernel launch
+        // clang-format off
+      m_packYLKernel<<<blocks, threads, 0, YL_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, nx, nz, i);
+// clang-format on
 #ifdef CUDAMSG
     int err = cudaGetLastError();
     if(err != cudaSuccess){

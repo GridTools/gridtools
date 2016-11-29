@@ -1,9 +1,9 @@
 #pragma once
 
+#include "defs.hpp"
 #include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
-#include "cache_flusher.hpp"
-#include "defs.hpp"
+#include "benchmarker.hpp"
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP

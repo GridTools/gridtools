@@ -99,10 +99,11 @@ void m_unpackYU(array_t const& d_data_array, value_type** d_msgbufTab_r, int d_m
   // more statistics
   for(int i=0; i < niter; i++){
 
-     // the actual kernel launch
+        // the actual kernel launch
+        // clang-format off
       m_unpackYUKernel<<<blocks, threads, 0, YU_stream>>>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, nz,
-                                                          (halo[0].begin()-halo[0].minus()) 
-                                                          + (halo[1].end()+1)*halo[0].total_length() 
+                                                          (halo[0].begin()-halo[0].minus())
+                                                          + (halo[1].end()+1)*halo[0].total_length()
                                                           + (halo[2].begin())*halo[0].total_length() *halo[1].total_length(), i);
 #ifdef CUDAMSG
      int err = cudaGetLastError();

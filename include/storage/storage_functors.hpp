@@ -1,5 +1,5 @@
 #pragma once
-#include "base_storage.hpp"
+#include "storage.hpp"
 #include <boost/fusion/include/is_sequence.hpp>
 
 namespace gridtools {

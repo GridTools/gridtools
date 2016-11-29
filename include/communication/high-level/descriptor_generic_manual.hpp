@@ -1,6 +1,9 @@
 #ifndef _DESCRIPTOR_GENERIC_MANUAL_H_
 #define _DESCRIPTOR_GENERIC_MANUAL_H_
 
+#include <common/numerics.hpp>
+
+#include "descriptor_base.hpp"
 #include "gcl_parameters.hpp"
 #include "descriptor_base.hpp"
 
@@ -43,6 +46,8 @@
 #include "call_generic.hpp"
 #undef KERNEL_TYPE
 #endif
+#include <common/make_array.hpp>
+#include "helpers_impl.hpp"
 
 namespace gridtools {
 

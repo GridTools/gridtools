@@ -3,8 +3,7 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <storage/partitioner_trivial.hpp>
 #include <storage/parallel_storage.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
+
 #include <communication/low-level/proc_grids_3D.hpp>
 
 #include <communication/halo_exchange.hpp>
@@ -268,6 +267,33 @@ namespace copy_stencil{
             in.print(file);
         }
 
+        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
+            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
+                for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
+                    if (out(i, j, k) != (i + j + k) * (gridtools::PID + 1)) {
+                        if (gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(0, gridtools::bitmap_predicate::UP) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(0, gridtools::bitmap_predicate::LOW) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(1, gridtools::bitmap_predicate::UP) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(1, gridtools::bitmap_predicate::LOW) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(2, gridtools::bitmap_predicate::UP) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(2, gridtools::bitmap_predicate::LOW)) {
+                            if (out(i, j, k) != part.boundary()) {
+                                GCL_Finalize();
+                                return false;
+                            }
+                        } else {
+                            GCL_Finalize();
+                            printf("copy parallel test FAILED\n");
+                        }
+                        return false;
+                    }
+                }
 
         MPI_Barrier(GCL_WORLD);
         GCL_Finalize();

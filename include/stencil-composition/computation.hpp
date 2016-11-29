@@ -1,4 +1,6 @@
 #pragma once
+#include "../common/defs.hpp"
+#include <string>
 // //\todo this struct becomes redundant when the auto keyword is used
 namespace gridtools {
     struct computation {

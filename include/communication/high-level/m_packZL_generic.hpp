@@ -133,8 +133,9 @@ void m_packZL_generic(array_t const& fields,
            nbx, nby, nbz, ntx, nty, ntz, nx, ny, nz);
 #endif
 
-    if (nbx!=0 && nby!=0 && nbz!=0) {
-      // the actual kernel launch
+        if (nbx != 0 && nby != 0 && nbz != 0) {
+            // the actual kernel launch
+            // clang-format off
         m_packZLKernel_generic<<<blocks, threads, 0, ZL_stream>>>
         (fields[i].ptr,
          (d_msgbufTab),

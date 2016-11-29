@@ -34,11 +34,30 @@
 
 namespace gridtools {
 
-/**
- * @struct is_cache
- * metafunction determining if a type is a cache type
- */
-template<typename T> struct is_cache : boost::mpl::false_{};
+    template < typename T >
+    struct is_local_domain;
+
+    /**
+     * @struct is_cache
+     * metafunction determining if a type is a cache type
+     */
+    template < typename T >
+    struct is_cache : boost::mpl::false_ {};
+
+    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
+    struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy > > : boost::mpl::true_ {};
+
+    /**
+     * @struct cache_parameter
+     *  trait returning the parameter Arg type of a user provided cache
+     */
+    template < typename T >
+    struct cache_parameter;
+
+    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
+    struct cache_parameter< detail::cache_impl< cacheType, Arg, cacheIOPolicy > > {
+        typedef Arg type;
+    };
 
 template<cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy>
 struct is_cache<cache<cacheType, Arg, cacheIOPolicy> > : boost::mpl::true_{};

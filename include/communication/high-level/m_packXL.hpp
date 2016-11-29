@@ -93,9 +93,10 @@ void m_packXL(array_t const& d_data_array, value_type** d_msgbufTab, int d_msgsi
 
   const int niter = d_data_array.size();
 
-  // run the compression a few times, just to get a bit
-  // more statistics
-  for(int i=0; i < niter; i++){
+        // the actual kernel launch
+        // clang-format off
+      m_packXLKernel<<<blocks, threads, 0, XL_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, ny, nz, i);
+// clang-format on
 
      // the actual kernel launch
       m_packXLKernel<<<blocks, threads, 0, XL_stream>>>(d_data_array[i], d_msgbufTab, d_msgsize, halo_d, ny, nz, i); 

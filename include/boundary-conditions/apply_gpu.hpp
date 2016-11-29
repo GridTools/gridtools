@@ -73,24 +73,29 @@ namespace gridtools {
 /**
    @brief this macro expands to n definition of the function apply_it, taking a number of arguments ranging from 0 to n (DataField0, Datafield1, DataField2, ...)
 */
-#define GTAPPLY_IT(z, n, nil)                                                \
-        template <typename Direction, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField)> \
-        void apply_it(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, & data_field) ) const { \
-            uint_t nx = halo_descriptors[0].loop_high_bound_outside(Direction::I) - halo_descriptors[0].loop_low_bound_outside(Direction::I) + 1; \
-            uint_t ny = halo_descriptors[1].loop_high_bound_outside(Direction::J) - halo_descriptors[1].loop_low_bound_outside(Direction::J) + 1; \
-            uint_t nz = halo_descriptors[2].loop_high_bound_outside(Direction::K) - halo_descriptors[2].loop_low_bound_outside(Direction::K) + 1; \
-            uint_t nbx = (nx + ntx - 1) / ntx;                             \
-            uint_t nby = (ny + nty - 1) / nty;                             \
-            uint_t nbz = (nz + ntz - 1) / ntz;                             \
-            dim3 blocks(nbx, nby, nbz);                                 \
-            loop_kernel<<<blocks,threads>>>(boundary_function,          \
-                                            Direction(),                \
-                                            BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .gpu_object_ptr BOOST_PP_INTERCEPT ), \
-                                            halo_descriptors[0].loop_low_bound_outside(Direction::I), \
-                                            halo_descriptors[1].loop_low_bound_outside(Direction::J), \
-                                            halo_descriptors[2].loop_low_bound_outside(Direction::K), \
-                                            nx, ny, nz);                \
-        }
+#define GTAPPLY_IT(z, n, nil)                                                                                   \
+    template < typename Direction, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField) >                  \
+    void apply_it(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, &data_field)) const {                 \
+        uint_t nx = halo_descriptors[0].loop_high_bound_outside(Direction::I) -                                 \
+                    halo_descriptors[0].loop_low_bound_outside(Direction::I) + 1;                               \
+        uint_t ny = halo_descriptors[1].loop_high_bound_outside(Direction::J) -                                 \
+                    halo_descriptors[1].loop_low_bound_outside(Direction::J) + 1;                               \
+        uint_t nz = halo_descriptors[2].loop_high_bound_outside(Direction::K) -                                 \
+                    halo_descriptors[2].loop_low_bound_outside(Direction::K) + 1;                               \
+        uint_t nbx = (nx + ntx - 1) / ntx;                                                                      \
+        uint_t nby = (ny + nty - 1) / nty;                                                                      \
+        uint_t nbz = (nz + ntz - 1) / ntz;                                                                      \
+        dim3 blocks(nbx, nby, nbz);                                                                             \
+        loop_kernel<<< blocks, threads >>>(boundary_function,                                               \
+            Direction(),                                                                                        \
+            BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .get_pointer_to_use() BOOST_PP_INTERCEPT), \
+            halo_descriptors[0].loop_low_bound_outside(Direction::I),                                           \
+            halo_descriptors[1].loop_low_bound_outside(Direction::J),                                           \
+            halo_descriptors[2].loop_low_bound_outside(Direction::K),                                           \
+            nx,                                                                                                 \
+            ny,                                                                                                 \
+            nz);                                                                                                \
+    }
 
         BOOST_PP_REPEAT(GT_MAX_ARGS, GTAPPLY_IT, _)
 

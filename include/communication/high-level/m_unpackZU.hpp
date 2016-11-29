@@ -101,16 +101,18 @@ void m_unpackZU(array_t const & d_data_array, value_type** d_msgbufTab_r, int d_
   cudaEventRecord(start, 0);
 #endif
 
-  const int niter = d_data_array.size();
+    const int niter = d_data_array.size();
 
-  // run the compression a few times, just to get a bit
-  // more statistics
-  for(int i=0; i < niter; i++){
-     // the actual kernel launch
-      m_unpackZUKernel<<<blocks, threads, 0, ZU_stream>>>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, ny, 
-                                                          (halo[0].begin()-halo[0].minus()) 
-                                                          + (halo[1].begin()-halo[1].minus())*halo[0].total_length() 
-                                                          + (halo[2].end()+1)*halo[0].total_length() *halo[1].total_length(), i ); 
+    // run the compression a few times, just to get a bit
+    // more statistics
+    for (int i = 0; i < niter; i++) {
+        // the actual kernel launch
+        // clang-format off
+      m_unpackZUKernel<<<blocks, threads, 0, ZU_stream>>>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, ny,
+                                                          (halo[0].begin()-halo[0].minus())
+                                                          + (halo[1].begin()-halo[1].minus())*halo[0].total_length()
+                                                          + (halo[2].end()+1)*halo[0].total_length() *halo[1].total_length(), i );
+// clang-format on
 #ifdef CUDAMSG
      int err = cudaGetLastError();
      if(err != cudaSuccess){

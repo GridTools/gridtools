@@ -105,11 +105,20 @@ void m_unpackYL_generic(array_t const& fields,
     dim3 blocks(nbx, nby, nbz);
 
 #ifdef CUDAMSG
-  printf("UNPACK YL Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
-         nbx, nby, nbz, ntx, nty, ntz, nx, ny, nz);
- #endif
-    if (nbx!=0 && nby!=0 && nbz!=0) {
-      // the actual kernel launch
+        printf("UNPACK YL Launch grid (%d,%d,%d) with (%d,%d,%d) threads (full size: %d,%d,%d)\n",
+            nbx,
+            nby,
+            nbz,
+            ntx,
+            nty,
+            ntz,
+            nx,
+            ny,
+            nz);
+#endif
+        if (nbx != 0 && nby != 0 && nbz != 0) {
+            // the actual kernel launch
+            // clang-format off
         m_unpackYLKernel_generic<<<blocks, threads, 0, YL_stream>>>
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r),

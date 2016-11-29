@@ -1,8 +1,10 @@
 #pragma once
 #include <gridtools.hpp>
 
+#include "defs.hpp"
 #include <stencil-composition/stencil-composition.hpp>
 #include "vertical_advection_repository.hpp"
+#include "benchmarker.hpp"
 #include <tools/verifier.hpp>
 
 #include "cache_flusher.hpp"
@@ -175,56 +177,55 @@ private:
     }
 };
 
-/*
- * The following operators and structs are for debugging only
- */
-//std::ostream& operator<<(std::ostream& s, u_forward_function<double> const) {
-//    return s << "u_forward_function";
-//}
-std::ostream& operator<<(std::ostream& s, u_backward_function<double> const) {
-    return s << "u_backward_function";
-}
+    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps, bool verify) {
 
-bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
+        const int halo_size = 3;
 
-    cache_flusher flusher(cache_flusher_size);
-    const int halo_size = 3;
+        typedef gridtools::layout_map< 0, 1, 2 > layout_ijk;
+        typedef gridtools::layout_map< 0 > layout_scalar;
 
-    typedef gridtools::layout_map<0,1,2> layout_ijk;
-    typedef gridtools::layout_map<0> layout_scalar;
+        typedef vertical_advection::repository::storage_type storage_type;
+        typedef vertical_advection::repository::scalar_storage_type scalar_storage_type;
+        typedef vertical_advection::repository::tmp_storage_type tmp_storage_type;
 
+        vertical_advection::repository repository(d1, d2, d3, halo_size);
+        repository.init_fields();
 
-    typedef vertical_advection::repository::storage_type storage_type;
-    typedef vertical_advection::repository::scalar_storage_type scalar_storage_type;
-    typedef vertical_advection::repository::tmp_storage_type tmp_storage_type;
+        repository.generate_reference();
 
-    vertical_advection::repository repository(d1, d2, d3, halo_size);
-    repository.init_fields();
+        // Definition of placeholders. The order of them reflect the order the user will deal with them
+        // especially the non-temporary ones, in the construction of the domain
+        typedef arg< 0, storage_type > p_utens_stage;
+        typedef arg< 1, storage_type > p_u_stage;
+        typedef arg< 2, storage_type > p_wcon;
+        typedef arg< 3, storage_type > p_u_pos;
+        typedef arg< 4, storage_type > p_utens;
+        typedef arg< 5, scalar_storage_type > p_dtr_stage;
+        typedef arg< 6, tmp_storage_type > p_acol;
+        typedef arg< 7, tmp_storage_type > p_bcol;
+        typedef arg< 8, tmp_storage_type > p_ccol;
+        typedef arg< 9, tmp_storage_type > p_dcol;
+        typedef arg< 10, tmp_storage_type > p_data_col;
 
-    repository.generate_reference();
+        // An array of placeholders to be passed to the domain
+        // I'm using mpl::vector, but the final API should look slightly simpler
+        typedef boost::mpl::vector< p_utens_stage,
+            p_u_stage,
+            p_wcon,
+            p_u_pos,
+            p_utens,
+            p_dtr_stage,
+            p_acol,
+            p_bcol,
+            p_ccol,
+            p_dcol,
+            p_data_col > accessor_list;
 
-    // Definition of placeholders. The order of them reflect the order the user will deal with them
-    // especially the non-temporary ones, in the construction of the domain
-    typedef arg<0, storage_type> p_utens_stage;
-    typedef arg<1, storage_type> p_u_stage;
-    typedef arg<2, storage_type> p_wcon;
-    typedef arg<3, storage_type> p_u_pos;
-    typedef arg<4, storage_type> p_utens;
-    typedef arg<5, scalar_storage_type> p_dtr_stage;
-    typedef arg<6, tmp_storage_type> p_acol;
-    typedef arg<7, tmp_storage_type> p_bcol;
-    typedef arg<8, tmp_storage_type> p_ccol;
-    typedef arg<9, tmp_storage_type> p_dcol;
-    typedef arg<10, tmp_storage_type> p_data_col;
-
-    // An array of placeholders to be passed to the domain
-    // I'm using mpl::vector, but the final API should look slightly simpler
-    typedef boost::mpl::vector<p_utens_stage, p_u_stage, p_wcon, p_u_pos, p_utens, p_dtr_stage,
-            p_acol, p_bcol, p_ccol, p_dcol, p_data_col> accessor_list;
-
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I don't particularly like this)
+// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
+// used, temporary and not
+// It must be noted that the only fields to be passed to the constructor are the non-temporary.
+// The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
+// don't particularly like this)
 
 #ifdef CXX11_ENABLE
     gridtools::domain_type<accessor_list> domain(

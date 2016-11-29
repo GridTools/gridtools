@@ -110,11 +110,13 @@ void m_unpackZL(array_t const& d_data_array, value_type** d_msgbufTab_r, int d_m
 
   for(int i=0; i < niter; i++){
 
-     // the actual kernel launch
-      m_unpackZLKernel<<<blocks, threads, 0, ZL_stream>>>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, ny, 
-                                                          (halo[0].begin()-halo[0].minus()) 
-                                                          + (halo[1].begin()-halo[1].minus())*halo[0].total_length() 
-                                                          + (halo[2].begin()-halo[2].minus())*halo[0].total_length() *halo[1].total_length(), i ); 
+        // the actual kernel launch
+        // clang-format off
+      m_unpackZLKernel<<<blocks, threads, 0, ZL_stream>>>(d_data_array[i], d_msgbufTab_r, d_msgsize_r, halo_d, nx, ny,
+                                                          (halo[0].begin()-halo[0].minus())
+                                                          + (halo[1].begin()-halo[1].minus())*halo[0].total_length()
+                                                          + (halo[2].begin()-halo[2].minus())*halo[0].total_length() *halo[1].total_length(), i );
+// clang-format on
 #ifdef CUDAMSG
      int err = cudaGetLastError();
      if(err != cudaSuccess){

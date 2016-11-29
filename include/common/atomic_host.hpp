@@ -1,5 +1,6 @@
 #pragma once
-
+#include <algorithm>
+namespace gridtools {
 
 namespace gridtools {
 

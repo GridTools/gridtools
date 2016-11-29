@@ -130,12 +130,13 @@ void m_packZU_generic(array_t const& fields,
            nbx, nby, nbz, ntx, nty, ntz, nx, ny, nz); 
 #endif
 
-    if (nbx!=0 && nby!=0 && nbz!=0) {
-      // the actual kernel launch
+        if (nbx != 0 && nby != 0 && nbz != 0) {
+            // the actual kernel launch
+            // clang-format off
         m_packZUKernel_generic<<<blocks, threads, 0, ZU_stream>>>
-        (fields[i].ptr, 
-         (d_msgbufTab), 
-         wrap_argument(d_msgsize+27*i), 
+        (fields[i].ptr,
+         (d_msgbufTab),
+         wrap_argument(d_msgsize+27*i),
          *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor,3>*>(&fields[i])),
          nx, 
          ny, 
