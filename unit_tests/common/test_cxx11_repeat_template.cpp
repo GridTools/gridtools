@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
 #include <common/generic_metafunctions/repeat_template.hpp>
+#include <storage/halo.hpp>
 
 using namespace gridtools;
 
