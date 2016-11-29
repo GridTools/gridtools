@@ -35,13 +35,13 @@
 */
 #pragma once
 
+#include "../../common/defs.hpp"
+#include "./accessor_metafunctions.hpp"
+#include "./call_interfaces_fwd.hpp"
 #include <boost/mpl/count_if.hpp>
 #include <boost/mpl/find_if.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
-#include "../../common/defs.hpp"
-#include "./accessor_metafunctions.hpp"
-#include "./call_interfaces_fwd.hpp"
 
 namespace gridtools {
     namespace _impl {

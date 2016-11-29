@@ -35,18 +35,18 @@
 */
 #pragma once
 
-#include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/filter_view.hpp>
+#include <boost/fusion/include/for_each.hpp>
 
 #include "common/defs.hpp"
 #include "common/is_temporary_storage.hpp"
 
 #include "storage/base_storage.hpp"
 
+#include "backend_ids.hpp"
 #include "stencil-composition/backend_fwd.hpp"
 #include "stencil-composition/grid.hpp"
 #include "storage/metadata_set.hpp"
-#include "backend_ids.hpp"
 
 /**
 @file

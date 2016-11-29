@@ -35,13 +35,13 @@
 */
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include "gtest/gtest.h"
 #include "boost/mpl/quote.hpp"
 #include "boost/mpl/vector.hpp"
 #include "boost/type_traits/is_integral.hpp"
 #include "common/defs.hpp"
-#include <stencil-composition/stencil-composition.hpp>
 #include "common/meta_array.hpp"
+#include "gtest/gtest.h"
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 template < typename T >

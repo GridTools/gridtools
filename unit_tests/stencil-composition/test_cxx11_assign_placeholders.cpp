@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "stencil-composition/stencil-composition.hpp"
 #include "gtest/gtest.h"
 #include <gridtools.hpp>
-#include "stencil-composition/stencil-composition.hpp"
 
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO

@@ -42,12 +42,12 @@
 
 #pragma once
 
-#include "common/meta_array.hpp"
-#include "mss_metafunctions.hpp"
-#include "mss_local_domain.hpp"
-#include "mss.hpp"
 #include "axis.hpp"
+#include "common/meta_array.hpp"
+#include "mss.hpp"
 #include "mss_components_metafunctions.hpp"
+#include "mss_local_domain.hpp"
+#include "mss_metafunctions.hpp"
 #include "run_functor_arguments.hpp"
 
 namespace gridtools {

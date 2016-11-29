@@ -60,21 +60,21 @@
 #define FUSION_MAX_MAP_SIZE 20
 #endif
 
-#include <vector>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/vector.hpp>
+#include <vector>
 
 /**
    @file
    @brief global definitions
 */
 #include <boost/mpl/bool.hpp>
-#include <boost/utility/enable_if.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/type_traits/is_same.hpp>
+#include <boost/utility/enable_if.hpp>
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3

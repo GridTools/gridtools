@@ -34,10 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "common/defs.hpp"
 #include "common/array.hpp"
-#include "common/offset_tuple.hpp"
+#include "common/defs.hpp"
 #include "common/layout_map.hpp"
+#include "common/offset_tuple.hpp"
 
 GT_FUNCTION
 void test_layout_accessors(bool *result) {

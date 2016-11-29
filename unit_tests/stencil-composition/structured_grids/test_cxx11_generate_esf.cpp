@@ -33,12 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <iostream>
-#include <string>
-#include <vector>
-#include <random>
 #include <cassert>
+#include <iostream>
+#include <random>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 struct prelude {
     std::string out() const {

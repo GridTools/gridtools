@@ -17,13 +17,13 @@
 
 #include <gridtools.hpp>
 
-#include "generic_metafunctions/all_integrals.hpp"
-#include "offset_tuple.hpp"
-#include "generic_metafunctions/gt_get.hpp"
 #include "common/generic_metafunctions/is_variadic_pack_of.hpp"
-#include "generic_metafunctions/gt_expand.hpp"
 #include "generic_metafunctions/accumulate.hpp"
+#include "generic_metafunctions/all_integrals.hpp"
+#include "generic_metafunctions/gt_expand.hpp"
 #include "generic_metafunctions/gt_get.hpp"
+#include "generic_metafunctions/gt_get.hpp"
+#include "offset_tuple.hpp"
 
 /**
    @file

@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
 #include "common/generic_metafunctions/unzip.hpp"
+#include "gtest/gtest.h"
 #include <tuple>
 
 using namespace gridtools;

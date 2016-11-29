@@ -33,10 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/defs.hpp"
 #include "common/array.hpp"
 #include "common/array_addons.hpp"
+#include "common/defs.hpp"
+#include "gtest/gtest.h"
 
 using namespace gridtools;
 

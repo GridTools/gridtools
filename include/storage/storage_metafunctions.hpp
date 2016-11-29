@@ -41,9 +41,9 @@
 */
 #include <boost/type_traits.hpp>
 
-#include "storage.hpp"
 #include "base_storage.hpp"
 #include "metadata_set.hpp"
+#include "storage.hpp"
 
 namespace gridtools {
 

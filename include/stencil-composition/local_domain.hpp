@@ -35,23 +35,23 @@
 */
 #pragma once
 
-#include <iosfwd>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/sort.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/set.hpp>
-#include <boost/fusion/view/zip_view.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/utility.hpp>
-#include <boost/mpl/for_each.hpp>
-#include "../common/host_device.hpp"
-#include "../common/gpu_clone.hpp"
-#include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
-#include "arg.hpp"
+#include "../common/gpu_clone.hpp"
+#include "../common/host_device.hpp"
+#include "../common/is_temporary_storage.hpp"
 #include "../storage/storage_metafunctions.hpp"
+#include "arg.hpp"
+#include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/view/zip_view.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/sort.hpp>
+#include <boost/utility.hpp>
+#include <iosfwd>
 
 #include <boost/fusion/include/as_set.hpp>
 

@@ -35,12 +35,12 @@
 */
 #pragma once
 
-#include <boost/type_traits/is_arithmetic.hpp>
-#include "../../iterate_domain.hpp"
-#include "../../iterate_domain_metafunctions.hpp"
+#include "../../../common/cuda_type_traits.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
-#include "../../../common/cuda_type_traits.hpp"
+#include "../../iterate_domain.hpp"
+#include "../../iterate_domain_metafunctions.hpp"
+#include <boost/type_traits/is_arithmetic.hpp>
 
 namespace gridtools {
 

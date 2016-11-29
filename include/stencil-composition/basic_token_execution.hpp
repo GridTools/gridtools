@@ -34,10 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/has_key.hpp>
+#include "interval.hpp"
 #include "iteration_policy.hpp"
 #include "level.hpp"
-#include "interval.hpp"
+#include <boost/mpl/has_key.hpp>
 
 namespace gridtools {
     namespace _impl {

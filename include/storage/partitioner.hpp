@@ -39,8 +39,8 @@
 #ifdef HAS_GCL
 #include "communication/halo_exchange.hpp"
 #endif
-#include "cell_topology.hpp"
 #include "../common/gt_math.hpp"
+#include "cell_topology.hpp"
 
 /**
 @file

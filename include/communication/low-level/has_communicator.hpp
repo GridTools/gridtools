@@ -35,9 +35,9 @@
 */
 #pragma once
 
+#include "../GCL.hpp"
 #include <boost/type_traits/is_same.hpp>
 #include <boost/utility/enable_if.hpp>
-#include "../GCL.hpp"
 
 namespace gridtools {
 

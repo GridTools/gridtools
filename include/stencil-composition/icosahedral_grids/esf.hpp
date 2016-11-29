@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "common/generic_metafunctions/is_sequence_of.hpp"
 #include "../arg.hpp"
+#include "../esf_aux.hpp"
 #include "../esf_fwd.hpp"
 #include "../icosahedral_grids/grid.hpp"
+#include "color.hpp"
+#include "common/generic_metafunctions/is_sequence_of.hpp"
 #include "extent.hpp"
 #include "vector_accessor.hpp"
-#include "../esf_aux.hpp"
-#include "color.hpp"
 
 namespace gridtools {
 

@@ -33,12 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <iostream>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/for_each.hpp>
-#include "stencil-composition/level.hpp"
-#include "stencil-composition/interval.hpp"
 #include "stencil-composition/functor_do_methods.hpp"
+#include "stencil-composition/interval.hpp"
+#include "stencil-composition/level.hpp"
+#include <boost/mpl/for_each.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <iostream>
 
 using namespace gridtools;
 

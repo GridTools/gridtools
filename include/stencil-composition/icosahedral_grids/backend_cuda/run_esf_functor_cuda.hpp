@@ -34,10 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/utility/enable_if.hpp>
-#include "../../run_esf_functor.hpp"
 #include "../../block_size.hpp"
+#include "../../run_esf_functor.hpp"
 #include "../iterate_domain_remapper.hpp"
+#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
 

@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <functional>
 #include "common/defs.hpp"
 #include "partitioner.hpp"
+#include <functional>
 /**
    @file
    @brief Parallel Storage class

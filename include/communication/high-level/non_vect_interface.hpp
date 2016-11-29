@@ -38,10 +38,10 @@
 #ifndef _NON_VECT_INTERFACE_H_
 #define _NON_VECT_INTERFACE_H_
 
-#include <boost/preprocessor/iteration/iterate.hpp>
 #include <boost/preprocessor/arithmetic/inc.hpp>
-#include <boost/preprocessor/repetition/enum_params.hpp>
+#include <boost/preprocessor/iteration/iterate.hpp>
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
+#include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 
 #define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, "non_vect_interface.hpp"))

@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "mss.hpp"
-#include "reductions/reduction_descriptor.hpp"
-#include "esf_metafunctions.hpp"
-#include "mss_metafunctions.hpp"
 #include "./linearize_mss_functions.hpp"
+#include "esf_metafunctions.hpp"
+#include "mss.hpp"
+#include "mss_metafunctions.hpp"
+#include "reductions/reduction_descriptor.hpp"
 
 namespace gridtools {
 

@@ -36,16 +36,16 @@
 #pragma once
 
 #include "../common/gpu_clone.hpp"
+#include "./meta_storage_aligned.hpp"
 #include "./meta_storage_base.hpp"
 #include "./meta_storage_tmp.hpp"
-#include "./meta_storage_aligned.hpp"
 #ifdef CXX11_ENABLED
 #include "../common/generic_metafunctions/repeat_template.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/type_traits/is_integral.hpp>
 #include <boost/utility/enable_if.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/at.hpp>
 #endif
 /**
    @file

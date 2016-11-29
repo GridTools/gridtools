@@ -36,11 +36,11 @@
 #ifndef HALO_EXCHANGE_3D_H_
 #define HALO_EXCHANGE_3D_H_
 
-#include <common/gt_assert.hpp>
 #include "../GCL.hpp"
-#include "translate.hpp"
 #include "has_communicator.hpp"
 #include "helper.hpp"
+#include "translate.hpp"
+#include <common/gt_assert.hpp>
 
 /** \file
  * Pattern for regular cyclic and acyclic halo exchange pattern in 3D

@@ -35,9 +35,9 @@
 */
 #pragma once
 #include "../computation.hpp"
+#include "../make_computation_helper_cxx03.hpp"
 #include "fill_conditionals_cxx03.hpp"
 #include "if_.hpp"
-#include "../make_computation_helper_cxx03.hpp"
 
 namespace gridtools {
 

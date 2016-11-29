@@ -33,13 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <boost/shared_ptr.hpp>
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/reductions/reductions.hpp>
 #include "cache_flusher.hpp"
 #include "defs.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
+#include "gtest/gtest.h"
+#include <boost/shared_ptr.hpp>
+#include <stencil-composition/reductions/reductions.hpp>
 
 /**
   @file

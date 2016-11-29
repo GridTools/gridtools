@@ -45,12 +45,12 @@
 #include <stencil-composition/backend_host/backend_host.hpp>
 #endif
 
-#include <boost/timer/timer.hpp>
 #include <boost/fusion/include/make_vector.hpp>
+#include <boost/timer/timer.hpp>
 
 #ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
 #include <papi.hpp>
+#include <papi_wrap.hpp>
 #endif
 
 /*

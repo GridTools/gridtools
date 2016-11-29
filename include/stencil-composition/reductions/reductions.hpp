@@ -43,6 +43,6 @@
 #include "make_reduction_cxx03.hpp"
 #endif
 
-#include "../make_computation.hpp"
-#include "../axis.hpp"
 #include "../../common/binops.hpp"
+#include "../axis.hpp"
+#include "../make_computation.hpp"

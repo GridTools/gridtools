@@ -35,14 +35,14 @@
 */
 #pragma once
 
-#include <boost/type_traits/integral_constant.hpp>
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/for_each.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
+#include <boost/mpl/assert.hpp>
+#include <boost/mpl/for_each.hpp>
+#include <boost/type_traits/integral_constant.hpp>
 
-#include "../gridtools.hpp"
 #include "../common/is_temporary_storage.hpp"
+#include "../gridtools.hpp"
 
 #include "../storage/storage.hpp"
 #include "../storage/storage_metafunctions.hpp"

@@ -36,11 +36,11 @@
 #pragma once
 #include <gridtools.hpp>
 
+#include "defs.hpp"
 #include <stencil-composition/stencil-composition.hpp>
 #include "vertical_advection_repository.hpp"
-#include <tools/verifier.hpp>
-#include "defs.hpp"
 #include "benchmarker.hpp"
+#include <tools/verifier.hpp>
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field

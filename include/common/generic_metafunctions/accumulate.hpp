@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/at.hpp>
 #include "logical_ops.hpp"
+#include <boost/mpl/at.hpp>
 
 /**@file @brief implementation of a compile-time accumulator and max
 

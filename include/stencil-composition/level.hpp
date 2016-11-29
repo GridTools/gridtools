@@ -35,12 +35,12 @@
 */
 #pragma once
 
-#include <boost/config.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/integral_c.hpp>
-#include <boost/mpl/bool.hpp>
 #include "common/defs.hpp"
+#include <boost/config.hpp>
+#include <boost/mpl/bool.hpp>
+#include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/static_assert.hpp>
 
 namespace gridtools {
     // define the level offset limit

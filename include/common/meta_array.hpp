@@ -41,18 +41,18 @@
  */
 
 #pragma once
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/lambda.hpp>
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/eval_if.hpp>
-#include <boost/mpl/find_if.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/mpl/empty.hpp>
-#include <boost/mpl/front.hpp>
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/fold.hpp>
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include <boost/mpl/assert.hpp>
+#include <boost/mpl/empty.hpp>
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/find_if.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/front.hpp>
+#include <boost/mpl/is_sequence.hpp>
+#include <boost/mpl/lambda.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/static_assert.hpp>
 #ifdef CXX11_ENABLED
 #include "meta_array_generator.hpp"
 #else

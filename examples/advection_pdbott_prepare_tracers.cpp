@@ -1,6 +1,6 @@
-#include "gtest/gtest.h"
 #include "Options.hpp"
 #include "common/defs.hpp"
+#include "gtest/gtest.h"
 #ifdef CXX11_ENABLED
 #include "advection_pdbott_prepare_tracers.hpp"
 #else

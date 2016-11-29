@@ -34,13 +34,13 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "common/defs.hpp"
 #include "common/array.hpp"
-#include <list>
-#include <vector>
-#include <iostream>
+#include "common/defs.hpp"
 #include <common/defs.hpp>
+#include <iostream>
+#include <list>
 #include <stencil-composition/backend.hpp>
+#include <vector>
 
 namespace gridtools {
     class neighbour_list {

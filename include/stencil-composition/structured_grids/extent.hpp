@@ -35,12 +35,12 @@
 */
 #pragma once
 
+#include <boost/mpl/assert.hpp>
 #include <boost/mpl/min_max.hpp>
 #include <boost/mpl/plus.hpp>
+#include <boost/mpl/push_front.hpp>
 #include <boost/mpl/reverse_fold.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/push_front.hpp>
 
 namespace gridtools {
 

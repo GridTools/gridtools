@@ -35,9 +35,9 @@
 */
 #pragma once
 
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/find.hpp>
 #include "is_not_same.hpp"
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/is_sequence.hpp>
 
 namespace gridtools {
 

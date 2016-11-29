@@ -35,26 +35,26 @@
 */
 #pragma once
 
-#include <boost/static_assert.hpp>
+#include "interval.hpp"
+#include "level.hpp"
 #include <boost/mpl/assert.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/set.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/is_sequence.hpp>
-#include <boost/mpl/empty.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/has_key.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/back.hpp>
-#include <boost/mpl/next.hpp>
-#include <boost/mpl/prior.hpp>
+#include <boost/mpl/empty.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/has_key.hpp>
 #include <boost/mpl/if.hpp>
-#include "level.hpp"
-#include "interval.hpp"
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/is_sequence.hpp>
+#include <boost/mpl/next.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/prior.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/static_assert.hpp>
 
 namespace gridtools {
     // implementation of the loop interval computation

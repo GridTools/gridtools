@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../../storage/meta_storage.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
-#include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
-#include "../../storage/meta_storage.hpp"
 #include "../tile.hpp"
+#include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
 
 namespace gridtools {
 

@@ -34,12 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "../../backend_traits_fwd.hpp"
 #include "../../common/generic_metafunctions/replace_template_arguments.hpp"
 #include "../../iteration_policy.hpp"
-#include "../../backend_traits_fwd.hpp"
-#include "stencil-composition/iterate_domain.hpp"
-#include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "common/gt_assert.hpp"
+#include "stencil-composition/iterate_domain.hpp"
 
 namespace gridtools {
 

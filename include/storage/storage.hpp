@@ -35,9 +35,9 @@
 */
 #pragma once
 
-#include <iosfwd>
 #include <boost/mpl/eval_if.hpp>
 #include <boost/mpl/identity.hpp>
+#include <iosfwd>
 
 #include "data_field.hpp"
 #ifdef _USE_GPU_

@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include "defs.hpp"
 #include "../gridtools.hpp"
+#include "defs.hpp"
 
 /*@file
 @brief  The following class describes a boolean list of length N.

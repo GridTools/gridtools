@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "test_cxx11_accumulate.hpp"
+#include "gtest/gtest.h"
 
 TEST(accumulate, test_and) { ASSERT_TRUE(test_accumulate_and()); }
 

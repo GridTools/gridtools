@@ -33,7 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gridtools.hpp>
 #include "copy_stencil_parallel.hpp"
 
 int main(int argc, char **argv) {

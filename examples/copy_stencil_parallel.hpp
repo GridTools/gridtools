@@ -38,15 +38,16 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <storage/partitioner_trivial.hpp>
 #include <storage/parallel_storage.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <communication/low-level/proc_grids_3D.hpp>
 
+#include <communication/low-level/proc_grids_3D.hpp>
+#include <boundary-conditions/apply.hpp>
 #include <communication/halo_exchange.hpp>
+#include <fstream>
 
 /** @file
-    @brief This file shows an implementation of the "copy" stencil in parallel, simple copy of one field done on the
-   backend*/
+    @brief This file shows an implementation of the "copy" stencil in parallel, also setting the boundaries to a value
+   (demonstrating the boundary conditions).
+*/
 
 using gridtools::level;
 using gridtools::accessor;
@@ -74,6 +75,21 @@ namespace copy_stencil {
         }
     };
 
+    // assigning values at the global boundary
+    template < typename Partitioner >
+    struct boundary_conditions {
+        Partitioner const &m_partitioner;
+
+        boundary_conditions(Partitioner const &p) : m_partitioner(p) {}
+
+        template < typename Direction, typename DataField0, typename DataField1 >
+        GT_FUNCTION void operator()(
+            Direction, DataField0 &data_field0, DataField1 &data_field1, uint_t i, uint_t j, uint_t k) const {
+            data_field0(i, j, k) = -(float)m_partitioner.boundary();
+            data_field1(i, j, k) = -(float)m_partitioner.boundary();
+        }
+    };
+
     /*
      * The following operators and structs are for debugging only
      */
@@ -90,6 +106,10 @@ namespace copy_stencil {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
+        array< int, 3 > dimensions{0, 0, 0};
+        MPI_3D_process_grid_t< 3 >::dims_create(PROCS, 2, dimensions);
+        dimensions[2] = 1;
+
         //                   strides  1 x xy
         //                      dims  x y z
         typedef gridtools::layout_map< 0, 1, 2 > layout_t;
@@ -108,7 +128,7 @@ namespace copy_stencil {
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(pattern_type::grid_type::period_type(true, false, false), GCL_WORLD);
+        pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
 #ifdef VERBOSE
         printf("halo exchange ok\n");
 #endif
@@ -122,7 +142,6 @@ namespace copy_stencil {
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_in, p_out > accessor_list;
-        /* typedef arg<1, vec_storage_type > p_out; */
         // Definition of the actual data fields that are used for input/output
         //#ifdef CXX11_ENABLED
         array< ushort_t, 3 > padding{0, 0, 0};
@@ -136,12 +155,10 @@ namespace copy_stencil {
         storage_type in(metadata_, 0.);
         storage_type out(metadata_, 0.);
 
+        // COMMUNICATION SETUP
         he.add_halo< 0 >(meta_.template get_halo_gcl< 0 >());
         he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
-        // he.add_halo<0>(1,1,1,d1,d1+2);
-        // he.add_halo<1>(1,1,1,d2,d2+2);
-
-        he.add_halo< 2 >(0, 0, 0, d3 - 1, d3);
+        he.add_halo< 2 >(meta_.template get_halo_gcl< 2 >());
 
         he.setup(2);
 
@@ -161,7 +178,7 @@ namespace copy_stencil {
         gridtools::grid< axis, partitioner_t > grid(part, meta_);
         // k dimension not partitioned
         grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        grid.value_list[1] = d3;
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
         // that are used, temporary and not
@@ -226,6 +243,16 @@ namespace copy_stencil {
         printf("computation finalized\n");
 #endif
 
+        gridtools::array< gridtools::halo_descriptor, 3 > halos;
+        halos[0] = meta_.template get_halo_descriptor< 0 >();
+        halos[1] = meta_.template get_halo_descriptor< 1 >();
+        halos[2] = meta_.template get_halo_descriptor< 2 >();
+
+        typename gridtools::boundary_apply< boundary_conditions< partitioner_t >,
+            typename gridtools::bitmap_predicate >(
+            halos, boundary_conditions< partitioner_t >(part), gridtools::bitmap_predicate(part.boundary()))
+            .apply(in, out);
+
         std::vector< pointer_type::pointee_t * > vec(2);
         vec[0] = in.data().get();
         vec[1] = out.data().get();
@@ -246,6 +273,48 @@ namespace copy_stencil {
 #ifdef VERBOSE
         printf("copy unpacked\n");
 #endif
+        {
+            std::stringstream ss;
+            ss << PID;
+            std::string filename = "out" + ss.str() + ".txt";
+            std::ofstream file(filename.c_str());
+            out.print(file);
+        }
+        {
+            std::stringstream ss;
+            ss << PID;
+            std::string filename = "in" + ss.str() + ".txt";
+            std::ofstream file(filename.c_str());
+            in.print(file);
+        }
+
+        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
+            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
+                for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
+                    if (out(i, j, k) != (i + j + k) * (gridtools::PID + 1)) {
+                        if (gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(0, gridtools::bitmap_predicate::UP) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(0, gridtools::bitmap_predicate::LOW) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(1, gridtools::bitmap_predicate::UP) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(1, gridtools::bitmap_predicate::LOW) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(2, gridtools::bitmap_predicate::UP) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(2, gridtools::bitmap_predicate::LOW)) {
+                            if (out(i, j, k) != part.boundary()) {
+                                GCL_Finalize();
+                                return false;
+                            }
+                        } else {
+                            GCL_Finalize();
+                            printf("copy parallel test FAILED\n");
+                        }
+                        return false;
+                    }
+                }
 
         MPI_Barrier(GCL_WORLD);
         GCL_Finalize();

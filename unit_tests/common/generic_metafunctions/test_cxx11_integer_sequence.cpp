@@ -33,10 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "common/array.hpp"
+#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "common/generic_metafunctions/variadic_typedef.hpp"
+#include "gtest/gtest.h"
 
 template < int Idx >
 struct get_component {
@@ -93,4 +93,3 @@ TEST(integer_sequence, apply_lambda) {
 
     ASSERT_TRUE(true);
 }
-

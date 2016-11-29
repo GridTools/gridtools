@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/fusion/include/as_set.hpp>
 #include "common/generic_metafunctions/is_sequence_of.hpp"
+#include <boost/fusion/include/as_set.hpp>
 
 /**
 @file

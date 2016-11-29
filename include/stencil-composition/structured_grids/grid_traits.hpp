@@ -35,9 +35,9 @@
 */
 #pragma once
 
-#include <boost/mpl/quote.hpp>
 #include "../compute_extents_metafunctions.hpp"
 #include "grid_traits_backend_fwd.hpp"
+#include <boost/mpl/quote.hpp>
 
 #ifdef __CUDACC__
 #include "backend_cuda/grid_traits_cuda.hpp"
@@ -46,6 +46,9 @@
 #endif
 
 namespace gridtools {
+
+    template < typename PlaceholdersMap, uint_t RepeatFunctor >
+    struct compute_extents_of;
 
     template <>
     struct grid_traits_from_id< enumtype::structured > {

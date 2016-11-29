@@ -35,11 +35,11 @@
 */
 
 #pragma once
+#include "../../common/generic_metafunctions/all_integrals.hpp"
+#include "../../common/generic_metafunctions/static_if.hpp"
 #include "../accessor_base.hpp"
 #include "../arg.hpp"
 #include "../dimension.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
-#include "../../common/generic_metafunctions/static_if.hpp"
 
 /**
    @file

@@ -35,15 +35,15 @@
 */
 #pragma once
 
+#include "../../common/generic_metafunctions/mpl_sequence_to_fusion_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/include/at_c.hpp>
+#include "../interval.hpp"           // to check if region is valid
+#include "../iterate_domain_fwd.hpp" // to statically check arguments
 #include "./accessor.hpp"
 #include "./call_interfaces_metafunctions.hpp"
-#include "../../common/generic_metafunctions/mpl_sequence_to_fusion_vector.hpp"
-#include "../iterate_domain_fwd.hpp" // to statically check arguments
-#include "../interval.hpp"           // to check if region is valid
+#include <boost/fusion/include/as_vector.hpp>
+#include <boost/fusion/include/at_c.hpp>
+#include <boost/fusion/include/vector.hpp>
 
 namespace gridtools {
 

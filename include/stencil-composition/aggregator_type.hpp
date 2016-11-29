@@ -35,39 +35,39 @@
 */
 #pragma once
 
-#include <iosfwd>
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/container/vector/convert.hpp>
 #include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/include/push_back.hpp>
-#include <boost/fusion/include/value_at.hpp>
+#include <boost/fusion/container/vector/convert.hpp>
+#include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/copy.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/set.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/sort.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/fusion/view/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/push_back.hpp>
+#include <boost/fusion/include/value_at.hpp>
 #include <boost/fusion/mpl.hpp>
+#include <boost/fusion/view/filter_view.hpp>
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/sort.hpp>
+#include <boost/mpl/transform.hpp>
+#include <iosfwd>
 
+#include "../common/generic_metafunctions/arg_comparator.hpp"
+#include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
-#include "../common/generic_metafunctions/arg_comparator.hpp"
 #include "../common/gpu_clone.hpp"
 
+#include "../storage/metadata_set.hpp"
 #include "../storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
-#include "../storage/metadata_set.hpp"
 
 #include "aggregator_type_impl.hpp"
-#include "arg_metafunctions.hpp"
 #include "arg.hpp"
+#include "arg_metafunctions.hpp"
 
 /**@file
    @brief This file contains the global list of placeholders to the storages

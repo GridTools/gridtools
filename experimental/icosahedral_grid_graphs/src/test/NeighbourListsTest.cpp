@@ -35,10 +35,10 @@
 */
 #define BOOST_TEST_MODULE NeighbourListsUnittest
 
-#include <boost/test/unit_test.hpp>
-#include <boost/test/test_tools.hpp>
 #include "../NeighbourLists.hpp"
 #include "../triangular_2D.hpp"
+#include <boost/test/test_tools.hpp>
+#include <boost/test/unit_test.hpp>
 
 BOOST_AUTO_TEST_SUITE(NeighbourListsSuite)
 

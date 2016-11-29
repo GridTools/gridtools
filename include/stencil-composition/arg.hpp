@@ -43,10 +43,10 @@
 
 #pragma once
 
-#include "stencil-composition/arg_metafunctions_fwd.hpp"
-#include <iosfwd>
-#include "storage/storage_metafunctions.hpp"
 #include "arg_metafunctions.hpp"
+#include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "storage/storage_metafunctions.hpp"
+#include <iosfwd>
 
 namespace gridtools {
 

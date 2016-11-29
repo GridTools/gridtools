@@ -36,32 +36,32 @@
 #pragma once
 
 #include <boost/fusion/adapted/mpl.hpp>
+#include <boost/fusion/include/as_set.hpp>
+#include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/sequence/intrinsic/at.hpp>
 #include <boost/fusion/view/zip_view.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/include/as_set.hpp>
 
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/include/at_c.hpp>
-#include <boost/fusion/include/at.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/fusion/include/size.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
-#include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/container/vector/vector_fwd.hpp>
-#include <boost/fusion/include/vector_fwd.hpp>
 #include <boost/fusion/container/generation/make_vector.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-#include <boost/fusion/sequence/io.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/container/vector/vector_fwd.hpp>
+#include <boost/fusion/include/as_vector.hpp>
+#include <boost/fusion/include/at.hpp>
+#include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/io.hpp>
+#include <boost/fusion/include/make_vector.hpp>
+#include <boost/fusion/include/size.hpp>
+#include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/vector_fwd.hpp>
+#include <boost/fusion/sequence/io.hpp>
+#include <boost/mpl/at.hpp>
 
-#include <common/array.hpp>
 #include "../../common/gt_assert.hpp"
-#include <boost/mpl/vector.hpp>
-#include "location_type.hpp"
 #include "common/array_addons.hpp"
+#include "location_type.hpp"
+#include <boost/mpl/vector.hpp>
+#include <common/array.hpp>
 
 namespace gridtools {
 

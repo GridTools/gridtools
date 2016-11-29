@@ -34,21 +34,21 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/reverse.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/fold.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/range_c.hpp>
+#include <boost/mpl/reverse.hpp>
 
-#include "./esf_metafunctions.hpp"
-#include "./wrap_type.hpp"
-#include "./mss.hpp"
 #include "./amss_descriptor.hpp"
+#include "./conditionals/condition.hpp"
+#include "./esf_metafunctions.hpp"
+#include "./grid_traits_metafunctions.hpp"
+#include "./linearize_mss_functions.hpp"
+#include "./mss.hpp"
 #include "./mss_metafunctions.hpp"
 #include "./reductions/reduction_descriptor.hpp"
-#include "./linearize_mss_functions.hpp"
-#include "./grid_traits_metafunctions.hpp"
-#include "./conditionals/condition.hpp"
+#include "./wrap_type.hpp"
 
 /** @file This file implements the metafunctions to perform data dependency analysis on a
     multi-stage computation (MSS). The idea is to assign to each placeholder used in the
@@ -125,7 +125,6 @@ namespace gridtools {
      */
     template < typename PlaceholdersMap, uint_t RepeatFunctor >
     struct compute_extents_of {
-
         /**
            The for_mss takes the current MSS that needs to be analyzed.
 

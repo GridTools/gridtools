@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fstream>
 
+#include "Options.hpp"
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
-#include "Options.hpp"
 
 /*! @file
   @brief  This file shows an implementation of the "laplace" stencil, similar to the one used in COSMO

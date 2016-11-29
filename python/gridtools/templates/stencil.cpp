@@ -231,8 +231,7 @@ void run_{{stencil_name}}(uint_t d1,
         { s.name | lower }
     }
     ->steady();
-    { % endfor % }
-    //
+    { % endfor % } //
     // ... and execution
     //
     {% for s in stencils -%
@@ -241,8 +240,7 @@ void run_{{stencil_name}}(uint_t d1,
         { s.name | lower }
     }
     ->run();
-    { % endfor % }
-    //
+    { % endfor % } //
     // clean everything up
     //
     {% for s in stencils -%

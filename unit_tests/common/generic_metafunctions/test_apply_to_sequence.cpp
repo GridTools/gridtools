@@ -33,10 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <boost/mpl/equal.hpp>
 #include "common/defs.hpp"
 #include "common/generic_metafunctions/apply_to_sequence.hpp"
+#include "gtest/gtest.h"
+#include <boost/mpl/equal.hpp>
 
 using namespace gridtools;
 

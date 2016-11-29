@@ -35,11 +35,11 @@
 */
 #pragma once
 
-#include <gridtools.hpp>
-#include <common/halo_descriptor.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 #include <boost/lambda/bind.hpp>
 #include <boost/lambda/construct.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include <common/halo_descriptor.hpp>
+#include <gridtools.hpp>
 
 #include <stencil-composition/stencil-composition.hpp>
 

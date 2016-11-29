@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/type_traits.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/type_traits.hpp>
 
 namespace gridtools {
     template < typename T >

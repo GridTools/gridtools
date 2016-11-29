@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
 #include "benchmarker.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >

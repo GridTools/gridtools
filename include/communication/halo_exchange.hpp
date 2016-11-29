@@ -36,23 +36,24 @@
 #ifndef _HALO_EXCHANGE_H_
 #define _HALO_EXCHANGE_H_
 
+#include "../common/boollist.hpp"
 #include "low-level/Halo_Exchange_3D.hpp"
 #include "low-level/Halo_Exchange_3D_DT.hpp"
 #include "low-level/proc_grids_3D.hpp"
-#include "../common/boollist.hpp"
 
 #ifdef MANUAL_PACKING
 #error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")
 #endif
 
+#include "high-level/descriptors_fwd.hpp"
+#include "high-level/descriptor_generic_manual.hpp"
+#include "high-level/descriptors.hpp"
 #include "high-level/descriptors_dt.hpp"
 #include "high-level/descriptors_dt_whole.hpp"
-#include "high-level/descriptors.hpp"
 #include "high-level/descriptors_manual_gpu.hpp"
-#include "high-level/descriptor_generic_manual.hpp"
 
-#include "low-level/translate.hpp"
 #include "high-level/field_on_the_fly.hpp"
+#include "low-level/translate.hpp"
 
 namespace gridtools {
 

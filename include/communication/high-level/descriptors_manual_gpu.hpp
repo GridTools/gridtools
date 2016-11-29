@@ -34,19 +34,19 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #ifdef __CUDACC__
-#include "m_packZL.hpp"
-#include "m_packZU.hpp"
-#include "m_packYL.hpp"
-#include "m_packYU.hpp"
 #include "m_packXL.hpp"
 #include "m_packXU.hpp"
+#include "m_packYL.hpp"
+#include "m_packYU.hpp"
+#include "m_packZL.hpp"
+#include "m_packZU.hpp"
 
-#include "m_unpackZL.hpp"
-#include "m_unpackZU.hpp"
-#include "m_unpackYL.hpp"
-#include "m_unpackYU.hpp"
 #include "m_unpackXL.hpp"
 #include "m_unpackXU.hpp"
+#include "m_unpackYL.hpp"
+#include "m_unpackYU.hpp"
+#include "m_unpackZL.hpp"
+#include "m_unpackZU.hpp"
 #endif
 
 namespace gridtools {

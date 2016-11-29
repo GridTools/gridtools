@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "test_cxx11_tuple.hpp"
+#include "gtest/gtest.h"
 
 TEST(tuple, test_tuple) {
     bool result = true;

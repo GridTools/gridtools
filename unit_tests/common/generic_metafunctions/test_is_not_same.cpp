@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
 #include "common/defs.hpp"
 #include "common/generic_metafunctions/is_not_same.hpp"
+#include "gtest/gtest.h"
 
 using namespace gridtools;
 

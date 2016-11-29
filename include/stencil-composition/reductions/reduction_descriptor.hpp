@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../esf.hpp"
 #include "../caches/cache_metafunctions.hpp"
+#include "../esf.hpp"
 
 /**
 @file

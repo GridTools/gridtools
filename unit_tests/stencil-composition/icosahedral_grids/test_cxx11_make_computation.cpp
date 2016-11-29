@@ -42,14 +42,14 @@
 
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include <gridtools.hpp>
-#include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
+#include <boost/mpl/equal.hpp>
+#include <gridtools.hpp>
 
 #include "gtest/gtest.h"
 
-#include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/aggregator_type.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 

@@ -33,15 +33,15 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <vector>
-#include <iostream>
-#include <iomanip>
 #include <algorithm>
-#include <iterator>
-#include <cmath>
 #include <boost/timer/timer.hpppp>
-#include <thread>
+#include <cmath>
 #include <cstdlib>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <thread>
+#include <vector>
 
 /** This is the function which defines the structure
     i.e., define the offsets of a node.

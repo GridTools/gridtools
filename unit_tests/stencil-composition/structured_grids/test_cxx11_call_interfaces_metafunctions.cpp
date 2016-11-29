@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gridtools.hpp>
 #include <common/defs.hpp>
+#include <gridtools.hpp>
 
 #ifdef CXX11_ENABLED
 
@@ -43,8 +43,8 @@
 #include <stencil-composition/global_accessor.hpp>
 #include <stencil-composition/structured_grids/call_interfaces.hpp>
 #include <stencil-composition/structured_grids/call_interfaces_metafunctions.hpp>
-#include <type_traits>
 #include <tuple>
+#include <type_traits>
 
 struct pretent_aggregator {
     using value_type = double;

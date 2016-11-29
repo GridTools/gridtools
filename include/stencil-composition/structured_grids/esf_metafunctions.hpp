@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/equal.hpp>
 #include "esf.hpp"
+#include <boost/mpl/equal.hpp>
 
 namespace gridtools {
 

@@ -42,14 +42,14 @@
 
 #pragma once
 #include <boost/mpl/at.hpp>
-#include <boost/mpl/set.hpp>
 #include <boost/mpl/has_key.hpp>
+#include <boost/mpl/set.hpp>
 
 #include "aggregator_type.hpp"
-#include "local_domain.hpp"
 #include "backend_traits_fwd.hpp"
-#include "mss_components.hpp"
+#include "local_domain.hpp"
 #include "local_domain_metafunctions.hpp"
+#include "mss_components.hpp"
 
 namespace gridtools {
     namespace _impl {

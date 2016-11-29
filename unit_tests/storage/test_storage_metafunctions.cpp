@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <storage/storage.hpp>
-#include <storage/meta_storage.hpp>
 #include <storage/storage_metafunctions.hpp>
+#include <storage/meta_storage.hpp>
+#include <storage/storage.hpp>
 
 using namespace gridtools;
 

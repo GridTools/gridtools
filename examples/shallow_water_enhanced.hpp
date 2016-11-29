@@ -43,9 +43,9 @@
 #endif
 #include <gridtools.hpp>
 #include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 #include <storage/parallel_storage.hpp>
 #include <storage/partitioner_trivial.hpp>
-#include <stencil-composition/stencil-composition.hpp>
 
 #ifdef CUDA_EXAMPLE
 #include <boundary-conditions/apply_gpu.hpp>
@@ -55,8 +55,8 @@
 
 #include <communication/halo_exchange.hpp>
 
-#include <tools/verifier.hpp>
 #include "shallow_water_reference.hpp"
+#include <tools/verifier.hpp>
 // [includes]
 
 // [backend]

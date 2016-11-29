@@ -36,11 +36,11 @@
 #ifndef _HALO_EXCHANGE_2D_H
 #define _HALO_EXCHANGE_2D_H
 
+#include "../GCL.hpp"
+#include "has_communicator.hpp"
+#include "translate.hpp"
 #include <boost/mpl/assert.h>
 #include <common/gt_assert.hpp>
-#include "../GCL.hpp"
-#include "translate.hpp"
-#include "has_communicator.hpp"
 
 /** \file
  * Pattern for regular cyclic and acyclic halo exchange pattern in 2D

@@ -1,6 +1,7 @@
 #pragma once
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
+#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+
 /**
    @file metafunctions used in the cache_storage class
 */

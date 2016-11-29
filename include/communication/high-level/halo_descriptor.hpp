@@ -36,8 +36,8 @@
 #ifndef _HALO_DESCRIPTOR_H_
 #define _HALO_DESCRIPTOR_H_
 
-#include <common/gt_assert.hpp>
 #include "../../common/array.hpp"
+#include <common/gt_assert.hpp>
 
 namespace gridtools {
 

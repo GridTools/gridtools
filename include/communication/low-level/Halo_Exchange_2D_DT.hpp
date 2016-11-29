@@ -36,9 +36,9 @@
 #ifndef _HALO_EXCHANGE_2D_DT_H
 #define _HALO_EXCHANGE_2D_DT_H
 
-#include <common/gt_assert.hpp>
 #include "../GCL.hpp"
 #include "translate.hpp"
+#include <common/gt_assert.hpp>
 
 /** \file
  * Pattern for regular cyclic and acyclic halo exchange pattern in 2D

@@ -36,14 +36,14 @@
 #ifndef _PROC_GRIDS_3D_H_
 #define _PROC_GRIDS_3D_H_
 
-#include <string>
-#include <boost/algorithm/string.hpp>
-#include <iostream>
-#include <cmath>
-#include "../GCL.hpp"
 #include "../../common/array.hpp"
 #include "../../common/boollist.hpp"
+#include "../GCL.hpp"
+#include <boost/algorithm/string.hpp>
 #include <boost/type_traits/integral_constant.hpp>
+#include <cmath>
+#include <iostream>
+#include <string>
 
 // This file needs to be changed
 

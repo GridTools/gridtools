@@ -36,11 +36,11 @@
 #ifndef _STATS_COLLECTOR_H_
 #define _STATS_COLLECTOR_H_
 
-#include <vector>
-#include <map>
-#include <set>
-#include <numeric>
 #include <iomanip>
+#include <map>
+#include <numeric>
+#include <set>
+#include <vector>
 
 #include <mpi.h>
 

@@ -37,29 +37,29 @@
 #define _DESCRIPTORS_DT_H_
 
 #include "../../common/array.hpp"
-#include <vector>
-#include "../low-level/proc_grids_3D.hpp"
-#include "../low-level/Halo_Exchange_3D.hpp"
-#include "../../common/make_array.hpp"
-#include <common/gt_assert.hpp>
 #include "../../common/boollist.hpp"
-#include "../../common/ndloops.hpp"
-#include "../low-level/data_types_mapping.hpp"
-#include "gcl_parameters.hpp"
-#include "../../common/numerics.hpp"
-#include "empty_field_base.hpp"
 #include "../../common/layout_map.hpp"
+#include "../../common/make_array.hpp"
+#include "../../common/ndloops.hpp"
+#include "../../common/numerics.hpp"
+#include "../low-level/Halo_Exchange_3D.hpp"
+#include "../low-level/data_types_mapping.hpp"
+#include "../low-level/proc_grids_3D.hpp"
+#include "empty_field_base.hpp"
+#include "gcl_parameters.hpp"
+#include <common/gt_assert.hpp>
+#include <vector>
 
+#include "access.hpp"
+#include "descriptor_base.hpp"
+#include "descriptors_fwd.hpp"
+#include "helpers_impl.hpp"
 #include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
-#include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-#include "descriptors_fwd.hpp"
-#include "descriptor_base.hpp"
-#include "helpers_impl.hpp"
 #include <boost/type_traits/remove_pointer.hpp>
-#include "access.hpp"
 
 namespace gridtools {
 

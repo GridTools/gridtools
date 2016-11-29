@@ -44,8 +44,8 @@
 #include <tools/verifier.hpp>
 
 #ifdef USE_PAPI_WRAP
-#include <papi_wrap.hpp>
 #include <papi.hpp>
+#include <papi_wrap.hpp>
 #endif
 
 /*

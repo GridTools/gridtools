@@ -35,21 +35,21 @@
 */
 #pragma once
 
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/empty.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/back.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/if.hpp>
 #include "hasdo.hpp"
-#include "level.hpp"
 #include "interval.hpp"
+#include "level.hpp"
+#include <boost/mpl/assert.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/back.hpp>
+#include <boost/mpl/empty.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/vector.hpp>
 
 namespace gridtools {
     // implementation of the do method overload search

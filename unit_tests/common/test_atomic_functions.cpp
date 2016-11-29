@@ -34,10 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include "common/atomic_functions.hpp"
+#include "common/defs.hpp"
 #include "gtest/gtest.h"
 #include <cstdlib>
-#include "common/defs.hpp"
-#include "common/atomic_functions.hpp"
 
 template < typename T >
 struct Verifier {

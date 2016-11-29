@@ -41,9 +41,9 @@
 #define __device__
 #endif
 
-#include <iostream>
-#include <common/ndloops.hpp>
 #include <common/array.hpp>
+#include <common/ndloops.hpp>
+#include <iostream>
 #include <sys/time.h>
 struct sumup {
     mutable double res;

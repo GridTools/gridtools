@@ -41,8 +41,8 @@
  */
 
 #pragma once
-#include <map>
 #include "triangular_2D.hpp"
+#include <map>
 
 template < int VHaloSize >
 void insert_middle_row(

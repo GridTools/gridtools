@@ -35,17 +35,17 @@
 */
 #pragma once
 
-#include <iosfwd>
-#include <boost/type_traits/is_unsigned.hpp>
-#include <boost/mpl/max_element.hpp>
-#include "base_storage_impl.hpp"
 #include "../common/array.hpp"
 #include "../common/array_addons.hpp"
-#include "../common/generic_metafunctions/all_integrals.hpp"
 #include "../common/explode_array.hpp"
+#include "../common/generic_metafunctions/all_integrals.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
 #include "../common/generic_metafunctions/variadic_assert.hpp"
 #include "../common/offset_metafunctions.hpp"
+#include "base_storage_impl.hpp"
+#include <boost/mpl/max_element.hpp>
+#include <boost/type_traits/is_unsigned.hpp>
+#include <iosfwd>
 
 /**
    @file

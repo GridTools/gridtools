@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "stencil-composition/axis.hpp"
 #include "common/halo_descriptor.hpp"
+#include "stencil-composition/axis.hpp"
 #include "stencil-composition/common_grids/grid_cg.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
 

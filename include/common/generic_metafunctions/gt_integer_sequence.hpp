@@ -35,11 +35,11 @@
 */
 #pragma once
 
-#include <functional>
-#include <boost/proto/traits.hpp>
 #include "common/defs.hpp"
 #include "common/host_device.hpp"
 #include "common/is_aggregate.hpp"
+#include <boost/proto/traits.hpp>
+#include <functional>
 
 namespace gridtools {
 

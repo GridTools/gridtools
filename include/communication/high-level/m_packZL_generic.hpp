@@ -197,7 +197,7 @@ void m_packZL_generic(
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             // clang-format off
-        m_packZLKernel_generic<<<blocks, threads, 0, ZL_stream>>>
+        m_packZLKernel_generic< < <blocks, threads, 0, ZL_stream> > >
         (fields[i].ptr,
          (d_msgbufTab),
          wrap_argument(d_msgsize+27*i),

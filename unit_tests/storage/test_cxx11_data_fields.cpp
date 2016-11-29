@@ -34,16 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <storage/data_field.hpp>
 #include <stencil-composition/stencil-composition.hpp>
+#include <storage/data_field.hpp>
 
 using namespace gridtools;
 using namespace gridtools::enumtype;
 
 TEST(storage, test_data_field) {
 #ifdef STRUCTURED_GRIDS
-    typedef base_storage< wrap_pointer< int >, backend< Host, structured, Naive >::storage_info< 0, layout_map< 0, 1 > > >
-        storage_t;
+    typedef base_storage< wrap_pointer< int >,
+        backend< Host, structured, Naive >::storage_info< 0, layout_map< 0, 1 > > > storage_t;
     backend< Host, structured, Naive >::storage_info< 0, layout_map< 0, 1 > > meta_(1, 1);
 
     field< storage_t, 3, 2, 4 >::type datafield(&meta_, 0, "data");

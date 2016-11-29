@@ -209,26 +209,23 @@ namespace gridtools {
                 tile_dimension + (compute_halo(component, LOW)) - 1,
                 tile_dimension + (compute_halo(component, UP)) + (compute_halo(component, LOW)));
 
-            coordinates_gcl[component] = halo_descriptor(m_halo[component],
-                m_halo[component],
+            coordinates_gcl[component] = halo_descriptor(compute_halo(component, LOW),
+                compute_halo(component, UP),
                 compute_halo(component, LOW),
                 tile_dimension + (compute_halo(component, LOW)) - 1,
                 tile_dimension + (compute_halo(component, UP)) + (compute_halo(component, LOW)));
 
 #ifndef NDEBUG
-#ifdef VERBOSE
-            std::cout << "[" << PID << "]"
-                      << "grid [" << compute_halo(component, LOW) << " " << compute_halo(component, UP) << " "
-                      << compute_halo(component, LOW) << " " << tile_dimension + (compute_halo(component, LOW)) - 1
-                      << " " << (tile_dimension + compute_halo(component, UP)) + (compute_halo(component, LOW)) << "]"
+            std::cout << "PID: " << PID << " coords[" << component << "]     " << coordinates[component] << std::endl;
+            std::cout << "PID: " << PID << " gcl_coords[" << component << "]     " << coordinates_gcl[component]
                       << std::endl;
+
             std::cout << "boundary for coords definition: " << boundary() << std::endl;
             std::cout << "partitioning" << std::endl;
             std::cout << "up bounds for component " << component << ": " << up_bound[component] << std::endl
                       << "low bounds for component " << component << ": " << low_bound[component] << std::endl
                       << "pid: " << m_pid[0] << " " << m_pid[1] << " " << m_pid[2] << std::endl
                       << "component, size: " << component << " " << size_ << std::endl;
-#endif
 #endif
             return tile_dimension + compute_halo(component, UP) + compute_halo(component, LOW);
         }
@@ -290,8 +287,8 @@ namespace gridtools {
         GT_FUNCTION
         bool at_boundary(ushort_t const &component_, typename super::Flag flag_) const {
 
-            return !(boundary() % (ushort_t)((ushort_t)gt_pow< 2 >::apply(component_ + 1) * (ushort_t)flag_) <
-                     ((component_ + (ushort_t)1) * (ushort_t)flag_));
+            uint_t ret = (((uint_t)flag_ * (1 << component_))) & boundary();
+            return !ret;
         }
 
         GT_FUNCTION

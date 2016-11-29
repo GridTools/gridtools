@@ -37,8 +37,8 @@
 #define _GENERIC_ALL_TO_ALL_H_
 
 #include "../GCL.hpp"
-#include <vector>
 #include <mpi.h>
+#include <vector>
 
 /** \file
 

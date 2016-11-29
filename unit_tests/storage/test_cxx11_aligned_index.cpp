@@ -1,8 +1,8 @@
 #include "gtest/gtest.h"
 
+#include <boost/mpl/int.hpp>
 #include <iostream>
 #include <vector>
-#include <boost/mpl/int.hpp>
 
 #include <storage/storage-facility.hpp>
 

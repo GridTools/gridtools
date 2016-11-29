@@ -35,14 +35,14 @@
 */
 #pragma once
 
-#include <vector>
-#include <list>
-#include <iostream>
-#include <iomanip>
 #include <algorithm>
-#include <iterator>
-#include <stdlib.h>
 #include <boost/timer/timer.hpp>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <list>
+#include <stdlib.h>
+#include <vector>
 
 /** This is the function which defines the structure
     i.e., define the offsets of a node.

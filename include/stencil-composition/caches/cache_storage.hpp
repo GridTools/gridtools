@@ -34,12 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../common/gt_assert.hpp"
-#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/array.hpp"
+#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../../common/gt_assert.hpp"
+#include "../../common/offset_tuple.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../../common/offset_tuple.hpp"
 
 #ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"

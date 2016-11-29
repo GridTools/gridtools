@@ -35,12 +35,12 @@
 */
 #pragma once
 
-#include <boost/static_assert.hpp>
-#include <boost/mpl/integral_c.hpp>
-#include <boost/mpl/bool.hpp>
-#include <boost/mpl/range_c.hpp>
-#include "level.hpp"
 #include "../common/host_device.hpp"
+#include "level.hpp"
+#include <boost/mpl/bool.hpp>
+#include <boost/mpl/integral_c.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/static_assert.hpp>
 
 namespace gridtools {
     /**

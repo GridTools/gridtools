@@ -35,23 +35,23 @@
 */
 using uint_t = unsigned int;
 using int_t = int;
-#include <iostream>
+#include "array_addons.hpp"
 #include "grid.hpp"
-#include <storage/base_storage.hpp>
-#include <common/layout_map.hpp>
-#include <boost/mpl/vector.hpp>
+#include "iterate_domain.hpp"
+#include "make_stencil.hpp"
+#include "placeholders.hpp"
+#include <boost/fusion/adapted/mpl/detail/size_impl.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/include/as_vector.hpp>
+#include <boost/fusion/include/at_c.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/transform.hpp>
-#include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/include/as_vector.hpp>
-#include <boost/fusion/adapted/mpl/detail/size_impl.hpp>
-#include <boost/fusion/include/at_c.hpp>
+#include <boost/mpl/vector.hpp>
+#include <common/layout_map.hpp>
+#include <iostream>
+#include <storage/base_storage.hpp>
 #include <type_traits>
-#include "array_addons.hpp"
-#include "placeholders.hpp"
-#include "make_stencil.hpp"
-#include "iterate_domain.hpp"
 
 using gridtools::layout_map;
 using gridtools::wrap_pointer;

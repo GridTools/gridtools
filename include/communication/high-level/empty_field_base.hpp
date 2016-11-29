@@ -38,8 +38,8 @@
 
 #include "../../common/boollist.hpp"
 #include "../../common/ndloops.hpp"
-#include "../low-level/data_types_mapping.hpp"
 #include "../../common/numerics.hpp"
+#include "../low-level/data_types_mapping.hpp"
 #include "halo_descriptor.hpp"
 
 namespace gridtools {

@@ -33,15 +33,15 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <communication/GCL.hpp>
-#include <mpi.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <communication/high-level/descriptors_dt.hpp>
-#include <communication/high-level/descriptors.hpp>
-#include <string>
 #include <common/boollist.hpp>
+#include <communication/GCL.hpp>
+#include <communication/high-level/descriptors.hpp>
+#include <communication/high-level/descriptors_dt.hpp>
+#include <fstream>
+#include <iostream>
+#include <mpi.h>
+#include <sstream>
+#include <string>
 
 #define DIM 10
 

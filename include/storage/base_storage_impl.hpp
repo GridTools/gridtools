@@ -34,13 +34,13 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <gridtools.hpp>
+#include "../common/generic_metafunctions/all_integrals.hpp"
+#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/is_temporary_storage.hpp"
+#include "../common/offset_metafunctions.hpp"
 #include "common/defs.hpp"
 #include <boost/lexical_cast.hpp>
-#include "../common/is_temporary_storage.hpp"
-#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
-#include "../common/generic_metafunctions/all_integrals.hpp"
-#include "../common/offset_metafunctions.hpp"
+#include <gridtools.hpp>
 
 namespace gridtools {
 

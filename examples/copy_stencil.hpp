@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
 #include "defs.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 #include "benchmarker.hpp"
 
 /**

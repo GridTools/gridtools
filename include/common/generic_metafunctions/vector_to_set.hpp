@@ -34,9 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/set/set0.hpp>
-#include <boost/mpl/insert.hpp>
 #include <boost/mpl/fold.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/set/set0.hpp>
 
 namespace gridtools {
 

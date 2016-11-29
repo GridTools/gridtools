@@ -35,11 +35,11 @@
 */
 #pragma once
 #include "../common/defs.hpp"
-#include "storage.hpp"
 #include "base_storage.hpp"
 #include "meta_storage.hpp"
 #include "meta_storage_aligned.hpp"
 #include "meta_storage_base.hpp"
+#include "storage.hpp"
 
 namespace gridtools {
     template < enumtype::platform T >

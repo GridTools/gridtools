@@ -33,10 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <iostream>
-#include <common/defs.h>
-#include "virtual_storage.hpp"
 #include "array_addons.hpp"
+#include "virtual_storage.hpp"
+#include <common/defs.h>
+#include <iostream>
 
 using gridtools::uint_t;
 

@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <string>
 #include "stencil-composition/timer.hpp"
+#include <string>
 
 namespace gridtools {
 

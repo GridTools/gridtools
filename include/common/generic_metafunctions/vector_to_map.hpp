@@ -34,13 +34,13 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/map.hpp>
+#include <boost/fusion/algorithm/transformation/insert.hpp>
+#include <boost/fusion/algorithm/transformation/push_back.hpp>
+#include <boost/fusion/include/insert.hpp>
+#include <boost/fusion/include/push_back.hpp>
 #include <boost/fusion/mpl/insert.hpp>
 #include <boost/mpl/fold.hpp>
-#include <boost/fusion/algorithm/transformation/insert.hpp>
-#include <boost/fusion/include/insert.hpp>
-#include <boost/fusion/algorithm/transformation/push_back.hpp>
-#include <boost/fusion/include/push_back.hpp>
+#include <boost/mpl/map.hpp>
 
 namespace gridtools {
 

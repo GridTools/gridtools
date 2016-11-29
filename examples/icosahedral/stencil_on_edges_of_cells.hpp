@@ -43,12 +43,12 @@
  * We use it in a user functor with a manual loop over the 3 edges.
  * We dont make use of the on_cells nor the grid topology of the icosahedral/octahedral grid here
  */
+#include "../benchmarker.hpp"
+#include "tools/verifier.hpp"
+#include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include "tools/verifier.hpp"
-#include "unstructured_grid.hpp"
-#include "../benchmarker.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

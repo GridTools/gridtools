@@ -33,12 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "gtest/gtest.h"
 #include <gridtools.hpp>
-#include <storage/meta_storage.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <storage/meta_storage.hpp>
 #include <tools/verifier.hpp>
-#include "gtest/gtest.h"
 
 #ifdef __CUDACC__
 #ifdef FUNCTIONS_CALL

@@ -39,14 +39,14 @@
 @briefImplementation of an array class
 */
 
-#include <stddef.h>
 #include <algorithm>
 #include <boost/type_traits/has_trivial_constructor.hpp>
+#include <stddef.h>
 
 #include "defs.hpp"
+#include "generic_metafunctions/accumulate.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include "generic_metafunctions/accumulate.hpp"
 //#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools {

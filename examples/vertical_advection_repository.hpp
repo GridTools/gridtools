@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include <gridtools.hpp>
 #include "vertical_advection_defs.hpp"
+#include <gridtools.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;

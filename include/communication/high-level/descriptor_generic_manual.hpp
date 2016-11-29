@@ -36,23 +36,25 @@
 #ifndef _DESCRIPTOR_GENERIC_MANUAL_H_
 #define _DESCRIPTOR_GENERIC_MANUAL_H_
 
-#include "gcl_parameters.hpp"
+#include <common/numerics.hpp>
+
 #include "descriptor_base.hpp"
+#include "gcl_parameters.hpp"
 
 #ifdef __CUDACC__
-#include "m_packZL_generic.hpp"
-#include "m_packZU_generic.hpp"
-#include "m_packYL_generic.hpp"
-#include "m_packYU_generic.hpp"
 #include "m_packXL_generic.hpp"
 #include "m_packXU_generic.hpp"
+#include "m_packYL_generic.hpp"
+#include "m_packYU_generic.hpp"
+#include "m_packZL_generic.hpp"
+#include "m_packZU_generic.hpp"
 
-#include "m_unpackZL_generic.hpp"
-#include "m_unpackZU_generic.hpp"
-#include "m_unpackYL_generic.hpp"
-#include "m_unpackYU_generic.hpp"
 #include "m_unpackXL_generic.hpp"
 #include "m_unpackXU_generic.hpp"
+#include "m_unpackYL_generic.hpp"
+#include "m_unpackYU_generic.hpp"
+#include "m_unpackZL_generic.hpp"
+#include "m_unpackZU_generic.hpp"
 
 #define KERNEL_TYPE ZL
 #include "call_generic.hpp"
@@ -78,6 +80,8 @@
 #include "call_generic.hpp"
 #undef KERNEL_TYPE
 #endif
+#include <common/make_array.hpp>
+#include "helpers_impl.hpp"
 
 namespace gridtools {
 

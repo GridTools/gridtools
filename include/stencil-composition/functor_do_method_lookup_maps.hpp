@@ -35,22 +35,22 @@
 */
 #pragma once
 
-#include <boost/static_assert.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/size.hpp>
-#include <boost/mpl/fold.hpp>
+#include "interval.hpp"
+#include "level.hpp"
+#include <boost/mpl/back.hpp>
+#include <boost/mpl/begin.hpp>
 #include <boost/mpl/copy_if.hpp>
 #include <boost/mpl/deref.hpp>
-#include <boost/mpl/next.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/begin.hpp>
+#include <boost/mpl/fold.hpp>
 #include <boost/mpl/front.hpp>
-#include <boost/mpl/back.hpp>
 #include <boost/mpl/if.hpp>
-#include "level.hpp"
-#include "interval.hpp"
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/next.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/static_assert.hpp>
 
 namespace gridtools {
     // implementation of the do method lookup map computation

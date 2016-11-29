@@ -35,12 +35,12 @@
 */
 #pragma once
 
+#include "../common/gpu_clone.hpp"
+#include "../common/halo_descriptor.hpp"
+#include "loopintervals.hpp"
+#include "storage/partitioner.hpp"
 #include <boost/mpl/minus.hpp>
 #include <boost/mpl/plus.hpp>
-#include "loopintervals.hpp"
-#include "../common/halo_descriptor.hpp"
-#include "../common/gpu_clone.hpp"
-#include "storage/partitioner.hpp"
 /**@file
 @brief file containing the size of the horizontal domain
 

@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/static_assert.hpp>
-#include <boost/mpl/for_each.hpp>
-#include "basic_token_execution.hpp"
 #include "backend_traits_fwd.hpp"
+#include "basic_token_execution.hpp"
 #include "run_functor_arguments_fwd.hpp"
+#include <boost/mpl/for_each.hpp>
+#include <boost/static_assert.hpp>
 
 /**
 @file Implementation of the k loop execution policy

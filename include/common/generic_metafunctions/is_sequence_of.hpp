@@ -35,13 +35,13 @@
 */
 #pragma once
 
-#include <boost/mpl/quote.hpp>
-#include <boost/mpl/not.hpp>
-#include <boost/mpl/lambda.hpp>
-#include <boost/mpl/find_if.hpp>
 #include <boost/mpl/eval_if.hpp>
-#include <boost/type_traits/is_same.hpp>
+#include <boost/mpl/find_if.hpp>
 #include <boost/mpl/is_sequence.hpp>
+#include <boost/mpl/lambda.hpp>
+#include <boost/mpl/not.hpp>
+#include <boost/mpl/quote.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 /*
  * @struct is_sequence_of

@@ -37,28 +37,28 @@
 #define _DESCRIPTORS_DT_WHOLE_H_
 
 #include "../../common/array.hpp"
-#include <vector>
 #include "../../common/make_array.hpp"
 #include <common/gt_assert.hpp>
+#include <vector>
 
 #include "../../common/boollist.hpp"
+#include "../../common/layout_map.hpp"
 #include "../../common/ndloops.hpp"
 #include "../low-level/data_types_mapping.hpp"
 #include "gcl_parameters.hpp"
 #include "halo_descriptor.hpp"
-#include "../../common/layout_map.hpp"
 
+#include "../../common/numerics.hpp"
+#include "descriptor_base.hpp"
+#include "descriptors_fwd.hpp"
+#include "helpers_impl.hpp"
+#include <algorithm>
 #include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
-#include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/repeat_from_to.hpp>
-#include "../../common/numerics.hpp"
-#include "descriptors_fwd.hpp"
-#include "descriptor_base.hpp"
-#include "helpers_impl.hpp"
 #include <boost/type_traits/remove_pointer.hpp>
-#include <algorithm>
 
 namespace gridtools {
 

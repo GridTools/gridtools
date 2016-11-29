@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/assert.hpp>
-#include "mss_metafunctions.hpp"
-#include "mss_components.hpp"
-#include "reductions/reduction_descriptor.hpp"
 #include "../common/meta_array.hpp"
+#include "mss_components.hpp"
+#include "mss_metafunctions.hpp"
+#include "reductions/reduction_descriptor.hpp"
+#include <boost/mpl/assert.hpp>
 
 namespace gridtools {
 

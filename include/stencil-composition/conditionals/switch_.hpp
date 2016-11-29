@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "switch_variable.hpp"
 #include "../computation_grammar.hpp"
+#include "switch_variable.hpp"
 /**@file
 */
 

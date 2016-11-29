@@ -36,8 +36,8 @@
 #pragma once
 
 #include "../common/defs.hpp"
-#include "../storage/storage.hpp"
 #include "../storage/meta_storage.hpp"
+#include "../storage/storage.hpp"
 
 namespace gridtools {
 

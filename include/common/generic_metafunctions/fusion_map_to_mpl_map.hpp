@@ -36,9 +36,9 @@
 #pragma once
 #include <boost/fusion/container/map/convert.hpp>
 #include <boost/fusion/include/as_map.hpp>
-#include <boost/fusion/support/pair.hpp>
-#include <boost/fusion/include/pair.hpp>
 #include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/include/pair.hpp>
+#include <boost/fusion/support/pair.hpp>
 
 namespace gridtools {
 

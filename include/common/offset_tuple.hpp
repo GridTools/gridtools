@@ -34,16 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/or.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/find.hpp>
-#include "defs.hpp"
 #include "../stencil-composition/dimension.hpp"
-#include "generic_metafunctions/logical_ops.hpp"
-#include "generic_metafunctions/variadic_to_vector.hpp"
+#include "array.hpp"
+#include "defs.hpp"
 #include "generic_metafunctions/accumulate.hpp"
 #include "generic_metafunctions/is_variadic_pack_of.hpp"
-#include "array.hpp"
+#include "generic_metafunctions/logical_ops.hpp"
+#include "generic_metafunctions/variadic_to_vector.hpp"
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/or.hpp>
 
 namespace gridtools {
 

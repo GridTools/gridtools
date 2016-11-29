@@ -33,8 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "test_offset_tuple.hpp"
+#include "gtest/gtest.h"
 
 using namespace gridtools;
 

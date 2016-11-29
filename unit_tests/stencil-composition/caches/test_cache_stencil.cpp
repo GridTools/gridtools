@@ -39,8 +39,8 @@
 #include "gtest/gtest.h"
 
 #include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/make_computation.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include "tools/verifier.hpp"
 
 namespace test_cache_stencil {

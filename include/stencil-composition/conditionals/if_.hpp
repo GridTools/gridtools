@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "condition.hpp"
 #include "../computation_grammar.hpp"
+#include "condition.hpp"
 /**@file*/
 
 namespace gridtools {

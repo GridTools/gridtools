@@ -40,11 +40,11 @@
 #include <omp.h>
 #endif
 
+#include "../../storage/storage-facility.hpp"
+#include "../backend_fwd.hpp"
 #include "../execution_policy.hpp"
 #include "../heap_allocated_temps.hpp"
 #include "../iteration_policy.hpp"
-#include "../backend_fwd.hpp"
-#include "../../storage/storage-facility.hpp"
-#include "backend_traits_host.hpp"
 #include "../loop_hierarchy.hpp"
+#include "backend_traits_host.hpp"
 #include "strategy_host.hpp"

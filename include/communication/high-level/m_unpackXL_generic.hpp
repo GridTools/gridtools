@@ -145,7 +145,7 @@ void m_unpackXL_generic(array_t &fields, typename array_t::value_type::value_typ
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
             // clang-format off
-        m_unpackXLKernel_generic<<<blocks, threads, 0, XL_stream>>>
+        m_unpackXLKernel_generic< < <blocks, threads, 0, XL_stream> > >
         (fields[i].ptr,
          reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab_r),
          wrap_argument(d_msgsize_r+27*i),

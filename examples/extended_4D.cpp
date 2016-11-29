@@ -33,10 +33,10 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
 #include "extended_4D.hpp"
-#include <iostream>
 #include "Options.hpp"
+#include "gtest/gtest.h"
+#include <iostream>
 
 int main(int argc, char **argv) {
 

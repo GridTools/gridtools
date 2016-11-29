@@ -35,9 +35,9 @@
 */
 #pragma once
 
+#include "array.hpp"
 #include <boost/mpl/or.hpp>
 #include <boost/type_traits/is_integral.hpp>
-#include "array.hpp"
 
 namespace gridtools {
 

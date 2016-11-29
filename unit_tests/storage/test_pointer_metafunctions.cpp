@@ -35,9 +35,9 @@
 */
 #include "gtest/gtest.h"
 
-#include <iostream>
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
+#include <iostream>
 
 #include "storage/wrap_pointer.hpp"
 #ifdef _USE_GPU_

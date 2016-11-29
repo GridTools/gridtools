@@ -38,10 +38,10 @@
    @brief File containing tests for the define_cache construct
 */
 
+#include "stencil-composition/caches/define_caches.hpp"
+#include "stencil-composition/stencil-composition.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/caches/define_caches.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

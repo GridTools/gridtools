@@ -36,11 +36,11 @@
 #pragma once
 
 #include "common/generic_metafunctions/variadic_to_vector.hpp"
-#include "mss_metafunctions.hpp"
-#include "mss.hpp"
-#include "conditionals/if_.hpp"
 #include "conditionals/case_.hpp"
+#include "conditionals/if_.hpp"
 #include "conditionals/switch_.hpp"
+#include "mss.hpp"
+#include "mss_metafunctions.hpp"
 
 namespace gridtools {
 

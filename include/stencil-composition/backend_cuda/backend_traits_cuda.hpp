@@ -37,9 +37,9 @@
 #include <boost/mpl/for_each.hpp>
 
 #include "../backend_traits_fwd.hpp"
-#include "run_esf_functor_cuda.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
+#include "run_esf_functor_cuda.hpp"
 #include "strategy_cuda.hpp"
 
 #ifdef ENABLE_METERS

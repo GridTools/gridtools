@@ -34,11 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/equal.hpp>
-#include <boost/mpl/range_c.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/set/set0.hpp>
 #include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
+#include <boost/mpl/equal.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/set/set0.hpp>
 
 namespace gridtools {
     namespace icgrid {

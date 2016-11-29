@@ -36,8 +36,8 @@
 #ifndef _NDLOOPS_H_
 #define _NDLOOPS_H_
 
-#include <stdlib.h>
 #include "defs.hpp"
+#include <stdlib.h>
 
 /** @file
 @brief serie of loops unrolled at compile time

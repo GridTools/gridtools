@@ -37,27 +37,27 @@
 #define _DESCRIPTORS_H_
 
 #include "../../common/array.hpp"
-#include <vector>
-#include "../low-level/proc_grids_3D.hpp"
-#include "../low-level/Halo_Exchange_3D.hpp"
 #include "../../common/make_array.hpp"
-#include <common/gt_assert.hpp>
+#include "../low-level/Halo_Exchange_3D.hpp"
+#include "../low-level/proc_grids_3D.hpp"
 #include <boost/type_traits/remove_pointer.hpp>
+#include <common/gt_assert.hpp>
+#include <vector>
 
 #include "../../common/boollist.hpp"
-#include "gcl_parameters.hpp"
-#include "empty_field_base.hpp"
+#include "../../common/numerics.hpp"
 #include "../low-level/translate.hpp"
+#include "access.hpp"
+#include "descriptor_base.hpp"
+#include "descriptors_fwd.hpp"
+#include "empty_field_base.hpp"
+#include "gcl_parameters.hpp"
+#include "helpers_impl.hpp"
 #include <boost/preprocessor/arithmetic/inc.hpp>
+#include <boost/preprocessor/punctuation/comma_if.hpp>
+#include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
-#include <boost/preprocessor/repetition/enum_binary_params.hpp>
-#include <boost/preprocessor/punctuation/comma_if.hpp>
-#include "../../common/numerics.hpp"
-#include "descriptors_fwd.hpp"
-#include "descriptor_base.hpp"
-#include "helpers_impl.hpp"
-#include "access.hpp"
 
 namespace gridtools {
 

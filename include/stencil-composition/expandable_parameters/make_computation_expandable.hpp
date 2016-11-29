@@ -42,12 +42,12 @@
 
 #include <memory>
 
-#include "specializations.hpp"
-#include "../conditionals/fill_conditionals.hpp"
 #include "../../common/generic_metafunctions/vector_to_set.hpp"
 #include "../computation_grammar.hpp"
+#include "../conditionals/fill_conditionals.hpp"
 #include "expand_factor.hpp"
 #include "intermediate_expand.hpp"
+#include "specializations.hpp"
 
 /**
    @file make_computation specific for expandable parameters

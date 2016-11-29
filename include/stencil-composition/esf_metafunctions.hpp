@@ -35,11 +35,11 @@
 */
 #pragma once
 
-#include <boost/mpl/contains.hpp>
+#include "common/generic_metafunctions/copy_into_set.hpp"
+#include "common/generic_metafunctions/is_predicate.hpp"
 #include "stencil-composition/esf.hpp"
 #include "stencil-composition/independent_esf.hpp"
-#include "common/generic_metafunctions/is_predicate.hpp"
-#include "common/generic_metafunctions/copy_into_set.hpp"
+#include <boost/mpl/contains.hpp>
 
 #ifdef STRUCTURED_GRIDS
 #include "structured_grids/esf_metafunctions.hpp"

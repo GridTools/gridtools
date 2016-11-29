@@ -33,11 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "tools/verifier.hpp"
+#include "unstructured_grid.hpp"
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include "tools/verifier.hpp"
-#include "unstructured_grid.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

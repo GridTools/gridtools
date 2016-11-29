@@ -35,8 +35,8 @@
 */
 #pragma once
 
-#include <vector>
 #include <assert.h>
+#include <vector>
 
 // class used to flush the cache for OpenMP codes
 // initialise with (n>=cache size) to flush all cache

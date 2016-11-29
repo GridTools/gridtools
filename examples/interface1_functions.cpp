@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "Options.hpp"
 #include "interface1_functions.hpp"
+#include "Options.hpp"
+#include "gtest/gtest.h"
 
 #ifdef FUNCTIONS_MONOLITHIC
 #define FTESTNAME(x) HorizontalDiffusionFunctionsMONOLITHIC

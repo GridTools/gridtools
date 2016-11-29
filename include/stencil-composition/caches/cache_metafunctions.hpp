@@ -40,25 +40,25 @@
 
 #pragma once
 
-#include <boost/mpl/copy_if.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/void.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/range_c.hpp>
+#include <boost/fusion/algorithm/transformation/push_back.hpp>
 #include <boost/fusion/container/map/convert.hpp>
-#include <boost/fusion/sequence/intrinsic/at_key.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/container/vector/vector_fwd.hpp>
 #include <boost/fusion/include/at_key.hpp>
 #include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/support/pair.hpp>
 #include <boost/fusion/include/pair.hpp>
-#include <boost/fusion/algorithm/transformation/push_back.hpp>
 #include <boost/fusion/include/push_back.hpp>
-#include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/container/vector/vector_fwd.hpp>
 #include <boost/fusion/include/vector_fwd.hpp>
+#include <boost/fusion/sequence/intrinsic/at_key.hpp>
+#include <boost/fusion/support/pair.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/copy_if.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/void.hpp>
 
 #include "stencil-composition/caches/cache.hpp"
 #include "stencil-composition/caches/cache_storage.hpp"
@@ -69,6 +69,9 @@
 #include "../accessor_fwd.hpp"
 
 namespace gridtools {
+
+    template < typename T >
+    struct is_local_domain;
 
     /**
      * @struct is_cache

@@ -33,11 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <iostream>
 #include <boost/numpy.hpp>
+#include <iostream>
 
-#include "IJKSizeConverter.hpp"
 #include "DataFieldRepositoryPy.hpp"
+#include "IJKSizeConverter.hpp"
 
 #include "Coriolis.hpp"
 #include "HorizontalAdvection.hpp"

@@ -33,15 +33,15 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <mpi.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <communication/halo_exchange.hpp>
-#include <string>
-#include <stdlib.h>
-#include <common/layout_map.hpp>
 #include <common/boollist.hpp>
+#include <common/layout_map.hpp>
+#include <communication/halo_exchange.hpp>
+#include <fstream>
+#include <iostream>
+#include <mpi.h>
+#include <sstream>
+#include <stdlib.h>
+#include <string>
 #include <sys/time.h>
 
 int pid;

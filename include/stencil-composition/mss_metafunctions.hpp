@@ -41,19 +41,19 @@
  */
 
 #pragma once
-#include <boost/mpl/equal.hpp>
-#include "functor_do_methods.hpp"
-#include "loopintervals.hpp"
-#include "functor_do_method_lookup_maps.hpp"
 #include "caches/cache.hpp"
 #include "caches/cache_metafunctions.hpp"
-#include "stencil-composition/esf.hpp"
 #include "common/generic_metafunctions/is_sequence_of.hpp"
-#include "stencil-composition/caches/cache_metafunctions.hpp"
+#include "computation_grammar.hpp"
 #include "esf_metafunctions.hpp"
+#include "functor_do_method_lookup_maps.hpp"
+#include "functor_do_methods.hpp"
+#include "loopintervals.hpp"
 #include "mss.hpp"
 #include "reductions/reduction_descriptor.hpp"
-#include "computation_grammar.hpp"
+#include "stencil-composition/caches/cache_metafunctions.hpp"
+#include "stencil-composition/esf.hpp"
+#include <boost/mpl/equal.hpp>
 
 namespace gridtools {
 

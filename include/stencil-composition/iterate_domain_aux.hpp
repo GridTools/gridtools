@@ -39,16 +39,16 @@
 #include <boost/typeof/typeof.hpp>
 #endif
 #include <boost/fusion/include/size.hpp>
-#include <boost/utility/enable_if.hpp>
-#include <boost/mpl/modulus.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/modulus.hpp>
+#include <boost/utility/enable_if.hpp>
 #ifdef CXX11_ENABLED
 #include "expressions/expressions.hpp"
 #endif
-#include "../common/meta_array.hpp"
 #include "../common/array.hpp"
-#include "common/generic_metafunctions/static_if.hpp"
+#include "../common/meta_array.hpp"
 #include "common/generic_metafunctions/reversed_range.hpp"
+#include "common/generic_metafunctions/static_if.hpp"
 #include "stencil-composition/total_storages.hpp"
 
 /**

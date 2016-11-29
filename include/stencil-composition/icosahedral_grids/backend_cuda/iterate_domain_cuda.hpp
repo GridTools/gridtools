@@ -35,13 +35,13 @@
 */
 #pragma once
 
-#include "../../iterate_domain.hpp"
-#include "../../iterate_domain_metafunctions.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
-#include "../../iterate_domain_metafunctions.hpp"
-#include "../../iterate_domain_impl_metafunctions.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "../../iterate_domain.hpp"
+#include "../../iterate_domain_impl_metafunctions.hpp"
+#include "../../iterate_domain_metafunctions.hpp"
+#include "../../iterate_domain_metafunctions.hpp"
 
 namespace gridtools {
 

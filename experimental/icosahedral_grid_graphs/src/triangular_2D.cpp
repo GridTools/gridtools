@@ -33,16 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <vector>
-#include <list>
-#include <iostream>
-#include <iomanip>
-#include <algorithm>
-#include <iterator>
-#include <stdlib.h>
-#include <boost/timer/timer.hpp>
 #include "triangular_2D.hpp"
 #include "NeighbourLists.hpp"
+#include <algorithm>
+#include <boost/timer/timer.hpp>
+#include <iomanip>
+#include <iostream>
+#include <iterator>
+#include <list>
+#include <stdlib.h>
+#include <vector>
 
 double c_laplace(
     triangular_storage< triangular_offsets > &storage, std::vector< std::list< int > > &neighbours, const int cellId) {

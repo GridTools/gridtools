@@ -1,15 +1,15 @@
 #pragma once
 
-#include <gridtools.hpp>
-#include <boost/static_assert.hpp>
-#include <boost/mpl/vector_c.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/at.hpp>
+#include "../common/array.hpp"
+#include "../common/defs.hpp"
 #include "../common/gt_assert.hpp"
 #include "../common/host_device.hpp"
-#include "../common/defs.hpp"
-#include "../common/array.hpp"
 #include "stencil-composition/accessor_fwd.hpp"
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/int.hpp>
+#include <boost/mpl/vector_c.hpp>
+#include <boost/static_assert.hpp>
+#include <gridtools.hpp>
 
 /**
    @file
