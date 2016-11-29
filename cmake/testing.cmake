@@ -36,7 +36,6 @@ function(fetch_host_tests subfolder)
     include_directories( ${GTEST_INCLUDE_DIR} )
 	include_directories( ${GMOCK_INCLUDE_DIR} )
 	# add definitions
-	add_definitions(-DGTEST_COLOR )
 
     # create all targets
     foreach( test_source ${test_sources} )
@@ -79,8 +78,6 @@ function(fetch_gpu_tests subfolder)
         include_directories( ${GTEST_INCLUDE_DIR} )
         include_directories( ${GMOCK_INCLUDE_DIR} )
 
-        # add definitions
-        add_definitions(-DGTEST_COLOR )
 
         # create all targets
         foreach( test_source ${test_sources} )
@@ -92,8 +89,7 @@ function(fetch_gpu_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the gpu test
             set(CUDA_SEPARABLE_COMPILATION OFF)
-            cuda_add_executable (${unit_test} ${test_source})
-            set_target_properties(${unit_test} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} LINKER_LANGUAGE CXX )
+            cuda_add_executable (${unit_test} ${test_source} OPTIONS ${GPU_SPECIFIC_FLAGS})
             target_link_libraries(${unit_test} ${exe_LIBS} gtest gtest_main)
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added gpu test " ${unit_test} )
@@ -106,8 +102,6 @@ function(add_custom_host_test name sources cc_flags ld_flags)
     # set include dirs
     include_directories( ${GTEST_INCLUDE_DIR} )
 	include_directories( ${GMOCK_INCLUDE_DIR} )
-	# add definitions
-	add_definitions(-DGTEST_COLOR )
 
     # set binary output name and dir
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
@@ -125,16 +119,13 @@ function(add_custom_gpu_test name sources cc_flags ld_flags)
     # set include dirs
     include_directories( ${GTEST_INCLUDE_DIR} )
 	include_directories( ${GMOCK_INCLUDE_DIR} )
-	# add definitions
-	add_definitions(-DGTEST_COLOR )
 
     # set binary output name and dir
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
     # create the test
     set(CUDA_SEPARABLE_COMPILATION OFF)
-    cuda_add_executable (${name} ${test_source})
-    set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags})
-    set_target_properties(${name} PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )
+    cuda_add_executable (${name} ${test_source} OPTIONS )
+    set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags} COMPILE_FLAGS ${GPU_SPECIFIC_FLAGS} "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX)
     target_link_libraries(${name} ${exe_LIBS} gtest gtest_main)
     gridtools_add_test(${name} ${TEST_SCRIPT} ${exe})
 endfunction(add_custom_gpu_test)
@@ -144,8 +135,6 @@ function(add_custom_mpi_host_test name sources cc_flags ld_flags)
     # set include dirs
     include_directories( ${GTEST_INCLUDE_DIR} )
 	include_directories( ${GMOCK_INCLUDE_DIR} )
-	# add definitions
-	add_definitions(-DGTEST_COLOR )
 
     # set binary output name and dir
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
@@ -162,16 +151,12 @@ function(add_custom_mpi_gpu_test name sources cc_flags ld_flags)
     # set include dirs
     include_directories( ${GTEST_INCLUDE_DIR} )
 	include_directories( ${GMOCK_INCLUDE_DIR} )
-	# add definitions
-	add_definitions(-DGTEST_COLOR )
 
     # set binary output name and dir
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
     # create the test
-    set(CUDA_SEPARABLE_COMPILATION OFF)
-    cuda_add_executable (${name} ${sources})
-    set(cflags ${CMAKE_CXX_FLAGS} ${cc_flags})
-    set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )
+    #set(CUDA_SEPARABLE_COMPILATION OFF)
+    cuda_add_executable (${name} ${sources} OPTIONS ${GPU_SPECIFIC_FLAGS} ${cc_flags})
     target_link_libraries(${name} ${exe_LIBS} gcl gtest mpi_gtest_main)
     gridtools_add_mpi_test(${name} ${TEST_MPI_SCRIPT} ${exe})
 endfunction(add_custom_mpi_gpu_test)
