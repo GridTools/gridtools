@@ -293,7 +293,7 @@ namespace gridtools {
             value is not found a default value is returned, which is
             passed as template parameter. It works for intergal types.
 
-            NOTE: the tuple is e.g. and accessor.
+            NOTE: the tuple is e.g. an accessor.
 
             NOTE: The dimensionality of the tuple and the layout map do not need to be the same,
             we can access an element of a 3D storage with a 5D accessor (this happens e.g. for data_fields),

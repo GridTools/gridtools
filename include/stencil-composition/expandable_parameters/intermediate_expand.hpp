@@ -232,7 +232,7 @@ namespace gridtools {
                     _impl::assign_expandable_params< Backend, DomainType, aggregator_type< expand_arg_list > >(
                         m_domain_full, *m_domain_chunk, i));
                 m_intermediate->run();
-                m_meter.reset(m_meter.get_meter().total_time() + m_intermediate->get_meter().total_time());
+                m_meter.reset(m_meter.total_time() + m_intermediate->get_meter());
             }
             for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
                 boost::mpl::for_each< expandable_params_t >(_impl::assign_expandable_params< Backend,
@@ -240,7 +240,7 @@ namespace gridtools {
                     aggregator_type< expand_arg_list_remainder > >(
                     m_domain_full, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
                 m_intermediate_remainder->run();
-                m_meter.reset(m_meter.get_meter().total_time() + m_intermediate_remainder->get_meter().total_time());
+                m_meter.reset(m_meter.total_time() + m_intermediate_remainder->get_meter());
             }
             return 0.; // reduction disabled
         }

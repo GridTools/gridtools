@@ -473,6 +473,7 @@ namespace gridtools {
         template < typename LayoutT, typename StridesVector >
         GT_FUNCTION static constexpr int_t _index(
             StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
+            GRIDTOOLS_STATIC_ASSERT((is_layout_map< LayoutT >::value), "wrong type");
             return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);
         }
 #endif
