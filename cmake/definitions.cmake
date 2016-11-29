@@ -197,6 +197,8 @@ if( NOT ENABLE_CACHING )
 endif()
 
 add_definitions(-DGTEST_COLOR )
+include_directories( ${GTEST_INCLUDE_DIR} )
+include_directories( ${GMOCK_INCLUDE_DIR} )
 
 ## python ##
 if (ENABLE_PYTHON)
