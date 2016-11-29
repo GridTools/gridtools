@@ -42,7 +42,8 @@
 #include <communication/halo_exchange.hpp>
 
 /** @file
-    @brief This file shows an implementation of the "copy" stencil in parallel, also setting the boundaries to a value (demonstrating the boundary conditions).
+    @brief This file shows an implementation of the "copy" stencil in parallel, also setting the boundaries to a value
+   (demonstrating the boundary conditions).
 */
 
 using gridtools::level;
@@ -122,8 +123,7 @@ namespace copy_stencil {
 #else
             gridtools::gcl_cpu,
 #endif
-            gridtools::version_manual >
-            pattern_type;
+            gridtools::version_manual > pattern_type;
 
         pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
 #ifdef VERBOSE
@@ -144,8 +144,7 @@ namespace copy_stencil {
         array< ushort_t, 3 > padding{0, 0, 0};
         array< ushort_t, 3 > halo{1, 1, 1};
         typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
-            pattern_type::grid_type >
-            partitioner_t;
+            pattern_type::grid_type > partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage_info< metadata_t, partitioner_t > meta_(part, d1, d2, d3);
         auto &metadata_ = meta_.get_metadata();
@@ -290,19 +289,24 @@ namespace copy_stencil {
         for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
             for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
                 for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
-                    if(out(i, j, k) != (i + j + k) * (gridtools::PID + 1))
-                    {
-                        if (gridtools::bitmap_predicate(part.boundary()).at_boundary(0, gridtools::bitmap_predicate::UP)
-                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(0, gridtools::bitmap_predicate::DOWN)
-                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(1, gridtools::bitmap_predicate::UP)
-                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(1, gridtools::bitmap_predicate::DOWN)
-                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(2, gridtools::bitmap_predicate::UP)
-                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(2, gridtools::bitmap_predicate::DOWN)){
-                            if(out(i, j, k) != part.boundary()){
+                    if (out(i, j, k) != (i + j + k) * (gridtools::PID + 1)) {
+                        if (gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(0, gridtools::bitmap_predicate::UP) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(0, gridtools::bitmap_predicate::DOWN) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(1, gridtools::bitmap_predicate::UP) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(1, gridtools::bitmap_predicate::DOWN) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(2, gridtools::bitmap_predicate::UP) ||
+                            gridtools::bitmap_predicate(part.boundary())
+                                .at_boundary(2, gridtools::bitmap_predicate::DOWN)) {
+                            if (out(i, j, k) != part.boundary()) {
                                 GCL_Finalize();
                                 return false;
                             }
-                        }else{
+                        } else {
                             GCL_Finalize();
                             printf("copy parallel test FAILED\n");
                         }
