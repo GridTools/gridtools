@@ -143,8 +143,7 @@ namespace gridtools {
                 typename boost::mpl::and_<
                     typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
                     typename boost::mpl::not_< typename accessor_holds_data_field< Accessor >::type >::type >::type,
-                typename is_accessor< Accessor >::type >
-                type;
+                typename is_accessor< Accessor >::type > type;
         };
 
         /**

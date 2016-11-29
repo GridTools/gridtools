@@ -36,9 +36,9 @@
 #pragma once
 
 #include "./defs.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 #include "benchmarker.hpp"
 #include "horizontal_diffusion_repository.hpp"
-#include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
 /**

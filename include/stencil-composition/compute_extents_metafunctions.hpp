@@ -80,8 +80,7 @@ namespace gridtools {
         template < ushort_t ID, typename Storage >
         struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< storage< Storage > > > > > > {
             typedef arg< ID,
-                no_storage_type_yet< storage< expandable_parameters< typename Storage::basic_type, Size > > > >
-                type;
+                no_storage_type_yet< storage< expandable_parameters< typename Storage::basic_type, Size > > > > type;
         };
 
         template < typename Arg, typename Extent >
@@ -126,7 +125,6 @@ namespace gridtools {
      */
     template < typename PlaceholdersMap, uint_t RepeatFunctor >
     struct compute_extents_of {
-
         /**
            The for_mss takes the current MSS that needs to be analyzed.
 

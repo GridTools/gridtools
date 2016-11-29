@@ -115,8 +115,7 @@ namespace gridtools {
             int,
             int
 #endif
-            >
-            type;
+            > type;
         typedef Layout layout;
         typedef Index index_type;
 

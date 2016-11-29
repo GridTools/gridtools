@@ -148,8 +148,7 @@ int main(int argc, char **argv) {
         triple_t< USE_DOUBLE >,
         gridtools::MPI_3D_process_grid_t< 3 >,
         gridtools::gcl_cpu,
-        gridtools::version_manual >
-        pattern_type;
+        gridtools::version_manual > pattern_type;
 
     /* The pattern is now instantiated with the periodicities and the
        communicator. The periodicity of the communicator is

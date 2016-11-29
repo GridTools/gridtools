@@ -36,8 +36,8 @@
 #pragma once
 
 #include "Options.hpp"
-#include "extended_4D_verify.hpp"
 #include <stencil-composition/stencil-composition.hpp>
+#include "extended_4D_verify.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

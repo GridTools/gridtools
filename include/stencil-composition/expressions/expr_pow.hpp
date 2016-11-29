@@ -11,7 +11,8 @@ namespace gridtools {
         static const int exponent = Exponent;
 
         template < typename Arg1 >
-        GT_FUNCTION constexpr expr_pow(expr_pow< Arg1, Exponent > const &other) : super(other) {}
+        GT_FUNCTION constexpr expr_pow(expr_pow< Arg1, Exponent > const &other)
+            : super(other) {}
 
 #ifndef __CUDACC__
       private:

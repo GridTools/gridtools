@@ -236,8 +236,7 @@ int main() {
 
         iterate_domain< boost::mpl::vector< in_cells, out_cells, out_edges, in_edges >,
             trapezoid_2D,
-            trapezoid_2D::cells >
-            acc(ptrs, grid);
+            trapezoid_2D::cells > acc(ptrs, grid);
 
         struct _coords {
             int_t lb0, ub0;

@@ -84,8 +84,7 @@ namespace gridtools {
             Intend,
             LocationType,
             Extent,
-            FieldDimensions >
-            type;
+            FieldDimensions > type;
     };
 
 } // namespace gridtools

@@ -44,8 +44,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_esf_descriptor< Esf1 >::value && is_esf_descriptor< Esf2 >::value), "Error: Internal Error");
         typedef static_bool< boost::is_same< typename Esf1::esf_function, typename Esf2::esf_function >::value &&
-                             boost::mpl::equal< typename Esf1::args_t, typename Esf2::args_t >::value >
-            type;
+                             boost::mpl::equal< typename Esf1::args_t, typename Esf2::args_t >::value > type;
     };
 
     struct extract_esf_functor {

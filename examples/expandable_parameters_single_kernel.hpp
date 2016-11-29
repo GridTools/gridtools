@@ -63,8 +63,7 @@ namespace test_expandable_parameters {
             parameters5_in,
             parameters6_in,
             parameters7_in,
-            parameters8_in >
-            arg_list;
+            parameters8_in > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -175,8 +174,7 @@ namespace test_expandable_parameters {
             p_4_tmp,
             p_5_tmp,
             p_6_tmp,
-            p_7_tmp >
-            args_t;
+            p_7_tmp > args_t;
 
         aggregator_type< args_t > domain_(boost::fusion::make_vector(&storage1,
             &storage2,

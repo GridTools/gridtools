@@ -81,8 +81,7 @@ namespace gridtools {
 
             typedef boost::mpl::range_c< uint_t,
                 0,
-                boost::mpl::size< typename MssComponentsArray::elements >::type::value >
-                iter_range;
+                boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
@@ -127,8 +126,7 @@ namespace gridtools {
                 TileI,
                 TileJ
 #endif
-                > >
-                type;
+                > > type;
         };
 
 /**
@@ -165,8 +163,7 @@ namespace gridtools {
                         TileJ
 #endif
                         >::type,
-                    Storage::field_dimensions > >
-                type;
+                    Storage::field_dimensions > > type;
         };
     };
 

@@ -70,8 +70,7 @@ namespace gridtools {
     struct meta_array_generator< Vector, condition< Mss1, Mss2, Cond >, Mss... > {
         typedef condition< typename meta_array_generator< Vector, Mss1, Mss... >::type,
             typename meta_array_generator< Vector, Mss2, Mss... >::type,
-            Cond >
-            type;
+            Cond > type;
     };
 
 } // namespace gridtools

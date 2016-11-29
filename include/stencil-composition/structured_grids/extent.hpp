@@ -139,8 +139,7 @@ namespace gridtools {
             boost::mpl::min< typename Extent1::jminus, typename Extent2::jminus >::type::value,
             boost::mpl::max< typename Extent1::jplus, typename Extent2::jplus >::type::value,
             boost::mpl::min< typename Extent1::kminus, typename Extent2::kminus >::type::value,
-            boost::mpl::max< typename Extent1::kplus, typename Extent2::kplus >::type::value >
-            type;
+            boost::mpl::max< typename Extent1::kplus, typename Extent2::kplus >::type::value > type;
     };
 
     // Specializations for the case in which a range is an mpl::void_, which is used when the extent is taken from an
@@ -170,8 +169,7 @@ namespace gridtools {
             boost::mpl::plus< typename Extent1::jminus, typename Extent2::jminus >::type::value,
             boost::mpl::plus< typename Extent1::jplus, typename Extent2::jplus >::type::value,
             boost::mpl::plus< typename Extent1::kminus, typename Extent2::kminus >::type::value,
-            boost::mpl::plus< typename Extent1::kplus, typename Extent2::kplus >::type::value >
-            type;
+            boost::mpl::plus< typename Extent1::kplus, typename Extent2::kplus >::type::value > type;
     };
 
 } // namespace gridtools

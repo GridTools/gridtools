@@ -9,7 +9,8 @@ namespace gridtools {
             : super(first_operand, second_operand) {}
 
         template < typename Arg1, typename Arg2 >
-        GT_FUNCTION constexpr expr_divide(expr_divide< Arg1, Arg2 > const &other) : super(other) {}
+        GT_FUNCTION constexpr expr_divide(expr_divide< Arg1, Arg2 > const &other)
+            : super(other) {}
 
 #ifndef __CUDACC__
       private:
@@ -83,10 +84,12 @@ namespace gridtools {
                 IterateDomain const &it_domain, expr_derivative< expr_divide< ArgType1, ArgType2 > > const &arg)
                 -> decltype(it_domain((expr_derivative< ArgType1 >(arg.first_operand) * arg.second_operand -
                                           arg.first_operand * expr_derivative< ArgType2 >(arg.second_operand)) /
-                                      (pow< 2 >(arg.first_operand) + pow< 2 >(arg.second_operand)))) {
+                                      (::gridtools::expressions::pow< 2 >(arg.first_operand) +
+                                          ::gridtools::expressions::pow< 2 >(arg.second_operand)))) {
                 return it_domain((expr_derivative< ArgType1 >(arg.first_operand) * arg.second_operand -
                                      arg.first_operand * expr_derivative< ArgType2 >(arg.second_operand)) /
-                                 (pow< 2 >(arg.first_operand) + pow< 2 >(arg.second_operand)));
+                                 (::gridtools::expressions::pow< 2 >(arg.first_operand) +
+                                     ::gridtools::expressions::pow< 2 >(arg.second_operand)));
             }
 
             /** divide with scalar evaluation*/
@@ -109,10 +112,12 @@ namespace gridtools {
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_derivative< expr_divide< ArgType2, FloatType > > const &arg)
-                -> decltype(it_domain((arg.first_operand * expr_derivative< ArgType2 >(arg.second_operand)) /
-                                      (gt_pow< 2 >::apply(arg.first_operand) + pow< 2 >(arg.second_operand)))) {
-                return -it_domain((arg.first_operand * expr_derivative< ArgType2 >(arg.second_operand)) /
-                                  (gt_pow< 2 >::apply(arg.first_operand) + pow< 2 >(arg.second_operand)));
+                -> decltype(it_domain(
+                    (arg.first_operand * expr_derivative< ArgType2 >(arg.second_operand)) /
+                    (gt_pow< 2 >::apply(arg.first_operand) + ::gridtools::expressions::pow< 2 >(arg.second_operand)))) {
+                return -it_domain(
+                    (arg.first_operand * expr_derivative< ArgType2 >(arg.second_operand)) /
+                    (gt_pow< 2 >::apply(arg.first_operand) + ::gridtools::expressions::pow< 2 >(arg.second_operand)));
             }
 
         } // namespace evaluation

@@ -213,15 +213,17 @@ namespace gridtools {
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_type::value > OutArg), ReturnType >::type const
                 operator()(Accessor const &accessor) const {
-                return m_caller_aggregator(typename boost::mpl::at_c< PassedAccessors,
-                    Accessor::index_type::value - 1 >::type(accessor.template get< 2 >() + Offi +
-                                                                boost::fusion::at_c< Accessor::index_type::value - 1 >(
-                                                                    m_accessors_list)
-                                                                    .template get< 2 >(),
-                    accessor.template get< 1 >() + Offj +
-                        boost::fusion::at_c< Accessor::index_type::value - 1 >(m_accessors_list).template get< 1 >(),
-                    accessor.template get< 0 >() + Offk +
-                        boost::fusion::at_c< Accessor::index_type::value - 1 >(m_accessors_list).template get< 0 >()));
+                return m_caller_aggregator(
+                    typename boost::mpl::at_c< PassedAccessors, Accessor::index_type::value - 1 >::type(
+                        accessor.template get< 2 >() + Offi +
+                            boost::fusion::at_c< Accessor::index_type::value - 1 >(m_accessors_list)
+                                .template get< 2 >(),
+                        accessor.template get< 1 >() + Offj +
+                            boost::fusion::at_c< Accessor::index_type::value - 1 >(m_accessors_list)
+                                .template get< 1 >(),
+                        accessor.template get< 0 >() + Offk +
+                            boost::fusion::at_c< Accessor::index_type::value - 1 >(m_accessors_list)
+                                .template get< 0 >()));
             }
 
             template < typename Accessor >
@@ -296,8 +298,7 @@ namespace gridtools {
                 Offk,
                 typename gridtools::variadic_to_vector< Args... >::type,
                 result_type,
-                _impl::_get_index_of_first_non_const< Functor >::value >
-                f_aggregator_t;
+                _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
             result_type result;
 
@@ -329,8 +330,7 @@ namespace gridtools {
                 Offk,
                 typename gridtools::variadic_to_vector< Args... >::type,
                 result_type,
-                _impl::_get_index_of_first_non_const< Functor >::value >
-                f_aggregator_t;
+                _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
             Functor::Do(f_aggregator_t(eval, result), Region());
 
@@ -547,8 +547,7 @@ namespace gridtools {
                 Offi,
                 Offj,
                 Offk,
-                typename _impl::package_args< Args... >::type >
-                f_aggregator_t;
+                typename _impl::package_args< Args... >::type > f_aggregator_t;
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
@@ -571,8 +570,7 @@ namespace gridtools {
                 Offi,
                 Offj,
                 Offk,
-                typename _impl::package_args< Args... >::type >
-                f_aggregator_t;
+                typename _impl::package_args< Args... >::type > f_aggregator_t;
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 

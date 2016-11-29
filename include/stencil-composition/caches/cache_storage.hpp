@@ -42,8 +42,8 @@
 #include "../extent.hpp"
 
 #ifdef CXX11_ENABLED
-#include "cache_storage_metafunctions.hpp"
 #include "meta_storage_cache.hpp"
+#include "cache_storage_metafunctions.hpp"
 #endif
 
 namespace gridtools {
@@ -160,8 +160,7 @@ namespace gridtools {
         typedef static_uint< tile_i::value - iminus::value + iplus::value > j_stride_t;
         typedef static_uint< 1 > i_stride_t;
         typedef static_uint< (tile_i::value - iminus::value + iplus::value) *
-                             (tile_j::value - jminus::value + jplus::value) >
-            storage_size_t;
+                             (tile_j::value - jminus::value + jplus::value) > storage_size_t;
         typedef typename Storage::value_type::basic_type storage_t;
         typedef typename storage_t::value_type value_type;
 

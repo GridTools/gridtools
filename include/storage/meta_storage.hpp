@@ -90,7 +90,8 @@ namespace gridtools {
                 boost::is_integral< typename boost::mpl::at_c< typename variadic_to_vector< IntTypes... >::type,
                     0 >::type >::type::value,
                 bool >::type >
-        constexpr meta_storage(IntTypes... args) : super(args...) {}
+        constexpr meta_storage(IntTypes... args)
+            : super(args...) {}
 
         /**@brief operator equals (same dimension size, etc.) */
         constexpr bool operator==(const meta_storage &other) const { return super::operator==(other); }

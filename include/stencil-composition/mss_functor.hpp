@@ -282,8 +282,7 @@ namespace gridtools {
                 ExecutionEngine,
                 typename mss_components_is_reduction< mss_components_t >::type,
                 ReductionData,
-                nocolor >
-                run_functor_args_t;
+                nocolor > run_functor_args_t;
 
             typedef boost::mpl::range_c< uint_t, 0, boost::mpl::size< functors_list_t >::type::value > iter_range;
 

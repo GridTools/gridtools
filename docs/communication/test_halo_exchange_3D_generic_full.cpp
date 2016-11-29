@@ -132,8 +132,7 @@ void run(ST &file,
        the others.
      */
     typedef gridtools::
-        halo_exchange_generic< gridtools::layout_map< 0, 1, 2 >, 3, arch_type, gridtools::version_manual >
-            pattern_type;
+        halo_exchange_generic< gridtools::layout_map< 0, 1, 2 >, 3, arch_type, gridtools::version_manual > pattern_type;
 
     /* The pattern is now instantiated with the periodicities and the
        communicator. The periodicity of the communicator is

@@ -35,7 +35,6 @@
 */
 
 #include "gtest/gtest.h"
-#include <stencil-composition/loop_hierarchy.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
 namespace loop_test {
@@ -76,8 +75,7 @@ namespace loop_test {
             ,
             static_loop_item< 0, 0u, 10u, uint_t, 1 >
 #endif
-            >
-            h(2, 5, 6, 8);
+            > h(2, 5, 6, 8);
         h.apply(it_domain, fun);
 
         return fun.m_iterations ==

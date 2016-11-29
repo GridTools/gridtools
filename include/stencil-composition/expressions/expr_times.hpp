@@ -9,7 +9,8 @@ namespace gridtools {
             : super(first_operand, second_operand) {}
 
         template < typename Arg1, typename Arg2 >
-        GT_FUNCTION constexpr expr_times(expr_times< Arg1, Arg2 > const &other) : super(other) {}
+        GT_FUNCTION constexpr expr_times(expr_times< Arg1, Arg2 > const &other)
+            : super(other) {}
 #ifndef __CUDACC__
       private:
 #endif
@@ -66,7 +67,7 @@ namespace gridtools {
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
                 IterateDomain const &it_domain, expr_times< FloatType, ArgType2 > const &arg)
-                -> decltype(arg.first_operand * it_domain(arg.second_operand)) {
+                -> decltype(arg.first_operand *it_domain(arg.second_operand)) {
                 return arg.first_operand * it_domain(arg.second_operand);
             }
 

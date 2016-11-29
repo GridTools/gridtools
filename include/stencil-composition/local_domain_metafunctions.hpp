@@ -51,8 +51,7 @@ namespace gridtools {
         struct insert_element {
             typedef boost::mpl::pair<
                 typename boost::mpl::insert< typename boost::mpl::first< state >::type, element >::type,
-                typename boost::mpl::push_back< typename boost::mpl::second< state >::type, element >::type >
-                type;
+                typename boost::mpl::push_back< typename boost::mpl::second< state >::type, element >::type > type;
         };
 
         template < typename state, typename esf_sequence >
@@ -77,8 +76,7 @@ namespace gridtools {
             typename local_domain_storage_pointers< typename boost::mpl::front< LocalDomainSequence >::type >::type,
             typename meta_storage_pointers< typename boost::mpl::front< LocalDomainSequence >::type >::type,
             merged_esf_args_t,
-            local_domain_is_stateful< typename boost::mpl::front< LocalDomainSequence >::type >::value > >
-            type;
+            local_domain_is_stateful< typename boost::mpl::front< LocalDomainSequence >::type >::value > > type;
     };
 
     /**

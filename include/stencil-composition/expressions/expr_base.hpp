@@ -49,7 +49,8 @@ namespace gridtools {
         constexpr unary_expr(ArgType1 const &first_operand) : first_operand{first_operand} {}
 
         template < typename Arg1 >
-        GT_FUNCTION constexpr unary_expr(unary_expr< Arg1 > const &other) : first_operand(other.first_operand) {}
+        GT_FUNCTION constexpr unary_expr(unary_expr< Arg1 > const &other)
+            : first_operand(other.first_operand) {}
 
         ArgType1 const first_operand;
 

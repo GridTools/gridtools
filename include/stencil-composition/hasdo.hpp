@@ -85,9 +85,9 @@ namespace gridtools {
         };
 
         template < typename T >
-        yes operator,(T const &, yes);
+        yes operator, (T const &, yes);
 
-        no operator,(no const &, yes);
+        no operator, (no const &, yes);
 
         template < typename F >
         struct embed : F {

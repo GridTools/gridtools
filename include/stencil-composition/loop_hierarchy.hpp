@@ -187,7 +187,8 @@ namespace gridtools {
            it with an enable_if.
         */
         template < typename... ExtraArgs, typename = std::enable_if< is_static_loop< First >::value > >
-        GT_FUNCTION constexpr loop_hierarchy(ExtraArgs const &... extra) : next(extra...), loop() {
+        GT_FUNCTION constexpr loop_hierarchy(ExtraArgs const &... extra)
+            : next(extra...), loop() {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(ExtraArgs) <= sizeof...(Order),
                 "too many arguments passed to the constructor of the loops hierarchy");
         }

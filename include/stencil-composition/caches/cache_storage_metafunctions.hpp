@@ -1,6 +1,7 @@
 #pragma once
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
+
 /**
    @file metafunctions used in the cache_storage class
 */
@@ -43,8 +44,7 @@ namespace gridtools {
                 P2::value - M2::value + T2::value, // first 2 dimensions are special (the block)
                 ((Plus::value - Minus::value) > 0 ? (Tiles::value - Minus::value + Plus::value) : 1)...,
                 Storage::field_dimensions,
-                1 >
-                type;
+                1 > type;
         };
 
         template < typename T >

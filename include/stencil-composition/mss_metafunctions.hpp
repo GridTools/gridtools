@@ -127,8 +127,7 @@ namespace gridtools {
                                   esf_equal< boost::mpl::_1, boost::mpl::_2 > >::value) &&
                               (Mss1::is_reduction_t::value == Mss2::is_reduction_t::value) &&
                               (boost::mpl::equal< typename mss_descriptor_cache_sequence< Mss1 >::type,
-                                  typename mss_descriptor_cache_sequence< Mss2 >::type >::value)) >
-            type;
+                                  typename mss_descriptor_cache_sequence< Mss2 >::type >::value)) > type;
     };
 
 } // namespace gridtools

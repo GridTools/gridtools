@@ -75,8 +75,7 @@ namespace gridtools {
                 typename backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >::run_esf_functor_h_t
                     run_esf_functor_h_t;
             typedef run_f_on_interval_base<
-                run_f_on_interval< typename enumtype::execute< IterationType >, RunFunctorArguments > >
-                super;
+                run_f_on_interval< typename enumtype::execute< IterationType >, RunFunctorArguments > > super;
             typedef typename super::iterate_domain_t iterate_domain_t;
             typedef typename enumtype::execute< IterationType >::type execution_engine;
             typedef typename RunFunctorArguments::functor_list_t functor_list_t;

@@ -32,8 +32,7 @@ namespace test_expandable_parameters {
         // typedef accessor<2, enumtype::in> scalar;
 
         typedef boost::mpl::vector< parameters_out, parameters_in //, scalar
-            >
-            arg_list;
+            > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {

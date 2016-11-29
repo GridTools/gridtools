@@ -73,8 +73,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
                 typedef static_bool< (
                     boost::is_same< typename Esf::color_t::color_t, typename Color::color_t >::value ||
-                    boost::is_same< typename Esf::color_t, nocolor >::value) >
-                    type;
+                    boost::is_same< typename Esf::color_t, nocolor >::value) > type;
             };
 
             typedef typename is_there_in_sequence_if< EsfSequence, esf_has_color_< boost::mpl::_ > >::type type;
@@ -88,8 +87,7 @@ namespace gridtools {
         typedef static_bool< boost::is_same< typename Esf1::esf_function, typename Esf2::esf_function >::value &&
                              boost::mpl::equal< typename Esf1::args_t, typename Esf2::args_t >::value &&
                              boost::is_same< typename Esf1::location_type, typename Esf2::location_type >::value &&
-                             boost::is_same< typename Esf1::grid_t, typename Esf2::grid_t >::value >
-            type;
+                             boost::is_same< typename Esf1::grid_t, typename Esf2::grid_t >::value > type;
     };
 
     struct extract_esf_functor {

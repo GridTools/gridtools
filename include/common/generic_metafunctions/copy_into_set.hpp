@@ -37,6 +37,7 @@
 #include <boost/mpl/copy.hpp>
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/inserter.hpp>
+#include <boost/mpl/set.hpp>
 
 namespace gridtools {
     // similar to boost::mpl::copy but it copies into an associative set container

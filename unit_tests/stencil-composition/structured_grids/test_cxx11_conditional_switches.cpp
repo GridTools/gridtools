@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <stencil-composition/conditionals/condition_pool.hpp>
 #include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/conditionals/condition_pool.hpp>
 
 namespace test_conditional_switches {
     using namespace gridtools;

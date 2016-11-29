@@ -80,8 +80,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_aligned< Alignment >::type::value, "wrong type");
 
             typedef meta_storage<
-                meta_storage_aligned< meta_storage_base< IndexType, Layout, Temp >, Alignment, Halo > >
-                type;
+                meta_storage_aligned< meta_storage_base< IndexType, Layout, Temp >, Alignment, Halo > > type;
         };
     };
 }

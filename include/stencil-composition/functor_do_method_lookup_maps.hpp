@@ -114,13 +114,11 @@ namespace gridtools {
 
         // compute the extentd spanned by all do methods
         typedef boost::mpl::pair< typename boost::mpl::front< TDoMethods >::type::first,
-            typename boost::mpl::back< TDoMethods >::type::second >
-            DoExtend;
+            typename boost::mpl::back< TDoMethods >::type::second > DoExtend;
 
         // compute the extent spanned by all loop intervals
         typedef boost::mpl::pair< typename boost::mpl::front< TLoopIntervals >::type::first,
-            typename boost::mpl::back< TLoopIntervals >::type::second >
-            LoopExtend;
+            typename boost::mpl::back< TLoopIntervals >::type::second > LoopExtend;
 
         // make sure the do extent is a sub interval of the loop extent
         GRIDTOOLS_STATIC_ASSERT((is_sub_interval< DoExtend, LoopExtend >::value),

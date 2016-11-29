@@ -99,18 +99,15 @@ TEST(storage_info, test_interface) {
     constexpr gridtools::meta_storage_aligned<
         gridtools::meta_storage_base< static_int< 0 >, gridtools::layout_map< 0, 1, 2 >, false >,
         align_t,
-        halo_t >
-        meta_aligned_1{11, 12, 13};
+        halo_t > meta_aligned_1{11, 12, 13};
     constexpr gridtools::meta_storage_aligned<
         gridtools::meta_storage_base< static_int< 0 >, gridtools::layout_map< 0, 2, 1 >, false >,
         align_t,
-        halo_t >
-        meta_aligned_2{11, 12, 13};
+        halo_t > meta_aligned_2{11, 12, 13};
     constexpr gridtools::meta_storage_aligned<
         gridtools::meta_storage_base< static_int< 0 >, gridtools::layout_map< 2, 1, 0 >, false >,
         align_t,
-        halo_t >
-        meta_aligned_3{11, 12, 13};
+        halo_t > meta_aligned_3{11, 12, 13};
 
     // check unaligned dimensions with either templated method or method that takes an argument
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_1.unaligned_dim< 0 >() == 11), "error");
@@ -188,8 +185,7 @@ TEST(storage_info, test_interface) {
     gridtools::meta_storage_aligned<
         gridtools::meta_storage_base< static_int< 0 >, gridtools::layout_map< 0, 1, 2 >, false >,
         align_t1,
-        halo_t1 >
-        meta_aligned_1nc(11, 12, 13);
+        halo_t1 > meta_aligned_1nc(11, 12, 13);
     // check if unaligned dims and strides are correct
     ASSERT_TRUE((meta_aligned_1nc.unaligned_dim(0) == 11) && "error");
     ASSERT_TRUE((meta_aligned_1nc.unaligned_dim(1) == 12) && "error");

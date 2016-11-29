@@ -94,8 +94,7 @@ namespace gridtools {
                 typedef pair_type< typename StrategyTraits::template get_tmp_storage< typename temporary::storage_type,
                                        tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
                                        tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > >::type,
-                    typename temporary::index_type >
-                    type;
+                    typename temporary::index_type > type;
             };
         };
     } // namespace _impl

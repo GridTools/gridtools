@@ -16,8 +16,7 @@ namespace gridtools {
         template < short_t Pre, typename InSequence, template < short_t... > class Sequence, short_t... Args >
         struct recursive_expansion< Pre, InSequence, Sequence, Pre, Args... > {
             typedef Sequence< boost::mpl::at_c< InSequence, Pre >::type::value,
-                boost::mpl::at_c< InSequence, Args >::type::value... >
-                type;
+                boost::mpl::at_c< InSequence, Args >::type::value... > type;
         };
     }
 

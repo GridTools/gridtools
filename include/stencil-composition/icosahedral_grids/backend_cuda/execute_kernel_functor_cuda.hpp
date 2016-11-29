@@ -76,8 +76,7 @@ namespace gridtools {
             typedef shared_iterate_domain< data_pointer_array_t,
                 strides_t,
                 max_extent_t,
-                typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t >
-                shared_iterate_domain_t;
+                typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
 
             const uint_t block_size_i = (blockIdx.x + 1) * block_size_t::i_size_t::value < nx
                                             ? block_size_t::i_size_t::value
@@ -213,8 +212,7 @@ namespace gridtools {
             typedef _impl::iteration_policy< from,
                 to,
                 typename grid_traits_from_id< enumtype::icosahedral >::dim_k_t,
-                execution_type_t::type::iteration >
-                iteration_policy_t;
+                execution_type_t::type::iteration > iteration_policy_t;
 
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(
                 grid->template value_at< iteration_policy_t::from >());
@@ -343,8 +341,7 @@ namespace gridtools {
                     typename RunFunctorArguments::execution_type_t,
                     typename RunFunctorArguments::is_reduction_t,
                     typename RunFunctorArguments::reduction_data_t,
-                    typename RunFunctorArguments::color_t >
-                    run_functor_arguments_cuda_t;
+                    typename RunFunctorArguments::color_t > run_functor_arguments_cuda_t;
 #endif
 
 #ifdef VERBOSE
@@ -354,7 +351,7 @@ namespace gridtools {
 #endif
 
                 _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t,
-                    local_domain_t >< < < blocks, threads > > > //<<<nbx*nby, ntx*nty>>>
+                    local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
 
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff

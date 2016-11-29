@@ -82,8 +82,7 @@ namespace gridtools {
     struct meta_array_generator1< Vector, condition< Mss1, Mss2, Cond > > {
         typedef condition< typename meta_array_generator1< Vector, Mss1 >::type,
             typename meta_array_generator1< Vector, Mss2 >::type,
-            Cond >
-            type;
+            Cond > type;
     };
 
     BOOST_PP_REPEAT(GT_MAX_MSS, _META_ARRAY_GENERATOR_, _)

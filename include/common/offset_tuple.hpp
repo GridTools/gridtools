@@ -185,7 +185,8 @@ namespace gridtools {
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
-        GT_FUNCTION constexpr offset_tuple(int t, GenericElements const &... x) : super(x...), m_offset(t) {}
+        GT_FUNCTION constexpr offset_tuple(int t, GenericElements const &... x)
+            : super(x...), m_offset(t) {}
 
         /**@brief constructor taking the dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'dimension' is a

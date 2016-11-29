@@ -197,7 +197,8 @@ struct field_names {
     std::vector< std::vector< std::string > > m_names;
 
     template < typename FunctorVec >
-    field_names(FunctorVec const &fv) : m_names(fv.size()) {
+    field_names(FunctorVec const &fv)
+        : m_names(fv.size()) {
         for (int i = 0; i < m_names.size(); ++i) {
             m_names[i] = std::vector< std::string >(fv[i].n_args());
             for (int j = 0; j < m_names[i].size(); ++j) {

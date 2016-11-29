@@ -86,8 +86,7 @@ namespace gridtools {
 #else
         typedef HaloType< align_all< Alignment::value, Halo1 >::value - Halo1,
             align_all< Alignment::value, Halo2 >::value - Halo2,
-            align_all< Alignment::value, Halo3 >::value - Halo3 >
-            padding_t; // paddings
+            align_all< Alignment::value, Halo3 >::value - Halo3 > padding_t; // paddings
         typedef HaloType< Halo1, Halo2, Halo3 > halo_t;
 #endif
 

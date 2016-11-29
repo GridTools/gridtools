@@ -304,8 +304,7 @@ namespace gridtools {
                     DomainType,
                     ActualArgListType,
                     ActualMetadataListType,
-                    IsStateful >
-                    type;
+                    IsStateful > type;
             };
         };
 
@@ -706,14 +705,12 @@ namespace gridtools {
         void copy_domain_metadata_pointers() {
             // filter the non temporary meta storages among the storage pointers in the domain
             typedef boost::fusion::filter_view< typename DomainType::metadata_ptr_list,
-                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > >
-                t_domain_meta_view;
+                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_domain_meta_view;
 
             // filter the non temporary meta storages among the placeholders passed to the intermediate
             typedef boost::fusion::filter_view<
                 typename boost::fusion::result_of::as_set< actual_metadata_set_t >::type,
-                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > >
-                t_meta_view;
+                boost::mpl::not_< is_ptr_to_tmp< boost::mpl::_1 > > > t_meta_view;
 
             t_domain_meta_view domain_meta_view(m_domain.m_metadata_set.sequence_view());
             t_meta_view meta_view(m_actual_metadata_list.sequence_view());

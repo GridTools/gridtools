@@ -64,8 +64,7 @@ namespace gridtools {
             "Meta storage extender is not supported for tmp meta storages");
 
         typedef Base< typename meta_storage_extender_impl< First, NExtraDim >::type,
-            typename extend_aux_param< NExtraDim, TmpParam >::type... >
-            type;
+            typename extend_aux_param< NExtraDim, TmpParam >::type... > type;
     };
 
     template < short_t Val, short_t NExtraDim >
@@ -100,8 +99,7 @@ namespace gridtools {
     struct meta_storage_extender_impl< meta_storage_base< static_int< Index >, Layout, IsTemporary >, NExtraDim > {
         typedef meta_storage_base< static_int< Index >,
             typename meta_storage_extender_impl< Layout, NExtraDim >::type,
-            IsTemporary >
-            type;
+            IsTemporary > type;
     };
 
     /**

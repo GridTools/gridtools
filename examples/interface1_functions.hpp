@@ -38,9 +38,9 @@
 //#include <gridtools.hpp>
 #include "./cache_flusher.hpp"
 #include "./defs.hpp"
+#include <stencil-composition/stencil-composition.hpp>
 #include "horizontal_diffusion_repository.hpp"
 #include <stencil-composition/caches/define_caches.hpp>
-#include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/structured_grids/call_interfaces.hpp>
 #include <tools/verifier.hpp>
 

@@ -70,6 +70,9 @@
 
 namespace gridtools {
 
+    template < typename T >
+    struct is_local_domain;
+
     /**
      * @struct is_cache
      * metafunction determining if a type is a cache type

@@ -251,7 +251,8 @@ namespace gridtools {
             \endverbatim
         */
         template < typename... Pairs >
-        aggregator_type(Pairs... pairs_) : m_storage_pointers(), m_metadata_set() {
+        aggregator_type(Pairs... pairs_)
+            : m_storage_pointers(), m_metadata_set() {
 
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_arg_storage_pair< Pairs >::value...), "wrong type");
             GRIDTOOLS_STATIC_ASSERT((sizeof...(Pairs) > 0),

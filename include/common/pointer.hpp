@@ -69,7 +69,8 @@ namespace gridtools {
            @brief construct from raw pointer
          */
         template < typename U >
-        GT_FUNCTION pointer(U *t_) : m_t(t_) {
+        GT_FUNCTION pointer(U *t_)
+            : m_t(t_) {
             assert(m_t);
         }
 

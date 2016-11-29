@@ -57,8 +57,7 @@ namespace gridtools {
     template < typename Axis, uint_t I >
     struct extend_by {
         typedef interval< level< Axis::FromLevel::Splitter::value, Axis::FromLevel::Offset::value - 1 >,
-            level< Axis::ToLevel::Splitter::value, Axis::ToLevel::Offset::value + 1 > >
-            type;
+            level< Axis::ToLevel::Splitter::value, Axis::ToLevel::Offset::value + 1 > > type;
     };
 
     namespace enumtype_axis {

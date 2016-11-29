@@ -530,8 +530,7 @@ namespace gridtools {
         typedef storage< data_field< storage_list< base_storage< typename Storage::pointer_type,
                                                        typename Storage::storage_info_type,
                                                        accumulate(add_functor(), ((uint_t)Number)...) >,
-            Number - 1 >... > >
-            type;
+            Number - 1 >... > > type;
     };
 
     /**
@@ -542,8 +541,7 @@ namespace gridtools {
     struct field_reversed< base_storage< PointerType, MetaData, FD >, Number... > {
         typedef data_field<
             storage_list< base_storage< PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number)...) >,
-                Number - 1 >... >
-            type;
+                Number - 1 >... > type;
     };
 
     /**@brief specialization for no_storage_type_yet (Block strategy, GPU storage)*/
@@ -552,8 +550,7 @@ namespace gridtools {
         Number... > {
         typedef no_storage_type_yet< storage< data_field<
             storage_list< base_storage< PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number)...) >,
-                Number - 1 >... > > >
-            type;
+                Number - 1 >... > > > type;
     };
 
     /**@brief specialization for no_storage_type_yet (Block strategy, CPU storage)*/
@@ -561,8 +558,7 @@ namespace gridtools {
     struct field_reversed< no_storage_type_yet< base_storage< PointerType, MetaData, FieldDimension > >, Number... > {
         typedef no_storage_type_yet< data_field<
             storage_list< base_storage< PointerType, MetaData, accumulate(add_functor(), ((uint_t)Number)...) >,
-                Number - 1 >... > >
-            type;
+                Number - 1 >... > > type;
     };
 
     /**@brief interface for defining a data field

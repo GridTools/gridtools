@@ -89,8 +89,7 @@ namespace gridtools {
                 boost::mpl::vector0<>,
                 boost::mpl::copy< boost::mpl::_1, boost::mpl::back_inserter< mss_split_esfs< boost::mpl::_2 > > > >::
                 type,
-            boost::mpl::quote1< is_computation_token > >
-            type;
+            boost::mpl::quote1< is_computation_token > > type;
     };
 
     /**
@@ -141,8 +140,7 @@ namespace gridtools {
                                     mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
                                                            boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
                                                            RepeatFunctor > > >::type,
-            boost::mpl::quote1< is_mss_components > >
-            type;
+            boost::mpl::quote1< is_mss_components > > type;
     }; // struct build_mss_components_array
 
     /**
@@ -178,8 +176,7 @@ namespace gridtools {
                                meta_array< MssDescriptorArray2, Predicate >,
                                ExtentSizes2,
                                RepeatFunctor >::type,
-            Condition >
-            type;
+            Condition > type;
     }; // build_mss_components_array
 
     /**

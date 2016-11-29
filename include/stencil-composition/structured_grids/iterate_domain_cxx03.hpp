@@ -147,8 +147,7 @@ namespace gridtools {
                 typename boost::mpl::and_<
                     typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
                     typename boost::mpl::not_< typename accessor_holds_data_field< Accessor >::type >::type >::type,
-                typename is_accessor< Accessor >::type >
-                type;
+                typename is_accessor< Accessor >::type > type;
         };
 
         /**
@@ -690,7 +689,8 @@ namespace gridtools {
         typename iterate_domain< IterateDomainImpl >::template mem_access_with_data_field_accessor< Accessor,
             typename iterate_domain< IterateDomainImpl >::all_caches_t >::type,
         typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type >::type
-    iterate_domain< IterateDomainImpl >::operator()(Accessor const &accessor) const {
+        iterate_domain< IterateDomainImpl >::
+        operator()(Accessor const &accessor) const {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 

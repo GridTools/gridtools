@@ -121,8 +121,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
         gridtools::grid< local_domain_stencil::axis >,
         boost::fusion::set<>,
         gridtools::notype,
-        false >
-        intermediate_t;
+        false > intermediate_t;
 
     typedef intermediate_backend< intermediate_t >::type backend_t;
     typedef intermediate_aggregator_type< intermediate_t >::type domain_t;

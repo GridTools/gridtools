@@ -73,8 +73,7 @@ namespace gridtools {
         typedef shared_iterate_domain< data_pointer_array_t,
             strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
-            typename iterate_domain_cache_t::ij_caches_tuple_t >
-            shared_iterate_domain_t;
+            typename iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;

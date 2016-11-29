@@ -435,8 +435,7 @@ namespace shallow_water {
 #else
             gridtools::gcl_cpu,
 #endif
-            gridtools::version_manual >
-            pattern_type;
+            gridtools::version_manual > pattern_type;
 
         pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, &dimensions);
         //! [pattern_type]
@@ -445,8 +444,7 @@ namespace shallow_water {
         array< ushort_t, 3 > padding{1, 1, 0};
         array< ushort_t, 3 > halo{1, 1, 0};
         typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
-            pattern_type::grid_type >
-            partitioner_t;
+            pattern_type::grid_type > partitioner_t;
 
         partitioner_t part(he.comm(), halo, padding);
         //! [padding_halo]

@@ -47,14 +47,13 @@ namespace gridtools {
             static typename boost::remove_reference<
                 typename boost::fusion::result_of::at< Vec, static_ushort< ID > >::type >::type::value_type *
             apply(DomFull const &dom_full_) {
-                return new typename boost::remove_reference< typename boost::fusion::result_of::at< Vec,
-                    static_ushort< ID > >::type >::type::value_type(dom_full_
-                                                                        .template storage_pointer<
-                                                                            arg< ID, std::vector< pointer< T > > > >()
-                                                                        ->at(0)
-                                                                        ->meta_data(),
-                    "expandable params",
-                    false /*do_allocate*/);
+                return new typename boost::remove_reference<
+                    typename boost::fusion::result_of::at< Vec, static_ushort< ID > >::type >::type::
+                    value_type(dom_full_.template storage_pointer< arg< ID, std::vector< pointer< T > > > >()
+                                   ->at(0)
+                                   ->meta_data(),
+                        "expandable params",
+                        false /*do_allocate*/);
             }
         };
 

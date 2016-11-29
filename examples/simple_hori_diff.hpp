@@ -35,10 +35,10 @@
 */
 #pragma once
 
-#include "benchmarker.hpp"
 #include "defs.hpp"
-#include "horizontal_diffusion_repository.hpp"
 #include <stencil-composition/stencil-composition.hpp>
+#include "horizontal_diffusion_repository.hpp"
+#include "benchmarker.hpp"
 #include <tools/verifier.hpp>
 
 /**

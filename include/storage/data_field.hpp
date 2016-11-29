@@ -271,7 +271,8 @@ namespace gridtools {
 
         /**@brief device copy constructor*/
         template < typename T >
-        __device__ data_field(T const &other) : super(other) {}
+        __device__ data_field(T const &other)
+            : super(other) {}
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~data_field() {}
@@ -407,8 +408,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
-            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot]
-                                  [this->m_meta_data->index(args...)];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
+                                   snapshot][this->m_meta_data->index(args...)];
         }
 
         /**@brief gets a given value at the given field i,j,k coordinates
@@ -421,8 +422,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field_dimension out of bound");
-            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot]
-                                  [this->m_meta_data->index(args...)];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields +
+                                   snapshot][this->m_meta_data->index(args...)];
         }
     };
 

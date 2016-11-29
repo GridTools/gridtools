@@ -9,7 +9,8 @@ namespace gridtools {
             : super(first_operand, second_operand) {}
 
         template < typename Arg1, typename Arg2 >
-        GT_FUNCTION constexpr expr_plus(expr_plus< Arg1, Arg2 > const &other) : super(other) {}
+        GT_FUNCTION constexpr expr_plus(expr_plus< Arg1, Arg2 > const &other)
+            : super(other) {}
 
 #ifndef __CUDACC__
       private:

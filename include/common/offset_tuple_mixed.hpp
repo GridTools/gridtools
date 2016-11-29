@@ -56,7 +56,8 @@ namespace gridtools {
             typename T = typename boost::enable_if_c< accumulate(logical_and(),
                 boost::mpl::or_< boost::is_integral< ArgsRuntime >, is_dimension< ArgsRuntime > >::type::value...) >::
                 type >
-        GT_FUNCTION constexpr offset_tuple_mixed(ArgsRuntime const &... args) : m_tuple_runtime(args...) {}
+        GT_FUNCTION constexpr offset_tuple_mixed(ArgsRuntime const &... args)
+            : m_tuple_runtime(args...) {}
 #else
         template < typename First,
             typename... ArgsRuntime,
@@ -71,7 +72,8 @@ namespace gridtools {
             : m_tuple_runtime(other_.m_tuple_runtime) {}
 
         template < typename OffsetTuple, int_t I, int_t N >
-        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple< I, N > const &arg_) : m_tuple_runtime(arg_) {}
+        GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple< I, N > const &arg_)
+            : m_tuple_runtime(arg_) {}
 
         template < typename OtherAcc >
         GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< OtherAcc, Pair... > &&other_)

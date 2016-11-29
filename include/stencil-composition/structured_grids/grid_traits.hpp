@@ -47,6 +47,9 @@
 
 namespace gridtools {
 
+    template < typename PlaceholdersMap, uint_t RepeatFunctor >
+    struct compute_extents_of;
+
     template <>
     struct grid_traits_from_id< enumtype::structured > {
 

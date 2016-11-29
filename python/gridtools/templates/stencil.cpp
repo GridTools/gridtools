@@ -105,9 +105,7 @@ void run_{{stencil_name}}(uint_t d1,
     typedef gridtools::BACKEND::temporary_storage_type< float_type, meta_data_t >::type tmp_storage_type;
     { % endif - % }
 
-    {
-        % if params %
-    }
+    { % if params % }
     //
     // parameter data fields use the memory buffers received from NumPy arrays
     //
@@ -120,7 +118,8 @@ void run_{{stencil_name}}(uint_t d1,
             { p.name }
         } _buff,
         "{{ p.name }}");
-    { % endfor % } { % endif - % }
+    { % endfor % }
+    { % endif - % }
 
     //
     // place-holder definition: their order matches the stencil parameters,
@@ -138,8 +137,7 @@ void run_{{stencil_name}}(uint_t d1,
     // an array of placeholders to be passed to the domain
     //
     typedef boost::mpl::vector< {
-        {-params_temps | join_with_prefix('p_', attribute = 'name') | join(', ') | replace('.', '_')}} >
-        arg_type_list;
+        {-params_temps | join_with_prefix('p_', attribute = 'name') | join(', ') | replace('.', '_')}} > arg_type_list;
 
     //
     // construction of the domain.
@@ -165,8 +163,14 @@ void run_{{stencil_name}}(uint_t d1,
     //   index of the last interior element,
     //   total number of elements in dimension }
     //
-    uint_t di_{{loop.index0}}[5] = {{{s.halo[0]}}, {{s.halo[1]}}, {{s.halo[1]}}, d1 - {{s.halo[0]}} - 1, d1};
-    uint_t dj_{{loop.index0}}[5] = {{{s.halo[2]}}, {{s.halo[3]}}, {{s.halo[3]}}, d2 - {{s.halo[2]}} - 1, d2};
+    uint_t di_ {
+        { loop.index0 }
+    }
+    [5] = {{{s.halo[0]}}, {{s.halo[1]}}, {{s.halo[1]}}, d1 - {{s.halo[0]}} - 1, d1};
+    uint_t dj_ {
+        { loop.index0 }
+    }
+    [5] = {{{s.halo[2]}}, {{s.halo[3]}}, {{s.halo[3]}}, d2 - {{s.halo[2]}} - 1, d2};
 
     //
     // the vertical dimension of the problem is a property of this object
@@ -220,7 +224,8 @@ void run_{{stencil_name}}(uint_t d1,
         { s.name | lower }
     }
     ->ready();
-    { % endfor % } {% for s in stencils -%
+    { % endfor % }
+    {% for s in stencils -%
     }
     comp_ {
         { s.name | lower }

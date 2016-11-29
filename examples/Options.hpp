@@ -42,7 +42,7 @@
 * Singleton data container for program options
 */
 class Options /* singleton */
-{
+    {
   private:
     Options() {
         for (int i = 0; i < 4; ++i) {

@@ -103,7 +103,7 @@ struct triangular_storage {
             return *this;
         }
 
-        iterator operator++(int)const {
+        iterator operator++(int) const {
             toggle_direction = toggle_direction * (-1);
             return m_it + 1;
         }
@@ -114,7 +114,7 @@ struct triangular_storage {
             return *this;
         }
 
-        iterator operator--(int)const {
+        iterator operator--(int) const {
             toggle_direction = toggle_direction * (-1);
             return m_it - 1;
         }

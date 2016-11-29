@@ -51,8 +51,7 @@ namespace adv_prepare_tracers {
             data_nnow3,
             data_nnow4,
             data_nnow5,
-            rho >
-            arg_list;
+            rho > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, interval_t) {

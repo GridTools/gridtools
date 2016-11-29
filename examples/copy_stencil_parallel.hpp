@@ -36,6 +36,8 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
+#include <storage/partitioner_trivial.hpp>
+#include <storage/parallel_storage.hpp>
 
 #include <communication/low-level/proc_grids_3D.hpp>
 #include <boundary-conditions/apply.hpp>
@@ -293,15 +295,15 @@ namespace copy_stencil {
                         if (gridtools::bitmap_predicate(part.boundary())
                                 .at_boundary(0, gridtools::bitmap_predicate::UP) ||
                             gridtools::bitmap_predicate(part.boundary())
-                                .at_boundary(0, gridtools::bitmap_predicate::DOWN) ||
+                                .at_boundary(0, gridtools::bitmap_predicate::LOW) ||
                             gridtools::bitmap_predicate(part.boundary())
                                 .at_boundary(1, gridtools::bitmap_predicate::UP) ||
                             gridtools::bitmap_predicate(part.boundary())
-                                .at_boundary(1, gridtools::bitmap_predicate::DOWN) ||
+                                .at_boundary(1, gridtools::bitmap_predicate::LOW) ||
                             gridtools::bitmap_predicate(part.boundary())
                                 .at_boundary(2, gridtools::bitmap_predicate::UP) ||
                             gridtools::bitmap_predicate(part.boundary())
-                                .at_boundary(2, gridtools::bitmap_predicate::DOWN)) {
+                                .at_boundary(2, gridtools::bitmap_predicate::LOW)) {
                             if (out(i, j, k) != part.boundary()) {
                                 GCL_Finalize();
                                 return false;

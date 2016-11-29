@@ -8,7 +8,8 @@ namespace gridtools {
         constexpr expr_derivative(ArgType1 const &first_operand) : super(first_operand) {}
 
         template < typename Arg1 >
-        GT_FUNCTION constexpr expr_derivative(expr_derivative< Arg1 > const &other) : super(other) {}
+        GT_FUNCTION constexpr expr_derivative(expr_derivative< Arg1 > const &other)
+            : super(other) {}
 
 #ifndef __CUDACC__
       private:

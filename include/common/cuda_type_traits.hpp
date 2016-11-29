@@ -55,8 +55,7 @@ namespace gridtools {
             float2,
             float4,
             double,
-            double2 >
-            texture_types;
+            double2 > texture_types;
     } // namespace _impl
 
     template < typename T >

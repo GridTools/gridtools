@@ -167,8 +167,7 @@ namespace gridtools {
                     color_t,
                     LocationTypeT,
                     Reduction,
-                    typename remap_accessor_type< Accessors, esf_args_map_t >::type... >
-                    remap_accessor_t;
+                    typename remap_accessor_type< Accessors, esf_args_map_t >::type... > remap_accessor_t;
                 return m_iterate_domain(esf_location_type_t(), remap_accessor_t(onneighbors));
             }
         };
@@ -189,8 +188,7 @@ namespace gridtools {
           public:
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
             typedef iterate_domain_remapper_base<
-                iterate_domain_remapper< IterateDomain, EsfArgsMap, EsfLocationType, Color > >
-                super;
+                iterate_domain_remapper< IterateDomain, EsfArgsMap, EsfLocationType, Color > > super;
 
             GT_FUNCTION
             explicit iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
@@ -244,8 +242,7 @@ namespace gridtools {
         typedef icgrid::iterate_domain_remapper< IterateDomain,
             trivial_args_map_t,
             typename Esf::location_type,
-            Color::color_t::value >
-            type;
+            Color::color_t::value > type;
     };
 
 } // namespace gridtools

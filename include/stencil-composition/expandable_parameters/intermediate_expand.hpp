@@ -132,8 +132,7 @@ namespace gridtools {
             ConditionalsSet,
             ReductionType,
             IsStateful,
-            ExpandFactor::value >
-            intermediate_t;
+            ExpandFactor::value > intermediate_t;
 
         // typedef to the intermediate type associated with the vector length of s_size%ExpandFactor::value
         typedef intermediate< Backend,
@@ -143,8 +142,7 @@ namespace gridtools {
             ConditionalsSet,
             ReductionType,
             IsStateful,
-            1 >
-            intermediate_remainder_t;
+            1 > intermediate_remainder_t;
 
       private:
         // private members

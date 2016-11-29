@@ -76,7 +76,8 @@ namespace gridtools {
 
         /**@brief device copy constructor*/
         template < typename T >
-        __device__ storage_list(T const &other) : super(other) {
+        __device__ storage_list(T const &other)
+            : super(other) {
             // GRIDTOOLS_STATIC_ASSERT(n_width==T::n_width, "Dimension analysis error: copying two vectors with
             // different dimensions");
         }
@@ -122,7 +123,8 @@ namespace gridtools {
 
         /**@brief device copy constructor*/
         template < typename T >
-        __device__ storage_list(T const &other) : super(other) {}
+        __device__ storage_list(T const &other)
+            : super(other) {}
     };
 
     template < typename T >

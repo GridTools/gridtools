@@ -114,8 +114,7 @@ void run(ST &file,
         triple_t< USE_DOUBLE >::data_type,
         gridtools::MPI_3D_process_grid_t< 3 >,
         arch_type,
-        version >
-        pattern_type;
+        version > pattern_type;
 
     /* The pattern is now instantiated with the periodicities and the
        communicator. The periodicity of the communicator is

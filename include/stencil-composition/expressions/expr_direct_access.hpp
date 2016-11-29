@@ -11,7 +11,8 @@ namespace gridtools {
         constexpr expr_direct_access(ArgType1 const &first_operand) : super(first_operand) {}
 
         template < typename Arg1 >
-        GT_FUNCTION constexpr expr_direct_access(expr_direct_access< Arg1 > const &other) : super(other) {}
+        GT_FUNCTION constexpr expr_direct_access(expr_direct_access< Arg1 > const &other)
+            : super(other) {}
 
 #ifndef __CUDACC__
       private:

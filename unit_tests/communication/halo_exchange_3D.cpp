@@ -410,7 +410,7 @@ int main(int argc, char **argv) {
     res &= (pg.proc(-1, -1, 1) == iminusjminuskplus_r);
 
     int final;
-    MPI_Reduce(&res, & final, 1, MPI_INT, MPI_LAND, 0, gridtools::GCL_WORLD);
+    MPI_Reduce(&res, &final, 1, MPI_INT, MPI_LAND, 0, gridtools::GCL_WORLD);
 
     if (gridtools::PID == 0) {
         if (!final) {

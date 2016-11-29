@@ -192,8 +192,7 @@ namespace gridtools {
                 typedef _impl::iteration_policy< from,
                     to,
                     typename ::gridtools::grid_traits_from_id< enumtype::structured >::dim_k_t,
-                    execution_type_t::type::iteration >
-                    iteration_policy_t;
+                    execution_type_t::type::iteration > iteration_policy_t;
 
                 typedef array< int_t, iterate_domain_t::N_META_STORAGES > array_t;
                 loop_hierarchy< array_t, loop_item< 0, int_t, 1 >, loop_item< 1, int_t, 1 > > ij_loop(
@@ -211,8 +210,7 @@ namespace gridtools {
                     _impl::run_f_on_interval< execution_type_t, RunFunctorArguments >,
                     iterate_domain_t,
                     grid_t,
-                    iteration_policy_t >
-                    innermost_functor_t;
+                    iteration_policy_t > innermost_functor_t;
 
                 // instantiate the kernel functor
                 innermost_functor_t f(it_domain, m_grid);

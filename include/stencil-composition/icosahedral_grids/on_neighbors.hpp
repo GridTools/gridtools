@@ -270,8 +270,7 @@ namespace gridtools {
             SrcColor,
             DstLocationType,
             ReductionFunction,
-            accessor< OtherIndex, Intend, LocationType, extent< R > > >
-            type;
+            accessor< OtherIndex, Intend, LocationType, extent< R > > > type;
     };
 
 } // namespace gridtools

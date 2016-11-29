@@ -96,14 +96,14 @@ struct triangular_storage {
             return *this;
         }
 
-        iterator operator++(int)const { return m_it + 1; }
+        iterator operator++(int) const { return m_it + 1; }
 
         iterator &operator--() {
             --m_it;
             return *this;
         }
 
-        iterator operator--(int)const { return m_it - 1; }
+        iterator operator--(int) const { return m_it - 1; }
 
         iterator &operator+=(int i) {
             m_it += i;

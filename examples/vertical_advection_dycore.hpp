@@ -36,10 +36,10 @@
 #pragma once
 #include <gridtools.hpp>
 
-#include "benchmarker.hpp"
 #include "defs.hpp"
-#include "vertical_advection_repository.hpp"
 #include <stencil-composition/stencil-composition.hpp>
+#include "vertical_advection_repository.hpp"
+#include "benchmarker.hpp"
 #include <tools/verifier.hpp>
 
 /*
@@ -244,8 +244,7 @@ namespace vertical_advection_dycore {
             p_bcol,
             p_ccol,
             p_dcol,
-            p_data_col >
-            accessor_list;
+            p_data_col > accessor_list;
 
 // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
 // used, temporary and not
