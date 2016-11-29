@@ -43,6 +43,7 @@
 
 #include <communication/halo_exchange.hpp>
 #include <boundary-conditions/apply.hpp>
+#include <fstream>
 
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel, simple copy of one field done on the
