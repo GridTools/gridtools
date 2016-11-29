@@ -35,6 +35,9 @@
 */
 #pragma once
 
+#include "../defs.hpp"
+#include "logical_ops.hpp"
+
 namespace gridtools {
 
 #ifdef CXX11_ENABLED
