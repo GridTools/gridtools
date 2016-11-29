@@ -188,14 +188,14 @@ namespace gridtools {
             // check (in DEBUG mode) that all the expandable parameter lists have the same size
             boost::mpl::for_each< expandable_params_t >(_impl::check_length< DomainType >(domain, m_size));
 
-            m_domain_chunk.set(new aggregator_type< expand_arg_list >(expand_vec));
-            m_intermediate.set(new intermediate_t(*m_domain_chunk, grid, conditionals_));
+            m_domain_chunk.reset(new aggregator_type< expand_arg_list >(expand_vec));
+            m_intermediate.reset(new intermediate_t(*m_domain_chunk, grid, conditionals_));
             if (m_size % ExpandFactor::value) {
                 boost::mpl::for_each< typename DomainType::placeholders_t >(
                     _impl::initialize_storage< DomainType, vec_remainder_t >(domain, vec_remainder));
 
-                m_domain_chunk_remainder.set(new aggregator_type< expand_arg_list_remainder >(vec_remainder));
-                m_intermediate_remainder.set(
+                m_domain_chunk_remainder.reset(new aggregator_type< expand_arg_list_remainder >(vec_remainder));
+                m_intermediate_remainder.reset(
                     new intermediate_remainder_t(*m_domain_chunk_remainder, grid, conditionals_));
             }
         }
