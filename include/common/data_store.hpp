@@ -37,6 +37,7 @@
 #pragma once
 
 #include <memory>
+#include <assert.h>
 
 #include <boost/mpl/bool.hpp>
 

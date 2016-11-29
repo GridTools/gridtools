@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <assert.h>
+
 #include <boost/utility.hpp>
 
 #include "storage.hpp"
