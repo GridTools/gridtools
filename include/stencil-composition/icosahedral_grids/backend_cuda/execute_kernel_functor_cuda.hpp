@@ -34,12 +34,21 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+<<<<<<< HEAD
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../common/generic_metafunctions/replace_template_arguments.hpp"
 #include "../../iteration_policy.hpp"
 #include "common/gt_assert.hpp"
 #include "stencil-composition/iterate_domain.hpp"
+=======
+#include "../../common/generic_metafunctions/replace_template_arguments.hpp"
+#include "../../iteration_policy.hpp"
+#include "../../backend_traits_fwd.hpp"
+#include "stencil-composition/iterate_domain.hpp"
+#include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "common/gt_assert.hpp"
+>>>>>>> master
 
 namespace gridtools {
 
@@ -76,8 +85,12 @@ namespace gridtools {
             typedef shared_iterate_domain< data_pointer_array_t,
                 strides_t,
                 max_extent_t,
+<<<<<<< HEAD
                 typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t >
                 shared_iterate_domain_t;
+=======
+                typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
+>>>>>>> master
 
             const uint_t block_size_i = (blockIdx.x + 1) * block_size_t::i_size_t::value < nx
                                             ? block_size_t::i_size_t::value
@@ -213,8 +226,12 @@ namespace gridtools {
             typedef _impl::iteration_policy< from,
                 to,
                 typename grid_traits_from_id< enumtype::icosahedral >::dim_k_t,
+<<<<<<< HEAD
                 execution_type_t::type::iteration >
                 iteration_policy_t;
+=======
+                execution_type_t::type::iteration > iteration_policy_t;
+>>>>>>> master
 
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(
                 grid->template value_at< iteration_policy_t::from >());
@@ -343,8 +360,12 @@ namespace gridtools {
                     typename RunFunctorArguments::execution_type_t,
                     typename RunFunctorArguments::is_reduction_t,
                     typename RunFunctorArguments::reduction_data_t,
+<<<<<<< HEAD
                     typename RunFunctorArguments::color_t >
                     run_functor_arguments_cuda_t;
+=======
+                    typename RunFunctorArguments::color_t > run_functor_arguments_cuda_t;
+>>>>>>> master
 #endif
 
 #ifdef VERBOSE

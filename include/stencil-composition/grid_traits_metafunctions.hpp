@@ -35,11 +35,17 @@
 */
 #pragma once
 
+<<<<<<< HEAD
 namespace gridtools {
 
     template < enumtype::grid_type G >
     struct grid_traits_from_id; // breaks circular dependency
 
+=======
+#include "./grid_traits.hpp"
+
+namespace gridtools {
+>>>>>>> master
     template < typename T >
     struct is_grid_traits_from_id : boost::false_type {};
 
