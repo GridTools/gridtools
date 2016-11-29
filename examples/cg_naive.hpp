@@ -203,41 +203,39 @@ namespace cg_naive{
     /** @brief
       Implementation of the Dirichlet boundary conditions.
       */
-    template <typename Partitioner>
-        struct boundary_conditions {
-            Partitioner const& m_partitioner; // info about domain partitioning
-            double h; // step size
+    //  template <typename Partitioner>
+    //      struct boundary_conditions {
+    //          Partitioner const& m_partitioner; // info about domain partitioning
+    //          double h; // step size
 
-            boundary_conditions(Partitioner const& p, double step)
-                : m_partitioner(p), h(step)
-            {}
+    //          boundary_conditions(Partitioner const& p, double step)
+    //              : m_partitioner(p), h(step)
+    //          {}
 
-            // DataField_x are fields that are passed in the application of boundary condition
-            template <typename Direction, typename DataField0, typename DataField1, typename DataField2, typename DataField3>
-                GT_FUNCTION
-                void operator()(Direction,
-                        DataField0 & data_field0,
-                        DataField1 & data_field1,
-                        DataField2 & data_field2,
-                        DataField3 & data_field3,
-                        uint_t i, uint_t j, uint_t k) const {
-                    // Get global indices on the boundary
-                    size_t I = m_partitioner.get_low_bound(0) + i;
-                    size_t J = m_partitioner.get_low_bound(1) + j;
-                    size_t K = m_partitioner.get_low_bound(2) + k;
-                    data_field0(i,j,k) = 0;//g(h*I, h*J, h*K); //x //TODO 
-                    data_field1(i,j,k) = 0;//g(h*I, h*J, h*K); //d
-                    data_field2(i,j,k) = 0;//g(h*I, h*J, h*K); //xNew //TODO
-                    data_field3(i,j,k) = 0;//g(h*I, h*J, h*K); //dNew
-                }
-        };
+    //          // DataField_x are fields that are passed in the application of boundary condition
+    //          template <typename Direction, typename DataField0, typename DataField1, typename DataField2, typename DataField3>
+    //              GT_FUNCTION
+    //              void operator()(Direction,
+    //                      DataField0 & data_field0,
+    //                      DataField1 & data_field1,
+    //                      DataField2 & data_field2,
+    //                      DataField3 & data_field3,
+    //                      uint_t i, uint_t j, uint_t k) const {
+    //                  // Get global indices on the boundary
+    //                  size_t I = m_partitioner.get_low_bound(0) + i;
+    //                  size_t J = m_partitioner.get_low_bound(1) + j;
+    //                  size_t K = m_partitioner.get_low_bound(2) + k;
+    //                  data_field0(i,j,k) = 0;//g(h*I, h*J, h*K); //x //TODO 
+    //                  data_field1(i,j,k) = 0;//g(h*I, h*J, h*K); //d
+    //                  data_field2(i,j,k) = 0;//g(h*I, h*J, h*K); //xNew //TODO
+    //                  data_field3(i,j,k) = 0;//g(h*I, h*J, h*K); //dNew
+    //              }
+    //      };
+
     /*******************************************************************************/
     /*******************************************************************************/
 
     bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t MAX_ITER, const double EPS, Timers *timers) {
-
-        // Initialize MPI
-        //gridtools::GCL_Init();
 
         // Domain is encapsulated in boundary layer from both sides in each dimension,
         // Boundary is added as extra layer to each dimension 
@@ -266,15 +264,11 @@ namespace cg_naive{
 #endif
 
         // Start timer
-        boost::timer::cpu_times lapse_time_run = {0,0,0};
-        boost::timer::cpu_times lapse_time_d3point7 = {0,0,0};
-        boost::timer::cpu_timer time;
-
         timers->start(Timers::TIMER_GLOBAL);
 
         // Create processor grid
         array<int, 3> dimensions{0,0,0};
-        MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
+        int err = MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
         dimensions[2]=1;
 
         // 2D partitioning scheme info
@@ -327,8 +321,6 @@ namespace cg_naive{
         storage_type b    (metadata_, 0., "RHS vector");
         storage_type x    (metadata_, 0., "Solution vector t");
         storage_type xNew (metadata_, 0., "Solution vector t+1");
-        storage_type Ax   (metadata_, 0., "Vector Ax at time t");
-        storage_type BCx  (metadata_, 0., "BC applied to vector x");
         storage_type r    (metadata_, 0., "Residual at time t");
         storage_type rNew (metadata_, 0., "Residual at time t+1");
         storage_type d    (metadata_, 0., "Direction vector at time t");
@@ -367,9 +359,9 @@ namespace cg_naive{
             for (uint_t j=1; j<metadata_.template dims<1>() - 1; ++j)
                 for (uint_t k=1; k<metadata_.template dims<2>() -1 ; ++k)
                 {
-                    b(i,j,k) = (std::rand()/(double)RAND_MAX > 0.5 ? 1.0 : -1.0);
-                    //x(i,j,k) = 0;
-                    //b(i,j,k) = 1.0;
+                    //b(i,j,k) = (std::rand()/(double)RAND_MAX > 0.5 ? 1.0 : -1.0);
+                    x(i,j,k) = 0;
+                    b(i,j,k) = 1.0;
                 }
 
         //--------------------------------------------------------------------------
@@ -382,10 +374,8 @@ namespace cg_naive{
         typedef arg<2, storage_type > p_r_init;  //residual
         typedef arg<3, storage_type > p_b_init;  //rhs
         typedef arg<4, storage_type > p_Ax_init; //solution
-        typedef arg<5, storage_type > p_BCx_init; //solution
-        typedef arg<6, storage_type > p_x_init; //solution
-        typedef arg<7, parameter>     p_alpha_init; //step size
-        typedef arg<8, parameter>     p_beta_init; //step size
+        typedef arg<5, storage_type > p_x_init; //solution
+        typedef arg<6, parameter>     p_alpha_init; //step size
 
         // An array of placeholders to be passed to the domain
         typedef boost::mpl::vector<p_tmp_init,
@@ -393,10 +383,8 @@ namespace cg_naive{
                 p_r_init,
                 p_b_init,
                 p_Ax_init,
-                p_BCx_init,
                 p_x_init,
-                p_alpha_init,
-                p_beta_init > accessor_list_init;
+                p_alpha_init > accessor_list_init;
 
         typedef arg<0, storage_type > p_Ad_step0;  // A*d
         typedef arg<1, storage_type > p_d_step0;   //search direction
@@ -466,7 +454,7 @@ namespace cg_naive{
 
         // Construction of the domain for step phase
         gridtools::domain_type<accessor_list_init> domain_init
-            (boost::fusion::make_vector(&tmp, &d, &r, &b, &Ax, &BCx, &x, &alpha, &beta));
+            (boost::fusion::make_vector(&tmp, &d, &r, &b, &Ad, &x, &alpha)); //use Ad storage, instead of Ax
 
         // Instantiate stencil to perform initialization step of CG
         auto CG_init = gridtools::make_computation<gridtools::BACKEND>
@@ -476,8 +464,7 @@ namespace cg_naive{
              (
               execute<forward>(),
               gridtools::make_esf<d3point7>(p_Ax_init(), p_x_init()), // A * x, where x_0 = 0
-              gridtools::make_esf<add_functor>(p_Ax_init(), p_Ax_init(), p_BCx_init(), p_alpha_init()), // Ax = Ax_0 + BCx_0
-              gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_beta_init()), // r = b - Ax
+              gridtools::make_esf<add_functor>(p_r_init(), p_b_init(), p_Ax_init(), p_alpha_init()), // r = b - Ax
               gridtools::make_esf<copy_functor>(p_d_init(), p_r_init()), // d = r
               gridtools::make_esf<product_functor>(p_tmp_init(), p_r_init(), p_r_init()) // r' .* r
              ),
@@ -499,10 +486,9 @@ namespace cg_naive{
 
 
         // Set addition parameter to -1 (subtraction): r = b + alpha A x
-        double minus = -1;
-        double plus = 1;
-        alpha.setValue(plus);
-        beta.setValue(minus);
+        double minus = -1.0;
+        double plus = 1.0;
+        alpha.setValue(minus);
 
         //communicate halos - if x is set to zeros this is not necessary
         std::vector<pointer_type::pointee_t*> vec(1);
@@ -515,9 +501,7 @@ namespace cg_naive{
         //do the initial phase of CG
         CG_init->ready();
         CG_init->steady();
-        boost::timer::cpu_timer time_runInit;
         rTr = CG_init->run();
-        lapse_time_run = lapse_time_run + time_runInit.elapsed();
         CG_init->finalize();
         MPI_Allreduce(&rTr, &rTr_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
         rTr_init = sqrt(rTr_global); //initial residual
@@ -649,17 +633,12 @@ namespace cg_naive{
                  make_reduction< reduction_functor, binop::sum >(0.0, p_out()) // sum(d_T * A * d)
                 );
 
-            boost::timer::cpu_timer time_iteration;
-
             // A * d
             CG_step0->ready();
             CG_step0->steady();
-            boost::timer::cpu_timer time_run0;
             timers->start(Timers::TIMER_COMPUTE_STENCIL_INNER);
             CG_step0->run();
             timers->stop(Timers::TIMER_COMPUTE_STENCIL_INNER);
-            lapse_time_d3point7 = lapse_time_d3point7 + time_run0.elapsed();
-            lapse_time_run = lapse_time_run + time_run0.elapsed();
             CG_step0->finalize();
 
             // if(PID==0) { printf("d\n"); ptr_d->print(); }
@@ -776,9 +755,7 @@ namespace cg_naive{
             // Denominator of alpha
             stencil_alpha_denom->ready();
             stencil_alpha_denom->steady();
-            boost::timer::cpu_timer time_alphaDenom;
             dTAd = stencil_alpha_denom->run(); // d_T * A * d
-            lapse_time_run = lapse_time_run + time_alphaDenom.elapsed();
             stencil_alpha_denom->finalize();
             MPI_Allreduce(&dTAd, &dTAd_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
@@ -790,20 +767,16 @@ namespace cg_naive{
             // x_(i+1) = x_i + alpha * d_i
             CG_step1->ready();
             CG_step1->steady();
-            boost::timer::cpu_timer time_run1;
             CG_step1->run();
-            lapse_time_run = lapse_time_run + time_run1.elapsed();
             CG_step1->finalize();
 
             // r_(i+1) = r_i - alpha * Ad_i
             alpha.setValue(-1. * alpha.getValue());
             CG_step2->ready();
             CG_step2->steady();
-            boost::timer::cpu_timer time_run2;
             timers->start(Timers::TIMER_COMPUTE_DOTPROD); //measure r_i - a*Ad and r*'r and reduction
             rTrnew = CG_step2->run();
             timers->stop(Timers::TIMER_COMPUTE_DOTPROD);
-            lapse_time_run = lapse_time_run + time_run2.elapsed();
             CG_step2->finalize();
             MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
@@ -818,9 +791,7 @@ namespace cg_naive{
             // d_(i+1) = r_(i+1) + beta * d_i
             CG_step3->ready();
             CG_step3->steady();
-            boost::timer::cpu_timer time_run3;
             CG_step3->run();
-            lapse_time_run = lapse_time_run + time_run3.elapsed();
             CG_step3->finalize();
 
             // Communicate halos
@@ -855,7 +826,6 @@ namespace cg_naive{
             ptr_d = ptr_dNew;
             ptr_dNew = swap;
 
-            boost::timer::cpu_times lapse_time_iteration = time_iteration.elapsed();
 
 #ifdef REL_TOL
             residual =  sqrt(rTrnew_global)/rTr_init;
@@ -866,7 +836,6 @@ namespace cg_naive{
 #ifndef MY_VERBOSE
             if (PID == 0)
             {
-                std::cout << "Iteration " << iter << ": [time] " << boost::timer::format(lapse_time_iteration,8,"%w") << std::endl;
                 std::cout << "Iteration " << iter << ": [residual] " << residual << std::endl << std::endl;
             }
 #endif
@@ -876,22 +845,12 @@ namespace cg_naive{
                 break;
         }
 
-        boost::timer::cpu_times lapse_time = time.elapsed();
         timers->stop(Timers::TIMER_GLOBAL);
 
 #ifdef MY_VERBOSE
         if (PID == 0) {
             std::cout << "Total iteration count: " << iter-1 << std::endl;
             std::cout << "Residual: " << residual << std::endl;
-        }
-#endif
-
-#ifndef MY_VERBOSE
-        if (PID == 0) {
-            std::cout << std::endl << "Total time: " << boost::timer::format(lapse_time,8,"%w") << std::endl;
-            std::cout << "Total time in run stage: " << boost::timer::format(lapse_time_run,8,"%w") << std::endl;
-            std::cout << "Stencil performance MFLOPS: " << MFLOPS(7,d1,d2,d3,MAX_ITER,lapse_time_d3point7.wall) << std::endl;
-            std::cout << "Stencil performance MLUPs: " << MLUPS(d1,d2,d3,MAX_ITER,lapse_time_d3point7.wall) << std::endl << std::endl;
         }
 #endif
 

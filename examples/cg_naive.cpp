@@ -12,15 +12,38 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    int dimx = atoi(argv[1]);
+    int dimy = atoi(argv[2]);
+    int dimz = atoi(argv[3]);
+    int maxit = atoi(argv[4]);
+    double eps = std::stod(argv[5]);
+    int nrhs = atoi(argv[6]);
+
     //create timing class
     Timers timers;
 
-    //run GC solver for NS samples
-    int NS = atoi(argv[6]);
-    for (int i = 0; i < NS; i++)
+    //TODO
+    // Move definitions of storage type and partitioner here
+
+    // q, r = 0
+    //storage_type q    (metadata_, 0., "Vector for diagonal estimate");
+    //storage_type r    (metadata_, 0., "Vector for diagonal estimate");
+    
+    // b = rnd
+    //storage_type b    (metadata_, 0., "RHS for solver");
+    
+    //run GC solver for nrhs times
+    for (int i = 0; i < nrhs; i++)
     {
-        cg_naive::solver(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]), std::stod(argv[5]), &timers);
+        // x = inv(A) b
+        cg_naive::solver(dimx, dimy, dimz, maxit, eps, &timers);
+        
+        // q = q + b .* x
+    
+        // r = r + b .* b
     }
+
+    // d = q ./ r
 
     //print timing info
     if (gridtools::PID == 0)
