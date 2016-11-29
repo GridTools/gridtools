@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 2.8)
+
+set( BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers" )
+set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
+set( COMPILE_TO_PTX "OFF" CACHE BOOL "Compile to intermediate representation" )
+set( USE_MPI "OFF" CACHE BOOL "Compile with MPI support" )
+set( GCL_MPI "${USE_MPI}" )
+set( USE_MPI_COMPILER "OFF" CACHE BOOL "On rosa turn this flag off since compiler takes care of mpi already" )
+set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" )
+set( TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh )
