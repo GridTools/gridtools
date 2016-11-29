@@ -45,8 +45,8 @@
 #   SERIALBOX_VERSION               - Version string of Serialbox (e.g "2.0.1")
 #   SERIALBOX_INCLUDE_DIRS          - The location of the Serialbox headers (i.e to include the 
 #                                     C Interface ${SERIALBOX_INCLUDE_DIRS}/serialbox-c/Serialbox.h)
-#                                     and possibly the boost headers.
-#   SERIALBOX_LIBRARY_DIR           - The location of the Serialbox libraries and Fortran mod files.
+#                                     possibly the boost headers and the Fortran mod files.
+#   SERIALBOX_LIBRARY_DIR           - The location of the Serialbox libraries.
 #   SERIALBOX_HAS_C                 - Serialbox was compiled with C support 
 #   SERIALBOX_HAS_FORTRAN           - Serialbox was compiled with Fortran support
 #   SERIALBOX_CXX_LIBRARIES         - The C++ libraries of Serialbox (libSerialboxCore) and 
@@ -227,7 +227,7 @@ if(SERIALBOX_ROOT AND NOT(DEFINED SERIALBOX_NO_EXTERNAL_LIBS))
   set(Boost_USE_STATIC_RUNTIME OFF)
   set(Boost_USE_MULTITHREADED ON)  
   
-  set(_REQUIRED_BOOST_COMPONENTS filesystem)
+  set(_REQUIRED_BOOST_COMPONENTS filesystem system)
   if(SERIALBOX_HAS_LOGGING)
     list(APPEND _REQUIRED_BOOST_COMPONENTS log)
   endif()
