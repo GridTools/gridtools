@@ -39,7 +39,7 @@
  * For normal usage of Serialbox see: https://thfabian.github.io/serialbox2
  */
 
-#if defined(USE_SERIALBOX) && defined(CXX11_ENABLED)
+#if defined(USE_SERIALBOX)
 
 #include "serialization_setup.hpp"
 

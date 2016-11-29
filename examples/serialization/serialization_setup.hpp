@@ -34,7 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#if defined(USE_SERIALBOX) && defined(CXX11_ENABLED)
+#pragma once
+
+#if defined(USE_SERIALBOX)
 
 #include "gtest/gtest.h"
 
