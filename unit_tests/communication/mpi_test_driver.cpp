@@ -2,11 +2,14 @@
 #include "./check_flags.hpp"
 #include <iostream>
 #include <fstream>
+#ifdef __CUDACC__
 #include <cuda.h>
+#endif
 #include "gtest/gtest.h"
 
 #include "./mpi_listener.hpp"
 
+#ifdef __CUDACC__
 /* device_binding added by Devendar Bureddy, OSU */
 void device_binding() {
 
@@ -42,10 +45,13 @@ void device_binding() {
     printf("local rank = %d dev id = %d\n", local_rank, my_dev_id);
     cudaSetDevice(my_dev_id);
 }
+#endif
 
 int main(int argc, char **argv) {
 
+#ifdef __CUDACC__
     device_binding();
+#endif
 
     // We need to set the communicator policy at the top level
     // this allows us to build multiple communicators in the tests
