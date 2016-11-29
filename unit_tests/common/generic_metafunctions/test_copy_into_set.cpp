@@ -42,35 +42,43 @@ using namespace gridtools;
 template < int >
 struct myt {};
 
-TEST(copy_into_set, all_elements_unique) {
-    typedef boost::mpl::vector< myt< 0 >, myt< 1 > > my_vec1;
-    typedef boost::mpl::vector< myt< 2 >, myt< 3 > > my_vec2;
+namespace {
+    GT_FUNCTION bool test_all_elements_unique() {
+        typedef boost::mpl::vector< myt< 0 >, myt< 1 > > my_vec1;
+        typedef boost::mpl::vector< myt< 2 >, myt< 3 > > my_vec2;
 
-    typedef boost::mpl::set< my_vec1, my_vec2 > set_of_vecs;
+        typedef boost::mpl::set< my_vec1, my_vec2 > set_of_vecs;
 
-    typedef typename boost::mpl::fold< set_of_vecs,
-        boost::mpl::set0<>,
-        copy_into_set< boost::mpl::_2, boost::mpl::_1 > >::type result;
+        typedef typename boost::mpl::fold< set_of_vecs,
+            boost::mpl::set0<>,
+            copy_into_set< boost::mpl::_2, boost::mpl::_1 > >::type result;
 
-    ASSERT_EQ(4, boost::mpl::size< result >::type::value);
-    ASSERT_TRUE((boost::mpl::contains< result, myt< 0 > >::type::value));
-    ASSERT_TRUE((boost::mpl::contains< result, myt< 1 > >::type::value));
-    ASSERT_TRUE((boost::mpl::contains< result, myt< 2 > >::type::value));
-    ASSERT_TRUE((boost::mpl::contains< result, myt< 3 > >::type::value));
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains< result, myt< 0 > >::type::value == true), "is not in set");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains< result, myt< 1 > >::type::value == true), "is not in set");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains< result, myt< 2 > >::type::value == true), "is not in set");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains< result, myt< 3 > >::type::value == true), "is not in set");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< result >::type::value == 4), "set has wrong size");
+        return true;
+    }
+
+    GT_FUNCTION bool test_repeating_element() {
+        typedef boost::mpl::vector< myt< 0 >, myt< 1 > > my_vec1;
+        typedef boost::mpl::vector< myt< 2 >, myt< 0 > > my_vec2;
+
+        typedef boost::mpl::set< my_vec1, my_vec2 > set_of_vecs;
+
+        typedef typename boost::mpl::fold< set_of_vecs,
+            boost::mpl::set0<>,
+            copy_into_set< boost::mpl::_2, boost::mpl::_1 > >::type result;
+
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains< result, myt< 0 > >::type::value == true), "is not in set");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains< result, myt< 1 > >::type::value == true), "is not in set");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains< result, myt< 2 > >::type::value == true), "is not in set");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< result >::type::value == 3), "set has wrong size");
+        return true;
+    }
 }
 
-TEST(copy_into_set, repeating_element) {
-    typedef boost::mpl::vector< myt< 0 >, myt< 1 > > my_vec1;
-    typedef boost::mpl::vector< myt< 2 >, myt< 0 > > my_vec2;
+TEST(copy_into_set, all_elements_unique) { ::test_all_elements_unique(); }
 
-    typedef boost::mpl::set< my_vec1, my_vec2 > set_of_vecs;
-
-    typedef typename boost::mpl::fold< set_of_vecs,
-        boost::mpl::set0<>,
-        copy_into_set< boost::mpl::_2, boost::mpl::_1 > >::type result;
-
-    ASSERT_EQ(3, boost::mpl::size< result >::type::value);
-    ASSERT_TRUE((boost::mpl::contains< result, myt< 0 > >::type::value));
-    ASSERT_TRUE((boost::mpl::contains< result, myt< 1 > >::type::value));
-    ASSERT_TRUE((boost::mpl::contains< result, myt< 2 > >::type::value));
-}
+TEST(copy_into_set, repeating_element) { ::test_repeating_element(); }
