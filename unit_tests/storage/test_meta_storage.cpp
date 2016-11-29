@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include <common/defs.hpp>
 #include <storage/storage-facility.hpp>
 
 using namespace gridtools;
@@ -53,7 +54,7 @@ TEST(storage_info, test_component) {
 
 TEST(storage_info, test_equality) {
     typedef gridtools::layout_map< 0, 1, 2 > layout_t1;
-    typedef gridtools::meta_storage_base< 0, layout_t1, false > meta_t1;
+    typedef gridtools::meta_storage_base< static_int< 0 >, layout_t1, false > meta_t1;
     meta_t1 m0(11, 12, 13);
     meta_t1 m1(11, 12, 13);
     meta_t1 m2(12, 123, 13);
@@ -63,38 +64,48 @@ TEST(storage_info, test_equality) {
 }
 
 TEST(storage_info, test_interface) {
-#if defined(CXX11_ENABLED) && defined(NDEBUG)
-    // unaligned meta_storage test cases
-    typedef gridtools::layout_map<0,1,2,3> layout_t;
-    constexpr gridtools::meta_storage_base<0,layout_t,false> meta_{11, 12, 13, 14};
+
+#if defined(CUDA8)
+
+    typedef gridtools::layout_map< 0, 1, 2, 3, 4 > layout_t;
+    typedef typename gridtools::meta_storage_base< static_int< 0 >, layout_t, false > meta_t;
+
+    constexpr meta_t meta_{11u, 12u, 13u, 14u, 15u};
+
     GRIDTOOLS_STATIC_ASSERT((meta_.dim< 0 >() == 11), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.dim< 1 >() == 12), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.dim< 2 >() == 13), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_.dim< 3 >() == 14), "error");
 
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides(3)==14), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides(2)==14*13), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides(1)==14*13*12), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides(0)==14*13*12*11), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides(4) == 15), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides(3) == 15 * 14), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides(2) == 15 * 14 * 13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides(1) == 15 * 14 * 13 * 12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides(0) == 15 * 14 * 13 * 12 * 11), "error");
 
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<3>()==1), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<2>()==14), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<1>()==14*13), "error");
-    GRIDTOOLS_STATIC_ASSERT((meta_.strides<0>()==14*13*12), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_t::strides< 4 >(meta_.strides()) == 1), "error");
+
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides< 4 >() == 1), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides< 3 >() == 15), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides< 2 >() == 15 * 14), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides< 1 >() == 15 * 14 * 13), "error");
+    GRIDTOOLS_STATIC_ASSERT((meta_.strides< 0 >() == 15 * 14 * 13 * 12), "error");
 
     // aligned meta_storage test cases
     using halo_t = gridtools::halo< 0, 0, 0 >;
     using align_t = gridtools::aligned< 32 >;
+
+#ifndef __CUDACC__
     constexpr gridtools::meta_storage_aligned<
-        gridtools::meta_storage_base< 0, gridtools::layout_map< 0, 1, 2 >, false >,
+        gridtools::meta_storage_base< static_int< 0 >, gridtools::layout_map< 0, 1, 2 >, false >,
         align_t,
         halo_t > meta_aligned_1{11, 12, 13};
     constexpr gridtools::meta_storage_aligned<
-        gridtools::meta_storage_base< 0, gridtools::layout_map< 0, 2, 1 >, false >,
+        gridtools::meta_storage_base< static_int< 0 >, gridtools::layout_map< 0, 2, 1 >, false >,
         align_t,
         halo_t > meta_aligned_2{11, 12, 13};
     constexpr gridtools::meta_storage_aligned<
-        gridtools::meta_storage_base< 0, gridtools::layout_map< 2, 1, 0 >, false >,
+        gridtools::meta_storage_base< static_int< 0 >, gridtools::layout_map< 2, 1, 0 >, false >,
         align_t,
         halo_t > meta_aligned_3{11, 12, 13};
 
@@ -149,26 +160,30 @@ TEST(storage_info, test_interface) {
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(2) == 32), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(1) == 32 * 12), "error");
     GRIDTOOLS_STATIC_ASSERT((meta_aligned_3.strides(0) == 32 * 12 * 13), "error");
-#else
-    typedef gridtools::layout_map<0,1,2> layout_t;
-    gridtools::meta_storage_base<0,layout_t,false> meta_(11, 12, 13);
+#endif
+#else // CUDA8
+
+    typedef gridtools::layout_map< 0, 1, 2 > layout_t;
+    gridtools::meta_storage_base< static_int< 0 >, layout_t, false > meta_(11, 12, 13);
     ASSERT_TRUE((meta_.dim< 0 >() == 11));
     ASSERT_TRUE((meta_.dim< 1 >() == 12));
     ASSERT_TRUE((meta_.dim< 2 >() == 13));
 
-    ASSERT_TRUE((meta_.strides(2)==13));
-    ASSERT_TRUE((meta_.strides(1)==13*12));
-    ASSERT_TRUE((meta_.strides(0)==13*12*11));
+    ASSERT_TRUE((meta_.strides(2) == 13));
+    ASSERT_TRUE((meta_.strides(1) == 13 * 12));
+    ASSERT_TRUE((meta_.strides(0) == 13 * 12 * 11));
 
-    ASSERT_TRUE((meta_.strides<2>(meta_.strides())==1));
-    ASSERT_TRUE((meta_.strides<1>(meta_.strides())==13));
-    ASSERT_TRUE((meta_.strides<0>(meta_.strides())==13*12));
+    ASSERT_TRUE((meta_.strides< 2 >(meta_.strides()) == 1));
+    ASSERT_TRUE((meta_.strides< 1 >(meta_.strides()) == 13));
+    ASSERT_TRUE((meta_.strides< 0 >(meta_.strides()) == 13 * 12));
+#endif
 
-#ifdef CXX11_ENABLED // this checks are performed in cxx11 mode (without ndebug)
+#ifdef CXX11_ENABLED // this checks are performed in cxx11 mode
     // create simple aligned meta storage
     typedef gridtools::halo< 0, 0, 0 > halo_t1;
     typedef gridtools::aligned< 32 > align_t1;
-    gridtools::meta_storage_aligned< gridtools::meta_storage_base< 0, gridtools::layout_map< 0, 1, 2 >, false >,
+    gridtools::meta_storage_aligned<
+        gridtools::meta_storage_base< static_int< 0 >, gridtools::layout_map< 0, 1, 2 >, false >,
         align_t1,
         halo_t1 > meta_aligned_1nc(11, 12, 13);
     // check if unaligned dims and strides are correct
@@ -187,7 +202,5 @@ TEST(storage_info, test_interface) {
     ASSERT_TRUE((storage.meta_data().unaligned_strides(2) == 13) && "error");
     ASSERT_TRUE((storage.meta_data().unaligned_strides(1) == 13 * 12) && "error");
     ASSERT_TRUE((storage.meta_data().unaligned_strides(0) == 13 * 12 * 11) && "error");
-#endif               // CXX11_ENABLED
-
-#endif // defined(CXX11_ENABLED) && defined(NDEBUG)
+#endif // CXX11_ENABLED
 }

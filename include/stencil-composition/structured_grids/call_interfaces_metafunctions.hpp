@@ -41,9 +41,45 @@
 #include <boost/type_traits/is_same.hpp>
 #include "../../common/defs.hpp"
 #include "./accessor_metafunctions.hpp"
+#include "./call_interfaces_fwd.hpp"
 
 namespace gridtools {
     namespace _impl {
+        template < typename T >
+        struct is_function_aggregator : boost::mpl::false_ {};
+
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct is_function_aggregator<
+            function_aggregator< CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg > >
+            : boost::mpl::true_ {};
+
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct is_function_aggregator<
+            function_aggregator_offsets< CallerAggregator, Offi, Offj, Offk, PassedAccessors, ReturnType, OutArg > >
+            : boost::mpl::true_ {};
+
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors >
+        struct is_function_aggregator<
+            function_aggregator_procedure< CallerAggregator, Offi, Offj, Offk, PassedAccessors > > : boost::mpl::true_ {
+        };
+
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedAccessors >
+        struct is_function_aggregator<
+            function_aggregator_procedure_offsets< CallerAggregator, Offi, Offj, Offk, PassedAccessors > >
+            : boost::mpl::true_ {};
+
         /** Metafunction to compute the index of the first accessor in the
             list of accessors to be written.
         */
@@ -155,12 +191,12 @@ namespace gridtools {
             typedef
                 typename boost::mpl::if_c< is_accessor< thefirst >::value, thefirst, wrap_reference< thefirst > >::type
                     to_pack;
-            typedef boost::mpl::vector< to_pack > type;
+            typedef boost::mpl::vector1< to_pack > type;
         };
 
         template <>
         struct package_args<> {
-            typedef boost::mpl::vector<> type;
+            typedef boost::mpl::vector0<> type;
         };
 
         /** Maker to wrap an argument if it is not an accessor.

@@ -7,6 +7,7 @@ import math
 import os
 import socket
 import numpy as np
+import scipy.stats as stats
 import matplotlib
 matplotlib.use('SVG')
 from matplotlib import rc
@@ -15,6 +16,11 @@ import copy
 import os.path
 import datetime
 import shutil
+
+def ensure_dir(f):
+    d = os.path.dirname(f)
+    if not os.path.exists(d):
+        os.makedirs(d)
 
 def check_output(*popenargs, **kwargs):
     process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
@@ -34,7 +40,7 @@ try: subprocess.check_output
 except: subprocess.check_output = check_output
 
 
-def run_and_extract_times(executable, host, sizes, halos, filter_=None, stella_format = None, verbosity=False):
+def run_and_extract_times(path, executable, host, sizes, halos, filter_=None, stella_format = None, verbosity=False):
 
     cmd = ". "+os.getcwd()+"/env_"+host+".sh; "
 
@@ -75,14 +81,32 @@ def run_and_extract_times(executable, host, sizes, halos, filter_=None, stella_f
 
         except subprocess.CalledProcessError, e:
             sys.exit('Command called raised error:\n'+e.output)
-
-    avg_time = avg_time / float(nrep)
+    # select the best 3 values and calculate the average
+    best_times = np.sort(np.array(times))[0:3]
+    avg_time = np.average(best_times)
+    # compute rms
     rms=0
-    for t in times:
+    for t in best_times:
         rms = rms + (t-avg_time)*(t-avg_time)
-    rms = math.sqrt(rms) / nrep
-
-    return (avg_time,rms)
+    rms = math.sqrt(rms) / 3 
+    # get median value of the 3 best
+    med_val = np.median(best_times)
+    # print some graphs
+    if not(stella_format and verbosity):
+        print(times)
+        print(best_times)
+        print(med_val)
+        path = "./"+ path + "/" + os.path.basename(executable) + "_" + sizes[0] + "_" + sizes[1] + "_" + sizes[2]
+        if target == "cpu": 
+            path = path + "_" + re.sub('thread','',thread)
+        path = path + ".svg"
+        ensure_dir(path)
+        matplotlib.pyplot.plot(np.array(list(range(0,nrep))), np.array(times), 'ro')
+        matplotlib.pyplot.axis([0, nrep, 0, np.array(times).max()*1.1])
+        matplotlib.pyplot.savefig(path)
+        matplotlib.pyplot.close()
+        print("wrote svg file: "+path)
+    return (med_val,rms)
 
 class Plotter:
     def __init__(self, reference_timers, gridtools_timers, stella_timers, config, branch_name):
@@ -368,7 +392,7 @@ if __name__ == "__main__":
     decode = json.load(f)
 
     failed = False
-    nrep=3
+    nrep=10
 
     copy_ref = copy.deepcopy(decode)
     stella_timers = {}
@@ -393,7 +417,9 @@ if __name__ == "__main__":
         stella_filter = None
         if stencil_conf.has_key('stella_filter'):
             stella_filter = stencil_conf['stella_filter']
- 
+
+        if not stencil_data[target][prec].has_key(std):
+            continue
         print(stencil_name, stencil_data)
         for thread in stencil_data[target][prec][std]: 
             domain_data = stencil_data[target][prec][std][thread]
@@ -401,11 +427,11 @@ if __name__ == "__main__":
                 sizes = data.split('x')
                 exp_time = domain_data[data]['time']
                 
-                timers_gridtools = run_and_extract_times(executable, host, sizes, halos, verbosity=verbose)
+                timers_gridtools = run_and_extract_times(config.output_dir_, executable, host, sizes, halos, verbosity=verbose)
 
                 if stella_exec and stella_filter:
                     create_dict(stella_timers, [data, thread, stencil_name] )
-                    stella_timers[stencil_name][thread][data] = run_and_extract_times(stella_exec, host, sizes, halos, stella_filter, stella_format=True, verbosity=verbose)
+                    stella_timers[stencil_name][thread][data] = run_and_extract_times(config.output_dir_, stella_exec, host, sizes, halos, stella_filter, stella_format=True, verbosity=verbose)
 
                 copy_ref['data'][host][stencil_name][target][prec][std][thread][data]['time'] = timers_gridtools[0]
                 copy_ref['data'][host][stencil_name][target][prec][std][thread][data]['rms'] = timers_gridtools[1]

@@ -38,6 +38,8 @@
 #include <boost/type_traits/is_const.hpp>
 
 #include "accessor.hpp"
+#include "accessor_mixed.hpp"
+#include "../expandable_parameters/vector_accessor.hpp"
 #include "../aggregator_type.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../esf_fwd.hpp"
@@ -112,7 +114,8 @@ namespace gridtools {
             "arg_list=boost::mpl::vector<v1, v3>;");
 
         GRIDTOOLS_STATIC_ASSERT(_impl::check_arg_list< typename esf_function::arg_list >::value,
-            "Arg List of functor is not listed by increasing index");
+            "The list of accessors in a user functor (i.e. the arg_list type to be defined on each functor) does not "
+            "have increasing index");
 
         /**
          * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the
@@ -126,7 +129,7 @@ namespace gridtools {
 
         // actual check if the user specified placeholder arguments with the same index
         GRIDTOOLS_STATIC_ASSERT((len == boost::mpl::size< index_set >::type::value),
-            "You specified different placeholders with the same index. Check the indexes of the arg_type definitions.");
+            "You specified different accessors with the same index. Check the indexes of the accessor definitions.");
 
         // checking if the index list contains holes (a common error is to define a list of types with indexes which are
         // not contiguous)
@@ -136,7 +139,7 @@ namespace gridtools {
         // not contiguous)
         GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename test::type, boost::mpl::void_ >::value),
             "the index list contains holes:\n "
-            "The numeration of the placeholders is not contiguous. You have to define each arg_type with a unique "
+            "The numeration of the placeholders is not contiguous. You have to define each accessor with a unique "
             "identifier ranging "
             " from 1 to N without \"holes\".");
         //////////////////////////////////////////////////////////////////////////////////////////////////////

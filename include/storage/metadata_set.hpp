@@ -44,6 +44,9 @@
 
 namespace gridtools {
 
+    template < typename T >
+    struct is_any_storage;
+
     /**
        @brief class that given a generic MPL sequence creates a fusion set.
 
@@ -131,7 +134,7 @@ namespace gridtools {
     struct insert_if_not_present {
 
 #ifdef PEDANTIC // disabling in case of generic accessors
-        GRIDTOOLS_STATIC_ASSERT(is_storage< Arg >::type::value,
+        GRIDTOOLS_STATIC_ASSERT(is_any_storage< Arg >::value,
             "if you are using generic accessors disable the pedantic mode. Otherwise most probably you used in the "
             "aggregator_type constructor a storage type which is not supported.");
 #endif
@@ -149,11 +152,11 @@ namespace gridtools {
         GT_FUNCTION
         void operator()() const {
             if (!m_seq.template present< pointer< const typename Arg::storage_info_type > >())
-                m_seq.insert(pointer< const typename Arg::storage_info_type >((**m_arg_ptr).meta_data()));
+                m_seq.insert((**m_arg_ptr).meta_data_ptr());
             else
                 assert(
                     *m_seq.template get< pointer< const typename Arg::storage_info_type > >() ==
-                        *(**m_arg_ptr).meta_data() &&
+                        *(**m_arg_ptr).meta_data_ptr() &&
                     "the passed storages contain different meta data (e.g., different dimension) which is not valid.");
         }
     };

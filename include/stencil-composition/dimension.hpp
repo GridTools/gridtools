@@ -48,14 +48,17 @@ namespace gridtools {
     */
     template < ushort_t Coordinate >
     struct dimension {
+
+        GT_FUNCTION constexpr dimension() : value(0) {}
+
         template < typename IntType >
         GT_FUNCTION constexpr dimension(IntType val)
             : value
 #if ((!defined(CXX11_ENABLED)))
-              (val)
+              ((uint_t)val)
 #else
         {
-            val
+            (uint_t) val
         }
 #endif
         {
@@ -66,12 +69,12 @@ namespace gridtools {
 
         /**@brief Constructor*/
         GT_FUNCTION
-        constexpr dimension(dimension const &other) : value(other.value) {}
+        constexpr dimension(dimension const &other) : value((uint_t)other.value) {}
 
         // TODO can I rename direction by index?
         static const ushort_t direction = Coordinate;
         static const ushort_t index = Coordinate;
-        int_t value;
+        uint_t value;
 
         /**@brief syntactic sugar for user interface
 
@@ -79,7 +82,7 @@ namespace gridtools {
            Clarifying example:
            defining
            \code{.cpp}
-           typedef dimension<5>::Index t;
+           typedef dimension<5> t;
            \endcode
            we can use thefollowing alias
            \code{.cpp}
@@ -87,16 +90,6 @@ namespace gridtools {
            \endcode
 
          */
-        struct Index {
-            GT_FUNCTION
-            constexpr Index() {}
-            GT_FUNCTION
-            constexpr Index(Index const &) {}
-            typedef dimension< Coordinate > super;
-        };
-
-      private:
-        dimension();
     };
 
     template < typename T >

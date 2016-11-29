@@ -83,6 +83,21 @@ namespace gridtools {
         }
 
         /**
+           @brief assign operator
+         */
+        GT_FUNCTION void operator=(pointer< T > const &other_) { m_t = other_.m_t; }
+
+        /**
+           @brief assign operator
+
+           if cast between T and U is allowed
+         */
+        template < typename U >
+        GT_FUNCTION void operator=(pointer< U > other_) {
+            *m_t = *other_.get();
+        }
+
+        /**
            @brief returns the raw pointer (even if it's null)
         */
         GT_FUNCTION
@@ -118,7 +133,7 @@ namespace gridtools {
     };
 
     template < typename T >
-    pointer< T > make_pointer(T &t) {
+    GT_FUNCTION pointer< T > make_pointer(T &t) {
         return pointer< T >(&t);
     }
 
@@ -129,11 +144,13 @@ namespace gridtools {
      */
     struct delete_pointer {
 
+        GT_FUNCTION
         delete_pointer() {}
 
         template < typename U >
-        void operator()(U t) const {
-            delete t.get();
+        GT_FUNCTION void operator()(U t) const {
+            if (t.get())
+                delete t.get();
         }
     };
 }

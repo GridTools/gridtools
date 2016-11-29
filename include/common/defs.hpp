@@ -35,10 +35,6 @@
 */
 #pragma once
 
-#ifdef __CUDACC__
-#define CUDA_CXX11_BUG_1 // bug present in CUDA 7.5 and below
-#endif
-
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
@@ -49,11 +45,22 @@
 #define CXX11_DISABLED
 #endif
 
+#if defined(CXX11_ENABLED)
+#if !defined(__CUDACC__)
+#define CUDA8
+#else
+#if (CUDA_VERSION > 75)
+#define CUDA8
+#endif
+#endif
+#endif
+
 #if !defined(FUSION_MAX_VECTOR_SIZE)
 #define FUSION_MAX_VECTOR_SIZE 20
 #define FUSION_MAX_MAP_SIZE 20
 #endif
 
+#include <vector>
 #include <boost/mpl/map.hpp>
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/vector.hpp>
@@ -189,7 +196,7 @@ namespace gridtools {
     } // namespace enumtype
 
 #ifdef STRUCTURED_GRIDS
-#define GRIDBACKEND enumtype::structured
+#define GRIDBACKEND structured
 #else
 #define GRIDBACKEND icosahedral
 #endif
@@ -245,7 +252,7 @@ namespace gridtools {
 #define GT_WHERE_AM_I std::cout << __PRETTY_FUNCTION__ << " " << __FILE__ << ":" << __LINE__ << std::endl;
 
 #ifdef CXX11_ENABLED
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert(Condition, "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
+#define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
 #else
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) BOOST_STATIC_ASSERT(Condition)
 #endif

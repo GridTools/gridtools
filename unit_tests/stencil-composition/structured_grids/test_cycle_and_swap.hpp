@@ -52,7 +52,7 @@ namespace test_cycle_and_swap {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
     struct functor {
-        typedef inout_accessor< 0, extent<>, 3 > p_i;
+        typedef inout_accessor< 0, extent<>, 4 > p_i;
         typedef boost::mpl::vector< p_i > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -60,14 +60,11 @@ namespace test_cycle_and_swap {
         }
     };
 
-    struct functor_avg {
-        typedef inout_accessor< 0, extent<>, 4 > p_data;
-        typedef dimension< 4 > time;
-        static x::Index i;
-        static y::Index j;
+    constexpr dimension< 1 > i;
 
-        typedef decltype(i) i_t;
-        typedef decltype(j) j_t;
+    struct functor_avg {
+        typedef inout_accessor< 0, extent<>, 5 > p_data;
+        typedef dimension< 4 > time;
 
         typedef boost::mpl::vector< p_data > arg_list;
         template < typename Evaluation >
@@ -75,9 +72,6 @@ namespace test_cycle_and_swap {
             eval(p_data(time(1))) = (eval(p_data(i - 1)) + eval(p_data(i + 1))) * (float_t)0.5;
         }
     };
-
-    functor_avg::i_t functor_avg::i;
-    functor_avg::j_t functor_avg::j;
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -91,15 +85,15 @@ namespace test_cycle_and_swap {
 
     bool test_2D() {
 
-        typedef gridtools::layout_map< 0, 1 > layout_t;
+        typedef gridtools::layout_map< 0, 1, -1 > layout_t;
         typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
         typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
         typedef typename field< storage_type, 2 >::type field_t;
 
-        meta_t meta_(1u, 1u);
+        meta_t meta_(1u, 1u, 0u);
         field_t i_data(meta_, 0, "in");
-        i_data.get_value< 0, 0 >(0, 0) = 0;
-        i_data.get_value< 1, 0 >(0, 0) = 1;
+        i_data.get_value< 0, 0 >(0, 0, 0) = 0;
+        i_data.get_value< 1, 0 >(0, 0, 0) = 1;
 
         uint_t di[5] = {0, 0, 0, 0, 1};
         uint_t dj[5] = {0, 0, 0, 0, 1};
@@ -113,8 +107,9 @@ namespace test_cycle_and_swap {
 
         aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(
-            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
+        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
 
         comp->ready();
         comp->steady();
@@ -129,13 +124,13 @@ namespace test_cycle_and_swap {
         comp->run();
         comp->finalize();
 
-        return (i_data(0, 0) == 2 && i_data.get_value< 1, 0 >(0, 0) == 0);
+        return (i_data(0, 0, 0) == 2 && i_data.get_value< 1, 0 >(0, 0, 0) == 0);
     }
     bool test_3D() {
 
         const uint_t d1 = 13;
         const uint_t d2 = 9;
-        const uint_t d3 = 3;
+        const uint_t d3 = 7;
 
         typedef gridtools::layout_map< 0, 1, 2 > layout_t;
         typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
@@ -162,8 +157,9 @@ namespace test_cycle_and_swap {
 
         aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
 
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(
-            domain, grid, gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
+        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor_avg >(p_i_data())));
 
         // fill the input (snapshot 0) with some initial data
         for (uint_t i = 0; i < d1; ++i) {
@@ -218,6 +214,75 @@ namespace test_cycle_and_swap {
         array< array< uint_t, 2 >, 3 > halos{
             {{halo_size + 1, halo_size + 1}, {halo_size + 1, halo_size + 1}, {halo_size + 1, halo_size + 1}}};
         return verif.verify(grid, reference, i_data, halos);
+    }
+
+    bool test_cycle() {
+
+        typedef gridtools::layout_map< 0, 1 > layout_t;
+        typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
+        typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
+#ifdef CUDA8
+        typedef typename field< storage_type, 3, 3, 4 >::type field_t;
+#else // rectangular data field
+        typedef typename field< storage_type, 3, 3, 3 >::type field_t;
+#endif
+        meta_t meta_(1u, 1u);
+        field_t i_data(meta_, 0, "in");
+        i_data.get_value< 0, 0 >(0, 0) = 0;
+        i_data.get_value< 1, 0 >(0, 0) = 1;
+        i_data.get_value< 2, 0 >(0, 0) = 2;
+        i_data.get_value< 0, 1 >(0, 0) = 10;
+        i_data.get_value< 1, 1 >(0, 0) = 11;
+        i_data.get_value< 2, 1 >(0, 0) = 12;
+        i_data.get_value< 0, 2 >(0, 0) = 20;
+        i_data.get_value< 1, 2 >(0, 0) = 21;
+        i_data.get_value< 2, 2 >(0, 0) = 22;
+#ifdef CUDA8
+        i_data.get_value< 3, 2 >(0, 0) = 23;
+#endif
+
+        uint_t di[5] = {0, 0, 0, 0, 1};
+        uint_t dj[5] = {0, 0, 0, 0, 1};
+
+        gridtools::grid< axis > grid(di, dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = 0;
+
+        typedef arg< 0, field_t > p_i_data;
+        typedef boost::mpl::vector< p_i_data > accessor_list;
+
+        aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data));
+
+        auto comp = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< functor >(p_i_data())));
+
+        comp->ready();
+        comp->steady();
+        comp->run();
+#ifdef __CUDACC__
+        i_data.d2h_update();
+#endif
+        cycle< 1 >::apply(i_data);
+        cycle_all::apply(i_data);
+#ifdef __CUDACC__
+        i_data.h2d_update();
+#endif
+        comp->run();
+        comp->finalize();
+
+        return (i_data(0, 0) == 2 && i_data.get_value< 1, 0 >(0, 0) == 2 && i_data.get_value< 2, 0 >(0, 0) == 0 &&
+                i_data.get_value< 0, 1 >(0, 0) == 12 && i_data.get_value< 1, 1 >(0, 0) == 10 &&
+                i_data.get_value< 2, 1 >(0, 0) == 11 && i_data.get_value< 0, 2 >(0, 0) == 21 &&
+                i_data.get_value< 1, 2 >(0, 0) == 22
+#ifdef CUDA8
+                &&
+                i_data.get_value< 2, 2 >(0, 0) == 23 && i_data.get_value< 3, 2 >(0, 0) == 20
+#else
+                &&
+                i_data.get_value< 2, 2 >(0, 0) == 20
+#endif
+            );
     }
 
 } // namespace test_cycle_and_swap

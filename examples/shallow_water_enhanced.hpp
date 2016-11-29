@@ -107,18 +107,7 @@ namespace shallow_water {
         /**@brief gravity acceleration */
         GT_FUNCTION
         static float_type g() { return 9.81; }
-
-        //! [index]
-        static x::Index i;
-        static y::Index j;
-        //! [index]
-
-        typedef decltype(i) i_t;
-        typedef decltype(j) j_t;
     };
-    functor_traits::i_t functor_traits::i;
-    functor_traits::j_t functor_traits::j;
-    // [functor_traits]
 
     template < uint_t Component = 0, uint_t Snapshot = 0 >
     struct bc_periodic : functor_traits {
@@ -169,18 +158,18 @@ namespace shallow_water {
         //! [accessor]
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 5 >
             tmpx; /** (output) is the flux computed on the left edge of the cell */
-        using arg_list = boost::mpl::vector< tmpx, sol >;
+        using arg_list = boost::mpl::vector2< tmpx, sol >;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
-            comp::Index c;
-            x::Index i;
+#ifndef CUDA8
+            comp c;
+            dimension< 1 > i;
             //! [expression]
             eval(tmpx()) =
-                eval((sol(i - 0) + sol(i - 1)) / tl - (sol(c + 1) - sol(c + 1, i - 1)) * (dt() / (2 * dx())));
+                eval((sol(i - 0) + sol(i - 1)) / tl - (dt() / (2 * dx())) * (sol(c + 1) - sol(c + 1, i - 1)));
             // ! [expression]
 
             eval(tmpx(comp(1))) =
@@ -195,6 +184,7 @@ namespace shallow_water {
                     (dt() / (2 * dx())));
 
 #else
+            dimension< 1 > i;
             //![alias]
             using hx = alias< tmpx, comp >::set< 0 >;
             using h = alias< sol, comp >::set< 0 >;
@@ -233,7 +223,9 @@ namespace shallow_water {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
 
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
+            dimension< 1 > i;
+            dimension< 2 > j;
 
             eval(tmpy()) =
                 eval((sol(i - 0) + sol(j - 1)) / tl - (sol(comp(2)) - sol(comp(2), j - 1)) * (dt() / (2 * dy())));
@@ -250,6 +242,7 @@ namespace shallow_water {
                          (dt() / (tl * dy())));
 
 #else
+            dimension< 2 > j;
             using h = alias< sol, comp >::set< 0 >;
             using hy = alias< tmpy, comp >::set< 0 >;
             using u = alias< sol, comp >::set< 1 >;
@@ -291,7 +284,9 @@ namespace shallow_water {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             const float_type &tl = 2.;
-#ifdef CUDA_CXX11_BUG_1
+#ifndef CUDA8
+            dimension< 1 > i;
+            dimension< 2 > j;
 
             eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
                                (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));
@@ -315,6 +310,8 @@ namespace shallow_water {
                          ((dt() / dy())));
 
 #else
+            dimension< 1 > i;
+            dimension< 2 > j;
             using hx = alias< tmpx, comp >::set< 0 >;
             using h = alias< sol, comp >::set< 0 >;
             using hy = alias< tmpy, comp >::set< 0 >;

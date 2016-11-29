@@ -38,7 +38,8 @@
 // i know that the following directive is super ugly,
 // but i need to check the private member fields of
 // the storage.
-#define private public
+#define protected public
+#include <common/defs.hpp>
 #include <storage/storage-facility.hpp>
 
 #ifdef _USE_GPU_
@@ -67,19 +68,21 @@ TEST(cuda_storage_on_host, test_storage_types) {
     meta_data_t meta_obj(10, 10, 10);
     storage_t st_obj(meta_obj, "in");
 #ifdef __CUDACC__
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< meta_data_t,
-                                meta_storage< meta_storage_aligned< meta_storage_base< 0, layout, false >,
-                                    aligned< 32 >,
-                                    halo< 0, 0, 0 > > > >::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< meta_data_t,
+            meta_storage< meta_storage_aligned< meta_storage_base< static_uint< 0 >, layout, false >,
+                aligned< 32 >,
+                halo< 0, 0, 0 > > > >::value),
         "type is wrong");
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< storage_t, storage< base_storage< hybrid_pointer< float >, meta_data_t, 1 > > >::value),
         "type is wrong");
 #else
-    GRIDTOOLS_STATIC_ASSERT((boost::is_same< meta_data_t,
-                                meta_storage< meta_storage_aligned< meta_storage_base< 0, layout, false >,
-                                    aligned< 0 >,
-                                    halo< 0, 0, 0 > > > >::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< meta_data_t,
+            meta_storage< meta_storage_aligned< meta_storage_base< static_uint< 0 >, layout, false >,
+                aligned< 0 >,
+                halo< 0, 0, 0 > > > >::value),
         "type is wrong");
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< storage_t, storage< base_storage< wrap_pointer< float >, meta_data_t, 1 > > >::value),
@@ -95,7 +98,8 @@ TEST(cuda_storage_on_host, test_storage) {
     // cuda backend storage.
     typedef gridtools::layout_map< 0, 1, 2 > layout_t;
     typedef meta_storage<
-        meta_storage_aligned< meta_storage_base< 0, layout_t, false >, aligned< 32 >, halo< 0, 0, 0 > > > meta_data_t;
+        meta_storage_aligned< meta_storage_base< static_int< 0 >, layout_t, false >, aligned< 32 >, halo< 0, 0, 0 > > >
+        meta_data_t;
 #ifdef _USE_GPU_
     typedef base_storage< hybrid_pointer< double >, meta_data_t, 1 > base_st;
 #else

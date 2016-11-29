@@ -167,7 +167,8 @@ namespace gridtools {
      OUT CODE HERE AS IN 2D CASE
      \endcode
 
-     A running example can be found in the included example. \ example Halo_Exchange_test_3D.cpp
+       A running example can be found in the included example. \example test_halo_exchange_3D.cpp \example
+     test_halo_exchange_2D.cpp
     */
     template < typename PROC_GRID, int ALIGN = 1 >
     class Halo_Exchange_3D {
@@ -494,8 +495,8 @@ namespace gridtools {
           new pointer with a given destination.
 
            \param[in] p Pointer to the first element of type T to send
-           \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
-          sent.
+               \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
+              sent.
            \param[in] I Relative coordinates of the receiving process along the first dimension
            \param[in] J Relative coordinates of the receiving process along the second dimension
            \param[in] K Relative coordinates of the receiving process along the third dimension
@@ -536,8 +537,8 @@ namespace gridtools {
            \tparam J Relative coordinates of the receiving process along the second dimension
            \tparam K Relative coordinates of the receiving process along the third dimension
            \param[in] p Pointer to the first element of type T to send
-           \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
-           sent.
+               \param[in] s Number of bytes (not number of elements) to be send. In any case this is the amount of data
+               sent.
         */
         template < int I, int J, int K >
         void register_send_to_buffer(void *p, int s) {
@@ -776,8 +777,9 @@ namespace gridtools {
                      |         | |         | |      |  | |  |      | |      |  | |  |      | |-------  | |  -------|
                      |         | |---------| |      |  | |  |      | | r<R-1|  | |  | r<R-1| |      |  | |  |      |
                      |  r<R-1  | |         | | c<C-1|  | |  |      | | c<C-1|  | |  | c>0  | | r>0  |  | |  | r>0  |
-               WEST  |         | |   r>0   | |      |  | |  | c>0  | |      |  | |  |      | | c<C-1|  | |  | c>0  |
-               EAST
+                     WEST  |         | |   r>0   | |      |  | |  | c>0  | |      |  | |  |      | | c<C-1|  | |  | c>0
+               |
+                     EAST
                JMINUS|---------| |         | |      |  | |  |      | |      |  | |  |      | |      |  | |  | |JPLUS
                      |         | |         | |      |  | |  |      | |-------  | |  -------| |      |  | |  |      |
                      |---------| |---------| |---------| |---------| |---------| |---------| |---------| |---------|

@@ -86,7 +86,7 @@ namespace smf {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             using edge_of_cell_dim = dimension< 5 >;
-            edge_of_cell_dim::Index edge;
+            edge_of_cell_dim edge;
 
             // retrieve the array of neighbor offsets. This is an array with length 3 (number of neighbors).
             constexpr auto neighbors_offsets = connectivity< cells, cells, Color >::offsets();

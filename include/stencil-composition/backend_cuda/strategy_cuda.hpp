@@ -65,7 +65,7 @@ namespace gridtools {
     template <>
     struct strategy_from_id_cuda< enumtype::Block > {
         // default block size for Block strategy
-        typedef block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J > block_size_t;
+        typedef block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 > block_size_t;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -117,17 +117,16 @@ namespace gridtools {
 #endif
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
 
-            typedef meta_storage<
-                meta_storage_tmp< meta_storage_aligned< meta_storage_base< Index::value, Layout, true >,
-                                      Alignment, // alignment boundary
-                                      Halo >,
+            typedef meta_storage< meta_storage_tmp< meta_storage_aligned< meta_storage_base< Index, Layout, true >,
+                                                        Alignment, // alignment boundary
+                                                        Halo >,
 #ifdef CXX11_ENABLED
-                    Tiles...
+                Tiles...
 #else
-                    TileI,
-                    TileJ
+                TileI,
+                TileJ
 #endif
-                    > > type;
+                > > type;
         };
 
 /**
