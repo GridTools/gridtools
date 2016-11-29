@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <assert.h>
+
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits.hpp>

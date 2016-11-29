@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <assert.h>
+
 #include "../common/storage_interface.hpp"
 #include "../common/state_machine.hpp"
 
