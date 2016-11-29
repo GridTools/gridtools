@@ -44,8 +44,7 @@
 #include "../common/is_temporary_storage.hpp"
 #include "../gridtools.hpp"
 
-#include "../storage/storage.hpp"
-#include "../storage/storage_metafunctions.hpp"
+#include "storage-facility.hpp"
 
 #include "../common/offset_tuple_mixed.hpp"
 #include "extent.hpp"
@@ -292,25 +291,12 @@ namespace gridtools {
 
     /**
      * Printing type information for debug purposes
-     * @param s The ostream
-     * @param n/a Type selector for offset_tuple
-     * @return ostream
-     */
-    template < uint_t I, typename R, bool Temporary >
-    std::ostream &operator<<(std::ostream &s, arg< I, no_storage_type_yet< R >, Temporary > const &) {
-        return s << "[ arg< " << I << ", temporary<something>"
-                 << " > ]";
-    }
-
-    /**
-     * Printing type information for debug purposes
 <     * @param s The ostream
      * @param n/a Type selector for arg to a NON temp
      * @return ostream
      */
     template < uint_t I, typename R, bool Temporary >
     std::ostream &operator<<(std::ostream &s, arg< I, R, Temporary > const &) {
-        return s << "[ arg< " << I << ", NON TEMP"
-                 << " > ]";
+        return s << "[ arg< " << I << ", " << Temporary << " > ]";
     }
 } // namespace gridtools

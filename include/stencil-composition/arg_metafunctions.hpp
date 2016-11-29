@@ -48,20 +48,14 @@ namespace gridtools {
 
     // metafunction to access the storage type given the arg
     template < typename T >
-    struct arg2storage {
-        typedef typename T::storage_type type;
+    struct get_storage_from_arg {
+        typedef typename T::storage_t type;
     };
 
     // metafunction to access the metadata type given the arg
     template < typename T >
-    struct arg2metadata {
-        typedef typename arg2storage< T >::type::storage_info_type type;
-    };
-
-    /** metafunction extracting the location type from the storage*/
-    template < typename T >
-    struct get_location_type {
-        typedef typename T::storage_info_type::index_t type;
+    struct get_storage_info_from_arg {
+        typedef typename T::storage_t::storage_info_t type;
     };
 
 } // namespace gridtools

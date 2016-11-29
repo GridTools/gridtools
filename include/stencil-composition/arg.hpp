@@ -45,39 +45,47 @@
 
 #include <iosfwd>
 
+#include "../common/defs.hpp"
+#include "../common/pointer.hpp"
 #include "arg_metafunctions.hpp"
 #include "stencil-composition/arg_metafunctions_fwd.hpp"
-#include "storage/storage_metafunctions.hpp"
+#include "storage-facility.hpp"
 
 namespace gridtools {
 
-    // fwd decl
+    template < uint_t I, typename Storage, bool Temporary = false >
+    struct arg;
+
     template < typename T >
-    struct is_arg;
+    struct is_arg : boost::mpl::false_ {};
+
+    template < uint_t I, typename Storage, bool Temporary >
+    struct is_arg< arg< I, Storage, Temporary > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_tmp_arg;
+
+    template < uint_t I, typename Storage, bool Temporary >
+    struct is_tmp_arg< arg< I, Storage, Temporary > > : boost::mpl::bool_< Temporary > {};
 
     /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
     template < typename ArgType, typename Storage >
     struct arg_storage_pair {
 
         GRIDTOOLS_STATIC_ASSERT(is_arg< ArgType >::value, "wrong type");
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename ArgType::storage_type, Storage >::value),
-            "in the instantiation of the aggregator type a pair (plch() = storage) is not matched");
-
-      private:
-        // arg_storage_pair(arg_storage_pair const&);
-        arg_storage_pair();
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename ArgType::storage_t, Storage >::type::value),
+            "Storage type not compatible with placeholder storage type, when associating placeholder to actual "
+            "stogare");
 
       public:
         pointer< Storage > ptr;
 
-        arg_storage_pair(arg_storage_pair const &other) : ptr(other.ptr) { assert(ptr.get()); }
+        arg_storage_pair() {}
+        arg_storage_pair(Storage *storage) : ptr(pointer< Storage >(storage)) {}
+        arg_storage_pair(arg_storage_pair const &other) : ptr(other.ptr) {}
 
-        typedef ArgType arg_type;
-        typedef Storage storage_type;
-
-        arg_storage_pair(pointer< Storage > p) : ptr(p) {}
-
-        arg_storage_pair(Storage *p) : ptr(p) {}
+        typedef ArgType arg_t;
+        typedef Storage storage_t;
     };
 
     template < typename T >
@@ -85,6 +93,13 @@ namespace gridtools {
 
     template < typename ArgType, typename Storage >
     struct is_arg_storage_pair< arg_storage_pair< ArgType, Storage > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_arg_storage_pair_to_tmp : boost::mpl::false_ {};
+
+    template < typename ArgType, typename Storage >
+    struct is_arg_storage_pair_to_tmp< arg_storage_pair< ArgType, Storage > >
+        : boost::mpl::bool_< ArgType::is_temporary > {};
 
     /**
      * Type to create placeholders for data fields.
@@ -96,22 +111,20 @@ namespace gridtools {
      * @tparam I Integer index (unique) of the data field to identify it
      * @tparam T The type of the storage used to store data
      */
-    template < uint_t I, typename Storage, bool Temporary = false >
+    template < uint_t I, typename Storage, bool Temporary >
     struct arg {
-        typedef Storage storage_type;
-        typedef typename Storage::iterator iterator;
-        typedef typename Storage::value_type value_type;
+        typedef Storage storage_t;
         typedef static_uint< I > index_t;
         constexpr static bool is_temporary = Temporary;
 
         template < typename Storage2 >
-        arg_storage_pair< arg< I, storage_type, Temporary >, Storage2 > operator=(Storage2 &ref) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
+        arg_storage_pair< arg< I, storage_t, Temporary >, Storage2 > operator=(Storage2 &ref) {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_t >::value),
                 "there is a mismatch between the storage types used by the arg placeholders and the storages really "
                 "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
                 "correctly assigned and that their type match the instantiated storages ones");
 
-            return arg_storage_pair< arg< I, storage_type, Temporary >, Storage2 >(&ref);
+            return arg_storage_pair< arg< I, storage_t, Temporary >, Storage2 >(&ref);
         }
 
         static void info(std::ostream &out_s) {
@@ -120,12 +133,6 @@ namespace gridtools {
 #endif
         }
     };
-
-    template < typename T >
-    struct is_arg : boost::mpl::false_ {};
-
-    template < uint_t I, typename Storage, bool Temporary >
-    struct is_arg< arg< I, Storage, Temporary > > : boost::mpl::true_ {};
 
     template < typename T >
     struct arg_index;
@@ -148,8 +155,6 @@ namespace gridtools {
     struct arg_holds_data_field;
 
     template < uint_t I, typename Storage, bool Temporary >
-    struct arg_holds_data_field< arg< I, Storage, Temporary > > {
-        typedef typename storage_holds_data_field< Storage >::type type;
-    };
+    struct arg_holds_data_field< arg< I, Storage, Temporary > > : is_data_store_field< Storage > {};
 
 } // namespace gridtools
