@@ -65,7 +65,11 @@ namespace gridtools {
                     m_stencil_invocation_count = sp.meta_info().template as< int_t >("invocation_count") + 1;
             }
 
-            // Register the stencil name within the serializer (if not present yet)
+            // Register the stencil name within the serializer (if not yet present)
+            //
+            // Serialbox's meta-data are immutable. Thus, we get the vector of stencils from the "stencil" meta-data,
+            // erase the "stencil" meta-data, push_back our stencil to queried vector of stencils and register it again.
+            //
             std::vector< std::string > stencil_name_vec;
             if (serializer.global_meta_info().has_key("stencils")) {
                 stencil_name_vec = serializer.global_meta_info().template as< std::vector< std::string > >("stencils");
