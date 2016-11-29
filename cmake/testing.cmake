@@ -32,11 +32,6 @@ function(fetch_host_tests subfolder)
         endforeach()
     endif()
 
-    # set include dirs
-    include_directories( ${GTEST_INCLUDE_DIR} )
-	include_directories( ${GMOCK_INCLUDE_DIR} )
-	# add definitions
-
     # create all targets
     foreach( test_source ${test_sources} )
         # create a nice name for the test case
@@ -74,11 +69,6 @@ function(fetch_gpu_tests subfolder)
             endforeach()
         endif()
 
-        # set include dirs
-        include_directories( ${GTEST_INCLUDE_DIR} )
-        include_directories( ${GMOCK_INCLUDE_DIR} )
-
-
         # create all targets
         foreach( test_source ${test_sources} )
             # create a nice name for the test case
@@ -99,9 +89,6 @@ endfunction(fetch_gpu_tests)
 
 # This function can be used to add a custom host test
 function(add_custom_host_test name sources cc_flags ld_flags)
-    # set include dirs
-    include_directories( ${GTEST_INCLUDE_DIR} )
-	include_directories( ${GMOCK_INCLUDE_DIR} )
 
     # set binary output name and dir
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
@@ -116,9 +103,6 @@ endfunction(add_custom_host_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_gpu_test name sources cc_flags ld_flags)
-    # set include dirs
-    include_directories( ${GTEST_INCLUDE_DIR} )
-	include_directories( ${GMOCK_INCLUDE_DIR} )
 
     # set binary output name and dir
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
@@ -132,9 +116,6 @@ endfunction(add_custom_gpu_test)
 
 
 function(add_custom_mpi_host_test name sources cc_flags ld_flags)
-    # set include dirs
-    include_directories( ${GTEST_INCLUDE_DIR} )
-	include_directories( ${GMOCK_INCLUDE_DIR} )
 
     # set binary output name and dir
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
@@ -148,9 +129,6 @@ endfunction(add_custom_mpi_host_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_mpi_gpu_test name sources cc_flags ld_flags)
-    # set include dirs
-    include_directories( ${GTEST_INCLUDE_DIR} )
-	include_directories( ${GMOCK_INCLUDE_DIR} )
 
     # set binary output name and dir
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
