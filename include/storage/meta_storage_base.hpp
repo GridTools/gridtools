@@ -124,7 +124,6 @@ namespace gridtools {
         static const ushort_t space_dimensions = layout::length;
         typedef meta_storage_base< Index, Layout, IsTemporary > basic_type;
 
-      protected:
         array< uint_t, space_dimensions > m_dims;
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)

@@ -59,9 +59,9 @@ namespace gridtools {
 
                 if (is_temporary_storage< T >::value) {
                     std::string tmp_name("tmp_" + std::to_string((*m_tmp_id)++));
-                    m_serializer.write(tmp_name, m_savepoint, storage, *storage.meta_data());
+                    m_serializer.write(tmp_name, m_savepoint, storage, *storage.meta_data_ptr());
                 } else
-                    m_serializer.write(storage.get_name(), m_savepoint, storage, *storage.meta_data());
+                    m_serializer.write(storage.get_name(), m_savepoint, storage, *storage.meta_data_ptr());
             }
         };
 
