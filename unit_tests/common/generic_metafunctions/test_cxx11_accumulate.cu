@@ -46,7 +46,7 @@ TEST(accumulate, test_and) {
     cudaMalloc(&resultDevice, sizeof(bool));
 
     // clang-format off
-    accumulate_and_kernel< <<1,1> >>(resultDevice);
+    accumulate_and_kernel<<<1,1>>>(resultDevice);
     // clang-format on
 
     cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
@@ -59,7 +59,7 @@ TEST(accumulate, test_or) {
     cudaMalloc(&resultDevice, sizeof(bool));
 
     // clang-format off
-    accumulate_or_kernel< <<1,1> >>(resultDevice);
+    accumulate_or_kernel<<<1,1>>>(resultDevice);
     // clang-format on
 
     cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
