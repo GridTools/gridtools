@@ -6,7 +6,7 @@ else()
   list ( APPEND INC_ALL ${INC_ALL_} )
   file(GLOB_RECURSE INC_ALL_ "../include/[a-z|A-Z|0-9]*.hpp")
   list ( APPEND INC_ALL ${INC_ALL_} )
-  
+
   list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment advection_pdbott_prepare_tracers)
   list( APPEND X86_SRCFILES reduction)
 
@@ -16,16 +16,14 @@ else()
 
   set( GTEST_FILES Options.hpp Options.cpp)
 
-  set (ADD_MPI_LIBS "")
-
   add_definitions("-DBENCHMARK")
 
   foreach(srcfile IN LISTS SRCFILES X86_SRCFILES)
     add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
     add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})
     set_target_properties(${srcfile}_block PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
-    target_link_libraries(${srcfile}_naive ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest gtest_main)
-    target_link_libraries(${srcfile}_block ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest gtest_main)
+    target_link_libraries(${srcfile}_naive ${exe_LIBS} gtest gtest_main)
+    target_link_libraries(${srcfile}_block ${exe_LIBS} gtest gtest_main)
 
     gridtools_add_test( tests.${srcfile}_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/${srcfile}_block" "12 33 61")
     gridtools_add_test( tests.${srcfile}_block ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/${srcfile}_block" "23 11 43")
@@ -35,7 +33,7 @@ else()
 
   add_executable(vanilla_laplacian  vanilla_laplacian.cpp)
   set_target_properties(vanilla_laplacian PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
-  target_link_libraries(vanilla_laplacian ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest gtest_main)
+  target_link_libraries(vanilla_laplacian ${exe_LIBS} )
 
 
   if ( ENABLE_CXX11 )
@@ -59,7 +57,7 @@ else()
         set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
 
         add_executable(copy_stencil_parallel  copy_stencil_parallel.cpp)
-        target_link_libraries(copy_stencil_parallel gcl ${ADD_MPI_LIBS} ${exe_LIBS} gtest gtest_main)
+        target_link_libraries(copy_stencil_parallel ${exe_LIBS} gtest gtest_main)
         set_target_properties(copy_stencil_parallel PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
     endif()
   endif()
@@ -70,9 +68,9 @@ else()
     else()
 
         foreach(srcfile IN LISTS SRCFILES )
-             set(CUDA_SEPARABLE_COMPILATION OFF)
-             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
-             target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest gtest_main)
+             #set(CUDA_SEPARABLE_COMPILATION ON)
+             cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES} OPTIONS ${GPU_SPECIFIC_FLAGS} )
+             target_link_libraries(${srcfile}_cuda ${exe_LIBS} gtest gtest_main)
 
              gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/${srcfile}_cuda" "77 48 61")
              gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/${srcfile}_cuda" "63 55 43")
