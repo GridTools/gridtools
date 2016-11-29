@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "copy_stencil_parallel.hpp"
-#include <gridtools.hpp>
 
 int main(int argc, char **argv) {
 

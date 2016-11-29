@@ -45,6 +45,7 @@ namespace gridtools {
         }
     };
 
+    /** @class implementation of a predicate returning true if on the boundary*/
     struct bitmap_predicate {
         uint_t m_boundary_bitmap; // see storage/partitioner_trivial.hpp
 

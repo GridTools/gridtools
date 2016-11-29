@@ -35,19 +35,15 @@
 */
 #pragma once
 
-#include <communication/low-level/proc_grids_3D.hpp>
-#include <stencil-composition/interval.hpp>
-#include <stencil-composition/make_computation.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include <storage/parallel_storage.hpp>
-#include <storage/partitioner_trivial.hpp>
 
+#include <communication/low-level/proc_grids_3D.hpp>
 #include <boundary-conditions/apply.hpp>
 #include <communication/halo_exchange.hpp>
 
 /** @file
-    @brief This file shows an implementation of the "copy" stencil in parallel, simple copy of one field done on the
-   backend*/
+    @brief This file shows an implementation of the "copy" stencil in parallel, also setting the boundaries to a value (demonstrating the boundary conditions).
+*/
 
 using gridtools::level;
 using gridtools::accessor;
@@ -75,6 +71,7 @@ namespace copy_stencil {
         }
     };
 
+    // assigning values at the global boundary
     template < typename Partitioner >
     struct boundary_conditions {
         Partitioner const &m_partitioner;
@@ -142,7 +139,6 @@ namespace copy_stencil {
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_in, p_out > accessor_list;
-        /* typedef arg<1, vec_storage_type > p_out; */
         // Definition of the actual data fields that are used for input/output
         //#ifdef CXX11_ENABLED
         array< ushort_t, 3 > padding{0, 0, 0};
@@ -161,10 +157,6 @@ namespace copy_stencil {
         he.add_halo< 0 >(meta_.template get_halo_gcl< 0 >());
         he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
         he.add_halo< 2 >(meta_.template get_halo_gcl< 2 >());
-        // he.add_halo<0>(1,1,1,d1,d1+2);
-        // he.add_halo<1>(1,1,1,d2,d2+2);
-
-        // he.add_halo<2>(0, 0, 0, d3 - 1, d3);
 
         he.setup(2);
 
@@ -294,6 +286,29 @@ namespace copy_stencil {
             std::ofstream file(filename.c_str());
             in.print(file);
         }
+
+        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
+            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
+                for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
+                    if(out(i, j, k) != (i + j + k) * (gridtools::PID + 1))
+                    {
+                        if (gridtools::bitmap_predicate(part.boundary()).at_boundary(0, gridtools::bitmap_predicate::UP)
+                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(0, gridtools::bitmap_predicate::DOWN)
+                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(1, gridtools::bitmap_predicate::UP)
+                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(1, gridtools::bitmap_predicate::DOWN)
+                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(2, gridtools::bitmap_predicate::UP)
+                            || gridtools::bitmap_predicate(part.boundary()).at_boundary(2, gridtools::bitmap_predicate::DOWN)){
+                            if(out(i, j, k) != part.boundary()){
+                                GCL_Finalize();
+                                return false;
+                            }
+                        }else{
+                            GCL_Finalize();
+                            printf("copy parallel test FAILED\n");
+                        }
+                        return false;
+                    }
+                }
 
         MPI_Barrier(GCL_WORLD);
         GCL_Finalize();
