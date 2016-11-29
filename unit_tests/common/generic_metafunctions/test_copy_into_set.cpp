@@ -35,7 +35,13 @@
 */
 
 #include "gtest/gtest.h"
-#include "stencil-composition/esf_metafunctions.hpp"
+#include "common/defs.hpp"
+#include "common/host_device.hpp"
+#include "common/generic_metafunctions/copy_into_set.hpp"
+#include "boost/mpl/vector.hpp"
+#include "boost/mpl/set.hpp"
+#include "boost/mpl/contains.hpp"
+#include "boost/mpl/size.hpp"
 
 using namespace gridtools;
 
