@@ -90,7 +90,12 @@ namespace gridtools {
             iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
 
             // typedef typename esf_t::template esf_function< Index::value > functor_t;
-            typedef typename EsfArguments::functor_t functor_t;
+
+            typedef typename EsfArguments::functor_t original_functor_t;
+            typedef typename esf_t::template esf_function< Index::value > colored_functor_t;
+            typedef functor_decorator< typename original_functor_t::id,
+                colored_functor_t,
+                typename original_functor_t::repeat_t > functor_t;
 
             GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, "wrong type");
 
