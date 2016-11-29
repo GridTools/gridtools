@@ -188,14 +188,14 @@ namespace gridtools {
             // check (in DEBUG mode) that all the expandable parameter lists have the same size
             boost::mpl::for_each< expandable_params_t >(_impl::check_length< DomainType >(domain, m_size));
 
-            m_domain_chunk.reset(new aggregator_type< expand_arg_list >(expand_vec));
-            m_intermediate.reset(new intermediate_t(*m_domain_chunk, grid, conditionals_));
+            m_domain_chunk.set(new aggregator_type< expand_arg_list >(expand_vec));
+            m_intermediate.set(new intermediate_t(*m_domain_chunk, grid, conditionals_));
             if (m_size % ExpandFactor::value) {
                 boost::mpl::for_each< typename DomainType::placeholders_t >(
                     _impl::initialize_storage< DomainType, vec_remainder_t >(domain, vec_remainder));
 
-                m_domain_chunk_remainder.reset(new aggregator_type< expand_arg_list_remainder >(vec_remainder));
-                m_intermediate_remainder.reset(
+                m_domain_chunk_remainder.set(new aggregator_type< expand_arg_list_remainder >(vec_remainder));
+                m_intermediate_remainder.set(
                     new intermediate_remainder_t(*m_domain_chunk_remainder, grid, conditionals_));
             }
         }
@@ -232,7 +232,7 @@ namespace gridtools {
                     _impl::assign_expandable_params< Backend, DomainType, aggregator_type< expand_arg_list > >(
                         m_domain_full, *m_domain_chunk, i));
                 m_intermediate->run();
-                m_meter.reset(m_meter.total_time() + m_intermediate->get_meter());
+                m_meter.set(m_meter.total_time() + m_intermediate->get_meter());
             }
             for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
                 boost::mpl::for_each< expandable_params_t >(_impl::assign_expandable_params< Backend,
@@ -240,7 +240,7 @@ namespace gridtools {
                     aggregator_type< expand_arg_list_remainder > >(
                     m_domain_full, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
                 m_intermediate_remainder->run();
-                m_meter.reset(m_meter.total_time() + m_intermediate_remainder->get_meter());
+                m_meter.set(m_meter.total_time() + m_intermediate_remainder->get_meter());
             }
             return 0.; // reduction disabled
         }
