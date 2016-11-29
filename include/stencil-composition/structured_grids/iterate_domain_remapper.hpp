@@ -141,6 +141,20 @@ namespace gridtools {
                 return m_iterate_domain(remap_accessor_t(arg));
             }
 #endif // CUDA8
+
+#ifdef CXX11_ENABLED
+            /**@brief returns the dimension of the storage corresponding to the given accessor
+
+               Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
+               NOTE: shifting the IDs of the placeholders and forwarding to the iterate_domain () operator
+            */
+            template < ushort_t Coordinate, typename Accessor >
+            GT_FUNCTION uint_t get_storage_dim(Accessor acc_) const {
+                GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "wrong type");
+                typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
+                return m_iterate_domain.get_storage_dim< Coordinate >(remap_accessor_t(acc_));
+            }
+#endif
         };
 
         /**
