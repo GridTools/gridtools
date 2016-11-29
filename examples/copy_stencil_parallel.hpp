@@ -40,6 +40,7 @@
 #include <communication/low-level/proc_grids_3D.hpp>
 #include <boundary-conditions/apply.hpp>
 #include <communication/halo_exchange.hpp>
+#include <fstream>
 
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel, also setting the boundaries to a value
@@ -270,7 +271,6 @@ namespace copy_stencil {
 #ifdef VERBOSE
         printf("copy unpacked\n");
 #endif
-
         {
             std::stringstream ss;
             ss << PID;
