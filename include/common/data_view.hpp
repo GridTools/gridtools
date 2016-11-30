@@ -57,6 +57,10 @@ namespace gridtools {
         typename DataStore::storage_info_t const *m_storage_info;
         bool m_device_view;
 
+        typedef decltype(m_raw_ptr) data_ptr_t;
+
+        GT_FUNCTION data_view() {}
+
         GT_FUNCTION data_view(typename DataStore::data_t *data_ptr,
             typename DataStore::storage_info_t const *info_ptr,
             typename DataStore::state_machine_t *state_ptr,

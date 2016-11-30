@@ -57,6 +57,10 @@ namespace gridtools {
         unsigned m_offsets[Dims];
         bool m_device_view;
 
+        typedef decltype(m_raw_ptrs) data_ptr_t;
+
+        data_field_view() {}
+
         data_field_view(DataType *data_ptrs[N],
             StorageInfo const *info_ptrs[Dims],
             StateMachine *state_machines[N],
