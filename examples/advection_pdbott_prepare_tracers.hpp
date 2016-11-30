@@ -40,11 +40,12 @@ namespace adv_prepare_tracers {
     };
 
     template < typename Storage1, typename Storage2, typename Storage3 >
-    bool reference(Storage1 const &in_, Storage2 const &rho_, Storage3 &out_) {
+    void reference(Storage1 const &in_, Storage2 const &rho_, Storage3 &out_) {
         for (int_t i = 0; i < in_.meta_data().template dim< 0 >(); ++i)
             for (int_t j = 0; j < in_.meta_data().template dim< 1 >(); ++j)
-                for (int_t k = 0; k < in_.meta_data().template dim< 2 >(); ++k)
+                for (int_t k = 0; k < in_.meta_data().template dim< 2 >(); ++k){
                     out_(i, j, k) = rho_(i, j, k) * in_(i, j, k);
+                }
     }
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {

@@ -211,7 +211,7 @@ namespace gridtools {
     T *get_cpu_p() { return m_cpu_p; }
 
     GT_FUNCTION
-    T *get_gpu_p() { assert(false); }
+    T *get_gpu_p() { assert(false); return NULL; }
 
   protected:
     T *m_cpu_p;
