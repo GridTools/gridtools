@@ -61,6 +61,7 @@ namespace gridtools {
                 (at_boundary(2, ((K==minus_)?UP:LOW)));
         }
 
+    private:
         GT_FUNCTION
         bool at_boundary(ushort_t const& component_, Flag flag_) const {
             uint_t ret = (((uint_t)flag_ * (1<<component_)) ) & m_boundary_bitmap;
