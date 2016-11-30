@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/map/map0.hpp>
-#include <boost/mpl/assert.hpp>
-#include "functor_do_methods.hpp"
-#include "esf.hpp"
 #include "../common/meta_array.hpp"
 #include "caches/cache_metafunctions.hpp"
+#include "esf.hpp"
+#include "functor_do_methods.hpp"
 #include "independent_esf.hpp"
+#include <boost/mpl/assert.hpp>
+#include <boost/mpl/map/map0.hpp>
+#include <boost/mpl/transform.hpp>
 // #include "stencil-composition/sfinae.hpp"
 
 /**
@@ -71,6 +71,7 @@ namespace gridtools {
             (is_sequence_of< EsfDescrSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: invalid type");
+        typedef ExecutionEngine execution_engine_t;
         typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;
         typedef static_bool< false > is_reduction_t;

@@ -1,5 +1,6 @@
 #pragma once
-#include "../../storage/meta_storage_base.hpp"
+#include "common/storage_info_interface.hpp"
+
 #include "../../common/generic_metafunctions/unzip.hpp"
 
 namespace gridtools {
@@ -7,7 +8,7 @@ namespace gridtools {
     template < typename Layout, uint_t... Dims >
     struct meta_storage_cache {
 
-        typedef meta_storage_base< static_int< 0 >, Layout, false > meta_storage_t;
+        typedef storage_info_interface< 0, Layout > meta_storage_t;
 
       private:
         const meta_storage_t m_value;

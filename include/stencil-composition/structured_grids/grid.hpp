@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "storage/partitioner.hpp"
+#include "../common/partitioner.hpp"
 #include "stencil-composition/axis.hpp"
 
 namespace gridtools {

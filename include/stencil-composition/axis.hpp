@@ -35,12 +35,12 @@
 */
 #pragma once
 
+#include "../common/gpu_clone.hpp"
+#include "../common/halo_descriptor.hpp"
+#include "../common/partitioner.hpp"
+#include "loopintervals.hpp"
 #include <boost/mpl/minus.hpp>
 #include <boost/mpl/plus.hpp>
-#include "loopintervals.hpp"
-#include "../common/halo_descriptor.hpp"
-#include "../common/gpu_clone.hpp"
-#include "storage/partitioner.hpp"
 /**@file
 @brief file containing the size of the horizontal domain
 
@@ -57,7 +57,8 @@ namespace gridtools {
     template < typename Axis, uint_t I >
     struct extend_by {
         typedef interval< level< Axis::FromLevel::Splitter::value, Axis::FromLevel::Offset::value - 1 >,
-            level< Axis::ToLevel::Splitter::value, Axis::ToLevel::Offset::value + 1 > > type;
+            level< Axis::ToLevel::Splitter::value, Axis::ToLevel::Offset::value + 1 > >
+            type;
     };
 
     namespace enumtype_axis {

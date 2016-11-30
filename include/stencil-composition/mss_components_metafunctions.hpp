@@ -34,11 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/assert.hpp>
-#include "mss_metafunctions.hpp"
-#include "mss_components.hpp"
-#include "reductions/reduction_descriptor.hpp"
 #include "../common/meta_array.hpp"
+#include "./reductions/reduction_descriptor.hpp"
+#include "grid.hpp"
+#include "mss_components.hpp"
+#include "mss_metafunctions.hpp"
+#include <boost/mpl/assert.hpp>
 
 namespace gridtools {
 
@@ -89,7 +90,8 @@ namespace gridtools {
                 boost::mpl::vector0<>,
                 boost::mpl::copy< boost::mpl::_1, boost::mpl::back_inserter< mss_split_esfs< boost::mpl::_2 > > > >::
                 type,
-            boost::mpl::quote1< is_computation_token > > type;
+            boost::mpl::quote1< is_computation_token > >
+            type;
     };
 
     /**
@@ -140,7 +142,8 @@ namespace gridtools {
                                     mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
                                                            boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
                                                            RepeatFunctor > > >::type,
-            boost::mpl::quote1< is_mss_components > > type;
+            boost::mpl::quote1< is_mss_components > >
+            type;
     }; // struct build_mss_components_array
 
     /**
@@ -176,7 +179,8 @@ namespace gridtools {
                                meta_array< MssDescriptorArray2, Predicate >,
                                ExtentSizes2,
                                RepeatFunctor >::type,
-            Condition > type;
+            Condition >
+            type;
     }; // build_mss_components_array
 
     /**
@@ -232,6 +236,54 @@ namespace gridtools {
         typedef typename boost::mpl::transform< functor_do_methods,
             compute_functor_do_method_lookup_map< boost::mpl::_, loop_intervals > >::type
             type; // vector of maps, indexed by functors indices in Functor vector.
+    };
+
+    template < typename MssComponents, typename AggregatorType >
+    struct fix_temporary_args;
+
+    template < template < typename, typename > class MetaArray,
+        typename Sequence,
+        typename Pred,
+        typename AggregatorType >
+    struct fix_temporary_args< MetaArray< Sequence, Pred >, AggregatorType > {
+
+        struct fix_esf_sequence {
+            template < typename T >
+            struct apply;
+
+            template < template < typename, typename, typename > class EsfDescriptor,
+                typename ESF,
+                typename ArgArray,
+                typename Staggering >
+            struct apply< EsfDescriptor< ESF, ArgArray, Staggering > > {
+                typedef typename boost::mpl::fold<
+                    ArgArray,
+                    boost::mpl::vector0<>,
+                    boost::mpl::push_back<
+                        boost::mpl::_1,
+                        boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
+                            _impl::replace_arg_storage_info< typename AggregatorType::tmp_storage_info_id_t,
+                                             boost::mpl::_2 >,
+                            boost::mpl::_2 > > >::type new_arg_array_t;
+                typedef EsfDescriptor< ESF, new_arg_array_t, Staggering > type;
+            };
+        };
+
+        template < typename MssDesc >
+        struct fix_mss_components_desc {
+            typedef typename MssDesc::execution_engine_t execution_engine_t;
+            typedef typename MssDesc::esf_sequence_t esf_sequence_t;
+            typedef typename MssDesc::cache_sequence_t cache_sequence_t;
+            typedef typename boost::mpl::transform< esf_sequence_t, fix_esf_sequence >::type new_esf_sequence_t;
+            typedef mss_descriptor< execution_engine_t, new_esf_sequence_t, cache_sequence_t > type;
+        };
+
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array< MetaArray< Sequence, Pred > >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), "Internal Error: wrong type");
+
+        typedef typename boost::mpl::transform< Sequence, fix_mss_components_desc< boost::mpl::_1 > >::type
+            new_mss_descriptor_t;
+        typedef MetaArray< new_mss_descriptor_t, Pred > type;
     };
 
 } // namespace gridtools

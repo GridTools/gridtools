@@ -36,8 +36,6 @@
 #pragma once
 
 #include "../common/defs.hpp"
-#include "../storage/meta_storage.hpp"
-#include "../storage/storage.hpp"
 
 namespace gridtools {
 
@@ -60,6 +58,7 @@ namespace gridtools {
             typedef void index_t;
         };
 
+// TODO: This will not work because wrap and hybrid ptr is not existent anymore.
 // TODO: This seems to be pretty static. Maybe we should ask
 // storage_traits or backend_traits what pointer type to use
 #ifdef _USE_GPU_

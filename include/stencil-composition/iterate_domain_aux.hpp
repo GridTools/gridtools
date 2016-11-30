@@ -62,26 +62,6 @@
 namespace gridtools {
 
     /**
-     * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
-     */
-    template < typename T >
-    struct is_any_iterate_domain_storage : is_storage< T > {};
-
-    template < typename T >
-    struct is_any_iterate_domain_meta_storage : is_meta_storage< T > {};
-
-    /**
-     * @brief metafunction that determines if a type is one of the storage types allowed by the iterate domain
-     */
-    template < typename T >
-    struct is_any_iterate_domain_storage_pointer
-        : boost::mpl::and_< is_any_iterate_domain_storage< typename T::value_type >, is_pointer< T > > {};
-
-    template < typename T >
-    struct is_any_iterate_domain_meta_storage_pointer
-        : boost::mpl::and_< is_any_iterate_domain_meta_storage< typename T::value_type >, is_pointer< T > > {};
-
-    /**
        @brief struct to allocate recursively all the strides with the proper dimension
 
        the purpose of this struct is to allocate the storage for the strides of a set of storages. Tipically
@@ -211,11 +191,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_pointer< StoragePtr >::value), "You are using an unsupported storage type ");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
         typedef typename StoragePtr::value_type storage_type;
-#ifdef PEDANTIC
-        GRIDTOOLS_STATIC_ASSERT((is_any_iterate_domain_storage< storage_type >::value),
-            "If you are using generic accessors disable the pedantic mode. \n\
-If you are not using generic accessors then you are using an unsupported storage type ");
-#endif
 
       private:
         DataPointerArray &RESTRICT m_data_pointer_array;
@@ -455,12 +430,6 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< StorageSequence, is_pointer >::value), "You are using an unsupported storage type ");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
-
-#ifdef PEDANTIC
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageSequence, is_any_iterate_domain_storage_pointer >::value),
-            "If you are using generic accessors disable the pedantic mode. \n If you are not using generic accessors "
-            "then you are using an unsupported storage type ");
-#endif
 
       private:
         DataPointerArray &RESTRICT m_data_pointer_array;

@@ -34,44 +34,30 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/quote.hpp>
 
-#include "../compute_extents_metafunctions.hpp"
-#include "./icosahedral_grid_traits.hpp"
+/**
+   @file traits classes for the various grid topologies
+*/
 
 namespace gridtools {
+    namespace topology {
 
-    template <>
-    struct grid_traits_from_id< enumtype::icosahedral > {
+        /**@brief cartesian topology
 
-        struct select_mss_compute_extent_sizes {
-            template < typename PlaceholdersMap, typename Mss, uint_t RepeatFunctor >
-            struct apply {
-                typedef
-                    typename compute_extents_of< PlaceholdersMap, RepeatFunctor >::template for_mss< Mss >::type type;
-            };
-        };
+           \tparam the local layout map, i.e. defining the order of the dimensions
+         */
+        template < typename Layout >
+        struct cartesian {};
+    } // namespace topology
 
-        template < typename Placeholders >
-        struct select_init_map_of_extents {
-            typedef typename init_map_of_extents< Placeholders >::type type;
-        };
+    using namespace topology;
 
-        typedef extent< 0 > null_extent_t;
+    template < typename TopologyType >
+    class cell_topology {};
 
-        template < enumtype::platform BackendId >
-        struct with_arch {
-            typedef icgrid::grid_traits_arch< BackendId > type;
-        };
-
-        template < typename T, typename Grid >
-        static T instantiate_storage_info(Grid const &grid) {
-            // TODO: implement for icosahedral topology
-        }
-
-        typedef static_uint< 0 > dim_i_t;
-        typedef static_uint< 1 > dim_c_t;
-        typedef static_uint< 2 > dim_j_t;
-        typedef static_uint< 3 > dim_k_t;
+    template < typename Layout >
+    class cell_topology< cartesian< Layout > > {
+      public:
+        static const ushort_t space_dimensions = Layout::length;
     };
-}
+} // namespace gridtools

@@ -34,11 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../storage/meta_storage.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
 #include "../tile.hpp"
-#include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
+#include "execute_kernel_functor_host.hpp"
 
 namespace gridtools {
 
@@ -114,70 +113,6 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< functor_list_t >::value == 1), "Internal Error: wrong size");
                 kernel_functor_executor_t(local_domain, grid, reduction_data)();
             }
-        };
-
-        // NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
-        template < typename Index,
-            typename Layout,
-            typename Halo,
-            typename Alignment,
-#ifdef CXX11_ENABLED
-            typename... Tiles
-#else
-            typename TileI,
-            typename TileJ
-#endif
-            >
-        struct get_tmp_storage_info {
-            GRIDTOOLS_STATIC_ASSERT(is_aligned< Alignment >::type::value, "wrong type");
-
-            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "wrong type for layout map");
-#ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), "wrong type for the tiles");
-#else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
-#endif
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
-
-            typedef meta_storage< meta_storage_aligned< meta_storage_base< Index, Layout, true >, Alignment, Halo > >
-                type;
-        };
-
-/**
- * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
- */
-// NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
-#ifdef CXX11_ENABLED
-        template < typename Storage, typename... Tiles >
-#else
-        template < typename Storage, typename TileI, typename TileJ >
-#endif
-        struct get_tmp_storage {
-#ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), "wrong type for the tiles");
-#else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
-#endif
-            typedef storage<
-#ifdef CXX11_ENABLED
-                typename Storage::template type_tt
-#else
-                base_storage
-#endif
-                < typename Storage::pointer_type,
-                    typename get_tmp_storage_info< typename Storage::storage_info_type::index_t,
-                        typename Storage::storage_info_type::layout,
-                        typename Storage::storage_info_type::halo_t,
-                        typename Storage::storage_info_type::alignment_t,
-#ifdef CXX11_ENABLED
-                        Tiles...
-#else
-                        TileI,
-                        TileJ
-#endif
-                        >::type,
-                    Storage::field_dimensions > >
-                type;
         };
     };
 
@@ -292,78 +227,6 @@ namespace gridtools {
                 kernel_functor_executor_t(
                     local_domain, grid, reduction_data, first_i, first_j, last_i, last_j, bi, bj)();
             }
-        };
-
-        // NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
-        template < typename Index,
-            typename Layout,
-            typename Halo
-#ifdef CXX11_ENABLED
-            ,
-            typename... Tiles
-#else
-            ,
-            typename TileI,
-            typename TileJ
-#endif
-            >
-        struct get_tmp_meta_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "wrong type for layout map");
-#ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), "wrong type for the tiles");
-#else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
-#endif
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
-
-            typedef meta_storage_tmp<
-                meta_storage_aligned< meta_storage_base< Index, Layout, true >, aligned< 0 >, Halo >
-#ifdef CXX11_ENABLED
-                ,
-                Tiles...
-#else
-                ,
-                TileI,
-                TileJ
-#endif
-                >
-                type;
-        };
-
-/**
- * @brief metafunction that returns the storage type for the storage type of the temporaries for this strategy.
- */
-// NOTE: this part is (and should remain) an exact copy-paste in the naive, block, host and cuda versions
-#ifdef CXX11_ENABLED
-        template < typename Storage, typename... Tiles >
-#else
-        template < typename Storage, typename TileI, typename TileJ >
-#endif
-        struct get_tmp_storage {
-#ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), "wrong type for the tiles");
-#else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
-#endif
-            typedef storage<
-#ifdef CXX11_ENABLED
-                typename Storage::template type_tt
-#else
-                base_storage
-#endif
-                < typename Storage::pointer_type,
-                    typename get_tmp_meta_storage< typename Storage::storage_info_type::index_t,
-                        typename Storage::storage_info_type::layout,
-                        typename Storage::storage_info_type::halo_t,
-#ifdef CXX11_ENABLED
-                        Tiles...
-#else
-                        TileI,
-                        TileJ
-#endif
-                        >::type,
-                    Storage::field_dimensions > >
-                type;
         };
     };
 

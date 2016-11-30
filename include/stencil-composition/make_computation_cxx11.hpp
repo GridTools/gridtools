@@ -36,9 +36,10 @@
 #pragma once
 #include <memory>
 
-#include "conditionals/fill_conditionals.hpp"
 #include "../common/generic_metafunctions/vector_to_set.hpp"
 #include "computation_grammar.hpp"
+#include "conditionals/fill_conditionals.hpp"
+#include "intermediate.hpp"
 #include "make_computation_cxx11_impl.hpp"
 #include "make_computation_helper_cxx11.hpp"
 

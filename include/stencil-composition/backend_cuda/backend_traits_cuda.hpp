@@ -37,9 +37,9 @@
 #include <boost/mpl/for_each.hpp>
 
 #include "../backend_traits_fwd.hpp"
-#include "run_esf_functor_cuda.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
+#include "run_esf_functor_cuda.hpp"
 #include "strategy_cuda.hpp"
 
 #ifdef ENABLE_METERS
@@ -58,13 +58,40 @@ namespace gridtools {
         struct run_functor_cuda;
     }
 
-    /**forward declaration*/
-    template < typename T, bool Array >
-    struct hybrid_pointer;
-
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
     struct backend_traits_from_id< enumtype::Cuda > {
+
+        template < typename T >
+        static T extract_storage_info_ptr(T t) {
+            return t->get_gpu_ptr();
+        }
+
+        template < typename AggregatorType >
+        struct instantiate_view {
+
+            AggregatorType &m_agg;
+            instantiate_view(AggregatorType &agg) : m_agg(agg) {}
+
+            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            arg_storage_pair< Arg, typename Arg::storage_t > get_arg_storage_pair() const {
+                return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::storage_t > >(
+                    m_agg.get_arg_storage_pairs()));
+            }
+
+            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(T &t) const {
+                // make a view
+                t = make_device_view(*(get_arg_storage_pair< T >().ptr));
+            }
+
+            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
+                T &t) const {
+                // make a view
+                t = make_field_device_view(*(get_arg_storage_pair< T >().ptr));
+            }
+        };
 
         template < typename Arguments >
         struct execute_traits {

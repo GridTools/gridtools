@@ -35,9 +35,9 @@
 */
 #pragma once
 
-#include <boost/mpl/quote.hpp>
 #include "../compute_extents_metafunctions.hpp"
 #include "grid_traits_backend_fwd.hpp"
+#include <boost/mpl/quote.hpp>
 
 #ifdef __CUDACC__
 #include "backend_cuda/grid_traits_cuda.hpp"
@@ -69,6 +69,11 @@ namespace gridtools {
         struct with_arch {
             typedef strgrid::grid_traits_arch< BackendId > type;
         };
+
+        template < typename T, typename Grid >
+        static T instantiate_storage_info(Grid const &grid) {
+            return T(grid.direction_i().total_length(), grid.direction_j().total_length(), (grid.value_at_top() + 1));
+        }
 
         // index positions of the different dimensions in the layout map (convention)
         typedef static_uint< 0 > dim_i_t;

@@ -120,7 +120,7 @@ namespace gridtools {
         typedef typename boost::mpl::fold< typename DomainType::placeholders_t,
             boost::mpl::vector0<>,
             boost::mpl::if_< boost::mpl::and_< _impl::is_expandable_arg< boost::mpl::_2 >,
-                                 boost::mpl::not_< is_plchldr_to_temp< boost::mpl::_2 > > >,
+                                 boost::mpl::not_< is_tmp_arg< boost::mpl::_2 > > >,
                                                boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
                                                boost::mpl::_1 > >::type expandable_params_t;
 

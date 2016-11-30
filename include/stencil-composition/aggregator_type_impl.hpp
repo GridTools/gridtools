@@ -299,7 +299,7 @@ namespace gridtools {
         struct extract_temporaries {
             typedef typename boost::mpl::fold< ListOfPlaceHolders,
                 boost::mpl::vector0<>,
-                boost::mpl::if_< is_plchldr_to_temp< boost::mpl::_2 >,
+                boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
                                                    boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
                                                    boost::mpl::_1 > >::type type;
         };

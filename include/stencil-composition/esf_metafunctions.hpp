@@ -35,11 +35,11 @@
 */
 #pragma once
 
-#include <boost/mpl/contains.hpp>
+#include "common/generic_metafunctions/copy_into_set.hpp"
+#include "common/generic_metafunctions/is_predicate.hpp"
 #include "stencil-composition/esf.hpp"
 #include "stencil-composition/independent_esf.hpp"
-#include "common/generic_metafunctions/is_predicate.hpp"
-#include "common/generic_metafunctions/copy_into_set.hpp"
+#include <boost/mpl/contains.hpp>
 
 #ifdef STRUCTURED_GRIDS
 #include "structured_grids/esf_metafunctions.hpp"
@@ -102,7 +102,7 @@ namespace gridtools {
         struct apply {
             typedef typename esf_arg_list< Esf >::type arg_list_t;
             typedef typename boost::mpl::if_<
-                is_plchldr_to_temp< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
+                is_tmp_arg< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
                 typename boost::mpl::if_< is_accessor_readonly< typename boost::mpl::at< arg_list_t, Index >::type >,
                     boost::false_type,
                     boost::true_type >::type,
@@ -254,7 +254,7 @@ namespace gridtools {
             typedef typename boost::mpl::fold< typename Esf::args_t,
                 Acc,
                 boost::mpl::if_< boost::mpl::or_< boost::mpl::has_key< ReadWriteArgs, boost::mpl::_2 >,
-                                     is_plchldr_to_temp< boost::mpl::_2 > >,
+                                     is_tmp_arg< boost::mpl::_2 > >,
                                                    boost::mpl::_1,
                                                    boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > >::type type;
         };

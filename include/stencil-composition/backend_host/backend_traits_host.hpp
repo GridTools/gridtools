@@ -37,11 +37,11 @@
 #include <boost/mpl/for_each.hpp>
 
 #include "../backend_traits_fwd.hpp"
-#include "run_esf_functor_host.hpp"
 #include "../block_size.hpp"
-#include "iterate_domain_host.hpp"
-#include "strategy_host.hpp"
 #include "empty_iterate_domain_cache.hpp"
+#include "iterate_domain_host.hpp"
+#include "run_esf_functor_host.hpp"
+#include "strategy_host.hpp"
 
 #ifdef ENABLE_METERS
 #include "timer_host.hpp"
@@ -59,13 +59,40 @@ namespace gridtools {
         struct run_functor_host;
     }
 
-    /**forward declaration*/
-    template < typename T, bool Array >
-    struct wrap_pointer;
-
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
     struct backend_traits_from_id< enumtype::Host > {
+
+        template < typename T >
+        static T extract_storage_info_ptr(T t) {
+            return t;
+        }
+
+        template < typename AggregatorType >
+        struct instantiate_view {
+
+            AggregatorType &m_agg;
+            instantiate_view(AggregatorType &agg) : m_agg(agg) {}
+
+            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            arg_storage_pair< Arg, typename Arg::storage_t > get_arg_storage_pair() const {
+                return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::storage_t > >(
+                    m_agg.get_arg_storage_pairs()));
+            }
+
+            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(T &t) const {
+                // make a view
+                t = make_host_view(*(get_arg_storage_pair< T >().ptr));
+            }
+
+            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
+                T &t) const {
+                // make a view
+                t = make_field_host_view(*(get_arg_storage_pair< T >().ptr));
+            }
+        };
 
         template < typename Arguments >
         struct execute_traits {
