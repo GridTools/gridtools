@@ -33,11 +33,37 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "dimension.hpp"
+#include "gtest/gtest.h"
 
-#ifdef STRUCTURED_GRIDS
-#include "structured_grids/dimension_defs.hpp"
-#else
-#include "icosahedral_grids/dimension_defs.hpp"
+#include <common/defs.hpp>
+#include <common/cuda_type_traits.hpp>
+
+TEST(texture_type_traits, int_is_texture_type) { ASSERT_TRUE(gridtools::is_texture_type< int >::value); }
+
+TEST(texture_type_traits, bool_is_NOT_texture_type) { ASSERT_FALSE(gridtools::is_texture_type< bool >::value); }
+
+TEST(texture_type_traits, real_typedef_is_texture_type) {
+    typedef double Real;
+    ASSERT_TRUE(gridtools::is_texture_type< Real >::value);
+}
+
+TEST(texture_type_traits, gridtools_uint_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< gridtools::uint_t >::value);
+}
+
+TEST(texture_type_traits, int_ref_is_texture_type) { ASSERT_TRUE(gridtools::is_texture_type< int & >::value); }
+
+TEST(texture_type_traits, cv_int_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< const volatile int >::value);
+}
+
+TEST(texture_type_traits, restrict_int_ref_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< int &__restrict__ >::value);
+}
+
+#ifdef CXX11_ENABLED
+TEST(texture_type_traits, is_texture_type_t) {
+    using result = gridtools::is_texture_type_t< int >;
+    ASSERT_TRUE(result::value);
+}
 #endif

@@ -52,7 +52,7 @@ namespace test_cycle_and_swap {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
     struct functor {
-        typedef inout_accessor< 0, extent<>, 3 > p_i;
+        typedef inout_accessor< 0, extent<>, 4 > p_i;
         typedef boost::mpl::vector< p_i > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -60,10 +60,10 @@ namespace test_cycle_and_swap {
         }
     };
 
-    constexpr x i;
+    constexpr dimension< 1 > i;
 
     struct functor_avg {
-        typedef inout_accessor< 0, extent<>, 4 > p_data;
+        typedef inout_accessor< 0, extent<>, 5 > p_data;
         typedef dimension< 4 > time;
 
         typedef boost::mpl::vector< p_data > arg_list;
@@ -85,15 +85,15 @@ namespace test_cycle_and_swap {
 
     bool test_2D() {
 
-        typedef gridtools::layout_map< 0, 1 > layout_t;
+        typedef gridtools::layout_map< 0, 1, -1 > layout_t;
         typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
         typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
         typedef typename field< storage_type, 2 >::type field_t;
 
-        meta_t meta_(1u, 1u);
+        meta_t meta_(1u, 1u, 0u);
         field_t i_data(meta_, 0, "in");
-        i_data.get_value< 0, 0 >(0, 0) = 0;
-        i_data.get_value< 1, 0 >(0, 0) = 1;
+        i_data.get_value< 0, 0 >(0, 0, 0) = 0;
+        i_data.get_value< 1, 0 >(0, 0, 0) = 1;
 
         uint_t di[5] = {0, 0, 0, 0, 1};
         uint_t dj[5] = {0, 0, 0, 0, 1};
@@ -124,7 +124,7 @@ namespace test_cycle_and_swap {
         comp->run();
         comp->finalize();
 
-        return (i_data(0, 0) == 2 && i_data.get_value< 1, 0 >(0, 0) == 0);
+        return (i_data(0, 0, 0) == 2 && i_data.get_value< 1, 0 >(0, 0, 0) == 0);
     }
     bool test_3D() {
 
@@ -221,8 +221,11 @@ namespace test_cycle_and_swap {
         typedef gridtools::layout_map< 0, 1 > layout_t;
         typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
         typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
+#ifdef CUDA8
+        typedef typename field< storage_type, 3, 3, 4 >::type field_t;
+#else // rectangular data field
         typedef typename field< storage_type, 3, 3, 3 >::type field_t;
-
+#endif
         meta_t meta_(1u, 1u);
         field_t i_data(meta_, 0, "in");
         i_data.get_value< 0, 0 >(0, 0) = 0;
@@ -234,6 +237,9 @@ namespace test_cycle_and_swap {
         i_data.get_value< 0, 2 >(0, 0) = 20;
         i_data.get_value< 1, 2 >(0, 0) = 21;
         i_data.get_value< 2, 2 >(0, 0) = 22;
+#ifdef CUDA8
+        i_data.get_value< 3, 2 >(0, 0) = 23;
+#endif
 
         uint_t di[5] = {0, 0, 0, 0, 1};
         uint_t dj[5] = {0, 0, 0, 0, 1};
@@ -268,7 +274,15 @@ namespace test_cycle_and_swap {
         return (i_data(0, 0) == 2 && i_data.get_value< 1, 0 >(0, 0) == 2 && i_data.get_value< 2, 0 >(0, 0) == 0 &&
                 i_data.get_value< 0, 1 >(0, 0) == 12 && i_data.get_value< 1, 1 >(0, 0) == 10 &&
                 i_data.get_value< 2, 1 >(0, 0) == 11 && i_data.get_value< 0, 2 >(0, 0) == 21 &&
-                i_data.get_value< 1, 2 >(0, 0) == 22 && i_data.get_value< 2, 2 >(0, 0) == 20);
+                i_data.get_value< 1, 2 >(0, 0) == 22
+#ifdef CUDA8
+                &&
+                i_data.get_value< 2, 2 >(0, 0) == 23 && i_data.get_value< 3, 2 >(0, 0) == 20
+#else
+                &&
+                i_data.get_value< 2, 2 >(0, 0) == 20
+#endif
+            );
     }
 
 } // namespace test_cycle_and_swap

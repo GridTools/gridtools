@@ -37,8 +37,9 @@
 
 #include "../global_accessor.hpp"
 #include "./accessor.hpp"
+#include "./accessor_mixed.hpp"
 #ifdef CXX11_ENABLED
-#include "../expressions.hpp"
+#include "../expressions/expressions.hpp"
 #endif
 
 namespace gridtools {
@@ -51,6 +52,9 @@ namespace gridtools {
 
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_accessor< const T > : is_accessor< T > {};
 
     template < ushort_t ID, enumtype::intend Intend >
     struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};

@@ -44,7 +44,24 @@
    use the \ref gridtools::if_ statement from whithin the make_computation.
 */
 #ifdef CXX11_ENABLED
+#if (NVCC_GCC_53_BUG)
+#include <functional>
+namespace gridtools {
+    struct condition_functor {
+        std::function< short_t() > m_1;
+        short_t m_2;
+        condition_functor(std::function< int() > t1_, short_t t2_) : m_1(t1_), m_2(t2_) {}
+        condition_functor(std::function<bool ()> t1_) : m_2(true){}
+
+        condition_functor() : m_1([]() { return 0; }), m_2(0) {}
+
+        bool operator()() const { return m_1() == m_2; }
+    };
+}
+#define BOOL_FUNC(val) condition_functor val
+#else
 #define BOOL_FUNC(val) std::function< bool() > val
+#endif
 #else
 #define BOOL_FUNC(val) bool (*val)()
 #endif
@@ -67,18 +84,36 @@ namespace gridtools {
         conditional() // try to avoid this?
             : m_value(
 #ifdef CXX11_ENABLED
+#if (!NVCC_GCC_53_BUG)
                   []() {
                       assert(false);
                       return false;
                   }
 #endif
+#endif
                   ) {
         }
 
         /**
-           @brief constructor from a pointer
-         */
+           @brief constructor for switch variables (for GCC53 bug)
+
+           This constructor should not be needed
+        */
         conditional(BOOL_FUNC(c)) : m_value(c) {}
+
+#if (NVCC_GCC_53_BUG)
+#ifdef CXX11_ENABLED
+        /**
+           @brief constructor from a std::function
+         */
+        conditional(std::function< bool() > c) : m_value(c) {}
+#else
+        /**
+           @brief constructor from a function pointer
+         */
+        conditional(bool (*c)()) : m_value(c) {}
+#endif
+#endif // NVCC_GCC_53_BUG
 
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }

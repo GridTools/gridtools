@@ -128,7 +128,7 @@ if [[ "$DO_MPI" == "ON" ]]; then
     fi
 fi
 # end timer and report time taken
-T="$(($(date +%s)-T))"
+T=$(($SECONDS - $START_TIME))
 printf "####### time taken: %02d:%02d:%02d:%02d\n" "$((T/86400))" "$((T/3600%24))" "$((T/60%60))" "$((T%60))"
 
 # no errors encountered
