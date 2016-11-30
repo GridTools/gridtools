@@ -671,7 +671,7 @@ namespace gridtools {
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset = (m_index[metadata_index_t::value]) +
-                                         metadata_->template _index< layout_map_t >(
+                                         storage_t::storage_info_type::template _index< layout_map_t >(
                                              strides().template get< metadata_index_t::value >(), position_offset);
 
             return get_raw_value(accessor_t(),

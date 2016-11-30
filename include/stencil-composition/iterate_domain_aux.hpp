@@ -43,7 +43,7 @@
 #include <boost/mpl/modulus.hpp>
 #include <boost/mpl/for_each.hpp>
 #ifdef CXX11_ENABLED
-#include "expressions.hpp"
+#include "expressions/expressions.hpp"
 #endif
 #include "../common/meta_array.hpp"
 #include "../common/array.hpp"
@@ -92,6 +92,8 @@ namespace gridtools {
     // TODOCOSUNA this is just an array, no need for special class, looks like
     template < ushort_t ID, typename StorageList >
     struct strides_cached : public strides_cached< ID - 1, StorageList > {
+        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< StorageList >::value > ID,
+            "Library internal error: strides index exceeds the number of storages");
         typedef typename boost::mpl::at_c< StorageList, ID >::type storage_type;
         typedef strides_cached< ID - 1, StorageList > super;
         typedef array< int_t, storage_type::space_dimensions - 1 > data_array_t;
@@ -112,10 +114,7 @@ namespace gridtools {
 
         /**@brief constructor, doing nothing more than allocating the space*/
         GT_FUNCTION
-        strides_cached() : super() {
-            GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< StorageList >::value > ID,
-                "Library internal error: strides index exceeds the number of storages");
-        }
+        strides_cached() : super() {}
 
         template < short_t Idx >
         GT_FUNCTION
