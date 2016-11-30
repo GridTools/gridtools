@@ -96,7 +96,7 @@ namespace gridtools {
        passed to the pattern when packing and unpacking is needed.
 
        The interface requires two layout maps ( \link gridtools::layout_map
-       \endlink ) one for to specify the data layout, the other to
+       \endlink ) one to specify the data layout, the other to
        specify the relation between data layout and processor grid. This
        is an important asepct that will be explained here and also in
        the introduction.
@@ -106,7 +106,7 @@ namespace gridtools {
        dimensions of the data fields are ordered logically depending on
        the application and/or user preferences. For instance, we can
        call the dimensions in this application order i, j, and k. The
-       the layout map in this case specifies in what position each
+       layout map in this case specifies in what position each
        dimension is in the increasing stride order. For instance:
 
        \code

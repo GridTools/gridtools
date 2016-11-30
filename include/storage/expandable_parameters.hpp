@@ -74,7 +74,7 @@ namespace gridtools {
 
       public:
         template < typename PT, typename MD, ushort_t FD >
-        using type_tt = expandable_parameters< typename super::template type_tt< PT, MD, Size >, Size >;
+        using type_tt = expandable_parameters< typename Storage::template type_tt< PT, MD, Size >, Size >;
 
         // public methods:
 
@@ -140,5 +140,11 @@ namespace gridtools {
 
     template < typename Storage, uint_t Size >
     struct is_storage< expandable_parameters< Storage, Size > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_expandable_parameters : boost::mpl::false_ {};
+
+    template < typename Storage, uint_t Size >
+    struct is_expandable_parameters< expandable_parameters< Storage, Size > > : boost::mpl::true_ {};
 
 } // namespace gridtools

@@ -34,11 +34,49 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/mpl/has_key.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/type_traits.hpp>
 
 namespace gridtools {
-    /**Aliases for the first three dimensions (x,y,z)*/
-    typedef dimension< 1 > x;
-    typedef dimension< 2 > y;
-    typedef dimension< 4 > z;
-    /**@}*/
+    namespace _impl {
+        typedef boost::mpl::set< char,
+            short,
+            int,
+            long long unsigned char,
+            unsigned short,
+            unsigned int,
+            unsigned long long,
+            int2,
+            int4,
+            uint2,
+            uint4,
+            float,
+            float2,
+            float4,
+            double,
+            double2 > texture_types;
+    } // namespace _impl
+
+    template < typename T >
+    struct remove_restrict {
+        typedef T type;
+    };
+
+    template < typename T >
+    struct remove_restrict< T __restrict__ > {
+        typedef T type;
+    };
+
+    template < typename T >
+    struct is_texture_type
+        : boost::mpl::has_key< _impl::texture_types,
+              typename boost::remove_cv< typename boost::remove_reference<
+                  typename boost::remove_pointer< typename remove_restrict< T >::type >::type >::type >::type > {};
+
+#ifdef CXX11_ENABLED
+    template < typename T >
+    using is_texture_type_t = typename is_texture_type< T >::type;
+#endif
+
 } // namespace gridtools
