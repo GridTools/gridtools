@@ -79,7 +79,6 @@ namespace gridtools {
             // we have a storage list of snapshots, i.e. one dimensional array of storages:
             // just return the last offset (get<0>()) + the index of the current data_field in the array of storages
             // contained in the iterate_domain
-            // automatically augnemted by 1 because of the color
             //
             // if number of accessor dimensions is larger than the space_dimensions (i.e. normal dimensions + color)
             // get the last-1 offset, sum it to the last offset times the #snapshots (storage_type::traits::n_width)
