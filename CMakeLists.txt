@@ -96,3 +96,8 @@ install(TARGETS "gcl" DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools
 install(EXPORT GridTools DESTINATION
     "${PROJECT_BINARY_DIR}/cmake" COMPONENT dev)
 message("compile definitions: ${COMPILE_DEFINITIONS}")
+
+# ===========
+# Apply final actions
+# ===========
+include (post_config_actions)
