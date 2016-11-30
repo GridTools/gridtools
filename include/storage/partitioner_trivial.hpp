@@ -203,28 +203,29 @@ namespace gridtools {
 
             uint_t tile_dimension = up_bound[component] - low_bound[component];
 
-                    coordinates[component] = halo_descriptor( compute_halo(component,LOW) ,
-                                                              compute_halo(component,UP) ,
-                                                              compute_halo(component,LOW) ,
-                                                              tile_dimension + ( compute_halo(component,LOW)) - 1,
-                                                              tile_dimension + ( compute_halo(component,UP)) + (compute_halo(component,LOW)) );
+            coordinates[component] = halo_descriptor(compute_halo(component, LOW),
+                compute_halo(component, UP),
+                compute_halo(component, LOW),
+                tile_dimension + (compute_halo(component, LOW)) - 1,
+                tile_dimension + (compute_halo(component, UP)) + (compute_halo(component, LOW)));
 
-                    coordinates_gcl[component] = halo_descriptor( compute_halo(component,LOW),
-                                                                  compute_halo(component,UP),
-                                                                  compute_halo(component,LOW),
-                                                                  tile_dimension + ( compute_halo(component,LOW)) - 1,
-                                                                  tile_dimension + ( compute_halo(component,UP)) + (compute_halo(component,LOW)) );
+            coordinates_gcl[component] = halo_descriptor(compute_halo(component, LOW),
+                compute_halo(component, UP),
+                compute_halo(component, LOW),
+                tile_dimension + (compute_halo(component, LOW)) - 1,
+                tile_dimension + (compute_halo(component, UP)) + (compute_halo(component, LOW)));
 
 #ifndef NDEBUG
-                    std::cout <<"PID: "<< PID << " coords["<<component<<"]     " << coordinates[component] << std::endl;
-                    std::cout <<"PID: "<< PID << " gcl_coords["<<component<<"]     " << coordinates_gcl[component] << std::endl;
+            std::cout << "PID: " << PID << " coords[" << component << "]     " << coordinates[component] << std::endl;
+            std::cout << "PID: " << PID << " gcl_coords[" << component << "]     " << coordinates_gcl[component]
+                      << std::endl;
 
-                    std::cout<<"boundary for coords definition: "<<boundary()<<std::endl;
-                    std::cout<<"partitioning"<<std::endl;
-                    std::cout<<"up bounds for component "<< component <<": "<<up_bound[component]<<std::endl
-                             <<"low bounds for component "<< component <<": "<<low_bound[component]<<std::endl
-                             <<"pid: "<<m_pid[0]<<" "<<m_pid[1]<<" "<<m_pid[2]<<std::endl
-                             <<"component, size: "<<component<<" "<<size_<<std::endl;
+            std::cout << "boundary for coords definition: " << boundary() << std::endl;
+            std::cout << "partitioning" << std::endl;
+            std::cout << "up bounds for component " << component << ": " << up_bound[component] << std::endl
+                      << "low bounds for component " << component << ": " << low_bound[component] << std::endl
+                      << "pid: " << m_pid[0] << " " << m_pid[1] << " " << m_pid[2] << std::endl
+                      << "component, size: " << component << " " << size_ << std::endl;
 #endif
             return tile_dimension + compute_halo(component, UP) + compute_halo(component, LOW);
         }
@@ -282,12 +283,26 @@ namespace gridtools {
                                                                                     : m_pad[component_];
         }
 
-        /**to be called from the user interface*/
+        /**@brief returns wether the current partition is touching the boundary specified in input
+
+           @param component_ the space dimension considered (i,j,k,...)
+           @param flag_ a direction (UP or LOW) for the given dimension
+           formula:
+           * compute \f$ flag_*2^{component_}\f$ , which will
+           be in binary representation a series of 0s with a 1 at position either component_, or component_ +
+           n_dimensions
+           (depending on wether the flag is UP or LOW).
+           * compare this with boundary(), which is a bitmap having 1s in position "p" if the current partition is
+           touching the "p"th global boundary.
+           The bitwise and is either 0 or the identity in this case.
+           * Convert the value to a boolean: false if the boundary is not touched, true otherwise
+           * Take the opposite: return true if it's touching the boundary, false otherwise
+         */
         GT_FUNCTION
         bool at_boundary(ushort_t const &component_, typename super::Flag flag_) const {
 
-            uint_t ret = (((uint_t)flag_ * (1<<component_)) ) & boundary();
-            return !ret;
+            uint_t ret = (((uint_t)flag_ * (1 << component_))) & boundary();
+            return !(bool)ret;
         }
 
         GT_FUNCTION

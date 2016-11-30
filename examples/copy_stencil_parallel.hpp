@@ -46,8 +46,7 @@
 #include <fstream>
 
 /** @file
-    @brief This file shows an implementation of the "copy" stencil in parallel, simple copy of one field done on the
-   backend*/
+    @brief This file shows an implementation of the "copy" stencil in parallel with boundary conditions*/
 
 using gridtools::level;
 using gridtools::accessor;
@@ -75,6 +74,12 @@ namespace copy_stencil {
         }
     };
 
+    /** @brief example of boundary conditions with predicate
+
+        The predicate here is used to get the information on wether we are at the global boundary, and on which global
+       boundary.
+        This information is stored in the partitioner object.
+     */
     template < typename Partitioner >
     struct boundary_conditions {
         Partitioner const &m_partitioner;
@@ -291,9 +296,9 @@ namespace copy_stencil {
 
         MPI_Barrier(GCL_WORLD);
 
-        for (uint_t i = 1; i < metadata_.template dim< 0 >()-1; ++i)
-            for (uint_t j = 1; j < metadata_.template dim< 1 >()-1; ++j)
-                for (uint_t k = 1; k < metadata_.template dim< 2 >()-1; ++k) {
+        for (uint_t i = 1; i < metadata_.template dim< 0 >() - 1; ++i)
+            for (uint_t j = 1; j < metadata_.template dim< 1 >() - 1; ++j)
+                for (uint_t k = 1; k < metadata_.template dim< 2 >() - 1; ++k) {
                     if (out(i, j, k) != (i + j + k) * (gridtools::PID + 1)) {
                         GCL_Finalize();
                         return false;
