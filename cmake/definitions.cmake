@@ -9,19 +9,19 @@ if(VERBOSE)
 endif(VERBOSE)
 
 ## set boost fusion sizes ##
-add_definitions(-DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE})
-add_definitions(-DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE})
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE}")
 
 ## structured grids ##
 if(STRUCTURED_GRIDS)
-    add_definitions( -DSTRUCTURED_GRIDS )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DSTRUCTURED_GRIDS" )
 else()
-    set(ENABLE_CXX11 "ON" CACHE BOOL "Enable examples and tests featuring C++11 features" FORCE)
+  set(ENABLE_CXX11 "ON" CACHE BOOL "Enable examples and tests featuring C++11 features" FORCE)
 endif()
 
 ## enable cxx11 ##
 if(ENABLE_CXX11)
-    add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE")
 endif()
 
 ## get boost ##
@@ -70,10 +70,10 @@ endif()
 if( USE_GPU )
   message(STATUS "Using GPU")
   find_package(CUDA REQUIRED)
-  add_definitions(-DCUDA_VERSION_MINOR=${CUDA_VERSION_MINOR})
-  add_definitions(-DCUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR})
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
-  add_definitions(-DCUDA_VERSION=${CUDA_VERSION})
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${CUDA_VERSION}")
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
   if( ${CUDA_VERSION} VERSION_GREATER "60")
       if (NOT ENABLE_CXX11 )
@@ -146,10 +146,10 @@ endif()
 
 ## precision ##
 if(SINGLE_PRECISION)
-  add_definitions(-DFLOAT_PRECISION=4)
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
   message(STATUS "Computations in single precision")
 else()
-  add_definitions(-DFLOAT_PRECISION=8)
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
   message(STATUS "Computations in double precision")
 endif()
 
@@ -178,6 +178,7 @@ endif()
 
 ## test script generator ##
 file(WRITE ${TEST_SCRIPT} "#!/bin/sh\n")
+file(APPEND ${TEST_SCRIPT} "hostname\n")
 file(APPEND ${TEST_SCRIPT} "res=0\n")
 function(gridtools_add_test test_name test_script test_exec)
   file(APPEND ${test_script} "${test_exec}" " ${ARGN}" "\n")

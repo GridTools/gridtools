@@ -1,5 +1,6 @@
-project(GridTools)
-cmake_minimum_required(VERSION 2.8)
+cmake_policy(SET CMP0048 NEW)
+project(GridTools VERSION "0.1")
+cmake_minimum_required(VERSION 3.0)
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 if(POLICY CMP0060)
@@ -33,7 +34,7 @@ endif()
 # compile gcl:
 # ===============
 add_library( gcl src/GCL.cpp include/communication/GCL.hpp include/communication/high-level/stats_collector.hpp )
-set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}" )
+set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}")
 set(exe_LIBS ${exe_LIBS} gcl)
 
 # ===============
@@ -71,3 +72,27 @@ add_subdirectory(unit_tests)
 # ===============
 add_subdirectory(examples)
 
+# Add all targets to the build-tree export set
+export(TARGETS gcl
+  FILE "${PROJECT_BINARY_DIR}/cmake/GridToolsTargets.cmake")
+
+# Export the package for use from the build-tree
+# (this registers the build-tree with a global CMake-registry)
+export(PACKAGE GridTools)
+
+configure_file(GridToolsConfig.cmake.in
+  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake" @ONLY)
+configure_file(GridToolsConfigVersion.cmake.in
+  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake" @ONLY)
+
+# Install the GridToolsConfig.cmake and GridToolsConfigVersion.cmake
+install(FILES "${PROJECT_BINARY_DIR}/cmake/GridToolsConfig.cmake"
+  "${PROJECT_BINARY_DIR}/cmake/GridToolsConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}" COMPONENT dev)
+
+install(DIRECTORY "include" DESTINATION "${CMAKE_INSTALL_PREFIX}" )
+install(TARGETS "gcl" DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools )
+# Install the export set for use with the install-tree
+install(EXPORT GridTools DESTINATION
+    "${PROJECT_BINARY_DIR}/cmake" COMPONENT dev)
+message("compile definitions: ${COMPILE_DEFINITIONS}")

@@ -45,14 +45,7 @@ typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
 #ifdef __CUDACC__
 typedef backend< Cuda, structured, Block > backend_t;
-// #ifdef CXX11_ENABLED
 typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
-// #else
-// typedef meta_storage< meta_storage_aligned< meta_storage_base< static_uint<0>, layout_map< 0, 1, 2 >, false, int, int
-// >,
-//     aligned< 32 >,
-//     halo< 0, 0, 0 > > > meta_t;
-// #endif
 #else
 typedef backend< Host, structured, Naive > backend_t;
 typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;

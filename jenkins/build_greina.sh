@@ -183,6 +183,9 @@ else
     STRUCTURED_GRIDS="OFF"
 fi
 
+# measuring time
+export START_TIME=$SECONDS
+
 # echo "Printing ENV"
 # env
 
