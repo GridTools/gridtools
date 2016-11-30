@@ -36,9 +36,29 @@
 #pragma once
 
 namespace gridtools {
-    /**Aliases for the first three dimensions (x,y,z)*/
-    typedef dimension< 1 > x;
-    typedef dimension< 2 > y;
-    typedef dimension< 3 > z;
-    /**@}*/
-} // namespace gridtools
+    namespace _impl {
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct function_aggregator;
+
+        template < typename CallerAggregator,
+            int Offi,
+            int Offj,
+            int Offk,
+            typename PassedAccessors,
+            typename ReturnType,
+            int OutArg >
+        struct function_aggregator_offsets;
+
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        struct function_aggregator_procedure;
+
+        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        struct function_aggregator_procedure_offsets;
+    }
+}

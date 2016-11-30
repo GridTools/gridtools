@@ -44,12 +44,12 @@ namespace test_conditional_switches {
 #define BACKEND_BLOCK
 
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Block >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
 
@@ -98,11 +98,11 @@ namespace test_conditional_switches {
         typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
         typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
         typedef BACKEND::storage_info< __COUNTER__, layout_t > tmp_meta_data_t;
-        typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
-        typedef BACKEND::temporary_storage_type< float_type, tmp_meta_data_t >::type tmp_storage_t;
+        typedef BACKEND::storage_type< uint_t, meta_data_t >::type storage_t;
+        typedef BACKEND::temporary_storage_type< uint_t, tmp_meta_data_t >::type tmp_storage_t;
 
         meta_data_t meta_data_(8, 8, 8);
-        storage_t dummy(meta_data_, 0., "dummy");
+        storage_t dummy(meta_data_, 0, "dummy");
         typedef arg< 0, storage_t > p_dummy;
         typedef arg< 1, tmp_storage_t > p_dummy_tmp;
 
@@ -183,6 +183,7 @@ namespace test_conditional_switches {
         dummy.d2h_update();
 #endif
         result = result && (dummy(0, 0, 0) == 842);
+        std::cout << "dummy is: " << dummy(0, 0, 0) << std::endl;
 
         p = false;
 #ifdef __CUDACC__
@@ -192,6 +193,7 @@ namespace test_conditional_switches {
         comp_->run();
         comp_->finalize();
         result = result && (dummy(0, 0, 0) == 5662);
+        std::cout << "dummy became: " << dummy(0, 0, 0) << std::endl;
 
         return result;
     }
