@@ -35,4 +35,10 @@ export CUDATOOLKIT_HOME=${CUDA_PATH}
 
 export CUDA_ARCH=sm_35
 export DEFAULT_QUEUE=k80
-export LAUNCH_MPI_TEST="srun -N4 -n4"
+export LAUNCH_MPI_TEST="srun"
+export JOB_ENV="export ENABLE_CUDA=1; export CUDA_AUTO_BOOST=0; export GCLOCK=875; export G2G=1; export CUDA_AUTO_BOOST=0;"
+export USE_MPI_COMPILER=ON
+export MPI_NODES=1
+export MPI_TASKS=4
+export CXX=`which g++`
+
