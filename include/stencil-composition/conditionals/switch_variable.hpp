@@ -45,6 +45,7 @@
 /**@file*/
 
 namespace gridtools {
+
     /**
        @brief defines a variable which is used in the @ref gridtools::switch_ statement
 
@@ -75,13 +76,12 @@ namespace gridtools {
         static const uint_t index_value = index_t::value;
 
 #ifdef CXX11_ENABLED
-        std::unique_ptr< std::vector< std::function< bool() > > > m_conditions; // generated conditions
-        std::unique_ptr< std::vector< T > > m_cases;                            // all possible cases (redundant)
-#else
-        boost::scoped_ptr< std::vector< bool (*)() > > m_conditions; // generated conditions
-        boost::scoped_ptr< std::vector< T > > m_cases;               // all possible cases (redundant)
+        std::unique_ptr< std::vector< BOOL_FUNC() > > m_conditions; // generated conditions
+        std::unique_ptr< std::vector< T > > m_cases;                // all possible cases (redundant)
+#else                                                               /**@brief enpty constructor*/
+        boost::scoped_ptr< std::vector< BOOL_FUNC() > > m_conditions; // generated conditions
+        boost::scoped_ptr< std::vector< T > > m_cases;                // all possible cases (redundant)
 #endif
-        /**@brief enpty constructor*/
         constexpr switch_variable() // try to avoid this?
             : m_value(),
               m_conditions(new std::vector< BOOL_FUNC() >()),

@@ -87,9 +87,9 @@ namespace gridtools {
             printf("allocating hybrid pointer %x \n", this);
             printf(" - %X %X %X %d\n", m_cpu_p.get(), m_gpu_p, m_pointer_to_use, m_size);
 #endif
-    }
+        }
 
-    // copy constructor passes on the ownership
+        // copy constructor passes on the ownership
         GT_FUNCTION
         hybrid_pointer(hybrid_pointer const &other)
             : m_gpu_p(other.m_gpu_p), m_cpu_p(other.m_cpu_p)
@@ -142,15 +142,15 @@ namespace gridtools {
                 cudaError_t err = cudaFree((void *)(m_gpu_p));
                 assert(err == cudaSuccess);
                 m_gpu_p = NULL;
-            m_cpu_p.free_it();
-            m_up_to_date = true;
-            m_pointer_to_use = NULL;
-            m_allocated = false;
+                m_cpu_p.free_it();
+                m_up_to_date = true;
+                m_pointer_to_use = NULL;
+                m_allocated = false;
 
 #ifdef VERBOSE
-            printf("freeing hybrid pointer %x \n", this);
+                printf("freeing hybrid pointer %x \n", this);
 #endif
-      }
+            }
         }
 
         void update_gpu() {
@@ -367,13 +367,13 @@ namespace gridtools {
             m_up_to_date = other.m_up_to_date;
         }
 
-    private:
+      private:
         /** disable equal operator and constructor from raw pointer*/
-      T *operator=(T *);
-      hybrid_pointer(T *);
-      T *m_gpu_p;
-      wrap_pointer< T, Array > m_cpu_p;
-      T *m_pointer_to_use;
+        T *operator=(T *);
+        hybrid_pointer(T *);
+        T *m_gpu_p;
+        wrap_pointer< T, Array > m_cpu_p;
+        T *m_pointer_to_use;
         uint_t m_size;
         bool m_allocated;
         bool m_up_to_date;

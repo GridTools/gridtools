@@ -14,22 +14,20 @@ namespace gridtools {
        arguments (actually, placeholders to arguments)
      */
 
-    template <typename ESF, typename ... ExtraArgs>
-    esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...> >
-    make_esf( ExtraArgs&& ... /*args_*/){
+    template < typename ESF, typename... ExtraArgs >
+    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > > make_esf(ExtraArgs &&... /*args_*/) {
 #ifdef PEDANTIC // not valid for generic accessors (which is an exotic feature though)
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename ESF::arg_list >::type::value >= sizeof...(ExtraArgs)),
             "number of arugmantes declared for an ESF is larger than the placeholders passed to make_esf");
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename ESF::arg_list >::type::value <= sizeof...(ExtraArgs)),
             "number of arugmantes declared for an ESF is smaller than the placeholders passed to make_esf");
 #endif
-        return esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...> >();
+        return esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > >();
     }
 
-    template <typename ESF, typename Staggering, typename ... ExtraArgs>
-    esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...>, Staggering >
-    make_esf( ExtraArgs&& ... args_){
-        return esf_descriptor<ESF, boost::mpl::vector<ExtraArgs ...>, Staggering >();
+    template < typename ESF, typename Staggering, typename... ExtraArgs >
+    esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... >, Staggering > make_esf(ExtraArgs &&... args_) {
+        return esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... >, Staggering >();
     }
 
 } // namespace gridtools

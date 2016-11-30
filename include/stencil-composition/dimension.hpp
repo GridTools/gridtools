@@ -58,7 +58,7 @@ namespace gridtools {
               ((uint_t)val)
 #else
         {
-            (uint_t)val
+            (uint_t) val
         }
 #endif
         {
