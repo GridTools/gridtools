@@ -83,12 +83,12 @@ namespace gridtools {
             // just return the last offset (get<0>()) + the index of the current data_field in the array of storages
             // contained in the iterate_domain
             // NOTE: it is not space_dimensions-1 because for icosahedral grid the dimension is
-            // automatically augnemted by 1 because of the color
+            // automatically augmented by 1 because of the color
             //
             // if number of accessor dimensions is larger than the space_dimensions (i.e. normal dimensions + color)
             // get the last-1 offset, sum it to the last offset times the #snapshots (storage_type::traits::n_width)
             // sum the index of the current data_field in the array of storages contained in the iterate_domain
-            return (Accessor::type::n_dim <= metadata_t::space_dimensions
+            return (Accessor::type::n_dim <= metadata_t::space_dimensions + 1
                            ?                               // static if
                            accessor_.template get< 0 >()   // offset for the current snapshot
                            : accessor_.template get< 1 >() // offset for the current snapshot

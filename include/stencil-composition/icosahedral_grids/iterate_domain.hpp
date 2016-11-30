@@ -52,7 +52,7 @@
 #include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
 #include "../iterate_domain_fwd.hpp"
-#include "get_data_field_index.hpp"
+#include "../get_data_field_index.hpp"
 
 namespace gridtools {
 
