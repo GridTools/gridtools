@@ -6,7 +6,7 @@ if(GCL_ONLY)
 else(GCL_ONLY)
 
   ### L2
-  if( GCL_MPI )
+  if( USE_MPI )
     #CPU 2D MPI tests
     foreach(srcfile test_all_to_all_halo_3D test_halo_exchange_3D_all test_halo_exchange_3D_all_2 test_halo_exchange_3D_all_3 test_halo_exchange_3D_generic test_halo_exchange_3D_generic_full)
       add_executable( ${srcfile} ../../examples/communication/${srcfile}.cpp)
@@ -17,7 +17,7 @@ else(GCL_ONLY)
   endif()
 
 
-  if( GCL_GPU )
+  if( USE_GPU )
     ##set(CMAKE_CXX_FLAGS "${OLD_OPTIONS}")
     if( GCL_MPI )
       if ( USE_MPI_COMPILER )
@@ -35,7 +35,7 @@ else(GCL_ONLY)
         #message( "MPI include path: ${MPI_INCLUDE_PATH}" )
       endif( USE_MPI_COMPILER )
     endif( GCL_MPI )
-    if( GCL_MPI )
+    if( USE_MPI )
       if(NOT MSVC)
         cuda_add_executable( cuda_test_halo_exchange_3D_all ../../examples/communication/test_halo_exchange_3D_all.cu OPTIONS -DSTANDALONE)
         add_dependencies( cuda_test_halo_exchange_3D_all gcl )
@@ -62,7 +62,7 @@ else(GCL_ONLY)
   endif()
 endif()
 
-##########   if( GCL_MPI )
+##########   if( USE_MPI )
 ##########     if ( $ENV{JENKINS_COMMUNICATION_TESTS} )
 
 ########## ################################## GPU

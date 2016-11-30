@@ -22,6 +22,8 @@ endif()
 ## enable cxx11 ##
 if(ENABLE_CXX11)
     add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
+else()
+    set(USE_MPI OFF)
 endif()
 
 ## get boost ##
