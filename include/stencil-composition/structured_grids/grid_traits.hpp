@@ -70,9 +70,32 @@ namespace gridtools {
             typedef strgrid::grid_traits_arch< BackendId > type;
         };
 
-        template < typename T, typename Grid >
-        static T instantiate_storage_info(Grid const &grid) {
-            return T(grid.direction_i().total_length(), grid.direction_j().total_length(), (grid.value_at_top() + 1));
+        template < typename T, typename Backend, typename StorageWrapper, typename Grid >
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive), T >::type
+        instantiate_storage_info(Grid const &grid) {
+            // get all the params (size in i,j,k and number of threads in i,j)
+            const uint_t i_size = grid.direction_i().total_length();
+            const uint_t j_size = grid.direction_j().total_length();
+            const uint_t k_size = (grid.value_at_top() + 1);
+
+            return T(i_size, j_size, k_size);
+        }
+
+        template < typename T, typename Backend, typename StorageWrapper, typename Grid >
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block), T >::type
+        instantiate_storage_info(Grid const &grid) {
+            // get all the params (size in i,j,k and number of threads in i,j)
+            const uint_t k_size = (grid.value_at_top() + 1);
+            const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
+            const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
+
+            return T(((StorageWrapper::tileI_t::s_tile + StorageWrapper::tileI_t::s_minus +
+                          StorageWrapper::tileI_t::s_plus) *
+                         threads_i),
+                ((StorageWrapper::tileJ_t::s_tile + StorageWrapper::tileJ_t::s_minus +
+                     StorageWrapper::tileJ_t::s_plus) *
+                         threads_j),
+                k_size);
         }
 
         // index positions of the different dimensions in the layout map (convention)

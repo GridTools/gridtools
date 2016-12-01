@@ -260,7 +260,7 @@ namespace gridtools {
         };
 
         /** @brief Functor used to instantiate and allocate all temporary storages */
-        template < typename AggregatorType, typename Grid, typename Backend >
+        template < typename AggregatorType, typename Grid, typename Backend, typename StorageWrapperList >
         struct instantiate_tmps {
             AggregatorType &m_agg;
             Grid const &m_grid;
@@ -269,8 +269,13 @@ namespace gridtools {
 
             template < typename T, typename boost::enable_if_c< T::is_temporary, int >::type = 0 >
             void operator()(T const &) const {
+                // some typedefs
+                typedef typename T::storage_t::storage_info_t storage_info_t;
+                typedef typename get_storage_wrapper_elem< T, StorageWrapperList >::type storage_wrapper_t;
+                // instantiate the right storage info (according to grid and used strategy)
                 auto storage_info =
-                    Backend::template instantiate_storage_info< typename T::storage_t::storage_info_t >(m_grid);
+                    Backend::template instantiate_storage_info< storage_info_t, storage_wrapper_t >(m_grid);
+                // create a storage and fill the aggregator
                 auto ptr = gridtools::pointer< typename T::storage_t >(new typename T::storage_t(storage_info));
                 ptr->allocate();
                 m_agg.template set_arg_storage_pair< T >(ptr);

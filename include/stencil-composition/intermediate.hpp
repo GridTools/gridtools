@@ -400,7 +400,7 @@ namespace gridtools {
         virtual void ready() {
             // instantiate all the temporaries
             boost::mpl::for_each< typename DomainType::placeholders_t >(
-                _impl::instantiate_tmps< DomainType, Grid, Backend >(m_domain, m_grid));
+                _impl::instantiate_tmps< DomainType, Grid, Backend, storage_wrapper_fusion_list_t >(m_domain, m_grid));
         }
 
         virtual void steady() {

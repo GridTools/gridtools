@@ -195,18 +195,6 @@ namespace gridtools {
             typedef strategy_from_id_cuda< BackendIds::s_strategy_id > type;
         };
 
-        /*
-         * @brief metafunction that determines whether this backend requires redundant computations at halo points
-         * of each block, given the strategy Id
-         * @tparam StrategyId the strategy id
-         * @return always true for CUDA
-         */
-        template < enumtype::strategy StrategyId >
-        struct requires_temporary_redundant_halos {
-            GRIDTOOLS_STATIC_ASSERT((StrategyId == enumtype::Block), "Internal Error: wrong type");
-            typedef boost::mpl::true_ type;
-        };
-
         /**
          * @brief metafunction that returns the block size
          */

@@ -193,19 +193,6 @@ namespace gridtools {
             typedef strategy_from_id_host< BackendIds::s_strategy_id > type;
         };
 
-        /*
-         * @brief metafunction that determines whether this backend requires redundant computations at halo points
-         * of each block, given the strategy Id
-         * @tparam StrategyId the strategy id
-         * @return always false for Host
-         */
-        template < enumtype::strategy StrategyId >
-        struct requires_temporary_redundant_halos {
-            typedef
-                typename boost::mpl::if_c< StrategyId == enumtype::Naive, boost::mpl::false_, boost::mpl::true_ >::type
-                    type;
-        };
-
         template < enumtype::strategy StrategyId >
         struct get_block_size {
             typedef typename strategy_from_id_host< StrategyId >::block_size_t type;

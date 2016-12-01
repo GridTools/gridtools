@@ -64,8 +64,15 @@ namespace gridtools {
             typedef icgrid::grid_traits_arch< BackendId > type;
         };
 
-        template < typename T, typename Grid >
-        static T instantiate_storage_info(Grid const &grid) {
+        template < typename T, typename Backend, typename StorageWrapper, typename Grid >
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive), T >::type
+        instantiate_storage_info(Grid const &grid) {
+            // TODO: implement for icosahedral topology
+        }
+
+        template < typename T, typename Backend, typename StorageWrapper, typename Grid >
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block), T >::type
+        instantiate_storage_info(Grid const &grid) {
             // TODO: implement for icosahedral topology
         }
 
