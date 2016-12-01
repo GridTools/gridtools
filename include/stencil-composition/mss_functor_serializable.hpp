@@ -111,11 +111,15 @@ namespace gridtools {
             // Get current functor
             typedef typename boost::mpl::at_c< typename mss_components_t::functors_list_t, 0 >::type functor_pair_t;
             typedef typename functor_pair_t::f_type functor_t;
-
+            
             auto stage_id = m_stencil_serializer.get_and_increment_stage_id();
             auto invocation_count = m_stencil_serializer.stencil_invocation_count();
             std::string stage_name(type_name< functor_t >());
 
+            // This case has to be handled if extended to other backends
+            static_assert(boost::mpl::size<typename mss_components_t::functors_list_t>::type::value == 1,
+                          "fused mss are currently not supported");
+                
             // Create the input savepoint of the current stage
             typedef typename SerializerType::savepoint_t savepoint_t;
             savepoint_t savepoint_in(m_stencil_serializer.get_stencil_name() + "__in");
@@ -129,6 +133,8 @@ namespace gridtools {
                 _impl::serialize_storages< SerializerType, savepoint_t >{serializer, savepoint_in, &tmp_id});
 
             // Run the functor
+            //
+            // TODO: if support for the CUDA backend is added, there should be proper synchronization here
             base_t::operator()(index);
 
             // Serialize output storages at the output savepoint
