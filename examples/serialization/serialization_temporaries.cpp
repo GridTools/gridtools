@@ -36,7 +36,7 @@
 
 /*
  * This example tests the internal stencil serialization!
- * For normal usage of Serialbox see: https://thfabian.github.io/serialbox2
+ * For normal usage of Serialbox see: https://github.com/MeteoSwiss-APN/serialbox
  */
 
 #if defined(USE_SERIALBOX)
