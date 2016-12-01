@@ -67,30 +67,21 @@ namespace gridtools {
        the purpose of this struct is to allocate the storage for the strides of a set of storages. Tipically
        it is used to cache these strides in a fast memory (e.g. shared memory).
        \tparam ID recursion index, representing the current storage
-       \tparam StorageList typelist of the storages
+       \tparam StorageInfoList typelist of the storages
     */
-    // TODOCOSUNA this is just an array, no need for special class, looks like
-    template < ushort_t ID, typename StorageList >
-    struct strides_cached : public strides_cached< ID - 1, StorageList > {
-        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< StorageList >::value > ID,
+    template < ushort_t ID, typename StorageInfoList >
+    struct strides_cached : public strides_cached< ID - 1, StorageInfoList > {
+        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< StorageInfoList >::value > ID,
             "Library internal error: strides index exceeds the number of storages");
-        typedef typename boost::mpl::at_c< StorageList, ID >::type storage_type;
-        typedef strides_cached< ID - 1, StorageList > super;
-        typedef array< int_t, storage_type::space_dimensions - 1 > data_array_t;
+        typedef typename boost::mpl::at_c< StorageInfoList, ID >::type storage_info_ptr_t;
+        typedef typename boost::remove_pointer<typename boost::remove_cv<storage_info_ptr_t>::type>::type storage_info_t;
+        typedef strides_cached< ID - 1, StorageInfoList > super;
+        typedef array< int_t, storage_info_t::Layout::length - 1 > data_array_t;
 
-#ifdef CXX11_ENABLED
         template < short_t Idx >
         using return_t = typename boost::mpl::if_< boost::mpl::bool_< Idx == ID >,
             data_array_t,
             typename super::template return_t< Idx > >::type;
-#else
-        template < short_t Idx >
-        struct return_t {
-            typedef typename boost::mpl::if_< boost::mpl::bool_< Idx == ID >,
-                data_array_t,
-                typename super::template return_t< Idx >::type >::type type;
-        };
-#endif
 
         /**@brief constructor, doing nothing more than allocating the space*/
         GT_FUNCTION
@@ -98,23 +89,13 @@ namespace gridtools {
 
         template < short_t Idx >
         GT_FUNCTION
-#ifdef CXX11_ENABLED
-            return_t< Idx >
-#else
-        typename return_t<Idx>::type
-#endif
-            const &RESTRICT get() const {
+        return_t< Idx > const &RESTRICT get() const {
             return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
         }
 
         template < short_t Idx >
         GT_FUNCTION
-#ifdef CXX11_ENABLED
-            return_t< Idx >
-#else
-        typename return_t<Idx>::type
-#endif
-                &RESTRICT get() {
+        return_t< Idx > &RESTRICT get() {
             return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
         }
 
@@ -124,23 +105,18 @@ namespace gridtools {
     };
 
     /**specialization to stop the recursion*/
-    template < typename MetaStorageList >
-    struct strides_cached< (ushort_t)0, MetaStorageList > {
-        typedef typename boost::mpl::at_c< MetaStorageList, 0 >::type storage_type;
+    template < typename StorageInfoList >
+    struct strides_cached< (ushort_t)0, StorageInfoList > {
+        typedef typename boost::mpl::at_c< StorageInfoList, 0 >::type storage_info_ptr_t;
+        typedef typename boost::remove_pointer<typename boost::remove_cv<storage_info_ptr_t>::type>::type storage_info_t;
 
         GT_FUNCTION
         strides_cached() {}
 
-        typedef array< int_t, storage_type::space_dimensions - 1 > data_array_t;
+        typedef array< int_t, storage_info_t::Layout::length - 1 > data_array_t;
 
         template < short_t Idx >
-#ifdef CXX11_ENABLED
         using return_t = data_array_t;
-#else
-        struct return_t {
-            typedef data_array_t type;
-        };
-#endif
 
         template < short_t Idx >
         GT_FUNCTION data_array_t &RESTRICT get() { // stop recursion
@@ -160,8 +136,8 @@ namespace gridtools {
     template < typename T >
     struct is_strides_cached : boost::mpl::false_ {};
 
-    template < uint_t ID, typename StorageList >
-    struct is_strides_cached< strides_cached< ID, StorageList > > : boost::mpl::true_ {};
+    template < uint_t ID, typename StorageInfoList >
+    struct is_strides_cached< strides_cached< ID, StorageInfoList > > : boost::mpl::true_ {};
 
     /**@brief functor assigning the 'raw' data pointers to an input data pointers array (i.e. the m_data_pointers
        array).
@@ -683,7 +659,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
 
         typedef typename get_storage_type< typename get_arg_from_accessor< Accessor,
-            IterateDomainArguments >::type::storage_type >::type::value_type type;
+            IterateDomainArguments >::type::storage_t >::type::data_t type;
     };
 
     /**
