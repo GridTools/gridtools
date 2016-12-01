@@ -25,24 +25,11 @@
 #include "Timers.hpp"
 #include "cg.h"
 
-//time t is in ns, returns MFLOPS
-inline double MFLOPS(int numops, double X, double Y, double Z, double NT, double t) { return numops*X*Y*Z*NT*1000.0/t; }
-inline double MLUPS(double X, double Y, double Z, double NT, double t) { return X*Y*Z*NT*1000.0/t; }
-
-// domain function
-inline double f(double xi, double yi, double zi){
-    return 2.*(cos(xi+yi) - (1.+xi)*sin(xi+yi));
-}
-
-// boundary function
-inline double g(double xi, double yi, double zi) {
-    return (xi+1.)*sin(xi+yi);
-}
-
-// solution
-inline double u(double xi, double yi, double zi) {
-    return g(xi, yi, zi);
-}
+#ifdef BACKEND_BLOCK
+#define BACKEND backend<Host, GRIDBACKEND, Block >
+#else
+#define BACKEND backend<Host, GRIDBACKEND, Naive >
+#endif
 
 /*
    @file This file shows an implementation of Conjugate Gradient solver.
@@ -72,6 +59,23 @@ namespace cg_naive{
     // before splitter<2>. Absolute placement of splitters is determined below.
     typedef gridtools::interval<level<0,-1>, level<1,-1> > x_interval;
     typedef gridtools::interval<level<0,-2>, level<1,1> > axis;
+
+    // Prepare types for the data storage
+    //                   strides  1 x xy
+    //                      dims  x y z
+    typedef gridtools::layout_map<2,1,0> layout_t;
+    typedef gridtools::BACKEND::storage_info<0, layout_t> metadata_t;
+    typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
+    typedef storage_type::pointer_type pointer_type;
+
+    typedef gridtools::halo_exchange_dynamic_ut<layout_t,
+            gridtools::layout_map<0, 1, 2>,
+            pointer_type::pointee_t,
+            MPI_3D_process_grid_t<3> ,
+            gridtools::gcl_cpu,
+            gridtools::version_manual> pattern_type;
+
+    typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<2,1,0> > >, pattern_type::grid_type> partitioner_t;
 
     /** @brief
       Parallel copy of a domain done on the backend.
@@ -200,76 +204,89 @@ namespace cg_naive{
             }
     };
 
-    /** @brief
-      Implementation of the Dirichlet boundary conditions.
-      */
-    //  template <typename Partitioner>
-    //      struct boundary_conditions {
-    //          Partitioner const& m_partitioner; // info about domain partitioning
-    //          double h; // step size
-
-    //          boundary_conditions(Partitioner const& p, double step)
-    //              : m_partitioner(p), h(step)
-    //          {}
-
-    //          // DataField_x are fields that are passed in the application of boundary condition
-    //          template <typename Direction, typename DataField0, typename DataField1, typename DataField2, typename DataField3>
-    //              GT_FUNCTION
-    //              void operator()(Direction,
-    //                      DataField0 & data_field0,
-    //                      DataField1 & data_field1,
-    //                      DataField2 & data_field2,
-    //                      DataField3 & data_field3,
-    //                      uint_t i, uint_t j, uint_t k) const {
-    //                  // Get global indices on the boundary
-    //                  size_t I = m_partitioner.get_low_bound(0) + i;
-    //                  size_t J = m_partitioner.get_low_bound(1) + j;
-    //                  size_t K = m_partitioner.get_low_bound(2) + k;
-    //                  data_field0(i,j,k) = 0;//g(h*I, h*J, h*K); //x //TODO 
-    //                  data_field1(i,j,k) = 0;//g(h*I, h*J, h*K); //d
-    //                  data_field2(i,j,k) = 0;//g(h*I, h*J, h*K); //xNew //TODO
-    //                  data_field3(i,j,k) = 0;//g(h*I, h*J, h*K); //dNew
-    //              }
-    //      };
-
     /*******************************************************************************/
     /*******************************************************************************/
-
-    bool solver(uint_t xdim, uint_t ydim, uint_t zdim, uint_t MAX_ITER, const double EPS, Timers *timers) {
-
+    class CGsolver
+    {
+        public:
         // Domain is encapsulated in boundary layer from both sides in each dimension,
         // Boundary is added as extra layer to each dimension 
-        uint_t d1 = xdim;
-        uint_t d2 = ydim;
-        uint_t d3 = zdim;
+        uint_t xdim;
+        uint_t ydim;
+        uint_t zdim;
 
-        // Enforce square domain
-        // if (!(xdim==ydim && ydim==zdim)) {
-        //     if (PID==0) printf("Please run with dimensions X=Y=Z\n");
-        //     return false;
-        // }
+        //processor grid
+        array<int, 3> dimensions;
+        
+        //halo exchange
+        pattern_type *he;
+        
+        //partition
+        partitioner_t *part;
+            
+        //metainfo about parallel storage
+        parallel_storage_info<metadata_t, partitioner_t> *meta_;
+        
+        //coordinates
+        gridtools::grid<axis, partitioner_t> *coords3d7pt;
 
-        // Step size, add +2 for boundary layer
-        double h = 1./(d1+2+1);
-        double h2 = h*h;
+        public:
+        CGsolver(int d1, int d2, int d3);
+        ~CGsolver();
+        bool solver(storage_type &x, storage_type &b, uint_t MAX_ITER, const double EPS, Timers &timers);
+    };
+
+    CGsolver::CGsolver(int d1, int d2, int d3)
+    {
+        xdim = d1;
+        ydim = d2;
+        zdim = d3;
+
+        // Create processor grid
+        dimensions[2] = dimensions[1] = dimensions[0] = 0;
+        MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
+        dimensions[2]=1;
+
+        he = new  pattern_type(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
+
+        // 3D distributed storage
+        array<ushort_t, 3> padding{1,1,1}; // global halo, 1-Dirichlet, 0-Neumann
+        array<ushort_t, 3> halo{1,1,1}; // number of layers to communicate to neighboring processes
+        part = new partitioner_t(he->comm(), halo, padding);
+        meta_ = new parallel_storage_info<metadata_t, partitioner_t>(*part, xdim, ydim, zdim);
+
+        // Set up halo
+        he->add_halo<0>(meta_->template get_halo_gcl<0>());
+        he->add_halo<1>(meta_->template get_halo_gcl<1>());
+        he->add_halo<2>(meta_->template get_halo_gcl<2>());
+        he->setup(2);
+        
+        // Definition of the physical dimensions of the problem.
+        // The constructor takes the horizontal plane dimensions,
+        // while the vertical ones are set according the the axis property soon after.
+        // Iteration space is defined within axis.
+        // K dimension not partitioned.
+        coords3d7pt = new gridtools::grid<axis, partitioner_t>(*part, *meta_);
+        coords3d7pt->value_list[0] = 1; //specifying index of the splitter<0,-1>
+        coords3d7pt->value_list[1] = d3; //specifying index of the splitter<1,-1>
+    }
+
+    CGsolver::~CGsolver()
+    {
+        delete he;
+        delete part;
+        delete meta_;
+        delete coords3d7pt;
+    }
+
+    bool CGsolver::solver(storage_type &x, storage_type &b, uint_t MAX_ITER, const double EPS, Timers &timers) {
+
 
         if (PID == 0){
             printf("Running CG for domain %d x %d x %d, %d iterations, tolerance %.4f\n", xdim, ydim, zdim, MAX_ITER, EPS);
         }
 
-#ifdef BACKEND_BLOCK
-#define BACKEND backend<Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend<Host, GRIDBACKEND, Naive >
-#endif
-
-        // Start timer
-        timers->start(Timers::TIMER_GLOBAL);
-
-        // Create processor grid
-        array<int, 3> dimensions{0,0,0};
-        int err = MPI_3D_process_grid_t<3>::dims_create(PROCS, 2, dimensions);
-        dimensions[2]=1;
+        bool converged = false;
 
         // 2D partitioning scheme info
         int xprocs = dimensions[0];
@@ -280,89 +297,26 @@ namespace cg_naive{
         MPI_Comm xdim_comm;
         MPI_Comm_split(MPI_COMM_WORLD, PID % yprocs, PID, &xdim_comm);
 
-        // Prepare types for the data storage
-        //                   strides  1 x xy
-        //                      dims  x y z
-        typedef gridtools::layout_map<2,1,0> layout_t;
-        typedef gridtools::BACKEND::storage_info<0, layout_t> metadata_t;
-        typedef gridtools::BACKEND::storage_type<float_type, metadata_t >::type storage_type;
-        typedef storage_type::pointer_type pointer_type;
-
-        typedef gridtools::halo_exchange_dynamic_ut<layout_t,
-                gridtools::layout_map<0, 1, 2>,
-                pointer_type::pointee_t,
-                MPI_3D_process_grid_t<3> ,
-                gridtools::gcl_cpu,
-                gridtools::version_manual> pattern_type;
-
-        pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
-
-        // 3D distributed storage
-        array<ushort_t, 3> padding{1,1,1}; // global halo, 1-Dirichlet, 0-Neumann
-        array<ushort_t, 3> halo{1,1,1}; // number of layers to communicate to neighboring processes
-        typedef partitioner_trivial<cell_topology<topology::cartesian<layout_map<2,1,0> > >, pattern_type::grid_type> partitioner_t;
-        partitioner_t part(he.comm(), halo, padding);
-        parallel_storage_info<metadata_t, partitioner_t> meta_(part, d1, d2, d3);
-        auto metadata_=meta_.get_metadata();
-
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after.
-        // Iteration space is defined within axis.
-        // K dimension not partitioned.
-        gridtools::grid<axis, partitioner_t> coords3d7pt(part, meta_);
-        coords3d7pt.value_list[0] = 1; //specifying index of the splitter<0,-1>
-        coords3d7pt.value_list[1] = d3; //specifying index of the splitter<1,-1>
-
-
         //--------------------------------------------------------------------------
         // Definition of the actual data fields that are used for input/output
 
-        storage_type b    (metadata_, 0., "RHS vector");
-        storage_type x    (metadata_, 0., "Solution vector t");
-        storage_type xNew (metadata_, 0., "Solution vector t+1");
+        auto metadata_ = meta_->get_metadata();
         storage_type r    (metadata_, 0., "Residual at time t");
-        storage_type rNew (metadata_, 0., "Residual at time t+1");
         storage_type d    (metadata_, 0., "Direction vector at time t");
-        storage_type dNew (metadata_, 0., "Direction vector at time t+1");
         storage_type Ad   (metadata_, 0., "Projected direction vector");
         storage_type tmp  (metadata_, 0., "Temporary storage");
-
-        // Pointers to data-fields are swapped at each time-iteration
-        storage_type *ptr_x = &x, *ptr_xNew = &xNew;
-        storage_type *ptr_r = &r, *ptr_rNew = &rNew;
-        storage_type *ptr_d = &d, *ptr_dNew = &dNew;
 
         // Scalar parameters
         parameter alpha; //step length
         parameter beta;  //orthogonalization parameter
-
-        // Set up halo
-        he.add_halo<0>(meta_.template get_halo_gcl<0>());
-        he.add_halo<1>(meta_.template get_halo_gcl<1>());
-        he.add_halo<2>(meta_.template get_halo_gcl<2>());
-        he.setup(2);
+        
+        //vector to hold pointers to grids that needs to exchange halo
+        std::vector<pointer_type::pointee_t*> vec(1); 
 
         // Get global offsets
-        size_t I = meta_.get_low_bound(0);
-        size_t J = meta_.get_low_bound(1);
-        size_t K = meta_.get_low_bound(2);
-
-        // Partitioning info
-        //std::cout << "I #" << PID << ": " << meta_.get_low_bound(0) << " - " << meta_.get_up_bound(0) << std::endl;
-        //std::cout << "J #" << PID << ": " << meta_.get_low_bound(1) << " - " << meta_.get_up_bound(1) << std::endl;
-
-        // Initialize the local RHS vector domain
-        std::srand(std::time(0));
-        std::srand(42);
-        for (uint_t i=1; i<metadata_.template dims<0>() - 1 ; ++i)
-            for (uint_t j=1; j<metadata_.template dims<1>() - 1; ++j)
-                for (uint_t k=1; k<metadata_.template dims<2>() -1 ; ++k)
-                {
-                    //b(i,j,k) = (std::rand()/(double)RAND_MAX > 0.5 ? 1.0 : -1.0);
-                    x(i,j,k) = 0;
-                    b(i,j,k) = 1.0;
-                }
+        size_t I = meta_->get_low_bound(0);
+        size_t J = meta_->get_low_bound(1);
+        size_t K = meta_->get_low_bound(2);
 
         //--------------------------------------------------------------------------
         // Definition of placeholders. The order of them reflect the order the user
@@ -459,7 +413,7 @@ namespace cg_naive{
         // Instantiate stencil to perform initialization step of CG
         auto CG_init = gridtools::make_computation<gridtools::BACKEND>
             (
-             domain_init, coords3d7pt,
+             domain_init, *coords3d7pt,
              gridtools::make_mss // mss_descriptor
              (
               execute<forward>(),
@@ -471,19 +425,6 @@ namespace cg_naive{
              make_reduction< reduction_functor, binop::sum >(0.0, p_tmp_init()) // sum(r'.*r)
             );
 
-        // Apply boundary conditions
-        // gridtools::array<gridtools::halo_descriptor, 3> halos;
-        // halos[0] = meta_.template get_halo_descriptor<0>();
-        // halos[1] = meta_.template get_halo_descriptor<1>();
-        // halos[2] = meta_.template get_halo_descriptor<2>();
-
-        // typename gridtools::boundary_apply
-        //     <boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>, typename gridtools::bitmap_predicate>
-        //     (halos,
-        //      boundary_conditions<parallel_storage_info<metadata_t, partitioner_t>>(meta_, h),
-        //      gridtools::bitmap_predicate(part.boundary())
-        //     ).apply(x, d, xNew, dNew);
-
 
         // Set addition parameter to -1 (subtraction): r = b + alpha A x
         double minus = -1.0;
@@ -491,12 +432,13 @@ namespace cg_naive{
         alpha.setValue(minus);
 
         //communicate halos - if x is set to zeros this is not necessary
-        std::vector<pointer_type::pointee_t*> vec(1);
+        /*
         vec[0]=x.data().get();
 
-        he.pack(vec);
-        he.exchange();
-        he.unpack(vec);
+        he->pack(vec);
+        he->exchange();
+        he->unpack(vec);
+        */
 
         //do the initial phase of CG
         CG_init->ready();
@@ -521,9 +463,18 @@ namespace cg_naive{
         //communicate halos
         vec[0]=d.data().get();
 
-        he.pack(vec);
-        he.exchange();
-        he.unpack(vec);
+        timers.start(Timers::TIMER_HALO_PACK);
+        he->pack(vec);
+        timers.stop(Timers::TIMER_HALO_PACK);
+
+        timers.start(Timers::TIMER_HALO_ISEND_IRECV);
+        he->exchange();
+        timers.stop(Timers::TIMER_HALO_ISEND_IRECV);
+
+        //timer UNPACK_WAIT is used to measure only unpack
+        timers.start(Timers::TIMER_HALO_UNPACK_WAIT);
+        he->unpack(vec);
+        timers.stop(Timers::TIMER_HALO_UNPACK_WAIT);
 
         MPI_Barrier(GCL_WORLD);
 
@@ -546,31 +497,28 @@ namespace cg_naive{
 
             // construction of the domains for the steps of CG
             gridtools::domain_type<accessor_list_step0> domain_step0
-                (boost::fusion::make_vector(&Ad, ptr_d));
+                (boost::fusion::make_vector(&Ad, &d));
 
             gridtools::domain_type<accessor_list_step1> domain_step1
-                (boost::fusion::make_vector(ptr_xNew, ptr_x, ptr_d, &alpha));
+                (boost::fusion::make_vector(&x, &x, &d, &alpha));
 
             gridtools::domain_type<accessor_list_step2> domain_step2
-                (boost::fusion::make_vector(&tmp, ptr_rNew, ptr_r, &Ad, &alpha));
+                (boost::fusion::make_vector(&tmp, &r, &r, &Ad, &alpha));
 
             gridtools::domain_type<accessor_list_step3> domain_step3
-                (boost::fusion::make_vector(ptr_dNew, ptr_rNew, ptr_d, &beta));
-
-            gridtools::domain_type<accessor_list_alpha> domain_alpha_nominator
-                (boost::fusion::make_vector(&tmp, ptr_r, ptr_r));
+                (boost::fusion::make_vector(&d, &r, &d, &beta));
 
             gridtools::domain_type<accessor_list_alpha> domain_alpha_denominator
-                (boost::fusion::make_vector(&tmp, ptr_d, &Ad));
+                (boost::fusion::make_vector(&tmp, &d, &Ad));
 
             gridtools::domain_type<accessor_list_alpha> domain_beta_nominator
-                (boost::fusion::make_vector(&tmp, ptr_rNew, ptr_rNew));
+                (boost::fusion::make_vector(&tmp, &r, &r));
 
 
             // Instantiate stencils to perform steps of CG
             auto CG_step0 = gridtools::make_computation<gridtools::BACKEND>
                 (
-                 domain_step0, coords3d7pt,
+                 domain_step0, *coords3d7pt,
                  gridtools::make_mss // mss_descriptor
                  (
                   execute<forward>(),
@@ -581,7 +529,7 @@ namespace cg_naive{
 
             auto CG_step1 = gridtools::make_computation<gridtools::BACKEND>
                 (
-                 domain_step1, coords3d7pt,
+                 domain_step1, *coords3d7pt,
                  gridtools::make_mss // mss_descriptor
                  (
                   execute<forward>(),
@@ -594,7 +542,7 @@ namespace cg_naive{
 
             auto CG_step2 = gridtools::make_computation<gridtools::BACKEND>
                 (
-                 domain_step2, coords3d7pt,
+                 domain_step2, *coords3d7pt,
                  gridtools::make_mss // mss_descriptor
                  (
                   execute<forward>(),
@@ -602,14 +550,14 @@ namespace cg_naive{
                       p_r_step2(),
                       p_Ad_step2(),
                       p_alpha_step2()), // r_(i+1) = r_i - alpha * Ad_i
-                  make_esf<product_functor>(p_tmp_step2(), p_rNew_step2(), p_rNew_step2()) // r' .* r
+                  make_esf<product_functor>(p_tmp_step2(), p_rNew_step2(), p_rNew_step2()) // r_(i+1)' .* r_(i+1)
                  ),
-                 make_reduction< reduction_functor, binop::sum >(0.0, p_tmp_step2()) // sum(r'.*r)
+                 make_reduction< reduction_functor, binop::sum >(0.0, p_tmp_step2()) // sum(r_(i+1)' .* r_(i+1))
                 );
 
             auto CG_step3 = gridtools::make_computation<gridtools::BACKEND>
                 (
-                 domain_step3, coords3d7pt,
+                 domain_step3, *coords3d7pt,
                  gridtools::make_mss // mss_descriptor
                  (
                   execute<forward>(),
@@ -618,11 +566,12 @@ namespace cg_naive{
                       p_d_step3(),
                       p_beta_step3()) // d_(i+1) = r_(i+1) + beta * d_i
                  )
-                );
+                 );
+                
 
             auto stencil_alpha_denom = make_computation< gridtools::BACKEND >
                 (
-                 domain_alpha_denominator, coords3d7pt,
+                 domain_alpha_denominator, *coords3d7pt,
                  gridtools::make_mss
                  (
                   execute< forward >(),
@@ -636,9 +585,9 @@ namespace cg_naive{
             // A * d
             CG_step0->ready();
             CG_step0->steady();
-            timers->start(Timers::TIMER_COMPUTE_STENCIL_INNER);
+            timers.start(Timers::TIMER_COMPUTE_STENCIL_INNER);
             CG_step0->run();
-            timers->stop(Timers::TIMER_COMPUTE_STENCIL_INNER);
+            timers.stop(Timers::TIMER_COMPUTE_STENCIL_INNER);
             CG_step0->finalize();
 
             // if(PID==0) { printf("d\n"); ptr_d->print(); }
@@ -678,10 +627,10 @@ namespace cg_naive{
              *   2. perform dense mat-vec that represents addition of BC
              *   3. add the BC to the domain Ax
              */
-            timers->start(Timers::TIMER_COMPUTE_STENCIL_BORDER);
+            timers.start(Timers::TIMER_COMPUTE_STENCIL_BORDER);
 
             //get pointer to the domain X data
-            double *d_data = ptr_d->data().get();
+            double *d_data = d.data().get();
 
             // apply BC to the  (x,y=0,z=0) edge of the domain
             if (PID % yprocs == 0)
@@ -750,7 +699,7 @@ namespace cg_naive{
             //  MPI_Barrier(MPI_COMM_WORLD);
             //  if(PID==7) { printf("Ad\n"); Ad.print();}
 
-            timers->stop(Timers::TIMER_COMPUTE_STENCIL_BORDER);
+            timers.stop(Timers::TIMER_COMPUTE_STENCIL_BORDER);
 
             // Denominator of alpha
             stencil_alpha_denom->ready();
@@ -774,9 +723,9 @@ namespace cg_naive{
             alpha.setValue(-1. * alpha.getValue());
             CG_step2->ready();
             CG_step2->steady();
-            timers->start(Timers::TIMER_COMPUTE_DOTPROD); //measure r_i - a*Ad and r*'r and reduction
+            timers.start(Timers::TIMER_COMPUTE_DOTPROD); //measure r_i - a*Ad and r*'r and reduction
             rTrnew = CG_step2->run();
-            timers->stop(Timers::TIMER_COMPUTE_DOTPROD);
+            timers.stop(Timers::TIMER_COMPUTE_DOTPROD);
             CG_step2->finalize();
             MPI_Allreduce(&rTrnew, &rTrnew_global, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
@@ -795,37 +744,22 @@ namespace cg_naive{
             CG_step3->finalize();
 
             // Communicate halos
-            std::vector<pointer_type::pointee_t*> vec(2);
             vec[0]=d.data().get();
-            vec[1]=dNew.data().get();
 
-            timers->start(Timers::TIMER_HALO_PACK);
-            he.pack(vec);
-            timers->stop(Timers::TIMER_HALO_PACK);
+            timers.start(Timers::TIMER_HALO_PACK);
+            he->pack(vec);
+            timers.stop(Timers::TIMER_HALO_PACK);
 
-            timers->start(Timers::TIMER_HALO_ISEND_IRECV);
-            he.exchange();
-            timers->stop(Timers::TIMER_HALO_ISEND_IRECV);
+            timers.start(Timers::TIMER_HALO_ISEND_IRECV);
+            he->exchange();
+            timers.stop(Timers::TIMER_HALO_ISEND_IRECV);
 
             //timer UNPACK_WAIT is used to measure only unpack
-            timers->start(Timers::TIMER_HALO_UNPACK_WAIT);
-            he.unpack(vec);
-            timers->stop(Timers::TIMER_HALO_UNPACK_WAIT);
+            timers.start(Timers::TIMER_HALO_UNPACK_WAIT);
+            he->unpack(vec);
+            timers.stop(Timers::TIMER_HALO_UNPACK_WAIT);
 
             MPI_Barrier(GCL_WORLD);
-
-            // Swap input and output fields
-            storage_type* swap;
-            swap = ptr_x;
-            ptr_x = ptr_xNew;
-            ptr_xNew = swap;
-            swap = ptr_r;
-            ptr_r = ptr_rNew;
-            ptr_rNew = swap;
-            swap = ptr_d;
-            ptr_d = ptr_dNew;
-            ptr_dNew = swap;
-
 
 #ifdef REL_TOL
             residual =  sqrt(rTrnew_global)/rTr_init;
@@ -841,11 +775,11 @@ namespace cg_naive{
 #endif
 
             // Convergence test
-            if (residual < EPS)
+            if (residual < EPS) {
+                converged = true;
                 break;
+            }
         }
-
-        timers->stop(Timers::TIMER_GLOBAL);
 
 #ifdef MY_VERBOSE
         if (PID == 0) {
@@ -857,6 +791,6 @@ namespace cg_naive{
         //gridtools::GCL_Finalize();
         MPI_Comm_free(&xdim_comm);
         free(xedge);
-        return true;
+        return converged;
     }
 }
