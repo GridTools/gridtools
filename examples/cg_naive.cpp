@@ -250,18 +250,18 @@ int main(int argc, char** argv)
         // and over local domain x,y,z
         for (int z = 0; z < dimz; z++)
         {
-          for (int py = 0; py < N2; py++)
+          for (int px = 0; px < N1; px++) //Gridtools has inverted x,y axes of processor grid
           {
               for (int y = 0; y < dimy_local; y++)
               {
-                for (int px = 0; px < N1; px++)
+                for (int py = 0; py < N2; py++)
                 {
                     int pidx = px + py * N1;
 
                     for (int x = 0; x < dimx_local; x++)
                     {
                         int offset = pidx*local_domain_size + z*dimx_local*dimy_local + y*dimx_local + x; // index in gathered domain
-                        int idx = (px*dimx_local + x) + (py*dimy_local + y)*dimx + z*dimx*dimy; //row of the A
+                        int idx = (py*dimx_local + x) + (px*dimy_local + y)*dimx + z*dimx*dimy; //row of the A
                         if(offset >= global_domain_size) {printf("OFFSET > domain size\n");}
                         printf ("Diagonal element (%d, %d): %32.24e\n", idx, idx, estimator[offset]);
                         fprintf (fileout, "%32.24e\n", estimator[offset]);
