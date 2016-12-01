@@ -44,6 +44,7 @@
 namespace gridtools {
 
     namespace _impl_strcuda {
+
         template < int VBoundary >
         struct padded_boundary
             : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
