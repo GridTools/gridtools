@@ -52,7 +52,6 @@ namespace gridtools {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
         GRIDTOOLS_STATIC_ASSERT(
             (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal error: wrong type");
-
         typedef IterateDomainBase< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > super;
 
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
@@ -117,12 +116,6 @@ namespace gridtools {
 
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
         }
-
-        //    template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
-        //    typename boost::enable_if_c< is_any_storage<typename ArgStoragePair0::storage_type>::type::value
-        //                                , void>::type assign_pointers
-
-        //    typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0
 
       private:
         data_pointer_array_t *RESTRICT m_data_pointer;
