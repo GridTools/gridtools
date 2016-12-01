@@ -443,8 +443,8 @@ namespace gridtools {
                 typename if_condition_extract_index_t< mss_components_array_t >::type >::type is_present_t;
 
             m_meter.start();
-            // run_conditionally< is_present_t, mss_components_array_t, Backend >::apply(
-            //    m_conditionals_set, m_grid, m_mss_local_domain_list, m_reduction_data);
+            run_conditionally< is_present_t, mss_components_array_t, Backend >::apply(
+                m_conditionals_set, m_grid, m_mss_local_domain_list, m_reduction_data);
             m_meter.pause();
             return m_reduction_data.reduced_value();
         }
