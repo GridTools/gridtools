@@ -44,7 +44,7 @@
    use the \ref gridtools::if_ statement from whithin the make_computation.
 */
 #ifdef CXX11_ENABLED
-#if (NVCC_GCC_53_BUG)
+#if (GCC_53_BUG)
 #include <functional>
 namespace gridtools {
     struct condition_functor {
@@ -84,7 +84,7 @@ namespace gridtools {
         conditional() // try to avoid this?
             : m_value(
 #ifdef CXX11_ENABLED
-#if (!NVCC_GCC_53_BUG)
+#if (!GCC_53_BUG)
                   []() {
                       assert(false);
                       return false;
@@ -101,7 +101,7 @@ namespace gridtools {
         */
         conditional(BOOL_FUNC(c)) : m_value(c) {}
 
-#if (NVCC_GCC_53_BUG)
+#if (GCC_53_BUG)
 #ifdef CXX11_ENABLED
         /**
            @brief constructor from a std::function
@@ -113,7 +113,7 @@ namespace gridtools {
 //         */
 //        conditional(bool (*c)()) : m_value(c) {}
 #endif
-#endif // NVCC_GCC_53_BUG
+#endif // GCC_53_BUG
 
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }

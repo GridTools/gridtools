@@ -104,7 +104,7 @@ computation->finalize();
 
         uint_t rec_depth_ = 0;
 
-#if (NVCC_GCC_53_BUG)
+#if (GCC_53_BUG)
         cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
 #else
         cond_.push_back_condition([&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); });
@@ -132,7 +132,7 @@ computation->finalize();
         typedef conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value > conditional_t;
         recursion_depth_++;
 
-#if (NVCC_GCC_53_BUG)
+#if (GCC_53_BUG)
         cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
 #else
         cond_.push_back_condition([&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); });
