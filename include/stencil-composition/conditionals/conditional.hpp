@@ -107,11 +107,6 @@ namespace gridtools {
            @brief constructor from a std::function
          */
         conditional(std::function< bool() > c) : m_value(c) {}
-//#else
-//        /**
-//           @brief constructor from a function pointer
-//         */
-//        conditional(bool (*c)()) : m_value(c) {}
 #endif
 #endif // GCC_53_BUG
 
