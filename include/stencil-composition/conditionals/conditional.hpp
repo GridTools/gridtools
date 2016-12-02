@@ -44,6 +44,22 @@
    use the \ref gridtools::if_ statement from whithin the make_computation.
 */
 #ifdef CXX11_ENABLED
+#if (NVCC_GCC_53_BUG)
+#include <functional>
+namespace gridtools {
+    struct condition_functor {
+        std::function< short_t() > m_1;
+        short_t m_2;
+        condition_functor(std::function< int() > t1_, short_t t2_) : m_1(t1_), m_2(t2_) {}
+        condition_functor(std::function< bool() > t1_) : m_2(true) {}
+
+        condition_functor() : m_1([]() { return 0; }), m_2(0) {}
+
+        bool operator()() const { return m_1() == m_2; }
+    };
+}
+#define BOOL_FUNC(val) condition_functor val
+#else
 #define BOOL_FUNC(val) std::function< bool() > val
 #else
 #define BOOL_FUNC(val) bool (*val)()
