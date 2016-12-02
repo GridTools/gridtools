@@ -5,7 +5,7 @@
 
 #define REL_TOL
 #define MY_VERBOSE
-#define a_i 0.00001
+#define a_i 1e-5
 
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
@@ -283,7 +283,7 @@ namespace cg_naive{
 
 
         if (PID == 0){
-            printf("Running CG for domain %d x %d x %d, %d iterations, tolerance %.4f\n", xdim, ydim, zdim, MAX_ITER, EPS);
+            printf("Running CG for domain %d x %d x %d, %d iterations, tolerance %e\n", xdim, ydim, zdim, MAX_ITER, EPS);
         }
 
         bool converged = false;
@@ -788,7 +788,6 @@ namespace cg_naive{
         }
 #endif
 
-        //gridtools::GCL_Finalize();
         MPI_Comm_free(&xdim_comm);
         free(xedge);
         return converged;

@@ -92,10 +92,11 @@ int main(int argc, char** argv)
     {
         samples = new double[count];
         
-        std::srand(std::time(0));
+        //std::srand(std::time(0));
+        std::srand(131867);
         for (int i = 0; i < count; i++)
         {
-            samples[i] = (std::rand() / (double)RAND_MAX) > 0.5 ? 1.0 : 1.0;
+            samples[i] = (std::rand() / (double)RAND_MAX) > 0.5 ? 1.0 : -1.0;
         }
     }
 
@@ -103,7 +104,7 @@ int main(int argc, char** argv)
     if (PID == MASTER) delete [] samples;
 
     // local domains
-    storage_type x    (metadata_, 0., "Solution vector t");
+    storage_type x    (metadata_, 0., "Solution vector");
     storage_type b    (metadata_, 0., "RHS vector");
     storage_type q    (metadata_, 0., "Helper vector for diagonal estimate");
     storage_type r    (metadata_, 0., "Helper vector for diagonal estimate");
@@ -158,7 +159,7 @@ int main(int argc, char** argv)
          gridtools::make_mss // mss_descriptor
          (
           execute<forward>(),
-          gridtools::make_esf<product_functor>(p_d(), p_q1(), p_r1()) // d = q ./ r
+          gridtools::make_esf<div_functor>(p_d(), p_q1(), p_r1()) // d = q ./ r
          )
         );
 
@@ -179,6 +180,7 @@ int main(int argc, char** argv)
             for (uint_t j = 1; j < dimy_local + 1; ++j)
                 for (uint_t k = 1; k < dimz_local + 1 ; ++k)
                 {
+                    x(i,j,k) = 0;
                     b(i,j,k) = rhs[idx++];
                 }
 
@@ -189,20 +191,25 @@ int main(int argc, char** argv)
             if(PID == MASTER) printf("CG did not converge to the specified tolerance %e\n",eps);
             //return -1;
         }
-
         
-        // q = q + b .* x and r = r + b .* b
+        // q = q + b .* x
+        // r = r + b .* b // this could be optimized by setting it to nrhs*ones(dim_global)
         sedi->ready();
         sedi->steady();
         sedi->run();
         sedi->finalize();
+        
     }
+
+    // if(PID == 0) {printf("QQQQQ\n"); q.print();} //DEBUG
 
     // d = q ./ r
     inverse->ready();
     inverse->steady();
     inverse->run();
     inverse->finalize();
+
+    // if(PID == 0) {printf("DDDDDD\n"); d.print();} //DEBUG
 
     delete [] samples_local;
    
