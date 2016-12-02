@@ -61,6 +61,7 @@ namespace gridtools {
 #define BOOL_FUNC(val) condition_functor val
 #else
 #define BOOL_FUNC(val) std::function< bool() > val
+#endif
 #else
 #define BOOL_FUNC(val) bool (*val)()
 #endif
@@ -83,18 +84,36 @@ namespace gridtools {
         conditional() // try to avoid this?
             : m_value(
 #ifdef CXX11_ENABLED
+#if (!NVCC_GCC_53_BUG)
                   []() {
                       assert(false);
                       return false;
                   }
 #endif
+#endif
                   ) {
         }
 
         /**
-           @brief constructor from a pointer
-         */
+           @brief constructor for switch variables (for GCC53 bug)
+
+           This constructor should not be needed
+        */
         conditional(BOOL_FUNC(c)) : m_value(c) {}
+
+#if (NVCC_GCC_53_BUG)
+#ifdef CXX11_ENABLED
+        /**
+           @brief constructor from a std::function
+         */
+        conditional(std::function< bool() > c) : m_value(c) {}
+#else
+        /**
+           @brief constructor from a function pointer
+         */
+        conditional(bool (*c)()) : m_value(c) {}
+#endif
+#endif // NVCC_GCC_53_BUG
 
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }

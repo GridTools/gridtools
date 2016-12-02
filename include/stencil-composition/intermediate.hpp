@@ -39,6 +39,7 @@
 #include <iostream>
 #endif
 
+#include <boost/shared_ptr.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/pair.hpp>
