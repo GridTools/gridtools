@@ -38,7 +38,6 @@
 #include <boost/typeof/typeof.hpp>
 
 namespace gridtools {
-
     /**
        @brief Sobstitution Failure is Not An Error
 
@@ -133,42 +132,43 @@ namespace gridtools {
     template < class T >                            \
     struct has_constexpr_name : decltype(test< T >(0)) {};
 
-    template < typename T >
-    int operator, (T const &, int) {
-        return 0;
-    };
-    template < typename T >
-    int mix(T const &, int) {
-        return 0;
-    };
+    namespace sfinae{
 
-    namespace _impl {
-        struct dummy_type {}; // used for SFINAE
-    }
+        /**@brief overload of the comma operator in order to use void function (the Do method)
+         as arguments*/
+        template < typename T >
+        int operator, (T const &, int) {
+            return 0;
+        };
+
+        namespace _impl {
+            struct dummy_type {}; // used for SFINAE
+        }
 
 #ifdef CXX11_ENABLED
-    /**
-       @brief SFINAE metafunction to detect when a static Do functor in a struct has
-       2 arguments
+        /**
+           @brief SFINAE metafunction to detect when a static Do functor in a struct has
+           2 arguments
 
-       Used in order to make the second argument optional in the Do method of the user
-       functors
-     */
-    template < typename Functor >
-    struct has_two_args {
+           Used in order to make the second argument optional in the Do method of the user
+           functors
+        */
+        template < typename Functor >
+        struct has_two_args {
 
-        static constexpr _impl::dummy_type c_ = _impl::dummy_type{};
+            static constexpr _impl::dummy_type c_ = _impl::dummy_type{};
 
-        template < typename Derived >
-        static std::false_type test(decltype(Derived::Do(c_), 0)) {}
+            template < typename Derived >
+            static std::false_type test(decltype(Derived::Do(c_), 0)) {}
 
-        template < typename Derived >
-        static std::true_type test(decltype(Derived::Do(c_, _impl::dummy_type{}), 0)) {}
+            template < typename Derived >
+            static std::true_type test(decltype(Derived::Do(c_, _impl::dummy_type{}), 0)) {}
 
-        template < typename Derived >
-        static std::true_type test(...) {}
+            template < typename Derived >
+            static std::true_type test(...) {}
 
-        typedef decltype(test< Functor >(0)) type;
-    };
+            typedef decltype(test< Functor >(0)) type;
+        };
 #endif
-}
+    }//namespace sfinae
+}//namespace gridtools

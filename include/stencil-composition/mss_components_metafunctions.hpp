@@ -204,7 +204,7 @@ namespace gridtools {
         struct inserter_ {
 
 #ifdef CXX11_ENABLED
-            typedef typename boost::mpl::if_< typename has_two_args< Functor >::type,
+            typedef typename boost::mpl::if_< typename sfinae::has_two_args< Functor >::type,
                 Functor,
                 functor_decorator< Functor, typename Grid::axis_type > >::type functor_t;
 
