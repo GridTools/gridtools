@@ -132,7 +132,7 @@ namespace gridtools {
     template < class T >                            \
     struct has_constexpr_name : decltype(test< T >(0)) {};
 
-    namespace sfinae{
+    namespace sfinae {
 
         /**@brief overload of the comma operator in order to use void function (the Do method)
          as arguments*/
@@ -170,5 +170,5 @@ namespace gridtools {
             typedef decltype(test< Functor >(0)) type;
         };
 #endif
-    }//namespace sfinae
-}//namespace gridtools
+    } // namespace sfinae
+} // namespace gridtools
