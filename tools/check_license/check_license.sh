@@ -8,8 +8,8 @@ fi
 for file in `find . -regextype posix-egrep -regex ".*\.(hpp|cpp|cu)$" `; do
     if ! grep -q "Copyright (c) 2016, GridTools Consortium" $file ; then
         echo $file
-        if [ $1="fix" ]; then
-            "/*
+        if [ "$1" == "fix" ]; then
+            echo "/*
 $(cat LICENSE)
 */
 $(cat $file)" > $file
