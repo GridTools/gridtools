@@ -137,6 +137,10 @@ namespace gridtools {
     int operator, (T const &, int) {
         return 0;
     };
+    template < typename T >
+    int mix (T const &, int) {
+        return 0;
+    };
 
     namespace _impl {
         struct dummy_type {}; // used for SFINAE
@@ -155,13 +159,6 @@ namespace gridtools {
 
         static constexpr _impl::dummy_type c_ = _impl::dummy_type{};
 
-        struct mix_in {
-            template < typename T1, typename T2 >
-            static int Do_(T1 const &, T2) {}
-        };
-
-        struct derived : Functor, mix_in {};
-
         template < typename Derived >
         static std::false_type test(decltype(Derived::Do(c_), 0)) {}
 
@@ -171,7 +168,7 @@ namespace gridtools {
         template < typename Derived >
         static std::true_type test(...) {}
 
-        typedef decltype(test< derived >(0)) type;
+        typedef decltype(test< Functor >(0)) type;
     };
 #endif
 }
