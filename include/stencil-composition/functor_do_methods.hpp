@@ -79,8 +79,7 @@ namespace gridtools {
         // * the k intervals you specified are consistent (i.e. the domain axis used to build
         //     the coordinate system contains all the intervals specified for the solutions)
         // * there is exactly one Do method per functor matching the specified interval
-        BOOST_MPL_ASSERT_MSG(
-            ( boost::mpl::size< DoMethods >::value == 1),
+        BOOST_MPL_ASSERT_MSG((boost::mpl::size< DoMethods >::value == 1),
             DID_NOT_FIND_DO_METHOD_FOR_A_GIVEN_INTERVAL_FROM_LEVEL,
             (TFromIndex, DoMethods));
 
