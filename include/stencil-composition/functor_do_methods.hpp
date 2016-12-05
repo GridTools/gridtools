@@ -71,12 +71,16 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1, boost::mpl::pair< TFromIndex, boost::mpl::_2 > >,
                 boost::mpl::_1 > >::type DoMethods;
 
+#ifdef CXX11_ENABLED
+        GRIDTOOLS_STATIC_ASSERT(sfinae::has_two_args< TFunctor >::type::value, "error");
+#else
+
         // check that:
         // * the k intervals you specified are consistent (i.e. the domain axis used to build
         //     the coordinate system contains all the intervals specified for the solutions)
         // * there is exactly one Do method per functor matching the specified interval
         BOOST_MPL_ASSERT_MSG(
-            (sfinae::has_two_args< TFunctor >::type::value && boost::mpl::size< DoMethods >::value == 1),
+            ( boost::mpl::size< DoMethods >::value == 1),
             DID_NOT_FIND_DO_METHOD_FOR_A_GIVEN_INTERVAL_FROM_LEVEL,
             (TFromIndex, DoMethods));
 
