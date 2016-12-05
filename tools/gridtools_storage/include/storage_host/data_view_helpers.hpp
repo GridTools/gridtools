@@ -40,10 +40,10 @@
 
 #include <boost/utility.hpp>
 
-#include "storage.hpp"
-#include "storage_info.hpp"
 #include "../common/data_store.hpp"
 #include "../common/data_view.hpp"
+#include "storage.hpp"
+#include "storage_info.hpp"
 
 namespace gridtools {
 
@@ -66,7 +66,7 @@ namespace gridtools {
         boost::mpl::and_< is_host_storage< typename DataStore::storage_t >, is_data_store< DataStore > >,
         bool >::type
     valid(DataStore const &ds, DataView const &dv) {
-        return ds.valid() && (dv.m_raw_ptr == ds.get_storage_ptr()->get_cpu_ptr()) &&
+        return ds.valid() && (dv.m_raw_ptrs[0] == ds.get_storage_ptr()->get_cpu_ptr()) &&
                (dv.m_storage_info && ds.get_storage_info_ptr());
     }
 }
