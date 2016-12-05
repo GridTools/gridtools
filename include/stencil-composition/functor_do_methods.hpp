@@ -73,7 +73,7 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         GRIDTOOLS_STATIC_ASSERT(sfinae::has_two_args< TFunctor >::type::value, "error");
-#else
+#endif
 
         // check that:
         // * the k intervals you specified are consistent (i.e. the domain axis used to build
