@@ -38,14 +38,14 @@
 
 #include <assert.h>
 
-#include <boost/utility.hpp>
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/utility.hpp>
 
-#include "storage.hpp"
-#include "storage_info.hpp"
 #include "../common/data_store.hpp"
 #include "../common/data_view.hpp"
+#include "storage.hpp"
+#include "storage_info.hpp"
 
 namespace gridtools {
 
@@ -86,10 +86,11 @@ namespace gridtools {
         if (!d.valid())
             return false;
         // if ptrs do not match anymore return false
-        if ((v.m_raw_ptr != d.get_storage_ptr()->get_gpu_ptr()) && (v.m_raw_ptr != d.get_storage_ptr()->get_cpu_ptr()))
+        if ((v.m_raw_ptrs[0] != d.get_storage_ptr()->get_gpu_ptr()) &&
+            (v.m_raw_ptrs[0] != d.get_storage_ptr()->get_cpu_ptr()))
             return false;
         // check if we have a device view
-        const bool device_view = (v.m_raw_ptr == d.get_storage_ptr()->get_cpu_ptr()) ? false : true;
+        const bool device_view = (v.m_raw_ptrs[0] == d.get_storage_ptr()->get_cpu_ptr()) ? false : true;
         // read-only? if yes, take early exit
         if (DV::read_only)
             return device_view ? !d.get_storage_ptr()->get_state_machine_ptr()->m_dnu
