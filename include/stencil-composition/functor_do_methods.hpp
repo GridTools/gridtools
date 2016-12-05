@@ -54,7 +54,8 @@
 namespace gridtools {
     // implementation of the do method overload search
 
-    template <typename T> struct is_functor_decorator;
+    template < typename T >
+    struct is_functor_decorator;
     /**
      * @struct find_do_method_starting_at
      * Meta function searching for the do method starting at a given from index
@@ -70,7 +71,7 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1, boost::mpl::pair< TFromIndex, boost::mpl::_2 > >,
                 boost::mpl::_1 > >::type DoMethods;
 
-        GRIDTOOLS_STATIC_ASSERT(is_functor_decorator<TFunctor>::value, "internal: wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< TFunctor >::value, "internal: wrong type");
         // check that:
         // * the k intervals you specified are consistent (i.e. the domain axis used to build
         //     the coordinate system contains all the intervals specified for the solutions)

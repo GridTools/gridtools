@@ -138,7 +138,7 @@ namespace gridtools {
         return 0;
     };
     template < typename T >
-    int mix (T const &, int) {
+    int mix(T const &, int) {
         return 0;
     };
 

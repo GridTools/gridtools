@@ -18,11 +18,10 @@ namespace gridtools {
         GT_FUNCTION static void Do(Eval const &eval_, default_interval) {
             F::Do(eval_);
         }
-
     };
-    template <typename T>
-    struct is_functor_decorator : boost::mpl::false_{};
+    template < typename T >
+    struct is_functor_decorator : boost::mpl::false_ {};
 
-    template <typename T, typename A>
-    struct is_functor_decorator<functor_decorator< T, A> > : boost::mpl::true_{};
+    template < typename T, typename A >
+    struct is_functor_decorator< functor_decorator< T, A > > : boost::mpl::true_ {};
 } // namespace gridtools
