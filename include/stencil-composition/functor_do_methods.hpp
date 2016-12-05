@@ -71,7 +71,6 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1, boost::mpl::pair< TFromIndex, boost::mpl::_2 > >,
                 boost::mpl::_1 > >::type DoMethods;
 
-        GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< TFunctor >::value, "internal: wrong type");
         // check that:
         // * the k intervals you specified are consistent (i.e. the domain axis used to build
         //     the coordinate system contains all the intervals specified for the solutions)
