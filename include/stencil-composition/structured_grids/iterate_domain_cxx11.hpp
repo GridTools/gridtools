@@ -420,8 +420,7 @@ namespace gridtools {
             // getting information about the storage
             typedef typename global_accessor< I, Intend >::index_type index_t;
 
-            typedef
-                typename get_storage_accessor< local_domain_t, global_accessor< I, Intend > >::type *storage_ptr_type;
+            typedef typename local_domain_t::template get_storage< static_uint<I> >::type::value_type * storage_ptr_type;
 
             storage_ptr_type storage_ = static_cast< storage_ptr_type >(get_data_pointer(accessor));
             // boost::fusion::at< index_t >(local_domain.local_storages());

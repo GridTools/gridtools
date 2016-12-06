@@ -272,7 +272,7 @@ namespace gridtools {
         template < typename ReturnType, typename Accessor, typename StoragePointer >
         GT_FUNCTION typename boost::enable_if< typename accessor_read_from_texture< Accessor >::type, ReturnType >::type
         get_value_impl(
-            typename StoragePointer::value_type RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+            typename StoragePointer::value_type * RESTRICT storage_pointer, const uint_t pointer_offset) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
 #if __CUDA_ARCH__ >= 350
             // on Kepler use ldg to read directly via read only cache
@@ -287,8 +287,8 @@ namespace gridtools {
         */
         template < typename ReturnType, typename Accessor, typename StoragePointer >
         GT_FUNCTION
-            typename boost::disable_if< typename accessor_read_from_texture< Accessor >::type, ReturnType >::type
-            get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+        typename boost::disable_if< typename accessor_read_from_texture< Accessor >::type, ReturnType >::type
+        get_value_impl(typename StoragePointer::value_type * RESTRICT storage_pointer, const uint_t pointer_offset) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
         }
