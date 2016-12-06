@@ -230,7 +230,8 @@ namespace gridtools {
                 1 > cuda_block_size_t;
 
             GRIDTOOLS_STATIC_ASSERT(
-                (is_block_size< typename RunFunctorArguments::processing_elements_block_size_t >::value), "internal type error");
+                (is_block_size< typename RunFunctorArguments::processing_elements_block_size_t >::value),
+                "internal type error");
 
 // re-create the run functor arguments, replacing the processing elements block size
 // with the corresponding, recently computed, block size
@@ -339,7 +340,7 @@ namespace gridtools {
 #endif
 
                 _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t,
-                    local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
+                    local_domain_t >< < < blocks, threads > > > //<<<nbx*nby, ntx*nty>>>
                     (grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny), const_it_domain);
 
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
