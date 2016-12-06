@@ -627,37 +627,42 @@ namespace gridtools {
             typename boost::add_reference< accessor_value_type >::type RESTRICT >::type type;
     };
 
-    template < typename OffsetTuple, unsigned N, typename StorageInfo, typename... T >
-    GT_FUNCTION typename boost::enable_if_c< (N < OffsetTuple::n_dim), const int_t >::type apply_accessor(
-        const StorageInfo *sinfo, OffsetTuple const &offsets, T... t) {
-        return apply_accessor< OffsetTuple, N + 1 >(sinfo, offsets, t..., offsets.template get< N >());
+    template < typename Max, typename StridesCached, typename OffsetTuple, typename StorageInfo, unsigned N>
+    GT_FUNCTION constexpr typename boost::enable_if_c< (N < (OffsetTuple::n_dim-1)), int_t >::type apply_accessor(
+        StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
+        return ((StorageInfo::Layout::template at<N>() == Max::value) ? 
+            offsets.template get< N >() : 
+            strides[N-1] * offsets.template get< N >()) + apply_accessor< Max, StridesCached, OffsetTuple, StorageInfo, N + 1 >(strides, offsets); 
+
     }
 
-    template < typename OffsetTuple, unsigned N, typename StorageInfo, typename... T >
-    GT_FUNCTION typename boost::enable_if_c< (N == OffsetTuple::n_dim), const int_t >::type apply_accessor(
-        const StorageInfo *sinfo, OffsetTuple const &offsets, T... t) {
-        return sinfo->index(t...);
+    template < typename Max, typename StridesCached, typename OffsetTuple, typename StorageInfo, unsigned N>
+    GT_FUNCTION constexpr typename boost::enable_if_c< (N == (OffsetTuple::n_dim-1)), int_t >::type apply_accessor(
+        StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
+        return (StorageInfo::Layout::template at<N>() == Max::value) ? offsets.template get< N >() : strides[N-1] * offsets.template get< N >(); 
     }
 
     // pointer offset computation for temporaries
     template < typename StorageWrapper, typename StorageInfo, typename AccessorOffset, typename StridesCached >
-    GT_FUNCTION typename boost::enable_if_c< StorageWrapper::is_temporary, const int_t >::type compute_offset(
-        const StorageInfo *sinfo,
-        StridesCached const &strides_cached,
-        int_t current_index,
-        AccessorOffset const &acc_offset) {
+    GT_FUNCTION constexpr typename boost::enable_if_c< StorageWrapper::is_temporary, int_t >::type compute_offset(
+        StridesCached const &RESTRICT strides_cached,
+        AccessorOffset const &RESTRICT acc_offset) {
+        // get the max coordinate of given StorageInfo
+        typedef typename boost::mpl::deref< typename boost::mpl::max_element<
+            typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
         // TODO: implement properly
-        return current_index + apply_accessor< AccessorOffset, 0 >(sinfo, acc_offset);
+        return apply_accessor< max_t, StridesCached, AccessorOffset, StorageInfo, 0 >(strides_cached, acc_offset);
     };
 
     // pointer offset computation for non-temporaries
     template < typename StorageWrapper, typename StorageInfo, typename AccessorOffset, typename StridesCached >
-    GT_FUNCTION typename boost::enable_if_c< !StorageWrapper::is_temporary, const int_t >::type compute_offset(
-        const StorageInfo *sinfo,
-        StridesCached const &strides_cached,
-        int_t current_index,
-        AccessorOffset const &acc_offset) {
-        return current_index + apply_accessor< AccessorOffset, 0 >(sinfo, acc_offset);
+    GT_FUNCTION constexpr typename boost::enable_if_c< !StorageWrapper::is_temporary, int_t >::type compute_offset(
+        StridesCached const &RESTRICT strides_cached,
+        AccessorOffset const &RESTRICT acc_offset) {
+        // get the max coordinate of given StorageInfo
+        typedef typename boost::mpl::deref< typename boost::mpl::max_element<
+            typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
+        return apply_accessor< max_t, StridesCached, AccessorOffset, StorageInfo, 0 >(strides_cached, acc_offset);
     };
 
 } // namespace gridtools

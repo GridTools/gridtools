@@ -90,10 +90,10 @@ int main() {
 
     typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_ty;
     typedef storage_traits< BACKEND_V >::storage_info_t< 1, 3 > storage_info_ty1;
-    typedef storage_traits< BACKEND_V >::data_store_t< double, storage_info_ty > data_store_t;
-    typedef storage_traits< BACKEND_V >::data_store_t< double, storage_info_ty1 > data_store_t1;
+    typedef storage_traits< BACKEND_V >::data_store_t< float, storage_info_ty > data_store_t;
+    typedef storage_traits< BACKEND_V >::data_store_t< float, storage_info_ty1 > data_store_t1;
     typedef storage_traits< BACKEND_V >::data_store_t< float, storage_info_ty > data_store_t2;
-    typedef storage_traits< BACKEND_V >::data_store_field_t< double, storage_info_ty1, 1, 2, 3 > data_store_field_t;
+    typedef storage_traits< BACKEND_V >::data_store_field_t< float, storage_info_ty1, 1, 2, 3 > data_store_field_t;
 
     storage_info_ty si(d1, d2, d3);
     storage_info_ty1 si1(d1, d2, d3);

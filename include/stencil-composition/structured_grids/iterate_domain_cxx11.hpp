@@ -366,7 +366,7 @@ namespace gridtools {
 
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
-            return (data_pointer().template get< index_t::value >())[0];
+            return data_pointer().template get< index_t::value >()[0];
         }
 
         /** @brief method returning the data pointer of an accessor
@@ -377,7 +377,7 @@ namespace gridtools {
             typedef typename Accessor::index_t index_t;
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-            return (data_pointer().template get< index_t::value >())[0];
+            return data_pointer().template get< index_t::value >()[0];
         }
 
         /** @brief method returning the data pointer of an accessor
@@ -454,9 +454,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "wrong type");
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::storage_info_t storage_info_t;
-            return boost::fusion::deref(
-                       boost::fusion::find< const storage_info_t * >(local_domain.m_local_storage_info_ptrs))
-                ->template dim< Coordinate >();
+            typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
+                const storage_info_t * >::type::pos storage_info_index_t;
+            return boost::fusion::at< storage_info_index_t >(local_domain.m_local_storage_info_ptrs)->template dim< Coordinate >();
         }
 
         /** @brief return a the value in gmem pointed to by an accessor
@@ -552,7 +552,7 @@ namespace gridtools {
         // getting information about the storage
         typedef typename Accessor::index_t index_t;
         typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
-
+        
         typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
             storage_wrapper_t;
         typedef typename storage_wrapper_t::storage_t storage_t;
@@ -575,10 +575,10 @@ namespace gridtools {
 
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-        const int_t pointer_offset = compute_offset< storage_wrapper_t >(storage_info,
-            strides().template get< storage_info_index_t::value >(),
-            m_index[storage_info_index_t::value],
-            accessor.offsets());
+        const int_t pointer_offset = m_index[storage_info_index_t::value] + 
+            compute_offset< storage_wrapper_t, storage_info_t >(
+                strides().template get< storage_info_index_t::value >(),
+                accessor.offsets());
 
         // the following assert fails when an out of bound access is observed, i.e. either one of
         // i+offset_i or j+offset_j or k+offset_k is too large.
