@@ -44,69 +44,8 @@
 
 namespace gridtools {
 
-    template < typename T >
-    struct storage_wrapper_base;
-
     template < typename Arg, typename View, typename TileI, typename TileJ >
-    struct storage_wrapper;
-
-    template < typename Arg, typename Storage, bool ReadOnly, typename TileI, typename TileJ >
-    struct storage_wrapper< Arg, data_view< Storage, ReadOnly >, TileI, TileJ >
-        : storage_wrapper_base< storage_wrapper< Arg, data_view< Storage, ReadOnly >, TileI, TileJ > > {
-        static_assert(is_data_store< typename Arg::storage_t >::value,
-            "cannot create a (data_store) storage wrapper without a data_store type.");
-        using view_t = data_view< Storage, ReadOnly >;
-        using super = storage_wrapper_base< storage_wrapper< Arg, view_t, TileI, TileJ > >;
-        using super::super;
-        constexpr static uint_t storage_size = 1;
-        // tell me how I should initialize the ptr_t member called m_data_ptrs
-        void initialize(view_t v) { this->m_data_ptrs = v.m_raw_ptr; }
-
-        template < typename T >
-        void assign(T &d) const {
-            d = this->m_data_ptrs;
-        }
-
-        void info() const {
-            std::cout << "DataView: \n";
-            std::cout << "\tstorage_size: " << storage_size << "\n";
-            std::cout << "\t\tptr: " << this->m_data_ptrs << "\n";
-            std::cout << "\n";
-        }
-    };
-
-    template < typename Arg, typename Storage, bool ReadOnly, typename TileI, typename TileJ >
-    struct storage_wrapper< Arg, data_field_view< Storage, ReadOnly >, TileI, TileJ >
-        : storage_wrapper_base< storage_wrapper< Arg, data_field_view< Storage, ReadOnly >, TileI, TileJ > > {
-        static_assert(is_data_store_field< typename Arg::storage_t >::value,
-            "cannot create a (data_store_field) storage wrapper without a data_store_field type.");
-        using view_t = data_field_view< Storage, ReadOnly >;
-        using super = storage_wrapper_base< storage_wrapper< Arg, view_t, TileI, TileJ > >;
-        using super::super;
-        constexpr static uint_t storage_size = view_t::N;
-        // tell me how I should initialize the ptr_t member called m_data_ptrs
-        void initialize(view_t v) {
-            for (unsigned i = 0; i < view_t::N; ++i)
-                this->m_data_ptrs[i] = v.m_raw_ptrs[i];
-        }
-
-        template < typename T >
-        void assign(T &d) const {
-            std::copy(this->m_data_ptrs, this->m_data_ptrs + storage_size, d);
-        }
-
-        void info() const {
-            std::cout << "DataFieldView: \n";
-            std::cout << "\tstorage_size: " << storage_size << "\n";
-            for (unsigned i = 0; i < storage_size; ++i) {
-                std::cout << "\t\tptr: " << this->m_data_ptrs[i] << "\n";
-            }
-            std::cout << "\n";
-        }
-    };
-
-    template < typename Arg, typename View, typename TileI, typename TileJ >
-    struct storage_wrapper_base< storage_wrapper< Arg, View, TileI, TileJ > > {
+    struct storage_wrapper {
         // some type information
         using derived_t = storage_wrapper< Arg, View, TileI, TileJ >;
         using arg_t = Arg;
@@ -117,14 +56,26 @@ namespace gridtools {
         using storage_t = typename arg_t::storage_t;
         using data_t = typename storage_t::data_t;
         using storage_info_t = typename storage_t::storage_info_t;
-        using data_ptr_t = typename view_t::data_ptr_t;
 
         // some more information
+        constexpr static uint_t storage_size = view_t::N;
         constexpr static bool is_temporary = arg_t::is_temporary;
         constexpr static bool is_read_only = view_t::ReadOnly;
 
+        // assign the data ptrs to some other ptrs
+        template < typename T >
+        void assign(T &d) const {
+            std::copy(this->m_data_ptrs, this->m_data_ptrs + storage_size, d);
+        }
+
+        // tell me how I should initialize the ptr_t member called m_data_ptrs
+        void initialize(view_t v) {
+            for (unsigned i = 0; i < storage_size; ++i)
+                this->m_data_ptrs[i] = v.m_raw_ptrs[i];
+        }
+
         // data ptrs
-        data_ptr_t m_data_ptrs;
+        data_t *m_data_ptrs[storage_size];
     };
 
     template < typename T >
@@ -132,6 +83,9 @@ namespace gridtools {
 
     template < typename Arg, typename View, typename TileI, typename TileJ >
     struct is_storage_wrapper< storage_wrapper< Arg, View, TileI, TileJ > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct get_temporary_info_from_storage_wrapper : boost::mpl::bool_< T::is_temporary > {};
 
     template < typename T >
     struct get_arg_from_storage_wrapper {
@@ -156,7 +110,7 @@ namespace gridtools {
 
     template < typename T >
     struct get_data_ptr_from_storage_wrapper {
-        typedef typename T::data_ptr_t type;
+        typedef typename T::data_t *type[T::storage_size];
     };
 
     template < typename T >

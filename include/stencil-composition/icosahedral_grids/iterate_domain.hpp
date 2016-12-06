@@ -110,7 +110,7 @@ namespace gridtools {
         static const uint_t N_DATA_POINTERS = total_storages< actual_args_type,
             boost::mpl::size< typename local_domain_t::mpl_storages >::type::value >::value;
 
-        typedef array< void * RESTRICT, N_DATA_POINTERS > data_pointer_array_t;
+        typedef array< void * RESTRICT, N_DATA_POINTERS > data_ptr_cached_t;
         typedef strides_cached< N_META_STORAGES - 1, typename local_domain_t::storage_metadata_vector_t >
             strides_cached_t;
 
@@ -179,7 +179,7 @@ namespace gridtools {
            @brief returns the array of pointers to the raw data
         */
         GT_FUNCTION
-        data_pointer_array_t const &RESTRICT data_pointer() const {
+        data_ptr_cached_t const &RESTRICT data_pointer() const {
             return static_cast< IterateDomainImpl const * >(this)->data_pointer_impl();
         }
 
@@ -187,7 +187,7 @@ namespace gridtools {
            @brief returns the array of pointers to the raw data
         */
         GT_FUNCTION
-        data_pointer_array_t &RESTRICT data_pointer() {
+        data_ptr_cached_t &RESTRICT data_pointer() {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
@@ -218,7 +218,7 @@ namespace gridtools {
             const uint_t EU_id_j = BackendType::processing_element_j();
             boost::mpl::for_each< typename reversed_range< uint_t, 0, N_STORAGES >::type >(
                 assign_storage_functor< BackendType,
-                    data_pointer_array_t,
+                    data_ptr_cached_t,
                     typename local_domain_t::local_args_type,
                     typename local_domain_t::local_metadata_type,
                     metadata_map_t,

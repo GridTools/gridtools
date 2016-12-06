@@ -34,12 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #define PEDANTIC_DISABLED // too stringent for this test
+#include "common/defs.hpp"
+#include "stencil-composition/intermediate_metafunctions.hpp"
+#include "stencil-composition/stencil-composition.hpp"
+#include "stencil-composition/structured_grids/accessor.hpp"
 #include "gtest/gtest.h"
 #include <iostream>
-#include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/intermediate_metafunctions.hpp"
-#include "stencil-composition/structured_grids/accessor.hpp"
 
 namespace test_iterate_domain {
     using namespace gridtools;
@@ -130,7 +130,8 @@ namespace test_iterate_domain {
                 block_size< 32, 4 >,
                 gridtools::grid< axis >,
                 boost::mpl::false_,
-                notype > > it_domain_t;
+                notype > >
+            it_domain_t;
 
         mss_local_domain1_t mss_local_domain1 = boost::fusion::at_c< 0 >(computation_->mss_local_domain_list());
         auto local_domain1 = boost::fusion::at_c< 0 >(mss_local_domain1.local_domain_list);
@@ -141,7 +142,7 @@ namespace test_iterate_domain {
         GRIDTOOLS_STATIC_ASSERT(
             it_domain_t::N_DATA_POINTERS == 23, "bug in iterate domain, incorrect number of data pointers");
 
-        typename it_domain_t::data_pointer_array_t data_pointer;
+        typename it_domain_t::data_ptr_cache_t data_pointer;
         typedef typename it_domain_t::strides_cached_t strides_t;
         strides_t strides;
 

@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/utility/enable_if.hpp>
-#include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../../common/generic_metafunctions/replace_template_arguments.hpp"
-#include "stencil-composition/backend_host/iterate_domain_host.hpp"
-#include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
-#include "../../iteration_policy.hpp"
+#include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits_fwd.hpp"
+#include "../../iteration_policy.hpp"
+#include "stencil-composition/backend_host/iterate_domain_host.hpp"
+#include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
+#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
 
@@ -194,7 +194,7 @@ namespace gridtools {
                 //        }
                 //#endif
 
-                typename iterate_domain_t::data_pointer_array_t data_pointer;
+                typename iterate_domain_t::data_ptr_cached_t data_ptr_cached_t;
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
                 strides_t strides;
 
@@ -212,7 +212,8 @@ namespace gridtools {
                 typedef _impl::iteration_policy< from,
                     to,
                     typename grid_traits_from_id< enumtype::icosahedral >::dim_k_t,
-                    execution_type_t::type::iteration > iteration_policy_t;
+                    execution_type_t::type::iteration >
+                    iteration_policy_t;
 
                 // reset the index
                 it_domain.set_index(0);

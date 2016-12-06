@@ -102,6 +102,14 @@ namespace gridtools {
                     boost::add_pointer< boost::add_const<
                         get_storage_info_from_storage_wrapper< boost::mpl::_2 > > > > > >::type storage_info_ptr_list;
 
+        typedef
+            typename boost::mpl::fold< StorageWrapperList,
+                boost::mpl::map0<>,
+                boost::mpl::insert< boost::mpl::_1,
+                                           boost::mpl::pair< get_storage_info_from_storage_wrapper< boost::mpl::_2 >,
+                                               get_temporary_info_from_storage_wrapper< boost::mpl::_2 > > > >::type
+                storage_info_tmp_info_t;
+
         typedef typename boost::fusion::result_of::as_map<
             typename boost::fusion::result_of::as_vector< arg_to_data_ptr_map_t >::type >::type data_ptr_fusion_map;
         typedef
@@ -114,6 +122,14 @@ namespace gridtools {
             typedef typename storage_wrapper_t::storage_t type;
             static_assert(
                 !boost::is_same< boost::mpl::false_, type >::value, "Cannot find storage type in local_domain.");
+        };
+
+        // get a storage from the list of storages
+        template < typename IndexType >
+        struct get_arg {
+            typedef typename boost::mpl::at< StorageWrapperList, IndexType >::type storage_wrapper_t;
+            typedef typename storage_wrapper_t::arg_t type;
+            static_assert(!boost::is_same< boost::mpl::false_, type >::value, "Cannot find arg type in local_domain.");
         };
 
         //********** members *****************
