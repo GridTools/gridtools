@@ -103,9 +103,6 @@ namespace gridtools {
         static const uint_t plus_j = plus_j_t::value;
         static const uint_t minus_j = minus_j_t::value;
 
-      private:
-        array< uint_t, 3 > m_initial_offsets;
-
       public:
         /**
            @brief constructor
@@ -119,29 +116,11 @@ namespace gridtools {
            This constructor creates a storage tile with one peace assigned to each thread.
            The partition of the storage in tiles is a strategy to enhance data locality.
          */
-        constexpr meta_storage_tmp(uint_t const &initial_offset_i,
-            uint_t const &initial_offset_j,
-            uint_t const &dim3,
-            uint_t const &n_i_threads = 1,
-            uint_t const &n_j_threads = 1)
-            : super((tile_i + minus_i + plus_i) * n_i_threads, (tile_j + minus_j + plus_j) * n_j_threads, dim3)
-#ifdef CXX11_ENABLED
-              ,
-              m_initial_offsets {
-            initial_offset_i - minus_i, initial_offset_j - minus_j, 0
-        }
-#endif
-        {
-#ifndef CXX11_ENABLED
-            m_initial_offsets[0] = initial_offset_i - minus_i;
-            m_initial_offsets[1] = initial_offset_j - minus_j;
-            m_initial_offsets[2] = 0;
-#endif
-        }
+        constexpr meta_storage_tmp(uint_t const &dim3, uint_t const &n_i_threads = 1, uint_t const &n_j_threads = 1)
+            : super((tile_i + minus_i + plus_i) * n_i_threads, (tile_j + minus_j + plus_j) * n_j_threads, dim3) {}
 
         // copy ctor
-        __device__ constexpr meta_storage_tmp(meta_storage_tmp const &other)
-            : super(other), m_initial_offsets(other.m_initial_offsets) {}
+        __device__ constexpr meta_storage_tmp(meta_storage_tmp const &other) : super(other) {}
 
         constexpr meta_storage_tmp() : super() {}
 
@@ -200,16 +179,22 @@ namespace gridtools {
            NOTE: this method is not static, while it is in the non-temporary case
         */
         template < uint_t Coordinate, typename StridesVector >
-        GT_FUNCTION void initialize(
-            const int_t steps_, const uint_t block_, int_t *RESTRICT index_, StridesVector const &strides_) const {
+        GT_FUNCTION static void initialize(const int_t steps_,
+            const uint_t block_,
+            int_t *RESTRICT index_,
+            StridesVector const &strides_,
+            array< uint_t, 3 > const &initial_offsets_) {
 
             GRIDTOOLS_STATIC_ASSERT((layout::template at_< Coordinate >::value >= -1), "wrong coordinate");
+
+            // std::cout<<"initial offsets: "<<initial_offsets_[0]<<" "<<initial_offsets_[1]<<std::endl;
 
             // no blocking along k
             if (Coordinate != 2 && layout::template at_< Coordinate >::value >= 0) {
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
-                *index_ += (steps_ - block_ * tile_ - m_initial_offsets[Coordinate]) *
-                           basic_type::template strides< Coordinate >(strides_);
+                *index_ +=
+                    (steps_ - block_ * tile_ - initial_offsets_[Coordinate] + ((Coordinate == 0) ? minus_i : minus_j)) *
+                    basic_type::template strides< Coordinate >(strides_);
             } else {
                 super::template initialize< Coordinate >(steps_, block_, index_, strides_);
             }

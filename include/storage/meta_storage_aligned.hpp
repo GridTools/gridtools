@@ -256,7 +256,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         /** @brief returns the unaligned dimensions
          */
-        GT_FUNCTION constexpr auto unaligned_dims() -> array< uint_t, MetaStorageBase::space_dimensions > const {
+        GT_FUNCTION constexpr auto unaligned_dims() const -> array< uint_t, MetaStorageBase::space_dimensions > const {
             return m_unaligned_dims;
         }
 
@@ -317,7 +317,8 @@ namespace gridtools {
         GT_FUNCTION static void initialize(uint_t const &steps_,
             uint_t const &block_,
             int_t *RESTRICT index_,
-            StridesVector const &RESTRICT strides_) {
+            StridesVector const &RESTRICT strides_,
+            array< uint_t, 3 > const &initial_offsets_ = {0}) {
             uint_t steps_padded_ = steps_ +
 #ifdef CXX11_ENABLED
                                    cond< Coordinate >::value;

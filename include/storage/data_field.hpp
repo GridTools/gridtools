@@ -37,119 +37,9 @@
 #include "storage_list.hpp"
 #ifdef CXX11_ENABLED
 #include "../common/generic_metafunctions/reversed_range.hpp"
+#include "data_field_metafunctions.hpp"
 
 namespace gridtools {
-    /** @brief traits class defining some useful compile-time counters
-     */
-    template < typename First, typename... StorageExtended >
-    struct dimension_extension_traits {
-        static const bool is_rectangular = accumulate(logical_and(), (StorageExtended::n_width == First::n_width)...);
-        // total number of snapshots in the discretized data field
-        static const ushort_t n_fields = First::n_width + dimension_extension_traits< StorageExtended... >::n_fields;
-        // the buffer size of the current dimension (i.e. the number of snapshots in one dimension)
-        static const short_t n_width = First::n_width;
-        // the number of dimensions (i.e. the number of different storage_lists)
-        static const ushort_t n_dimensions = dimension_extension_traits< StorageExtended... >::n_dimensions + 1;
-        // the current field extension
-        // n_fields-1 because the storage_list takes the EXTRA width as argument, not the total width.
-        typedef storage_list< First, n_fields - 1 > type;
-        // typedef First type;
-        typedef dimension_extension_traits< StorageExtended... > super;
-    };
-
-    /**@brief fallback in case the snapshot we try to access exceeds the width dimension assigned to a discrete scalar
-     * field*/
-    struct dimension_extension_null {
-        static const ushort_t n_fields = 0;
-        static const short_t n_width = 0;
-        static const ushort_t n_dimensions = 0;
-        typedef struct error_index_too_large1 {
-        } type;
-        typedef struct error_index_too_large2 { } super; };
-
-    /**@brief template specialization at the end of the recustion.*/
-    template < typename First >
-    struct dimension_extension_traits< First > {
-        static constexpr bool is_rectangular = true;
-        static const ushort_t n_fields = First::n_width;
-        static const short_t n_width = First::n_width;
-        static const ushort_t n_dimensions = 1;
-        typedef First type;
-        typedef dimension_extension_null super;
-    };
-
-    template < typename T >
-    struct is_dimension_extension_traits : boost::mpl::false_ {};
-
-    template < typename... T >
-    struct is_dimension_extension_traits< dimension_extension_traits< T... > > : boost::mpl::true_ {};
-
-    template <>
-    struct is_dimension_extension_traits< dimension_extension_null > : boost::mpl::true_ {};
-
-    template < typename T >
-    struct get_fields {
-        using type = static_int< T::n_fields >;
-    };
-
-    template < typename T >
-    struct get_value_ {
-        using type = static_int< T::value >;
-    };
-
-    template < typename T >
-    struct get_width {
-        using type = static_int< T::n_width >;
-    };
-
-    /** @brief metafunction to compute the number of total snapshots present in the data field
-        (sum of storage_list::n_width) before
-        the ID-th storage list*/
-    template < typename Storage, uint_t Id, uint_t IdMax >
-    struct compute_storage_offset {
-
-        GRIDTOOLS_STATIC_ASSERT(IdMax >= Id && Id >= 0, "Library internal error");
-        typedef typename boost::mpl::eval_if_c< IdMax - Id == 0,
-            get_fields< typename Storage::super >,
-            get_value_< compute_storage_offset< typename Storage::super, Id + 1, IdMax > > >::type type;
-        static const uint_t value = type::value;
-    };
-
-    template < typename T >
-    struct is_data_field : public boost::mpl::false_ {};
-
-    /** @brief metafunction to compute the number of snapshots present in the ID-th storage_list
-        (storage_list::n_width)
-    */
-    template < typename Storage, uint_t Id, uint_t IdMax >
-    struct compute_storage_list_width {
-        typedef typename Storage::super next_storage_t;
-
-        GRIDTOOLS_STATIC_ASSERT(IdMax >= Id && Id >= 0, "Library internal error");
-        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
-        typedef typename get_width<
-            typename compute_storage_list_width< next_storage_t, Id + 1, IdMax >::next_storage_t >::type type;
-        static const uint_t value = type::value;
-    };
-
-    // recursion anchor
-    template < typename Storage, uint_t IdMax >
-    struct compute_storage_list_width< Storage, IdMax, IdMax > {
-        GRIDTOOLS_STATIC_ASSERT(IdMax >= 0, "Library internal error");
-        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
-        typedef Storage next_storage_t;
-        typedef typename get_width< Storage >::type type;
-        static const uint_t value = type::value;
-    };
-    namespace impl_ {
-        /**@brief syntactic sugar*/
-        template < typename Storage, uint_t Id >
-        using offset_t = compute_storage_offset< typename Storage::traits, Id, Storage::traits::n_dimensions - 1 >;
-
-        /**@brief syntactic sugar*/
-        template < typename Storage, uint_t Id >
-        using width_t = compute_storage_list_width< typename Storage::traits, Id, Storage::traits::n_dimensions - 1 >;
-    }
 
     /**@brief swaps two arbitrary snapshots in two arbitrary data field dimensions
 
@@ -426,20 +316,6 @@ namespace gridtools {
                                    snapshot][this->m_meta_data->index(args...)];
         }
     };
-
-    template < typename First, typename... StorageExtended >
-    struct is_data_field< data_field< First, StorageExtended... > > : public boost::mpl::true_ {};
-
-    template < typename T >
-    struct storage;
-
-    template < typename First, typename... StorageExtended >
-    struct is_data_field< storage< data_field< First, StorageExtended... > > > : public boost::mpl::true_ {};
-
-    template < typename F, typename... T >
-    std::ostream &operator<<(std::ostream &s, data_field< F, T... > const &) {
-        return s << "field storage";
-    }
 
 } // namespace gridtools
 #endif

@@ -216,7 +216,7 @@ namespace gridtools {
             T &st, typename boost::disable_if< is_global_parameter< typename T::value_type > >::type *a = 0) const {
             GRIDTOOLS_STATIC_ASSERT(is_any_storage< typename T::value_type >::value,
                 "passed object is neither a pointer<storage<T>> nor a pointer<global_parameter<T>>");
-            metadata_set.insert(st->get_meta_data_pointer());
+            metadata_set.insert(st->get_meta_data_cpu_pointer());
         }
 
         /** @brief overload for the case that the "storage" is a global_parameter. Skip the element in this case.
@@ -224,5 +224,24 @@ namespace gridtools {
         template < typename T >
         void operator()(
             T &st, typename boost::enable_if< is_global_parameter< typename T::value_type > >::type *a = 0) const {}
+    };
+
+    template < typename T >
+    struct get_traits< storage< T > > {
+        typedef typename T::traits type;
+    };
+
+    template < typename T >
+    struct get_space_dimensions {
+        static const uint_t value = T::space_dimensions;
+        typedef static_uint< value > type;
+    };
+
+    template < typename T >
+    struct get_base_storage;
+
+    template < typename T >
+    struct get_base_storage< storage< T > > {
+        typedef T type;
     };
 }

@@ -105,7 +105,8 @@ namespace gridtools {
 
         static constexpr uint_t apply(Accessor const &accessor_) {
 
-            typedef typename get_storage_accessor< LocalDomain, Accessor >::type::value_type storage_t;
+            typedef typename Accessor::index_type index_t;
+            typedef typename LocalDomain::template get_storage< index_t >::type::value_type storage_t;
             typedef typename storage_t::storage_info_type metadata_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::template get_constexpr< 0 >() >= 0,

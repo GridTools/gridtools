@@ -88,9 +88,9 @@ TEST(storage_alignment, test_aligned) {
         tile< 32, 1, 1 >,
         tile< 32, 1, 1 > > tmp_meta_gpu3_t;
 
-    tmp_meta_gpu1_t m_block1(0, 0, 15, 1, 1);
-    tmp_meta_gpu2_t m_block2(0, 0, 15, 1, 1);
-    tmp_meta_gpu3_t m_block3(0, 0, 15, 1, 1);
+    tmp_meta_gpu1_t m_block1(15, 1, 1);
+    tmp_meta_gpu2_t m_block2(15, 1, 1);
+    tmp_meta_gpu3_t m_block3(15, 1, 1);
 
     // check that the dimension with stride 1 is aligned
     ASSERT_TRUE((m_block1.template dim< 0 >() == 96)); // 2 blocks wide
