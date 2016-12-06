@@ -164,6 +164,7 @@ namespace gridtools {
         typedef typename Storage::value_type::basic_type storage_t;
         typedef typename storage_t::value_type value_type;
 
+        GT_FUNCTION
         explicit cache_storage() {}
 
         template < typename Offset >

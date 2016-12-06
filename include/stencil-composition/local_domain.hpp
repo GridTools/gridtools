@@ -59,6 +59,11 @@ namespace gridtools {
 
     namespace local_domain_aux {
 
+        template < typename T >
+        struct get_value_type {
+            typedef typename T::type::type::value_type type;
+        };
+
         template < typename IndicesList, typename ArgPtrList, typename LocalList >
         struct assign_storage_pointers {
 
@@ -79,7 +84,7 @@ namespace gridtools {
                     typename boost::mpl::at< IndicesList, Id >::type >::type::index_type index_t;
 
                 boost::fusion::at_c< Id::value >(m_local_list) =
-                    boost::fusion::at_c< index_t::value >(m_arg_list)->get_pointer_to_use();
+                    boost::fusion::at_c< index_t::value >(m_arg_list)->get_cpu_p();
             }
         };
 
@@ -202,21 +207,20 @@ namespace gridtools {
         //! creates a vector of placeholders associated with a linear range
         typedef typename boost::mpl::fold< the_range,
             boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, boost::mpl::at< esf_args, boost::mpl::_2 > > >::type
-            domain_indices_t;
+            boost::mpl::push_back< boost::mpl::_1, boost::mpl::at< esf_args, boost::mpl::_2 > > >::type domain_args_t;
 
         /** extracts the static_int indices from the args */
-        typedef typename boost::mpl::transform< domain_indices_t, extract_index_lambda >::type domain_indices_range_t;
+        typedef typename boost::mpl::transform< domain_args_t, extract_index_lambda >::type domain_indices_range_t;
 
         /** creates a vector of storage types from the StoragePointers sequence */
         typedef typename boost::mpl::fold<
-            domain_indices_t,
+            domain_args_t,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1,
                 typename local_domain_aux::extract_types< StoragePointers >::template apply< boost::mpl::_2 > > >::type
             mpl_storages;
         /** creates a vector of storage types from the StoragePointers sequence */
-        typedef typename boost::mpl::fold< domain_indices_t,
+        typedef typename boost::mpl::fold< domain_args_t,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1,
                                                typename local_domain_aux::extract_actual_types< StoragePointers >::
@@ -248,7 +252,7 @@ namespace gridtools {
                 boost::mpl::pair< boost::mpl::at< storage_metadata_vector_t, boost::mpl::_2 >, boost::mpl::_2 > > >::
             type storage_metadata_map;
 
-        typedef typename boost::fusion::result_of::as_vector< mpl_storages >::type local_args_type;
+        typedef typename boost::fusion::result_of::as_vector< mpl_storages >::type local_storage_type;
         typedef typename boost::fusion::result_of::as_vector< mpl_actual_storages >::type actual_args_type;
 
         /*construct the boost fusion vector of metadata pointers*/
@@ -258,29 +262,31 @@ namespace gridtools {
         // get a storage from the list of storages
         template < typename IndexType >
         struct get_storage {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< mpl_storages >::value > IndexType::value),
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< domain_args_t >::value > IndexType::value),
                 "Error: Trying to access a storage with index beyond the storages handled by the local domain");
             typedef
                 typename boost::remove_pointer< typename boost::mpl::at< mpl_storages, IndexType >::type >::type type;
         };
 
         //********** members *****************
-        local_args_type m_local_args;
+        local_storage_type m_local_storages;
         local_metadata_type m_local_metadata;
         //********** end members *****************
 
-        template < typename Dom, typename IsActuallyClonable, uint_t DUMMY = 0 >
-        struct pointer_if_clonable {
-            static Dom *get(Dom *d) { return d; }
-        };
-
-        template < typename Dom, uint_t DUMMY >
-        struct pointer_if_clonable< Dom, boost::true_type, DUMMY > {
-            static Dom *get(Dom *d) { return d->gpu_object_ptr; }
-        };
-
         GT_FUNCTION_WARNING
         local_domain_base() {}
+
+        GT_FUNCTION
+        local_storage_type &local_storages() { return m_local_storages; }
+
+        GT_FUNCTION
+        local_storage_type const &local_storages() const { return m_local_storages; }
+
+        GT_FUNCTION
+        local_metadata_type &local_metadata() { return m_local_metadata; }
+
+        GT_FUNCTION
+        local_metadata_type const &local_metadata() const { return m_local_metadata; }
 
         /**
            @brief implements the global to local assignment
@@ -292,13 +298,13 @@ namespace gridtools {
         GT_FUNCTION void init(ActualArgsPtr const &actual_args_ptr_, ActualMetaData const &actual_metadata_) {
 
             GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::size< domain_indices_t >::type::value == boost::mpl::size< local_args_type >::type::value),
+                (boost::mpl::size< domain_args_t >::type::value == boost::mpl::size< local_storage_type >::type::value),
                 "sizes not matching");
 
-            typedef static_uint< boost::mpl::size< domain_indices_t >::type::value > size_type;
+            typedef static_uint< boost::mpl::size< domain_args_t >::type::value > size_type;
             boost::mpl::for_each< boost::mpl::range_c< uint_t, 0, size_type::value > >(
-                local_domain_aux::assign_storage_pointers< domain_indices_t, ActualArgsPtr, local_args_type >(
-                    actual_args_ptr_, m_local_args));
+                local_domain_aux::assign_storage_pointers< domain_args_t, ActualArgsPtr, local_storage_type >(
+                    actual_args_ptr_, m_local_storages));
 
             // assigns the metadata for all the components of m_local_metadata (global to local)
             boost::fusion::for_each(m_local_metadata,
@@ -306,7 +312,7 @@ namespace gridtools {
         }
 
         __device__ local_domain_base(local_domain_base const &other)
-            : m_local_args(other.m_local_args), m_local_metadata(other.m_local_metadata) {}
+            : m_local_storages(other.m_local_storages), m_local_metadata(other.m_local_metadata) {}
 
         template < typename T >
         void info(T const &, std::ostream &out_s) const {
@@ -328,7 +334,7 @@ namespace gridtools {
         GT_FUNCTION
         void info(std::ostream &out_s) const {
             out_s << "        -----v SHOWING LOCAL ARGS BELOW HERE v-----\n";
-            boost::fusion::for_each(m_local_args, show_local_args_info(out_s));
+            boost::fusion::for_each(m_local_storages, show_local_args_info(out_s));
             out_s << "        -----^ SHOWING LOCAL ARGS ABOVE HERE ^-----\n";
         }
     };

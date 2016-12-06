@@ -265,11 +265,11 @@ namespace gridtools {
             boost::mpl::for_each< typename reversed_range< uint_t, 0, N_STORAGES >::type >(
                 assign_storage_functor< BackendType,
                     data_pointer_array_t,
-                    typename local_domain_t::local_args_type,
+                    typename local_domain_t::local_storage_type,
                     typename local_domain_t::local_metadata_type,
                     metadata_map_t,
                     processing_elements_block_size_t >(
-                    data_pointer(), local_domain.m_local_args, local_domain.m_local_metadata, EU_id_i, EU_id_j));
+                    data_pointer(), local_domain.local_storages(), local_domain.local_metadata(), EU_id_i, EU_id_j));
         }
 
         /**
@@ -306,7 +306,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void set_index(const int index) { set_index_recur< N_META_STORAGES - 1 >::set(index, m_index); }
+        void set_index(const int_t index) { set_index_recur< N_META_STORAGES - 1 >::set(index, m_index); }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
            \tparam Coordinate dimension being incremented
@@ -338,12 +338,17 @@ namespace gridtools {
 
         /**@brief method for initializing the index */
         template < ushort_t Coordinate >
-        GT_FUNCTION void initialize(uint_t const initial_pos = 0, uint_t const block = 0) {
+        GT_FUNCTION void initialize(
+            array< uint_t, 3 > const &initial_offsets_, uint_t const initial_pos = 0, uint_t const block = 0) {
             boost::mpl::for_each< metadata_map_t >(initialize_index_functor< Coordinate,
                 strides_cached_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
-                array_index_t >(
-                strides(), boost::fusion::as_vector(local_domain.m_local_metadata), initial_pos, block, m_index));
+                array_index_t >(strides(),
+                boost::fusion::as_vector(local_domain.m_local_metadata),
+                initial_pos,
+                block,
+                m_index,
+                initial_offsets_));
             static_cast< IterateDomainImpl * >(this)->template initialize_impl< Coordinate >();
         }
 
@@ -373,7 +378,7 @@ namespace gridtools {
         template < typename LocalD, typename Accessor >
         struct current_storage< false, LocalD, Accessor > {
             static const uint_t value =
-                (total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
+                (total_storages< typename LocalD::local_storage_type, Accessor::index_type::value >::value);
         };
 
         /** @brief method returning the data pointer of an accessor
@@ -481,7 +486,7 @@ namespace gridtools {
             typedef
                 typename get_storage_accessor< local_domain_t, global_accessor< I, Intend > >::type storage_ptr_type;
 
-            storage_ptr_type storage_ = boost::fusion::at< index_t >(local_domain.m_local_args);
+            storage_ptr_type storage_ = boost::fusion::at< index_t >(local_domain.local_storages());
 
             return *storage_;
         }

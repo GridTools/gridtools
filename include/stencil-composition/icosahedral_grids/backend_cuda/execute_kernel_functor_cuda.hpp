@@ -46,8 +46,7 @@ namespace gridtools {
     namespace _impl_iccuda {
 
         template < int VBoundary >
-        struct padded_boundary
-            : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
+        struct padded_boundary : static_int< VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
             BOOST_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8);
         };
 
@@ -351,7 +350,7 @@ namespace gridtools {
 #endif
 
                 _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t,
-                    local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
+                    local_domain_t >< < < blocks, threads > > > //<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
 
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff

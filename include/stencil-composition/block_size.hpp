@@ -47,8 +47,8 @@ namespace gridtools {
 #endif
         >
     struct block_size {
-        typedef boost::mpl::integral_c< int, X > i_size_t;
-        typedef boost::mpl::integral_c< int, Y > j_size_t;
+        typedef static_uint< X > i_size_t;
+        typedef static_uint< Y > j_size_t;
     };
 
     template < typename T >

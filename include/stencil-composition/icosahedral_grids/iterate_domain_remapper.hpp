@@ -230,8 +230,8 @@ namespace gridtools {
         template < typename Map, typename Item >
         struct insert_ {
             typedef typename boost::mpl::insert< Map,
-                boost::mpl::pair< boost::mpl::integral_c< int, Item::value >,
-                                                     boost::mpl::integral_c< int, Item::value > > >::type type;
+                boost::mpl::pair< static_uint< Item::value > >,
+                static_uint< Item::value > >> ::type type;
         };
 
         typedef typename boost::mpl::fold<

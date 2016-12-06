@@ -94,7 +94,7 @@ namespace gridtools {
                 boost::mpl::int_< -1 >,
                 typename iter::pos >::type result;
 
-            static const int value = result::value;
+            static const int_t value = result::value;
         };
 
         /** Metafunction to check that there is only one

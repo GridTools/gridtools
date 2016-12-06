@@ -158,21 +158,15 @@ namespace gridtools {
             struct instantiate_tmps {
                 typedef MetaList metadata_set_t;
                 metadata_set_t &m_metadata_set;
-                uint_t m_offset_i; // offset along i
-                uint_t m_offset_j; // offset along j
                 uint_t m_offset_k; // offset along k
                 uint_t m_n_i_threads;
                 uint_t m_n_j_threads;
 
                 GT_FUNCTION
-                instantiate_tmps(metadata_set_t &metadata_set_,
-                    uint_t offset_i,
-                    uint_t offset_j,
-                    uint_t offset_k,
-                    uint_t m_n_i_threads,
-                    uint_t m_n_j_threads)
-                    : m_metadata_set(metadata_set_), m_offset_i(offset_i), m_offset_j(offset_j), m_offset_k(offset_k),
-                      m_n_i_threads(m_n_i_threads), m_n_j_threads(m_n_j_threads) {}
+                instantiate_tmps(
+                    metadata_set_t &metadata_set_, uint_t offset_k, uint_t m_n_i_threads, uint_t m_n_j_threads)
+                    : m_metadata_set(metadata_set_), m_offset_k(offset_k), m_n_i_threads(m_n_i_threads),
+                      m_n_j_threads(m_n_j_threads) {}
 
                 // ElemType: an element in the data field place-holders list
                 template < typename ElemType >
@@ -185,7 +179,7 @@ namespace gridtools {
                     typedef typename ElemType::storage_info_type meta_t;
 
                     // calls the constructor of the storage
-                    meta_t meta_data(m_offset_i, m_offset_j, m_offset_k, m_n_i_threads, m_n_j_threads);
+                    meta_t meta_data(m_offset_k, m_n_i_threads, m_n_j_threads);
                     e = new ElemType(meta_data, "blocked tmp storage", true /*do_allocate*/);
 
                     // insert new type in the map only if not present already
@@ -206,8 +200,6 @@ namespace gridtools {
                 view_type fview(arg_list);
                 boost::fusion::for_each(fview,
                     instantiate_tmps(metadata_,
-                                            grid.i_low_bound(),
-                                            grid.j_low_bound(),
                                             grid.value_at_top() + 1,
                                             backend_type::n_i_pes()(grid.i_high_bound() - grid.i_low_bound()),
                                             backend_type::n_j_pes()(grid.j_high_bound() - grid.j_low_bound())));

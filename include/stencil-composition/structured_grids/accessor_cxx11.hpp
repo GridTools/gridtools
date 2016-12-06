@@ -93,6 +93,7 @@ namespace gridtools {
         typedef accessor_base< ID, Intend, Extent, Number > super;
         typedef typename super::index_type index_type;
         typedef typename super::offset_tuple_t offset_tuple_t;
+        typedef typename super::intent_t intent_t;
 
         GT_FUNCTION
         constexpr accessor_impl() : super() {}

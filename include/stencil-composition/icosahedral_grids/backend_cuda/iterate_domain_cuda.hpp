@@ -202,11 +202,9 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
 
-            typedef typename boost::mpl::at< local_domain_args_t,
-                boost::mpl::integral_c< int, Accessor::index_type::value > >::type arg_t;
+            typedef typename boost::mpl::at< local_domain_args_t, Accessor::index_type >::type arg_t;
 
-            typedef typename boost::mpl::has_key< readonly_args_indices_t,
-                boost::mpl::integral_c< int, arg_index< arg_t >::value > >::type type;
+            typedef typename boost::mpl::has_key< readonly_args_indices_t, arg_t::index_type >::type type;
         };
 
         /**

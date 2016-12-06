@@ -40,6 +40,7 @@
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "../../const_iterate_domain.hpp"
 #include "../../../common/cuda_type_traits.hpp"
 
 namespace gridtools {
@@ -77,16 +78,20 @@ namespace gridtools {
 
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
+        typedef typename super::dims_cached_t dims_cached_t;
 
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
         typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
       private:
         // TODO there are two instantiations of these type.. Fix this
-        typedef shared_iterate_domain< data_pointer_array_t,
+        typedef shared_iterate_domain< typename iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
+
+        typedef const_iterate_domain< data_pointer_array_t,
             strides_cached_t,
-            typename IterateDomainArguments::max_extent_t,
-            typename iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
+            dims_cached_t,
+            typename IterateDomainArguments::processing_elements_block_size_t,
+            backend_traits_from_id< enumtype::Cuda > > const_iterate_domain_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
@@ -98,15 +103,13 @@ namespace gridtools {
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
         shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
+        const_iterate_domain_t const *RESTRICT m_pconst_iterate_domain;
 
       public:
         GT_FUNCTION
-        explicit iterate_domain_cuda(local_domain_t const &local_domain,
-            const reduction_type_t &reduction_initial_value,
-            const uint_t block_size_i,
-            const uint_t block_size_j)
-            : super(local_domain, reduction_initial_value), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {
-        }
+        explicit iterate_domain_cuda(
+            const reduction_type_t &reduction_initial_value, const uint_t block_size_i, const uint_t block_size_j)
+            : super(reduction_initial_value), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
         GT_FUNCTION
         uint_t thread_position_x() const { return threadIdx.x; }
@@ -158,26 +161,24 @@ namespace gridtools {
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
 
         GT_FUNCTION
-        data_pointer_array_t const &RESTRICT data_pointer_impl() const {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
+        void set_const_iterate_domain_pointer_impl(const_iterate_domain_t const *ptr) { m_pconst_iterate_domain = ptr; }
 
         GT_FUNCTION
-        data_pointer_array_t &RESTRICT data_pointer_impl() {
+        data_pointer_array_t const &RESTRICT data_pointer_impl() const {
             //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
+            return m_pconst_iterate_domain->data_pointer();
         }
+
+        // GT_FUNCTION
+        // data_pointer_array_t &RESTRICT data_pointer_impl() {
+        //     //        assert(m_pshared_iterate_domain);
+        //     return m_pconst_iterate_domain->data_pointer();
+        // }
 
         GT_FUNCTION
         strides_cached_t const &RESTRICT strides_impl() const {
             //        assert((m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->strides();
-        }
-        GT_FUNCTION
-        strides_cached_t &RESTRICT strides_impl() {
-            //        assert((m_pshared_iterate_domain));
-            return m_pshared_iterate_domain->strides();
+            return m_pconst_iterate_domain->strides();
         }
 
         template < ushort_t Coordinate, typename Execution >
@@ -202,20 +203,6 @@ namespace gridtools {
                 m_thread_pos[Coordinate] = threadIdx.y;
         }
 
-        /** @brief metafunction that determines if an arg is pointing to a field which is read only by all ESFs
-        */
-        template < typename Accessor >
-        struct accessor_points_to_readonly_arg {
-
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
-
-            typedef typename boost::mpl::at< local_domain_args_t,
-                boost::mpl::integral_c< int, Accessor::index_type::value > >::type arg_t;
-
-            typedef typename boost::mpl::has_key< readonly_args_indices_t,
-                boost::mpl::integral_c< int, arg_index< arg_t >::value > >::type type;
-        };
-
         /**
         * @brief metafunction that determines if an accessor has to be read from texture memory
         */
@@ -223,7 +210,7 @@ namespace gridtools {
         struct accessor_read_from_texture {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
             typedef typename boost::mpl::and_<
-                typename boost::mpl::and_< typename accessor_points_to_readonly_arg< Accessor >::type,
+                typename boost::mpl::and_< typename is_accessor_readonly< Accessor >::type,
                     typename boost::mpl::not_< typename boost::mpl::has_key< bypass_caches_set_t,
                         static_uint< Accessor::index_type::value > >::type                        // mpl::has_key
                                                >::type                                            // mpl::not,
@@ -284,7 +271,8 @@ namespace gridtools {
         */
         template < typename ReturnType, typename Accessor, typename StoragePointer >
         GT_FUNCTION typename boost::enable_if< typename accessor_read_from_texture< Accessor >::type, ReturnType >::type
-        get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+        get_value_impl(
+            typename StoragePointer::value_type RESTRICT &storage_pointer, const uint_t pointer_offset) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
 #if __CUDA_ARCH__ >= 350
             // on Kepler use ldg to read directly via read only cache
@@ -307,7 +295,7 @@ namespace gridtools {
 
       private:
         // array storing the (i,j) position of the current thread within the block
-        array< int, 2 > m_thread_pos;
+        array< int_t, 2 > m_thread_pos;
     };
 
     template < template < class > class IterateDomainBase, typename IterateDomainArguments >

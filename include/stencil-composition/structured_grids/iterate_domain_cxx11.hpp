@@ -179,13 +179,17 @@ namespace gridtools {
 
       public:
         typedef array< void * RESTRICT, N_DATA_POINTERS > data_pointer_array_t;
-        typedef strides_cached< N_META_STORAGES - 1, typename local_domain_t::storage_metadata_vector_t >
-            strides_cached_t;
+        typedef strides_cached< N_META_STORAGES - 1,
+            typename local_domain_t::storage_metadata_vector_t,
+            int_t,
+            1 /*subtract 1 from the dimensions of the strides array*/ > strides_cached_t;
+        typedef strides_cached< N_META_STORAGES - 1, typename local_domain_t::storage_metadata_vector_t, uint_t, 0 >
+            dims_cached_t;
         // *************** end of type definitions **************
 
       protected:
         // ******************* members *******************
-        local_domain_t const &local_domain;
+        // for GPU: the following members should be cached into register
         array_index_t m_index;
         // ******************* end of members *******************
 
@@ -198,33 +202,21 @@ namespace gridtools {
             return static_cast< const IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
-        /**
-           @brief returns the array of pointers to the raw data as const reference
-        */
-        GT_FUNCTION
-        array_index_t const &RESTRICT index() const { return m_index; }
-
       protected:
-        /**
-           @brief returns the array of pointers to the raw data
-        */
-        GT_FUNCTION
-        data_pointer_array_t &RESTRICT data_pointer() {
-            return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
-        }
-
-        /**
-           @brief returns the strides
-        */
-        GT_FUNCTION
-        strides_cached_t &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
-
         /**
            @brief returns the strides as const reference
         */
         GT_FUNCTION
         strides_cached_t const &RESTRICT strides() const {
             return static_cast< const IterateDomainImpl * >(this)->strides_impl();
+        }
+
+        /**
+           @brief returns the dimensions as const reference
+        */
+        GT_FUNCTION
+        dims_cached_t const &RESTRICT dims() const {
+            return static_cast< const IterateDomainImpl * >(this)->dims_impl();
         }
 
       public:
@@ -237,8 +229,8 @@ namespace gridtools {
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(local_domain_t const &local_domain_, const reduction_type_t &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_) {}
+        iterate_domain(const reduction_type_t &reduction_initial_value)
+            : iterate_domain_reduction_t(reduction_initial_value) {}
 
         /**
            @brief returns a single snapshot in the array of raw data pointers
@@ -246,43 +238,6 @@ namespace gridtools {
         */
         GT_FUNCTION
         const void *data_pointer(ushort_t i) { return (data_pointer())[i]; }
-
-        /** This functon set the addresses of the data values  before the computation
-            begins.
-
-            The EU stands for ExecutionUnit (thich may be a thread or a group of
-            threasd. There are potentially two ids, one over i and one over j, since
-            our execution model is parallel on (i,j). Defaulted to 1.
-        */
-        template < typename BackendType >
-        GT_FUNCTION void assign_storage_pointers() {
-            const uint_t EU_id_i = BackendType::processing_element_i();
-            const uint_t EU_id_j = BackendType::processing_element_j();
-            boost::mpl::for_each< typename reversed_range< uint_t, 0, N_STORAGES >::type >(
-                assign_storage_functor< BackendType,
-                    data_pointer_array_t,
-                    typename local_domain_t::local_args_type,
-                    typename local_domain_t::local_metadata_type,
-                    metadata_map_t,
-                    processing_elements_block_size_t >(
-                    data_pointer(), local_domain.m_local_args, local_domain.m_local_metadata, EU_id_i, EU_id_j));
-        }
-
-        /**
-           @brief recursively assignes all the strides
-
-           copies them from the
-           local_domain.m_local_metadata vector, and stores them into an instance of the
-           \ref strides_cached class.
-         */
-        template < typename BackendType, typename Strides >
-        GT_FUNCTION void assign_stride_pointers() {
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error type");
-            boost::mpl::for_each< metadata_map_t >(assign_strides_functor< BackendType,
-                Strides,
-                typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
-                processing_elements_block_size_t >(strides(), local_domain.m_local_metadata));
-        }
 
         /**@brief getter for the index array */
         GT_FUNCTION
@@ -313,8 +268,7 @@ namespace gridtools {
             boost::mpl::for_each< metadata_map_t >(increment_index_functor< Coordinate,
                 strides_cached_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
-                array_index_t >(
-                boost::fusion::as_vector(local_domain.m_local_metadata), Steps::value, m_index, strides()));
+                array_index_t >(Steps::value, m_index, strides()));
             static_cast< IterateDomainImpl * >(this)->template increment_impl< Coordinate, Steps >();
         }
 
@@ -328,24 +282,19 @@ namespace gridtools {
             boost::mpl::for_each< metadata_map_t >(increment_index_functor< Coordinate,
                 strides_cached_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
-                array_index_t >(boost::fusion::as_vector(local_domain.m_local_metadata), steps_, m_index, strides()));
+                array_index_t >(steps_, m_index, strides()));
             static_cast< IterateDomainImpl * >(this)->template increment_impl< Coordinate >(steps_);
         }
 
         /**@brief method for initializing the index */
         template < ushort_t Coordinate >
-        GT_FUNCTION void initialize(uint_t const initial_pos = 0, uint_t const block = 0) {
+        GT_FUNCTION void initialize(
+            array< uint_t, 3 > const &initial_offsets_, uint_t const initial_pos = 0, uint_t const block = 0) {
             boost::mpl::for_each< metadata_map_t >(initialize_index_functor< Coordinate,
                 strides_cached_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
-                array_index_t >(
-                strides(), boost::fusion::as_vector(local_domain.m_local_metadata), initial_pos, block, m_index));
+                array_index_t >(strides(), initial_pos, block, m_index, initial_offsets_));
             static_cast< IterateDomainImpl * >(this)->template initialize_impl< Coordinate >();
-        }
-
-        template < typename T >
-        GT_FUNCTION void info(T const &x) const {
-            local_domain.info(x);
         }
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
@@ -355,6 +304,22 @@ namespace gridtools {
         template < typename Accessor, typename StoragePointer >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
+
+        /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get
+         * compiled (generating sometimes a compile-time overflow) */
+        template < bool condition, typename LocalD, typename Accessor >
+        struct current_storage;
+
+        template < typename LocalD, typename Accessor >
+        struct current_storage< true, LocalD, Accessor > {
+            static const uint_t value = 0;
+        };
+
+        template < typename LocalD, typename Accessor >
+        struct current_storage< false, LocalD, Accessor > {
+            static const uint_t value =
+                (total_storages< typename LocalD::local_storage_type, Accessor::index_type::value >::value);
+        };
 
         /** specialization for expr_direct_access*/
         template < typename Accessor, typename StoragePointer >
@@ -377,11 +342,13 @@ namespace gridtools {
             typedef typename Accessor::index_type index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
 
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions,
-                "requested accessor index lower than zero. Check that when you define the accessor you specify the "
-                "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
-                "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
-                "you here.");
+            // GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions,
+            //     "requested accessor index lower than zero. Check that when you define the accessor you specify the "
+            //     "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in```
+            //     has "
+            //     "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1))
+            //     brings "
+            //     "you here.");
 
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
@@ -415,18 +382,20 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
-            typedef typename get_storage_accessor< local_domain_t, Accessor >::type::value_type storage_type;
+            typedef typename Accessor::index_type index_t;
+            typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_type;
 
             // if the following assertion fails you have specified a dimension for the extended storage
             // which does not correspond to the size of the extended placeholder for that storage
-            GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dim,
+            GRIDTOOLS_STATIC_ASSERT(
+                get_space_dimensions< storage_type >::value + 2 /*max. extra dimensions*/ >= Accessor::n_dim,
                 "the dimension of the accessor exceeds the data field dimension");
 
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim != storage_type::space_dimensions,
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim != get_space_dimensions< storage_type >::value,
                 "The dimension of the data_field accessor must be bigger than the storage dimension, you specified it "
                 "equal to the storage dimension");
 
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim > storage_type::space_dimensions,
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim > get_space_dimensions< storage_type >::value,
                 "You specified a too small dimension for the data_field");
 
             // for the moment the extra dimensionality of the storage is limited to max 2
@@ -452,9 +421,10 @@ namespace gridtools {
             typedef typename global_accessor< I, Intend >::index_type index_t;
 
             typedef
-                typename get_storage_accessor< local_domain_t, global_accessor< I, Intend > >::type storage_ptr_type;
+                typename get_storage_accessor< local_domain_t, global_accessor< I, Intend > >::type *storage_ptr_type;
 
-            storage_ptr_type storage_ = boost::fusion::at< index_t >(local_domain.m_local_args);
+            storage_ptr_type storage_ = static_cast< storage_ptr_type >(get_data_pointer(accessor));
+            // boost::fusion::at< index_t >(local_domain.local_storages());
 
             return *storage_;
         }
@@ -473,10 +443,10 @@ namespace gridtools {
             typedef
                 typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
-            pointer< const typename storage_t::storage_info_type > const metadata_ =
-                boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
+            // pointer< const typename storage_t::storage_info_type > const metadata_ =
+            //     boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
 
-            return metadata_->template dim< Coordinate >();
+            return dims().template get< metadata_index_t::value >()[Coordinate];
         }
 
         /** @brief return a the value in gmem pointed to by an accessor
@@ -549,11 +519,11 @@ namespace gridtools {
            be polluted with casting
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
            expression)*/
-        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
-        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg) const
+        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int int_argument >
+        GT_FUNCTION auto operator()(Expression< Argument, int_argument > arg) const
             -> decltype(expressions::evaluation::value((*this), arg)) {
 
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
+            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, int_argument > >::value), "invalid expression");
             return expressions::evaluation::value((*this), arg);
         }
     };
@@ -574,7 +544,6 @@ namespace gridtools {
         typedef typename Accessor::index_type index_t;
 
         typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
-        typedef typename get_storage_pointer_accessor< local_domain_t, Accessor >::type storage_pointer_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
@@ -585,19 +554,19 @@ namespace gridtools {
         assert(real_storage_pointer);
         // getting information about the metadata
         typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
-
-        pointer< const typename storage_t::storage_info_type > const metadata_ =
-            boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
+        // pointer< const typename storage_t::storage_info_type > const metadata_ =
+        //     boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
         // getting the value
 
         // the following assert fails when an out of bound access is observed, i.e. either one of
         // i+offset_i or j+offset_j or k+offset_k is too large.
         // Most probably this is due to you specifying a positive offset which is larger than expected,
         // or maybe you did a mistake when specifying the ranges in the placehoders definition
-        GTASSERT(metadata_->size() >
-                 m_index[ // Accessor::index_type::value
-                     metadata_index_t::value] +
-                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()));
+        // GTASSERT(metadata_->size() >
+        //          m_index[ // Accessor::index_type::value
+        //              metadata_index_t::value] +
+        //          storage_t::storage_info_type::_index(strides().template get< metadata_index_t::value >(),
+        //          accessor.offsets()));
 
         // the following assert fails when an out of bound access is observed,
         // i.e. when some offset is negative and either one of
@@ -609,21 +578,21 @@ namespace gridtools {
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename
         // Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
-        GTASSERT((int_t)(m_index[metadata_index_t::value]) +
-                     metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()) >=
-                 0);
+        // GTASSERT((int_t)(m_index[metadata_index_t::value]) +
+        //              metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()) >=
+        //          0);
 
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-        const int_t pointer_offset =
-            (m_index[metadata_index_t::value]) +
-            metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
+        const int_t pointer_offset = (m_index[metadata_index_t::value]) +
+                                     storage_t::storage_info_type::_index(
+                                         strides().template get< metadata_index_t::value >(), accessor.offsets());
 
         return static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<
                 typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
                 Accessor,
-                storage_pointer_t >(real_storage_pointer, pointer_offset);
+                storage_t >(real_storage_pointer, pointer_offset);
     }
 
     /** @brief method called in the Do methods of the functors.
@@ -646,15 +615,17 @@ namespace gridtools {
         // getting information about the metadata
         typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
-        pointer< const typename storage_t::storage_info_type > const metadata_ =
-            boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
+        // pointer< const typename storage_t::storage_info_type > const metadata_ =
+        //     boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
 
-        // error checks
-        GTASSERT(metadata_->size() >
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
+        // // error checks
+        // GTASSERT(metadata_->size() >
+        //          metadata_->_index(strides().template get< metadata_index_t::value >(),
+        //          expr.first_operand.offsets()));
 
-        GTASSERT(
-            metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()) >= 0);
+        // GTASSERT(
+        //     metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()) >=
+        //     0);
 
         GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim <= storage_t::storage_info_type::space_dimensions),
             "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
@@ -666,7 +637,8 @@ namespace gridtools {
 
         // returning the value without adding the m_index
         return *(real_storage_pointer +
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
+                 storage_t::storage_info_type::_index(
+                     strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
     }
 
 } // namespace gridtools

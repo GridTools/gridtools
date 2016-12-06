@@ -61,7 +61,7 @@ namespace gridtools {
 
 #ifdef CUDA8
     template < typename ArgType >
-    struct is_accessor_mixed;
+    struct is_accessor_mixed : boost::mpl::false_ {};
 
     template < typename... Types >
     struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
@@ -95,7 +95,7 @@ namespace gridtools {
                 int >::value),
             "Internal Error");
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        typedef static_uint< ID > index_type_t;
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
 
@@ -112,7 +112,7 @@ namespace gridtools {
     };
 #endif
 
-    template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
+    template < uint_t ID, enumtype::intend Intend, typename ArgsMap >
     struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
         typedef global_accessor< ID, Intend > accessor_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), "Internal Error: wrong size");
@@ -120,10 +120,10 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (boost::is_same<
                 typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
-                int >::value),
+                uint_t >::value),
             "Internal Error");
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        typedef static_uint< ID > index_type_t;
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
 
@@ -151,7 +151,7 @@ namespace gridtools {
         typedef float_type type;
     };
 
-    template < typename ArgsMap, template < typename Acc, int N > class Expression, typename Accessor, int Number >
+    template < typename ArgsMap, template < typename Acc, int N > class Expression, typename Accessor, ushort_t Number >
     struct remap_accessor_type< Expression< Accessor, Number >, ArgsMap > {
         // Specialization done to catch also the "pow" expression, for which a template argument is an
         // integer (the exponent)

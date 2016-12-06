@@ -62,14 +62,14 @@ namespace gridtools {
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
         template < typename IntervalType, typename EsfArguments >
-        GT_FUNCTION void do_impl(
-            typename boost::disable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
+        GT_FUNCTION static void do_impl(iterate_domain_t &it_domain_,
+            typename boost::disable_if< typename EsfArguments::is_reduction_t, int_t >::type = 0) {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
             typedef typename EsfArguments::functor_t functor_t;
 
             // GRIDTOOLS_STATIC_ASSERT(functor_t::repeat_t::value>0, "internal error");
             _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::Do(
-                this->m_iterate_domain);
+                it_domain_);
         }
 
         /*
@@ -79,13 +79,13 @@ namespace gridtools {
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
         template < typename IntervalType, typename EsfArguments >
-        GT_FUNCTION void do_impl(
-            typename boost::enable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
+        GT_FUNCTION static void do_impl(iterate_domain_t &it_domain_,
+            typename boost::enable_if< typename EsfArguments::is_reduction_t, int_t >::type = 0) {
             typedef typename EsfArguments::reduction_data_t::bin_op_t bin_op_t;
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
             typedef typename EsfArguments::functor_t functor_t;
-            this->m_iterate_domain.set_reduction_value(bin_op_t()(this->m_iterate_domain.reduction_value(),
-                functor_t::f_type::Do(this->m_iterate_domain, IntervalType())));
+            it_domain_.set_reduction_value(
+                bin_op_t()(it_domain_.reduction_value(), functor_t::f_type::Do(it_domain_, IntervalType())));
         }
     };
 }

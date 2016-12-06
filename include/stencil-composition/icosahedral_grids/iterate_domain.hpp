@@ -127,7 +127,7 @@ namespace gridtools {
         template < typename LocalD, typename Accessor >
         struct current_storage< false, LocalD, Accessor > {
             static const uint_t value =
-                (total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
+                (total_storages< typename LocalD::local_storage_type, Accessor::index_type::value >::value);
         };
 
         /**
@@ -219,11 +219,14 @@ namespace gridtools {
             boost::mpl::for_each< typename reversed_range< uint_t, 0, N_STORAGES >::type >(
                 assign_storage_functor< BackendType,
                     data_pointer_array_t,
-                    typename local_domain_t::local_args_type,
+                    typename local_domain_t::local_storage_type,
                     typename local_domain_t::local_metadata_type,
                     metadata_map_t,
-                    processing_elements_block_size_t >(
-                    data_pointer(), m_local_domain.m_local_args, m_local_domain.m_local_metadata, EU_id_i, EU_id_j));
+                    processing_elements_block_size_t >(data_pointer(),
+                    m_local_domain.local_storages(),
+                    m_local_domain.local_metadata(),
+                    EU_id_i,
+                    EU_id_j));
         }
 
         /**
@@ -576,7 +579,7 @@ namespace gridtools {
             // getting information about the storage
             typedef typename Accessor::index_type index_t;
 
-            auto const storage_ = boost::fusion::at< index_t >(m_local_domain.m_local_args);
+            auto const storage_ = boost::fusion::at< index_t >(m_local_domain.local_storages());
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
@@ -626,7 +629,7 @@ namespace gridtools {
             // getting information about the storage
             typedef typename Accessor::index_type index_t;
 
-            auto const storage_ = boost::fusion::at< index_t >(m_local_domain.m_local_args);
+            auto const storage_ = boost::fusion::at< index_t >(m_local_domain.local_storages());
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
