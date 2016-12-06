@@ -40,7 +40,6 @@
 #include <boost/mpl/has_key.hpp>
 #include <gridtools.hpp>
 
-#include "../../storage/meta_storage.hpp"
 #include "../mss_functor.hpp"
 #include "../sfinae.hpp"
 #include "../tile.hpp"

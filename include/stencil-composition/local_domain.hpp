@@ -37,7 +37,7 @@
 
 #include <boost/fusion/include/as_map.hpp>
 #include <boost/fusion/include/for_each.hpp>
-#include <boost/fusion/view/zip_view.hpp>
+#include <boost/fusion/include/zip.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/push_back.hpp>
@@ -141,7 +141,24 @@ namespace gridtools {
         local_domain_base() {}
 
         __device__ local_domain_base(local_domain_base const &other)
-            : m_local_data_ptrs(other.m_local_data_ptrs), m_local_storage_info_ptrs(other.m_local_storage_info_ptrs) {}
+            : m_local_storage_info_ptrs(other.m_local_storage_info_ptrs) {
+            boost::fusion::for_each(m_local_data_ptrs, copy_ptr<data_ptr_fusion_map>(other.m_local_data_ptrs));
+        }
+
+        template <typename V>
+        struct copy_ptr {
+            V const& ptrs;
+            GT_FUNCTION copy_ptr(V const& v) : ptrs(v) {}
+
+            template<class T, size_t N>
+            constexpr size_t get_size(T (&)[N]) { return N; }
+
+            template <typename T>
+            GT_FUNCTION void operator()(T& t) const {
+                typedef typename boost::fusion::result_of::first<T>::type key_t;
+                for(unsigned i=0; i<get_size(t.second); ++i) t.second[i] = boost::fusion::at_key<key_t>(ptrs)[i];
+            }
+        };
 
         struct print_local_storage {
             std::ostream &out_s;

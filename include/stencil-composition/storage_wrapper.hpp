@@ -60,7 +60,7 @@ namespace gridtools {
         // some more information
         constexpr static uint_t storage_size = view_t::N;
         constexpr static bool is_temporary = arg_t::is_temporary;
-        constexpr static bool is_read_only = view_t::ReadOnly;
+        constexpr static bool is_read_only = view_t::read_only;
 
         // assign the data ptrs to some other ptrs
         template < typename T >

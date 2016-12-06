@@ -380,7 +380,7 @@ namespace gridtools {
             typename IndexT,
             typename StorageInfo,
             typename boost::enable_if_c< BoolT::value, int >::type = 0 >
-        unsigned impl(const StorageInfo *storage_info) const {
+        GT_FUNCTION unsigned impl(const StorageInfo *storage_info) const {
             // TODO: implement properly
             return impl< boost::mpl::false_, IndexT, StorageInfo >(storage_info);
         }
@@ -390,7 +390,7 @@ namespace gridtools {
             typename IndexT,
             typename StorageInfo,
             typename boost::enable_if_c< !BoolT::value, int >::type = 0 >
-        unsigned impl(const StorageInfo *storage_info) const {
+        GT_FUNCTION unsigned impl(const StorageInfo *storage_info) const {
             // get the max coordinate of given StorageInfo
             typedef typename boost::mpl::deref< typename boost::mpl::max_element<
                 typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
@@ -628,20 +628,20 @@ namespace gridtools {
     };
 
     template < typename OffsetTuple, unsigned N, typename StorageInfo, typename... T >
-    typename boost::enable_if_c< (N < OffsetTuple::n_dim), const int_t >::type apply_accessor(
+    GT_FUNCTION typename boost::enable_if_c< (N < OffsetTuple::n_dim), const int_t >::type apply_accessor(
         const StorageInfo *sinfo, OffsetTuple const &offsets, T... t) {
         return apply_accessor< OffsetTuple, N + 1 >(sinfo, offsets, t..., offsets.template get< N >());
     }
 
     template < typename OffsetTuple, unsigned N, typename StorageInfo, typename... T >
-    typename boost::enable_if_c< (N == OffsetTuple::n_dim), const int_t >::type apply_accessor(
+    GT_FUNCTION typename boost::enable_if_c< (N == OffsetTuple::n_dim), const int_t >::type apply_accessor(
         const StorageInfo *sinfo, OffsetTuple const &offsets, T... t) {
         return sinfo->index(t...);
     }
 
     // pointer offset computation for temporaries
     template < typename StorageWrapper, typename StorageInfo, typename AccessorOffset, typename StridesCached >
-    typename boost::enable_if_c< StorageWrapper::is_temporary, const int_t >::type compute_offset(
+    GT_FUNCTION typename boost::enable_if_c< StorageWrapper::is_temporary, const int_t >::type compute_offset(
         const StorageInfo *sinfo,
         StridesCached const &strides_cached,
         int_t current_index,
@@ -652,7 +652,7 @@ namespace gridtools {
 
     // pointer offset computation for non-temporaries
     template < typename StorageWrapper, typename StorageInfo, typename AccessorOffset, typename StridesCached >
-    typename boost::enable_if_c< !StorageWrapper::is_temporary, const int_t >::type compute_offset(
+    GT_FUNCTION typename boost::enable_if_c< !StorageWrapper::is_temporary, const int_t >::type compute_offset(
         const StorageInfo *sinfo,
         StridesCached const &strides_cached,
         int_t current_index,
