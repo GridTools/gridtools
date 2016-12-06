@@ -18,7 +18,7 @@ namespace gridtools {
         static const constexpr uint_t from_splitter = Axis::FromLevel::Splitter::value;
 
         // NOTE: the offsets cannot be 0
-        typedef gridtools::interval< level< from_splitter, from_offset + 1 >,
+        typedef gridtools::interval< level< from_splitter, (from_offset != -1) ? from_offset + 1 : from_offset + 2 >,
             level< to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2 > > default_interval;
 
         typedef F type;

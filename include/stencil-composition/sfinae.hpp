@@ -168,6 +168,7 @@ namespace gridtools {
             static std::true_type test(...) {}
 
             typedef decltype(test< Functor >(0)) type;
+            static const bool value = type::value;
         };
 #endif
     } // namespace sfinae

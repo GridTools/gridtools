@@ -46,7 +46,6 @@
 #include "../interval.hpp"           // to check if region is valid
 
 namespace gridtools {
-
     // TODO: stencil functions works only for 3D stencils.
 
     namespace _impl {
@@ -252,13 +251,19 @@ namespace gridtools {
     template < typename Functor, typename Region, int Offi = 0, int Offj = 0, int Offk = 0 >
     struct call {
 
+        typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
+            Functor,
+            functor_decorator< Functor, Region > >::type functor_t;
+        typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
+            Region,
+            typename functor_t::default_interval >::type interval_t;
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value),
             "Region should be a valid interval tag to select the Do specialization in the called stencil function,");
 
         /** This alias is used to move the computation at a certain offset
          */
         template < int I, int J, int K >
-        using at = call< Functor, Region, I, J, K >;
+        using at = call< functor_t, interval_t, I, J, K >;
 
       private:
         /**
@@ -281,28 +286,29 @@ namespace gridtools {
             at<..> statement.
          */
         template < typename Evaluator, typename... Args >
-        GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with_offsets(
+        GT_FUNCTION static typename get_result_type< Evaluator, functor_t >::type with_offsets(
             Evaluator const &eval, Args const &... args) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
-            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
+            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< functor_t >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
-            typedef typename get_result_type< Evaluator, Functor >::type result_type;
+            typedef typename get_result_type< Evaluator, functor_t >::type result_type;
             typedef _impl::function_aggregator_offsets< Evaluator,
                 Offi,
                 Offj,
                 Offk,
                 typename gridtools::variadic_to_vector< Args... >::type,
                 result_type,
-                _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
+                _impl::_get_index_of_first_non_const< functor_t >::value > f_aggregator_t;
 
             result_type result;
 
-            Functor::Do(f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...)), Region());
+            functor_t::Do(
+                f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...)), interval_t());
 
             return result;
         }
@@ -311,17 +317,17 @@ namespace gridtools {
             the offsets specified in the passed accessors are ignored.
          */
         template < typename Evaluator, typename... Args >
-        GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(
+        GT_FUNCTION static typename get_result_type< Evaluator, functor_t >::type with(
             Evaluator const &eval, Args const &...) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
-            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
+            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< functor_t >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
-            typedef typename get_result_type< Evaluator, Functor >::type result_type;
+            typedef typename get_result_type< Evaluator, functor_t >::type result_type;
 
             result_type result;
             typedef _impl::function_aggregator< Evaluator,
@@ -330,9 +336,9 @@ namespace gridtools {
                 Offk,
                 typename gridtools::variadic_to_vector< Args... >::type,
                 result_type,
-                _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
+                _impl::_get_index_of_first_non_const< functor_t >::value > f_aggregator_t;
 
-            Functor::Do(f_aggregator_t(eval, result), Region());
+            functor_t::Do(f_aggregator_t(eval, result), interval_t());
 
             return result;
         }
@@ -525,13 +531,20 @@ namespace gridtools {
     template < typename Functor, typename Region, int Offi = 0, int Offj = 0, int Offk = 0 >
     struct call_proc {
 
+        typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
+            Functor,
+            functor_decorator< Functor, Region > >::type functor_t;
+        typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
+            Region,
+            typename functor_t::default_interval >::type interval_t;
+
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value),
             "Region should be a valid interval tag to select the Do specialization in the called stencil function,");
 
         /** This alias is used to move the computation at a certain offset
          */
         template < int I, int J, int K >
-        using at = call_proc< Functor, Region, I, J, K >;
+        using at = call_proc< functor_t, interval_t, I, J, K >;
 
         /** With this interface a stencil function can be invoked and
             the offsets specified in the passed accessors are ignored.
@@ -551,7 +564,7 @@ namespace gridtools {
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-            Functor::Do(f_aggregator_t(eval, y), Region());
+            functor_t::Do(f_aggregator_t(eval, y), interval_t());
         }
 
         /** With this interface a stencil function can be invoked and
@@ -574,7 +587,7 @@ namespace gridtools {
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-            Functor::Do(f_aggregator_t(eval, y), Region());
+            functor_t::Do(f_aggregator_t(eval, y), interval_t());
         }
     };
 
