@@ -27,4 +27,3 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "simple_function_call.cpp"
-simple_function_call.hpp
