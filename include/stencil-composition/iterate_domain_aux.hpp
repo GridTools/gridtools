@@ -800,7 +800,7 @@ If you are not using generic accessors then you are using an unsupported storage
 
        for the global accessor the value_type is the storage object type itself.
     */
-    template < ushort_t I, enumtype::intend Intend, typename IterateDomainArguments >
+    template < int_t I, enumtype::intend Intend, typename IterateDomainArguments >
     struct get_arg_value_type_from_accessor< global_accessor< I, Intend >, IterateDomainArguments > {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
 

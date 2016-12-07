@@ -56,7 +56,7 @@ namespace gridtools {
     template < typename T >
     struct is_accessor< const T > : is_accessor< T > {};
 
-    template < ushort_t ID, enumtype::intend Intend >
+    template < int_t ID, enumtype::intend Intend >
     struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
 
 #ifdef CUDA8
@@ -112,7 +112,7 @@ namespace gridtools {
     };
 #endif
 
-    template < uint_t ID, enumtype::intend Intend, typename ArgsMap >
+    template < int_t ID, enumtype::intend Intend, typename ArgsMap >
     struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
         typedef global_accessor< ID, Intend > accessor_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), "Internal Error: wrong size");
@@ -120,10 +120,10 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (boost::is_same<
                 typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
-                uint_t >::value),
+                int_t >::value),
             "Internal Error");
 
-        typedef static_uint< ID > index_type_t;
+        typedef static_int< ID > index_type_t;
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
 
@@ -174,10 +174,10 @@ namespace gridtools {
     template < ushort_t ID, typename Extend, ushort_t Number >
     struct is_accessor_readonly< accessor< ID, enumtype::inout, Extend, Number > > : boost::mpl::false_ {};
 
-    template < ushort_t ID >
+    template < int_t ID >
     struct is_accessor_readonly< global_accessor< ID, enumtype::in > > : boost::mpl::true_ {};
 
-    template < ushort_t ID >
+    template < int_t ID >
     struct is_accessor_readonly< global_accessor< ID, enumtype::inout > > : boost::mpl::true_ {};
 
     /* Is written is actually "can be written", since it checks if not read olnly.

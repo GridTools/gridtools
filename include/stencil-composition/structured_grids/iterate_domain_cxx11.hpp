@@ -413,7 +413,7 @@ namespace gridtools {
 
             specialization for the generic accessors placeholders
         */
-        template < uint_t I, enumtype::intend Intend >
+        template < int_t I, enumtype::intend Intend >
         GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
             global_accessor< I, Intend > const &accessor) const {
 
