@@ -633,20 +633,20 @@ namespace gridtools {
     template < typename Max, typename StridesCached, typename OffsetTuple, typename StorageInfo, unsigned N >
     GT_FUNCTION constexpr typename boost::enable_if_c< (N < (OffsetTuple::n_dim - 1)), int_t >::type apply_accessor(
         StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
-        static_assert((StorageInfo::Layout::template at< N >() == Max::value) || (N < StridesCached::n_dimensions),
+        typedef boost::mpl::int_<(StorageInfo::Layout::template at< N >())> val_t; 
+        static_assert((val_t::value == Max::value) || (N < StorageInfo::Layout::length),
             "invalid stride array access");
-        return ((StorageInfo::Layout::template at< N >() == Max::value) ? offsets.template get< N >()
-                                                                        : strides[N] * offsets.template get< N >()) +
-               apply_accessor< Max, StridesCached, OffsetTuple, StorageInfo, N + 1 >(strides, offsets);
+        return ((val_t::value == Max::value) ? offsets.template get< N >()
+            : strides[N] * offsets.template get< N >()) + apply_accessor< Max, StridesCached, OffsetTuple, StorageInfo, N + 1 >(strides, offsets);
     }
 
     template < typename Max, typename StridesCached, typename OffsetTuple, typename StorageInfo, unsigned N >
     GT_FUNCTION constexpr typename boost::enable_if_c< (N == (OffsetTuple::n_dim - 1)), int_t >::type apply_accessor(
         StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
-        static_assert((StorageInfo::Layout::template at< N >() == Max::value) || (N < StridesCached::n_dimensions),
+        typedef boost::mpl::int_<(StorageInfo::Layout::template at< N >())> val_t; 
+        static_assert((val_t::value == Max::value) || (N < StorageInfo::Layout::length),
             "invalid stride array access");
-        return (StorageInfo::Layout::template at< N >() == Max::value) ? offsets.template get< N >()
-                                                                       : strides[N] * offsets.template get< N >();
+        return (val_t::value == Max::value) ? offsets.template get< N >() : strides[N] * offsets.template get< N >();
     }
 
     // pointer offset computation for temporaries
