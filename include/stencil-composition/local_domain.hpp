@@ -142,21 +142,24 @@ namespace gridtools {
 
         __device__ local_domain_base(local_domain_base const &other)
             : m_local_storage_info_ptrs(other.m_local_storage_info_ptrs) {
-            boost::fusion::for_each(m_local_data_ptrs, copy_ptr<data_ptr_fusion_map>(other.m_local_data_ptrs));
+            boost::fusion::for_each(m_local_data_ptrs, copy_ptr< data_ptr_fusion_map >(other.m_local_data_ptrs));
         }
 
-        template <typename V>
+        template < typename V >
         struct copy_ptr {
-            V const& ptrs;
-            GT_FUNCTION copy_ptr(V const& v) : ptrs(v) {}
+            V const &ptrs;
+            GT_FUNCTION copy_ptr(V const &v) : ptrs(v) {}
 
-            template<class T, size_t N>
-            constexpr size_t get_size(T (&)[N]) { return N; }
+            template < class T, size_t N >
+            constexpr size_t get_size(T (&)[N]) {
+                return N;
+            }
 
-            template <typename T>
-            GT_FUNCTION void operator()(T& t) const {
-                typedef typename boost::fusion::result_of::first<T>::type key_t;
-                for(unsigned i=0; i<get_size(t.second); ++i) t.second[i] = boost::fusion::at_key<key_t>(ptrs)[i];
+            template < typename T >
+            GT_FUNCTION void operator()(T &t) const {
+                typedef typename boost::fusion::result_of::first< T >::type key_t;
+                for (unsigned i = 0; i < get_size(t.second); ++i)
+                    t.second[i] = boost::fusion::at_key< key_t >(ptrs)[i];
             }
         };
 
@@ -169,12 +172,8 @@ namespace gridtools {
                 typedef typename get_storage_wrapper_elem< typename boost::fusion::result_of::first< T >::type,
                     storage_wrapper_list_t >::type storage_wrapper_t;
                 out_s << "arg_index: " << get_arg_index_from_storage_wrapper< storage_wrapper_t >::value << std::endl;
-                if (storage_wrapper_t::storage_size > 1) {
-                    for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i)
-                        out_s << e.second[i] << "\t";
-                } else {
-                    out_s << e.second;
-                }
+                for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i)
+                    out_s << e.second[i] << "\t";
                 out_s << "\n\n";
             }
         };

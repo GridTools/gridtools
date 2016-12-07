@@ -133,7 +133,7 @@ int main() {
     typedef arg< 3, data_store_field_t, false > p_dsf_in;
     typedef arg< 4, data_store_field_t, false > p_dsf_out;
 
-    typedef boost::mpl::vector< p_in, p_out /* , p_w, p_tmp2, p_dsf*/ > accessor_list;
+    typedef boost::mpl::vector< p_in, p_out, p_tmp /* , p_w, p_tmp2, p_dsf*/ > accessor_list;
     aggregator_type< accessor_list > domain(ds_in, ds_out);
     domain.print();
 
@@ -147,9 +147,7 @@ int main() {
 
     auto z = make_computation< be >(domain,
         gr,
-        make_multistage(execute< forward >(), make_stage< B >(p_in(), p_out())
-                                        //            make_stage< B >(p_tmp(), p_out())
-                                        ));
+        make_multistage(execute< forward >(), make_stage< B >(p_in(), p_tmp()), make_stage< B >(p_tmp(), p_out())));
 
     z->ready();
     domain.print();
@@ -167,8 +165,8 @@ int main() {
     for (int i = 0; i < d1; ++i) {
         for (int j = 0; j < d2; ++j) {
             for (int k = 0; k < d3; ++k) {
-                valid &= (hv_out(i, j, k) == hv_in(i, j, k) + 5); // (abs(hv_out(i, j, k) - tan(pow(hv_in(i, j, k),
-                                                                  // ((int)hv_in(i, j, k) % 13)))+5) < 1e-5);
+                valid &= (hv_out(i, j, k) == hv_in(i, j, k) + 10); // (abs(hv_out(i, j, k) - tan(pow(hv_in(i, j, k),
+                                                                   // ((int)hv_in(i, j, k) % 13)))+5) < 1e-5);
                 if (!valid) {
                     std::cout << i << " " << j << " " << k << std::endl;
                     // std::cout << (tan(pow(hv_in(i, j, k), ((int)hv_in(i, j, k) % 13)))+5) << std::endl;
