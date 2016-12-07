@@ -627,7 +627,7 @@ namespace cg_naive{
              *   2. perform dense mat-vec that represents addition of BC
              *   3. add the BC to the domain Ax
              */
-            timers.start(Timers::TIMER_COMPUTE_STENCIL_BORDER);
+            timers.start(Timers::TIMER_OBCS);
 
             //get pointer to the domain X data
             double *d_data = d.data().get();
@@ -699,7 +699,7 @@ namespace cg_naive{
             //  MPI_Barrier(MPI_COMM_WORLD);
             //  if(PID==7) { printf("Ad\n"); Ad.print();}
 
-            timers.stop(Timers::TIMER_COMPUTE_STENCIL_BORDER);
+            timers.stop(Timers::TIMER_OBCS);
 
             // Denominator of alpha
             stencil_alpha_denom->ready();

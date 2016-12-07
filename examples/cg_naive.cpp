@@ -37,9 +37,10 @@ int main(int argc, char** argv)
 #ifdef CXX11_ENABLED
     // Initialize MPI
     gridtools::GCL_Init();
+    const int MASTER = 0;
 
     if (argc != 7) {
-        if (gridtools::PID == 0) std::cout << "Usage: cg_naive<whatever> dimx dimy dimz maxit eps nrhs,\nwhere args are integer sizes of the data fields, max number of iterations, eps is required tolerance and nsamples is number of RHS" << std::endl;
+        if (gridtools::PID == MASTER) std::cout << "Usage: cg_naive<whatever> dimx dimy dimz maxit eps nrhs,\nwhere args are integer sizes of the data fields, max number of iterations, eps is required tolerance and nsamples is number of RHS" << std::endl;
         return 1;
     }
 
@@ -64,10 +65,10 @@ int main(int argc, char** argv)
     int N2 = cg.dimensions[1];
 
     //size of arrays to hold right-hand sides
-    int count = dimx*dimy*dimz*nrhs;
-    int local_count = count / mpi_size;
+    long int global_domain_size = dimx*dimy*dimz;
+    long int count = global_domain_size*nrhs;
+    long int local_count = count / mpi_size;
     
-    int global_domain_size = dimx*dimy*dimz;
     auto metadata_ = cg.meta_->get_metadata();
     int dimx_local = metadata_.template dims<0>() - 2;
     int dimy_local = metadata_.template dims<1>() - 2;
@@ -81,26 +82,35 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    const int MASTER = 0;
     if (PID == MASTER) printf("Computing for domain size %dx%dx%d and %d random samples using %d processes (%dx%d).\nRequired tolerance for CG is %e with allowed %d max iterations.\n", dimx, dimy, dimz, nrhs, mpi_size, N1, N2, eps, maxit);
 
     double *samples;
     double *samples_local = new double[local_count];
+    if (samples_local == NULL)
+    {
+        printf("Error in new samples_local[]\n");
+        return -1;
+    }
 
     // generate random RHS and scatter them to processes
     if (PID == MASTER)
     {
         samples = new double[count];
+        if (samples == NULL)
+        {
+            printf("Error in new samples[]\n");
+            return -1;
+        }
         
         //std::srand(std::time(0));
         std::srand(131867);
-        for (int i = 0; i < count; i++)
+        for (long int i = 0; i < count; i++)
         {
             samples[i] = (std::rand() / (double)RAND_MAX) > 0.5 ? 1.0 : -1.0;
         }
     }
 
-    MPI_Scatter(samples, local_count, MPI_DOUBLE, samples_local, local_count, MPI_DOUBLE, 0, MPI_COMM_WORLD); 
+    MPI_Scatter(samples, local_count, MPI_DOUBLE, samples_local, local_count, MPI_DOUBLE, MASTER, MPI_COMM_WORLD); 
     if (PID == MASTER) delete [] samples;
 
     // local domains
@@ -201,15 +211,11 @@ int main(int argc, char** argv)
         
     }
 
-    // if(PID == 0) {printf("QQQQQ\n"); q.print();} //DEBUG
-
     // d = q ./ r
     inverse->ready();
     inverse->steady();
     inverse->run();
     inverse->finalize();
-
-    // if(PID == 0) {printf("DDDDDD\n"); d.print();} //DEBUG
 
     delete [] samples_local;
    
@@ -220,15 +226,27 @@ int main(int argc, char** argv)
      *  Extract and print the diagonal estimate
      *  =======================================
      */
-#if 1
+#if 0 
     double *estimator;
     if (PID == MASTER)
     {
         estimator = new double [global_domain_size];
+        if (estimator == NULL)
+        {
+            printf("Error in new estimator[]\n");
+            return -1;
+        }
+
     }
 
     // remove the boundary layers from the local domain 
     double *estimator_local = new double[local_domain_size];
+    if (estimator_local == NULL)
+    {
+        printf("Error in new estimator_local[]\n");
+        return -1;
+    }
+
     int idx = 0;
     for (uint_t k = 1; k < dimz_local + 1 ; ++k)
         for (uint_t j = 1; j < dimy_local + 1; ++j)
