@@ -22,6 +22,7 @@ class Timers {
 		TIMER_HALO_ISEND_IRECV,
 		TIMER_HALO_UNPACK_WAIT,
 		TIMER_COMM_DOTPROD,
+                TIMER_OBCS,                    // timer for the Open Bonudary Conditions (JURAJ)
 		// Keep this entry at the end
 		TIMER_LAST_ENTRY
 	} timer_t;
@@ -66,6 +67,7 @@ class Timers {
 		printf("TIMER_HALO_ISEND_IRECV       = %.4e s\n", total_time[TIMER_HALO_ISEND_IRECV]);
 		printf("TIMER_HALO_UNPACK_WAIT       = %.4e s\n", total_time[TIMER_HALO_UNPACK_WAIT]);
 		printf("TIMER_COMM_DOTPROD           = %.4e s\n", total_time[TIMER_COMM_DOTPROD]);
+		printf("TIMER_OBCS                   = %.4e s\n", total_time[TIMER_OBCS]);
 		printf("===========================================\n");
 	}
 
