@@ -72,14 +72,7 @@ namespace gridtools {
 
         using super = offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... >;
         /**inheriting all constructors from offset_tuple*/
-        using typename super::offset_tuple_mixed;
-
-#if defined(__CUDACC__) || defined(__clang__)
-        // the protection for the arguments is done in offset_tuple constructors
-        template < typename... T >
-        GT_FUNCTION constexpr accessor_mixed(T const &... t_)
-            : super(t_...) {}
-#endif
+        using offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... >::offset_tuple_mixed;
 
         GT_FUNCTION
         constexpr const super &offsets() const { return *this; }

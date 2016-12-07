@@ -69,7 +69,7 @@ namespace gridtools {
         // protection is done in the base_storage constructors
         template < typename... Args >
         GT_FUNCTION expandable_parameters(Args... args_)
-            : super(args_...){};
+            : super(args_...) {}
 #endif
 
       public:
