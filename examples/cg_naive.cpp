@@ -56,7 +56,9 @@ int main(int argc, char** argv)
 
     // cg solver class
     CGsolver cg(dimx, dimy, dimz);
+    auto metadata_ = cg.meta_->get_metadata();
 
+#if 0
     int mpi_size;
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
@@ -69,7 +71,6 @@ int main(int argc, char** argv)
     long int count = global_domain_size*nrhs;
     long int local_count = count / mpi_size;
     
-    auto metadata_ = cg.meta_->get_metadata();
     int dimx_local = metadata_.template dims<0>() - 2;
     int dimy_local = metadata_.template dims<1>() - 2;
     int dimz_local = metadata_.template dims<2>() - 2;
@@ -125,6 +126,7 @@ int main(int argc, char** argv)
 
     MPI_Recv(samples_local, local_count, MPI_DOUBLE, MASTER, 0,  MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
     if (PID == MASTER) delete [] samples;
+#endif
 
     // local domains
     storage_type x    (metadata_, 0., "Solution vector");
@@ -185,6 +187,17 @@ int main(int argc, char** argv)
           gridtools::make_esf<div_functor>(p_d(), p_q1(), p_r1()) // d = q ./ r
          )
         );
+    
+    //PERF BENCH
+    int dimx_local = metadata_.template dims<0>() - 2;
+    int dimy_local = metadata_.template dims<1>() - 2;
+    int dimz_local = metadata_.template dims<2>() - 2;
+    int local_domain_size = dimx_local * dimy_local * dimz_local;
+    double *rhs_dbg = new double [local_domain_size];
+    for (int i=0; i < local_domain_size; i++)
+    {
+        rhs_dbg[i] = (std::rand() / (double)RAND_MAX) > 0.5 ? 1.0 : -1.0;
+    }
 
     // Start timer
     timers.start(Timers::TIMER_GLOBAL);
@@ -195,7 +208,8 @@ int main(int argc, char** argv)
      */
     for (int ii = 0; ii < nrhs; ii++)
     {
-        double *rhs = &samples_local[ii * local_domain_size];
+        //double *rhs = &samples_local[ii * local_domain_size]; //PERF BENCH
+        double *rhs = rhs_dbg;//PERF BENCH
 
         // Initialize the local RHS vector domain (exclude halo layer)
         int idx = 0;
@@ -229,8 +243,11 @@ int main(int argc, char** argv)
     inverse->steady();
     inverse->run();
     inverse->finalize();
+#if 0
+    delete [] samples_local; //PERF BENCH
+#endif
 
-    delete [] samples_local;
+    delete [] rhs_dbg;//PERF BENCH
    
    // Stop timer
    timers.stop(Timers::TIMER_GLOBAL);
