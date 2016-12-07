@@ -46,7 +46,8 @@ TEST(storage_metafunctions, test_storage) {
 
     typedef gridtools::layout_map< 0, 1, 2 > layout_t;
     typedef meta_storage<
-        meta_storage_aligned< meta_storage_base< 0, layout_t, false >, aligned< 32 >, halo< 0, 0, 0 > > > meta_data_t;
+        meta_storage_aligned< meta_storage_base< static_int< 0 >, layout_t, false >, aligned< 32 >, halo< 0, 0, 0 > > >
+        meta_data_t;
     typedef base_storage< wrap_pointer< double >, meta_data_t, 1 > base_st;
     typedef storage< base_st > storage_t;
     typedef no_storage_type_yet< storage_t > tmp_storage_t;

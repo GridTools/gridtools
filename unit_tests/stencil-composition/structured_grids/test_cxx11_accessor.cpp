@@ -39,7 +39,7 @@
 #include "gridtools.hpp"
 #include "stencil-composition/accessor.hpp"
 #include "stencil-composition/structured_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/expressions.hpp"
+#include "stencil-composition/expressions/expressions.hpp"
 #include "stencil-composition/expandable_parameters/vector_accessor.hpp"
 
 using namespace gridtools;
@@ -68,9 +68,9 @@ namespace interface {
 
     bool test_alternative2() {
 
-        constexpr x i;
-        constexpr y j;
-        constexpr z k;
+        constexpr dimension< 1 > i;
+        constexpr dimension< 2 > j;
+        constexpr dimension< 3 > k;
 
         constexpr dimension< 4 > t;
         constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
@@ -90,9 +90,9 @@ namespace interface {
         // mixing compile time and runtime values
         using t = dimension< 15 >;
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 > arg_t;
-        using alias_t = alias< arg_t, t, x, dimension< 7 > >::set< -3, 4, 2 >;
+        using alias_t = alias< arg_t, t, dimension< 1 >, dimension< 7 > >::set< -3, 4, 2 >;
 
-        alias_t first(dimension< 8 >(23), z(-5));
+        alias_t first(dimension< 8 >(23), dimension< 3 >(-5));
 
         GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr< 14 >() == 4, "ERROR");
         return first.get< 14 - 6 >() == 2 && first.get< 14 - 0 >() == 4 && first.get< 14 - 14 >() == -3 &&
@@ -113,9 +113,12 @@ namespace interface {
         alias< arg_t, t > field1(-3); // records the offset -3 as dynamic values
         alias< arg_t, t > field2(-1); // records the offset -1 as static const
 
-        return field1(z(-5), x(1)).get< 14 - 0 >() == 1 && field1(z(-5), x(1)).get< 14 - 2 >() == -5 &&
-               field1(z(-5), x(1)).get< 14 - 14 >() == -3 && field2(z(-5), x(1)).get< 14 - 0 >() == 1 &&
-               field2(z(-5), x(1)).get< 14 - 2 >() == -5 && field2(z(-5), x(1)).get< 14 - 14 >() == -1;
+        return field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 &&
+               field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 &&
+               field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -3 &&
+               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 &&
+               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 &&
+               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -1;
     }
 
 } // namespace interface

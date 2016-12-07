@@ -129,9 +129,9 @@ namespace gridtools {
             /** @brief method called in the Do methods of the functors. */
             template < typename... Arguments, template < typename... Args > class Expression >
             GT_FUNCTION constexpr auto operator()(Expression< Arguments... > const &arg) const
-                -> decltype(evaluation::value(*this, arg)) {
+                -> decltype(expressions::evaluation::value(*this, arg)) {
                 // arg.to_string();
-                return evaluation::value((*this), arg);
+                return expressions::evaluation::value((*this), arg);
             }
 
             /** @brief method called in the Do methods of the functors.
@@ -141,9 +141,9 @@ namespace gridtools {
                 typename FloatType,
                 typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
             GT_FUNCTION constexpr auto operator()(Expression< Accessor, FloatType > const &arg) const
-                -> decltype(evaluation::value_scalar(*this, arg)) {
+                -> decltype(expressions::evaluation::value(*this, arg)) {
                 // TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
-                return evaluation::value_scalar((*this), arg);
+                return expressions::evaluation::value((*this), arg);
             }
         };
 

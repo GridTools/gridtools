@@ -69,7 +69,7 @@ namespace gridtools {
         // protection is done in the base_storage constructors
         template < typename... Args >
         GT_FUNCTION expandable_parameters(Args... args_)
-            : super(args_...){};
+            : super(args_...) {}
 #endif
 
       public:
@@ -140,5 +140,11 @@ namespace gridtools {
 
     template < typename Storage, uint_t Size >
     struct is_storage< expandable_parameters< Storage, Size > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_expandable_parameters : boost::mpl::false_ {};
+
+    template < typename Storage, uint_t Size >
+    struct is_expandable_parameters< expandable_parameters< Storage, Size > > : boost::mpl::true_ {};
 
 } // namespace gridtools

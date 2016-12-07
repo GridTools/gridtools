@@ -35,8 +35,8 @@
 */
 #pragma once
 #include <boost/utility/enable_if.hpp>
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../../common/generic_metafunctions/replace_template_arguments.hpp"
+#include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
+#include "../../../common/generic_metafunctions/replace_template_arguments.hpp"
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
 #include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
 #include "../../iteration_policy.hpp"

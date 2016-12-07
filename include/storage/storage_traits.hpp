@@ -34,8 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../common/defs.hpp"
-#include "../common/layout_map.hpp"
+#include "../gridtools.hpp"
 #include "halo.hpp"
 
 #include "storage_traits_cuda.hpp"
