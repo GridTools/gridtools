@@ -75,6 +75,10 @@ namespace gridtools {
 
         static const ushort_t space_dimensions = topology_t::space_dimensions;
 
+        GRIDTOOLS_STATIC_ASSERT((space_dimensions == communicator_t::ndims),
+            "the dimension of the topology does not "
+            "match the dimension of the processor "
+            "grid. What are you trying to do?");
         GRIDTOOLS_STATIC_ASSERT(is_cell_topology< GridTopology >::value,
             "check that the first template argument to the partitioner is a supported cell_topology type");
         /**@brief constructor
@@ -110,11 +114,16 @@ namespace gridtools {
 
             m_boundary = 0; // bitmap
 
-            for (ushort_t i = 0; i < communicator_t::ndims; ++i)
-                if (comm.coordinates(i) == comm.dimensions(i) - 1)
+            for (ushort_t i = 0; i < communicator_t::ndims; ++i) {
+                // check for errors in the input:
+                // the following one means that the given processor is outside the grid
+                assert(comm.coordinates()[i] < comm.dimensions()[i]);
+
+                if (comm.coordinates()[i] == comm.dimensions()[i] - 1)
                     m_boundary += std::pow(2, i);
+            }
             for (ushort_t i = communicator_t::ndims; i < 2 * (communicator_t::ndims); ++i)
-                if (comm.coordinates(i % (communicator_t::ndims)) == 0)
+                if (comm.coordinates()[i % (communicator_t::ndims)] == 0)
                     m_boundary += std::pow(2, i);
         }
 
@@ -123,11 +132,16 @@ namespace gridtools {
 
             m_boundary = 0; // bitmap
 
-            for (ushort_t i = 0; i < communicator_t::ndims; ++i)
-                if (comm.coordinates(i) == comm.dimensions(i) - 1)
+            for (ushort_t i = 0; i < communicator_t::ndims; ++i) {
+                // check for errors in the input:
+                // the following one means that the given processor is outside the grid
+                assert(comm.coordinates()[i] < comm.dimensions()[i]);
+
+                if (comm.coordinates()[i] == comm.dimensions()[i] - 1)
                     m_boundary += std::pow(2, i);
+            }
             for (ushort_t i = communicator_t::ndims; i < 2 * (communicator_t::ndims); ++i)
-                if (comm.coordinates(i % (communicator_t::ndims)) == 0)
+                if (comm.coordinates()[i % (communicator_t::ndims)] == 0)
                     m_boundary += std::pow(2, i);
         }
 
@@ -279,8 +293,9 @@ namespace gridtools {
             \endverbatim
         */
         int_t compute_halo(ushort_t const &component_, typename super::Flag const &flag_) const {
-            return (m_comm.periodic(component_) || !at_boundary(component_, flag_)) ? m_halo[component_]
-                                                                                    : m_pad[component_];
+            assert(component_ < communicator_t::ndims);
+            return (m_comm.periodic()[component_] || !at_boundary(component_, flag_)) ? m_halo[component_]
+                                                                                      : m_pad[component_];
         }
 
         /**@brief returns wether the current partition is touching the boundary specified in input
@@ -301,8 +316,8 @@ namespace gridtools {
         GT_FUNCTION
         bool at_boundary(ushort_t const &component_, typename super::Flag flag_) const {
 
-            uint_t ret = (((uint_t)flag_ * (1 << component_))) & boundary();
-            return !(bool)ret;
+            assert(component_ < communicator_t::ndims);
+            return (((uint_t)flag_ * (1 << component_))) & boundary();
         }
 
         GT_FUNCTION
