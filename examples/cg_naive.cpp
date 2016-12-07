@@ -73,12 +73,13 @@ int main(int argc, char** argv)
     int dimx_local = metadata_.template dims<0>() - 2;
     int dimy_local = metadata_.template dims<1>() - 2;
     int dimz_local = metadata_.template dims<2>() - 2;
-    int local_domain_size = dimx_local * dimy_local * dimz_local;
-    
+    long int local_domain_size = dimx_local * dimy_local * dimz_local;
+
     //assert
-    if (local_count != local_domain_size*nrhs)
+    if (local_count != (local_domain_size*nrhs))
     {
-        printf("local_count != local_domain_size*nrhs\n");
+        printf("lds*nrhs= %ld %ld %ld\n",local_domain_size, nrhs, local_domain_size*nrhs);
+        printf("local_count != local_domain_size*nrhs\n %ld %ld\n", local_count, local_domain_size*nrhs);
         return -1;
     }
 
@@ -95,7 +96,7 @@ int main(int argc, char** argv)
     // generate random RHS and scatter them to processes
     if (PID == MASTER)
     {
-        samples = new double[count];
+        samples = new double[local_count];
         if (samples == NULL)
         {
             printf("Error in new samples[]\n");
@@ -104,13 +105,25 @@ int main(int argc, char** argv)
         
         //std::srand(std::time(0));
         std::srand(131867);
-        for (long int i = 0; i < count; i++)
+
+        //generate RHS for MASTER process
+        for (long int i = 0; i < local_count; i++)
         {
-            samples[i] = (std::rand() / (double)RAND_MAX) > 0.5 ? 1.0 : -1.0;
+           samples_local[i] = (std::rand() / (double)RAND_MAX) > 0.5 ? 1.0 : -1.0;
+        }
+
+        //generage RHS for child processes
+        for (int p=1; p < mpi_size; p++)
+        {
+            for (long int i = 0; i < local_count; i++)
+            {
+                samples[i] = (std::rand() / (double)RAND_MAX) > 0.5 ? 1.0 : -1.0;
+            }
+            MPI_Send(samples, local_count, MPI_DOUBLE, p, 0, MPI_COMM_WORLD);
         }
     }
 
-    MPI_Scatter(samples, local_count, MPI_DOUBLE, samples_local, local_count, MPI_DOUBLE, MASTER, MPI_COMM_WORLD); 
+    MPI_Recv(samples_local, local_count, MPI_DOUBLE, MASTER, 0,  MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
     if (PID == MASTER) delete [] samples;
 
     // local domains
