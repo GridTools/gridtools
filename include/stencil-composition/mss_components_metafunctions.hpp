@@ -256,6 +256,7 @@ namespace gridtools {
                 typename ArgArray,
                 typename Staggering >
             struct apply< EsfDescriptor< ESF, ArgArray, Staggering > > {
+                static_assert(is_esf_descriptor< EsfDescriptor< ESF, ArgArray, Staggering > >::value, "Given type is no esf_descriptor.");
                 typedef typename boost::mpl::fold<
                     ArgArray,
                     boost::mpl::vector0<>,
@@ -267,10 +268,19 @@ namespace gridtools {
                             boost::mpl::_2 > > >::type new_arg_array_t;
                 typedef EsfDescriptor< ESF, new_arg_array_t, Staggering > type;
             };
+
+
+            template < template < typename > class IndependentEsfDescriptor,
+                typename ESFVector >
+            struct apply< IndependentEsfDescriptor< ESFVector > > {
+                typedef typename boost::mpl::transform<ESFVector, fix_esf_sequence>::type fixed_esf_sequence_t;
+                typedef IndependentEsfDescriptor< fixed_esf_sequence_t > type;
+            };
         };
 
         template < typename MssDesc >
         struct fix_mss_components_desc {
+            static_assert(is_mss_descriptor<MssDesc>::value, "Given type is no mss_descriptor.");
             typedef typename MssDesc::execution_engine_t execution_engine_t;
             typedef typename MssDesc::esf_sequence_t esf_sequence_t;
             typedef typename MssDesc::cache_sequence_t cache_sequence_t;

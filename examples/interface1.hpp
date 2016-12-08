@@ -165,7 +165,6 @@ namespace horizontal_diffusion {
 #endif
 
         typedef horizontal_diffusion::repository::storage_type storage_type;
-        typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
 
         horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
         repository.init_fields();
@@ -179,9 +178,9 @@ namespace horizontal_diffusion {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, tmp_storage_type > p_lap;
-        typedef arg< 1, tmp_storage_type > p_flx;
-        typedef arg< 2, tmp_storage_type > p_fly;
+        typedef arg< 0, storage_type, true > p_lap;
+        typedef arg< 1, storage_type, true > p_flx;
+        typedef arg< 2, storage_type, true > p_fly;
         typedef arg< 3, storage_type > p_coeff;
         typedef arg< 4, storage_type > p_in;
         typedef arg< 5, storage_type > p_out;
@@ -190,16 +189,13 @@ namespace horizontal_diffusion {
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_lap, p_flx, p_fly, p_coeff, p_in, p_out > accessor_list;
 
-// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
-// used, temporary and not
-// It must be noted that the only fields to be passed to the constructor are the non-temporary.
-// The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
-// don't particularly like this)
-#if defined(CXX11_ENABLED)
-        gridtools::aggregator_type< accessor_list > domain((p_out() = out), (p_in() = in), (p_coeff() = coeff));
-#else
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out));
-#endif
+        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
+        // used, temporary and not
+        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
+        // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
+        // don't particularly like this)
+        gridtools::aggregator_type< accessor_list > domain(coeff, in, out);
+
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -220,6 +216,7 @@ namespace horizontal_diffusion {
   2) The logical physical domain with the fields to use
   3) The actual grid dimensions
  */
+
 #ifdef CXX11_ENABLED
         auto
 #else
@@ -235,19 +232,17 @@ namespace horizontal_diffusion {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
-                    gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
-                    gridtools::make_independent                             // independent_esf
-                    (gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
-                        gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
-                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+                    gridtools::make_stage< lap_function >(p_lap(), p_in()),  // esf_descriptor
+                    gridtools::make_independent(                             // independent_esf
+                    gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
+                        gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap()),
+                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff()))));
 
         horizontal_diffusion->ready();
         horizontal_diffusion->steady();
         horizontal_diffusion->run();
 
-#ifdef __CUDACC__
-        repository.update_cpu();
-#endif
+        repository.out().sync();
 
         bool result = true;
 
