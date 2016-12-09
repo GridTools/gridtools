@@ -138,10 +138,7 @@ namespace gridtools {
             return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
         }
 
-        GT_FUNCTION strides_cached(strides_cached const &other_) :
-            super(other_)
-            , m_data(other_.template get<ID>())
-        {}
+        GT_FUNCTION strides_cached(strides_cached const &other_) : super(other_), m_data(other_.template get< ID >()) {}
 
       private:
         data_array_t m_data;
@@ -176,7 +173,7 @@ namespace gridtools {
             return m_data;
         }
 
-        GT_FUNCTION strides_cached(strides_cached const &other_) : m_data(other_.template get<0>()){};
+        GT_FUNCTION strides_cached(strides_cached const &other_) : m_data(other_.template get< 0 >()){};
 
       private:
         data_array_t m_data;
