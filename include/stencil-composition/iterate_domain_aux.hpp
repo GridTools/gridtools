@@ -208,14 +208,11 @@ If you are not using generic accessors then you are using an unsupported storage
 
         GT_FUNCTION
         increment_index_functor(increment_index_functor const &other)
-            : // m_storages(other.m_storages),
-              m_increment(other.m_increment),
-              m_index_array(other.m_index_array), m_array_tuple(other.m_array_tuple){};
+            : m_increment(other.m_increment), m_index_array(other.m_index_array), m_array_tuple(other.m_array_tuple){};
 
       private:
         increment_index_functor();
 
-        // MetaStorageSequence const &m_storages;
         const int_t m_increment;
         ArrayIndex &RESTRICT m_index_array;
         StridesCached const &RESTRICT m_array_tuple;
@@ -296,7 +293,6 @@ If you are not using generic accessors then you are using an unsupported storage
         GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
 
         Strides const &RESTRICT m_strides;
-        // MetaStorageSequence const &RESTRICT m_storages;
         const int_t m_initial_pos;
         const uint_t m_block;
         array< uint_t, 3 > const m_initial_offsets;
@@ -307,10 +303,8 @@ If you are not using generic accessors then you are using an unsupported storage
       public:
         GT_FUNCTION
         initialize_index_functor(initialize_index_functor const &other, array< uint_t, 3 > const &initial_offsets_)
-            : m_strides(other.m_strides) // , m_storages(other.m_storages)
-              ,
-              m_initial_pos(other.m_initial_pos), m_block(other.m_block), m_index_array(other.m_index_array),
-              m_initial_offsets(initial_offsets_) {}
+            : m_strides(other.m_strides), m_initial_pos(other.m_initial_pos), m_block(other.m_block),
+              m_index_array(other.m_index_array), m_initial_offsets(initial_offsets_) {}
 
         GT_FUNCTION
         initialize_index_functor(Strides const &RESTRICT strides
@@ -320,9 +314,7 @@ If you are not using generic accessors then you are using an unsupported storage
             const uint_t block,
             ArrayIndex &RESTRICT index_array,
             array< uint_t, 3 > const &initial_offsets_)
-            : m_strides(strides) // , m_storages(storages)
-              ,
-              m_initial_pos(initial_pos), m_block(block), m_index_array(index_array),
+            : m_strides(strides), m_initial_pos(initial_pos), m_block(block), m_index_array(index_array),
               m_initial_offsets(initial_offsets_) {}
 
         template < typename Pair >

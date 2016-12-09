@@ -202,6 +202,12 @@ namespace gridtools {
             return static_cast< const IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
+        /**
+           @brief returns the array of indices defining the current iteration point
+        */
+        GT_FUNCTION
+        array_index_t const &RESTRICT index() const { return m_index; }
+
       protected:
         /**
            @brief returns the strides as const reference

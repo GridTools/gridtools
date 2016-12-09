@@ -281,10 +281,9 @@ namespace gridtools {
         template < typename BackendType, typename Strides >
         GT_FUNCTION void assign_stride_pointers() {
             GRIDTOOLS_STATIC_ASSERT((is_array_tuple< Strides >::value), "internal error type");
-            boost::mpl::for_each< metadata_map_t >(assign_strides_functor< BackendType,
-                Strides,
-                typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
-                processing_elements_block_size_t >(strides(), local_domain.m_local_metadata));
+            boost::mpl::for_each< metadata_map_t >(assign_strides_functor< Strides,
+                typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type >(
+                strides(), local_domain.m_local_metadata));
         }
 
         /**@brief getter for the index array */

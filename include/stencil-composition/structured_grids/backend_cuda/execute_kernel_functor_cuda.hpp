@@ -52,7 +52,7 @@ namespace gridtools {
         };
 
         template < typename RunFunctorArguments, typename LocalDomain, typename ConstIterateDomain >
-        __global__ void do_it_on_gpu( // LocalDomain const *RESTRICT l_domain,
+        __global__ void do_it_on_gpu(
             typename RunFunctorArguments::grid_t const *grid_,
             const int_t starti,
             const int_t startj,
@@ -60,7 +60,6 @@ namespace gridtools {
             const uint_t ny,
             ConstIterateDomain const const_iterate_domain_) {
 
-            // assert(l_domain);
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
@@ -90,9 +89,6 @@ namespace gridtools {
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
             it_domain.set_const_iterate_domain_pointer_impl(&const_iterate_domain_);
-
-            // it_domain.template assign_storage_pointers< backend_traits_t >();
-            // it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
 
             __syncthreads();
 

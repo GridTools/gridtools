@@ -154,12 +154,10 @@ namespace gridtools {
        @brief functor assigning the storage strides to the m_strides array.
        This is the unrolling of the inner nested loop
 
-       @tparam BackendType the type of backend
-       @tparam PEBlockSize the processing elements block size
+       @tparam ValueType the value type of the array elements
     */
-    template < typename BackendType, typename PEBlockSize, typename ValueType >
-    struct assign_strides_inner_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
+    template < typename ValueType >
+    struct assign_inner_functor {
 
       private:
         // while the strides are uint_t type in the storage metadata,
@@ -169,32 +167,33 @@ namespace gridtools {
 
       public:
         GT_FUNCTION
-        assign_strides_inner_functor(ValueType *RESTRICT l, const ValueType *RESTRICT r) : m_left(l), m_right(r) {}
+        assign_inner_functor(ValueType *RESTRICT l, const ValueType *RESTRICT r) : m_left(l), m_right(r) {}
 
         template < typename ID >
         GT_FUNCTION void operator()(ID const &) const {
             assert(m_left);
             assert(m_right);
-            // BackendType::template once_per_block< ID::value, PEBlockSize >::assign(
-            //     m_left[ID::value], m_right[ID::value]);
             m_left[ID::value] = (ValueType)m_right[ID::value];
         }
     };
 
-    /**@brief functor assigning the strides to a lobal array (i.e. m_strides).
+    /**@brief functor assigning the strides to an array_tuple (i.e. m_strides) given a boost::fusion::vector of
+       storages.
 
-       It implements the unrolling of a double loop: i.e. is n_f is the number of fields in this user function,
-       and n_d(i) is the number of space dimensions per field (dependent on the ith field), then the loop for assigning
+       It implements the unrolling of a double loop: i.e. if n_f is the number of storages in this user function,
+       and n_d(i) is the number of space dimensions per storage (dependent on the ith storage), then the loop for
+       assigning
        the strides
        would look like
+       \code
        for(i=0; i<n_f; ++i)
        for(j=0; j<n_d(i); ++j)
-       * @tparam BackendType the type of backend
-       * @tparam StridesCached strides cached type
-       * @tparam MetaStorageSequence sequence of storages
-       * @tparam PEBlockSize the processing elements block size
+       storage[i].strides[j]=val;
+       \endcode
+       * @tparam StridesCached strides in the form of an array_tuple
+       * @tparam MetaStorageSequence sequence of storage info
        */
-    template < typename BackendType, typename StridesCached, typename MetaStorageSequence, typename PEBlockSize >
+    template < typename StridesCached, typename MetaStorageSequence >
     struct assign_strides_functor {
 
         GRIDTOOLS_STATIC_ASSERT((is_array_tuple< StridesCached >::value), "internal error: wrong type");
@@ -238,13 +237,18 @@ namespace gridtools {
 #endif
 #endif
             boost::mpl::for_each< boost::mpl::range_c< short_t, 0, meta_storage_type::space_dimensions - 1 > >(
-                assign_strides_inner_functor< BackendType, PEBlockSize, int_t >(
-                    &(m_strides.template get< ID::value >()[0]),
+                assign_inner_functor< int_t >(&(m_strides.template get< ID::value >()[0]),
                     &(boost::fusion::template at_c< ID::value >(m_storages)->strides(1))));
         }
     };
 
-    template < typename BackendType, typename StridesCached, typename MetaStorageSequence, typename PEBlockSize >
+    /**
+       @bief functor to assign the storage dimensions to a array_tuple, gicen a boost::fusion::vector of storage
+       pointers
+
+       Similar to the above functor, @ref assign_strides_functor
+     */
+    template < typename StridesCached, typename MetaStorageSequence >
     struct assign_dims_functor {
 
         GRIDTOOLS_STATIC_ASSERT((is_array_tuple< StridesCached >::value), "internal error: wrong type");
@@ -287,8 +291,7 @@ namespace gridtools {
 #endif
 #endif
             boost::mpl::for_each< boost::mpl::range_c< short_t, 0, meta_storage_type::space_dimensions > >(
-                assign_strides_inner_functor< BackendType, PEBlockSize, uint_t >(
-                    &(m_dims.template get< ID::value >()[0]),
+                assign_inner_functor< uint_t >(&(m_dims.template get< ID::value >()[0]),
                     &(boost::fusion::template at_c< ID::value >(m_storages)->dims()[0])));
         }
     };

@@ -133,10 +133,9 @@ namespace gridtools {
         GT_FUNCTION void assign_stride_pointers(LocalDomain const &local_domain_) {
             typedef LocalDomain local_domain_t;
             GRIDTOOLS_STATIC_ASSERT((is_array_tuple< strides_t >::value), "internal error type");
-            boost::mpl::for_each< typename local_domain_t::storage_metadata_map >(assign_strides_functor< Backend,
-                strides_t,
-                typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
-                processing_elements_block_size_t >(strides(), local_domain_.m_local_metadata));
+            boost::mpl::for_each< typename local_domain_t::storage_metadata_map >(assign_strides_functor< strides_t,
+                typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type >(
+                strides(), local_domain_.m_local_metadata));
         }
 
         /**
@@ -150,10 +149,9 @@ namespace gridtools {
         GT_FUNCTION void assign_dims_pointers(LocalDomain const &local_domain_) {
             typedef LocalDomain local_domain_t;
             GRIDTOOLS_STATIC_ASSERT((is_array_tuple< strides_t >::value), "internal error type");
-            boost::mpl::for_each< typename local_domain_t::storage_metadata_map >(assign_dims_functor< Backend,
-                dims_t,
-                typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
-                processing_elements_block_size_t >(m_dims, local_domain_.m_local_metadata));
+            boost::mpl::for_each< typename local_domain_t::storage_metadata_map >(assign_dims_functor< dims_t,
+                typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type >(
+                m_dims, local_domain_.m_local_metadata));
         }
     };
 
