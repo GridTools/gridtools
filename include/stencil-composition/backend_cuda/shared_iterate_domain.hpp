@@ -69,7 +69,7 @@ namespace gridtools {
         typedef typename fusion_map_to_mpl_map< IJCachesTuple >::type ij_caches_map_t;
 
       public:
-        shared_iterate_domain() {}
+        GT_FUNCTION shared_iterate_domain() {}
 
         template < typename IndexType >
         GT_FUNCTION typename boost::mpl::at< ij_caches_map_t, IndexType >::type &RESTRICT get_ij_cache() {

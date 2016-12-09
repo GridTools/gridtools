@@ -190,7 +190,7 @@ namespace gridtools {
             // std::cout<<"initial offsets: "<<initial_offsets_[0]<<" "<<initial_offsets_[1]<<std::endl;
 
             // no blocking along k
-            if (Coordinate != 2 && layout::template at_< Coordinate >::value >= 0) {
+            if ((Coordinate == 0 || Coordinate == 1) && layout::template at_< Coordinate >::value >= 0) {
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
                 *index_ +=
                     (steps_ - block_ * tile_ - initial_offsets_[Coordinate] + ((Coordinate == 0) ? minus_i : minus_j)) *
