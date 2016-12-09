@@ -236,10 +236,16 @@ namespace gridtools {
         /**
          *  @brief given the placeholder type returns the corresponding arg_storage_pair by const reference
          */
-        template < typename StoragePlaceholder >
-        typename _impl::get_arg_storage_pair_type< StoragePlaceholder >::type const &get_arg_storage_pair() const {
+        template < typename StoragePlaceholder, 
+            typename RealStoragePlaceholder = 
+                typename boost::mpl::if_< 
+                    is_tmp_arg<StoragePlaceholder>, 
+                    typename _impl::replace_arg_storage_info< tmp_storage_info_id_t, StoragePlaceholder >::type, 
+                    StoragePlaceholder 
+                >::type >
+        typename _impl::get_arg_storage_pair_type< RealStoragePlaceholder >::type const &get_arg_storage_pair() const {
             return boost::fusion::deref(
-                boost::fusion::find< typename _impl::get_arg_storage_pair_type< StoragePlaceholder >::type >(
+                boost::fusion::find< typename _impl::get_arg_storage_pair_type< RealStoragePlaceholder >::type >(
                     m_arg_storage_pair_list));
         }
 

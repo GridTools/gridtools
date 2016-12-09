@@ -324,18 +324,14 @@ namespace gridtools {
             void operator()(T &ds) const {
                 typedef typename T::storage_info_t storage_info_t;
                 typedef pointer< const storage_info_t > ptr_ty;
-                if (!m_storageinfo_set.template present< ptr_ty >()) {
-                    m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr()));
-                }
+                m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr()));
             }
 
             template < typename T, typename boost::enable_if< is_data_store_field< T >, int >::type = 0 >
             void operator()(T &ds) const {
                 typedef typename T::storage_info_t storage_info_t;
                 typedef pointer< const storage_info_t > ptr_ty;
-                if (!m_storageinfo_set.template present< ptr_ty >()) {
-                    m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr()));
-                }
+                m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr()));
             }
 
             template < typename DataStore, typename... Rest >

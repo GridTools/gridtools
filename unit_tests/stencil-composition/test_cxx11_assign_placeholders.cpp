@@ -35,6 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include <gridtools.hpp>
+#include "storage-facility.hpp"
 #include "stencil-composition/stencil-composition.hpp"
 
 /*
@@ -56,31 +57,35 @@ TEST(assign_placeholders, test) {
 #endif
 #endif
 
-    //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
-
-    typedef gridtools::BACKEND::storage_type< float_type,
-        gridtools::BACKEND::storage_info< 0, gridtools::layout_map< 0, 1, 2 > > >::type storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type< float_type,
-        gridtools::BACKEND::storage_info< 0, gridtools::layout_map< 0, 1, 2 > > >::type tmp_storage_type;
+    typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t<0, 3, halo<1,1,1> > storage_info1_t;
+    typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t<0, 3, halo<2,2,2> > storage_info2_t;
+    typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info1_t> data_store1_t;
+    typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info2_t> data_store2_t;
+    
 
     uint_t d1 = 5;
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    storage_type::storage_info_type meta_(d1, d2, d3);
+    storage_info1_t meta_1(d1, d2, d3);
+    storage_info2_t meta_2(d1, d2, d3);
 
-    storage_type in(meta_, -1., "in");
-    storage_type out(meta_, -7.3, "out");
-    storage_type coeff(meta_, 8., "coeff");
+    data_store1_t in(meta_1);
+    data_store2_t out(meta_2);
+    data_store2_t coeff(meta_2);
 
+    in.allocate();
+    out.allocate();
+    coeff.allocate();
+    
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg< 0, tmp_storage_type > p_lap;
-    typedef arg< 1, tmp_storage_type > p_flx;
-    typedef arg< 2, tmp_storage_type > p_fly;
-    typedef arg< 3, storage_type > p_coeff;
-    typedef arg< 4, storage_type > p_in;
-    typedef arg< 5, storage_type > p_out;
+    typedef arg< 0, data_store1_t, true > p_lap;
+    typedef arg< 1, data_store1_t, true > p_flx;
+    typedef arg< 2, data_store2_t, true > p_fly;
+    typedef arg< 3, data_store2_t > p_coeff;
+    typedef arg< 4, data_store1_t > p_in;
+    typedef arg< 5, data_store2_t > p_out;
 
     // An array of placeholders to be passed to the domain
     // I'm using mpl::vector, but the final API should look slightly simpler
@@ -90,9 +95,143 @@ TEST(assign_placeholders, test) {
     // printf("in    (4) pointer: %x\n", &in);
     // printf("out   (5) pointer: %x\n", &out);
 
-    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out));
+    gridtools::aggregator_type< accessor_list > domain(coeff, in, out);
 
-    ASSERT_TRUE((boost::fusion::at_c< 3 >(domain.storage_pointers_view()).get() == &coeff) &&
-                (boost::fusion::at_c< 4 >(domain.storage_pointers_view()).get() == &in) &&
-                (boost::fusion::at_c< 5 >(domain.storage_pointers_view()).get() == &out));
+    using dst1_tmp = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> > >;
+    using dst1 = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> > >;
+    using dst2_tmp = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> > >;
+    using dst2 = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> > >;
+
+    // Check data store type correctness
+    typedef typename boost::is_same<
+        decltype(domain.m_arg_storage_pair_list),
+        boost::fusion::vector6 <
+            gridtools::arg_storage_pair < gridtools::arg < 0u, dst1_tmp, true >, dst1_tmp >,
+            gridtools::arg_storage_pair < gridtools::arg < 1u, dst1_tmp, true >, dst1_tmp >,
+            gridtools::arg_storage_pair < gridtools::arg < 2u, dst2_tmp, true >, dst2_tmp >,
+            gridtools::arg_storage_pair < gridtools::arg < 3u, dst2 >, dst2 >,
+            gridtools::arg_storage_pair < gridtools::arg < 4u, dst1 >, dst1 >,
+            gridtools::arg_storage_pair < gridtools::arg < 5u, dst2 >, dst2 >
+        >
+    >::type check_storages_t;
+    static_assert(check_storages_t::value, "Type check failed.");
+
+    // Check metadata_set correctness
+    typedef typename boost::is_same<
+        gridtools::metadata_set<
+            boost::mpl::v_item<
+                // temporary with halo size 1
+                gridtools::pointer<
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> > 
+                >, 
+            boost::mpl::v_item<
+                // temporary with halo size 2
+                gridtools::pointer<
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> > 
+                >, 
+            boost::mpl::v_item<
+                // non-temporary with halo size 1            
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> > 
+                >, 
+            boost::mpl::v_item<
+                // non-temporary with halo size 2            
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> > 
+            >, 
+            boost::mpl::vector0<mpl_::na>, 0>, 0>, 0>, 0> 
+        >,
+        typename decltype(domain)::metadata_set_t
+    >::type check_storage_infos_t;
+    
+    static_assert(check_storage_infos_t::value, "Type check failed.");
+
+    // Check pointers
+    assert(domain.template get_arg_storage_pair<p_flx>().ptr.get() == 0x0);
+    assert(domain.template get_arg_storage_pair<p_fly>().ptr.get() == 0x0);
+    assert(domain.template get_arg_storage_pair<p_lap>().ptr.get() == 0x0);
+    assert(domain.template get_arg_storage_pair<p_coeff>().ptr.get() == &coeff);
+    assert(domain.template get_arg_storage_pair<p_in>().ptr.get() == &in);
+    assert(domain.template get_arg_storage_pair<p_out>().ptr.get() == &out);
+
+    // Temporary storage info ptrs are not present yet
+    assert(!(domain.get_metadata_set().template present<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> >
+                > >()));
+    assert(!(domain.get_metadata_set().template present<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> >
+                > >()));
+
+    // Non-temporary storage info ptrs are present
+    assert((domain.get_metadata_set().template present<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> >
+                > >()));
+    assert((domain.get_metadata_set().template present<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> >
+                > >()));
+    assert((domain.get_metadata_set().template get<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> >
+                > >().get() == in.get_storage_info_ptr()));
+    assert((domain.get_metadata_set().template get<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> >
+                > >().get() == out.get_storage_info_ptr()));
+
+    // lets do a reassign
+    storage_info1_t meta_1_new(d1, d2, d3);
+    storage_info2_t meta_2_new(d1, d2, d3);
+
+    data_store1_t in_new(meta_1_new);
+    data_store2_t out_new(meta_2_new);
+    data_store2_t coeff_new(meta_2_new);
+
+    in_new.allocate();
+    out_new.allocate();
+    coeff_new.allocate();
+
+    domain.reassign(out_new, in_new, coeff_new);
+
+    //check pointers again
+    assert(domain.template get_arg_storage_pair<p_flx>().ptr.get() == 0x0);
+    assert(domain.template get_arg_storage_pair<p_fly>().ptr.get() == 0x0);
+    assert(domain.template get_arg_storage_pair<p_lap>().ptr.get() == 0x0);
+    assert(domain.template get_arg_storage_pair<p_coeff>().ptr.get() == &out_new);
+    assert(domain.template get_arg_storage_pair<p_in>().ptr.get() == &in_new);
+    assert(domain.template get_arg_storage_pair<p_out>().ptr.get() == &coeff_new);
+
+    // Temporary storage info ptrs are not present yet
+    assert(!(domain.get_metadata_set().template present<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> >
+                > >()));
+    assert(!(domain.get_metadata_set().template present<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> >
+                > >()));
+
+    // Non-temporary storage info ptrs are present
+    assert((domain.get_metadata_set().template present<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> >
+                > >()));
+    assert((domain.get_metadata_set().template present<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> >
+                > >()));
+    
+    assert((domain.get_metadata_set().template get<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> >
+                > >().get() == in_new.get_storage_info_ptr()));
+    assert((domain.get_metadata_set().template get<
+                gridtools::pointer<
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> >
+                > >().get() == coeff_new.get_storage_info_ptr()));
+
+
 }
