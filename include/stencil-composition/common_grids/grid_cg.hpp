@@ -62,7 +62,17 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit grid_cg(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : m_partitioner(partitioner_dummy()), m_direction_i(direction_i), m_direction_j(direction_j) {
+            :
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdangling-field"
+#endif
+              m_partitioner(partitioner_dummy())
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+              ,
+              m_direction_i(direction_i), m_direction_j(direction_j) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
         }
@@ -79,7 +89,15 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit grid_cg(uint_t *i, uint_t *j /*, uint_t* k*/)
-            : m_partitioner(partitioner_dummy()) // ok since partitioner_dummy is empty. Generates a warning
+            :
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdangling-field"
+#endif
+              m_partitioner(partitioner_dummy())
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
               ,
               m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
