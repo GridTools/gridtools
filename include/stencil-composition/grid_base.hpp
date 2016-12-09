@@ -34,10 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "common/halo_descriptor.hpp"
-#include "common/array.hpp"
-#include "storage/partitioner.hpp"
-#include "../interval.hpp"
+#include "../common/halo_descriptor.hpp"
+#include "../common/array.hpp"
+#include "../storage/partitioner.hpp"
+#include "interval.hpp"
 
 namespace gridtools {
 
@@ -49,7 +49,7 @@ namespace gridtools {
     using namespace enumtype_axis;
 
     template < typename Axis, typename Partitioner = partitioner_dummy >
-    struct grid_cg {
+    struct grid_base {
         GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), "Internal Error: wrong type");
         typedef Axis axis_type;
         typedef Partitioner partitioner_t;
@@ -60,8 +60,14 @@ namespace gridtools {
 
         array< uint_t, size_type::value > value_list;
 
+        GT_FUNCTION grid_base(const grid_base< Axis, Partitioner > &other)
+            : m_partitioner(other.m_partitioner), m_direction_i(other.m_direction_i),
+              m_direction_j(other.m_direction_j) {
+            value_list = other.value_list;
+        }
+
         GT_FUNCTION
-        explicit grid_cg(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
+        explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             :
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -78,7 +84,7 @@ namespace gridtools {
         }
 
         template < typename ParallelStorage >
-        GT_FUNCTION explicit grid_cg(const Partitioner &part_, ParallelStorage const &storage_)
+        GT_FUNCTION explicit grid_base(const Partitioner &part_, ParallelStorage const &storage_)
             : m_partitioner(part_), m_direction_i(storage_.template get_halo_descriptor< 0 >()) // copy
               ,
               m_direction_j(storage_.template get_halo_descriptor< 1 >()) // copy
@@ -88,7 +94,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        explicit grid_cg(uint_t *i, uint_t *j /*, uint_t* k*/)
+        explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/)
             :
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -129,7 +135,7 @@ namespace gridtools {
         GT_FUNCTION uint_t k_min() const { return value_at< typename Axis::FromLevel >(); }
 
         GT_FUNCTION uint_t k_max() const {
-            // TODO -1 because the axis has to be one level bigger than the largest k interval
+            // -1 because the axis has to be one level bigger than the largest k interval
             return value_at< typename Axis::ToLevel >() - 1;
         }
 

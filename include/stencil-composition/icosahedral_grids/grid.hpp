@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "stencil-composition/common_grids/grid_cg.hpp"
+#include "stencil-composition/grid_base.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
 #include "../common/gpu_clone.hpp"
 
 namespace gridtools {
 
     template < typename Axis, typename GridTopology >
-    struct grid : public grid_cg< Axis >, public clonable_to_gpu< grid< Axis, GridTopology > > {
+    struct grid : public grid_base< Axis >, public clonable_to_gpu< grid< Axis, GridTopology > > {
         GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Internal Error: wrong type");
 
@@ -55,16 +55,16 @@ namespace gridtools {
         // TODO make grid const
         // TODO should be removed (use ctor with halo_descriptor)
         explicit grid(GridTopology &grid_topology, const array< uint_t, 5 > &i, const array< uint_t, 5 > &j)
-            : grid_cg< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
+            : grid_base< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
                   halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
               m_grid_topology(grid_topology) {}
 
         GT_FUNCTION
         explicit grid(
             GridTopology &grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : grid_cg< Axis >(direction_i, direction_j), m_grid_topology(grid_topology) {}
+            : grid_base< Axis >(direction_i, direction_j), m_grid_topology(grid_topology) {}
 
-        __device__ grid(grid const &other) : grid_cg< Axis >(other), m_grid_topology(other.m_grid_topology) {}
+        __device__ grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
         GridTopology const &grid_topology() const { return m_grid_topology; }
