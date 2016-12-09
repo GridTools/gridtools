@@ -261,7 +261,7 @@ namespace gridtools {
 
             typedef typename run_functor_arguments_cuda_t::iterate_domain_t iterate_domain_t;
             typedef const_iterate_domain< typename iterate_domain_t::data_pointer_array_t,
-                typename iterate_domain_t::strides_cached_t,
+                typename iterate_domain_t::array_tuple_t,
                 typename iterate_domain_t::dims_cached_t,
                 cuda_block_size_t,
                 backend_traits_from_id< enumtype::Cuda > > const_it_domain_t;

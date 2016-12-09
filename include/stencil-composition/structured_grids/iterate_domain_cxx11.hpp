@@ -179,11 +179,11 @@ namespace gridtools {
 
       public:
         typedef array< void * RESTRICT, N_DATA_POINTERS > data_pointer_array_t;
-        typedef strides_cached< N_META_STORAGES - 1,
+        typedef array_tuple< N_META_STORAGES - 1,
             typename local_domain_t::storage_metadata_vector_t,
             int_t,
-            1 /*subtract 1 from the dimensions of the strides array*/ > strides_cached_t;
-        typedef strides_cached< N_META_STORAGES - 1, typename local_domain_t::storage_metadata_vector_t, uint_t, 0 >
+            1 /*subtract 1 from the dimensions of the strides array*/ > array_tuple_t;
+        typedef array_tuple< N_META_STORAGES - 1, typename local_domain_t::storage_metadata_vector_t, uint_t, 0 >
             dims_cached_t;
         // *************** end of type definitions **************
 
@@ -207,7 +207,7 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const {
+        array_tuple_t const &RESTRICT strides() const {
             return static_cast< const IterateDomainImpl * >(this)->strides_impl();
         }
 
@@ -266,7 +266,7 @@ namespace gridtools {
         template < ushort_t Coordinate, typename Steps >
         GT_FUNCTION void increment() {
             boost::mpl::for_each< metadata_map_t >(increment_index_functor< Coordinate,
-                strides_cached_t,
+                array_tuple_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
                 array_index_t >(Steps::value, m_index, strides()));
             static_cast< IterateDomainImpl * >(this)->template increment_impl< Coordinate, Steps >();
@@ -280,7 +280,7 @@ namespace gridtools {
         template < ushort_t Coordinate >
         GT_FUNCTION void increment(int_t steps_) {
             boost::mpl::for_each< metadata_map_t >(increment_index_functor< Coordinate,
-                strides_cached_t,
+                array_tuple_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
                 array_index_t >(steps_, m_index, strides()));
             static_cast< IterateDomainImpl * >(this)->template increment_impl< Coordinate >(steps_);
@@ -291,7 +291,7 @@ namespace gridtools {
         GT_FUNCTION void initialize(
             array< uint_t, 3 > const &initial_offsets_, uint_t const initial_pos = 0, uint_t const block = 0) {
             boost::mpl::for_each< metadata_map_t >(initialize_index_functor< Coordinate,
-                strides_cached_t,
+                array_tuple_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
                 array_index_t >(strides(), initial_pos, block, m_index, initial_offsets_));
             static_cast< IterateDomainImpl * >(this)->template initialize_impl< Coordinate >();

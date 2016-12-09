@@ -178,7 +178,7 @@ namespace gridtools {
 #endif
 
                 typename iterate_domain_t::data_pointer_array_t data_pointer;
-                typedef typename iterate_domain_t::strides_cached_t strides_t;
+                typedef typename iterate_domain_t::array_tuple_t strides_t;
 
                 typedef typename RunFunctorArguments::processing_elements_block_size_t processing_elements_block_size_t;
 
@@ -186,7 +186,7 @@ namespace gridtools {
                     (is_block_size< processing_elements_block_size_t >::value), "internal type error");
 
                 typedef const_iterate_domain< typename iterate_domain_t::data_pointer_array_t,
-                    typename iterate_domain_t::strides_cached_t,
+                    typename iterate_domain_t::array_tuple_t,
                     typename iterate_domain_t::dims_cached_t,
                     processing_elements_block_size_t,
                     backend_traits_from_id< enumtype::Host > > const_it_domain_t;

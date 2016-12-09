@@ -77,7 +77,7 @@ namespace gridtools {
          */
 
         typedef typename super::data_pointer_array_t data_pointer_array_t;
-        typedef typename super::strides_cached_t strides_cached_t;
+        typedef typename super::array_tuple_t array_tuple_t;
         typedef typename super::dims_cached_t dims_cached_t;
 
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
@@ -88,7 +88,7 @@ namespace gridtools {
         typedef shared_iterate_domain< typename iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
 
         typedef const_iterate_domain< data_pointer_array_t,
-            strides_cached_t,
+            array_tuple_t,
             dims_cached_t,
             typename IterateDomainArguments::processing_elements_block_size_t,
             backend_traits_from_id< enumtype::Cuda > > const_iterate_domain_t;
@@ -176,7 +176,7 @@ namespace gridtools {
         // }
 
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides_impl() const {
+        array_tuple_t const &RESTRICT strides_impl() const {
             //        assert((m_pshared_iterate_domain);
             return m_pconst_iterate_domain->strides();
         }

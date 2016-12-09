@@ -70,7 +70,7 @@ namespace gridtools {
             typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
             typedef backend_traits_from_id< enumtype::Cuda > backend_traits_t;
-            typedef typename iterate_domain_t::strides_cached_t strides_t;
+            typedef typename iterate_domain_t::array_tuple_t strides_t;
             typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
             typedef shared_iterate_domain< data_pointer_array_t,
                 strides_t,

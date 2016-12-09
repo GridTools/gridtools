@@ -63,12 +63,12 @@ namespace gridtools {
         using super::operator();
         typedef iterate_domain_host iterate_domain_t;
         typedef typename super::data_pointer_array_t data_pointer_array_t;
-        typedef typename super::strides_cached_t strides_cached_t;
+        typedef typename super::array_tuple_t array_tuple_t;
         typedef typename super::dims_cached_t dims_cached_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
 
         typedef const_iterate_domain< data_pointer_array_t,
-            strides_cached_t,
+            array_tuple_t,
             dims_cached_t,
             typename IterateDomainArguments::processing_elements_block_size_t,
             backend_traits_from_id< enumtype::Host > > const_iterate_domain_t;
@@ -85,7 +85,7 @@ namespace gridtools {
             return m_pconst_iterate_domain->data_pointer();
         }
 
-        strides_cached_t const &RESTRICT strides_impl() const { return m_pconst_iterate_domain->strides(); }
+        array_tuple_t const &RESTRICT strides_impl() const { return m_pconst_iterate_domain->strides(); }
 
         GT_FUNCTION
         void set_const_iterate_domain_pointer_impl(const_iterate_domain_t const *ptr) { m_pconst_iterate_domain = ptr; }

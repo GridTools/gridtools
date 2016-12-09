@@ -64,7 +64,7 @@ namespace gridtools {
         typedef Strides strides_t;
         typedef Dims dims_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< strides_t >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_array_tuple< strides_t >::value), "Internal Error: wrong type");
 
       private:
         data_pointer_array_t m_data_pointer;
@@ -127,12 +127,12 @@ namespace gridtools {
 
            copies them from the
            local_domain.m_local_metadata vector, and stores them into an instance of the
-           \ref strides_cached class.
+           \ref array_tuple class.
          */
         template < typename LocalDomain >
         GT_FUNCTION void assign_stride_pointers(LocalDomain const &local_domain_) {
             typedef LocalDomain local_domain_t;
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< strides_t >::value), "internal error type");
+            GRIDTOOLS_STATIC_ASSERT((is_array_tuple< strides_t >::value), "internal error type");
             boost::mpl::for_each< typename local_domain_t::storage_metadata_map >(assign_strides_functor< Backend,
                 strides_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
@@ -144,12 +144,12 @@ namespace gridtools {
 
            copies them from the
            local_domain.m_local_metadata vector, and stores them into an instance of the
-           \ref strides_cached class.
+           \ref array_tuple class.
          */
         template < typename LocalDomain >
         GT_FUNCTION void assign_dims_pointers(LocalDomain const &local_domain_) {
             typedef LocalDomain local_domain_t;
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< strides_t >::value), "internal error type");
+            GRIDTOOLS_STATIC_ASSERT((is_array_tuple< strides_t >::value), "internal error type");
             boost::mpl::for_each< typename local_domain_t::storage_metadata_map >(assign_dims_functor< Backend,
                 dims_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
