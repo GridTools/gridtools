@@ -295,7 +295,7 @@ If you are not using generic accessors then you are using an unsupported storage
         Strides const &RESTRICT m_strides;
         const int_t m_initial_pos;
         const uint_t m_block;
-        array< uint_t, 3 > const m_initial_offsets;
+        array< uint_t, 3 > const &m_initial_offsets;
 
         ArrayIndex &RESTRICT m_index_array;
         initialize_index_functor();

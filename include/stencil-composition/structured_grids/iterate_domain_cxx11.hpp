@@ -236,7 +236,7 @@ namespace gridtools {
         */
         GT_FUNCTION
         iterate_domain(const reduction_type_t &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value) {}
+            : iterate_domain_reduction_t(reduction_initial_value), m_index{0} {}
 
         /**
            @brief returns a single snapshot in the array of raw data pointers

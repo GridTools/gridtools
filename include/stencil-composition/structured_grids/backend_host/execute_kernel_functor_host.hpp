@@ -191,7 +191,8 @@ namespace gridtools {
                     processing_elements_block_size_t,
                     backend_traits_from_id< enumtype::Host > > const_it_domain_t;
 
-                const_it_domain_t const const_it_domain_(m_local_domain);
+                const_it_domain_t const const_it_domain_(
+                    m_local_domain, backend_traits_t::processing_element_i(), backend_traits_t::processing_element_j());
 
                 iterate_domain_t it_domain( // m_local_domain,
                     m_reduction_data.initial_value());

@@ -323,7 +323,7 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
-                const_it_domain_t const const_it_domain(m_local_domain);
+                const_it_domain_t const const_it_domain(m_local_domain, backend_traits_t::processing_element_i(), backend_traits_t::processing_element_j());
 
 #if (FLOAT_PRECISION > 4)
                 auto err = cudaFuncSetSharedMemConfig(

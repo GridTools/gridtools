@@ -151,11 +151,6 @@ namespace gridtools {
         using width_t = compute_storage_list_width< typename Storage::traits, Id, Storage::traits::n_dimensions - 1 >;
     }
 
-    template < typename T >
-    struct get_traits {
-        typedef typename T::traits type;
-    };
-
     template < typename First, typename... StorageExtended >
     struct is_data_field< data_field< First, StorageExtended... > > : public boost::mpl::true_ {};
 

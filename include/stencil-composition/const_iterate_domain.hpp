@@ -75,8 +75,8 @@ namespace gridtools {
         const_iterate_domain() {}
 
         template < typename F, typename U, typename C, bool K >
-        const_iterate_domain(local_domain< F, U, C, K > const &local_domain_) {
-            assign_storage_pointers(local_domain_);
+        const_iterate_domain(local_domain< F, U, C, K > const &local_domain_, int_t EU_id_i, int_t EU_id_j) {
+            assign_storage_pointers(local_domain_, EU_id_i, EU_id_j);
             assign_stride_pointers(local_domain_);
             assign_dims_pointers(local_domain_);
         }
@@ -108,7 +108,7 @@ namespace gridtools {
             our execution model is parallel on (i,j). Defaulted to 1.
         */
         template < typename LocalDomain >
-        GT_FUNCTION void assign_storage_pointers(LocalDomain const &local_domain_) {
+        GT_FUNCTION void assign_storage_pointers(LocalDomain const &local_domain_, int_t EU_id_i, int_t EU_id_j) {
             typedef LocalDomain local_domain_t;
 
             boost::mpl::for_each< typename boost::mpl::
@@ -119,7 +119,7 @@ namespace gridtools {
                     typename local_domain_t::local_metadata_type,
                     typename local_domain_t::storage_metadata_map,
                     processing_elements_block_size_t >(
-                    data_pointer(), local_domain_.local_storages(), local_domain_.local_metadata(), 0, 0));
+                    data_pointer(), local_domain_.local_storages(), local_domain_.local_metadata(), EU_id_i, EU_id_j));
         }
 
         /**

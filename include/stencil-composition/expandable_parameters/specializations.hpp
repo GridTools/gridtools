@@ -79,12 +79,6 @@ namespace gridtools {
     struct is_any_storage< std::vector< T > > : is_any_storage< T > {};
 
     template < typename T >
-    struct get_traits< pointer< T > > : get_traits< T > {};
-
-    template < typename T >
-    struct get_traits< std::vector< T > > : get_traits< T > {};
-
-    template < typename T >
     struct get_space_dimensions< std::vector< pointer< T > > > : get_space_dimensions< T > {};
     template < typename T >
     struct get_base_storage< std::vector< pointer< T > > > {

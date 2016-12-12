@@ -227,11 +227,6 @@ namespace gridtools {
     };
 
     template < typename T >
-    struct get_traits< storage< T > > {
-        typedef typename T::traits type;
-    };
-
-    template < typename T >
     struct get_space_dimensions {
         static const uint_t value = T::space_dimensions;
         typedef static_uint< value > type;

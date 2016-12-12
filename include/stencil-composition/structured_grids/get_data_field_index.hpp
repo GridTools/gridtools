@@ -74,8 +74,7 @@ namespace gridtools {
                 "dimensionality error in the storage accessor. decrease the number of dimensions when "
                 "defining the accessor.");
 
-            GRIDTOOLS_STATIC_ASSERT(
-                (get_traits< storage_type >::type::n_fields % get_traits< storage_type >::type::n_width == 0),
+            GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields % storage_type::traits::n_width == 0),
                 "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr "
                 "version of the accessors have to be used (so that the current position in the field is computed at "
                 "compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n "
@@ -90,9 +89,9 @@ namespace gridtools {
                                  +
                                  accessor_.template get< 0 >() // select the dimension
                                      *
-                                     get_traits< storage_type >::type::n_width // stride of the current dimension inside
-                                                                               // the vector
-                                                                               // of
+                                     storage_type::traits::n_width // stride of the current dimension inside
+                                                                   // the vector
+                                                                   // of
                        // storages
                        ) + //+ the offset of the other extra dimension
                    current_storage< (Accessor::index_type::value == 0), LocalDomain, Accessor >::value;
@@ -119,18 +118,17 @@ namespace gridtools {
                                         (Accessor::template get_constexpr< 1 >() >= 0)),
                 "offset specified for the dimension corresponding to the number of snapshots must be non negative");
             GRIDTOOLS_STATIC_ASSERT(
-                (get_traits< storage_t >::type::n_width > 0), "did you define a field dimension with 0 snapshots??");
+                (storage_t::traits::n_width > 0), "did you define a field dimension with 0 snapshots??");
             // "field dimension access out of bounds"
-            GRIDTOOLS_STATIC_ASSERT(
-                ((Accessor::template get_constexpr< 0 >() < get_traits< storage_t >::type::n_dimensions) ||
-                    Accessor::n_dim <= metadata_t::space_dimensions + 1),
+            GRIDTOOLS_STATIC_ASSERT(((Accessor::template get_constexpr< 0 >() < storage_t::traits::n_dimensions) ||
+                                        Accessor::n_dim <= metadata_t::space_dimensions + 1),
                 "field dimension access out of bounds");
 
             // snapshot access out of bounds
             GRIDTOOLS_STATIC_ASSERT(
                 (Accessor::template get_constexpr< 1 >() <
                     _impl::access< storage_t::n_width - (Accessor::template get_constexpr< 0 >()) - 1,
-                        typename get_traits< storage_t >::type >::type::n_width),
+                        typename storage_t::traits >::type::n_width),
                 "snapshot access out of bounds");
 
             return (Accessor::type::n_dim <= metadata_t::space_dimensions + 1
@@ -139,9 +137,9 @@ namespace gridtools {
                            : Accessor::template get_constexpr< 1 >() // offset for the current snapshot
                                  // hypotheses : storage offsets are known at compile-time
                                  +
-                                 compute_storage_offset< typename get_traits< storage_t >::type,
+                                 compute_storage_offset< typename storage_t::traits,
                                      Accessor::template get_constexpr< 0 >(),
-                                     get_traits< storage_t >::type::n_dimensions -
+                                     storage_t::traits::n_dimensions -
                                          1 >::value // stride of the current dimension inside the vector of storages
                        ) +                          //+ the offset of the other extra dimension
                    current_storage< (Accessor::index_type::value == 0), LocalDomain, Accessor >::value;
