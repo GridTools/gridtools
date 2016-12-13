@@ -9,7 +9,7 @@
 
 #include "./mpi_listener.hpp"
 
-#ifdef __CUDACC__
+#ifdef _USE_GPU_
 /* device_binding added by Devendar Bureddy, OSU */
 void device_binding() {
 
@@ -49,7 +49,7 @@ void device_binding() {
 
 int main(int argc, char **argv) {
 
-#ifdef __CUDACC__
+#ifdef _USE_GPU_
     device_binding();
 #endif
 
