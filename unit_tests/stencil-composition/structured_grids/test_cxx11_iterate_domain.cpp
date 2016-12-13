@@ -150,7 +150,7 @@ namespace test_iterate_domain {
             block_size< 32, 4 >,
             backend_traits_from_id< enumtype::Host > > const_it_domain_t;
 
-        const_it_domain_t const const_it_domain_(local_domain1);
+        const_it_domain_t const const_it_domain_(local_domain1, 0, 0);
 
         it_domain.set_const_iterate_domain_pointer_impl(&const_it_domain_);
 
