@@ -47,13 +47,12 @@ namespace gridtools {
     namespace _impl_strcuda {
 
         template < int_t VBoundary >
-        struct padded_boundary : static_int< VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
+        struct padded_boundary : static_uint< VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
             BOOST_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8);
         };
 
         template < typename RunFunctorArguments, typename LocalDomain, typename ConstIterateDomain >
-        __global__ void do_it_on_gpu(
-            typename RunFunctorArguments::grid_t const *grid_,
+        __global__ void do_it_on_gpu(typename RunFunctorArguments::grid_t const *grid_,
             const int_t starti,
             const int_t startj,
             const uint_t nx,
@@ -327,7 +326,7 @@ namespace gridtools {
                 const_it_domain_t const const_it_domain(m_local_domain, 0, 0);
 
 #if (FLOAT_PRECISION > 4)
-                auto err = cudaFuncSetSharedMemConfig(
+                bool err = cudaFuncSetSharedMemConfig(
                     _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t, local_domain_t, const_it_domain_t >,
                     cudaSharedMemBankSizeEightByte);
                 if (err != cudaSuccess) {

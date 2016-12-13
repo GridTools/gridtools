@@ -67,9 +67,23 @@ namespace array_tuple_test {
         storage_stub< 0, 1, 2 > *s1 = new storage_stub< 0, 1, 2 >();
         storage_stub< 3, 4 > *s2 = new storage_stub< 3, 4 >;
         storage_stub< 5, 6, 7, 8, 9 > *s3 = new storage_stub< 5, 6, 7, 8, 9 >();
-        auto svec = boost::fusion::make_vector(s1, s2, s3);
+#ifdef CXX11_ENABLED
+        auto
+#else
+        typedef boost::fusion::vector< storage_stub< 0, 1, 2 > *,
+            storage_stub< 3, 4 > *,
+            storage_stub< 5, 6, 7, 8, 9 > * > vec_t;
+        vec_t
+#endif
+            svec = boost::fusion::make_vector(s1, s2, s3);
 
-        assign_strides_functor< array_tuple< 2, storage_vec_t, int_t, 1 >, decltype(svec) > func(at, svec);
+        assign_strides_functor< array_tuple< 2, storage_vec_t, int_t, 1 >,
+#ifdef CXX11_ENABLED
+            decltype(svec)
+#else
+            vec_t
+#endif
+            > func(at, svec);
         func(pair< storage_stub< 0, 1, 2 >, static_int< 0 > >());
         func(pair< storage_stub< 3, 4 >, static_int< 1 > >());
         func(pair< storage_stub< 5, 6, 7, 8, 9 >, static_int< 2 > >());

@@ -419,7 +419,7 @@ namespace gridtools {
 
             specialization for the generic accessors placeholders
         */
-        template < int_t I, enumtype::intend Intend >
+        template < uint_t I, enumtype::intend Intend >
         GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
             global_accessor< I, Intend > const &accessor) const {
 
@@ -560,9 +560,6 @@ namespace gridtools {
         assert(real_storage_pointer);
         // getting information about the metadata
         typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
-        // pointer< const typename storage_t::storage_info_type > const metadata_ =
-        //     boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
-        // getting the value
 
         // the following assert fails when an out of bound access is observed, i.e. either one of
         // i+offset_i or j+offset_j or k+offset_k is too large.
@@ -584,9 +581,10 @@ namespace gridtools {
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename
         // Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
-        // GTASSERT((int_t)(m_index[metadata_index_t::value]) +
-        //              metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()) >=
-        //          0);
+        GTASSERT((int_t)(m_index[metadata_index_t::value]) +
+                     storage_t::storage_info_type::_index(
+                         strides().template get< metadata_index_t::value >(), accessor.offsets()) >=
+                 0);
 
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)

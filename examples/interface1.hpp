@@ -73,7 +73,7 @@ namespace horizontal_diffusion {
         typedef accessor< 0, enumtype::inout > out;
         typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 1 > > in;
 
-        typedef boost::mpl::vector< out, in > arg_list;
+        typedef boost::mpl::vector2< out, in > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_lap) {
@@ -88,7 +88,7 @@ namespace horizontal_diffusion {
         typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0 > > in;
         typedef accessor< 2, enumtype::in, extent< 0, 1, 0, 0 > > lap;
 
-        typedef boost::mpl::vector< out, in, lap > arg_list;
+        typedef boost::mpl::vector3< out, in, lap > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
@@ -105,7 +105,7 @@ namespace horizontal_diffusion {
         typedef accessor< 1, enumtype::in, extent< 0, 0, 0, 1 > > in;
         typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 1 > > lap;
 
-        typedef boost::mpl::vector< out, in, lap > arg_list;
+        typedef boost::mpl::vector3< out, in, lap > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
@@ -124,7 +124,7 @@ namespace horizontal_diffusion {
         typedef accessor< 3, enumtype::in, extent< 0, 0, -1, 0 > > fly;
         typedef accessor< 4, enumtype::in > coeff;
 
-        typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
+        typedef boost::mpl::vector5< out, in, flx, fly, coeff > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_out) {

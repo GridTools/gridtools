@@ -156,6 +156,11 @@ namespace gridtools {
     */
     template < int_t Index, int_t NDim >
     struct offset_tuple : public offset_tuple< Index - 1, NDim > {
+
+      protected:
+        int_t m_offset;
+
+      public:
         static const int_t n_dim = NDim;
 
         typedef offset_tuple< Index - 1, NDim > super;
@@ -185,7 +190,7 @@ namespace gridtools {
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
-        GT_FUNCTION constexpr offset_tuple(int t, GenericElements const &... x)
+        GT_FUNCTION constexpr offset_tuple(int_t t, GenericElements const &... x)
             : super(x...), m_offset(t) {}
 
         /**@brief constructor taking the dimension class as argument.
@@ -297,9 +302,6 @@ namespace gridtools {
             else
                 super::template increment< Idx >(offset_);
         }
-
-      protected:
-        int_t m_offset;
     };
 
     // specialization

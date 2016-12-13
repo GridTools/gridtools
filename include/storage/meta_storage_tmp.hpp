@@ -196,7 +196,7 @@ namespace gridtools {
                     (steps_ - block_ * tile_ - initial_offsets_[Coordinate] + ((Coordinate == 0) ? minus_i : minus_j)) *
                     basic_type::template strides< Coordinate >(strides_);
             } else {
-                super::template initialize< Coordinate >(steps_, block_, index_, strides_);
+                super::template initialize< Coordinate >(steps_, block_, index_, strides_, initial_offsets_);
             }
         }
 
