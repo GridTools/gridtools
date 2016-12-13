@@ -19,3 +19,4 @@ set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER
 set( TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh )
 set( TEST_MPI_SCRIPT ${CMAKE_BINARY_DIR}/run_mpi_tests.sh )
 set( ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" )
+set( NVCC_CLANG_SPECIFIC_OPTIONS "" CACHE STRING "Options passed to NVCC when compiling with clang as host compiler" )
