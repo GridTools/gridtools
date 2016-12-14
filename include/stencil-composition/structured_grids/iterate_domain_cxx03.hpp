@@ -218,6 +218,14 @@ namespace gridtools {
             return static_cast< const IterateDomainImpl * >(this)->strides_impl();
         }
 
+        /**
+           @brief returns the dimensions as const reference
+        */
+        GT_FUNCTION
+        dims_cached_t const &RESTRICT dims() const {
+            return static_cast< const IterateDomainImpl * >(this)->dims_impl();
+        }
+
       public:
         /**@brief constructor of the iterate_domain struct
 
@@ -728,15 +736,14 @@ namespace gridtools {
         // getting information about the metadata
         typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 
-        pointer< const typename storage_t::storage_info_type > const metadata_ =
-            boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
-
         // error checks
-        GTASSERT(metadata_->size() >
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
+        // GTASSERT(metadata_->size() >
+        //          metadata_->_index(strides().template get< metadata_index_t::value >(),
+        //          expr.first_operand.offsets()));
 
-        GTASSERT(
-            metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()) >= 0);
+        // GTASSERT(
+        //     metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()) >=
+        //     0);
 
         GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim <= storage_t::storage_info_type::space_dimensions),
             "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
@@ -746,9 +753,20 @@ namespace gridtools {
         typename storage_t::value_type *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
 
+        const int_t pointer_offset =
+            (m_index[metadata_index_t::value]) +
+            storage_t::storage_info_type::_index(
+                strides().template get< metadata_index_t::value >(), expr.first_operand.offsets());
+
+        return static_cast< const IterateDomainImpl * >(this)
+            ->template get_value_impl<
+                typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+                Accessor,
+                storage_t >(real_storage_pointer, pointer_offset);
         // returning the value without adding the m_index
-        return *(real_storage_pointer +
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
+        // return *(real_storage_pointer +
+        //          metadata_->_index(strides().template get< metadata_index_t::value >(),
+        //          expr.first_operand.offsets()));
     }
 #endif // defined (CXX11_ENABLED)
 
