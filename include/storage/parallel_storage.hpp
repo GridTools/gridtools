@@ -75,7 +75,7 @@ namespace gridtools {
         struct create;
 
         template < uint_t... Nums >
-        struct create< gt_integer_sequence< Nums... > > {
+        struct create< gt_integer_sequence< uint_t, Nums... > > {
 
             template < typename MetaData, typename Part, typename Grid, typename... Dims >
             MetaData apply(Part part_, Grid grid_, Grid grid_gcl_, uint_t low_b_, uint_t up_b_, Dims... dims_) {
