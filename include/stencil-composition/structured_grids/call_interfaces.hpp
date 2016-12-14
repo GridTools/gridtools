@@ -85,7 +85,7 @@ namespace gridtools {
                 "The first argument must be an iterate_domain or a function_aggregator");
 
             CallerAggregator const &m_caller_aggregator;
-            ReturnType *__restrict__ m_result;
+            ReturnType *RESTRICT m_result;
 
             template < typename Accessor >
             struct accessor_return_type {
@@ -182,7 +182,7 @@ namespace gridtools {
 
             typedef typename boost::fusion::result_of::as_vector< PassedAccessors >::type accessors_list_t;
             CallerAggregator const &m_caller_aggregator;
-            ReturnType *__restrict__ m_result;
+            ReturnType *RESTRICT m_result;
             accessors_list_t const &m_accessors_list;
 
             template < typename Accessor >

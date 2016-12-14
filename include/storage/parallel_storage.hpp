@@ -71,18 +71,6 @@ namespace gridtools {
 
 #ifndef __CUDACC__
 
-        template < typename Seq >
-        struct create;
-
-        template < uint_t... Nums >
-        struct create< gt_integer_sequence< uint_t, Nums... > > {
-
-            template < typename MetaData, typename Part, typename Grid, typename... Dims >
-            MetaData apply(Part part_, Grid grid_, Grid grid_gcl_, uint_t low_b_, uint_t up_b_, Dims... dims_) {
-                return part_.compute_bounds(Nums, grid_, grid_gcl_, low_b_, up_b_, dims_...);
-            }
-        };
-
         /**
            @brief constructor for the parallel meta storage
 
