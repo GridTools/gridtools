@@ -99,7 +99,11 @@
 #define PEDANTIC
 #endif
 
+#if defined( CUDA8 ) || !defined(__CUDACC__)
 #define RESTRICT __restrict__
+#else
+#define RESTRICT
+#endif
 
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1

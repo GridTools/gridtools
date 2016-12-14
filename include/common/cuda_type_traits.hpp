@@ -64,8 +64,13 @@ namespace gridtools {
     };
 
     template < typename T >
-    struct remove_restrict< T RESTRICT > {
-        typedef T type;
+    struct remove_restrict< T *RESTRICT > {
+        typedef T* type;
+    };
+
+    template < typename T >
+    struct remove_restrict< T &RESTRICT > {
+        typedef T& type;
     };
 
     template < typename T >
