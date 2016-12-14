@@ -252,11 +252,13 @@ namespace vertical_advection_dycore {
             p_dcol,
             p_data_col > accessor_list;
 
-// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
-// used, temporary and not
-// It must be noted that the only fields to be passed to the constructor are the non-temporary.
-// The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
-// don't particularly like this)
+        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
+        // that are
+        // used, temporary and not
+        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
+        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
+        // order. (I
+        // don't particularly like this)
         storage_type acol(repository.storage_info(), 0., "acol");
         storage_type bcol(repository.storage_info(), 0., "bcol");
         storage_type ccol(repository.storage_info(), 0., "ccol");
@@ -264,32 +266,29 @@ namespace vertical_advection_dycore {
         storage_type data_col(repository.storage_info(), 0., "data_col");
 
 #ifdef CXX11_ENABLED
-        gridtools::aggregator_type< accessor_list > domain
-            ((p_utens_stage() = repository.utens_stage()),
-             (p_u_stage() = repository.u_stage()),
-             (p_wcon() = repository.wcon()),
-             (p_u_pos() = repository.u_pos()),
-             (p_utens() = repository.utens()),
-             (p_dtr_stage() = repository.dtr_stage()),
-             (p_acol() = acol),
-             (p_bcol() = bcol),
-             (p_ccol() = ccol),
-             (p_dcol() = dcol),
-             (p_data_col() = data_col));
+        gridtools::aggregator_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
+            (p_u_stage() = repository.u_stage()),
+            (p_wcon() = repository.wcon()),
+            (p_u_pos() = repository.u_pos()),
+            (p_utens() = repository.utens()),
+            (p_dtr_stage() = repository.dtr_stage()),
+            (p_acol() = acol),
+            (p_bcol() = bcol),
+            (p_ccol() = ccol),
+            (p_dcol() = dcol),
+            (p_data_col() = data_col));
 #else
-        gridtools::aggregator_type< accessor_list > domain
-            (boost::fusion::make_vector(&repository.utens_stage(),
-                                        &repository.u_stage(),
-                                        &repository.wcon(),
-                                        &repository.u_pos(),
-                                        &repository.utens(),
-                                        &repository.dtr_stage(),
-                                        &acol,
-                                        &bcol,
-                                        &ccol,
-                                        &dcol,
-                                        &data_col
-                ));
+        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
+            &repository.u_stage(),
+            &repository.wcon(),
+            &repository.u_pos(),
+            &repository.utens(),
+            &repository.dtr_stage(),
+            &acol,
+            &bcol,
+            &ccol,
+            &dcol,
+            &data_col));
 #endif
 
         // Definition of the physical dimensions of the problem.
