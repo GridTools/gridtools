@@ -99,7 +99,11 @@
 #define PEDANTIC
 #endif
 
+#ifdef __clang__
+#define RESTRICT __restrict
+#else
 #define RESTRICT __restrict__
+#endif
 
 #define GT_NO_ERRORS 0
 #define GT_ERROR_NO_TEMPS 1
