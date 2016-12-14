@@ -56,6 +56,8 @@ namespace gridtools {
             (is_sequence_of< LocalDomainSequence, is_local_domain >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< LocalDomainSequence >::value > 0), "Internal Error: wrong size");
 
+        // get max extents from first element
+        typedef typename boost::mpl::at_c< LocalDomainSequence, 0 >::type::max_extents_t max_extents_t;
         // get all the storage wrapper lists from all local domains
         typedef typename boost::mpl::transform< LocalDomainSequence, get_storage_wrapper >::type all_storage_wrappers;
         // flatten the vector of vectors to a single vector
@@ -75,7 +77,8 @@ namespace gridtools {
             boost::mpl::push_back< boost::mpl::_1, get_arg_from_storage_wrapper< boost::mpl::_2 > > >::type new_args_t;
 
         // return the new local domain type
-        typedef boost::mpl::vector< local_domain< merged_storage_wrappers, new_args_t, IsStateful > > type;
+        typedef boost::mpl::vector< local_domain< merged_storage_wrappers, new_args_t, max_extents_t, IsStateful > >
+            type;
     };
 
     /**

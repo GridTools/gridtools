@@ -36,8 +36,16 @@
 #pragma once
 
 #include "../compute_extents_metafunctions.hpp"
+#include "../storage_wrapper.hpp"
+#include "../tile.hpp"
 #include "grid_traits_backend_fwd.hpp"
+
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/int.hpp>
+#include <boost/mpl/max_element.hpp>
+#include <boost/mpl/push_back.hpp>
 #include <boost/mpl/quote.hpp>
+#include <boost/mpl/vector.hpp>
 
 #ifdef __CUDACC__
 #include "backend_cuda/grid_traits_cuda.hpp"
@@ -70,7 +78,7 @@ namespace gridtools {
             typedef strgrid::grid_traits_arch< BackendId > type;
         };
 
-        template < typename T, typename Backend, typename StorageWrapper, typename Grid >
+        template < typename T, typename Backend, typename StorageWrapper, typename MaxExtents, typename Grid >
         static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive), T >::type
         instantiate_storage_info(Grid const &grid) {
             // get all the params (size in i,j,k and number of threads in i,j)
@@ -81,7 +89,7 @@ namespace gridtools {
             return T(i_size, j_size, k_size);
         }
 
-        template < typename T, typename Backend, typename StorageWrapper, typename Grid >
+        template < typename T, typename Backend, typename StorageWrapper, typename MaxExtents, typename Grid >
         static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block), T >::type
         instantiate_storage_info(Grid const &grid) {
             // get all the params (size in i,j,k and number of threads in i,j)
@@ -89,12 +97,15 @@ namespace gridtools {
             const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
 
-            return T(((StorageWrapper::tileI_t::s_tile + StorageWrapper::tileI_t::s_minus +
-                          StorageWrapper::tileI_t::s_plus) *
-                         threads_i),
-                ((StorageWrapper::tileJ_t::s_tile + StorageWrapper::tileJ_t::s_minus +
-                     StorageWrapper::tileJ_t::s_plus) *
-                         threads_j),
+            // get the maximum extent information
+            typedef typename boost::mpl::at_c< MaxExtents, 0 >::type max_i_minus_t;
+            typedef typename boost::mpl::at_c< MaxExtents, 1 >::type max_i_plus_t;
+            typedef typename boost::mpl::at_c< MaxExtents, 2 >::type max_j_minus_t;
+            typedef typename boost::mpl::at_c< MaxExtents, 3 >::type max_j_plus_t;
+
+            // create and return the storage info instance
+            return T(((StorageWrapper::tileI_t::s_tile + max_i_minus_t::value + max_i_plus_t::value) * threads_i),
+                ((StorageWrapper::tileJ_t::s_tile + max_j_minus_t::value + max_j_plus_t::value) * threads_j),
                 k_size);
         }
 

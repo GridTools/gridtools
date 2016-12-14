@@ -126,7 +126,11 @@ namespace gridtools {
     /**
      * @brief metafunction that create the mss local domain type
      */
-    template < enumtype::platform BackendId, typename MssComponentsArray, typename StorageWrapperList, bool IsStateful >
+    template < enumtype::platform BackendId,
+        typename MssComponentsArray,
+        typename StorageWrapperList,
+        typename MaxExtents,
+        bool IsStateful >
     struct create_mss_local_domains {
 
         GRIDTOOLS_STATIC_ASSERT(
@@ -135,7 +139,7 @@ namespace gridtools {
         struct get_the_mss_local_domain {
             template < typename T >
             struct apply {
-                typedef mss_local_domain< BackendId, T, StorageWrapperList, IsStateful > type;
+                typedef mss_local_domain< BackendId, T, StorageWrapperList, MaxExtents, IsStateful > type;
             };
         };
 
@@ -148,13 +152,19 @@ namespace gridtools {
         typename MssArray2,
         typename Cond,
         typename StorageWrapperList,
+        typename MaxExtents,
         bool IsStateful >
     struct create_mss_local_domains< BackendId,
         condition< MssArray1, MssArray2, Cond >,
         StorageWrapperList,
+        MaxExtents,
         IsStateful > {
-        typedef typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, IsStateful >::type type1;
-        typedef typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, IsStateful >::type type2;
+        typedef
+            typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, MaxExtents, IsStateful >::type
+                type1;
+        typedef
+            typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, MaxExtents, IsStateful >::type
+                type2;
         typedef condition< type1, type2, Cond > type;
     };
 
@@ -202,8 +212,8 @@ namespace gridtools {
                         all_tmps >,
                     storage_wrapper< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
                         boost::mpl::at< ViewList, boost::mpl::_2 >,
-                        static_int< -1 >,
-                        static_int< -1 > > > > >::type complete_list;
+                        tile< 0, 0, 0 >,
+                        tile< 0, 0, 0 > > > > >::type complete_list;
 
         // filter the list
         typedef
@@ -361,6 +371,22 @@ namespace gridtools {
             typename create_view_fusion_map< DomainType >::data_views_t,
             mss_components_array_t >::type storage_wrapper_list_t;
 
+        // calculate the maximum extents
+        typedef
+            typename boost::mpl::transform< storage_wrapper_list_t, get_tile_from_storage_wrapper< 0 > >::type i_tiles;
+        typedef
+            typename boost::mpl::transform< storage_wrapper_list_t, get_tile_from_storage_wrapper< 1 > >::type j_tiles;
+        typedef boost::mpl::vector4<
+            typename boost::mpl::deref< typename boost::mpl::max_element<
+                boost::mpl::transform_view< i_tiles, get_minus_t_from_tile< boost::mpl::_1 > > >::type >::type,
+            typename boost::mpl::deref< typename boost::mpl::max_element<
+                boost::mpl::transform_view< i_tiles, get_plus_t_from_tile< boost::mpl::_1 > > >::type >::type,
+            typename boost::mpl::deref< typename boost::mpl::max_element<
+                boost::mpl::transform_view< j_tiles, get_minus_t_from_tile< boost::mpl::_1 > > >::type >::type,
+            typename boost::mpl::deref< typename boost::mpl::max_element<
+                boost::mpl::transform_view< j_tiles, get_plus_t_from_tile< boost::mpl::_1 > > >::type >::type >
+            max_extents_t;
+
         // create storage_wrapper_fusion_list
         typedef
             typename boost::fusion::result_of::as_vector< storage_wrapper_list_t >::type storage_wrapper_fusion_list_t;
@@ -369,6 +395,7 @@ namespace gridtools {
         typedef typename create_mss_local_domains< backend_id< Backend >::value,
             mss_components_array_t,
             storage_wrapper_list_t,
+            max_extents_t,
             IsStateful >::type mss_local_domains_t;
 
         // creates a fusion vector of local domains
@@ -400,7 +427,7 @@ namespace gridtools {
         virtual void ready() {
             // instantiate all the temporaries
             boost::mpl::for_each< storage_wrapper_fusion_list_t >(
-                _impl::instantiate_tmps< DomainType, Grid, Backend >(m_domain, m_grid));
+                _impl::instantiate_tmps< DomainType, Grid, Backend, max_extents_t >(m_domain, m_grid));
         }
 
         virtual void steady() {

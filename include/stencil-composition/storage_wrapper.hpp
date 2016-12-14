@@ -124,4 +124,23 @@ namespace gridtools {
         typedef typename boost::mpl::at_c< StorageWrapperList,
             boost::mpl::find< ArgVec, EsfArg >::type::pos::value >::type type;
     };
+
+    template < unsigned Coord >
+    struct get_tile_from_storage_wrapper;
+
+    template <>
+    struct get_tile_from_storage_wrapper< 0 > {
+        template < typename T >
+        struct apply {
+            typedef typename T::tileI_t type;
+        };
+    };
+
+    template <>
+    struct get_tile_from_storage_wrapper< 1 > {
+        template < typename T >
+        struct apply {
+            typedef typename T::tileJ_t type;
+        };
+    };
 }
