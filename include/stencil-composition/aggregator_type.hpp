@@ -216,6 +216,7 @@ namespace gridtools {
         typename boost::enable_if_c< is_any_storage< typename ArgStoragePair0::storage_type >::type::value, void >::type
         assign_pointers(MetaDataSequence &sequence_, ArgStoragePair0 arg0, OtherArgs... other_args) {
             assert(arg0.ptr.get());
+            assert(arg0.ptr.get()->fields()[0].get_cpu_p());
             boost::fusion::at< typename ArgStoragePair0::arg_type::index_type >(m_storage_pointers) = arg0.ptr;
             // storing the value of the pointers in a 'backup' fusion vector
             boost::fusion::at< typename ArgStoragePair0::arg_type::index_type >(m_original_pointers) = arg0.ptr;

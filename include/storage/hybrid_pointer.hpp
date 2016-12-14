@@ -264,7 +264,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        T *get_gpu_p() {
+        T *get_gpu_p() const {
 #ifndef __CUDACC__
             assert(on_device());
 #endif
@@ -272,19 +272,11 @@ namespace gridtools {
         };
 
         GT_FUNCTION
-        T *const get_gpu_p() const {
-#ifndef __CUDACC__
-            assert(on_device());
-#endif
-            return m_gpu_p;
-        };
-
-        GT_FUNCTION
-        T *get_cpu_p() {
+        T *get_cpu_p() const {
 #ifndef __CUDACC__
             assert(on_host());
 #endif
-            return this->m_cpu_p.get();
+            return m_cpu_p.get();
         };
 
         GT_FUNCTION

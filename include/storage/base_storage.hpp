@@ -1,4 +1,4 @@
-/*
+ /*
   GridTools Libraries
 
   Copyright (c) 2016, GridTools Consortium
@@ -94,10 +94,12 @@ namespace gridtools {
         /**
          * @brief the parallel storage calls the empty constructor to do lazy initialization
          */
+        template <typename Bool=bool>
         base_storage(
-            MetaData const *meta_data_, char const *s = "default uninitialized storage", bool do_allocate = true)
+            MetaData const *meta_data_, char const *s = "default uninitialized storage", Bool do_allocate = true)
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
-            if (do_allocate) {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same<Bool, bool>::type::value), "The signature of the storage constructor is either storage(storage_info, \"name\", bool), or storage(storage_info, float, \"name\"). So check the order/type of the arguments");
+    if (do_allocate) {
                 allocate();
             }
         }
@@ -137,6 +139,8 @@ namespace gridtools {
         template < typename FloatType >
         explicit base_storage(MetaData const *meta_data_, FloatType *ptr, char const *s = "externally managed storage")
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same<FloatType, value_type>::type::value),
+                                    "you passed in a pointer to the storage constructor which has a different type than the storage value_type. You have to explicit cast, e.g. storage_type s(sinfo, (double*) ptr )");
             m_fields[0] = pointer_type(ptr, true);
             if (FieldDimension > 1) {
                 allocate(FieldDimension, 1, true);

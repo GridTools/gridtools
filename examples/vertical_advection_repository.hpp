@@ -268,6 +268,8 @@ namespace vertical_advection {
             }
         }
 
+        storage_type::storage_info_type const& storage_info(){ return m_storage_info; }
+
         storage_type &utens_stage() { return utens_stage_; }
         storage_type &wcon() { return wcon_; }
         storage_type &u_pos() { return u_pos_; }

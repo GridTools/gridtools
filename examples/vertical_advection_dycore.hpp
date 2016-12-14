@@ -226,11 +226,17 @@ namespace vertical_advection_dycore {
         typedef arg< 3, storage_type > p_u_pos;
         typedef arg< 4, storage_type > p_utens;
         typedef arg< 5, scalar_storage_type > p_dtr_stage;
-        typedef arg< 6, tmp_storage_type > p_acol;
-        typedef arg< 7, tmp_storage_type > p_bcol;
-        typedef arg< 8, tmp_storage_type > p_ccol;
-        typedef arg< 9, tmp_storage_type > p_dcol;
-        typedef arg< 10, tmp_storage_type > p_data_col;
+        typedef arg< 6, storage_type > p_acol;
+        typedef arg< 7, storage_type > p_bcol;
+        typedef arg< 8, storage_type > p_ccol;
+        typedef arg< 9, storage_type > p_dcol;
+        typedef arg< 10, storage_type > p_data_col;
+
+        // typedef arg< 6, tmp_storage_type > p_acol;
+        // typedef arg< 7, tmp_storage_type > p_bcol;
+        // typedef arg< 8, tmp_storage_type > p_ccol;
+        // typedef arg< 9, tmp_storage_type > p_dcol;
+        // typedef arg< 10, tmp_storage_type > p_data_col;
 
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
@@ -251,22 +257,39 @@ namespace vertical_advection_dycore {
 // It must be noted that the only fields to be passed to the constructor are the non-temporary.
 // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
 // don't particularly like this)
+        storage_type acol(repository.storage_info(), 0., "acol");
+        storage_type bcol(repository.storage_info(), 0., "bcol");
+        storage_type ccol(repository.storage_info(), 0., "ccol");
+        storage_type dcol(repository.storage_info(), 0., "dcol");
+        storage_type data_col(repository.storage_info(), 0., "data_col");
 
-#ifdef CXX11_ENABLE
-        gridtools::aggregator_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
-            (p_u_stage() = repository.u_stage()),
-            (p_wcon() = repository.wcon()),
-            (p_u_pos() = repository.u_pos()),
-            (p_utens() = repository.utens()),
-            (p_dtr_stage() = repository.dtr_stage()));
+#ifdef CXX11_ENABLED
+        gridtools::aggregator_type< accessor_list > domain
+            ((p_utens_stage() = repository.utens_stage()),
+             (p_u_stage() = repository.u_stage()),
+             (p_wcon() = repository.wcon()),
+             (p_u_pos() = repository.u_pos()),
+             (p_utens() = repository.utens()),
+             (p_dtr_stage() = repository.dtr_stage()),
+             (p_acol() = acol),
+             (p_bcol() = bcol),
+             (p_ccol() = ccol),
+             (p_dcol() = dcol),
+             (p_data_col() = data_col));
 #else
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
-            &repository.u_stage(),
-            &repository.wcon(),
-            &repository.u_pos(),
-            &repository.utens(),
-            &repository.dtr_stage()));
-
+        gridtools::aggregator_type< accessor_list > domain
+            (boost::fusion::make_vector(&repository.utens_stage(),
+                                        &repository.u_stage(),
+                                        &repository.wcon(),
+                                        &repository.u_pos(),
+                                        &repository.utens(),
+                                        &repository.dtr_stage(),
+                                        &acol,
+                                        &bcol,
+                                        &ccol,
+                                        &dcol,
+                                        &data_col
+                ));
 #endif
 
         // Definition of the physical dimensions of the problem.
@@ -313,7 +336,6 @@ namespace vertical_advection_dycore {
         vertical_advection->ready();
 
         vertical_advection->steady();
-        domain.clone_to_device();
 
         vertical_advection->run();
 
