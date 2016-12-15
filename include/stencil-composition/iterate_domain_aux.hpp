@@ -385,6 +385,7 @@ namespace gridtools {
             // get the max coordinate of given StorageInfo
             typedef typename boost::mpl::deref< typename boost::mpl::max_element<
                 typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
+
             // get the position
             constexpr int pos = StorageInfo::Layout::template at< Coordinate >();
             // modify the offset in I
@@ -392,7 +393,7 @@ namespace gridtools {
             if (Coordinate < StorageInfo::Layout::length && pos >= 0) {
                 auto stride = (max_t::value < 0)
                                   ? 0
-                                  : ((pos == max_t::value) ? 1 : m_strides.template get< IndexT::value >()[Coordinate]);
+                                  : ((pos == max_t::value) ? 1 : m_strides.template get< IndexT::value >()[pos]);
                 return stride * new_initial_pos;
             }
             return 0;
@@ -413,7 +414,7 @@ namespace gridtools {
             if (Coordinate < StorageInfo::Layout::length && pos >= 0) {
                 auto stride = (max_t::value < 0)
                                   ? 0
-                                  : ((pos == max_t::value) ? 1 : m_strides.template get< IndexT::value >()[Coordinate]);
+                                  : ((pos == max_t::value) ? 1 : m_strides.template get< IndexT::value >()[pos]);
                 return stride * m_initial_pos;
             }
             return 0;
@@ -540,7 +541,7 @@ namespace gridtools {
                     const SInfo * >::type::pos index_t;
 
                 (m_strides_cached.template get< index_t::value >())[ArrayPos::value] =
-                    m_storage_info->template stride< ArrayPos::value >();
+                    m_storage_info->template stride< SInfo::Layout::template find<ArrayPos::value>() >();
             }
         };
 
