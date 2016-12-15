@@ -97,16 +97,14 @@ namespace gridtools {
             const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
 
-            // get the maximum extent information
-            typedef typename boost::mpl::at_c< MaxExtents, 0 >::type max_i_minus_t;
-            typedef typename boost::mpl::at_c< MaxExtents, 1 >::type max_i_plus_t;
-            typedef typename boost::mpl::at_c< MaxExtents, 2 >::type max_j_minus_t;
-            typedef typename boost::mpl::at_c< MaxExtents, 3 >::type max_j_plus_t;
-
             // create and return the storage info instance
-            return T(((StorageWrapper::tileI_t::s_tile + max_i_minus_t::value + max_i_plus_t::value) * threads_i),
-                ((StorageWrapper::tileJ_t::s_tile + max_j_minus_t::value + max_j_plus_t::value) * threads_j),
-                k_size);
+            const int diff_i_minus = grid.direction_i().minus();
+            const int diff_i_plus = grid.direction_i().plus();
+            const int diff_j_minus = grid.direction_j().minus();
+            const int diff_j_plus = grid.direction_j().plus();
+            return T(((StorageWrapper::tileI_t::s_tile + diff_i_minus + diff_i_plus) * threads_i),
+                     ((StorageWrapper::tileJ_t::s_tile + diff_j_minus + diff_j_plus) * threads_j),
+                     k_size);
         }
 
         // index positions of the different dimensions in the layout map (convention)

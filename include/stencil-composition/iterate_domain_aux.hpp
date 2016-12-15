@@ -340,11 +340,12 @@ namespace gridtools {
      * @tparam StridesCached strides cached type
      * @tparam StorageSequence sequence of storages
      */
-    template < uint_t Coordinate, typename Strides, typename LocalDomain, typename ArrayIndex >
+    template < uint_t Coordinate, typename Strides, typename LocalDomain, typename ArrayIndex, typename PEBlockSize >
     struct initialize_index_functor {
       private:
         GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
 
         Strides &RESTRICT m_strides;
         const int_t m_initial_pos;
@@ -381,14 +382,18 @@ namespace gridtools {
             typename StorageInfo,
             typename boost::enable_if_c< BoolT::value, int >::type = 0 >
         GT_FUNCTION unsigned impl(const StorageInfo *storage_info) const {
-            // TODO: additional offset needed in order to avoid unaligned accesses
-            typedef typename boost::mpl::at_c< typename LocalDomain::max_extents_t, 0 >::type max_i_minus_t;
-            typedef typename boost::mpl::at_c< typename LocalDomain::max_extents_t, 2 >::type max_j_minus_t;
-
+            // get the max coordinate of given StorageInfo
+            typedef typename boost::mpl::deref< typename boost::mpl::max_element<
+                typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
+            // get the position
             constexpr int pos = StorageInfo::Layout::template at< Coordinate >();
-            if (Coordinate == 1 || Coordinate == 0) {
-                return ((Coordinate) ? max_j_minus_t::value : max_i_minus_t::value) *
-                       m_strides.template get< IndexT::value >()[Coordinate];
+            // modify the offset in I
+            const int new_initial_pos = m_initial_pos - m_block * ((Coordinate==1) ? PEBlockSize::j_size_t::value : ((Coordinate==0) ? PEBlockSize::i_size_t::value : 0));
+            if (Coordinate < StorageInfo::Layout::length && pos >= 0) {
+                auto stride = (max_t::value < 0)
+                                  ? 0
+                                  : ((pos == max_t::value) ? 1 : m_strides.template get< IndexT::value >()[Coordinate]);
+                return stride * new_initial_pos;
             }
             return 0;
         }

@@ -206,11 +206,11 @@ namespace gridtools {
 
       protected:
         /**
-           @brief returns the array of pointers to the raw data
+           @brief returns the strides as const reference
         */
         GT_FUNCTION
-        data_ptr_cached_t &RESTRICT data_pointer() {
-            return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
+        strides_cached_t const &RESTRICT strides() const {
+            return static_cast< const IterateDomainImpl * >(this)->strides_impl();
         }
 
         /**
@@ -218,13 +218,13 @@ namespace gridtools {
         */
         GT_FUNCTION
         strides_cached_t &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
-
+        
         /**
-           @brief returns the strides as const reference
+           @brief returns the array of pointers to the raw data
         */
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const {
-            return static_cast< const IterateDomainImpl * >(this)->strides_impl();
+        data_ptr_cached_t &RESTRICT data_pointer() {
+            return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
       public:
@@ -320,7 +320,7 @@ namespace gridtools {
         template < ushort_t Coordinate >
         GT_FUNCTION void initialize(uint_t const initial_pos = 0, uint_t const block = 0) {
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
-                initialize_index_functor< Coordinate, strides_cached_t, local_domain_t, array_index_t >(
+                initialize_index_functor< Coordinate, strides_cached_t, local_domain_t, array_index_t, processing_elements_block_size_t >(
                                         strides(), initial_pos, block, m_index));
             static_cast< IterateDomainImpl * >(this)->template initialize_impl< Coordinate >();
         }
