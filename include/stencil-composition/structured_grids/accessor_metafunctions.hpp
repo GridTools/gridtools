@@ -141,6 +141,14 @@ namespace gridtools {
         typedef Expression< typename remap_accessor_type< Arguments, ArgsMap >::type... > type;
     };
 
+/** specialization for the expressions having integer template arguments (like the exponent for the power expression)*/
+    template < typename ArgsMap, int_t IntArgs , template < typename T1 , int_t > class Expression, typename T1>
+    struct remap_accessor_type< Expression< T1, IntArgs >,
+        ArgsMap,
+                                typename boost::enable_if< typename is_expr< Expression< T1, IntArgs > >::type, void >::type > {
+        typedef Expression< typename remap_accessor_type< T1, ArgsMap >::type, IntArgs > type;
+    };
+
     template < typename ArgsMap >
     struct remap_accessor_type< float_type, ArgsMap > {
         // when a leaf is a float don't do anything
