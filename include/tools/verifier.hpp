@@ -116,7 +116,7 @@ namespace gridtools {
                     std::cout << "Error in field dimension " << m_field_id << " and position " << pos
                               << " ; expected : " << expected << " ; actual : " << actual << "  "
                               << std::fabs((expected - actual) / (expected)) << std::endl;
-                    verified = false;
+                    return false;
                 }
             }
             return verified;
@@ -203,7 +203,7 @@ namespace gridtools {
                                     std::cout << "Error in position " << i << " " << j << " " << k
                                               << " ; expected : " << expected << " ; actual : " << actual << "  "
                                               << std::fabs((expected - actual) / (expected)) << std::endl;
-                                    verified = false;
+                                    return false;
                                 }
                             }
                         }
@@ -246,7 +246,7 @@ namespace gridtools {
                                 std::cout << "Error in position " << i << " " << j << " " << k
                                           << " ; expected : " << expected << " ; actual : " << actual << "  "
                                           << std::fabs((expected - actual) / (expected)) << std::endl;
-                                verified = false;
+                                return false;
                             }
                         }
                     }
@@ -279,7 +279,7 @@ namespace gridtools {
                                     std::cout << "Error in position " << i << " " << j << " " << k
                                               << " ; expected : " << expected << " ; actual : " << actual << "  "
                                               << std::fabs((expected - actual) / (expected)) << std::endl;
-                                    verified = false;
+                                    return false;
                                 }
                             }
                         }
