@@ -59,9 +59,14 @@ namespace gridtools {
         /**
         * Reset counters
         */
-        __host__ void reset() {
-            m_total_time = 0.0;
-            static_cast< TimerImpl * >(this)->reset_impl();
+        __host__ void reset() { set(0.0); }
+
+        /**
+        * Reset counters
+        */
+        __host__ void set(double time_ = 0.0) {
+            m_total_time = time_;
+            static_cast< TimerImpl * >(this)->set_impl(time_);
         }
 
         /**
