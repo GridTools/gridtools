@@ -71,7 +71,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, "wrong type");
 
             _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::
-                call_do_method(this->m_iterate_domain);
+                call_do_method(it_domain_);
         }
 
         /*
