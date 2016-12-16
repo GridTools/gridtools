@@ -81,6 +81,18 @@ namespace gridtools {
                 "the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n "
                 "eval(z_field()); \n");
 
+            // dimension/snapshot offsets must be non negative
+            //             GTASSERT(accessor_.template get< 0 >() >= 0);
+
+            // if number of accessor dimensions is equal to the number of space dimensions+1
+            // we have a storage list of snapshots, i.e. one dimensional array of storages:
+            // just return the last offset (get<0>()) + the index of the current data_field in the array of storages
+            // contained in the iterate_domain
+            //
+            // if number of accessor dimensions is larger than the space_dimensions (i.e. normal dimensions + color)
+            // get the last-1 offset, sum it to the last offset times the #snapshots (storage_type::traits::n_width)
+            // sum the index of the current data_field in the array of storages contained in the iterate_domain
+
             return (Accessor::type::n_dim <= metadata_t::space_dimensions + 1
                            ?                               // static if
                            accessor_.template get< 0 >()   // offset for the current snapshot

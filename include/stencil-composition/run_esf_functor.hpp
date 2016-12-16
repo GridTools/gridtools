@@ -63,13 +63,13 @@ namespace gridtools {
         struct call_repeated {
           public:
             GT_FUNCTION
-            static void Do(IterateDomain &it_domain_) {
+            static void call_do_method(IterateDomain &it_domain_) {
 
                 Functor::f_type::Do(
                     *static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
                     Interval());
 
-                call_repeated< ID - 1, Functor, IterateDomain, Interval >::Do(it_domain_);
+                call_repeated< ID - 1, Functor, IterateDomain, Interval >::call_do_method(it_domain_);
             }
         };
 
@@ -77,7 +77,7 @@ namespace gridtools {
         struct call_repeated< 0, Functor, IterateDomain, Interval > {
           public:
             GT_FUNCTION
-            static void Do(IterateDomain &it_domain_) {}
+            static void call_do_method(IterateDomain &it_domain_) {}
         };
     }
 

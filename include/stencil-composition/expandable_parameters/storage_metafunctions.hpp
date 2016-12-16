@@ -33,35 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
-#include "../../gridtools.hpp"
-
+#pragma once
 namespace gridtools {
 
-    template < typename Storage, uint_t Size >
-    struct expandable_parameters;
-
-    // metafunction to access the storage type given the arg
-    template < ushort_t ID, typename T >
-    struct arg2storage< arg< ID, std::vector< pointer< T > > > > {
-        typedef T type;
-    };
-
-    /** metafunction extracting the location type from the storage*/
-    template < typename T >
-    struct get_location_type< std::vector< T > > {
-        typedef typename T::value_type::storage_info_type::index_type type;
-    };
-
-#ifdef CXX11_ENABLED
-    template < typename Sequence, typename Arg >
-    struct insert_if_not_present< Sequence, std::vector< pointer< Arg > > > : insert_if_not_present< Sequence, Arg > {
-        using insert_if_not_present< Sequence, Arg >::insert_if_not_present;
-    };
-
-    /**
-       specialization for expandable parameters
-     */
     template < typename T >
     struct storage_holds_data_field< std::vector< pointer< T > > > : boost::mpl::true_ {};
 
@@ -87,7 +61,17 @@ namespace gridtools {
 
 #endif
 
-#ifdef CXX11_ENABLED
+    template < typename T >
+    struct extract_storage_info_type< std::vector< pointer< T > > > {
+        typedef typename T::storage_info_type type;
+    };
+
+    template < typename T >
+    static typename T::basic_type::storage_info_type const &extract_meta_data(
+        pointer< std::vector< pointer< T > > > &st_) {
+        return (*st_)[0]->meta_data();
+    }
+
     template < typename T, uint_t ID >
     struct is_actual_storage< pointer< storage< expandable_parameters< T, ID > > > >
         : public boost::mpl::bool_< !T::is_temporary > {};
@@ -95,6 +79,5 @@ namespace gridtools {
     template < typename T, ushort_t Dim >
     struct is_temporary_storage< storage< expandable_parameters< T, Dim > > >
         : public boost::mpl::bool_< T::is_temporary > {};
-#endif
 
 } // namespace gridtools

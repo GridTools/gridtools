@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#define NVCC_GCC_53_BUG defined(__CUDACC__) && __GNUC__ == 5 && __GNUC_MINOR__ == 3
+#define GCC_53_BUG __GNUC__ == 5 && __GNUC_MINOR__ == 3
 
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
@@ -99,7 +99,7 @@
 #define PEDANTIC
 #endif
 
-#if defined( CUDA8 ) || !defined(__CUDACC__)
+#if defined(CUDA8) || !defined(__CUDACC__)
 #define RESTRICT __restrict__
 #else
 #define RESTRICT

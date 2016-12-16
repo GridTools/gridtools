@@ -97,7 +97,7 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Accessor const &accessor_) {
-            constexpr const meta_t m_value;
+            constexpr const meta_t s_storage_info;
 
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
@@ -106,16 +106,16 @@ namespace gridtools {
             typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
 
 #ifdef CUDA8
-            typedef static_int< m_value.template strides< 0 >() > check_constexpr_1;
-            typedef static_int< m_value.template strides< 1 >() > check_constexpr_2;
+            typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
+            typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
 #else
             assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
 #endif
 
             // manually aligning the storage
-            const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template strides< 0 >() +
-                                  (thread_pos[1] - jminus::value) * m_value.template strides< 1 >() +
-                                  m_value.index(accessor_);
+            const uint_t extra_ = (thread_pos[0] - iminus::value) * s_storage_info.template strides< 0 >() +
+                                  (thread_pos[1] - jminus::value) * s_storage_info.template strides< 1 >() +
+                                  s_storage_info.index(accessor_);
 
             assert((extra_) < size());
             assert((extra_) >= 0);

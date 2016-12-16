@@ -183,7 +183,6 @@ namespace test_conditional_switches {
         dummy.d2h_update();
 #endif
         result = result && (dummy(0, 0, 0) == 842);
-        std::cout << "dummy is: " << dummy(0, 0, 0) << std::endl;
 
         p = false;
 #ifdef __CUDACC__
@@ -193,7 +192,6 @@ namespace test_conditional_switches {
         comp_->run();
         comp_->finalize();
         result = result && (dummy(0, 0, 0) == 5662);
-        std::cout << "dummy became: " << dummy(0, 0, 0) << std::endl;
 
         return result;
     }

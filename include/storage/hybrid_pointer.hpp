@@ -358,13 +358,14 @@ namespace gridtools {
 
         /** the standard = operator */
         GT_FUNCTION
-        hybrid_pointer operator=(hybrid_pointer const &other) {
+        hybrid_pointer &operator=(hybrid_pointer const &other) {
             m_gpu_p = other.m_gpu_p;
             m_cpu_p = other.m_cpu_p;
             m_pointer_to_use = other.m_pointer_to_use;
             m_size = other.m_size;
             m_allocated = other.m_allocated;
             m_up_to_date = other.m_up_to_date;
+            return *this;
         }
 
       private:

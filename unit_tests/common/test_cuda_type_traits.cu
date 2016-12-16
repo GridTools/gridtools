@@ -59,7 +59,12 @@ TEST(texture_type_traits, cv_int_is_texture_type) {
 
 #ifdef __clang__
 TEST(texture_type_traits, restrict_int_ref_is_texture_type) {
+    // We need this typedef for clang to work as CUDA host compiler
     ASSERT_TRUE(gridtools::is_texture_type< int &RESTRICT >::value);
+}
+
+TEST(texture_type_traits, restrict_int_ptr_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< int *RESTRICT >::value);
 }
 #endif
 
