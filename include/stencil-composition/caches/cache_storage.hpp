@@ -173,9 +173,9 @@ namespace gridtools {
             // assert(index(thread_pos, offset.offsets()) < storage_size_t::value);
             // assert(index(thread_pos, offset.offsets()) >= 0);
 
-            return m_values[(thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value) *
+            return m_values[(thread_pos[0] + offset.template get< Offset::super::n_dim - 1 >() - iminus::value) *
                                 i_stride_t::value +
-                            (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value) *
+                            (thread_pos[1] + offset.template get< Offset::super::n_dim - 2 >() - jminus::value) *
                                 j_stride_t::value];
         }
 
