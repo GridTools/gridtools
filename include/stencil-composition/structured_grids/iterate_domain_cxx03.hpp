@@ -749,24 +749,15 @@ namespace gridtools {
             "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
             "defining the placeholder.");
 
+
         // casting the storage pointer from void* to the sotrage value_type
         typename storage_t::value_type *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
 
-        const int_t pointer_offset =
-            (m_index[metadata_index_t::value]) +
-            storage_t::storage_info_type::_index(
-                strides().template get< metadata_index_t::value >(), expr.first_operand.offsets());
-
-        return static_cast< const IterateDomainImpl * >(this)
-            ->template get_value_impl<
-                typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
-                Accessor,
-                storage_t >(real_storage_pointer, pointer_offset);
         // returning the value without adding the m_index
-        // return *(real_storage_pointer +
-        //          metadata_->_index(strides().template get< metadata_index_t::value >(),
-        //          expr.first_operand.offsets()));
+        return *(real_storage_pointer +
+                 storage_t::storage_info_type::_index(
+                     strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
     }
 #endif // defined (CXX11_ENABLED)
 
