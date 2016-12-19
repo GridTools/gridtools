@@ -82,6 +82,8 @@ namespace gridtools {
             for (int c = halo_minus; c < size - halo_plus; ++c) {
                 array< uint_t, NCoord + 1 > new_pos = pos.prepend_dim(c);
                 verified = verified & next_loop(grid_, new_pos);
+                if(!verified)
+                    return verified;
             }
             return verified;
         }
@@ -154,6 +156,8 @@ namespace gridtools {
             array< uint_t, 1 > new_pos(c);
 #endif
             verified = verified & next_loop(grid_, new_pos);
+            if(!verified)
+                return verified;
         }
         return verified;
     }
