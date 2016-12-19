@@ -88,7 +88,7 @@ namespace gridtools {
                 >::type >::type layout_t;
 
         GT_FUNCTION
-        explicit constexpr cache_storage() : m_values{0} {}
+        explicit constexpr cache_storage() {}
 
         typedef typename _impl::compute_meta_storage< layout_t, plus_t, minus_t, tiles_t, storage_t >::type meta_t;
 
@@ -173,8 +173,10 @@ namespace gridtools {
             // assert(index(thread_pos, offset.offsets()) < storage_size_t::value);
             // assert(index(thread_pos, offset.offsets()) >= 0);
 
-            return m_values[(thread_pos[0] + offset.template get< 2 >() - iminus::value) * i_stride_t::value +
-                            (thread_pos[1] + offset.template get< 1 >() - jminus::value) * j_stride_t::value];
+            return m_values[(thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value) *
+                                i_stride_t::value +
+                            (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value) *
+                                j_stride_t::value];
         }
 
         value_type m_values[storage_size_t::value];
