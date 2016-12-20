@@ -458,8 +458,10 @@ namespace gridtools {
     // are within the halo that was defined when creating the grid.
     template < typename IM, typename IP, typename JM, typename JP, typename Grid >
     bool check_grid_against_extents(Grid const &grid) {
-        return (IM::value >= -grid.direction_i().minus()) && (IP::value <= grid.direction_i().plus()) &&
-               (JM::value >= -grid.direction_j().minus()) && (JP::value <= grid.direction_j().plus());
+        return (IM::value >= -static_cast< int >(grid.direction_i().minus())) &&
+               (IP::value <= static_cast< int >(grid.direction_i().plus())) &&
+               (JM::value >= -static_cast< int >(grid.direction_j().minus())) &&
+               (JP::value <= static_cast< int >(grid.direction_j().plus()));
     }
 
     /**

@@ -173,10 +173,4 @@ namespace gridtools {
             boost::mpl::plus< typename Extent1::kplus, typename Extent2::kplus >::type::value > type;
     };
 
-    template < typename T >
-    struct get_extent_vec_t {
-        GRIDTOOLS_STATIC_ASSERT(is_extent< T >::value, "Given type is not an extent");
-        typedef typename T::extent_vec_t type;
-    };
-
 } // namespace gridtools
