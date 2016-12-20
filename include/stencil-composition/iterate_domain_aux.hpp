@@ -389,7 +389,10 @@ namespace gridtools {
             // get the position
             constexpr int pos = StorageInfo::Layout::template at< Coordinate >();
             // modify the offset in I
-            const int new_initial_pos = m_initial_pos - m_block * ((Coordinate==1) ? PEBlockSize::j_size_t::value : ((Coordinate==0) ? PEBlockSize::i_size_t::value : 0));
+            const int new_initial_pos =
+                m_initial_pos -
+                m_block * ((Coordinate == 1) ? PEBlockSize::j_size_t::value
+                                             : ((Coordinate == 0) ? PEBlockSize::i_size_t::value : 0));
             if (Coordinate < StorageInfo::Layout::length && pos >= 0) {
                 auto stride = (max_t::value < 0)
                                   ? 0
@@ -541,7 +544,7 @@ namespace gridtools {
                     const SInfo * >::type::pos index_t;
 
                 (m_strides_cached.template get< index_t::value >())[ArrayPos::value] =
-                    m_storage_info->template stride< SInfo::Layout::template find<ArrayPos::value>() >();
+                    m_storage_info->template stride< (SInfo::Layout::template find< ArrayPos::value >()) >();
             }
         };
 

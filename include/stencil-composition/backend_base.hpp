@@ -150,8 +150,7 @@ namespace gridtools {
             Method to extract a storage_info pointer from a metadata_set
          */
         template < typename T, typename AggregatorType >
-        static auto extract_storage_info_ptrs(AggregatorType const &aggregator)
-            -> decltype(aggregator.get_metadata_set().template get< T >().get()) {
+        static typename T::value_type *extract_storage_info_ptrs(AggregatorType const &aggregator) {
             return backend_traits_t::template extract_storage_info_ptr(
                 aggregator.get_metadata_set().template get< T >().get());
         }
