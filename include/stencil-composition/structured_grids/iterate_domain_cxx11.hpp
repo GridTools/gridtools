@@ -249,12 +249,9 @@ namespace gridtools {
         */
         template < typename BackendType >
         GT_FUNCTION void assign_storage_pointers() {
-            const uint_t EU_id_i = BackendType::processing_element_i();
-            const uint_t EU_id_j = BackendType::processing_element_j();
-
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 assign_storage_ptrs< BackendType, data_ptr_cached_t, local_domain_t, processing_elements_block_size_t >(
-                                        data_pointer(), local_domain.m_local_storage_info_ptrs, EU_id_i, EU_id_j));
+                                        data_pointer(), local_domain.m_local_storage_info_ptrs));    
         }
 
         /**

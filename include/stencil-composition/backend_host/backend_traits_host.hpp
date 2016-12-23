@@ -150,6 +150,35 @@ namespace gridtools {
         };
 
         /**
+           index is the index in the array of field pointers, as defined in the base_storage
+
+           The EU stands for ExecutionUnit (thich may be a thread or a group of
+           threads. There are potentially two ids, one over i and one over j, since
+           our execution model is parallel on (i,j). Defaulted to 1.
+
+           We only use the offset in i at this stage. Why?
+            __ __   Here we have two blocks. No matter what the halo is we want
+           |  |  |  to end up in the left top position of each element,
+           |__|__|  and therefore we don't consider the j offset at the moment.
+                    The real offset is the offset calculated here + offset halo i + offset halo j!
+        */
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo>
+        static typename boost::enable_if_c<Tmp, int>::type 
+        fields_offset(StorageInfo const* sinfo) {
+            typedef typename StorageInfo::Layout layout_t;
+            typedef typename boost::mpl::at_c< typename LocalDomain::max_extents_t, 0 >::type max_i_minus_t;
+            typedef typename boost::mpl::at_c< typename LocalDomain::max_extents_t, 1 >::type max_i_plus_t;
+            const uint_t i = processing_element_i();
+            return sinfo->template stride<0>() * ((max_i_minus_t::value + PEBlockSize::i_size_t::value + max_i_plus_t::value) * i);
+        }
+
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo>
+        static typename boost::enable_if_c<!Tmp, int>::type 
+        fields_offset(StorageInfo const* sinfo) {
+            return 0;
+        }
+
+        /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss
          * @tparam RunFunctorArgs run functor arguments

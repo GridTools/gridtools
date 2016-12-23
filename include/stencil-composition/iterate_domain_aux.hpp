@@ -445,43 +445,11 @@ namespace gridtools {
 
         DataPtrCached RESTRICT &m_data_ptr_cached;
         storage_info_ptrs_t const RESTRICT &m_storageinfo_fusion_list;
-        const uint_t m_EU_id_i;
-        const uint_t m_EU_id_j;
 
         GT_FUNCTION assign_storage_ptrs(DataPtrCached RESTRICT &data_ptr_cached,
-            storage_info_ptrs_t const RESTRICT &storageinfo_fusion_list,
-            const uint_t EU_id_i,
-            const uint_t EU_id_j)
-            : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list),
-              m_EU_id_i(EU_id_i), m_EU_id_j(EU_id_j) {}
-
-        /**
-           index is the index in the array of field pointers, as defined in the base_storage
-
-           The EU stands for ExecutionUnit (thich may be a thread or a group of
-           threads. There are potentially two ids, one over i and one over j, since
-           our execution model is parallel on (i,j). Defaulted to 1.
-
-           We only use the offset in i at this stage. Why?
-            __ __   Here we have two blocks. No matter what the halo is we want
-           |  |  |  to end up in the left top position of each element,
-           |__|__|  and therefore we don't consider the j offset at the moment.
-                    The real offset is the offset calculated here + offset halo i + offset halo j!
-        */
-        template < typename StorageInfo, bool IsTmp, typename boost::enable_if_c< IsTmp, int >::type = 0 >
-        GT_FUNCTION uint_t fields_offset(const StorageInfo *sinfo) const {
-            typedef typename StorageInfo::Layout layout_t;
-            typedef typename boost::mpl::at_c< typename LocalDomain::max_extents_t, 0 >::type max_i_minus_t;
-            typedef typename boost::mpl::at_c< typename LocalDomain::max_extents_t, 1 >::type max_i_plus_t;
-
-            return (sinfo->template stride< 0 >() *
-                    (PEBlockSize::i_size_t::value + max_i_minus_t::value + max_i_plus_t::value) * m_EU_id_i);
-        }
-
-        template < typename StorageInfo, bool IsTmp, typename boost::enable_if_c< !IsTmp, int >::type = 0 >
-        GT_FUNCTION uint_t fields_offset(const StorageInfo *sinfo) const {
-            return 0;
-        }
+            storage_info_ptrs_t const RESTRICT &storageinfo_fusion_list)
+            : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list)
+        {}
 
         template < typename FusionPair,
             typename Storage = typename boost::fusion::result_of::first< FusionPair >::type::storage_t >
@@ -496,8 +464,7 @@ namespace gridtools {
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const typename storage_wrapper_t::storage_info_t * >::type::pos si_index_t;
 
-            const int offset =
-                fields_offset< typename storage_wrapper_t::storage_info_t, storage_wrapper_t::is_temporary >(
+            const int offset = Backend::template fields_offset<LocalDomain, PEBlockSize, storage_wrapper_t::is_temporary>(
                     boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
             for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i) {
                 m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i] = sw.second[i] + offset;
