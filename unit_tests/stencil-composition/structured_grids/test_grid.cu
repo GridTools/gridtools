@@ -33,35 +33,30 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "../grid_base.hpp"
-#include "../common/gpu_clone.hpp"
 
-namespace gridtools {
+#include "test_grid.cpp"
 
-    template < typename Axis, typename Partitioner = partitioner_dummy >
-    struct grid : public grid_base< Axis, Partitioner >, public clonable_to_gpu< grid< Axis, Partitioner > > {
-        GT_FUNCTION
-        explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : grid_base< Axis, Partitioner >(direction_i, direction_j) {}
-
-        template < typename ParallelStorage >
-        GT_FUNCTION explicit grid(const Partitioner &part_, ParallelStorage const &storage_)
-            : grid_base< Axis, Partitioner >(part_, storage_) {}
-
-        GT_FUNCTION grid(const grid< Axis, Partitioner > &other) : grid_base< Axis, Partitioner >(other) {}
-
-        // TODO should be removed (use ctor with halo_descriptor)
-        GT_FUNCTION
-        explicit grid(uint_t *i, uint_t *j) : grid_base< Axis, Partitioner >(i, j) {}
-    };
-
-    template < typename Grid >
-    struct is_grid : boost::mpl::false_ {};
-
+namespace {
     template < typename Axis >
-    struct is_grid< grid< Axis > > : boost::mpl::true_ {};
+    __global__ void test_copied_grid_on_device(grid< Axis > *expect, grid< Axis > *actual, bool *result) {
+        *result = test_grid_eq(*expect, *actual);
+    }
+}
 
-    template < typename Axis, typename Partitioner >
-    struct is_grid< grid< Axis, Partitioner > > : boost::mpl::true_ {};
+TEST_F(test_grid_copy_ctor, copy_on_device) {
+    grid< axis > copy(grid_);
+
+    grid_.clone_to_device();
+    copy.clone_to_device();
+
+    bool result;
+    bool *resultDevice;
+    cudaMalloc(&resultDevice, sizeof(bool));
+
+    test_copied_grid_on_device<<< 1, 1 >>>(grid_.device_pointer(), copy.device_pointer(), resultDevice);
+
+    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
+
+    ASSERT_NE(grid_.device_pointer(), copy.device_pointer());
+    ASSERT_TRUE(result);
 }

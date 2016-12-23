@@ -33,35 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "../grid_base.hpp"
-#include "../common/gpu_clone.hpp"
 
-namespace gridtools {
+#include "stencil-composition/structured_grids/grid.hpp"
 
-    template < typename Axis, typename Partitioner = partitioner_dummy >
-    struct grid : public grid_base< Axis, Partitioner >, public clonable_to_gpu< grid< Axis, Partitioner > > {
-        GT_FUNCTION
-        explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : grid_base< Axis, Partitioner >(direction_i, direction_j) {}
+using namespace gridtools;
 
-        template < typename ParallelStorage >
-        GT_FUNCTION explicit grid(const Partitioner &part_, ParallelStorage const &storage_)
-            : grid_base< Axis, Partitioner >(part_, storage_) {}
-
-        GT_FUNCTION grid(const grid< Axis, Partitioner > &other) : grid_base< Axis, Partitioner >(other) {}
-
-        // TODO should be removed (use ctor with halo_descriptor)
-        GT_FUNCTION
-        explicit grid(uint_t *i, uint_t *j) : grid_base< Axis, Partitioner >(i, j) {}
-    };
-
-    template < typename Grid >
-    struct is_grid : boost::mpl::false_ {};
-
-    template < typename Axis >
-    struct is_grid< grid< Axis > > : boost::mpl::true_ {};
-
-    template < typename Axis, typename Partitioner >
-    struct is_grid< grid< Axis, Partitioner > > : boost::mpl::true_ {};
+template < typename Axis >
+GT_FUNCTION bool test_grid_eq(grid< Axis > &expect, grid< Axis > &actual) {
+    bool result = expect.direction_i() == actual.direction_i();
+    result &= expect.direction_j() == actual.direction_j();
+    for (int i = 0; i < expect.value_list.size(); ++i) {
+        result &= expect.value_list[i] == actual.value_list[i];
+    }
+    return result;
 }
