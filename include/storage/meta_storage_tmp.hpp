@@ -192,9 +192,10 @@ namespace gridtools {
             // no blocking along k
             if ((Coordinate == 0 || Coordinate == 1) && layout::template at_< Coordinate >::value >= 0) {
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
-                *index_ +=
-                    (steps_ - block_ * tile_ - initial_offsets_[Coordinate] + ((Coordinate == 0) ? minus_i : minus_j)) *
-                    basic_type::template strides< Coordinate >(strides_);
+                uint_t minus_ = ((Coordinate == 0) ? minus_i : minus_j);
+                uint_t plus_ = ((Coordinate == 0) ? plus_i : plus_j);
+                *index_ += (steps_ - block_ * (tile_ + minus_ + plus_) - initial_offsets_[Coordinate] + minus_) *
+                           basic_type::template strides< Coordinate >(strides_);
             } else {
                 super::template initialize< Coordinate >(steps_, block_, index_, strides_, initial_offsets_);
             }

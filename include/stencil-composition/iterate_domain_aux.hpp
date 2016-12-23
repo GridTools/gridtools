@@ -298,6 +298,8 @@ If you are not using generic accessors then you are using an unsupported storage
         array< uint_t, 3 > const &m_initial_offsets;
 
         ArrayIndex &RESTRICT m_index_array;
+
+      private:
         initialize_index_functor();
 
       public:
