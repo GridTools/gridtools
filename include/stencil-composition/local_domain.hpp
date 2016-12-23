@@ -61,6 +61,32 @@
 
 namespace gridtools {
 
+    namespace {
+        template < class T, size_t N >
+        constexpr size_t get_size(T (&)[N]) {
+            return N;
+        }
+
+        template < typename T, unsigned N >
+        GT_FUNCTION typename boost::enable_if_c< (N == 0), void >::type copy_ptrs(T &t, T const &other) {
+            auto &left = boost::fusion::at_c< N >(t).second;
+            auto &right = boost::fusion::at_c< N >(other).second;
+            for (unsigned i = 0; i < get_size(left); ++i) {
+                left[i] = right[i];
+            }
+        }
+
+        template < typename T, unsigned N = (boost::mpl::size< T >::value - 1) >
+        GT_FUNCTION typename boost::enable_if_c< (N > 0), void >::type copy_ptrs(T &t, T const &other) {
+            auto &left = boost::fusion::at_c< N >(t).second;
+            auto &right = boost::fusion::at_c< N >(other).second;
+            for (unsigned i = 0; i < get_size(left); ++i) {
+                left[i] = right[i];
+            }
+            copy_ptrs< T, N - 1 >(t, other);
+        }
+    }
+
     /**
      * This is the base class for local_domains to extract the proper iterators/storages from the full domain
      * to adapt it for a particular functor. There is one version which provide grid to the functor
@@ -145,26 +171,8 @@ namespace gridtools {
 
         __device__ local_domain_base(local_domain_base const &other)
             : m_local_storage_info_ptrs(other.m_local_storage_info_ptrs) {
-            boost::fusion::for_each(m_local_data_ptrs, copy_ptr< data_ptr_fusion_map >(other.m_local_data_ptrs));
+            copy_ptrs(m_local_data_ptrs, other.m_local_data_ptrs);
         }
-
-        template < typename V >
-        struct copy_ptr {
-            V const &ptrs;
-            GT_FUNCTION copy_ptr(V const &v) : ptrs(v) {}
-
-            template < class T, size_t N >
-            constexpr size_t get_size(T (&)[N]) {
-                return N;
-            }
-
-            template < typename T >
-            GT_FUNCTION void operator()(T &t) const {
-                typedef typename boost::fusion::result_of::first< T >::type key_t;
-                for (unsigned i = 0; i < get_size(t.second); ++i)
-                    t.second[i] = boost::fusion::at_key< key_t >(ptrs)[i];
-            }
-        };
 
         struct print_local_storage {
             std::ostream &out_s;
