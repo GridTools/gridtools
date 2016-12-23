@@ -34,10 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../../common/gpu_clone.hpp"
+#include "../loopintervals.hpp"
 #include "storage/partitioner.hpp"
-#include "stencil-composition/axis.hpp"
 
 namespace gridtools {
+    namespace enumtype_axis {
+        // TODO should be removed together with the ctors using it
+        enum coordinate_argument { minus, plus, begin, end, length };
+    } // namespace enumtype_axis
+    using namespace enumtype_axis;
 
     template < typename Axis, typename Partitioner = partitioner_dummy >
     struct grid : public clonable_to_gpu< grid< Axis, Partitioner > > {

@@ -41,6 +41,7 @@
 #include <boost/mpl/range_c.hpp>
 #include "level.hpp"
 #include "../common/host_device.hpp"
+#include "interval_metafunctions.hpp"
 
 namespace gridtools {
     /**

@@ -33,37 +33,57 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include <boost/mpl/minus.hpp>
-#include <boost/mpl/plus.hpp>
-#include "loopintervals.hpp"
-#include "../common/halo_descriptor.hpp"
-#include "../common/gpu_clone.hpp"
-#include "storage/partitioner.hpp"
-/**@file
-@brief file containing the size of the horizontal domain
+#include "gtest/gtest.h"
 
-The domain is currently described in terms of 2 horiozntal axis of type \ref gridtools::halo_descriptor , and the
-vertical axis bounds which are treated separately.
-TODO This should be easily generalizable to arbitrary dimensions
-*/
-namespace gridtools {
-    template < typename MinLevel, typename MaxLevel >
-    struct make_axis {
-        typedef interval< MinLevel, MaxLevel > type;
-    };
+#include "stencil-composition/interval.hpp"
 
-    template < typename Axis, uint_t I >
-    struct extend_by {
-        typedef interval< level< Axis::FromLevel::Splitter::value, Axis::FromLevel::Offset::value - 1 >,
-            level< Axis::ToLevel::Splitter::value, Axis::ToLevel::Offset::value + 1 > > type;
-    };
+using namespace gridtools;
 
-    namespace enumtype_axis {
-        enum coordinate_argument { minus, plus, begin, end, length };
-    } // namespace enumtype_axis
+TEST(test_level, leq) {
+    using lower_level = level< 0, -1 >;
+    using greater_level = level< 1, 1 >;
 
-    using namespace enumtype_axis;
+    ASSERT_TRUE((level_leq< lower_level, greater_level >::value));
+    ASSERT_FALSE((level_leq< greater_level, lower_level >::value));
+}
 
-} // namespace gridtools
+TEST(test_level, leq_same_splitter) {
+    using lower_level = level< 1, -1 >;
+    using greater_level = level< 1, 1 >;
+
+    ASSERT_TRUE((level_leq< lower_level, greater_level >::value));
+    ASSERT_FALSE((level_leq< greater_level, lower_level >::value));
+}
+
+TEST(test_level, leq_equal_levels) {
+    using level1 = level< 1, -1 >;
+    using level2 = level1;
+
+    ASSERT_TRUE((level_leq< level1, level2 >::value));
+    ASSERT_TRUE((level_leq< level2, level1 >::value));
+}
+
+TEST(test_level, lt) {
+    using lower_level = level< 0, -1 >;
+    using greater_level = level< 1, 1 >;
+
+    ASSERT_TRUE((level_lt< lower_level, greater_level >::value));
+    ASSERT_FALSE((level_lt< greater_level, lower_level >::value));
+}
+
+TEST(test_level, lt_equal_levels) {
+    using level1 = level< 1, -1 >;
+    using level2 = level1;
+
+    ASSERT_FALSE((level_lt< level1, level2 >::value));
+    ASSERT_FALSE((level_lt< level2, level1 >::value));
+}
+
+TEST(test_level, geq) {
+    using lower_level = level< 0, -1 >;
+    using greater_level = level< 1, 1 >;
+
+    ASSERT_TRUE((level_geq< greater_level, lower_level >::value));
+    ASSERT_FALSE((level_geq< lower_level, greater_level >::value));
+}

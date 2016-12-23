@@ -35,7 +35,15 @@
 */
 #pragma once
 
+#include "../level.hpp"
+#include "../interval.hpp"
+
 namespace gridtools {
+    namespace enumtype_axis {
+        // TODO should be removed together with the ctors using it
+        enum coordinate_argument { minus, plus, begin, end, length };
+    } // namespace enumtype_axis
+    using namespace enumtype_axis;
 
     template < typename Axis >
     struct grid_cg {
