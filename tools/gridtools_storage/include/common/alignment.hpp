@@ -36,6 +36,7 @@
 
 #pragma once
 
+#include "defs.hpp"
 #include "nano_array.hpp"
 
 namespace gridtools {
@@ -59,16 +60,16 @@ namespace gridtools {
             : m_initial_offset(offset), m_unaligned_dims(dims), m_unaligned_strides(strides) {}
 
         template < unsigned Coord >
-        unsigned unaligned_dim() {
+        GT_FUNCTION unsigned unaligned_dim() {
             return m_unaligned_dims.at[Coord];
         }
 
         template < unsigned Coord >
-        unsigned unaligned_stride() {
+        GT_FUNCTION unsigned unaligned_stride() {
             return m_unaligned_strides[Coord];
         }
 
-        constexpr unsigned get_initial_offset() const {
+        GT_FUNCTION constexpr unsigned get_initial_offset() const {
             return m_initial_offset;
         }
     };
@@ -81,7 +82,7 @@ namespace gridtools {
         constexpr alignment_impl(T... t)
             : m_initial_offset(0) {}
 
-        constexpr unsigned get_initial_offset() const {
+        GT_FUNCTION constexpr unsigned get_initial_offset() const {
             return m_initial_offset;
         }
     };
