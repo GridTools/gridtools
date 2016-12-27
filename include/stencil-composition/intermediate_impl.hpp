@@ -349,12 +349,15 @@ namespace gridtools {
 
             check_view_validity(AggregatorType const &aggregator) : m_aggregator(aggregator), m_valid(true) {}
 
-            template < typename T >
+            template < typename T, typename boost::disable_if< is_tmp_arg<typename boost::fusion::result_of::first< T >::type>, int >::type = 0 >
             void operator()(T const &v) const {
                 auto ds =
                     m_aggregator.template get_arg_storage_pair< typename boost::fusion::result_of::first< T >::type >();
                 m_valid &= valid(*(ds.ptr), v.second);
             }
+
+            template < typename T, typename boost::enable_if< is_tmp_arg<typename boost::fusion::result_of::first< T >::type>, int >::type = 0 >
+            void operator()(T const &v) const { }
 
             bool is_valid() const { return m_valid; }
         };
