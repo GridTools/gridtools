@@ -150,11 +150,7 @@ namespace gridtools {
         };
 
         /**
-           index is the index in the array of field pointers, as defined in the base_storage
-
-           The EU stands for ExecutionUnit (thich may be a thread or a group of
-           threads. There are potentially two ids, one over i and one over j, since
-           our execution model is parallel on (i,j). Defaulted to 1.
+           Static method in order to calculate the field offset. 
 
            We only use the offset in i at this stage. Why?
             __ __   Here we have two blocks. No matter what the halo is we want
@@ -162,19 +158,19 @@ namespace gridtools {
            |__|__|  and therefore we don't consider the j offset at the moment.
                     The real offset is the offset calculated here + offset halo i + offset halo j!
         */
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo, typename Grid>
         static typename boost::enable_if_c<Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo) {
+        fields_offset(StorageInfo const* sinfo, Grid const RESTRICT &grid) {
             typedef typename StorageInfo::Layout layout_t;
-            typedef typename boost::mpl::at_c< typename LocalDomain::max_extents_t, 0 >::type max_i_minus_t;
-            typedef typename boost::mpl::at_c< typename LocalDomain::max_extents_t, 1 >::type max_i_plus_t;
             const uint_t i = processing_element_i();
-            return sinfo->template stride<0>() * ((max_i_minus_t::value + PEBlockSize::i_size_t::value + max_i_plus_t::value) * i);
+            const int diff_i_minus = grid.direction_i().minus();
+            const int diff_i_plus = grid.direction_i().plus();
+            return sinfo->template stride<0>() * ((diff_i_minus + PEBlockSize::i_size_t::value + diff_i_plus) * i);
         }
 
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo, typename Grid>
         static typename boost::enable_if_c<!Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo) {
+        fields_offset(StorageInfo const* sinfo, Grid const RESTRICT &grid) {
             return 0;
         }
 

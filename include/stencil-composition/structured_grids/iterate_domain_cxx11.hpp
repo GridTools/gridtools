@@ -247,11 +247,11 @@ namespace gridtools {
             threasd. There are potentially two ids, one over i and one over j, since
             our execution model is parallel on (i,j). Defaulted to 1.
         */
-        template < typename BackendType >
-        GT_FUNCTION void assign_storage_pointers() {
+        template < typename BackendType, typename Grid >
+        GT_FUNCTION void assign_storage_pointers(Grid const RESTRICT& grid) {
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
-                assign_storage_ptrs< BackendType, data_ptr_cached_t, local_domain_t, processing_elements_block_size_t >(
-                                        data_pointer(), local_domain.m_local_storage_info_ptrs));    
+                assign_storage_ptrs< BackendType, data_ptr_cached_t, local_domain_t, processing_elements_block_size_t, Grid >(
+                                        data_pointer(), local_domain.m_local_storage_info_ptrs, grid));
         }
 
         /**

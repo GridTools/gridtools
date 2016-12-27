@@ -382,6 +382,7 @@ namespace gridtools {
             typename StorageInfo,
             typename boost::enable_if_c< BoolT::value, int >::type = 0 >
         GT_FUNCTION unsigned impl(const StorageInfo *storage_info) const {
+            //return impl<boost::mpl::false_, IndexT, StorageInfo>(storage_info);
             // get the max coordinate of given StorageInfo
             typedef typename boost::mpl::deref< typename boost::mpl::max_element<
                 typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
@@ -389,6 +390,7 @@ namespace gridtools {
             // get the position
             constexpr int pos = StorageInfo::Layout::template at< Coordinate >();
             // modify the offset in I
+
             const int new_initial_pos =
                 m_initial_pos -
                 m_block * ((Coordinate == 1) ? PEBlockSize::j_size_t::value
@@ -436,7 +438,7 @@ namespace gridtools {
      * @tparam LocalDomain local domain type
      * @tparam PEBlockSize the processing elements block size
      * */
-    template < typename Backend, typename DataPtrCached, typename LocalDomain, typename PEBlockSize >
+    template < typename Backend, typename DataPtrCached, typename LocalDomain, typename PEBlockSize, typename Grid >
     struct assign_storage_ptrs {
 
         GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached< DataPtrCached >::value), "Error: wrong type");
@@ -445,10 +447,12 @@ namespace gridtools {
 
         DataPtrCached RESTRICT &m_data_ptr_cached;
         storage_info_ptrs_t const RESTRICT &m_storageinfo_fusion_list;
+        Grid const RESTRICT &m_grid;
 
         GT_FUNCTION assign_storage_ptrs(DataPtrCached RESTRICT &data_ptr_cached,
-            storage_info_ptrs_t const RESTRICT &storageinfo_fusion_list)
-            : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list)
+            storage_info_ptrs_t const RESTRICT &storageinfo_fusion_list,
+            Grid const& grid)
+            : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list), m_grid(grid)
         {}
 
         template < typename FusionPair,
@@ -465,7 +469,7 @@ namespace gridtools {
                 const typename storage_wrapper_t::storage_info_t * >::type::pos si_index_t;
 
             const int offset = Backend::template fields_offset<LocalDomain, PEBlockSize, storage_wrapper_t::is_temporary>(
-                    boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
+                    boost::fusion::at< si_index_t >(m_storageinfo_fusion_list), m_grid);
             for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i) {
                 m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i] = sw.second[i] + offset;
             }
