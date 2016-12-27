@@ -35,11 +35,13 @@
 */
 #pragma once
 
+#include "defs.hpp"
+
 namespace gridtools {
 
     template < typename T, unsigned N >
     struct nano_array {
         const T value[N];
-        constexpr T operator[](unsigned I) const { return value[I]; }
+        GT_FUNCTION constexpr T operator[](unsigned I) const { return value[I]; }
     };
 }

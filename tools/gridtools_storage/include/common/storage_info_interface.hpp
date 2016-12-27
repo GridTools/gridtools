@@ -41,6 +41,7 @@
 
 #include <boost/type_traits.hpp>
 
+#include "defs.hpp"
 #include "layout_map.hpp"
 #include "halo.hpp"
 #include "nano_array.hpp"
@@ -80,39 +81,39 @@ namespace gridtools {
 
         constexpr storage_info_interface(storage_info_interface const &other) = default;
 
-        constexpr unsigned size_part(unsigned start = Layout::length - 1) const {
+        GT_FUNCTION constexpr unsigned size_part(unsigned start = Layout::length - 1) const {
             return (start == 0) ? m_dims[0] : m_dims[start] * size_part(start - 1);
         }
 
-        constexpr unsigned size() const { return size_part() + m_alignment.m_initial_offset; }
+        GT_FUNCTION constexpr unsigned size() const { return size_part() + m_alignment.m_initial_offset; }
 
         template < int Coord >
-        constexpr int dim() const {
+        GT_FUNCTION constexpr int dim() const {
             return m_dims[Coord];
         }
 
         template < int Coord >
-        constexpr int stride() const {
+        GT_FUNCTION constexpr int stride() const {
             return m_strides[Coord];
         }
 
         template < int Coord >
-        constexpr int unaligned_dim() const {
+        GT_FUNCTION constexpr int unaligned_dim() const {
             return m_alignment.template unaligned_dim< Coord >();
         }
 
         template < int Coord >
-        constexpr int unaligned_stride() const {
+        GT_FUNCTION constexpr int unaligned_stride() const {
             return m_alignment.template unaligned_stride< Coord >();
         }
 
         template < typename... Ints >
-        constexpr int index_part(int cnt, int first, Ints... ints) const {
+        GT_FUNCTION constexpr int index_part(int cnt, int first, Ints... ints) const {
             return (cnt < Layout::length) ? first * m_strides[cnt] + index_part(cnt + 1, ints..., first) : 0;
         }
 
         template < typename... Ints >
-        constexpr int index(Ints... idx) const {
+        GT_FUNCTION constexpr int index(Ints... idx) const {
             return index_part(0, idx...) + m_alignment.get_initial_offset();
         }
 

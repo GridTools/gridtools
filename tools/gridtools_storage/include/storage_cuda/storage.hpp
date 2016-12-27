@@ -97,7 +97,7 @@ namespace gridtools {
         void clone_from_device_impl() {
             cudaError_t err =
                 cudaMemcpy((void *)this->m_cpu_ptr, (void *)m_gpu_ptr, m_size * sizeof(T), cudaMemcpyDeviceToHost);
-            assert((err == cudaSuccess) && "failed to clone data to the device.");
+            assert((err == cudaSuccess) && "failed to clone data from the device.");
             m_state.m_od = false;
             m_state.m_hnu = false;
             m_state.m_dnu = false;
