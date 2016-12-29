@@ -234,9 +234,10 @@ namespace horizontal_diffusion {
                     define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
                     gridtools::make_stage< lap_function >(p_lap(), p_in()),  // esf_descriptor
                     gridtools::make_independent(                             // independent_esf
-                    gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
-                        gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap()),
-                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff()))));
+                        gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
+                        gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())
+                    ),
+                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         horizontal_diffusion->ready();
         horizontal_diffusion->steady();

@@ -661,21 +661,9 @@ namespace gridtools {
                                             : strides[N] * offsets.template get< (OffsetTuple::n_dim - 1) - N >();
     }
 
-    // pointer offset computation for temporaries
+    // pointer offset computation
     template < typename StorageWrapper, typename StorageInfo, typename AccessorOffset, typename StridesCached >
-    GT_FUNCTION constexpr typename boost::enable_if_c< StorageWrapper::is_temporary, int_t >::type compute_offset(
-        StridesCached const &RESTRICT strides_cached, AccessorOffset const &RESTRICT acc_offset) {
-        // get the max coordinate of given StorageInfo
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::max_element< typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
-        // TODO: implement properly
-        return apply_accessor< max_t, StridesCached, AccessorOffset, StorageInfo, 0 >(strides_cached, acc_offset);
-    };
-
-    // pointer offset computation for non-temporaries
-    template < typename StorageWrapper, typename StorageInfo, typename AccessorOffset, typename StridesCached >
-    GT_FUNCTION constexpr typename boost::enable_if_c< !StorageWrapper::is_temporary, int_t >::type compute_offset(
-        StridesCached const &RESTRICT strides_cached, AccessorOffset const &RESTRICT acc_offset) {
+    GT_FUNCTION constexpr int_t compute_offset(StridesCached const &RESTRICT strides_cached, AccessorOffset const &RESTRICT acc_offset) {
         // get the max coordinate of given StorageInfo
         typedef typename boost::mpl::deref<
             typename boost::mpl::max_element< typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
