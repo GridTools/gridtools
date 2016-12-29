@@ -160,17 +160,17 @@ namespace gridtools {
         */
         template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo, typename Grid>
         static typename boost::enable_if_c<Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo, Grid const RESTRICT &grid) {
+        fields_offset(StorageInfo const* sinfo, Grid grid) {
             typedef typename StorageInfo::Layout layout_t;
             const uint_t i = processing_element_i();
-            const int diff_i_minus = grid.direction_i().minus();
-            const int diff_i_plus = grid.direction_i().plus();
+            const int diff_i_minus = grid->direction_i().minus();
+            const int diff_i_plus = grid->direction_i().plus();
             return sinfo->template stride<0>() * ((diff_i_minus + PEBlockSize::i_size_t::value + diff_i_plus) * i);
         }
 
         template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo, typename Grid>
         static typename boost::enable_if_c<!Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo, Grid const RESTRICT &grid) {
+        fields_offset(StorageInfo const* sinfo, Grid grid) {
             return 0;
         }
 

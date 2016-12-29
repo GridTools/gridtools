@@ -121,8 +121,10 @@ namespace gridtools {
             // return m_k_low_bound;
         }
 
+        GT_FUNCTION
         halo_descriptor const &direction_i() const { return m_direction_i; }
 
+        GT_FUNCTION
         halo_descriptor const &direction_j() const { return m_direction_j; }
 
         const Partitioner &partitioner() const {

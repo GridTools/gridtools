@@ -279,6 +279,12 @@ namespace gridtools {
                 // create a storage and fill the aggregator
                 auto ptr = gridtools::pointer< typename T::storage_t >(new typename T::storage_t(storage_info));
                 ptr.get()->allocate();
+                auto hv = make_host_view(*(ptr.get()));
+                for(int i=0; i<storage_info.template dim<0>(); ++i)
+                    for(int j=0; j<storage_info.template dim<1>(); ++j)
+                        for(int k=0; k<storage_info.template dim<2>(); ++k)
+                            hv(i,j,k) = 0.0;
+                ptr.get()->sync();
                 m_agg.template set_arg_storage_pair< typename T::arg_t >(ptr);
             }
 

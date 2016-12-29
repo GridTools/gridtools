@@ -238,7 +238,9 @@ namespace gridtools {
         */
         GT_FUNCTION
         iterate_domain(local_domain_t const &local_domain_, const reduction_type_t &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_) {}
+            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_) {
+            m_index = {0,};    
+        }
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -248,10 +250,10 @@ namespace gridtools {
             our execution model is parallel on (i,j). Defaulted to 1.
         */
         template < typename BackendType, typename Grid >
-        GT_FUNCTION void assign_storage_pointers(Grid const RESTRICT& grid) {
-            boost::fusion::for_each(local_domain.m_local_data_ptrs,
+        GT_FUNCTION void assign_storage_pointers(Grid grid) {
+            boost::mpl::for_each<boost::mpl::range_c<int,0,N_STORAGES> >(
                 assign_storage_ptrs< BackendType, data_ptr_cached_t, local_domain_t, processing_elements_block_size_t, Grid >(
-                                        data_pointer(), local_domain.m_local_storage_info_ptrs, grid));
+                    data_pointer(), local_domain.m_local_data_ptrs, local_domain.m_local_storage_info_ptrs, grid));
         }
 
         /**
@@ -581,7 +583,7 @@ namespace gridtools {
         // i+offset_i or j+offset_j or k+offset_k is too large.
         // Most probably this is due to you specifying a positive offset which is larger than expected,
         // or maybe you did a mistake when specifying the ranges in the placehoders definition
-        GTASSERT(storage_info->size() > pointer_offset);
+        // GTASSERT(storage_info->size() > pointer_offset);
 
         // the following assert fails when an out of bound access is observed,
         // i.e. when some offset is negative and either one of
@@ -591,7 +593,10 @@ namespace gridtools {
         // in the placehoders definition.
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
-        GTASSERT(pointer_offset >= 0);
+        //GTASSERT(pointer_offset >= 0);
+        //if(threadIdx.x == 0 && threadIdx.y == 0 && blockIdx.x == 0 && blockIdx.y == 0) {
+        //    printf("ptr offset: %p + %i \n", real_storage_pointer, pointer_offset);
+        //}
 
         return static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<

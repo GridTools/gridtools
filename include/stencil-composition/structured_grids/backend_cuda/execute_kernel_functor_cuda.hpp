@@ -87,6 +87,7 @@ namespace gridtools {
                                             : ny - blockIdx.y * block_size_t::j_size_t::value;
 
             __shared__ shared_iterate_domain_t shared_iterate_domain;
+            __syncthreads();
 
             // Doing construction of the ierate domain and assignment of pointers and strides
             // for the moment reductions are not supported so that the initial value is 0
@@ -94,7 +95,7 @@ namespace gridtools {
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
-            it_domain.template assign_storage_pointers< backend_traits_t >();
+            it_domain.template assign_storage_pointers< backend_traits_t, typename RunFunctorArguments::grid_t const RESTRICT*>(grid);
             it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
 
             __syncthreads();
