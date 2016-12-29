@@ -64,7 +64,9 @@ namespace gridtools {
       private:
         DataPointerArray m_data_pointer;
         StridesType m_strides;
-        IJCachesTuple m_ij_caches_tuple;
+        // TODO: This trick is used to prevent a race condition reported in cuda-memcheck. Should be investigated.
+        typename boost::mpl::if_<boost::mpl::empty<IJCachesTuple>,
+            boost::mpl::void_, IJCachesTuple>::type m_ij_caches_tuple;
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
         // constructed with the result_of::as_map from a fusion vector.

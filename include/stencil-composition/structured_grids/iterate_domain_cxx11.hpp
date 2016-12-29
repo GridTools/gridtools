@@ -238,8 +238,7 @@ namespace gridtools {
         */
         GT_FUNCTION
         iterate_domain(local_domain_t const &local_domain_, const reduction_type_t &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_) {
-            m_index = {0,};    
+            : iterate_domain_reduction_t {reduction_initial_value}, local_domain {local_domain_}, m_index {0,} {
         }
 
         /** This functon set the addresses of the data values  before the computation
@@ -251,9 +250,9 @@ namespace gridtools {
         */
         template < typename BackendType, typename Grid >
         GT_FUNCTION void assign_storage_pointers(Grid grid) {
-            boost::mpl::for_each<boost::mpl::range_c<int,0,N_STORAGES> >(
+            boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 assign_storage_ptrs< BackendType, data_ptr_cached_t, local_domain_t, processing_elements_block_size_t, Grid >(
-                    data_pointer(), local_domain.m_local_data_ptrs, local_domain.m_local_storage_info_ptrs, grid));
+                    data_pointer(), local_domain.m_local_storage_info_ptrs, grid));
         }
 
         /**

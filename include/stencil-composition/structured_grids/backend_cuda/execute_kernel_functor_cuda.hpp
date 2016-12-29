@@ -87,7 +87,6 @@ namespace gridtools {
                                             : ny - blockIdx.y * block_size_t::j_size_t::value;
 
             __shared__ shared_iterate_domain_t shared_iterate_domain;
-            __syncthreads();
 
             // Doing construction of the ierate domain and assignment of pointers and strides
             // for the moment reductions are not supported so that the initial value is 0

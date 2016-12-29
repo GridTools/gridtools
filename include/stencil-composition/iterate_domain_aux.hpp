@@ -399,7 +399,7 @@ namespace gridtools {
                 auto stride = (max_t::value < 0)
                                   ? 0
                                   : ((pos == max_t::value) ? 1 : m_strides.template get< IndexT::value >()[pos]);
-                return stride * new_initial_pos; //((Coordinate==0) ? threadIdx.x : ((Coordinate==1) ? threadIdx.y : 0)); //* new_initial_pos
+                return stride * new_initial_pos;
             }
             return 0;
         }
@@ -444,26 +444,20 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached< DataPtrCached >::value), "Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
         typedef typename LocalDomain::storage_info_ptr_fusion_list storage_info_ptrs_t;
-        typedef typename LocalDomain::data_ptr_fusion_map data_ptr_fusion_map_t;
 
         DataPtrCached RESTRICT &m_data_ptr_cached;
-        data_ptr_fusion_map_t const RESTRICT &m_data_ptr_fusion_map;
         storage_info_ptrs_t const RESTRICT &m_storageinfo_fusion_list;
         Grid m_grid;
 
         GT_FUNCTION assign_storage_ptrs(DataPtrCached RESTRICT &data_ptr_cached, 
-            data_ptr_fusion_map_t const RESTRICT &data_ptr_fusion_map,
             storage_info_ptrs_t const RESTRICT &storageinfo_fusion_list,
             Grid grid)
-            : m_data_ptr_cached(data_ptr_cached), m_data_ptr_fusion_map(data_ptr_fusion_map), 
-              m_storageinfo_fusion_list(storageinfo_fusion_list), m_grid(grid)
+            : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list), m_grid(grid)
         {}
 
-        template < typename IntT,
-            typename Arg = typename boost::fusion::result_of::first< typename boost::mpl::at<data_ptr_fusion_map_t, IntT>::type >::type >
-        GT_FUNCTION void operator()(IntT&) const {
-            // TODO: once per block...
-            typedef Arg arg_t;
+        template < typename FusionPair >
+        GT_FUNCTION void operator()(FusionPair const& sw) const {
+            typedef typename boost::fusion::result_of::first< FusionPair >::type arg_t;
             typedef typename get_storage_wrapper_elem< arg_t, typename LocalDomain::storage_wrapper_list_t >::type
                 storage_wrapper_t;
             typedef typename boost::mpl::find< typename LocalDomain::storage_wrapper_list_t,
@@ -476,8 +470,7 @@ namespace gridtools {
                     boost::fusion::at< si_index_t >(m_storageinfo_fusion_list), m_grid);
             for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i) {
                 Backend::template once_per_block< pos_in_storage_wrapper_list_t::value, PEBlockSize >::assign(
-                    m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i], 
-                    boost::fusion::at<IntT>(m_data_ptr_fusion_map).second[i] + offset);
+                    m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i], sw.second[i] + offset);
             }
 /*         
             printf("Assign storage ptr for arg %i\n", storage_wrapper_t::index_t::value);
@@ -535,7 +528,6 @@ namespace gridtools {
 
         template < typename StorageInfo >
         GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
-            // TODO: once per block...
             boost::mpl::for_each< boost::mpl::range_c< short_t, 0, StorageInfo::Layout::unmasked_length - 1 > >(
                 assign< StorageInfo >(storage_info, m_strides_cached));
             /*
