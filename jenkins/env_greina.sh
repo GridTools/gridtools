@@ -33,4 +33,4 @@ export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
 export VERBOSE=1
 export CUDA_ARCH=sm_35
-export DEFAULT_QUEUE=k80
+export DEFAULT_QUEUE=short

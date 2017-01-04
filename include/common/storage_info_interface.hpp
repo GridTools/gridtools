@@ -36,16 +36,16 @@
 
 #pragma once
 
-#include <utility>
 #include <array>
+#include <utility>
 
 #include <boost/type_traits.hpp>
 
-#include "defs.hpp"
-#include "layout_map.hpp"
-#include "halo.hpp"
-#include "nano_array.hpp"
 #include "alignment.hpp"
+#include "defs.hpp"
+#include "halo.hpp"
+#include "layout_map.hpp"
+#include "nano_array.hpp"
 #include "storage_info_metafunctions.hpp"
 
 namespace gridtools {
@@ -107,14 +107,21 @@ namespace gridtools {
             return m_alignment.template unaligned_stride< Coord >();
         }
 
-        template < typename... Ints >
-        GT_FUNCTION constexpr int index_part(int cnt, int first, Ints... ints) const {
-            return (cnt < Layout::length) ? first * m_strides[cnt] + index_part(cnt + 1, ints..., first) : 0;
+        template < unsigned N, typename... Ints >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (N < Layout::length), int >::type 
+        index_part(int first, Ints... ints) const {
+            return first * m_strides[N] + index_part< N + 1 >(ints..., first);
+        }
+
+        template < unsigned N, typename... Ints >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (N == Layout::length), int >::type 
+        index_part(int first, Ints... ints) const {
+            return 0;
         }
 
         template < typename... Ints >
         GT_FUNCTION constexpr int index(Ints... idx) const {
-            return index_part(0, idx...) + m_alignment.get_initial_offset();
+            return index_part< 0 >(idx...) + m_alignment.get_initial_offset();
         }
 
       private:
