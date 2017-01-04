@@ -296,4 +296,55 @@ namespace gridtools {
         typedef MetaArray< new_mss_descriptor_t, Pred > type;
     };
 
+    template < typename MssComponents, typename AggregatorType >
+    struct fix_temporary_caches;
+
+    template < template < typename, typename > class MetaArray,
+        typename Sequence,
+        typename Pred,
+        typename AggregatorType >
+    struct fix_temporary_caches< MetaArray< Sequence, Pred >, AggregatorType > {
+
+        struct fix_cache_sequence {
+            template < typename T >
+            struct apply;
+
+            template < template < cache_type, typename, cache_io_policy > class Cache,
+                cache_type CacheKind,
+                typename Arg,
+                cache_io_policy CacheStrategy >
+            struct apply< Cache< CacheKind, Arg, CacheStrategy > > {
+                static_assert(is_cache< Cache< CacheKind, Arg, CacheStrategy > >::value, "Given type is no cache.");
+                typedef typename boost::mpl::if_< is_tmp_arg< Arg >,
+                    typename _impl::replace_arg_storage_info< typename AggregatorType::tmp_storage_info_id_t, Arg >::type,
+                    Arg>::type new_arg_t;
+                typedef Cache< CacheKind, new_arg_t, CacheStrategy > type;
+            };
+
+            template < template < typename > class IndependentEsfDescriptor,
+                typename ESFVector >
+            struct apply< IndependentEsfDescriptor< ESFVector > > {
+                typedef typename boost::mpl::transform<ESFVector, fix_cache_sequence>::type fixed_cache_sequence_t;
+                typedef IndependentEsfDescriptor< fixed_cache_sequence_t > type;
+            };
+        };
+
+        template < typename MssDesc >
+        struct fix_mss_components_desc {
+            static_assert(is_mss_descriptor<MssDesc>::value, "Given type is no mss_descriptor.");
+            typedef typename MssDesc::execution_engine_t execution_engine_t;
+            typedef typename MssDesc::esf_sequence_t esf_sequence_t;
+            typedef typename MssDesc::cache_sequence_t cache_sequence_t;
+            typedef typename boost::mpl::transform< cache_sequence_t, fix_cache_sequence >::type new_cache_sequence_t;
+            typedef mss_descriptor< execution_engine_t, esf_sequence_t, new_cache_sequence_t > type;
+        };
+
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array< MetaArray< Sequence, Pred > >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), "Internal Error: wrong type");
+
+        typedef typename boost::mpl::transform< Sequence, fix_mss_components_desc< boost::mpl::_1 > >::type
+            new_mss_descriptor_t;
+        typedef MetaArray< new_mss_descriptor_t, Pred > type;
+    };
+
 } // namespace gridtools

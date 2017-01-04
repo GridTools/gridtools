@@ -28,13 +28,32 @@ namespace gridtools {
         constexpr uint_t size() const { return m_value.size(); }
 
         template < ushort_t Id >
-        GT_FUNCTION constexpr int_t const &strides() const {
-            return m_value.template strides< Id >();
+        GT_FUNCTION constexpr int_t const &stride() const {
+            return m_value.template stride< Id >();
         }
 
-        template < typename Accessor >
-        GT_FUNCTION constexpr int_t index(Accessor const &arg_) const {
-            return m_value._index(arg_.offsets());
+        template < ushort_t Id >
+        GT_FUNCTION constexpr int_t const &dim() const {
+            return m_value.template dim< Id >();
         }
+
+        template < unsigned N, typename OffsetTuple, typename... Offsets >
+        GT_FUNCTION constexpr typename boost::enable_if_c<(N>0), int_t>::type 
+        get_index(OffsetTuple const& ot, Offsets... o) const {
+            return get_index<N-1>(ot, o..., ot.template get<N-1>());
+        }
+
+        template < unsigned N, typename OffsetTuple, typename... Offsets >
+        GT_FUNCTION constexpr typename boost::enable_if_c<(N==0), int_t>::type 
+        get_index(OffsetTuple const& ot, Offsets... o) const {
+            return m_value.index(o..., ot.template get<N-1>(), 0, 0);
+         }
+ 
+         template < typename Accessor >
+         GT_FUNCTION constexpr int_t index(Accessor const &arg_) const {
+            typedef typename Accessor::offset_tuple_t OffsetTuple;
+            return get_index<OffsetTuple::n_dim>(arg_.offsets());
+         }
+
     };
 } // namespace gridtools

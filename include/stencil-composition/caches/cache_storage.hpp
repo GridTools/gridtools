@@ -50,7 +50,7 @@ namespace gridtools {
     template < typename T, typename U >
     struct get_storage_accessor;
 
-    template < typename BlockSize, typename Extent, typename Storage >
+    template < typename BlockSize, typename Extent, typename StorageWrapper >
     struct cache_storage;
 
 #ifdef CXX11_ENABLED
@@ -69,19 +69,15 @@ namespace gridtools {
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
      */
-    template < uint_t... Tiles, short_t... ExtentBounds, typename Storage >
-    struct cache_storage< block_size< Tiles... >, extent< ExtentBounds... >, Storage > {
+    template < uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper >
+    struct cache_storage< block_size< Tiles... >, extent< ExtentBounds... >, StorageWrapper > {
 
       public:
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_t;
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_t;
         typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
 
-        // Storage must be a gridtools::pointer to storage
-        GRIDTOOLS_STATIC_ASSERT(is_pointer< Storage >::value, "wrong type");
-        GRIDTOOLS_STATIC_ASSERT(is_storage< typename Storage::value_type >::value, "wrong type");
-        typedef typename Storage::value_type::basic_type storage_t;
-        typedef typename storage_t::value_type value_type;
+        typedef typename StorageWrapper::data_t value_type;
 
         typedef
             typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t, sizeof...(Tiles) + 2 /*FD*/
@@ -90,7 +86,7 @@ namespace gridtools {
         GT_FUNCTION
         explicit constexpr cache_storage() {}
 
-        typedef typename _impl::compute_meta_storage< layout_t, plus_t, minus_t, tiles_t, storage_t >::type meta_t;
+        typedef typename _impl::compute_meta_storage< layout_t, plus_t, minus_t, tiles_t, StorageWrapper >::type meta_t;
 
         GT_FUNCTION
         static constexpr uint_t size() { return meta_t{}.size(); }
@@ -106,15 +102,15 @@ namespace gridtools {
             typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
 
 #ifdef CUDA8
-            typedef static_int< m_value.template strides< 0 >() > check_constexpr_1;
-            typedef static_int< m_value.template strides< 1 >() > check_constexpr_2;
+            typedef static_int< m_value.template stride< 0 >() > check_constexpr_1;
+            typedef static_int< m_value.template stride< 1 >() > check_constexpr_2;
 #else
-            assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
+            assert((_impl::compute_size< minus_t, plus_t, tiles_t, StorageWrapper >::value == size()));
 #endif
 
             // manually aligning the storage
-            const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template strides< 0 >() +
-                                  (thread_pos[1] - jminus::value) * m_value.template strides< 1 >() +
+            const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template stride< 0 >() +
+                                  (thread_pos[1] - jminus::value) * m_value.template stride< 1 >() +
                                   m_value.index(accessor_);
 
             assert((extra_) < size());

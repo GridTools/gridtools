@@ -173,9 +173,9 @@ namespace gridtools {
         template < typename LocDom, typename Index >
         struct get_storage {
             GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocDom >::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename LocDom::mpl_storages >::value > Index::value),
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename LocDom::storage_wrapper_list_t >::value > Index::value),
                 "accessing a storage which is not in the list");
-            typedef typename boost::mpl::at< typename LocDom::mpl_storages, Index >::type type;
+            typedef typename LocDom::template get_storage<Index>::type type;
         };
 
         // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
@@ -185,14 +185,12 @@ namespace gridtools {
         // here
         // mpl vector -> fusion vector -> fusion map (with result_of::as_map)
 
-        template < typename Cache, typename StoragePtr >
+        template < typename Cache, typename IndexT >
         struct get_cache_storage {
             GRIDTOOLS_STATIC_ASSERT(is_cache< Cache >::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_pointer< StoragePtr >::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_storage< typename StoragePtr::value_type >::value, "wrong type");
-
-            typedef cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, StoragePtr >
-                type;
+            typedef typename LocalDomain::template get_storage_wrapper<IndexT>::type storage_wrapper_t;
+            GRIDTOOLS_STATIC_ASSERT(is_storage_wrapper<storage_wrapper_t>::value, "retrieved type is not a storage_wrapper type.");
+            typedef cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, storage_wrapper_t> type;
         };
 
         // first we build an mpl vector of pairs
@@ -202,9 +200,7 @@ namespace gridtools {
             boost::mpl::eval_if< typename cache_is_type< cacheType >::template apply< boost::mpl::_2 >,
                 boost::mpl::push_back< boost::mpl::_1,
                                      boost::mpl::pair< cache_to_index< boost::mpl::_2, LocalDomain >,
-                                           get_cache_storage< boost::mpl::_2,
-                                                           get_storage< LocalDomain,
-                                                                  cache_to_index< boost::mpl::_2, LocalDomain > > > > >,
+                                           get_cache_storage< boost::mpl::_2, cache_to_index< boost::mpl::_2, LocalDomain > > > >,
                 boost::mpl::identity< boost::mpl::_1 > > >::type mpl_type;
 
         // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair

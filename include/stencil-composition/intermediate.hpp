@@ -312,7 +312,8 @@ namespace gridtools {
         uint_t RepeatFunctor >
     struct intermediate : public computation< ReductionType > {
         // fix the temporaries by replacing the given storage info index with a new one
-        typedef typename fix_temporary_args< MssDescriptorArrayIn, DomainType >::type MssDescriptorArray;
+        typedef typename fix_temporary_args< MssDescriptorArrayIn, DomainType >::type MssDescriptorArrayFixedArgs;
+        typedef typename fix_temporary_caches< MssDescriptorArrayFixedArgs, DomainType >::type MssDescriptorArray;
 
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
