@@ -272,6 +272,9 @@ namespace gridtools {
 
             template < typename T, typename boost::enable_if_c< T::is_temporary, int >::type = 0 >
             void operator()(T const &) const {
+                // mem-leak protection: if the somebody calls ready multiple times
+                assert(!m_agg.template get_arg_storage_pair< typename T::arg_t >().ptr.get() && 
+                    "temporary storage already initialized (maybe ready() was called multiple times). reinitialization would produce a memory leak. ");
                 // some typedefs
                 typedef typename T::storage_info_t storage_info_t;
                 // instantiate the right storage info (according to grid and used strategy)
