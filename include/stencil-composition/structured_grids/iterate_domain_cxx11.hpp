@@ -238,7 +238,7 @@ namespace gridtools {
         */
         GT_FUNCTION
         iterate_domain(local_domain_t const &local_domain_, const reduction_type_t &reduction_initial_value)
-            : iterate_domain_reduction_t {reduction_initial_value}, local_domain {local_domain_}, m_index {0,} {
+            : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_), m_index {0,} {
         }
 
         /** This functon set the addresses of the data values  before the computation
