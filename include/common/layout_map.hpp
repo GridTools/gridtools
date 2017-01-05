@@ -36,15 +36,16 @@
 
 #pragma once
 
-#include <boost/mpl/vector_c.hpp>
-#include <boost/mpl/push_back.hpp>
-#include <boost/mpl/find.hpp>
-#include <boost/mpl/count_if.hpp>
-#include <boost/mpl/greater_equal.hpp>
-#include <boost/mpl/comparison.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/count_if.hpp>
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/greater_equal.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/vector_c.hpp>
 
 #include "defs.hpp"
+#include "variadic_pack_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -62,18 +63,6 @@ namespace gridtools {
         typedef typename boost::mpl::push_back< T, boost::mpl::int_< First > >::type type;
     };
 
-    /* get a value from a variadic pack */
-    template < typename First, typename... Dims >
-    GT_FUNCTION constexpr First get_value_from_pack(unsigned Index, First f, Dims... d) {
-        return (Index) ? get_value_from_pack(Index - 1, d..., f) : f;
-    };
-
-    /* get a value index from a variadic pack */
-    template < typename First, typename... Dims >
-    GT_FUNCTION constexpr unsigned get_index_of_element_in_pack(unsigned Index, First needle, Dims... d) {
-        return (get_value_from_pack(Index, d...) == needle) ? Index : get_index_of_element_in_pack(Index + 1, needle, d...);
-    };
-
     template < int... Args >
     struct layout_map {
         static_assert(sizeof...(Args) > 0, "Zero-dimensional layout makes no sense.");
@@ -85,23 +74,19 @@ namespace gridtools {
 
         template < int I >
         GT_FUNCTION static constexpr int find() {
-            static_assert((I>=0) && (I<unmasked_length), "This index does not exist");
+            static_assert((I >= 0) && (I < unmasked_length), "This index does not exist");
             return boost::mpl::find< static_layout_vector, boost::mpl::int_< I > >::type::pos::value;
         }
 
-        GT_FUNCTION static constexpr int find(int i) { 
-            return get_index_of_element_in_pack(0, i, Args...); 
-        }
+        GT_FUNCTION static constexpr int find(int i) { return get_index_of_element_in_pack(0, i, Args...); }
 
         template < int I >
         GT_FUNCTION static constexpr int at() {
-            static_assert((I<=length), "Out of bounds access");
+            static_assert((I <= length), "Out of bounds access");
             return boost::mpl::at< static_layout_vector, boost::mpl::int_< I > >::type::value;
         }
 
-        GT_FUNCTION static constexpr int at(int i) { 
-            return get_value_from_pack(i, Args...); 
-        }
+        GT_FUNCTION static constexpr int at(int i) { return get_value_from_pack(i, Args...); }
 
         template < int I >
         GT_FUNCTION static constexpr int select(int const *dims) {

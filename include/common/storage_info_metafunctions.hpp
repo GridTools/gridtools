@@ -37,9 +37,9 @@
 
 #include <cmath>
 
-#include "layout_map.hpp"
-#include "nano_array.hpp"
 #include "halo.hpp"
+#include "nano_array.hpp"
+#include "variadic_pack_metafunctions.hpp"
 
 namespace gridtools {
 
