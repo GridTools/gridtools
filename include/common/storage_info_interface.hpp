@@ -81,8 +81,14 @@ namespace gridtools {
 
         constexpr storage_info_interface(storage_info_interface const &other) = default;
 
-        GT_FUNCTION constexpr unsigned size_part(unsigned start = Layout::length - 1) const {
-            return (start == 0) ? m_dims[0] : m_dims[start] * size_part(start - 1);
+        template < unsigned From = Layout::length - 1 >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From > 0), unsigned >::type size_part() const {
+            return m_dims[From] * size_part< From - 1 >();
+        }
+
+        template < unsigned From = Layout::length - 1 >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From == 0), unsigned >::type size_part() const {
+            return m_dims[0];
         }
 
         GT_FUNCTION constexpr unsigned size() const { return size_part() + m_alignment.m_initial_offset; }
@@ -108,14 +114,14 @@ namespace gridtools {
         }
 
         template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (N < Layout::length), int >::type 
-        index_part(int first, Ints... ints) const {
+        GT_FUNCTION constexpr typename boost::enable_if_c< (N < Layout::length), int >::type index_part(
+            int first, Ints... ints) const {
             return first * m_strides[N] + index_part< N + 1 >(ints..., first);
         }
 
         template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (N == Layout::length), int >::type 
-        index_part(int first, Ints... ints) const {
+        GT_FUNCTION constexpr typename boost::enable_if_c< (N == Layout::length), int >::type index_part(
+            int first, Ints... ints) const {
             return 0;
         }
 
