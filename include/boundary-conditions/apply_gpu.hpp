@@ -118,9 +118,9 @@ namespace gridtools {
                     halo_descriptors[1].loop_low_bound_outside(Direction::J) + 1;                               \
         uint_t nz = halo_descriptors[2].loop_high_bound_outside(Direction::K) -                                 \
                     halo_descriptors[2].loop_low_bound_outside(Direction::K) + 1;                               \
-        uint_t nbx = (nx + ntx - 1) / ntx;                                                                      \
-        uint_t nby = (ny + nty - 1) / nty;                                                                      \
-        uint_t nbz = (nz + ntz - 1) / ntz;                                                                      \
+        uint_t nbx = (nx == 0) ? (1) : ((nx + ntx - 1) / ntx);                                                  \
+        uint_t nby = (ny == 0) ? (1) : ((ny + nty - 1) / nty);                                                  \
+        uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);                                                  \
         dim3 blocks(nbx, nby, nbz);                                                                             \
         loop_kernel<<< blocks, threads >>>(boundary_function,                                               \
             Direction(),                                                                                        \
