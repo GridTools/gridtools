@@ -749,6 +749,93 @@ bool usingzero_2() {
     return result;
 }
 
+bool usingzero_3_empty_halos() {
+
+    uint_t d1 = 5;
+    uint_t d2 = 5;
+    uint_t d3 = 5;
+
+    typedef gridtools::BACKEND::storage_type< int_t,
+        gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > >::type storage_type;
+
+    // Definition of the actual data fields that are used for input/output
+
+    gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
+    storage_type in(meta_, -1, "in");
+    storage_type out(meta_, -1, "out");
+
+    for (uint_t i = 0; i < d1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
+                in(i, j, k) = -1;
+                out(i, j, k) = -1;
+            }
+        }
+    }
+
+    gridtools::array< gridtools::halo_descriptor, 3 > halos;
+    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = gridtools::halo_descriptor(0, 0, 0, d2 - 1, d2);
+    halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
+
+#ifdef __CUDACC__
+    in.h2d_update();
+    out.h2d_update();
+    in.clone_to_device();
+    out.clone_to_device();
+
+    gridtools::boundary_apply_gpu< gridtools::zero_boundary >(halos).apply(in, out);
+
+    in.d2h_update();
+    out.d2h_update();
+#else
+    gridtools::boundary_apply< gridtools::zero_boundary >(halos).apply(in, out);
+#endif
+
+    bool result = true;
+
+    for (uint_t i = 0; i < 1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
+                if (in(i, j, k) != 0) {
+                    result = false;
+                }
+                if (out(i, j, k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (uint_t i = d1 - 1; i < d1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
+                if (in(i, j, k) != 0) {
+                    result = false;
+                }
+                if (out(i, j, k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (uint_t i = 1; i < d1 - 1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
+                if (in(i, j, k) != -1) {
+                    result = false;
+                }
+                if (out(i, j, k) != -1) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
 bool usingvalue_2() {
 
     uint_t d1 = 5;
@@ -1033,16 +1120,42 @@ bool usingcopy_3() {
     return result;
 }
 
-TEST(boundaryconditions, predicate) { EXPECT_EQ(predicate(), true); }
+TEST(boundaryconditions, predicate) {
+    EXPECT_EQ(predicate(), true);
+    CUDA_LAST_ERROR();
+}
 
-TEST(boundaryconditions, twosurfaces) { EXPECT_EQ(twosurfaces(), true); }
+TEST(boundaryconditions, twosurfaces) {
+    EXPECT_EQ(twosurfaces(), true);
+    CUDA_LAST_ERROR();
+}
 
-TEST(boundaryconditions, usingzero_1) { EXPECT_EQ(usingzero_1(), true); }
+TEST(boundaryconditions, usingzero_1) {
+    EXPECT_EQ(usingzero_1(), true);
+    CUDA_LAST_ERROR();
+}
 
-TEST(boundaryconditions, usingzero_2) { EXPECT_EQ(usingzero_2(), true); }
+TEST(boundaryconditions, usingzero_2) {
+    EXPECT_EQ(usingzero_2(), true);
+    CUDA_LAST_ERROR();
+}
 
-TEST(boundaryconditions, basic) { EXPECT_EQ(basic(), true); }
+TEST(boundaryconditions, usingzero_3_empty_halos) {
+    EXPECT_EQ(usingzero_3_empty_halos(), true);
+    CUDA_LAST_ERROR();
+}
 
-TEST(boundaryconditions, usingvalue2) { EXPECT_EQ(usingvalue_2(), true); }
+TEST(boundaryconditions, basic) {
+    EXPECT_EQ(basic(), true);
+    CUDA_LAST_ERROR();
+}
 
-TEST(boundaryconditions, usingcopy3) { EXPECT_EQ(usingcopy_3(), true); }
+TEST(boundaryconditions, usingvalue2) {
+    EXPECT_EQ(usingvalue_2(), true);
+    CUDA_LAST_ERROR();
+}
+
+TEST(boundaryconditions, usingcopy3) {
+    EXPECT_EQ(usingcopy_3(), true);
+    CUDA_LAST_ERROR();
+}
