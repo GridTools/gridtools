@@ -82,14 +82,16 @@ namespace gridtools {
             template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
             typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(T &t) const {
                 // make a view
-                t = make_device_view(*(get_arg_storage_pair< T >().ptr));
+                if(get_arg_storage_pair< T >().ptr.get())
+                    t = make_device_view(*(get_arg_storage_pair< T >().ptr));
             }
 
             template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
             typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
                 T &t) const {
                 // make a view
-                t = make_field_device_view(*(get_arg_storage_pair< T >().ptr));
+                if(get_arg_storage_pair< T >().ptr.get())
+                    t = make_field_device_view(*(get_arg_storage_pair< T >().ptr));
             }
         };
 

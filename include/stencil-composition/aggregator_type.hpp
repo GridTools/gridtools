@@ -189,7 +189,7 @@ namespace gridtools {
                 "The number of arguments specified when constructing the aggregator_type is not the same as the number "
                 "of "
                 "args to non-temporaries. Double check the temporary flag in the arg types or add the "
-                "necessary data_stores.");
+                "necessary storages.");
             _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(ds...);
 
             // create a fusion vector that contains all the arg_storage_pairs to all non temporary args
