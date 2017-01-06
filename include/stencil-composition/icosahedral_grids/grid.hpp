@@ -36,7 +36,7 @@
 #pragma once
 #include "stencil-composition/grid_base.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
-#include "../common/gpu_clone.hpp"
+#include "../../common/gpu_clone.hpp"
 
 namespace gridtools {
 
