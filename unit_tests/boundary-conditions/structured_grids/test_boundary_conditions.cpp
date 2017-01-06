@@ -1120,42 +1120,18 @@ bool usingcopy_3() {
     return result;
 }
 
-TEST(boundaryconditions, predicate) {
-    EXPECT_EQ(predicate(), true);
-    CUDA_LAST_ERROR();
-}
+TEST(boundaryconditions, predicate) { EXPECT_EQ(predicate(), true); }
 
-TEST(boundaryconditions, twosurfaces) {
-    EXPECT_EQ(twosurfaces(), true);
-    CUDA_LAST_ERROR();
-}
+TEST(boundaryconditions, twosurfaces) { EXPECT_EQ(twosurfaces(), true); }
 
-TEST(boundaryconditions, usingzero_1) {
-    EXPECT_EQ(usingzero_1(), true);
-    CUDA_LAST_ERROR();
-}
+TEST(boundaryconditions, usingzero_1) { EXPECT_EQ(usingzero_1(), true); }
 
-TEST(boundaryconditions, usingzero_2) {
-    EXPECT_EQ(usingzero_2(), true);
-    CUDA_LAST_ERROR();
-}
+TEST(boundaryconditions, usingzero_2) { EXPECT_EQ(usingzero_2(), true); }
 
-TEST(boundaryconditions, usingzero_3_empty_halos) {
-    EXPECT_EQ(usingzero_3_empty_halos(), true);
-    CUDA_LAST_ERROR();
-}
+TEST(boundaryconditions, usingzero_3_empty_halos) { EXPECT_EQ(usingzero_3_empty_halos(), true); }
 
-TEST(boundaryconditions, basic) {
-    EXPECT_EQ(basic(), true);
-    CUDA_LAST_ERROR();
-}
+TEST(boundaryconditions, basic) { EXPECT_EQ(basic(), true); }
 
-TEST(boundaryconditions, usingvalue2) {
-    EXPECT_EQ(usingvalue_2(), true);
-    CUDA_LAST_ERROR();
-}
+TEST(boundaryconditions, usingvalue2) { EXPECT_EQ(usingvalue_2(), true); }
 
-TEST(boundaryconditions, usingcopy3) {
-    EXPECT_EQ(usingcopy_3(), true);
-    CUDA_LAST_ERROR();
-}
+TEST(boundaryconditions, usingcopy3) { EXPECT_EQ(usingcopy_3(), true); }

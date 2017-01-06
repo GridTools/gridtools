@@ -93,28 +93,6 @@
 #define DEPRECATED(func) func
 #endif
 
-/**
- * Macro to print a CUDA error after kernel call. Note that this adds a synchronization (otherwise the error will be
- * caught too late).
- */
-#ifdef NDEBUG
-#define CUDA_LAST_ERROR()
-#else
-#ifdef __CUDACC__
-#define CUDA_LAST_ERROR()                                                                                        \
-    {                                                                                                            \
-        cudaDeviceSynchronize();                                                                                 \
-        cudaError_t error = cudaGetLastError();                                                                  \
-        if (error != cudaSuccess) {                                                                              \
-            fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__); \
-            exit(-1);                                                                                            \
-        }                                                                                                        \
-    }
-#else
-#define CUDA_LAST_ERROR()
-#endif
-#endif
-
 /** Macro to enable additional checks that may catch some errors in user code
  */
 #ifndef PEDANTIC_DISABLED
