@@ -48,7 +48,7 @@ namespace gridtools {
     template < unsigned Id,
         typename Layout,
         typename Halo = typename zero_halo< Layout::length >::type,
-        typename Alignment = alignment< 0 > >
+        typename Alignment = alignment< 32 > >
     struct cuda_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
       private:
         cuda_storage_info< Id, Layout, Halo, Alignment > *m_gpu_ptr;
