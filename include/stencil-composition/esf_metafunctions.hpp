@@ -38,6 +38,7 @@
 #include <boost/mpl/contains.hpp>
 #include "stencil-composition/esf.hpp"
 #include "stencil-composition/independent_esf.hpp"
+#include "../common/defs.hpp"
 #include "common/generic_metafunctions/is_predicate.hpp"
 #include "common/generic_metafunctions/copy_into_set.hpp"
 
@@ -278,6 +279,23 @@ namespace gridtools {
             boost::mpl::set0<>,
             boost::mpl::insert< boost::mpl::_1, arg_index< boost::mpl::_2 > > >::type type;
     };
+
+#ifdef CXX11_ENABLED
+    /*
+      Given an array of pairs (placeholder, extent) checks if all
+      extents are the same and equal to the extent passed in
+     */
+    template < typename VectorOfPairs, typename Extent, ushort_t Limit >
+    struct check_all_extents_are_same_upto {
+        template < typename Pair >
+        struct _check {
+            typedef typename is_same_up_to< typename Pair::second, Extent, Limit >::type type;
+        };
+
+        typedef typename is_sequence_of< VectorOfPairs, _check >::type type;
+    };
+
+#endif
 
     /*
       Given an array of pairs (placeholder, extent) checks if all

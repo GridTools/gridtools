@@ -102,8 +102,18 @@ namespace gridtools {
             typename IterateDomainArguments::physical_domain_block_size_t,
             typename IterateDomainArguments::local_domain_t >::type ij_caches_vector_t;
 
+        // compute the fusion vector of pair<index_type, cache_storage>
+        typedef typename get_cache_storage_tuple< K,
+            caches_t,
+            cache_extents_map_t,
+            typename IterateDomainArguments::physical_domain_block_size_t,
+            typename IterateDomainArguments::local_domain_t >::type k_caches_vector_t;
+
         // extract a fusion map from the fusion vector of pairs
         typedef typename boost::fusion::result_of::as_map< ij_caches_vector_t >::type ij_caches_tuple_t;
+
+        // extract a fusion map from the fusion vector of pairs
+        typedef typename boost::fusion::result_of::as_map< k_caches_vector_t >::type k_caches_tuple_t;
 
         // compute an mpl from the previous fusion vector, to be used for compile time meta operations
         typedef typename fusion_map_to_mpl_map< ij_caches_tuple_t >::type ij_caches_map_t;

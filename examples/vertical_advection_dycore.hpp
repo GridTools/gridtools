@@ -73,7 +73,7 @@ namespace vertical_advection_dycore {
         typedef accessor< 5 > dtr_stage;
         typedef accessor< 6, enumtype::inout > acol;
         typedef accessor< 7, enumtype::inout > bcol;
-        typedef accessor< 8, enumtype::inout > ccol;
+        typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, 0, -1 > > ccol;
         typedef accessor< 9, enumtype::inout > dcol;
 
         typedef boost::mpl::vector< utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol >
@@ -294,6 +294,7 @@ namespace vertical_advection_dycore {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
+                    define_caches(cache< K, local >(p_ccol())),
                     gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
