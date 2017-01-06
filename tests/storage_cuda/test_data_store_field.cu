@@ -175,27 +175,27 @@ TEST(DataStoreFieldTest, MultiStorageInfo) {
     f.allocate();
     // check for correct sizes
     data_store<cuda_storage<double>, storage_info_t> st1 = f.get<0,0>();
-    EXPECT_EQ((st1.get_storage_info_ptr()->size()), 3*3*3);
+    EXPECT_EQ((st1.get_storage_info_ptr()->size()), 32*3*3);
 
     data_store<cuda_storage<double>, storage_info_t> st20 = f.get<1,0>();
-    EXPECT_EQ((st20.get_storage_info_ptr()->size()), 4*4*4);
+    EXPECT_EQ((st20.get_storage_info_ptr()->size()), 32*4*4);
     data_store<cuda_storage<double>, storage_info_t> st21 = f.get<1,1>();
-    EXPECT_EQ((st21.get_storage_info_ptr()->size()), 4*4*4);
+    EXPECT_EQ((st21.get_storage_info_ptr()->size()), 32*4*4);
     
     data_store<cuda_storage<double>, storage_info_t> st30 = f.get<2,0>();
-    EXPECT_EQ((st30.get_storage_info_ptr()->size()), 5*5*5);
+    EXPECT_EQ((st30.get_storage_info_ptr()->size()), 32*5*5);
     data_store<cuda_storage<double>, storage_info_t> st31 = f.get<2,1>();
-    EXPECT_EQ((st31.get_storage_info_ptr()->size()), 5*5*5);
+    EXPECT_EQ((st31.get_storage_info_ptr()->size()), 32*5*5);
     data_store<cuda_storage<double>, storage_info_t> st32 = f.get<2,2>();
-    EXPECT_EQ((st32.get_storage_info_ptr()->size()), 5*5*5);
+    EXPECT_EQ((st32.get_storage_info_ptr()->size()), 32*5*5);
 
     auto hv = make_field_host_view(f);
-    EXPECT_EQ((hv.get<0,0>().m_storage_info->size()), 3*3*3);
+    EXPECT_EQ((hv.get<0,0>().m_storage_info->size()), 32*3*3);
     
-    EXPECT_EQ((hv.get<1,0>().m_storage_info->size()), 4*4*4);
-    EXPECT_EQ((hv.get<1,1>().m_storage_info->size()), 4*4*4);
+    EXPECT_EQ((hv.get<1,0>().m_storage_info->size()), 32*4*4);
+    EXPECT_EQ((hv.get<1,1>().m_storage_info->size()), 32*4*4);
 
-    EXPECT_EQ((hv.get<2,0>().m_storage_info->size()), 5*5*5);
-    EXPECT_EQ((hv.get<2,1>().m_storage_info->size()), 5*5*5);
-    EXPECT_EQ((hv.get<2,2>().m_storage_info->size()), 5*5*5);    
+    EXPECT_EQ((hv.get<2,0>().m_storage_info->size()), 32*5*5);
+    EXPECT_EQ((hv.get<2,1>().m_storage_info->size()), 32*5*5);
+    EXPECT_EQ((hv.get<2,2>().m_storage_info->size()), 32*5*5); 
 }
