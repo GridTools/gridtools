@@ -118,6 +118,9 @@ namespace gridtools {
         // compute an mpl from the previous fusion vector, to be used for compile time meta operations
         typedef typename fusion_map_to_mpl_map< ij_caches_tuple_t >::type ij_caches_map_t;
 
+        // compute an mpl from the previous fusion vector, to be used for compile time meta operations
+        typedef typename fusion_map_to_mpl_map< k_caches_tuple_t >::type k_caches_map_t;
+
         typedef
             typename get_cache_set_for_type< bypass, caches_t, typename IterateDomainArguments::local_domain_t >::type
                 bypass_caches_set_t;
