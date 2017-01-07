@@ -59,7 +59,7 @@ namespace test_iterate_domain {
     typedef backend_t::storage_type< float_type, meta_ijk_t >::type storage_type;
     typedef backend_t::storage_type< float_type, meta_kji_t >::type storage_buff_type;
     typedef backend_t::storage_type< float_type, meta_ij_t >::type storage_out_type;
-typedef backend_t::storage_type< bool, meta_ij_t >::type storage_bool_type;
+    typedef backend_t::storage_type< bool, meta_ij_t >::type storage_bool_type;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
@@ -67,8 +67,8 @@ typedef backend_t::storage_type< bool, meta_ij_t >::type storage_bool_type;
         typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 > > out;
         typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 0 > > buff1;
         typedef accessor< 3, enumtype::in, extent< 0, 0, 0, 0 > > buff2;
-        typedef accessor< 4, enumtype::in, extent< -2, 1, -3, 4 >  > buff3;
-        typedef accessor< 5, enumtype::inout, extent< 0,0,0,0,-1,2>  > buff4;
+        typedef accessor< 4, enumtype::in, extent< -2, 1, -3, 4 > > buff3;
+        typedef accessor< 5, enumtype::inout, extent< 0, 0, 0, 0, -1, 2 > > buff4;
 
         typedef boost::mpl::vector< in, out, buff1, buff2, buff3, buff4 > arg_list;
 
@@ -104,19 +104,25 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     typedef arg< 1, storage_out_type > p_out;
     typedef arg< 2, storage_buff_type > p_buff1;
     typedef arg< 3, storage_bool_type > p_buff2;
-    typedef arg< 4, storage_type> p_buff3;
-    typedef arg< 5, storage_type> p_buff4;
+    typedef arg< 4, storage_type > p_buff3;
+    typedef arg< 5, storage_type > p_buff4;
 
     typedef boost::mpl::vector< p_in, p_out, p_buff1, p_buff2, p_buff3, p_buff4 > accessor_list;
 
-    gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out), (p_buff1() = buff1), (p_buff2() = buff2),(p_buff3() = buff3),(p_buff4() = buff4));
+    gridtools::aggregator_type< accessor_list > domain((p_in() = in),
+        (p_out() = out),
+        (p_buff1() = buff1),
+        (p_buff2() = buff2),
+        (p_buff3() = buff3),
+        (p_buff4() = buff4));
 
     uint_t di[5] = {0, 0, 0, d1 - 1, d1};
     uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
     gridtools::grid< axis > grid(di, dj);
 
-    using caches_t = decltype(define_caches(cache< bypass, local >(p_buff1()),cache< IJ, local >(p_buff3()),cache< K, local >(p_buff4())));
+    using caches_t = decltype(
+        define_caches(cache< bypass, local >(p_buff1()), cache< IJ, local >(p_buff3()), cache< K, local >(p_buff4())));
 
     auto computation_ = gridtools::make_computation< backend_t >(
         domain,
@@ -126,7 +132,8 @@ TEST(test_iterate_domain, accessor_metafunctions) {
             caches_t(),
             gridtools::make_stage< dummy_functor >(p_in(), p_out(), p_buff1(), p_buff2(), p_buff3(), p_buff4())));
 
-    typedef decltype(gridtools::make_stage< dummy_functor >(p_in(), p_out(), p_buff1(), p_buff2(), p_buff3(), p_buff4())) esf_t;
+    typedef decltype(
+        gridtools::make_stage< dummy_functor >(p_in(), p_out(), p_buff1(), p_buff2(), p_buff3(), p_buff4())) esf_t;
 
     typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
     typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
@@ -141,33 +148,34 @@ TEST(test_iterate_domain, accessor_metafunctions) {
             boost::mpl::vector1< extent< 0, 0, 0, 0 > >,
             extent< 1, -1, 1, -1 >,
             caches_t,
-            block_size< 32, 4,0 >,
-            block_size< 32, 4,0 >,
+            block_size< 32, 4, 0 >,
+            block_size< 32, 4, 0 >,
             gridtools::grid< axis >,
             boost::mpl::false_,
             notype > > it_domain_t;
 
-    static_assert( (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::in  >::type::value), "Error" );
-    static_assert( (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::buff1  >::type::value), "Error" );
+    static_assert((it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::in >::type::value), "Error");
+    static_assert(
+        (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::buff1 >::type::value), "Error");
 
-    static_assert( !(it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::out  >::type::value), "Error" );
+    static_assert(!(it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::out >::type::value), "Error");
 
-    static_assert( (it_domain_t::template accessor_read_from_texture< dummy_functor::in  >::type::value), "Error" );
+    static_assert((it_domain_t::template accessor_read_from_texture< dummy_functor::in >::type::value), "Error");
 
-    //because is output field
-    static_assert( !(it_domain_t::template accessor_read_from_texture< dummy_functor::out  >::type::value), "Error" );
-    //because is being bypass
-    static_assert( !(it_domain_t::template accessor_read_from_texture< dummy_functor::buff1  >::type::value), "Error" );
-    //because is not a texture supported type
-    static_assert( !(it_domain_t::template accessor_read_from_texture< dummy_functor::buff2  >::type::value), "Error" );
+    // because is output field
+    static_assert(!(it_domain_t::template accessor_read_from_texture< dummy_functor::out >::type::value), "Error");
+    // because is being bypass
+    static_assert(!(it_domain_t::template accessor_read_from_texture< dummy_functor::buff1 >::type::value), "Error");
+    // because is not a texture supported type
+    static_assert(!(it_domain_t::template accessor_read_from_texture< dummy_functor::buff2 >::type::value), "Error");
 
-    //access via shared mem
-    static_assert( (it_domain_t::template accessor_from_shared_mem< dummy_functor::buff3  >::type::value), "Error" );
-    static_assert( !(it_domain_t::template accessor_from_shared_mem< dummy_functor::buff1  >::type::value), "Error" );
+    // access via shared mem
+    static_assert((it_domain_t::template accessor_from_shared_mem< dummy_functor::buff3 >::type::value), "Error");
+    static_assert(!(it_domain_t::template accessor_from_shared_mem< dummy_functor::buff1 >::type::value), "Error");
 
-    //access via kcache reg
-    static_assert( (it_domain_t::template accessor_from_kcache_reg< dummy_functor::buff4  >::type::value), "Error" );
-    static_assert( !(it_domain_t::template accessor_from_kcache_reg< dummy_functor::buff3  >::type::value), "Error" );
+    // access via kcache reg
+    static_assert((it_domain_t::template accessor_from_kcache_reg< dummy_functor::buff4 >::type::value), "Error");
+    static_assert(!(it_domain_t::template accessor_from_kcache_reg< dummy_functor::buff3 >::type::value), "Error");
 
     ASSERT_TRUE(true);
 }
