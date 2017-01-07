@@ -42,7 +42,7 @@
 #include "../common/generic_metafunctions/accumulate_tparams_until.hpp"
 #include "common/generic_metafunctions/is_predicate.hpp"
 #include "common/generic_metafunctions/copy_into_set.hpp"
-#include <common/generic_metafunctions/logical_ops.hpp>
+#include <common/generic_metafunctions/binary_ops.hpp>
 
 #ifdef STRUCTURED_GRIDS
 #include "structured_grids/esf_metafunctions.hpp"

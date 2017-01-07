@@ -96,7 +96,17 @@ namespace gridtools {
     }
 
     /*
-     * @struct is_same_up_to
+     * @struct accumulate_tparams_until
+     * will accumulate (using the LogicalOp) the result of BinaryOp over the template parameters of First and Second,
+     * until a number of Limit parameters is reached. An example of use:
+     * accumulate_tparams_until<int_t, equal, logical_and, extent<-1,2,-1,3,1,1>, extent<-1,2,-1,2,2,2>, 3>
+     *
+     * @tparam Value is the type of the template parameters being accumulated
+     * @tparam BinaryOp binary operator applied to a pair of template parameters in First and Second
+     * @tparam LogicalOp logical operator applied to the accumulation algorithm
+     * @tparam First first operand containing a list of template parameters (subject to this algorithm)
+     * @tparam Second second operand containing a list of template parameters (subject to this algorithm)
+     * @tparam Limit limit number of template parameters being accumulated
      */
     template < typename Value, typename BinaryOp, typename LogicalOp, typename First, typename Second, ushort_t Limit >
     struct accumulate_tparams_until;
