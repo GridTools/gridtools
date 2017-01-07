@@ -264,7 +264,7 @@ namespace gridtools {
                 typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs_original;
                 // substitute the types for expandable parameters arg
                 typedef typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs;
-#ifdef CUDA8
+#ifdef __CUDACC__
                 static_assert((check_all_extents_are_same_upto< outputs, extent<>, 4 >::type::value),
                     "Horizontal extents of the outputs of ESFs are not all empty. "
                     "All outputs must have empty (horizontal) extents");
