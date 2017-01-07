@@ -456,7 +456,7 @@ This is not allowed. If you want to fake a lower dimensional storage, you have t
 
         template < typename LayoutT, typename StridesVector >
         GT_FUNCTION static constexpr int_t _index(
-            StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
+            StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &RESTRICT offsets) {
             return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);
         }
 

@@ -135,14 +135,15 @@ namespace gridtools {
             static const ushort_t space_dimensions = Layout::length;
 
             template < typename IntType, typename StridesVector >
-            GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT /*strides*/, IntType *indices_) {
+            GT_FUNCTION static constexpr int_t apply(
+                StridesVector const &RESTRICT /*strides*/, IntType *RESTRICT indices_) {
                 return Layout::template find_val< space_dimensions - 1, int, 0 >(indices_);
             }
 
 #ifdef CXX11_ENABLED
             template < typename StridesVector, typename... IntType, typename Dummy = all_integers< IntType... > >
             GT_FUNCTION static constexpr int_t apply(
-                StridesVector const &RESTRICT /*strides*/, IntType const &... indices_) {
+                StridesVector const &RESTRICT /*strides*/, IntType const &RESTRICT... indices_) {
                 return Layout::template find_val< space_dimensions - 1, int, 0 >(indices_...);
             }
 #endif
@@ -152,7 +153,7 @@ namespace gridtools {
             */
             template < typename Offset, typename StridesVector >
             GT_FUNCTION static constexpr int_t apply(StridesVector const &RESTRICT /*strides*/,
-                Offset const &indices_,
+                Offset const &RESTRICT indices_,
                 typename boost::enable_if< typename is_tuple_or_array< Offset >::type, int >::type * = 0) {
                 return Layout::template find_val< space_dimensions - 1, int, 0 >(indices_);
             }
