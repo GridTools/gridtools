@@ -126,7 +126,7 @@ namespace gridtools {
             uint_t const &dim3,
             uint_t const &n_i_threads = 1,
             uint_t const &n_j_threads = 1)
-// HACK INTRODUCTING GRIDS IN STORAGE
+// TODO ICO_STORAGE INTRODUCTING GRIDS IN STORAGE
 #ifdef STRUCTURED_GRIDS
             : super((tile_i + minus_i + plus_i) * n_i_threads, (tile_j + minus_j + plus_j) * n_j_threads, dim3)
 #else
@@ -216,7 +216,7 @@ namespace gridtools {
             const int_t steps_, const uint_t block_, int_t *RESTRICT index_, StridesVector const &strides_) const {
 
             // no blocking along k
-            // HACK INTRODUCTING GRIDS IN STORAGE
+            // TODO ICO_STORAGE
             if (Coordinate == storage_grid_traits::dim_i_t::value ||
                 Coordinate == storage_grid_traits::dim_j_t::value) {
                 uint_t tile_ = Coordinate == storage_grid_traits::dim_i_t::value ? (tile_i) : (tile_j);

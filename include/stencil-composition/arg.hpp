@@ -94,12 +94,14 @@ namespace gridtools {
      * user-defined ones used via the global-accessor)
      *
      * @tparam I Integer index (unique) of the data field to identify it
-     * @tparam T The type of the storage used to store data
+     * @tparam Storage The type of the storage used to store data
+     * @tparam LocationType the location type of the storage of the placeholder
+     * @tparam is_temporary_storage determines whether the placeholder holds a temporary or normal storage
      */
     template < uint_t I,
         typename Storage,
         typename LocationType = enumtype::default_location_type,
-        typename is_temporary_storage = bool >
+        typename is_temporary_storage = void >
     struct arg {
         GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error");
         typedef Storage storage_type;
@@ -128,6 +130,10 @@ namespace gridtools {
         }
     };
 
+    /**
+     * @struct arg_get_storage_info
+     * @brief returns the storage info of the storage associated to the placeholder
+     */
     template < typename Storage >
     struct arg_get_storage_info {
         GRIDTOOLS_STATIC_ASSERT((is_any_storage< Storage >::value), "Error");

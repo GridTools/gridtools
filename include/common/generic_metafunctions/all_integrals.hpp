@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "accumulate.hpp"
 #include "is_pack_of.hpp"
 
 namespace gridtools {

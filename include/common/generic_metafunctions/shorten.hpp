@@ -62,7 +62,8 @@ namespace gridtools {
         };
     }
 
-    /*
+    /**
+     * @struct shorten
      * Given a type with a set of variadic templates, returns the same type with only the
      * first "Threshold" number of variadic templates. Threshold has to be smaller or equal than
      * the number of variadic templates contained in the holder type

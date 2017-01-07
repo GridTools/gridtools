@@ -106,7 +106,7 @@ namespace gridtools {
 
 // ElemType::info_string.c_str();
 // calls the constructor of the storage
-// HACK
+// TODO ICO_STORAGE
 #ifdef STRUCTURED_GRIDS
                     meta_t meta_data(m_tile_i, m_tile_j, m_tile_k);
 #else

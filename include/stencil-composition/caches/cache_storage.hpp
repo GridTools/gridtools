@@ -87,7 +87,7 @@ namespace gridtools {
         // generate a layout map with the number of dimensions of the tiles + 1(snapshots) + 1 (field dimension)
         typedef typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t,
             sizeof...(Tiles) + 2 /*FD*/
-// HACK in irregular grids we have one more dim for color
+// TODO ICO_STORAGE in irregular grids we have one more dim for color
 #ifndef STRUCTURED_GRIDS
                 +
                 1
@@ -122,7 +122,7 @@ namespace gridtools {
 
             // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template strides< 0 >() +
-// HACK
+// TODO ICO_STORAGE
 #ifdef STRUCTURED_GRIDS
                                   (thread_pos[1] - jminus::value) * m_value.template strides< 1 >() +
 #else
@@ -194,7 +194,7 @@ namespace gridtools {
         template < uint_t Color, typename Offset >
         GT_FUNCTION int_t index(array< int, 2 > const &thread_pos, Offset const &offset) {
             return (thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value) * i_stride_t::value +
-// HACK
+// TODO ICO_STORAGE
 #ifdef STRUCTURED_GRIDS
                    (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value) * j_stride_t::value;
 #else

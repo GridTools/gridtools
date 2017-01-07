@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include <iostream>
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/for_each.hpp>

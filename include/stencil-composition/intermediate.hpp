@@ -39,6 +39,7 @@
 #include <iostream>
 #endif
 
+#include <boost/shared_ptr.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/pair.hpp>
@@ -59,7 +60,6 @@
 #include "./loopintervals.hpp"
 #include "./functor_do_methods.hpp"
 #include "./functor_do_method_lookup_maps.hpp"
-#include "./axis.hpp"
 #include "./local_domain.hpp"
 #include "./computation.hpp"
 #include "./heap_allocated_temps.hpp"
@@ -175,7 +175,7 @@ namespace gridtools {
                     "Could not find a temporary, defined in the user aggregator_type, in the list of storage types "
                     "used in "
                     "all mss/esfs. \n"
-                    " Check that all temporaries are actually used in at least one user functor");
+                    " Check that all temporaries are actually used in at least one user functor as inout_accessor");
 
                 typedef typename boost::mpl::deref< iter >::type::first type;
             };

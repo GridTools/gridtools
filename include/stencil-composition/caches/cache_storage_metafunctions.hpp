@@ -42,7 +42,7 @@ namespace gridtools {
 
             typedef meta_storage_cache< Layout,
                 P1::value - M1::value + T1::value,
-// HACK
+// TODO ICO_STORAGE
 #ifndef STRUCTURED_GRIDS
                 NColors,
 #endif

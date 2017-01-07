@@ -794,7 +794,7 @@ namespace gridtools {
             return storage_t< LocationType, ValueType, Selector >(ameta, name);
         }
 
-        // HACKICO this is a hacked until the new storage fixes the problems with the ownership of the storage,
+        // TODO ICO_STORAGE this is a hacked until the new storage fixes the problems with the ownership of the storage,
         // since currently we can not move nor copy storages
         template < typename LocationType,
             typename ValueType,
