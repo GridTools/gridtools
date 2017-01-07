@@ -99,11 +99,22 @@ namespace gridtools {
      *	@tparam Args arbitrary number of storages that should be cached
      *	@return vector of caches
      */
-    template < cache_type cacheType, cache_io_policy cacheIOPolicy, typename... Args >
+    template < cache_type cacheType,
+        cache_io_policy cacheIOPolicy,
+        typename Interval = boost::mpl::void_,
+        typename... Args >
     constexpr typename boost::mpl::transform< boost::mpl::vector< Args... >,
         detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type
     cache(Args &&...) {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
+        static_assert(((boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType == K),
+            "Passing an interval to the cache<> construct is only allowed and required by the K caches");
+        static_assert(
+            (!(boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType != K || cacheIOPolicy == local),
+            "cache<K, ... > construct requires an interval (unless the IO policy is local)");
+
+        static_assert((boost::is_same< Interval, boost::mpl::void_ >::value || is_interval< Interval >::value),
+            "Invalid Interval type passed to cache construct");
         typedef typename boost::mpl::transform< boost::mpl::vector< Args... >,
             detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type res_ty;
         return res_ty();
