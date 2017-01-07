@@ -745,6 +745,7 @@ namespace gridtools {
         using layout_t = typename Backend::template select_layout< Selector >::type;
 
         template < typename LocationType, typename Selector = selector< 1, 1, 1, 1 > >
+        // TODO ICO_STORAGE do we need this unique id of the storage info with the new storage?
         using meta_storage_t =
             typename Backend::template storage_info_t< impl::compute_uuid< LocationType::value, Selector >::value,
                 typename Backend::template select_layout< Selector >::type >;

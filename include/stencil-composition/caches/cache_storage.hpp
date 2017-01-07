@@ -69,6 +69,8 @@ namespace gridtools {
      * @tparam Value value type being stored
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
+     * @tparam NColors number of colors of the location type of the storage
+     * @tparam Storage type of the storage
      */
     template < uint_t... Tiles, short_t... ExtentBounds, typename Storage, uint_t NColors >
     struct cache_storage< block_size< Tiles... >, extent< ExtentBounds... >, NColors, Storage > {
@@ -157,6 +159,8 @@ namespace gridtools {
      * @tparam Value value type being stored
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
+     * @tparam NColors number of colors of the location type of the storage
+     * @tparam Storage type of the storage
      */
     template < typename BlockSize, typename Extend, uint_t NColors, typename Storage >
     struct cache_storage {

@@ -48,7 +48,4 @@ namespace gridtools {
     template < enumtype::platform BackendId, enumtype::strategy StrategyType >
     struct backend_id< backend< BackendId, StrategyType > > : enumtype::enum_type< enumtype::platform, BackendId > {};
 
-    namespace impl {
-        template get_4d_selector
-    }
 } // gridtools

@@ -46,11 +46,17 @@
 namespace gridtools {
     namespace impl {
 
+        /**
+         * @brief Computes a unique identifier (to be used for metastorages) given a list of index values
+         */
         template < uint_t Pos >
         GT_FUNCTION constexpr long long compute_uuid_selector(int cnt) {
             return 0;
         }
 
+        /**
+         * @brief Computes a unique identifier (to be used for metastorages) given a list of index values
+         */
         template < uint_t Pos, typename... Int >
         GT_FUNCTION constexpr long long compute_uuid_selector(int cnt, int val0, Int... val) {
             return (cnt == 4) ? 0 : ((val0 == 1)
@@ -103,6 +109,17 @@ namespace gridtools {
             };
         };
 
+        /**
+         * @brief constructs an array containing the sizes of each dimension for a generic storage with any
+         * number of dimensions.
+         * It is formed from a basic array (with only the 3 space dimension sizes) and the specification
+         * of the sizes of the extra dimensions passed as a variadic pack arguments. Example of use:
+         *    array< uint_t, 6 > metastorage_sizes =
+                impl::array_dim_initializers< uint_t, 6, cells >::apply(array<uint_t, 3>{1,3,5}, 7,9);
+              will construct the array {1,2,3,5,7,9}
+              (the size of the color dimension is added from the location type (cells) specified
+
+         */
         template < typename Uint, size_t ArraySize, typename LocationType, typename Selector >
         struct array_dim_initializers;
 

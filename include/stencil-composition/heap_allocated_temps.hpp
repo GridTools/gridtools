@@ -111,6 +111,7 @@ namespace gridtools {
                     meta_t meta_data(m_tile_i, m_tile_j, m_tile_k);
 #else
                     meta_t meta_data(m_tile_i,
+                        // TODO ICO_STORAGE What to do with the 3 below? which is the maximum number of colors?
                         3,
                         // the metafunction below does not work for temporaries
                         // get_location_by_metastorage_index< meta_t::index_type::value>::type::value,

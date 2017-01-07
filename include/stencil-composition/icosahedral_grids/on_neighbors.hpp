@@ -119,18 +119,21 @@ namespace gridtools {
             : m_reduction(other.m_reduction), m_value(other.m_value), m_maps(other.m_maps) {}
     };
 
-    template < typename TupleDest >
-    struct transform_tuple_elem {
+    // TODO ICO_STORAGE double check the need of this
+    namespace impl {
+        template < typename TupleDest >
+        struct transform_tuple_elem {
 
-        template < typename... Accessors >
-        GT_FUNCTION static constexpr TupleDest apply(Accessors... args) {
-            return TupleDest(args...);
+            template < typename... Accessors >
+            GT_FUNCTION static constexpr TupleDest apply(Accessors... args) {
+                return TupleDest(args...);
+            }
+        };
+
+        template < typename TupleOrig, typename TupleDest >
+        GT_FUNCTION constexpr TupleDest transform_tuple(const TupleOrig tuple) {
+            return explode< TupleDest, transform_tuple_elem< TupleDest > >(tuple);
         }
-    };
-
-    template < typename TupleOrig, typename TupleDest >
-    GT_FUNCTION constexpr TupleDest transform_tuple(const TupleOrig tuple) {
-        return explode< TupleDest, transform_tuple_elem< TupleDest > >(tuple);
     }
 
     /**
@@ -164,7 +167,9 @@ namespace gridtools {
         GT_FUNCTION constexpr on_neighbors_impl(
             on_neighbors< ValueType, DstLocationType, ReductionFunction, MapFunctionOther... > const &on_neighbors)
             : m_reduction(on_neighbors.m_reduction), m_value(on_neighbors.m_value),
-              m_maps(transform_tuple< tuple< MapFunctionOther... >, tuple< MapFunction... > >(on_neighbors.m_maps)) {}
+              m_maps(
+                  impl::transform_tuple< tuple< MapFunctionOther... >, tuple< MapFunction... > >(on_neighbors.m_maps)) {
+        }
 
         GT_FUNCTION
         constexpr on_neighbors_impl(

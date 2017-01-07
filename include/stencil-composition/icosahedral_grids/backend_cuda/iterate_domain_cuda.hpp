@@ -233,9 +233,6 @@ namespace gridtools {
         /**
         * @brief metafunction that determines if an accessor has to be read from texture memory
         */
-        /**
-        * @brief metafunction that determines if an accessor has to be read from texture memory
-        */
         template < typename Accessor >
         struct accessor_read_from_texture {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
