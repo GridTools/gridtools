@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
 #include "common/defs.hpp"
 #include "stencil-composition/stencil-composition.hpp"
@@ -67,7 +68,7 @@ typedef backend_t::storage_type< bool, meta_ij_t >::type storage_bool_type;
         typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 0 > > buff1;
         typedef accessor< 3, enumtype::in, extent< 0, 0, 0, 0 > > buff2;
         typedef accessor< 4, enumtype::in, extent< -2, 1, -3, 4 >  > buff3;
-        typedef accessor< 5, enumtype::inout, extent< 0,0,0,0,-1,2 >  > buff4;
+        typedef accessor< 5, enumtype::inout, extent< 0,0,0,0,-1,2>  > buff4;
 
         typedef boost::mpl::vector< in, out, buff1, buff2, buff3, buff4 > arg_list;
 
