@@ -145,6 +145,7 @@ namespace gridtools {
                 m_cpu_p.free_it();
                 m_up_to_date = true;
                 m_pointer_to_use = NULL;
+                m_allocated = false;
 
 #ifdef VERBOSE
                 printf("freeing hybrid pointer %x \n", this);
@@ -171,15 +172,13 @@ namespace gridtools {
             printf("update cpu ");
             out();
 #endif
-            // if (on_device()) {
-            cudaError_t err =
-                cudaMemcpy((void *)m_cpu_p.get(), (void *)m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
-#ifndef __CUDACC__
-            assert(err == cudaSuccess);
-#endif
-            m_up_to_date = true;
-            m_pointer_to_use = m_cpu_p.get();
-            // }
+            if (on_device()) {
+                cudaError_t err =
+                    cudaMemcpy((void *)m_cpu_p.get(), (void *)m_gpu_p, m_size * sizeof(T), cudaMemcpyDeviceToHost);
+                assert(err == cudaSuccess);
+                m_up_to_date = true;
+                m_pointer_to_use = m_cpu_p.get();
+            }
         }
 
         void set(pointee_t const &value, uint_t const &index) {
@@ -359,13 +358,14 @@ namespace gridtools {
 
         /** the standard = operator */
         GT_FUNCTION
-        hybrid_pointer operator=(hybrid_pointer const &other) {
+        hybrid_pointer &operator=(hybrid_pointer const &other) {
             m_gpu_p = other.m_gpu_p;
             m_cpu_p = other.m_cpu_p;
             m_pointer_to_use = other.m_pointer_to_use;
             m_size = other.m_size;
             m_allocated = other.m_allocated;
             m_up_to_date = other.m_up_to_date;
+            return *this;
         }
 
       private:

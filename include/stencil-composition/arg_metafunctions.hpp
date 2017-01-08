@@ -34,9 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "arg_metafunctions_fwd.hpp"
+#include "arg_fwd.hpp"
 
 namespace gridtools {
+
     /**
      * @struct arg_hods_data_field_h
      * high order metafunction of arg_holds_data_field
@@ -44,6 +46,11 @@ namespace gridtools {
     template < typename Arg >
     struct arg_holds_data_field_h {
         typedef typename arg_holds_data_field< typename Arg::type >::type type;
+    };
+
+    template < uint_t I, typename Storage, typename Condition >
+    struct arg_holds_data_field_h< arg< I, Storage, Condition > > {
+        typedef typename arg_holds_data_field< arg< I, Storage, Condition > >::type type;
     };
 
     // metafunction to access the storage type given the arg
@@ -61,7 +68,7 @@ namespace gridtools {
     /** metafunction extracting the location type from the storage*/
     template < typename T >
     struct get_location_type {
-        typedef typename T::storage_info_type::index_type type;
+        typedef typename extract_storage_info_type< T >::type::index_type type;
     };
 
 } // namespace gridtools

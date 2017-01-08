@@ -36,7 +36,6 @@
 #pragma once
 #include "meta_storage_base.hpp"
 #include "storage_grid_traits.hpp"
-#include "../stencil-composition/location_type.hpp"
 
 /**
    @file
@@ -214,6 +213,8 @@ namespace gridtools {
         template < uint_t Coordinate, typename StridesVector >
         GT_FUNCTION void initialize(
             const int_t steps_, const uint_t block_, int_t *RESTRICT index_, StridesVector const &strides_) const {
+
+            GRIDTOOLS_STATIC_ASSERT((layout::template at_< Coordinate >::value >= -1), "wrong coordinate");
 
             // no blocking along k
             // TODO ICO_STORAGE

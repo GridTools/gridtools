@@ -390,7 +390,7 @@ namespace gridtools {
         // TODO This should be merged with structured grids
         template < typename Accessor, typename StoragePointer >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
-            Accessor const &accessor, StoragePointer &RESTRICT storage_pointer) const {
+            Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
 
             // getting information about the storage
             typedef typename Accessor::index_type index_t;
@@ -490,6 +490,8 @@ namespace gridtools {
             typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
             _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
                 array< int_t, 4 > const &RESTRICT position_offset) const {
+            GRIDTOOLS_STATIC_ASSERT((LocationType::value == location_type_t::value), "error");
+
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
 
             // getting information about the storage

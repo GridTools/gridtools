@@ -33,12 +33,30 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-namespace gridtools {
-    /**Aliases for the first three dimensions (x,y,z)*/
-    typedef dimension< 1 > x;
-    typedef dimension< 2 > y;
-    typedef dimension< 3 > z;
-    /**@}*/
-} // namespace gridtools
+#include "test_grid.cpp"
+
+namespace {
+    template < typename Axis >
+    __global__ void test_copied_grid_on_device(grid< Axis > *expect, grid< Axis > *actual, bool *result) {
+        *result = test_grid_eq(*expect, *actual);
+    }
+}
+
+TEST_F(test_grid_copy_ctor, copy_on_device) {
+    grid< axis > copy(grid_);
+
+    grid_.clone_to_device();
+    copy.clone_to_device();
+
+    bool result;
+    bool *resultDevice;
+    cudaMalloc(&resultDevice, sizeof(bool));
+
+    test_copied_grid_on_device<<< 1, 1 >>>(grid_.device_pointer(), copy.device_pointer(), resultDevice);
+
+    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
+
+    ASSERT_NE(grid_.device_pointer(), copy.device_pointer());
+    ASSERT_TRUE(result);
+}

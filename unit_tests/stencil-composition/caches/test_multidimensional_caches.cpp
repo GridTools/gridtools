@@ -43,7 +43,9 @@ namespace test_multidimensional_caches {
     int test() {
 #ifdef CUDA8
         typedef layout_map< 0, 1, 2, 3, 4, 5 > layout_t;
-        typedef pointer< base_storage< wrap_pointer< double >, meta_storage_base< 0, layout_t, false >, 4 > > storage_t;
+        typedef pointer<
+            base_storage< wrap_pointer< double >, meta_storage_base< static_int< 0 >, layout_t, false >, 4 > >
+            storage_t;
         typedef cache_storage< block_size< 8, 3, 4, 5, 6 >, extent< -1, 1, -2, 2, 0, 2, 0, 0, -1, 0 >, 1, storage_t >
             cache_storage_t;
         typedef accessor< 0, enumtype::in, extent<>, 7 > acc_t;
@@ -57,6 +59,8 @@ namespace test_multidimensional_caches {
         GRIDTOOLS_STATIC_ASSERT(m_.value().dim(4) == 7, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.value().dim(5) == 4, "error");
 
+        //#ifndef __CUDACC__ // compiler internal catastrophic error until CUDA8
+        // for the layout_map::find_val (bug report)
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(1, 0, 0, 0, 0, 0)) == 1, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(2, 0, 0, 0, 0, 0)) == 2, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(3, 0, 0, 0, 0, 0)) == 3, "error");
@@ -93,6 +97,7 @@ namespace test_multidimensional_caches {
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 0, 0, 0, 1)) == 420 * 7, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 0, 0, 0, 2)) == 420 * 7 * 2, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 0, 0, 0, 3)) == 420 * 7 * 3, "error");
+//#endif
 #endif
         return 0;
     }

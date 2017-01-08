@@ -225,4 +225,19 @@ namespace gridtools {
         void operator()(
             T &st, typename boost::enable_if< is_global_parameter< typename T::value_type > >::type *a = 0) const {}
     };
+
+    template < typename T >
+    struct extract_storage_info_type {
+        typedef typename T::storage_info_type type;
+    };
+
+    template < typename Storage >
+    static Storage const &extract_meta_data(Storage &st_) {
+        GRIDTOOLS_STATIC_ASSERT(!sizeof(Storage), "Internal error, missing the proper overload for extract_meta_data");
+    }
+
+    template < typename Storage >
+    static typename Storage::storage_info_type const &extract_meta_data(pointer< Storage > &st_) {
+        return st_->meta_data();
+    }
 }

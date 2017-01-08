@@ -43,6 +43,7 @@ namespace gridtools {
      */
     template < typename First, typename... StorageExtended >
     struct dimension_extension_traits {
+        static const bool is_rectangular = accumulate(logical_and(), (StorageExtended::n_width == First::n_width)...);
         // total number of snapshots in the discretized data field
         static const ushort_t n_fields = First::n_width + dimension_extension_traits< StorageExtended... >::n_fields;
         // the buffer size of the current dimension (i.e. the number of snapshots in one dimension)
@@ -69,6 +70,7 @@ namespace gridtools {
     /**@brief template specialization at the end of the recustion.*/
     template < typename First >
     struct dimension_extension_traits< First > {
+        static constexpr bool is_rectangular = true;
         static const ushort_t n_fields = First::n_width;
         static const short_t n_width = First::n_width;
         static const ushort_t n_dimensions = 1;
@@ -365,7 +367,7 @@ namespace gridtools {
            @tparam snapshot the snapshot of dimension field_dim to be set
         */
         template < short_t snapshot = 0, short_t field_dim = 0 >
-        value_type &get() {
+        pointer_type &get() {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
@@ -375,11 +377,11 @@ namespace gridtools {
                                         super::super::field_dimensions),
                 "nasty error");
 #endif
-            return *super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
         }
 
         template < short_t snapshot = 0, short_t field_dim = 0 >
-        value_type const &get() const {
+        pointer_type const &get() const {
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
             GRIDTOOLS_STATIC_ASSERT((field_dim < traits::n_dimensions), "trying to get a field dimension out of bound");
@@ -389,7 +391,7 @@ namespace gridtools {
                                         super::super::field_dimensions),
                 "nasty error");
 #endif
-            return *super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
+            return super::m_fields[_impl::access< n_width - (field_dim), traits >::type::n_fields + snapshot];
         }
 
         /**@brief gets a given value at the given field i,j,k coordinates

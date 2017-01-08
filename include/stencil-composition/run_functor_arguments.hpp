@@ -39,7 +39,6 @@
 #include "../common/defs.hpp"
 #include "block_size.hpp"
 #include "local_domain.hpp"
-#include "axis.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "caches/cache_metafunctions.hpp"
 #include "backend_traits_fwd.hpp"

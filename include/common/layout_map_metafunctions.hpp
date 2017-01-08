@@ -37,6 +37,9 @@
 #pragma once
 #include "generic_metafunctions/gt_integer_sequence.hpp"
 #include "layout_map.hpp"
+#include "selector.hpp"
+#include "generic_metafunctions/replace.hpp"
+#include "generic_metafunctions/sequence_unpacker.hpp"
 
 #ifdef CXX11_ENABLED
 namespace gridtools {

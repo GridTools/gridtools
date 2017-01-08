@@ -42,18 +42,19 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/for_each.hpp>
 
-#include "common/layout_map.hpp"
-#include "common/is_temporary_storage.hpp"
+#include "../gridtools.hpp"
+#include "../common/is_temporary_storage.hpp"
 
-#include "storage/storage.hpp"
-#include "storage/storage_metafunctions.hpp"
+#include "../storage/storage.hpp"
+#include "../storage/storage_metafunctions.hpp"
 
 #include "../common/offset_tuple_mixed.hpp"
-#include "stencil-composition/extent.hpp"
+#include "extent.hpp"
 #include "arg_fwd.hpp"
 
 #ifdef CXX11_ENABLED
-#include "stencil-composition/expressions.hpp"
+// TODO MYMERGE REMOVE
+#include "stencil-composition/expressions/expressions.hpp"
 #endif
 #include "dimension_fwd.hpp"
 
@@ -205,11 +206,11 @@ namespace gridtools {
         }
 
         template < short_t Idx >
-        GT_FUNCTION constexpr int_t get() const {
-            GRIDTOOLS_STATIC_ASSERT(
-                Idx < 0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
-            // the assert below is triggered when the accessor has a lower dimensionality than the layout
-            // GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+        GT_FUNCTION int_t constexpr get() const {
+            GRIDTOOLS_STATIC_ASSERT(Idx < 0 || Idx <= n_dim,
+                "requested accessor index larger than the available "
+                "dimensions. Maybe you made a mistake when setting the "
+                "accessor dimensionality?");
             return m_offsets.template get< Idx >();
         }
 
