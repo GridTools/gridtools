@@ -47,6 +47,8 @@
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/for_each.hpp>
 #include "arg.hpp"
+#include "storage/expandable_parameters.hpp"
+
 template < typename RegularStorageType >
 struct no_storage_type_yet;
 
@@ -123,9 +125,6 @@ namespace gridtools {
         };
 
     } // namespace _debug
-
-    template < typename Storage, uint_t Size >
-    struct expandable_parameters;
 
     namespace _impl {
         struct l_get_type {

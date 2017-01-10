@@ -127,8 +127,8 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
                                   (thread_pos[1] - jminus::value) * s_storage_info.template strides< 1 >() +
 #else
-                                  Color + m_value.template strides< 1 >() +
-                                  (thread_pos[1] - jminus::value) * m_value.template strides< 2 >() +
+                                  Color + s_storage_info.template strides< 1 >() +
+                                  (thread_pos[1] - jminus::value) * s_storage_info.template strides< 2 >() +
 #endif
                                   s_storage_info.index(accessor_);
 

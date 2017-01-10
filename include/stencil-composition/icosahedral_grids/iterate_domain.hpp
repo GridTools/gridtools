@@ -490,8 +490,6 @@ namespace gridtools {
             typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
             _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
                 array< int_t, 4 > const &RESTRICT position_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((LocationType::value == location_type_t::value), "error");
-
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
 
             // getting information about the storage
