@@ -44,6 +44,15 @@
 
 namespace gridtools {
 
+    /* provide a constexpr version of std::ceil */
+    namespace {
+        constexpr static unsigned ceil(float num) {
+            return (static_cast< float >(static_cast< unsigned >(num)) == num)
+                       ? static_cast< unsigned >(num)
+                       : static_cast< unsigned >(num) + ((num > 0) ? 1 : 0);
+        }
+    }
+
     /* struct used to extend a given number of dimensions with a given halo */
     template < unsigned HaloVal, int LayoutArg >
     struct extend_by_halo {
@@ -57,7 +66,7 @@ namespace gridtools {
     template < typename Alignment, unsigned Length, int LayoutArg >
     constexpr unsigned align_dimensions(unsigned dimension) {
         return (Alignment::value && (LayoutArg == Length - 1))
-                   ? std::ceil((float)dimension / (float)Alignment::value) * Alignment::value
+                   ? ceil((float)dimension / (float)Alignment::value) * Alignment::value
                    : dimension;
     }
 
@@ -71,11 +80,11 @@ namespace gridtools {
                        get_value_from_pack(get_index_of_element_in_pack(
                                                0, (layout_map< LayoutArgs... >::unmasked_length - 1), LayoutArgs...),
                            HaloVals...))
-                       ? (std::ceil((float)get_value_from_pack(
-                                        get_index_of_element_in_pack(
-                                            0, (layout_map< LayoutArgs... >::unmasked_length - 1), LayoutArgs...),
-                                        HaloVals...) /
-                                    (float)Alignment::value) *
+                       ? (ceil((float)get_value_from_pack(
+                                   get_index_of_element_in_pack(
+                                       0, (layout_map< LayoutArgs... >::unmasked_length - 1), LayoutArgs...),
+                                   HaloVals...) /
+                               (float)Alignment::value) *
                                  Alignment::value -
                              get_value_from_pack(
                                  get_index_of_element_in_pack(

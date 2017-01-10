@@ -38,10 +38,10 @@
 
 #include "common/defs.hpp"
 #include "common/storage_traits_metafunctions.hpp"
+#include "storage_host/data_field_view_helpers.hpp"
+#include "storage_host/data_view_helpers.hpp"
 #include "storage_host/storage.hpp"
 #include "storage_host/storage_info.hpp"
-#include "storage_host/data_view_helpers.hpp"
-#include "storage_host/data_field_view_helpers.hpp"
 
 namespace gridtools {
     template < enumtype::platform T >
@@ -65,7 +65,7 @@ namespace gridtools {
         template < unsigned Id, typename Selector, typename Halo >
         struct select_special_storage_info {
             typedef typename get_layout< Selector::size, true >::type layout;
-            typedef host_storage_info< Id, typename get_special_layout< layout, Selector >::type > type;
+            typedef host_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo > type;
         };
     };
 }
