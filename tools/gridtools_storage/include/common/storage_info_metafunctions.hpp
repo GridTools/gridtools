@@ -38,6 +38,7 @@
 #include <cmath>
 
 #include "halo.hpp"
+#include "layout_map.hpp"
 #include "nano_array.hpp"
 #include "variadic_pack_metafunctions.hpp"
 
@@ -90,26 +91,27 @@ namespace gridtools {
 
     template < int... LayoutArgs >
     struct get_strides_aux< layout_map< LayoutArgs... > > {
-        typedef layout_map<LayoutArgs...> layout_map_t;
+        typedef layout_map< LayoutArgs... > layout_map_t;
 
         template < int N, typename... Dims >
-        static constexpr typename boost::enable_if_c<(N!=-1 && N!=layout_map_t::unmasked_length-1), unsigned>::type 
-        get_stride(Dims... d) {
-            return  (get_value_from_pack(get_index_of_element_in_pack(0, N + 1, LayoutArgs...), d...)) * get_stride<N+1>(d...);
+        static constexpr
+            typename boost::enable_if_c< (N != -1 && N != layout_map_t::unmasked_length - 1), unsigned >::type
+                get_stride(Dims... d) {
+            return (get_value_from_pack(get_index_of_element_in_pack(0, N + 1, LayoutArgs...), d...)) *
+                   get_stride< N + 1 >(d...);
         }
 
         template < int N, typename... Dims >
-        static constexpr typename boost::enable_if_c<(N==-1), unsigned>::type 
-        get_stride(Dims... d) {
+        static constexpr typename boost::enable_if_c< (N == -1), unsigned >::type get_stride(Dims... d) {
             return 0;
         }
 
         template < int N, typename... Dims >
-        static constexpr typename boost::enable_if_c<(N!=-1 && N==layout_map_t::unmasked_length-1), unsigned>::type 
-        get_stride(Dims... d) {
+        static constexpr
+            typename boost::enable_if_c< (N != -1 && N == layout_map_t::unmasked_length - 1), unsigned >::type
+                get_stride(Dims... d) {
             return 1;
         }
-
     };
 
     template < typename Layout >
@@ -121,7 +123,7 @@ namespace gridtools {
         static constexpr nano_array< unsigned, sizeof...(LayoutArgs) > get_stride_array(Dims... d) {
             typedef layout_map< LayoutArgs... > Layout;
             return (nano_array< unsigned, Layout::length >){
-                get_strides_aux< Layout >::template get_stride<LayoutArgs>(d...)...};
+                get_strides_aux< Layout >::template get_stride< LayoutArgs >(d...)...};
         }
     };
 }

@@ -38,6 +38,7 @@
 
 #include "defs.hpp"
 #include "nano_array.hpp"
+#include "storage_info_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -47,17 +48,19 @@ namespace gridtools {
     };
 
     /* aligned storage infos use this struct */
-    template < typename Alignment, unsigned N >
+    template < typename Alignment, typename Layout, typename Halo >
     struct alignment_impl;
 
-    template < unsigned M, unsigned N >
-    struct alignment_impl< alignment< M >, N > {
-        unsigned m_initial_offset;
+    template < unsigned M, typename Layout, typename Halo >
+    struct alignment_impl< alignment< M >, Layout, Halo > {
+        static constexpr unsigned N = Layout::length;
+        static constexpr unsigned InitialOffset = get_initial_offset< Layout, alignment< M >, Halo >::compute();
+
         nano_array< unsigned, N > m_unaligned_dims;
         nano_array< unsigned, N > m_unaligned_strides;
 
-        constexpr alignment_impl(unsigned offset, nano_array< unsigned, N > dims, nano_array< unsigned, N > strides)
-            : m_initial_offset(offset), m_unaligned_dims(dims), m_unaligned_strides(strides) {}
+        constexpr alignment_impl(nano_array< unsigned, N > dims, nano_array< unsigned, N > strides)
+            : m_unaligned_dims(dims), m_unaligned_strides(strides) {}
 
         template < unsigned Coord >
         GT_FUNCTION unsigned unaligned_dim() {
@@ -68,22 +71,13 @@ namespace gridtools {
         GT_FUNCTION unsigned unaligned_stride() {
             return m_unaligned_strides[Coord];
         }
-
-        GT_FUNCTION constexpr unsigned get_initial_offset() const {
-            return m_initial_offset;
-        }
     };
 
     /* specialization for unaligned storage infos */
-    template < unsigned N >
-    struct alignment_impl< alignment< 0 >, N > {
-        unsigned m_initial_offset;
+    template < typename Layout, typename Halo >
+    struct alignment_impl< alignment< 0 >, Layout, Halo > {
+        static constexpr unsigned InitialOffset = 0;
         template < typename... T >
-        constexpr alignment_impl(T... t)
-            : m_initial_offset(0) {}
-
-        GT_FUNCTION constexpr unsigned get_initial_offset() const {
-            return m_initial_offset;
-        }
+        constexpr alignment_impl(T... t) {}
     };
 }
