@@ -38,10 +38,10 @@
 
 #include "common/defs.hpp"
 #include "common/storage_traits_metafunctions.hpp"
+#include "storage_cuda/data_field_view_helpers.hpp"
+#include "storage_cuda/data_view_helpers.hpp"
 #include "storage_cuda/storage.hpp"
 #include "storage_cuda/storage_info.hpp"
-#include "storage_cuda/data_view_helpers.hpp"
-#include "storage_cuda/data_field_view_helpers.hpp"
 
 namespace gridtools {
     template < enumtype::platform T >
@@ -59,13 +59,13 @@ namespace gridtools {
         template < unsigned Id, unsigned Dims, typename Halo >
         struct select_storage_info {
             typedef typename get_layout< Dims, false >::type layout;
-            typedef cuda_storage_info< Id, layout > type;
+            typedef cuda_storage_info< Id, layout, Halo > type;
         };
 
         template < unsigned Id, typename Selector, typename Halo >
         struct select_special_storage_info {
             typedef typename get_layout< Selector::size, false >::type layout;
-            typedef cuda_storage_info< Id, typename get_special_layout< layout, Selector >::type > type;
+            typedef cuda_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo > type;
         };
     };
 }
