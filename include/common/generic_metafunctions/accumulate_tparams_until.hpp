@@ -38,6 +38,7 @@
 
 namespace gridtools {
 
+#ifdef CXX11_ENABLED
     namespace impl {
         template < typename Value,
             typename BinaryOp,
@@ -132,4 +133,5 @@ namespace gridtools {
             Limit,
             0 >::value;
     };
+#endif
 }
