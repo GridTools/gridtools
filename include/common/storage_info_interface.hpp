@@ -72,9 +72,8 @@ namespace gridtools {
               m_strides(get_strides< Layout >::get_stride_array(
                   align_dimensions< Alignment, sizeof...(LayoutArgs), LayoutArgs >(
                       extend_by_halo< Halos, LayoutArgs >::extend(dims_))...)),
-              m_alignment(get_initial_offset< Layout, Alignment, Halo >::compute(),
-                  nano_array< unsigned, sizeof...(Dims) >{
-                      (unsigned)extend_by_halo< Halos, LayoutArgs >::extend(dims_)...},
+              m_alignment(nano_array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(
+                              dims_)...},
                   get_strides< Layout >::get_stride_array(dims_...)) {
             static_assert((sizeof...(Dims) == Layout::length), "error");
         }
@@ -91,7 +90,7 @@ namespace gridtools {
             return m_dims[0];
         }
 
-        GT_FUNCTION constexpr unsigned size() const { return size_part() + m_alignment.m_initial_offset; }
+        GT_FUNCTION constexpr unsigned size() const { return size_part() + get_initial_offset(); }
 
         template < int Coord >
         GT_FUNCTION constexpr int dim() const {
@@ -127,13 +126,17 @@ namespace gridtools {
 
         template < typename... Ints >
         GT_FUNCTION constexpr int index(Ints... idx) const {
-            return index_part< 0 >(idx...) + m_alignment.get_initial_offset();
+            return index_part< 0 >(idx...) + get_initial_offset();
+        }
+
+        GT_FUNCTION static constexpr unsigned get_initial_offset() {
+            return alignment_impl< Alignment, Layout, Halo >::InitialOffset;
         }
 
       private:
         nano_array< unsigned, Layout::length > m_dims;
         nano_array< unsigned, Layout::length > m_strides;
-        alignment_impl< Alignment, Layout::length > m_alignment;
+        alignment_impl< Alignment, Layout, Halo > m_alignment;
         constexpr storage_info_interface() {}
     };
 
