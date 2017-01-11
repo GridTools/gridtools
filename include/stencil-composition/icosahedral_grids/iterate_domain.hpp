@@ -51,6 +51,7 @@
 #include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../get_data_field_index.hpp"
 
 namespace gridtools {
 
@@ -333,6 +334,55 @@ namespace gridtools {
         GT_FUNCTION
         void set_position(array< uint_t, 4 > const &position) { m_grid_position = position; }
 
+        template < typename Accessor >
+        GT_FUNCTION
+            typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
+            get_data_pointer(Accessor const &accessor) const {
+
+            typedef typename Accessor::index_type index_t;
+            typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
+
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions,
+                "requested accessor index lower than zero. Check that when you define the accessor you specify the "
+                "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
+                "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
+                "you here.");
+
+            typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
+            return (data_pointer())[current_storage< (acc_t::index_type::value == 0), local_domain_t, acc_t >::value];
+        }
+
+        template < typename Accessor >
+        GT_FUNCTION
+            typename boost::enable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
+            get_data_pointer(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+
+            typedef typename get_storage_accessor< local_domain_t, Accessor >::type::value_type storage_type;
+
+            // if the following assertion fails you have specified a dimension for the extended storage
+            // which does not correspond to the size of the extended placeholder for that storage
+            GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dim,
+                "the dimension of the accessor exceeds the data field dimension");
+
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim != storage_type::space_dimensions,
+                "The dimension of the data_field accessor must be bigger than the storage dimension, you specified it "
+                "equal to the storage dimension");
+
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim > storage_type::space_dimensions,
+                "You specified a too small dimension for the data_field");
+
+            GRIDTOOLS_STATIC_ASSERT(
+                N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
+
+            uint_t idx =
+                get_data_field_index< storage_type::traits::is_rectangular, Accessor, local_domain_t >::apply(accessor);
+
+            return (data_pointer())[idx];
+        }
+
         /** @brief method returning the data pointer of an accessor
             specialization for the accessor placeholders for standard storages
 
@@ -341,15 +391,6 @@ namespace gridtools {
             I.e., if we are dealing with storages, not with storage lists or data fields (see concepts page for
            definitions)
         */
-        template < typename Accessor >
-        GT_FUNCTION
-            typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
-            get_data_pointer(Accessor const &accessor) const {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-            return (data_pointer())
-                [current_storage< (Accessor::index_type::value == 0), local_domain_t, typename Accessor::type >::value];
-        }
 
         template < uint_t Color, typename Accessor >
         GT_FUNCTION typename boost::enable_if< typename cache_access_accessor< Accessor >::type,
@@ -362,13 +403,10 @@ namespace gridtools {
         }
 
         template < uint_t Color, typename Accessor >
-        GT_FUNCTION typename boost::enable_if< typename mem_access_with_standard_accessor< Accessor >::type,
+        GT_FUNCTION typename boost::disable_if< typename cache_access_accessor< Accessor >::type,
             typename accessor_return_type< Accessor >::type >::type
         operator()(static_uint< Color >, Accessor const &accessor_) const {
-            return get_value(accessor_,
-                (data_pointer())[current_storage< (Accessor::index_type::value == 0),
-                    local_domain_t,
-                    typename Accessor::type >::value]);
+            return get_value(accessor_, get_data_pointer(accessor_));
         }
 
         /** @brief return a the value in gmem pointed to by an accessor
