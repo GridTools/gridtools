@@ -210,7 +210,7 @@ module load slurm
 if [[ ${myhost} == "kesch" ]]; then
     srun --partition=debug --gres=gpu:1 make test && hostname
 else
-    srun --partition=k80 --gres=gpu:1 make test && hostname
+    srun --partition=short --gres=gpu:1 make test && hostname
 fi
 exit_if_error $?
 

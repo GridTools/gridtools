@@ -42,37 +42,84 @@
 
 using namespace gridtools;
 
-typedef host_storage_info<0, layout_map<2,1,0> > storage_info_t;
+typedef host_storage_info< 0, layout_map< 0, 1, 2 > > storage_info_t;
+typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 2, 1, 0 > > storage_info_halo_t;
+typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 2, 1, 0 >, alignment< 16 > > storage_info_halo_aligned_t;
 
 void invalid_copy() {
-    storage_info_t si(3,3,3);
-    data_store<host_storage<double>, storage_info_t> ds1(si);
-    data_store<host_storage<double>, storage_info_t> ds2 = ds1;
+    storage_info_t si(3, 3, 3);
+    data_store< host_storage< double >, storage_info_t > ds1(si);
+    data_store< host_storage< double >, storage_info_t > ds2 = ds1;
 }
 
 void invalid_copy_assign() {
-    storage_info_t si(3,3,3);
-    data_store<host_storage<double>, storage_info_t> ds1(si);
-    data_store<host_storage<double>, storage_info_t> ds2(si);
+    storage_info_t si(3, 3, 3);
+    data_store< host_storage< double >, storage_info_t > ds1(si);
+    data_store< host_storage< double >, storage_info_t > ds2(si);
     ds2 = ds1;
 }
 
 TEST(DataStoreTest, Simple) {
-    storage_info_t si(3,3,3);
+    constexpr storage_info_t si(3, 3, 3);
+    constexpr storage_info_halo_t si_halo(3, 3, 3);
+    constexpr storage_info_halo_aligned_t si_halo_al(3, 3, 3);
+    // check sizes, strides, and alignment
+    static_assert(si.template dim< 0 >() == 3, "dimension check failed.");
+    static_assert(si.template dim< 1 >() == 3, "dimension check failed.");
+    static_assert(si.template dim< 2 >() == 3, "dimension check failed.");
+    static_assert(si.template unaligned_dim< 0 >() == 3, "dimension check failed.");
+    static_assert(si.template unaligned_dim< 1 >() == 3, "dimension check failed.");
+    static_assert(si.template unaligned_dim< 2 >() == 3, "dimension check failed.");
+    static_assert(si.template stride< 0 >() == 9, "stride check failed.");
+    static_assert(si.template stride< 1 >() == 3, "stride check failed.");
+    static_assert(si.template stride< 2 >() == 1, "stride check failed.");
+    static_assert(si.template unaligned_stride< 0 >() == 9, "stride check failed.");
+    static_assert(si.template unaligned_stride< 1 >() == 3, "stride check failed.");
+    static_assert(si.template unaligned_stride< 2 >() == 1, "stride check failed.");
+    static_assert(si.get_initial_offset() == 0, "init. offset check failed");
+
+    static_assert(si_halo.template dim< 0 >() == 7, "dimension check failed.");
+    static_assert(si_halo.template dim< 1 >() == 5, "dimension check failed.");
+    static_assert(si_halo.template dim< 2 >() == 3, "dimension check failed.");
+    static_assert(si_halo.template unaligned_dim< 0 >() == 7, "dimension check failed.");
+    static_assert(si_halo.template unaligned_dim< 1 >() == 5, "dimension check failed.");
+    static_assert(si_halo.template unaligned_dim< 2 >() == 3, "dimension check failed.");
+    static_assert(si_halo.template stride< 0 >() == 15, "stride check failed.");
+    static_assert(si_halo.template stride< 1 >() == 3, "stride check failed.");
+    static_assert(si_halo.template stride< 2 >() == 1, "stride check failed.");
+    static_assert(si_halo.template unaligned_stride< 0 >() == 15, "stride check failed.");
+    static_assert(si_halo.template unaligned_stride< 1 >() == 3, "stride check failed.");
+    static_assert(si_halo.template unaligned_stride< 2 >() == 1, "stride check failed.");
+    static_assert(si_halo.get_initial_offset() == 0, "init. offset check failed");
+
+    static_assert(si_halo_al.template dim< 0 >() == 7, "dimension check failed.");
+    static_assert(si_halo_al.template dim< 1 >() == 5, "dimension check failed.");
+    static_assert(si_halo_al.template dim< 2 >() == 16, "dimension check failed.");
+    static_assert(si_halo_al.template unaligned_dim< 0 >() == 7, "dimension check failed.");
+    static_assert(si_halo_al.template unaligned_dim< 1 >() == 5, "dimension check failed.");
+    static_assert(si_halo_al.template unaligned_dim< 2 >() == 3, "dimension check failed.");
+    static_assert(si_halo_al.template stride< 0 >() == 80, "stride check failed.");
+    static_assert(si_halo_al.template stride< 1 >() == 16, "stride check failed.");
+    static_assert(si_halo_al.template stride< 2 >() == 1, "stride check failed.");
+    static_assert(si_halo_al.template unaligned_stride< 0 >() == 15, "stride check failed.");
+    static_assert(si_halo_al.template unaligned_stride< 1 >() == 3, "stride check failed.");
+    static_assert(si_halo_al.template unaligned_stride< 2 >() == 1, "stride check failed.");
+    static_assert(si_halo_al.get_initial_offset() == 0, "init. offset check failed");
+
     // create unallocated data_store
-    data_store< host_storage<double>, storage_info_t > ds(si);
-    // try to copy and get_storage -> should fail
+    data_store< host_storage< double >, storage_info_t > ds(si);
+// try to copy and get_storage -> should fail
 #ifdef DEBUG
     ASSERT_DEATH(ds.get_storage_ptr(), "data_store is in a non-initialized state.");
     ASSERT_DEATH(invalid_copy(), "Cannot copy a non-initialized data_store.");
     ASSERT_DEATH(invalid_copy_assign(), "Cannot copy a non-initialized data_store.");
 #endif
     // allocate space
-    ds.allocate(); 
-    data_store< host_storage<double>, storage_info_t > ds_tmp_1(si);
-    data_store< host_storage<double>, storage_info_t > ds_tmp_2 = ds; // copy construct
-    ds_tmp_1 = ds; // copy assign
-    data_store< host_storage<double>, storage_info_t > ds1(si);
+    ds.allocate();
+    data_store< host_storage< double >, storage_info_t > ds_tmp_1(si);
+    data_store< host_storage< double >, storage_info_t > ds_tmp_2 = ds; // copy construct
+    ds_tmp_1 = ds;                                                      // copy assign
+    data_store< host_storage< double >, storage_info_t > ds1(si);
     ds1.allocate();
     ds1.free(); // destroy the data_store
 #ifdef DEBUG
@@ -80,9 +127,9 @@ TEST(DataStoreTest, Simple) {
 #endif
 
     // create a copy of a data_store and check equivalence
-    data_store< host_storage<double>, storage_info_t > datast(si);
+    data_store< host_storage< double >, storage_info_t > datast(si);
     datast.allocate();
-    data_store< host_storage<double>, storage_info_t > datast_cpy(datast); 
+    data_store< host_storage< double >, storage_info_t > datast_cpy(datast);
     EXPECT_EQ(datast.get_storage_info_ptr(), datast_cpy.get_storage_info_ptr());
     EXPECT_EQ(datast.get_storage_ptr(), datast_cpy.get_storage_ptr());
     // modify the data and check if the copy can see the changes
@@ -93,5 +140,5 @@ TEST(DataStoreTest, Simple) {
     EXPECT_EQ((datast.get_storage_ptr()->get_cpu_ptr()[1]), 200);
 
     EXPECT_EQ((datast_cpy.get_storage_ptr()->get_cpu_ptr()[0]), 100);
-    EXPECT_EQ((datast_cpy.get_storage_ptr()->get_cpu_ptr()[1]), 200);    
+    EXPECT_EQ((datast_cpy.get_storage_ptr()->get_cpu_ptr()[1]), 200);
 }
