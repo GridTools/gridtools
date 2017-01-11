@@ -1,14 +1,18 @@
 list( APPEND SRCFILES #laplace
       copy_stencil_icosahedral expandable_parameters_icosahedral stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields)
 
+file(GLOB_RECURSE INC_ALL_ "[a-z]*.hpp")
+list ( APPEND INC_ALL ${INC_ALL_} )
+file(GLOB_RECURSE INC_ALL_ "../../include/[a-z|A-Z|0-9]*.hpp")
+list ( APPEND INC_ALL ${INC_ALL_} )
 set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)
 
 add_definitions("-DBENCHMARK")
 set(exe_LIBS gtest gtest_main "${exe_LIBS}" )
 
 foreach(srcfile IN LISTS SRCFILES )
-    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES})
-    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES})
+    add_executable(${srcfile}_naive   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
+    add_executable(${srcfile}_block   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES})
     set_target_properties(${srcfile}_block
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
