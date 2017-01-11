@@ -66,6 +66,52 @@ void mul2(double* s) {
 TEST(DataStoreTest, Simple) {
     using data_store_t = data_store< cuda_storage<double>, storage_info_t >;
     storage_info_t si(3,3,3);
+    constexpr storage_info_interface<0, layout_map<2,1,0> > csi(3,3,3);
+    constexpr storage_info_interface<1, layout_map<2,1,0>, halo<2,1,0> > csih(3,3,3);
+    constexpr storage_info_interface<2, layout_map<2,1,0>, halo<2,1,0>, alignment<16> > csiha(3,3,3);
+    // check sizes, strides, and alignment
+    static_assert(csi.dim<0>() == 3, "dimension check failed.");
+    static_assert(csi.dim<1>() == 3, "dimension check failed.");
+    static_assert(csi.dim<2>() == 3, "dimension check failed.");
+    static_assert(csi.unaligned_dim<0>() == 3, "dimension check failed.");
+    static_assert(csi.unaligned_dim<1>() == 3, "dimension check failed.");
+    static_assert(csi.unaligned_dim<2>() == 3, "dimension check failed.");
+    static_assert(csi.stride<0>() == 1, "stride check failed.");
+    static_assert(csi.stride<1>() == 3, "stride check failed.");
+    static_assert(csi.stride<2>() == 9, "stride check failed.");
+    static_assert(csi.unaligned_stride<0>() == 1, "stride check failed.");
+    static_assert(csi.unaligned_stride<1>() == 3, "stride check failed.");
+    static_assert(csi.unaligned_stride<2>() == 9, "stride check failed.");
+    static_assert(csi.get_initial_offset() == 0, "init. offset check failed");
+
+    static_assert(csih.dim<0>() == 7, "dimension check failed.");
+    static_assert(csih.dim<1>() == 5, "dimension check failed.");
+    static_assert(csih.dim<2>() == 3, "dimension check failed.");
+    static_assert(csih.unaligned_dim<0>() == 7, "dimension check failed.");
+    static_assert(csih.unaligned_dim<1>() == 5, "dimension check failed.");
+    static_assert(csih.unaligned_dim<2>() == 3, "dimension check failed.");
+    static_assert(csih.stride<0>() == 1, "stride check failed.");
+    static_assert(csih.stride<1>() == 7, "stride check failed.");
+    static_assert(csih.stride<2>() == 35, "stride check failed.");
+    static_assert(csih.unaligned_stride<0>() == 1, "stride check failed.");
+    static_assert(csih.unaligned_stride<1>() == 7, "stride check failed.");
+    static_assert(csih.unaligned_stride<2>() == 35, "stride check failed.");
+    static_assert(csih.get_initial_offset() == 0, "init. offset check failed");
+    
+    EXPECT_EQ(csiha.dim<0>(), 16); 
+    EXPECT_EQ(csiha.dim<1>(), 5); 
+    EXPECT_EQ(csiha.dim<2>(), 3); 
+    static_assert(csiha.unaligned_dim<0>() == 7, "dimension check failed.");
+    static_assert(csiha.unaligned_dim<1>() == 5, "dimension check failed.");
+    static_assert(csiha.unaligned_dim<2>() == 3, "dimension check failed.");
+    EXPECT_EQ(csiha.stride<0>(), 1);
+    EXPECT_EQ(csiha.stride<1>(), 16);
+    EXPECT_EQ(csiha.stride<2>(), 80);
+    static_assert(csiha.unaligned_stride<0>() == 1, "stride check failed.");
+    static_assert(csiha.unaligned_stride<1>() == 7, "stride check failed.");
+    static_assert(csiha.unaligned_stride<2>() == 35, "stride check failed.");
+    static_assert(csiha.get_initial_offset() == 14, "init. offset check failed");
+
     // create unallocated data_store
     data_store_t ds(si);
     // try to copy and get_storage -> should fail

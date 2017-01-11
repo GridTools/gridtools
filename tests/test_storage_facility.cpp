@@ -52,29 +52,29 @@ TEST(StorageFacility, TypesTest) {
 /*########## STORAGE INFO CHECKS ########## */
 #ifdef __CUDACC__
     // storage info check
-    typedef storage_traits< BACKEND >::storage_info_t< 0, 3 > storage_info_ty;
+    typedef storage_traits< BACKEND >::storage_info_t< 0, 3, halo<1,2,3> > storage_info_ty;
     static_assert(
         (is_storage_info< storage_info_ty >::type::value), "is_storage_info metafunction is not working anymore");
-    static_assert((boost::is_same< storage_info_ty, cuda_storage_info< 0, layout_map< 2, 1, 0 > > >::type::value),
+    static_assert((boost::is_same< storage_info_ty, cuda_storage_info< 0, layout_map< 2, 1, 0 >, halo< 1, 2, 3 >, alignment< 32 > > >::type::value),
         "storage info test failed");
 
     // special layout
-    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 > > special_storage_info_ty;
+    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > > special_storage_info_ty;
     static_assert(
-        (boost::is_same< special_storage_info_ty, cuda_storage_info< 0, layout_map< 1, 0, -1 > > >::type::value),
+        (boost::is_same< special_storage_info_ty, cuda_storage_info< 0, layout_map< 1, 0, -1 >, halo< 1, 2, 3 >, alignment< 32 > > >::type::value),
         "storage info test failed");
 #else
     // storage info check
-    typedef storage_traits< BACKEND >::storage_info_t< 0, 3 > storage_info_ty;
+    typedef storage_traits< BACKEND >::storage_info_t< 0, 3, halo<1,2,3> > storage_info_ty;
     static_assert(
         (is_storage_info< storage_info_ty >::type::value), "is_storage_info metafunction is not working anymore");
-    static_assert((boost::is_same< storage_info_ty, host_storage_info< 0, layout_map< 0, 1, 2 > > >::type::value),
+    static_assert((boost::is_same< storage_info_ty, host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 >, alignment< 0 > > >::type::value),
         "storage info test failed");
 
     // special layout
-    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 > > special_storage_info_ty;
+    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > > special_storage_info_ty;
     static_assert(
-        (boost::is_same< special_storage_info_ty, host_storage_info< 0, layout_map< 0, 1, -1 > > >::type::value),
+        (boost::is_same< special_storage_info_ty, host_storage_info< 0, layout_map< 0, 1, -1 >, halo< 1, 2, 3 >, alignment< 0 > > >::type::value),
         "storage info test failed");
 #endif
 

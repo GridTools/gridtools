@@ -63,12 +63,12 @@ namespace gridtools {
             : m_unaligned_dims(dims), m_unaligned_strides(strides) {}
 
         template < unsigned Coord >
-        GT_FUNCTION unsigned unaligned_dim() const {
-            return m_unaligned_dims.at[Coord];
+        GT_FUNCTION constexpr unsigned unaligned_dim() const {
+            return m_unaligned_dims[Coord];
         }
 
         template < unsigned Coord >
-        GT_FUNCTION unsigned unaligned_stride() const {
+        GT_FUNCTION constexpr unsigned unaligned_stride() const {
             return m_unaligned_strides[Coord];
         }
     };
@@ -79,5 +79,15 @@ namespace gridtools {
         static constexpr unsigned InitialOffset = 0;
         template < typename... T >
         constexpr alignment_impl(T... t) {}
+
+        template < unsigned Coord >
+        GT_FUNCTION constexpr unsigned unaligned_dim() const {
+            return 0;
+        }
+
+        template < unsigned Coord >
+        GT_FUNCTION constexpr unsigned unaligned_stride() const {
+            return 0;
+        }
     };
 }

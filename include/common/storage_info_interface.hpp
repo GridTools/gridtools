@@ -74,7 +74,7 @@ namespace gridtools {
                       extend_by_halo< Halos, LayoutArgs >::extend(dims_))...)),
               m_alignment(nano_array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(
                               dims_)...},
-                  get_strides< Layout >::get_stride_array(dims_...)) {
+                  get_strides< Layout >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
             static_assert((sizeof...(Dims) == Layout::length), "error");
         }
 
@@ -104,12 +104,14 @@ namespace gridtools {
 
         template < int Coord >
         GT_FUNCTION constexpr int unaligned_dim() const {
-            return m_alignment.template unaligned_dim< Coord >();
+            return m_alignment.template unaligned_dim< Coord >() ? m_alignment.template unaligned_dim< Coord >()
+                                                                 : dim< Coord >();
         }
 
         template < int Coord >
         GT_FUNCTION constexpr int unaligned_stride() const {
-            return m_alignment.template unaligned_stride< Coord >();
+            return m_alignment.template unaligned_stride< Coord >() ? m_alignment.template unaligned_stride< Coord >()
+                                                                    : stride< Coord >();
         }
 
         template < unsigned N, typename... Ints >
