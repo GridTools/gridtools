@@ -7,6 +7,10 @@ file(GLOB_RECURSE INC_ALL_ "../../include/[a-z|A-Z|0-9]*.hpp")
 list ( APPEND INC_ALL ${INC_ALL_} )
 
 
+file(GLOB_RECURSE INC_ALL_ "[a-z]*.hpp")
+list ( APPEND INC_ALL ${INC_ALL_} )
+file(GLOB_RECURSE INC_ALL_ "../../include/[a-z|A-Z|0-9]*.hpp")
+list ( APPEND INC_ALL ${INC_ALL_} )
 set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)
 
 add_definitions("-DBENCHMARK")
