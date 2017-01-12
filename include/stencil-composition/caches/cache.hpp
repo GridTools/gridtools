@@ -69,8 +69,9 @@ namespace gridtools {
          * @tparam  cacheType type of cache
          * @tparam Arg argument with parameter being cached
          * @tparam CacheIOPolicy IO policy for cache
+         * @tparam Interval vertical interval of validity of the cache
          */
-        template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
+        template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
         struct cache_impl {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_arg< Arg >::value), "argument passed to ij cache is not of the right arg<> type");
@@ -81,11 +82,11 @@ namespace gridtools {
         /**
         * @brief helper metafunction class that is used to force the resolution of an mpl placeholder type
         */
-        template < cache_type cacheType, cache_io_policy cacheIOPolicy >
+        template < cache_type cacheType, cache_io_policy cacheIOPolicy, typename Interval >
         struct force_arg_resolution {
             template < typename T >
             struct apply {
-                typedef cache_impl< cacheType, T, cacheIOPolicy > type;
+                typedef cache_impl< cacheType, T, cacheIOPolicy, Interval > type;
             };
         };
     }
@@ -104,7 +105,7 @@ namespace gridtools {
         typename Interval = boost::mpl::void_,
         typename... Args >
     constexpr typename boost::mpl::transform< boost::mpl::vector< Args... >,
-        detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type
+        detail::force_arg_resolution< cacheType, cacheIOPolicy, Interval > >::type
     cache(Args &&...) {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
         static_assert(((boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType == K),
@@ -116,7 +117,7 @@ namespace gridtools {
         static_assert((boost::is_same< Interval, boost::mpl::void_ >::value || is_interval< Interval >::value),
             "Invalid Interval type passed to cache construct");
         typedef typename boost::mpl::transform< boost::mpl::vector< Args... >,
-            detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type res_ty;
+            detail::force_arg_resolution< cacheType, cacheIOPolicy, Interval > >::type res_ty;
         return res_ty();
     }
 #else
