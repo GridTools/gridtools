@@ -35,65 +35,34 @@
 */
 #pragma once
 #include "../defs.hpp"
+#include "../host_device.hpp"
+#include "../pair.hpp"
 
 namespace gridtools {
 
 #ifdef CXX11_ENABLED
     namespace impl {
-        template < typename Value,
-            typename BinaryOp,
-            typename LogicalOp,
-            typename First,
-            typename Second,
-            ushort_t Limit,
-            ushort_t Cnt >
-        struct accumulate_tparams_until_;
 
-        template < typename Value,
-            typename BinaryOp,
-            typename LogicalOp,
-            Value FirstVal,
-            Value... FirstRest,
-            Value SecondVal,
-            Value... SecondRest,
-            template < Value... > class EnvClass,
-            ushort_t Limit,
-            ushort_t Cnt >
-        struct accumulate_tparams_until_< Value,
-            BinaryOp,
-            LogicalOp,
-            EnvClass< FirstVal, FirstRest... >,
-            EnvClass< SecondVal, SecondRest... >,
-            Limit,
-            Cnt > {
-            static const bool value = (Cnt < Limit) ? LogicalOp()(BinaryOp()(FirstVal, SecondVal),
-                                                          impl::accumulate_tparams_until_< Value,
-                                                                      BinaryOp,
-                                                                      LogicalOp,
-                                                                      EnvClass< FirstRest... >,
-                                                                      EnvClass< SecondRest... >,
-                                                                      Limit,
-                                                                      Cnt + 1 >::value)
-                                                    : true;
-        };
+        /**@brief accumulator recursive implementation*/
+        template < typename Value, typename BinaryOp, typename LogicalOp, typename... PairVals >
+        GT_FUNCTION static constexpr bool accumulate_tparams_until_(
+            BinaryOp op, LogicalOp logical_op, ushort_t limit, ushort_t cnt, pair< Value, Value > pair_) {
 
-        template < typename Value,
-            typename BinaryOp,
-            typename LogicalOp,
-            Value FirstVal,
-            Value SecondVal,
-            template < Value... > class EnvClass,
-            ushort_t Limit,
-            ushort_t Cnt >
-        struct accumulate_tparams_until_< Value,
-            BinaryOp,
-            LogicalOp,
-            EnvClass< FirstVal >,
-            EnvClass< SecondVal >,
-            Limit,
-            Cnt > {
-            static const bool value = (Cnt < Limit) ? BinaryOp()(FirstVal, SecondVal) : true;
-        };
+            return (cnt < limit) ? BinaryOp()(pair_.first, pair_.second) : true;
+        }
+
+        /**@brief accumulator recursive implementation*/
+        template < typename Value, typename BinaryOp, typename LogicalOp, typename... PairVals >
+        GT_FUNCTION static constexpr bool accumulate_tparams_until_(BinaryOp op,
+            LogicalOp logical_op,
+            ushort_t limit,
+            ushort_t cnt,
+            pair< Value, Value > first_pair,
+            PairVals... pair_vals) {
+            return (cnt < limit) ? LogicalOp()(BinaryOp()(first_pair.first, first_pair.second),
+                                       impl::accumulate_tparams_until_(op, logical_op, limit, cnt + 1, pair_vals...))
+                                 : true;
+        }
     }
 
     /*
@@ -125,13 +94,8 @@ namespace gridtools {
         EnvClass< FirstVals... >,
         EnvClass< SecondVals... >,
         Limit > {
-        static const bool value = impl::accumulate_tparams_until_< Value,
-            BinaryOp,
-            LogicalOp,
-            EnvClass< FirstVals... >,
-            EnvClass< SecondVals... >,
-            Limit,
-            0 >::value;
+        static constexpr bool value = impl::accumulate_tparams_until_(
+            BinaryOp(), LogicalOp(), Limit, 0, pair< Value, Value >(FirstVals, SecondVals)...);
     };
 #endif
 }
