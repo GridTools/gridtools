@@ -173,8 +173,11 @@ namespace gridtools {
         template < typename... DataStores >
         aggregator_type(DataStores &... ds) : m_arg_storage_pair_list(), m_metadata_set() {
 
-            typedef typename boost::mpl::and_< boost::mpl::or_< is_data_store< DataStores >,
-                is_data_store_field< DataStores > >... >::type is_valid_element_pack;
+            typedef typename boost::mpl::fold< boost::mpl::vector< DataStores... >,
+                boost::mpl::true_,
+                boost::mpl::and_< boost::mpl::or_< is_data_store< boost::mpl::_2 >,
+                                      is_data_store_field< boost::mpl::_2 > >,
+                                                   boost::mpl::_1 > >::type is_valid_element_pack;
 
             GRIDTOOLS_STATIC_ASSERT(is_valid_element_pack::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
@@ -236,13 +239,10 @@ namespace gridtools {
         /**
          *  @brief given the placeholder type returns the corresponding arg_storage_pair by const reference
          */
-        template < typename StoragePlaceholder, 
-            typename RealStoragePlaceholder = 
-                typename boost::mpl::if_< 
-                    is_tmp_arg<StoragePlaceholder>, 
-                    typename _impl::replace_arg_storage_info< tmp_storage_info_id_t, StoragePlaceholder >::type, 
-                    StoragePlaceholder 
-                >::type >
+        template < typename StoragePlaceholder,
+            typename RealStoragePlaceholder = typename boost::mpl::if_< is_tmp_arg< StoragePlaceholder >,
+                typename _impl::replace_arg_storage_info< tmp_storage_info_id_t, StoragePlaceholder >::type,
+                StoragePlaceholder >::type >
         typename _impl::get_arg_storage_pair_type< RealStoragePlaceholder >::type const &get_arg_storage_pair() const {
             return boost::fusion::deref(
                 boost::fusion::find< typename _impl::get_arg_storage_pair_type< RealStoragePlaceholder >::type >(
@@ -264,8 +264,11 @@ namespace gridtools {
 
         template < typename... DataStores >
         void reassign(DataStores &... stores) {
-            typedef typename boost::mpl::and_< boost::mpl::or_< is_data_store< DataStores >,
-                is_data_store_field< DataStores > >... >::type is_valid_element_pack;
+            typedef typename boost::mpl::fold< boost::mpl::vector< DataStores... >,
+                boost::mpl::true_,
+                boost::mpl::and_< boost::mpl::or_< is_data_store< boost::mpl::_2 >,
+                                      is_data_store_field< boost::mpl::_2 > >,
+                                                   boost::mpl::_1 > >::type is_valid_element_pack;
 
             GRIDTOOLS_STATIC_ASSERT(is_valid_element_pack::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
