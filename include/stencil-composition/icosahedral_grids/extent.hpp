@@ -36,12 +36,20 @@
 #pragma once
 
 #include <boost/mpl/max.hpp>
+#include <boost/mpl/int.hpp>
+#include <boost/mpl/vector.hpp>
 
 namespace gridtools {
 
     template < int_t R = 0 >
     struct extent {
         static const int_t value = R;
+        typedef boost::mpl::vector6< boost::mpl::int_< -value >,
+            boost::mpl::int_< value >,
+            boost::mpl::int_< -value >,
+            boost::mpl::int_< value >,
+            boost::mpl::int_< 0 >,
+            boost::mpl::int_< 0 > > extent_vec_t;
     };
 
     template < typename T >
