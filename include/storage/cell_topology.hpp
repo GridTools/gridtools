@@ -58,4 +58,5 @@ namespace gridtools {
       public:
         static const ushort_t space_dimensions = Layout::length;
     };
+
 } // namespace gridtools

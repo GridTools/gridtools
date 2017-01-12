@@ -45,6 +45,9 @@
 #error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")
 #endif
 
+#include "high-level/descriptors_fwd.hpp"
+#include "high-level/descriptor_generic_manual.hpp"
+#include "high-level/descriptors.hpp"
 #include "high-level/descriptors_dt.hpp"
 #include "high-level/descriptors_dt_whole.hpp"
 #include "high-level/descriptors.hpp"
