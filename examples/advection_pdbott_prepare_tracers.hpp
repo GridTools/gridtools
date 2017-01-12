@@ -90,8 +90,8 @@ namespace adv_prepare_tracers {
 
         meta_data_t meta_data_(d1, d2, d3);
 
-        std::vector< pointer< storage_t > > list_out_(20, new storage_t(meta_data_, 0., "a storage"));
-        std::vector< pointer< storage_t > > list_in_(20, new storage_t(meta_data_, 0., "a storage"));
+        std::vector< pointer< storage_t > > list_out_(11, new storage_t(meta_data_, 0., "a storage"));
+        std::vector< pointer< storage_t > > list_in_(11, new storage_t(meta_data_, 0., "a storage"));
         storage_t rho(meta_data_, 1.1, "rho");
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
@@ -109,7 +109,7 @@ namespace adv_prepare_tracers {
         aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_, &rho));
 
         auto comp_ =
-            make_computation< BACKEND >(expand_factor< 20 >(),
+            make_computation< BACKEND >(expand_factor< 11 >(),
                 domain_,
                 grid_,
                 make_multistage(enumtype::execute< enumtype::forward >(),
