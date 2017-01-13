@@ -47,7 +47,7 @@ function(fetch_host_tests subfolder)
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
         # create the test
         add_executable (${unit_test} ${test_source})
-        target_link_libraries(${unit_test} ${exe_LIBS} gtest gtest_main)
+        target_link_libraries(${unit_test} gtest gtest_main ${exe_LIBS} gtest gtest_main )
         add_test (NAME ${unit_test} COMMAND ${exe} )
         gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
         # message( "added test " ${unit_test} )
