@@ -38,6 +38,8 @@
 
 using namespace gridtools;
 
+#ifdef CUDA8
+
 template < typename T >
 struct is_int : boost::mpl::false_ {};
 template <>
@@ -56,3 +58,5 @@ TEST(is_offset_of, int) { GRIDTOOLS_STATIC_ASSERT((test_fn(int(3), int(4)) == 1)
 TEST(is_offset_of, empty) { GRIDTOOLS_STATIC_ASSERT((test_fn() == 1), "ERROR"); }
 
 TEST(is_offset_of, long) { GRIDTOOLS_STATIC_ASSERT((test_fn(long(3), int(4)) == 2), "ERROR"); }
+
+#endif
