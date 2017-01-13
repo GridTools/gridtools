@@ -46,12 +46,12 @@ namespace gridtools {
     };
 
     /**
-     * @brief pairs of integrals. It is the version of pair_type when the template parameters are integral types
+       @brief simple wrapper for a pair of integral types
      */
-    template < typename Value, Value T1, Value T2 >
-    struct ipair {
-        static constexpr Value first = T1;
-        static constexpr Value second = T2;
+    template < typename Value, Value T, Value U >
+    struct ipair_type {
+        static constexpr Value first = T;
+        static constexpr Value second = U;
     };
 
     /**
