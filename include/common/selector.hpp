@@ -41,6 +41,7 @@
 
 namespace gridtools {
 
+#ifdef CXX11_ENABLED
     namespace impl {
         constexpr ushort_t compute_existing_dim() { return 0; }
 
@@ -78,5 +79,6 @@ namespace gridtools {
 
     template < int_t... Int >
     struct is_selector< selector< Int... > > : boost::mpl::true_ {};
+#endif
 
 } // gridtools
