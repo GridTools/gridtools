@@ -126,18 +126,18 @@ namespace gridtools {
  * This macro is providing the same functionality as the cache(Args&&) function above.
  * Just used because of c++03 compatibility.
  */
-#define _CREATE_CACHE(z, n, nil)                                                                                     \
-    template < cache_type cacheType,                                                                                 \
-        cache_io_policy cacheIOPolicy,                                                                               \
-        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename T) >                                                          \
-    typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >,                  \
-        detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type cache(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), \
-        T)) {                                                                                                        \
-        typedef typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >,      \
-            detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type res_type;                               \
-        GRIDTOOLS_STATIC_ASSERT(                                                                                     \
-            (boost::mpl::size< res_type >::value > 0), "Cannot build cache sequence without argument");              \
-        return res_type();                                                                                           \
+#define _CREATE_CACHE(z, n, nil)                                                                                \
+    template < cache_type cacheType,                                                                            \
+        cache_io_policy cacheIOPolicy,                                                                          \
+        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename T) >                                                     \
+    typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >,             \
+        detail::force_arg_resolution< cacheType, cacheIOPolicy, boost::mpl::void_ > >::type                     \
+        cache(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T)) {                                                       \
+        typedef typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >, \
+            detail::force_arg_resolution< cacheType, cacheIOPolicy, boost::mpl::void_ > >::type res_type;       \
+        GRIDTOOLS_STATIC_ASSERT(                                                                                \
+            (boost::mpl::size< res_type >::value > 0), "Cannot build cache sequence without argument");         \
+        return res_type();                                                                                      \
     }
     BOOST_PP_REPEAT(GT_MAX_ARGS, _CREATE_CACHE, _)
 #undef _CREATE_CACHE
