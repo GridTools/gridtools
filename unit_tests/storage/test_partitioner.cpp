@@ -56,8 +56,13 @@ TEST(partitioner_trivial, test_partitioner) {
     // process in position (0,1,2,0,4)
     comm comm_{{false, false, true, false, true}, {3, 3, 3, 1, 5}, {0, 1, 2, 0, 4}};
 
+#ifdef CXX11_ENABLED
     array< ushort_t, 5 > padding{6, 7, 8, 9, 10};
     array< ushort_t, 5 > halo{1, 2, 3, 4, 5};
+#else
+    array< ushort_t, 5 > padding(6, 7, 8, 9, 10);
+    array< ushort_t, 5 > halo(1, 2, 3, 4, 5);
+#endif
 
     // 5D cartesian topology
     typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2, 3, 4 > > >, comm > party;
