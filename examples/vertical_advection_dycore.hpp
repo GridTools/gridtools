@@ -294,7 +294,9 @@ namespace vertical_advection_dycore {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
+#ifdef CXX11_ENABLED
                     define_caches(cache< K, flush, kbody >(p_ccol())),
+#endif
                     gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
