@@ -44,7 +44,7 @@ namespace gridtools {
     */
     template < typename... IntTypes >
     using all_integers =
-#if defined(CUDA8) && !defined(_CRAYC))
+#if defined(CUDA8) && !defined(_CRAYC)
         is_pack_of< boost::is_integral, IntTypes... >;
 #else
         typename boost::enable_if_c< accumulate(logical_and(), boost::is_integral< IntTypes >::type::value...),
@@ -56,7 +56,7 @@ namespace gridtools {
     */
     template < typename... IntTypes >
     using all_static_integers =
-#if defined(CUDA8) && !defined(_CRAYC))
+#if defined(CUDA8) && !defined(_CRAYC)
         is_pack_of< is_static_integral, IntTypes... >;
 #else
         typename boost::enable_if_c< accumulate(logical_and(), is_static_integral< IntTypes >::type::value...),
