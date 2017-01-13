@@ -316,7 +316,9 @@ namespace gridtools {
         GT_FUNCTION
         bool at_boundary(ushort_t const &component_, typename super::Flag flag_) const {
 
+#ifndef __CUDACC__
             assert(component_ < communicator_t::ndims);
+#endif
             return (((uint_t)flag_ * (1 << component_))) & boundary();
         }
 
