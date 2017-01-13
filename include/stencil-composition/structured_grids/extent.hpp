@@ -41,6 +41,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/push_front.hpp>
+#include "../../common/defs.hpp"
 
 namespace gridtools {
 

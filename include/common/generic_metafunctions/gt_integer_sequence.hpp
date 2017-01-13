@@ -112,6 +112,25 @@ namespace gridtools {
     struct apply_gt_integer_sequence< gt_integer_sequence< UInt, Indices... > > {
 
         /**
+           @brief returns a container type constructed with template arguments which are the result of
+         *  applying a unary lambda function to each template argument of the ExtraTypes
+         *  The lambda applied is templated with an index which identifies the current argument. This allow
+         *  to define specialised behaviour of the lambda for the specific arguments.
+         *
+         *  \tparam Int type of the template parameters that the Container accepts
+         *  \tparam Container the type of the container to be constructed
+         *  \tparam Lambda the lambda template callable
+         *  \tparam ExtraTypes the types of the input arguments to the lambda
+         */
+        template < typename Int,
+            template < Int... t > class Container,
+            template < UInt TT, typename > class Lambda,
+            typename... ExtraTypes >
+        struct apply_t {
+            using type = Container< Lambda< Indices, ExtraTypes >::value... >;
+        };
+
+        /**
            @brief returns a container constructed by applying a unary lambda function to each argument of the
            constructor
            The lambda applied is templated with an index which identifies the current argument. This allow
