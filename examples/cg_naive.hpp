@@ -635,7 +635,7 @@ namespace cg_naive{
             // apply BC to the  (x,y=0,z=0) edge of the domain
             if (PID % yprocs == 0)
             {
-                //get index [1,1,0] to skip halo/BC of the local domain
+                //get index [1,1,1] to skip halo/BC of the local domain
                 int start = (xdim_local+2)*(ydim_local+2) + (xdim_local+2) + 1;
 
                 // Gather all partial averages down to all the processes

@@ -2,6 +2,27 @@
 
 using namespace cg_naive;
 
+
+/*
+ * Macro PERF
+ * ==========
+ * if defined, random samples are generated locally
+ * at each process independently on other processes,
+ * which breaked PRNG generator rng() and the results
+ * will not be correct because of the distribution of 
+ * samples.
+ *
+ * if not defined, the random samples are generated locally
+ * at master process for all other processes and chunks of
+ * it are distributed to child processes. This makes numerical
+ * results valid.
+ *
+ * When running performance benchmark with large domains and
+ * large number of RHS the master process is not able to generate
+ * all the random samples because the array simply does not fit
+ * into the memory, therefore the hack with the PERF macro.
+ */
+
 // I am using another add functor because if the add_functor
 // from .hpp file is used it produces a compilation error,
 // which is probably a bug in gcc compiler
@@ -58,7 +79,7 @@ int main(int argc, char** argv)
     CGsolver cg(dimx, dimy, dimz);
     auto metadata_ = cg.meta_->get_metadata();
 
-#if 0
+#ifndef PERF
     int mpi_size;
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
@@ -122,9 +143,11 @@ int main(int argc, char** argv)
             }
             MPI_Send(samples, local_count, MPI_DOUBLE, p, 0, MPI_COMM_WORLD);
         }
+    } else
+    {
+        MPI_Recv(samples_local, local_count, MPI_DOUBLE, MASTER, 0,  MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
     }
-
-    MPI_Recv(samples_local, local_count, MPI_DOUBLE, MASTER, 0,  MPI_COMM_WORLD, MPI_STATUS_IGNORE); 
+        
     if (PID == MASTER) delete [] samples;
 #endif
 
@@ -188,7 +211,7 @@ int main(int argc, char** argv)
          )
         );
     
-    //PERF BENCH
+#ifdef PERF
     int dimx_local = metadata_.template dims<0>() - 2;
     int dimy_local = metadata_.template dims<1>() - 2;
     int dimz_local = metadata_.template dims<2>() - 2;
@@ -198,6 +221,7 @@ int main(int argc, char** argv)
     {
         rhs_dbg[i] = (std::rand() / (double)RAND_MAX) > 0.5 ? 1.0 : -1.0;
     }
+#endif
 
     // Start timer
     timers.start(Timers::TIMER_GLOBAL);
@@ -208,8 +232,11 @@ int main(int argc, char** argv)
      */
     for (int ii = 0; ii < nrhs; ii++)
     {
-        //double *rhs = &samples_local[ii * local_domain_size]; //PERF BENCH
-        double *rhs = rhs_dbg;//PERF BENCH
+#ifndef PERF
+        double *rhs = &samples_local[ii * local_domain_size]; 
+#else
+        double *rhs = rhs_dbg;
+#endif
 
         // Initialize the local RHS vector domain (exclude halo layer)
         int idx = 0;
@@ -243,11 +270,11 @@ int main(int argc, char** argv)
     inverse->steady();
     inverse->run();
     inverse->finalize();
-#if 0
-    delete [] samples_local; //PERF BENCH
+#ifndef PERF
+    delete [] samples_local; 
+#else
+    delete [] rhs_dbg;
 #endif
-
-    delete [] rhs_dbg;//PERF BENCH
    
    // Stop timer
    timers.stop(Timers::TIMER_GLOBAL);
@@ -256,7 +283,7 @@ int main(int argc, char** argv)
      *  Extract and print the diagonal estimate
      *  =======================================
      */
-#if 0 
+#if 1 
     double *estimator;
     if (PID == MASTER)
     {
