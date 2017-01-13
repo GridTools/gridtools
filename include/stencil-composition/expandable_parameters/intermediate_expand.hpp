@@ -251,7 +251,7 @@ namespace gridtools {
            does not take into account the remainder kernel executed when the number of parameters is
            not multiple of the expand factor
          */
-        virtual std::string print_meter() { return m_intermediate->print_meter(); }
+        virtual std::string print_meter() { return m_meter.to_string(); }
 
         /**
            @brief forwards to the m_intermediate and m_intermediate_remainder members
