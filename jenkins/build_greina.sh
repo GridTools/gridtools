@@ -261,6 +261,7 @@ then
    then
        if [ "x$TARGET" == "xcpu" ]
        then
+           export MV2_USE_GPUDIRECT_GDRCOPY=0
            export HOST_NAME=`hostname`
            echo "running shallow water test with MPI"
            echo "mpirun_rsh -np 4 $HOST_NAME $HOST_NAME $HOST_NAME $HOST_NAME ./build/shallow_water_enhanced 8 8 1 10"
