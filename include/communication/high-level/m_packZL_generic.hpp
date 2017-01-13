@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include <common/halo_descriptor.hpp>
 #include "wrap_argument.hpp"
 
 template < typename value_type >
