@@ -116,8 +116,8 @@ TEST(test_iterate_domain, accessor_metafunctions) {
         (p_buff3() = buff3),
         (p_buff4() = buff4));
 
-    uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-    uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+    uint_t di[5] = {4, 4, 4, d1 - 4 - 1, d1};
+    uint_t dj[5] = {4, 4, 4, d2 - 4 - 1, d2};
 
     gridtools::grid< axis > grid(di, dj);
 
