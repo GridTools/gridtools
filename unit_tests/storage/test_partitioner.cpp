@@ -79,7 +79,7 @@ TEST(partitioner_trivial, test_partitioner) {
     success = success && part_.at_boundary(3, party::LOW) == true; // only 1 dimension in this component
     success = success && part_.at_boundary(3, party::UP) == true;
     success = success && part_.at_boundary(4, party::LOW) == false;
-    success = success && part_.at_boundary(5, party::UP) == true;
+    success = success && part_.at_boundary(4, party::UP) == true;
 
     success = success && part_.compute_halo(0, party::LOW) == 6; // global boundary, returns padding
     success = success && part_.compute_halo(0, party::UP) == 1;
