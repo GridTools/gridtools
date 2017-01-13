@@ -183,7 +183,7 @@ namespace copy_stencil {
         gridtools::grid< axis, partitioner_t > grid(part, meta_);
         // k dimension not partitioned
         grid.value_list[0] = 0;
-        grid.value_list[1] = d3-1;
+        grid.value_list[1] = d3 - 1;
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
         // that are used, temporary and not
