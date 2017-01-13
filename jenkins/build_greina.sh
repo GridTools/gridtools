@@ -286,8 +286,8 @@ then
            export HOST_NAME=`hostname`
 
            echo "running shallow water test with MPI and CUDA"
-           echo "mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2"
-           mpiexec -np 1 $HOST_NAME ./examples/shallow_water_enhanced_cuda 8 8 1 2
+           echo "mpirun_rsh -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2"
+           mpirun_rsh -np 1 $HOST_NAME ./examples/shallow_water_enhanced_cuda 8 8 1 2
            exit_if_error $?
 
        fi
