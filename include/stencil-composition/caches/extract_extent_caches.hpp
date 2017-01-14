@@ -40,6 +40,30 @@
 
 namespace gridtools {
 
+    namespace impl {
+        // update the entry associated to a cache within the map with a new extent.
+        // if the key exist we compute and insert the enclosing extent, otherwise we just
+        // insert the extent into a new entry of the map of <cache, extent>
+        template < typename ExtendsMap_, typename Extend, typename Cache, typename BackendIds >
+        struct update_extent_map {
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "ERROR");
+            typedef typename boost::mpl::if_< boost::mpl::has_key< ExtendsMap_, Cache >,
+                typename boost::mpl::at< ExtendsMap_, Cache >::type,
+                typename grid_traits_from_id< BackendIds::s_grid_type_id >::null_extent_t >::type default_extent_t;
+
+            typedef typename boost::mpl::insert<
+                typename boost::mpl::erase_key< ExtendsMap_, Cache >::type,
+                boost::mpl::pair< Cache,
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+                    typename enclosing_extent_full< default_extent_t, Extend >::type > >::type
+#else
+                    typename enclosing_extent< default_extent_t, Extend >::type > >::type
+#endif
+                type;
+        };
+    }
     /**
      * @struct extract_ij_extents_for_caches
      * metafunction that extracts the extents associated to each cache of the sequence of caches provided by the user.
@@ -60,29 +84,6 @@ namespace gridtools {
         struct insert_extent_for_cache {
             GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "ERROR");
 
-            // update the entry associated to a cache within the map with a new extent.
-            // if the key exist we compute and insert the enclosing extent, otherwise we just
-            // insert the extent into a new entry of the map of <cache, extent>
-            template < typename ExtendsMap_, typename Extend >
-            struct update_extent_map {
-                GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), "ERROR");
-
-                typedef typename boost::mpl::if_< boost::mpl::has_key< ExtendsMap_, Cache >,
-                    typename boost::mpl::at< ExtendsMap_, Cache >::type,
-                    typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type
-                    default_extent_t;
-
-                typedef typename boost::mpl::insert<
-                    typename boost::mpl::erase_key< ExtendsMap_, Cache >::type,
-                    boost::mpl::pair< Cache,
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
-                        typename enclosing_extent_full< default_extent_t, Extend >::type > >::type
-#else
-                        typename enclosing_extent< default_extent_t, Extend >::type > >::type
-#endif
-                    type;
-            };
-
             // given an Id within the sequence of esf and extents, extract the extent associated an inserted into
             // the map if the cache is used by the esf with that Id.
             template < typename ExtendsMap_, typename EsfIdx >
@@ -95,7 +96,7 @@ namespace gridtools {
 
                 typedef typename boost::mpl::if_<
                     boost::mpl::contains< typename esf_t::args_t, typename cache_parameter< Cache >::type >,
-                    typename update_extent_map< ExtendsMap_, extent_t >::type,
+                    typename impl::update_extent_map< ExtendsMap_, extent_t, Cache, backend_ids_t >::type,
                     ExtendsMap_ >::type type;
             };
 
@@ -111,6 +112,7 @@ namespace gridtools {
             insert_extent_for_cache< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
 
+    // TODO KCACHE add protection somewhere that any cache is defined at least in one esf
     /**
      * @struct extract_k_extents_for_caches
      * metafunction that extracts the extents associated to each cache of the sequence of caches provided by the user.
@@ -133,29 +135,6 @@ namespace gridtools {
 
             typedef typename cache_parameter< Cache >::type cache_arg_t;
 
-            // update the entry associated to a cache within the map with a new extent.
-            // if the key exist we compute and insert the enclosing extent, otherwise we just
-            // insert the extent into a new entry of the map of <cache, extent>
-            template < typename ExtendsMap_, typename Extend >
-            struct update_extent_map {
-                GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), "ERROR");
-
-                typedef typename boost::mpl::if_< boost::mpl::has_key< ExtendsMap_, Cache >,
-                    typename boost::mpl::at< ExtendsMap_, Cache >::type,
-                    typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type
-                    default_extent_t;
-
-                typedef typename boost::mpl::insert<
-                    typename boost::mpl::erase_key< ExtendsMap_, Cache >::type,
-                    boost::mpl::pair< Cache,
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
-                        typename enclosing_extent_full< default_extent_t, Extend >::type > >::type
-#else
-                        typename enclosing_extent< default_extent_t, Extend >::type > >::type
-#endif
-                    type;
-            };
-
             // given an Id within the sequence of esf and extents, extract the extent associated an inserted into
             // the map if the cache is used by the esf with that Id.
             template < typename ExtendsMap_, typename EsfIdx >
@@ -169,7 +148,7 @@ namespace gridtools {
                     typename boost::mpl::at< typename esf_t::args_with_extents, cache_arg_t >::type,
                     typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type extent_t;
                 typedef typename boost::mpl::if_< boost::mpl::contains< typename esf_t::args_t, cache_arg_t >,
-                    typename update_extent_map< ExtendsMap_, extent_t >::type,
+                    typename impl::update_extent_map< ExtendsMap_, extent_t, Cache, backend_ids_t >::type,
                     ExtendsMap_ >::type type;
             };
 
