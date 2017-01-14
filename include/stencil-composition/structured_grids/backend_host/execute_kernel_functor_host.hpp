@@ -153,6 +153,7 @@ namespace gridtools {
                 // in the host backend there should be only one esf per mss
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1),
                     "Internal Error: wrong size");
+                typedef typename local_domain_t::max_extents_t max_extent_t;
                 typedef typename boost::mpl::back< typename RunFunctorArguments::extent_sizes_t >::type extent_t;
                 GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), "Internal Error: wrong type");
 
@@ -183,7 +184,7 @@ namespace gridtools {
                 it_domain.set_data_pointer_impl(&data_pointer);
                 it_domain.set_strides_pointer_impl(&strides);
 
-                it_domain.template assign_storage_pointers< backend_traits_t, grid_t const RESTRICT*>(&m_grid);
+                it_domain.template assign_storage_pointers< backend_traits_t, max_extent_t>();
                 it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
 
                 typedef typename boost::mpl::front< loop_intervals_t >::type interval;

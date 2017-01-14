@@ -160,20 +160,23 @@ namespace gridtools {
            |__|__|  and therefore we don't consider the j offset at the moment.
                     The real offset is the offset calculated here + offset halo i + offset halo j!
         */
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo, typename Grid>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename MaxExtent, typename StorageInfo>
         static typename boost::enable_if_c<Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo, Grid grid) {
-            typedef typename StorageInfo::Layout layout_t;
+        fields_offset(StorageInfo const* sinfo) {
             const uint_t i = processing_element_i();
-            const int diff_i_minus = grid->direction_i().minus();
-            const int diff_i_plus = grid->direction_i().plus();
-            return sinfo->template stride<0>() * ((diff_i_minus + PEBlockSize::i_size_t::value + diff_i_plus) * i);
+            constexpr int diff_i_minus = boost::mpl::at_c<MaxExtent, 0>::type::value;
+            constexpr int diff_i_plus = boost::mpl::at_c<MaxExtent, 1>::type::value;
+            constexpr int diff_j_minus = boost::mpl::at_c<MaxExtent, 2>::type::value;
+            constexpr int blocksize = (diff_i_minus + PEBlockSize::i_size_t::value + diff_i_plus);
+            return  StorageInfo::get_initial_offset() + 
+                sinfo->template stride<0>() * (blocksize * i - diff_i_minus) - 
+                sinfo->template stride<1>() * diff_j_minus;
         }
 
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo, typename Grid>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename MaxExtent, typename StorageInfo>
         static typename boost::enable_if_c<!Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo, Grid grid) {
-            return 0;
+        fields_offset(StorageInfo const* sinfo) {
+            return StorageInfo::get_initial_offset();
         }
 
         /**

@@ -438,7 +438,7 @@ namespace gridtools {
      * @tparam LocalDomain local domain type
      * @tparam PEBlockSize the processing elements block size
      * */
-    template < typename Backend, typename DataPtrCached, typename LocalDomain, typename PEBlockSize, typename Grid >
+    template < typename Backend, typename DataPtrCached, typename LocalDomain, typename PEBlockSize, typename MaxExtent >
     struct assign_storage_ptrs {
 
         GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached< DataPtrCached >::value), "Error: wrong type");
@@ -447,12 +447,10 @@ namespace gridtools {
 
         DataPtrCached RESTRICT &m_data_ptr_cached;
         storage_info_ptrs_t const RESTRICT &m_storageinfo_fusion_list;
-        Grid m_grid;
 
         GT_FUNCTION assign_storage_ptrs(DataPtrCached RESTRICT &data_ptr_cached, 
-            storage_info_ptrs_t const RESTRICT &storageinfo_fusion_list,
-            Grid grid)
-            : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list), m_grid(grid)
+            storage_info_ptrs_t const RESTRICT &storageinfo_fusion_list)
+            : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list)
         {}
 
         template < typename FusionPair >
@@ -466,18 +464,18 @@ namespace gridtools {
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const typename storage_wrapper_t::storage_info_t * >::type::pos si_index_t;
 
-            const int offset = Backend::template fields_offset<LocalDomain, PEBlockSize, storage_wrapper_t::is_temporary>(
-                    boost::fusion::at< si_index_t >(m_storageinfo_fusion_list), m_grid);
+            const int offset = Backend::template fields_offset< LocalDomain, PEBlockSize, storage_wrapper_t::is_temporary, MaxExtent >(
+                    boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
             for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i) {
                 Backend::template once_per_block< pos_in_storage_wrapper_list_t::value, PEBlockSize >::assign(
                     m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i], sw.second[i] + offset);
             }
-/*         
+/*
             printf("Assign storage ptr for arg %i\n", storage_wrapper_t::index_t::value);
             printf("pos in storage wrapper list: %i\n", pos_in_storage_wrapper_list_t::value);
             for(unsigned i=0; i<storage_wrapper_t::storage_size; ++i)
                 printf("\t%p\n", m_data_ptr_cached.template get<pos_in_storage_wrapper_list_t::value>()[i]);
-*/            
+*/
         }
 
     };
@@ -530,11 +528,11 @@ namespace gridtools {
         GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
             boost::mpl::for_each< boost::mpl::range_c< short_t, 0, StorageInfo::Layout::unmasked_length - 1 > >(
                 assign< StorageInfo >(storage_info, m_strides_cached));
-            /*
+/*
             printf("Assign strides for storage info %i\n", StorageInfo::id);
             for(unsigned i=0; i<StorageInfo::Layout::unmasked_length - 1; ++i)
                 printf("\t%i\n", (m_strides_cached.template get<StorageInfo::id>())[i]);
-            */
+*/
         }
     };
 
@@ -641,24 +639,33 @@ namespace gridtools {
             typename boost::add_reference< accessor_value_type >::type RESTRICT >::type type;
     };
 
-    template < typename Max, typename StridesCached, typename OffsetTuple, typename StorageInfo, unsigned N >
-    GT_FUNCTION constexpr typename boost::enable_if_c< (N < (OffsetTuple::n_dim - 1)), int_t >::type apply_accessor(
-        StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
-        // TODO: implement properly for unaligned accesses. Initial offset is not considered.
+    template < typename Max,
+               typename StridesCached,
+               typename OffsetTuple,
+               typename StorageInfo,
+               unsigned N >
+    GT_FUNCTION constexpr typename boost::enable_if_c< (N < (OffsetTuple::n_dim - 1)), int_t >::type
+    apply_accessor(StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
         typedef boost::mpl::int_< (StorageInfo::Layout::template at< N >()) > val_t;
         static_assert((val_t::value == Max::value) || (N < StorageInfo::Layout::length), "invalid stride array access");
-        return ((val_t::value == Max::value) ? offsets.template get< (OffsetTuple::n_dim - 1) - N >()
-                                             : strides[N] * offsets.template get< (OffsetTuple::n_dim - 1) - N >()) +
-               apply_accessor< Max, StridesCached, OffsetTuple, StorageInfo, N + 1 >(strides, offsets);
-    }
+        typedef boost::mpl::bool_<(StorageInfo::Layout::template at< N >() == Max::value)> is_max_t;
+        typedef boost::mpl::bool_<(StorageInfo::Layout::template at< N >() == -1)> is_masked_t;
+        return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[N])) * offsets.template get< (OffsetTuple::n_dim - 1) - N >() +
+                apply_accessor< Max, StridesCached, OffsetTuple, StorageInfo, N + 1 >(strides, offsets);
+     }
 
-    template < typename Max, typename StridesCached, typename OffsetTuple, typename StorageInfo, unsigned N >
-    GT_FUNCTION constexpr typename boost::enable_if_c< (N == (OffsetTuple::n_dim - 1)), int_t >::type apply_accessor(
-        StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
+    template < typename Max,
+               typename StridesCached,
+               typename OffsetTuple,
+               typename StorageInfo,
+               unsigned N >
+    GT_FUNCTION constexpr typename boost::enable_if_c< (N == (OffsetTuple::n_dim - 1)), int_t >::type
+    apply_accessor(StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
         typedef boost::mpl::int_< (StorageInfo::Layout::template at< N >()) > val_t;
         static_assert((val_t::value == Max::value) || (N < StorageInfo::Layout::length), "invalid stride array access");
-        return (val_t::value == Max::value) ? offsets.template get< (OffsetTuple::n_dim - 1) - N >()
-                                            : strides[N] * offsets.template get< (OffsetTuple::n_dim - 1) - N >();
+        typedef boost::mpl::bool_<(StorageInfo::Layout::template at< N >() == Max::value)> is_max_t;
+        typedef boost::mpl::bool_<(StorageInfo::Layout::template at< N >() == -1)> is_masked_t;
+        return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[N])) * offsets.template get< (OffsetTuple::n_dim - 1) - N >();
     }
 
     // pointer offset computation
@@ -668,6 +675,6 @@ namespace gridtools {
         typedef typename boost::mpl::deref<
             typename boost::mpl::max_element< typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
         return apply_accessor< max_t, StridesCached, AccessorOffset, StorageInfo, 0 >(strides_cached, acc_offset);
-    };
+    };    
 
 } // namespace gridtools

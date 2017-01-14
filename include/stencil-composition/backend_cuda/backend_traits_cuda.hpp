@@ -154,24 +154,21 @@ namespace gridtools {
         /**
            Static method in order to calculate the field offset.
         */
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo, typename Grid>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename MaxExtent, typename StorageInfo>
         GT_FUNCTION static typename boost::enable_if_c<Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo, Grid grid) {
-            typedef typename StorageInfo::Layout layout_t;
-            const int diff_i_minus = grid->direction_i().minus();
-            const int diff_i_plus = grid->direction_i().plus();
-            const int diff_j_minus = grid->direction_j().minus();
-            const int diff_j_plus = grid->direction_j().plus();
+        fields_offset(StorageInfo const* sinfo) {
             const uint_t i = processing_element_i();
             const uint_t j = processing_element_j();
-            return (sinfo->template stride<0>() * ((diff_i_minus + PEBlockSize::i_size_t::value + diff_i_plus) * i)) + 
-                   (sinfo->template stride<1>() * ((diff_j_minus + PEBlockSize::j_size_t::value + diff_j_plus) * j));
+            const uint_t ni = gridDim.x;
+            const uint_t nj = gridDim.y;
+            const uint_t nk = sinfo->template dim<2>() / (ni*nj);
+            return StorageInfo::get_initial_offset() + sinfo->template stride<2>()*nk*((ni*j)+i);
         }
 
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename StorageInfo, typename Grid>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename MaxExtent, typename StorageInfo>
         GT_FUNCTION static typename boost::enable_if_c<!Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo, Grid grid) {
-            return 0;
+        fields_offset(StorageInfo const* sinfo) {
+            return StorageInfo::get_initial_offset();
         }
 
         /**

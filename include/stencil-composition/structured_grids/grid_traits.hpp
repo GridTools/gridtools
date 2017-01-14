@@ -78,6 +78,7 @@ namespace gridtools {
             typedef strgrid::grid_traits_arch< BackendId > type;
         };
 
+        // get a temporary storage for Host Naive
         template < typename T, typename Backend, typename StorageWrapper, typename MaxExtents, typename Grid >
         static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive), T >::type
         instantiate_storage_info(Grid const &grid) {
@@ -89,8 +90,9 @@ namespace gridtools {
             return T(i_size, j_size, k_size);
         }
 
+        // get a temporary storage for Host Block
         template < typename T, typename Backend, typename StorageWrapper, typename MaxExtents, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block), T >::type
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block && Backend::s_backend_id == enumtype::Host), T >::type
         instantiate_storage_info(Grid const &grid) {
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.value_at_top() + 1);
@@ -98,13 +100,32 @@ namespace gridtools {
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
 
             // create and return the storage info instance
-            const int diff_i_minus = grid.direction_i().minus();
-            const int diff_i_plus = grid.direction_i().plus();
-            const int diff_j_minus = grid.direction_j().minus();
-            const int diff_j_plus = grid.direction_j().plus();
+            constexpr int diff_i_minus = boost::mpl::at_c<MaxExtents, 0>::type::value;
+            constexpr int diff_i_plus = boost::mpl::at_c<MaxExtents, 1>::type::value;
+            constexpr int diff_j_minus = boost::mpl::at_c<MaxExtents, 2>::type::value;
+            constexpr int diff_j_plus = boost::mpl::at_c<MaxExtents, 3>::type::value;
             return T((StorageWrapper::tileI_t::s_tile + diff_i_minus + diff_i_plus) * threads_i,
                      (StorageWrapper::tileJ_t::s_tile + diff_j_minus + diff_j_plus) * threads_j,
                       k_size);
+        }
+
+        // get a temporary storage for Cuda
+        template < typename T, typename Backend, typename StorageWrapper, typename MaxExtents, typename Grid >
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block && Backend::s_backend_id == enumtype::Cuda), T >::type
+        instantiate_storage_info(Grid const &grid) {
+            // get all the params (size in i,j,k and number of threads in i,j)
+            const uint_t k_size = (grid.value_at_top() + 1);
+            const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
+            const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
+
+            // create and return the storage info instance
+            constexpr int diff_i_minus = boost::mpl::at_c<MaxExtents, 0>::type::value;
+            constexpr int diff_i_plus = boost::mpl::at_c<MaxExtents, 1>::type::value;
+            constexpr int diff_j_minus = boost::mpl::at_c<MaxExtents, 2>::type::value;
+            constexpr int diff_j_plus = boost::mpl::at_c<MaxExtents, 3>::type::value;
+            return T((StorageWrapper::tileI_t::s_tile + diff_i_minus + diff_i_plus),
+                     (StorageWrapper::tileJ_t::s_tile + diff_j_minus + diff_j_plus),
+                      k_size * threads_i * threads_j);
         }
 
         // index positions of the different dimensions in the layout map (convention)

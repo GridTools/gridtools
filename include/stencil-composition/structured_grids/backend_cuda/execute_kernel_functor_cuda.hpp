@@ -67,6 +67,7 @@ namespace gridtools {
             typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
 
             typedef typename RunFunctorArguments::max_extent_t max_extent_t;
+            typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::async_esf_map_t async_esf_map_t;
 
@@ -94,7 +95,7 @@ namespace gridtools {
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
-            it_domain.template assign_storage_pointers< backend_traits_t, typename RunFunctorArguments::grid_t const RESTRICT*>(grid);
+            it_domain.template assign_storage_pointers< backend_traits_t, typename local_domain_t::max_extents_t >();
             it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
 
             __syncthreads();
