@@ -60,7 +60,7 @@ struct copy_functor {
 
     typedef accessor< 0, enumtype::in, extent<> > in;
     typedef accessor< 1, enumtype::inout, extent<> > out;
-    typedef accessor< 2, enumtype::inout, extent<> > buff;
+    typedef accessor< 2, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > buff;
 
     typedef boost::mpl::vector< in, out, buff > arg_list;
 
