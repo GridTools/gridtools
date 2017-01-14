@@ -123,6 +123,29 @@ namespace gridtools {
             return m_values[extra_];
         }
 
+        template < typename Accessor >
+        GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_) {
+            constexpr const meta_t s_storage_info;
+
+            using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
+
+            typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
+            typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
+
+#ifdef CUDA8
+            typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
+            typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
+#else
+            assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
+#endif
+
+            assert((extra_) < size());
+            assert((extra_) >= 0);
+
+            return m_values[s_storage_info.index(accessor_)];
+        }
+
       private:
 #if defined(CUDA8)
         value_type m_values[size()];

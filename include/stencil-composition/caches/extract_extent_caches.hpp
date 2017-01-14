@@ -91,6 +91,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< extents_t >::value > EsfIdx::value), "ERROR");
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< esf_sequence_t >::value > EsfIdx::value), "ERROR");
 
+                // TODO KCACHE protect no k accesses in extent
                 typedef typename boost::mpl::at< extents_t, EsfIdx >::type extent_t;
                 typedef typename boost::mpl::at< esf_sequence_t, EsfIdx >::type esf_t;
 
@@ -147,6 +148,9 @@ namespace gridtools {
                 typedef typename boost::mpl::if_< boost::mpl::has_key< typename esf_t::args_with_extents, cache_arg_t >,
                     typename boost::mpl::at< typename esf_t::args_with_extents, cache_arg_t >::type,
                     typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type extent_t;
+
+                // TODO KCACHE protect no IJ accesses in extent
+
                 typedef typename boost::mpl::if_< boost::mpl::contains< typename esf_t::args_t, cache_arg_t >,
                     typename impl::update_extent_map< ExtendsMap_, extent_t, Cache, backend_ids_t >::type,
                     ExtendsMap_ >::type type;

@@ -130,6 +130,16 @@ namespace gridtools {
 
         // associative container with all caches
         typedef typename get_cache_set< caches_t, typename IterateDomainArguments::local_domain_t >::type all_caches_t;
+
+        template < typename IndexType >
+        GT_FUNCTION typename boost::mpl::at< k_caches_map_t, IndexType >::type &RESTRICT get_k_cache() {
+            GRIDTOOLS_STATIC_ASSERT(
+                (boost::mpl::has_key< k_caches_map_t, IndexType >::value), "Accessing a non registered cached");
+            return boost::fusion::at_key< IndexType >(m_k_caches_tuple);
+        }
+
+      private:
+        k_caches_tuple_t m_k_caches_tuple;
     };
 
     template < typename IterateDomainArguments >
