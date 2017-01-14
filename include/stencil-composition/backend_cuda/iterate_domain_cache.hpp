@@ -95,6 +95,9 @@ namespace gridtools {
         // extract a sequence of extents for each cache
         typedef typename extract_ij_extents_for_caches< IterateDomainArguments >::type ij_cache_extents_map_t;
 
+        // extract a sequence of extents for each cache
+        typedef typename extract_k_extents_for_caches< IterateDomainArguments >::type k_cache_extents_map_t;
+
         // compute the fusion vector of pair<index_type, cache_storage>
         typedef typename get_cache_storage_tuple< IJ,
             caches_t,
@@ -105,7 +108,7 @@ namespace gridtools {
         // compute the fusion vector of pair<index_type, cache_storage>
         typedef typename get_cache_storage_tuple< K,
             caches_t,
-            ij_cache_extents_map_t,
+            k_cache_extents_map_t,
             typename IterateDomainArguments::physical_domain_block_size_t,
             typename IterateDomainArguments::local_domain_t >::type k_caches_vector_t;
 
