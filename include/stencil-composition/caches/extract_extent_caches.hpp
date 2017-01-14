@@ -71,8 +71,15 @@ namespace gridtools {
                     typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type
                     default_extent_t;
 
-                typedef typename boost::mpl::insert< typename boost::mpl::erase_key< ExtendsMap_, Cache >::type,
-                    boost::mpl::pair< Cache, typename enclosing_extent< default_extent_t, Extend >::type > >::type type;
+                typedef typename boost::mpl::insert<
+                    typename boost::mpl::erase_key< ExtendsMap_, Cache >::type,
+                    boost::mpl::pair< Cache,
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+                        typename enclosing_extent_full< default_extent_t, Extend >::type > >::type
+#else
+                        typename enclosing_extent< default_extent_t, Extend >::type > >::type
+#endif
+                    type;
             };
 
             // given an Id within the sequence of esf and extents, extract the extent associated an inserted into
