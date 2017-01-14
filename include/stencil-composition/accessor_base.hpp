@@ -156,6 +156,10 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
             : m_offsets(other.offsets()) {}
 
+        //TODO MYMERGE remove
+        GT_FUNCTION
+        constexpr accessor_base(const int_t &x) : m_offsets(x) {}
+
 /**@brief constructor taking the dimension class as argument.
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
    language keyword used at the interface level.
@@ -165,6 +169,22 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(Indices... x)
             : m_offsets(x...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
+                "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
+                "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
+                "D of the accessor (accessor<Id, extent, D>)");
+        }
+
+        template < typename First,
+            typename... Rest,
+            typename T = typename boost::enable_if_c< accumulate(
+                logical_and(), is_dimension< First >::type::value, is_dimension< Rest >::type::value...) >::type >
+
+        GT_FUNCTION constexpr accessor_base(First f, Rest... x)
+            : m_offsets(f, x...) {
+            GRIDTOOLS_STATIC_ASSERT(
+                accumulate(logical_and(), (First::direction <= n_dim), (Rest::direction <= n_dim)...),
+                "trying to access a too high dimension for accessor");
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim - 1,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
                 "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
                 "D of the accessor (accessor<Id, extent, D>)");

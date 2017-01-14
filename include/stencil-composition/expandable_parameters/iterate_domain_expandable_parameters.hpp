@@ -100,16 +100,9 @@ namespace gridtools {
                 return_t;
             // check that if the storage is written the accessor is inout
 
-            // TODO MYMERGE
-            //#ifdef CUDA8
-            //            GRIDTOOLS_STATIC_ASSERT(is_extent< Extent >::value, "wrong type");
-            //            const typename alias< accessor< ACC_ID, Intent, Extent, Size >, dimension< Size - 1 >
-            //            >::template set< ID >
-            //                tmp_(arg.offsets());
-            //#else
             accessor< ACC_ID, Intent, Extent, Size > tmp_(arg);
             tmp_.template set< 1 >(ID);
-            //#endif
+
             return super::operator()(tmp_);
         }
     };

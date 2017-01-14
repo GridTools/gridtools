@@ -96,6 +96,18 @@ namespace gridtools {
 
         /**inheriting all constructors from accessor_base*/
         using super::accessor_base;
+
+        // workaround in order to support using the "normal" accessor even for non rectangular data fields
+        // see the implementation of get_data_field_index (specialization of non rectangular data field):
+        // for a non rectangular data field, the components need to be accessed with the constexpr (in order
+        // to avoid having to loop over all components in order to compute the offset of certain snapshot).
+        // That forces to use an accessor_mixed, unless we are only accessing the first component.
+        // In order to allow accessing the first component with a "normal" accessor we need to provide this
+        // dummy get_constexpr that returns always 0
+        template < short_t Idx >
+        GT_FUNCTION static constexpr int_t get_constexpr() {
+            return 0;
+        }
     };
 
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >

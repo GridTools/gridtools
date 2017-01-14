@@ -70,7 +70,6 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
 
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
-
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
         typedef typename grid_topology_t::layout_map_t layout_map_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
@@ -451,6 +450,7 @@ namespace gridtools {
             pointer< const typename storage_type::storage_info_type > const metadata_ =
                 boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
             // getting the value
+
             // the following assert fails when an out of bound access is observed, i.e. either one of
             // i+offset_i or j+offset_j or k+offset_k is too large.
             // Most probably this is due to you specifying a positive offset which is larger than expected,
@@ -546,7 +546,6 @@ namespace gridtools {
             using location_type_t = typename accessor_t::location_type;
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-
             const int_t pointer_offset = (m_index[metadata_index_t::value]) +
                                          metadata_->template _index< layout_map_t >(
                                              strides().template get< metadata_index_t::value >(), position_offset);

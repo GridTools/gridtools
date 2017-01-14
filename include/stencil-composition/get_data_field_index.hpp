@@ -65,16 +65,12 @@ namespace gridtools {
 
         static constexpr uint_t apply(Accessor const &accessor_) {
 
-            // TODO MYMERGE
-            //            GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields % storage_type::traits::n_width == 0),
-            //                "You specified a non-rectangular field: if you need to use a non-rectangular field the
-            //                constexpr "
-            //                "version of the accessors have to be used (so that the current position in the field is
-            //                computed at "
-            //                "compile time). This is achieved by using, e.g., instead of \n\n
-            //                eval(field(dimension<5>(2))); \n\n "
-            //                "the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n "
-            //                "eval(z_field()); \n");
+            GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields % storage_type::traits::n_width == 0),
+                "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr "
+                "version of the accessors have to be used (so that the current position in the field is computed at "
+                "compile time). This is achieved by using, e.g., instead of \n\n eval(field(dimension<5>(2))); \n\n "
+                "the following expression: \n\n typedef alias<field, dimension<5> >::set<2> z_field; \n "
+                "eval(z_field()); \n");
 
             // dimension/snapshot offsets must be non negative
             //             GTASSERT(accessor_.template get< 0 >() >= 0);

@@ -38,9 +38,7 @@
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/find.hpp>
 #include "defs.hpp"
-// TODO MYMERGE common should not depend on stencil-composition
 #include "../stencil-composition/dimension.hpp"
-//#include "../stencil-composition/dimension_defs.hpp"
 #include "generic_metafunctions/logical_ops.hpp"
 #include "generic_metafunctions/variadic_to_vector.hpp"
 #include "generic_metafunctions/accumulate.hpp"
@@ -336,6 +334,7 @@ namespace gridtools {
                 (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
         }
 
+#ifdef CXX11_ENABLED
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
