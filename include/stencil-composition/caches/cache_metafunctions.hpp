@@ -81,6 +81,26 @@ namespace gridtools {
     struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy, Interval > > : boost::mpl::true_ {};
 
     /**
+     * @struct is_ij_cache
+     * metafunction determining if a type is a cache of IJ type
+     */
+    template < typename T >
+    struct is_ij_cache : boost::mpl::false_ {};
+
+    template < typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
+    struct is_ij_cache< detail::cache_impl< IJ, Arg, cacheIOPolicy, Interval > > : boost::mpl::true_ {};
+
+    /**
+     * @struct is_k_cache
+     * metafunction determining if a type is a cache of K type
+     */
+    template < typename T >
+    struct is_k_cache : boost::mpl::false_ {};
+
+    template < typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
+    struct is_k_cache< detail::cache_impl< K, Arg, cacheIOPolicy, Interval > > : boost::mpl::true_ {};
+
+    /**
      * @struct cache_parameter
      *  trait returning the parameter Arg type of a user provided cache
      */

@@ -93,7 +93,7 @@ TEST(cache_metafunctions, cache_used_by_esfs) {
     ASSERT_TRUE(true);
 }
 
-TEST(cache_metafunctions, extract_extents_for_caches) {
+TEST(cache_metafunctions, extract_ij_extents_for_caches) {
     typedef boost::mpl::vector3< p_in, p_buff, p_out > esf_args_t;
     typedef local_domain< boost::mpl::void_, boost::mpl::void_, esf_args_t, false > local_domain_t;
 
@@ -116,15 +116,13 @@ TEST(cache_metafunctions, extract_extents_for_caches) {
         boost::mpl::false_,
         notype > iterate_domain_arguments_t;
 
-    typedef extract_extents_for_caches< iterate_domain_arguments_t >::type extents_map_t;
+    typedef extract_ij_extents_for_caches< iterate_domain_arguments_t >::type extents_map_t;
 
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< extents_map_t,
-                                boost::mpl::map3< boost::mpl::pair< cache1_t, extent< -1, 2, -2, 1 > >,
-                                                    boost::mpl::pair< cache2_t, extent< -2, 2, -3, 2 > >,
-                                                    boost::mpl::pair< cache3_t, extent< -2, 1, -3, 2 > > > >::value),
+                                boost::mpl::map2< boost::mpl::pair< cache1_t, extent< -1, 2, -2, 1 > >,
+                                                    boost::mpl::pair< cache2_t, extent< -2, 2, -3, 2 > > > >::value),
         "ERROR");
 }
-
 TEST(cache_metafunctions, get_cache_storage_tuple) {
     typedef metadata_set< boost::mpl::vector1< pointer< storage_type::storage_info_type > > > metadata_vector_t;
     typedef boost::mpl::vector3< pointer< storage_type >, pointer< storage_type >, pointer< storage_type > > storages_t;
@@ -151,7 +149,7 @@ TEST(cache_metafunctions, get_cache_storage_tuple) {
         boost::mpl::false_,
         notype > iterate_domain_arguments_t;
 
-    typedef extract_extents_for_caches< iterate_domain_arguments_t >::type extents_map_t;
+    typedef extract_ij_extents_for_caches< iterate_domain_arguments_t >::type extents_map_t;
 
     typedef get_cache_storage_tuple< IJ, caches_t, extents_map_t, block_size< 32, 4, 1 >, local_domain_t >::type
         cache_storage_tuple_t;

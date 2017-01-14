@@ -36,11 +36,12 @@
 #pragma once
 
 #include "../grid_traits_fwd.hpp"
+#include "../extent_metafunctions.hpp"
 
 namespace gridtools {
 
     /**
-     * @struct extract_extents_for_caches
+     * @struct extract_ij_extents_for_caches
      * metafunction that extracts the extents associated to each cache of the sequence of caches provided by the user.
      * The extent is determined as the enclosing extent of all the extents of esfs that use the cache.
      * It is used in order to allocate enough memory for each cache storage.
@@ -48,7 +49,7 @@ namespace gridtools {
      * @return map<cache,extent>
      */
     template < typename IterateDomainArguments >
-    struct extract_extents_for_caches {
+    struct extract_ij_extents_for_caches {
         typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
         typedef typename IterateDomainArguments::extent_sizes_t extents_t;
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
@@ -104,7 +105,8 @@ namespace gridtools {
                 insert_extent_for_cache_esf< boost::mpl::_1, boost::mpl::_2 > >::type type;
         };
 
-        typedef typename boost::mpl::fold< cache_sequence_t,
+        typedef typename boost::mpl::fold<
+            typename boost::mpl::filter_view< cache_sequence_t, is_ij_cache< boost::mpl::_ > >::type,
             boost::mpl::map0<>,
             insert_extent_for_cache< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
