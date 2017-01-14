@@ -336,6 +336,7 @@ namespace gridtools {
                 (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
         }
 
+#ifdef CXX11_ENABLED
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
