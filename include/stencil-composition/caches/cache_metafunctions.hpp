@@ -211,8 +211,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_storage< typename StoragePtr::value_type >::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< CacheExtendsMap, Cache >::value),
                 "Internal Error: extend associated to cache not found.");
-
-            typedef cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, StoragePtr >
+            typedef
+                typename boost::mpl::if_< is_k_cache< Cache >, block_size< 0, 0, 0 >, BlockSize >::type block_size_t;
+            typedef cache_storage< block_size_t, typename boost::mpl::at< CacheExtendsMap, Cache >::type, StoragePtr >
                 type;
         };
 
