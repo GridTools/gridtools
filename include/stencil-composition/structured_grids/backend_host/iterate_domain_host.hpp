@@ -118,11 +118,10 @@ namespace gridtools {
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
         }
 
-        //    template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
-        //    typename boost::enable_if_c< is_any_storage<typename ArgStoragePair0::storage_type>::type::value
-        //                                , void>::type assign_pointers
-
-        //    typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
 
       private:
         data_pointer_array_t *RESTRICT m_data_pointer;

@@ -56,6 +56,22 @@
 
 namespace gridtools {
 
+    template < typename IterationPolicy >
+    struct slide_cache_functor {
+
+      public:
+        slide_cache_functor() {}
+
+        /** @brief operator inserting a storage raw pointer
+
+            filters out the arguments which are not of storage type (and thus do not have an associated metadata)
+         */
+        template < typename Arg >
+        void operator()(Arg &arg_) const {
+            arg_.second.template slide< IterationPolicy >();
+        }
+    };
+
     /**
      * @class iterate_domain_cache
      * class that provides all the caching functionality needed by the iterate domain.
@@ -136,6 +152,14 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::has_key< k_caches_map_t, IndexType >::value), "Accessing a non registered cached");
             return boost::fusion::at_key< IndexType >(m_k_caches_tuple);
+        }
+
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+
+            // copy of the non-tmp metadata into m_metadata_set
+            boost::fusion::for_each(m_k_caches_tuple, slide_cache_functor< IterationPolicy >());
         }
 
       private:

@@ -337,6 +337,12 @@ namespace gridtools {
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
         }
 
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            m_iterate_domain_cache.template slide_caches< IterationPolicy >();
+        }
+
       private:
         // array storing the (i,j) position of the current thread within the block
         array< int, 2 > m_thread_pos;

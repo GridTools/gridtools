@@ -90,5 +90,13 @@ namespace gridtools {
             } // because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we
               // should have allocated more memory)
         };
+
     } // namespace _impl
+
+    template < typename T >
+    struct is_iteration_policy : boost::mpl::false_ {};
+
+    template < typename From, typename To, typename ZDimIndex, enumtype::execution ExecutionType >
+    struct is_iteration_policy< _impl::iteration_policy< From, To, ZDimIndex, ExecutionType > > : boost::mpl::true_ {};
+
 } // namespace gridtools

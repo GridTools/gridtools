@@ -39,6 +39,7 @@
 #include "../../common/array.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
+#include "../iteration_policy_fwd.hpp"
 #include "../../common/offset_tuple.hpp"
 
 #ifdef CXX11_ENABLED
@@ -130,8 +131,10 @@ namespace gridtools {
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
+            // TODO KCACHE check there are no IJ accesses
             typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
             typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
+            typedef typename boost::mpl::at_c< typename minus_t::type, 2 >::type kminus;
 
 #ifdef CUDA8
             typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
@@ -143,7 +146,26 @@ namespace gridtools {
             assert((extra_) < size());
             assert((extra_) >= 0);
 
-            return m_values[s_storage_info.index(accessor_)];
+            return m_values[s_storage_info.index(accessor_) - kminus::value];
+        }
+
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide() {
+            // TODO KCACHE check there are no IJ
+            // TODO do not slide if cache interval out of ExecutionPolicy intervals
+
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "Error");
+
+            typedef typename boost::mpl::at_c< typename minus_t::type, 2 >::type kminus;
+            typedef typename boost::mpl::at_c< typename plus_t::type, 2 >::type kplus;
+
+            constexpr uint_t ksize = kplus::value - kminus::value + 1;
+            constexpr uint_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : ksize - 1;
+            constexpr uint_t kend = (IterationPolicy::value == enumtype::backward) ? ksize - 2 : 1;
+
+            for (uint_t k = kbegin; k <= IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
+                m_values[k] = (IterationPolicy::value == enumtype::forward) ? m_values[k + 1] : m_values[k - 1];
+            }
         }
 
       private:
