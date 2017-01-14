@@ -72,8 +72,8 @@ namespace shorizontal_diffusion {
     struct wlap_function {
         typedef accessor< 0, enumtype::inout > out;
         typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 1 > > in;
-        typedef accessor< 2, enumtype::in > crlato;
-        typedef accessor< 3, enumtype::in > crlatu;
+        typedef accessor< 2, enumtype::inout > crlato;
+        typedef accessor< 3, enumtype::inout > crlatu;
 
         typedef boost::mpl::vector< out, in, crlato, crlatu > arg_list;
 
@@ -132,7 +132,6 @@ namespace shorizontal_diffusion {
 
         typedef horizontal_diffusion::repository::storage_type storage_type;
         typedef horizontal_diffusion::repository::j_storage_type j_storage_type;
-        typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
 
         horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
         repository.init_fields();
@@ -148,7 +147,7 @@ namespace shorizontal_diffusion {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, tmp_storage_type > p_lap;
+        typedef arg< 0, storage_type, true > p_lap;
         typedef arg< 1, storage_type > p_coeff;
         typedef arg< 2, storage_type > p_in;
         typedef arg< 3, storage_type > p_out;
@@ -163,13 +162,8 @@ namespace shorizontal_diffusion {
 // It must be noted that the only fields to be passed to the constructor are the non-temporary.
 // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
 // don't particularly like this)
-#if defined(CXX11_ENABLED)
-        gridtools::aggregator_type< accessor_list > domain(
-            (p_out() = out), (p_in() = in), (p_coeff() = coeff), (p_crlato() = crlato), (p_crlatu() = crlatu));
-#else
-        gridtools::aggregator_type< accessor_list > domain(
-            boost::fusion::make_vector(&coeff, &in, &out, &crlato, &crlatu));
-#endif
+
+        gridtools::aggregator_type< accessor_list > domain(coeff, in, out, crlato, crlatu);
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -204,7 +198,7 @@ namespace shorizontal_diffusion {
 
         simple_hori_diff->run();
 
-        repository.update_cpu();
+        out.sync();
 
         bool result = true;
         if (verify) {
@@ -235,3 +229,4 @@ namespace shorizontal_diffusion {
     }
 
 } // namespace simple_hori_diff
+
