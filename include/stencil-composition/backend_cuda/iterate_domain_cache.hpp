@@ -190,8 +190,7 @@ namespace gridtools {
             KCacheTuple const &m_kcaches;
 
             template < typename Idx >
-            GT_FUNCTION
-            void operator()(Idx const &) const {
+            GT_FUNCTION void operator()(Idx const &) const {
                 typedef typename boost::mpl::at< k_caches_map_t, Idx >::type k_cache_storage_t;
                 typedef typename boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type kminus;
 
