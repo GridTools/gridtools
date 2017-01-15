@@ -72,8 +72,10 @@ struct copy_functor {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody) {
+
         eval(buff()) = eval(buff(0, 0, -1)) + eval(in());
         eval(out()) = eval(buff());
+
     }
 };
 
@@ -113,7 +115,7 @@ TEST(kcache, local) {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             in(i, j, 0) = i + j;
-            ref(i, j, 0) = 0;
+            ref(i, j, 0) = in(i,j,0);
             for (uint_t k = 1; k < d3; ++k) {
                 in(i, j, k) = i + j + k;
                 ref(i, j, k) = ref(i, j, k - 1) + in(i, j, k);

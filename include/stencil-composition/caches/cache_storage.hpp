@@ -143,10 +143,9 @@ namespace gridtools {
             assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
 #endif
 
-            assert((extra_) < size());
-            assert((extra_) >= 0);
-
-            return m_values[s_storage_info.index(accessor_) - kminus::value];
+            assert(s_storage_info.index(accessor_) - kminus::value < size());
+            assert(s_storage_info.index(accessor_) - kminus::value >= 0);
+            return m_values[s_storage_info.index(accessor_) - kminus::value]; 
         }
 
         template < typename IterationPolicy >
@@ -163,7 +162,7 @@ namespace gridtools {
             constexpr uint_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : ksize - 1;
             constexpr uint_t kend = (IterationPolicy::value == enumtype::backward) ? ksize - 2 : 1;
 
-            for (uint_t k = kbegin; k <= IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
+            for (uint_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
                 m_values[k] = (IterationPolicy::value == enumtype::forward) ? m_values[k + 1] : m_values[k - 1];
             }
         }
