@@ -145,7 +145,7 @@ namespace gridtools {
 
             assert(s_storage_info.index(accessor_) - kminus::value < size());
             assert(s_storage_info.index(accessor_) - kminus::value >= 0);
-            return m_values[s_storage_info.index(accessor_) - kminus::value]; 
+            return m_values[s_storage_info.index(accessor_) - kminus::value];
         }
 
         template < typename IterationPolicy >

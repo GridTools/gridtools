@@ -307,7 +307,8 @@ namespace gridtools {
             // position within
             // the block and the offsets of the accessor
             //            return
-            return m_iterate_domain_cache.template get_k_cache< static_uint< acc_t::index_type::value > >().at(accessor_);
+            return m_iterate_domain_cache.template get_k_cache< static_uint< acc_t::index_type::value > >().at(
+                accessor_);
         }
 
         /** @brief return a the value in memory pointed to by an accessor
