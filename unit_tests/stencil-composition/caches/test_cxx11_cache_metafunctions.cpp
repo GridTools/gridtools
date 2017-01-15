@@ -206,15 +206,17 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
     // therefore we convert into an mpl map and do all the metaprogramming operations on that map
     typedef fusion_map_to_mpl_map< cache_storage_tuple_t >::type cache_storage_mpl_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<
-            cache_storage_tuple_t,
-            boost::fusion::map<
-                boost::fusion::pair< boost::mpl::integral_c< uint_t, 0 >,
-                    cache_storage< block_size< 32, 4, 1 >, extent< -1, 2, -2, 1 >, pointer< storage_type > > >,
-                boost::fusion::pair< boost::mpl::integral_c< uint_t, 1 >,
-                    cache_storage< block_size< 32, 4, 1 >, extent< -2, 2, -3, 2 >, pointer< storage_type > > > > >::
-                value),
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< cache_storage_tuple_t,
+                                boost::fusion::map< boost::fusion::pair< boost::mpl::integral_c< uint_t, 0 >,
+                                                        cache_storage< cache1_t,
+                                                                             block_size< 32, 4, 1 >,
+                                                                             extent< -1, 2, -2, 1 >,
+                                                                             pointer< storage_type > > >,
+                                                    boost::fusion::pair< boost::mpl::integral_c< uint_t, 1 >,
+                                                        cache_storage< cache_2,
+                                                                             block_size< 32, 4, 1 >,
+                                                                             extent< -2, 2, -3, 2 >,
+                                                                             pointer< storage_type > > > > >::value),
         "ERROR");
 }
 
@@ -255,14 +257,16 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
     // therefore we convert into an mpl map and do all the metaprogramming operations on that map
     typedef fusion_map_to_mpl_map< cache_storage_tuple_t >::type cache_storage_mpl_map_t;
 
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::mpl::equal<
-            cache_storage_tuple_t,
-            boost::fusion::map<
-                boost::fusion::pair< boost::mpl::integral_c< uint_t, 3 >,
-                    cache_storage< block_size< 0, 0, 0 >, extent< 0, 0, 0, 0, 0, 1 >, pointer< storage_type > > >,
-                boost::fusion::pair< boost::mpl::integral_c< uint_t, 2 >,
-                    cache_storage< block_size< 0, 0, 0 >, extent< 0, 0, 0, 0, -1, 1 >, pointer< storage_type > > > > >::
-                value),
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< cache_storage_tuple_t,
+                                boost::fusion::map< boost::fusion::pair< boost::mpl::integral_c< uint_t, 3 >,
+                                                        cache_storage< cache3_t,
+                                                                             block_size< 0, 0, 0 >,
+                                                                             extent< 0, 0, 0, 0, 0, 1 >,
+                                                                             pointer< storage_type > > >,
+                                                    boost::fusion::pair< boost::mpl::integral_c< uint_t, 2 >,
+                                                        cache_storage< cache4_t,
+                                                                             block_size< 0, 0, 0 >,
+                                                                             extent< 0, 0, 0, 0, -1, 1 >,
+                                                                             pointer< storage_type > > > > >::value),
         "ERROR");
 }

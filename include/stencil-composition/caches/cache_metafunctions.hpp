@@ -101,6 +101,16 @@ namespace gridtools {
     struct is_k_cache< detail::cache_impl< K, Arg, cacheIOPolicy, Interval > > : boost::mpl::true_ {};
 
     /**
+     * @struct is_flushing_cache
+     * metafunction determining if a type is a flush cache
+     */
+    template < typename T >
+    struct is_flushing_cache : boost::mpl::false_ {};
+
+    template < cache_type cacheType, typename Arg, typename Interval >
+    struct is_flushing_cache< detail::cache_impl< cacheType, Arg, flush, Interval > > : boost::mpl::true_ {};
+
+    /**
      * @struct cache_parameter
      *  trait returning the parameter Arg type of a user provided cache
      */
@@ -213,8 +223,10 @@ namespace gridtools {
                 "Internal Error: extend associated to cache not found.");
             typedef
                 typename boost::mpl::if_< is_k_cache< Cache >, block_size< 1, 1, 1 >, BlockSize >::type block_size_t;
-            typedef cache_storage< block_size_t, typename boost::mpl::at< CacheExtendsMap, Cache >::type, StoragePtr >
-                type;
+            typedef cache_storage< Cache,
+                block_size_t,
+                typename boost::mpl::at< CacheExtendsMap, Cache >::type,
+                StoragePtr > type;
         };
 
         // first we build an mpl vector of pairs

@@ -344,6 +344,13 @@ namespace gridtools {
             m_iterate_domain_cache.template slide_caches< IterationPolicy >();
         }
 
+        template < typename IterationPolicy >
+        GT_FUNCTION void flush_caches() {
+            // TODO KCACHE do not execute if no flush caches and/or not in iteration policy
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            m_iterate_domain_cache.template flush_caches< IterationPolicy >(*this);
+        }
+
       private:
         // array storing the (i,j) position of the current thread within the block
         array< int, 2 > m_thread_pos;

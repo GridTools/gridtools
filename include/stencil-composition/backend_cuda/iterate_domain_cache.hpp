@@ -53,12 +53,13 @@
 #include "stencil-composition/iterate_domain_fwd.hpp"
 #include "../caches/cache_metafunctions.hpp"
 #include "../caches/extract_extent_caches.hpp"
+#include "../accessor_fwd.hpp"
 
 namespace gridtools {
 
     template < typename IterationPolicy >
     struct slide_cache_functor {
-
+        // TODO KCACHE use lambda
       public:
         slide_cache_functor() {}
 
@@ -70,6 +71,20 @@ namespace gridtools {
         void operator()(Arg &arg_) const {
             arg_.second.template slide< IterationPolicy >();
         }
+    };
+
+    template < typename Map, template < typename > class Pred >
+    struct filter_map_indexes {
+        template < typename Pair >
+        struct apply_pred {
+            typedef typename Pred< typename Pair::second::cache_t >::type type;
+        };
+        typedef
+            typename boost::mpl::fold< Map,
+                boost::mpl::vector0<>,
+                boost::mpl::if_< apply_pred< boost::mpl::_2 >,
+                                           boost::mpl::push_back< boost::mpl::_1, boost::mpl::first< boost::mpl::_2 > >,
+                                           boost::mpl::_1 > >::type type;
     };
 
     /**
@@ -140,6 +155,8 @@ namespace gridtools {
         // compute an mpl from the previous fusion vector, to be used for compile time meta operations
         typedef typename fusion_map_to_mpl_map< k_caches_tuple_t >::type k_caches_map_t;
 
+        typedef typename filter_map_indexes< k_caches_map_t, is_flushing_cache >::type k_flushing_caches_indexes_t;
+
         typedef
             typename get_cache_set_for_type< bypass, caches_t, typename IterateDomainArguments::local_domain_t >::type
                 bypass_caches_set_t;
@@ -160,6 +177,36 @@ namespace gridtools {
 
             // copy of the non-tmp metadata into m_metadata_set
             boost::fusion::for_each(m_k_caches_tuple, slide_cache_functor< IterationPolicy >());
+        }
+
+        template < typename IterateDomain, typename KCacheTuple >
+        struct flushing_functor {
+
+            flushing_functor(IterateDomain const &it_domain, KCacheTuple const &kcaches)
+                : m_it_domain(it_domain), m_kcaches(kcaches) {}
+
+            IterateDomain const &m_it_domain;
+            KCacheTuple const &m_kcaches;
+
+            template < typename Idx >
+            void operator()(Idx const &) const {
+                typedef typename boost::mpl::at< k_caches_map_t, Idx >::type k_cache_storage_t;
+                typedef typename boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type kminus;
+
+                typedef accessor< Idx::value, enumtype::inout, extent< 0, 0, 0, 0, kminus::value, 0 > > acc_t;
+
+                constexpr acc_t acc_(0, 0, kminus::value);
+                m_it_domain.gmem_access(acc_) = boost::fusion::at_key< Idx >(m_kcaches).at(acc_);
+            }
+        };
+
+        template < typename IterationPolicy, typename IterateDomain >
+        GT_FUNCTION void flush_caches(IterateDomain const &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+
+            // copy of the non-tmp metadata into m_metadata_set
+            boost::mpl::for_each< k_flushing_caches_indexes_t >(
+                flushing_functor< IterateDomain, k_caches_tuple_t >(it_domain, m_k_caches_tuple));
         }
 
       private:

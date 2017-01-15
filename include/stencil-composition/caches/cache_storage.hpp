@@ -48,10 +48,14 @@
 #endif
 
 namespace gridtools {
+
+    template < typename T >
+    struct is_cache;
+
     template < typename T, typename U >
     struct get_storage_accessor;
 
-    template < typename BlockSize, typename Extent, typename Storage >
+    template < typename Cache, typename BlockSize, typename Extent, typename Storage >
     struct cache_storage;
 
 #ifdef CXX11_ENABLED
@@ -70,10 +74,12 @@ namespace gridtools {
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
      */
-    template < uint_t... Tiles, short_t... ExtentBounds, typename Storage >
-    struct cache_storage< block_size< Tiles... >, extent< ExtentBounds... >, Storage > {
+    template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename Storage >
+    struct cache_storage< Cache, block_size< Tiles... >, extent< ExtentBounds... >, Storage > {
+        GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "Internal Error: wrong type");
 
       public:
+        typedef Cache cache_t;
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_t;
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_t;
         typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
@@ -122,6 +128,31 @@ namespace gridtools {
             assert((extra_) >= 0);
 
             return m_values[extra_];
+        }
+
+        // TODO KCACHE have only one version for const /non const
+        template < typename Accessor >
+        GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_) const {
+            constexpr const meta_t s_storage_info;
+
+            using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
+
+            // TODO KCACHE check there are no IJ accesses
+            typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
+            typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
+            typedef typename boost::mpl::at_c< typename minus_t::type, 2 >::type kminus;
+
+#ifdef CUDA8
+            typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
+            typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
+#else
+            assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
+#endif
+
+            assert(s_storage_info.index(accessor_) - kminus::value < size());
+            assert(s_storage_info.index(accessor_) - kminus::value >= 0);
+            return m_values[s_storage_info.index(accessor_) - kminus::value];
         }
 
         template < typename Accessor >
@@ -188,9 +219,9 @@ namespace gridtools {
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
      */
-    template < typename BlockSize, typename Extend, typename Storage >
+    template < typename Cache, typename BlockSize, typename Extend, typename Storage >
     struct cache_storage {
-
+        GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), "Internal Error: wrong type");
 
