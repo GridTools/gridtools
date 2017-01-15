@@ -74,6 +74,7 @@ namespace gridtools {
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
      */
+    // TODO KCACHE eliminate the Storage since it is already derived from the arg of the Cache
     template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename Storage >
     struct cache_storage< Cache, block_size< Tiles... >, extent< ExtentBounds... >, Storage > {
         GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "Internal Error: wrong type");
