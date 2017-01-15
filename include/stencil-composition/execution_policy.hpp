@@ -101,6 +101,7 @@ namespace gridtools {
                     super::m_domain.template flush_caches< IterationPolicy >();
                     super::m_domain.template slide_caches< IterationPolicy >();
                 }
+                super::m_domain.template final_flush< IterationPolicy >();
             }
         };
 

@@ -179,7 +179,7 @@ namespace gridtools {
             boost::fusion::for_each(m_k_caches_tuple, slide_cache_functor< IterationPolicy >());
         }
 
-        template < typename IterateDomain, typename KCacheTuple >
+        template < typename IterateDomain, typename KCacheTuple, enumtype::execution ExecutionPolicy >
         struct flushing_functor {
 
             GT_FUNCTION
@@ -191,13 +191,26 @@ namespace gridtools {
 
             template < typename Idx >
             GT_FUNCTION void operator()(Idx const &) const {
+#ifdef CXX11_ENABLED
                 typedef typename boost::mpl::at< k_caches_map_t, Idx >::type k_cache_storage_t;
-                typedef typename boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type kminus;
 
-                typedef accessor< Idx::value, enumtype::inout, extent< 0, 0, 0, 0, kminus::value, 0 > > acc_t;
-                constexpr acc_t acc_(0, 0, kminus::value);
+                constexpr int_t kminus =
+                    (ExecutionPolicy == enumtype::forward)
+                        ? boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
+                        : 0;
+
+                constexpr int_t kplus =
+                    (ExecutionPolicy == enumtype::backward)
+                        ? boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value
+                        : 0;
+
+                constexpr int_t koffset = (ExecutionPolicy == enumtype::forward) ? kminus : kplus;
+
+                typedef accessor< Idx::value, enumtype::inout, extent< 0, 0, 0, 0, kminus, kplus > > acc_t;
+                constexpr acc_t acc_(0, 0, koffset);
 
                 m_it_domain.gmem_access(acc_) = boost::fusion::at_key< Idx >(m_kcaches).at(acc_);
+#endif
             }
         };
         template < typename IterationPolicy, typename IterateDomain >
@@ -205,7 +218,16 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             // copy of the non-tmp metadata into m_metadata_set
             boost::mpl::for_each< k_flushing_caches_indexes_t >(
-                flushing_functor< IterateDomain, k_caches_tuple_t >(it_domain, m_k_caches_tuple));
+                flushing_functor< IterateDomain, k_caches_tuple_t, IterationPolicy::value >(
+                    it_domain, m_k_caches_tuple));
+        }
+
+        template < typename IterationPolicy, typename IterateDomain >
+        GT_FUNCTION void final_flush(IterateDomain const &it_domain) {
+            //            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            //            // copy of the non-tmp metadata into m_metadata_set
+            //            boost::mpl::for_each< k_flushing_caches_indexes_t >(
+            //                flushing_functor< IterateDomain, k_caches_tuple_t >(it_domain, m_k_caches_tuple));
         }
 
       private:
