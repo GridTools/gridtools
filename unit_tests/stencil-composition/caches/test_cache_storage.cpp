@@ -101,10 +101,6 @@ TEST(cache_storage, multidimensional_caches) {
     ASSERT_TRUE(true);
 }
 
-template < typename T >
-struct printz {
-    BOOST_MPL_ASSERT_MSG((false), ZZZZZZZZZZZZ, (T));
-};
 TEST(cache_storage, kcaches) {
     typedef layout_map< 0, 1, 2 > layout_t;
     typedef pointer< base_storage< wrap_pointer< double >, meta_storage_base< static_int< 0 >, layout_t, false >, 4 > >
