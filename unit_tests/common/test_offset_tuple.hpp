@@ -117,14 +117,12 @@ void test_offset_tuple_array_and_dim(bool *result) {
     {
 #ifdef CXX11_ENABLED
         array< int_t, 4 > pos{2, 5, 8, -6};
-#else
-        array< int_t, 4 > pos(2, 5, 8, -6);
-#endif
         offset_tuple< 4, 4 > offsets(0, pos, dimension< 2 >(3), dimension< 3 >(-2));
 
         *result &= ((offsets.get< 0 >() == -8));
         *result &= ((offsets.get< 1 >() == 11));
         *result &= ((offsets.get< 2 >() == 5));
         *result &= ((offsets.get< 3 >() == 2));
+#endif
     }
 }
