@@ -121,6 +121,7 @@ namespace gridtools {
         struct extract_types {
             template < typename ElemType >
             struct apply {
+                GRIDTOOLS_STATIC_ASSERT((ElemType::index_type::value<boost::fusion::result_of::size<StorageList>::type::value), "Access out of boud");
                 typedef typename boost::remove_reference< typename boost::fusion::result_of::at< StorageList,
                     typename ElemType::index_type >::type >::type type;
             };
