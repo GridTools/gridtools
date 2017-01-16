@@ -86,6 +86,7 @@ namespace gridtools {
 
     namespace impl {
         template < typename... U >
+        GT_FUNCTION
         void void_lambda(U... args) {}
     }
 
