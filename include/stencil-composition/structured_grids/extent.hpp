@@ -65,6 +65,7 @@ namespace gridtools {
         typedef static_int< JPlus > jplus;
         typedef static_int< KMinus > kminus;
         typedef static_int< KPlus > kplus;
+        typedef boost::mpl::vector6< iminus, iplus, jminus, jplus, kminus, kplus > extent_vec_t;
     };
 
     template < typename In >
