@@ -72,8 +72,8 @@ namespace shorizontal_diffusion {
     struct wlap_function {
         typedef accessor< 0, enumtype::inout > out;
         typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 1 > > in;
-        typedef accessor< 2, enumtype::inout > crlato;
-        typedef accessor< 3, enumtype::inout > crlatu;
+        typedef accessor< 2, enumtype::in > crlato;
+        typedef accessor< 3, enumtype::in > crlatu;
 
         typedef boost::mpl::vector< out, in, crlato, crlatu > arg_list;
 
