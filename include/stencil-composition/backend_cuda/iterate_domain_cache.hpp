@@ -48,12 +48,14 @@
 #include <boost/fusion/support/pair.hpp>
 #include <boost/fusion/include/pair.hpp>
 #include <boost/mpl/copy_if.hpp>
+#include <boost/mpl/filter_view.hpp>
 #include "common/generic_metafunctions/vector_to_map.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 #include "stencil-composition/iterate_domain_fwd.hpp"
 #include "../caches/cache_metafunctions.hpp"
 #include "../caches/extract_extent_caches.hpp"
 #include "../accessor_fwd.hpp"
+#include "../../common/generic_metafunctions/vector_to_set.hpp"
 
 namespace gridtools {
 
@@ -216,14 +218,42 @@ namespace gridtools {
         template < typename IterationPolicy, typename IterateDomain >
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            // copy of the non-tmp metadata into m_metadata_set
+            // copy of the non-tmp metadata into m_metadafromfromfromfromta_set
             boost::mpl::for_each< k_flushing_caches_indexes_t >(
                 flushing_functor< IterateDomain, k_caches_tuple_t, IterationPolicy::value >(
                     it_domain, m_k_caches_tuple));
         }
 
+        template < typename T >
+        struct printk {
+            BOOST_MPL_ASSERT_MSG((false), KKKKKKKKKKKKKKKKK, (T));
+        };
+        template < typename IterationPolicy >
+        struct kcache_final_flush_indexes {
+#ifdef CXX11_ENABLED
+            template < typename CacheStorage >
+            struct is_end_index {
+                //                GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "Internal Error");
+                using cache_t = typename CacheStorage::cache_t;
+                using to_index = typename level_to_index< typename IterationPolicy::to >::type;
+
+                static constexpr bool value = (IterationPolicy::value == enumtype::forward)
+                                                  ? (interval_to_index< typename cache_t::interval_t >::type::value ==
+                                                        level_to_index< typename IterationPolicy::to >::type::value)
+                                                  : (interval_from_index< typename cache_t::interval_t >::type::value ==
+                                                        level_to_index< typename IterationPolicy::to >::type::value);
+            };
+
+            using type = typename boost::mpl::filter_view< k_flushing_caches_indexes_t,
+                is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
+#endif
+        };
+
         template < typename IterationPolicy, typename IterateDomain >
         GT_FUNCTION void final_flush(IterateDomain const &it_domain) {
+            typedef typename kcache_final_flush_indexes< IterationPolicy >::type k_final_flushing_caches_indexes_t;
+
+            //            printk< typename IterationPolicy::from > oi;
             //            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             //            // copy of the non-tmp metadata into m_metadata_set
             //            boost::mpl::for_each< k_flushing_caches_indexes_t >(

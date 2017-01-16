@@ -76,6 +76,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_arg< Arg >::value), "argument passed to ij cache is not of the right arg<> type");
             typedef Arg arg_t;
+            typedef Interval interval_t;
             typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;
         };
 
