@@ -111,7 +111,7 @@ typedef decltype(gridtools::make_stage< functor2 >(p_in1(), p_in2(), p_in4(), p_
 
 typedef boost::mpl::vector2< esf1k_t, esf2k_t > esfk_sequence_t;
 
-TEST(cache_metafunctions, extract_k_extents_for_caches) {
+TEST(iterate_domain_cache, forward_backward) {
 
     typedef metadata_set< boost::mpl::vector1< pointer< storage_type::storage_info_type > > > metadata_vector_t;
     typedef boost::mpl::vector5< pointer< storage_type >,
@@ -178,5 +178,36 @@ TEST(cache_metafunctions, extract_k_extents_for_caches) {
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal< final_flush_indexes4_t, boost::mpl::vector2< static_uint< 2 >, static_uint< 4 > > >::value),
+        "Error");
+    // backward
+    using iteration_policy5_t =
+        _impl::iteration_policy< kmaximum::FromLevel, kmaximum::ToLevel, static_uint< 2 >, enumtype::backward >;
+
+    using final_flush_indexes5_t = iterate_domain_cache_t::kcache_final_flush_indexes< iteration_policy5_t >::type;
+
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< final_flush_indexes5_t >::value == 0), "Error");
+
+    using iteration_policy6_t =
+        _impl::iteration_policy< krange2::FromLevel, krange2::ToLevel, static_uint< 2 >, enumtype::backward >;
+
+    using final_flush_indexes6_t = iterate_domain_cache_t::kcache_final_flush_indexes< iteration_policy6_t >::type;
+
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::equal< final_flush_indexes6_t, boost::mpl::vector1< static_uint< 2 > > >::value), "Error");
+
+    using iteration_policy7_t =
+        _impl::iteration_policy< krange1::FromLevel, krange1::ToLevel, static_uint< 2 >, enumtype::backward >;
+
+    using final_flush_indexes7_t = iterate_domain_cache_t::kcache_final_flush_indexes< iteration_policy7_t >::type;
+
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< final_flush_indexes7_t >::value == 0), "Error");
+
+    using iteration_policy8_t =
+        _impl::iteration_policy< kminimum::FromLevel, kminimum::ToLevel, static_uint< 2 >, enumtype::backward >;
+
+    using final_flush_indexes8_t = iterate_domain_cache_t::kcache_final_flush_indexes< iteration_policy8_t >::type;
+
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< final_flush_indexes8_t,
+                                boost::mpl::vector3< static_uint< 0 >, static_uint< 1 >, static_uint< 4 > > >::value),
         "Error");
 }
