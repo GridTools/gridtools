@@ -125,14 +125,14 @@ namespace copy_stencil {
             gridtools::layout_map< 0, 1, 2 >,
             pointer_type::pointee_t,
             MPI_3D_process_grid_t< 3 >,
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
             gridtools::gcl_gpu,
 #else
             gridtools::gcl_cpu,
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
+        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, &dimensions);
 #ifdef VERBOSE
         printf("halo exchange ok\n");
 #endif
@@ -165,7 +165,7 @@ namespace copy_stencil {
         he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
         he.add_halo< 2 >(meta_.template get_halo_gcl< 2 >());
 
-        he.setup(2);
+        he.setup(3);
 
 #ifdef VERBOSE
         printf("halo set up\n");
