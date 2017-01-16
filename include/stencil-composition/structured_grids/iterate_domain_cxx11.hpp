@@ -409,10 +409,7 @@ namespace gridtools {
                 N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
 
             uint_t idx =
-                // TODO MYMERGE
-                //                get_data_field_index< storage_type::traits::is_rectangular, Accessor, local_domain_t
-                //                >::apply(accessor);
-                get_data_field_index< true, Accessor, local_domain_t >::apply(accessor);
+                get_data_field_index< storage_type::traits::is_rectangular, Accessor, local_domain_t >::apply(accessor);
 
             return (data_pointer())[idx];
         }

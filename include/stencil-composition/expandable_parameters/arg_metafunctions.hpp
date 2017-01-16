@@ -42,8 +42,6 @@ namespace gridtools {
     template < typename Storage, uint_t Size >
     struct expandable_parameters;
 
-    // TODO MYMERGE FIX arg (add location)
-
     // metafunction to access the storage type given the arg
     template < ushort_t ID, typename T >
     struct arg2storage< arg< ID, std::vector< pointer< T > > > > {
