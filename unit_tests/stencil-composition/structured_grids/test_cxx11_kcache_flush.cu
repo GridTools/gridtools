@@ -230,7 +230,7 @@ TEST(kcache, flush_backward) {
         for (uint_t j = 0; j < d2; ++j) {
             in(i, j, d3 - 1) = i + j + d3 - 1;
             ref(i, j, d3 - 1) = in(i, j, d3 - 1);
-            for (uint_t k = d3 - 2; k >= 0; - k) {
+            for (int_t k = d3 - 2; k >= 0; --k) {
                 in(i, j, k) = i + j + k;
                 ref(i, j, k) = ref(i, j, k + 1) + in(i, j, k);
             }

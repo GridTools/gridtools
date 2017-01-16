@@ -198,6 +198,7 @@ namespace gridtools {
                 m_values[k] = (IterationPolicy::value == enumtype::forward) ? m_values[k + 1] : m_values[k - 1];
             }
         }
+
       private:
 #if defined(CUDA8)
         value_type m_values[size()];

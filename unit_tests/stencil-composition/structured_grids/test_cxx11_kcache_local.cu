@@ -235,7 +235,7 @@ TEST(kcache, local_backward) {
     storage_type out(meta_data_, float_type(-1.));
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
-            in(i, j, d3 - 1) = i + j + d3-1;
+            in(i, j, d3 - 1) = i + j + d3 - 1;
             ref(i, j, d3 - 1) = in(i, j, d3 - 1);
             for (int_t k = d3 - 2; k >= 0; --k) {
                 in(i, j, k) = i + j + k;
