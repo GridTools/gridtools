@@ -153,6 +153,7 @@ namespace gridtools {
 
             assert(s_storage_info.index(accessor_) - kminus::value < size());
             assert(s_storage_info.index(accessor_) - kminus::value >= 0);
+
             return m_values[s_storage_info.index(accessor_) - kminus::value];
         }
 
@@ -193,12 +194,10 @@ namespace gridtools {
             constexpr uint_t ksize = kplus::value - kminus::value + 1;
             constexpr uint_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : ksize - 1;
             constexpr uint_t kend = (IterationPolicy::value == enumtype::backward) ? ksize - 2 : 1;
-
-            for (uint_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
+            for (int_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
                 m_values[k] = (IterationPolicy::value == enumtype::forward) ? m_values[k + 1] : m_values[k - 1];
             }
         }
-
       private:
 #if defined(CUDA8)
         value_type m_values[size()];

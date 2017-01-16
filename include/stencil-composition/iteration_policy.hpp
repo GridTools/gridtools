@@ -54,7 +54,7 @@ namespace gridtools {
             typedef To to;
 
             GT_FUNCTION
-            static uint_t increment(uint_t &k) { return ++k; }
+            static int_t increment(int_t &k) { return ++k; }
 
             template < typename IterateDomain >
             GT_FUNCTION static void increment(IterateDomain &eval) {
@@ -63,7 +63,7 @@ namespace gridtools {
             }
 
             GT_FUNCTION
-            static bool condition(uint_t const &a, uint_t const &b) {
+            static bool condition(int_t const &a, int_t const &b) {
                 return a <= b;
             } // because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we
               // should have allocated more memory)
@@ -77,7 +77,7 @@ namespace gridtools {
             typedef From to;
 
             GT_FUNCTION
-            static uint_t increment(uint_t &k) { return --k; }
+            static int_t increment(int_t &k) { return --k; }
 
             template < typename Domain >
             GT_FUNCTION static void increment(Domain &dom) {
@@ -85,7 +85,7 @@ namespace gridtools {
             }
 
             GT_FUNCTION
-            static bool condition(uint_t const &a, uint_t const &b) {
+            static bool condition(int_t const &a, int_t const &b) {
                 return a >= b;
             } // because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we
               // should have allocated more memory)

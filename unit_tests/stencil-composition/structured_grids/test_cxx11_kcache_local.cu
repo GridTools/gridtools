@@ -94,7 +94,6 @@ struct shif_acc_backward {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
-
         eval(buff()) = eval(buff(0, 0, 1)) + eval(in());
         eval(out()) = eval(buff());
     }
@@ -236,9 +235,9 @@ TEST(kcache, local_backward) {
     storage_type out(meta_data_, float_type(-1.));
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
-            in(i, j, d3 - 1) = i + j;
+            in(i, j, d3 - 1) = i + j + d3-1;
             ref(i, j, d3 - 1) = in(i, j, d3 - 1);
-            for (uint_t k = d3 - 2; k >= 0; ++k) {
+            for (int_t k = d3 - 2; k >= 0; --k) {
                 in(i, j, k) = i + j + k;
                 ref(i, j, k) = ref(i, j, k + 1) + in(i, j, k);
             }
