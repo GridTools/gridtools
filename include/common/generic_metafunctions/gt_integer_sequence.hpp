@@ -84,6 +84,11 @@ namespace gridtools {
     // template<typename UInt, uint_t N>
     // using make_gt_integer_sequence=std::make_integer_sequence<UInt, N>;
 
+    namespace impl {
+        template < typename... U >
+        void void_lambda(U... args) {}
+    }
+
     /**
        @brief generic definition (never instantiated)
      */
@@ -170,6 +175,11 @@ namespace gridtools {
         GT_FUNCTION static constexpr ReturnType apply_lambda(
             Lambda lambda, AdditionalArg add_arg, ExtraTypes const &... args_) {
             return lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg);
+        }
+
+        template < template < UInt T > class MetaFunctor, typename... ExtraTypes >
+        GT_FUNCTION static void apply_void_lambda(ExtraTypes const &... args_) {
+            impl::void_lambda(MetaFunctor< Indices >::apply(args_...)...);
         }
 
         /**
