@@ -352,7 +352,7 @@ namespace gridtools {
            \param arg placeholder containing the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
         */
-        template < typename Accessor, typename StoragePointer >
+        template < typename Accessor, typename StoragePointer, bool DirectGMemAccess = false >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
@@ -517,7 +517,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 
-            return get_value(accessor, get_data_pointer(accessor));
+            return get_value< Accessor, void *, true >(accessor, get_data_pointer(accessor));
         }
 
         template < typename Accessor >
@@ -575,7 +575,7 @@ namespace gridtools {
        \param storage_pointer pointer to the first element of the specific data field used
     */
     template < typename IterateDomainImpl >
-    template < typename Accessor, typename StoragePointer >
+    template < typename Accessor, typename StoragePointer, bool DirectGMemAccess >
     GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
     iterate_domain< IterateDomainImpl >::get_value(
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
@@ -629,11 +629,15 @@ namespace gridtools {
             (m_index[metadata_index_t::value]) +
             metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
-        return static_cast< const IterateDomainImpl * >(this)
-            ->template get_value_impl<
-                typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
-                Accessor,
-                storage_pointer_t >(real_storage_pointer, pointer_offset);
+        if (DirectGMemAccess) {
+            return get_gmem_value< return_t >(real_storage_pointer, pointer_offset);
+        } else {
+            return static_cast< const IterateDomainImpl * >(this)
+                ->template get_value_impl<
+                    typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+                    Accessor,
+                    storage_pointer_t >(real_storage_pointer, pointer_offset);
+        }
     }
 
     /** @brief method called in the Do methods of the functors.
