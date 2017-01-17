@@ -276,31 +276,4 @@ then
   fi
 fi
 
-## MPI-CUDA tests do not work properly on kesh
-if [[ "$RUN_MPI_TESTS" == "OFF"  && ${STRUCTURED_GRIDS} == "ON" ]]
-then
-  if [ "x$CXX_STD" == "xcxx11" ]
-  then
-      if [ "x$TARGET" == "xgpu" ]
-      then
-           # problems in the execution of the copy_stencil_parallel_cuda
-           # TODO fix
-           # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
-           # exit_if_error $?
-           # CUDA allocation error with more than 1 GPU in RELEASE mode
-           # To be fixed
-           # mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
-           # exit_if_error $?
-
-          echo "running shallow water test with MPI and CUDA"
-          echo "./build/shallow_water_enhanced_cuda 8 8 1 2"
-          ./examples/shallow_water_enhanced_cuda 8 8 1 2
-          exit_if_error $?
-
-      fi
-      #TODO not updated to greina
-      #    ../examples/communication/run_communication_tests.sh
-  fi
-fi
-
 exit 0

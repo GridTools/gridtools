@@ -56,6 +56,8 @@ else()
     add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
     target_link_libraries(shallow_water_enhanced gcl ${ADD_MPI_LIBS} ${exe_LIBS} gtest gtest_main)
     set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+    gridtools_add_test( tests.shallow_water_enhanced ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced" "8 8 1 1")
+
     if( GCL_MPI )
 
         add_executable(copy_stencil_parallel  copy_stencil_parallel.cpp)
@@ -90,6 +92,7 @@ else()
 
         cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
         target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS}  gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest gtest_main)
+        gridtools_add_test( tests.shallow_water_enhanced_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced_cuda" "64 16 1 1")
 
         if( GCL_MPI )
           cuda_add_executable(copy_stencil_parallel_cuda  copy_stencil_parallel.cu)
