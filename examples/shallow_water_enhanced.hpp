@@ -515,7 +515,7 @@ namespace shallow_water {
 #ifdef _GCL_MPI_
         grid< axis, partitioner_t > grid(part, meta_);
 #else
-        int halo_size = 1;
+        uint_t halo_size = 1;
         uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
         grid< axis > grid(di, dj);
