@@ -229,7 +229,7 @@ namespace gridtools {
 
             coordinates_gcl[component] = halo_descriptor(m_halo[component],
                 m_halo[component],
-                compute_halo(component, LOW),
+                m_halo[component],
                 tile_dimension + (compute_halo(component, LOW)) - 1,
                 tile_dimension + (compute_halo(component, UP)) + (compute_halo(component, LOW)));
 

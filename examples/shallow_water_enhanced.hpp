@@ -362,7 +362,9 @@ namespace shallow_water {
 
     bool test(uint_t x, uint_t y, uint_t z, uint_t t) {
 
+#ifdef _GCL_MPI_
         gridtools::GCL_Init();
+#endif
 
 #ifndef __CUDACC__
         // testing the static printing
@@ -419,6 +421,7 @@ namespace shallow_water {
         typedef boost::mpl::vector< p_tmpx, p_tmpy, p_sol > accessor_list;
         //! [args]
 
+#ifdef _GCL_MPI_
         //! [proc_grid_dims]
         array< int, 3 > dimensions{0, 0, 0};
         MPI_3D_process_grid_t< 3 >::dims_create(PROCS, 2, dimensions);
@@ -443,6 +446,7 @@ namespace shallow_water {
         //! [partitioner]
         array< ushort_t, 3 > padding{1, 1, 0};
         array< ushort_t, 3 > halo{1, 1, 0};
+
         typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
             pattern_type::grid_type > partitioner_t;
 
@@ -463,6 +467,10 @@ namespace shallow_water {
 
         he.setup(3);
 //! [add_halo]
+#else
+        storage_info_t meta_(d1, d2, d3);
+        sol_type sol(meta_, "sol");
+#endif
 
 //! [initialization_h]
 #ifdef __CUDACC__
@@ -502,7 +510,14 @@ namespace shallow_water {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         //! [grid]
+#ifdef _GCL_MPI_
         grid< axis, partitioner_t > grid(part, meta_);
+#else
+        int halo_size = 1;
+        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        grid< axis > grid(di, dj);
+#endif
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
         //! [grid]
@@ -530,6 +545,8 @@ namespace shallow_water {
             //! [exchange]
             // std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(),
             // sol.fields()[2].get()};
+#ifdef _GCL_MPI_
+
             std::vector< pointer_type::pointee_t * > vec(3);
             vec[0] = sol.get< 0, 0 >().get();
             vec[1] = sol.get< 0, 1 >().get();
@@ -538,6 +555,7 @@ namespace shallow_water {
             he.pack(vec);
             he.exchange();
             he.unpack(vec);
+#endif
 //! [exchange]
 
 #ifndef NDEBUG
@@ -554,12 +572,15 @@ namespace shallow_water {
         }
 
         //! [finalize]
+#ifdef _GCL_MPI_
         he.wait();
+#endif
 
         shallow_water_stencil->finalize();
 
+#ifdef _GCL_MPI_
         GCL_Finalize();
-
+#endif
         bool retval = true;
 //! [finalize]
 
@@ -576,7 +597,12 @@ namespace shallow_water {
         for (uint_t t = 0; t < total_time; ++t) {
             reference.iterate();
         }
+
+#ifdef _GCL_MPI_
         retval = check_result.verify_parallel(grid, meta_, sol, reference.solution, halos);
+#else
+        retval = check_result.verify(grid, sol, reference.solution, halos);
+#endif
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;

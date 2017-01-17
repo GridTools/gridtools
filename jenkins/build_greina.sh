@@ -31,7 +31,7 @@ function help {
 INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
-VERBOSE_RUN="OFF"
+VERBOSE_RUN="ON"
 VERSION_="5.3"
 
 while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
@@ -180,7 +180,7 @@ export START_TIME=$SECONDS
 # env
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
--DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
+-DCUDA_NVCC_FLAGS:STRING="-G;--relaxed-constexpr" \
 -DCUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
@@ -201,53 +201,53 @@ cmake \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
- ../
+ ~/src/GridTools/gridtools_crosetto2
 
 exit_if_error $?
 
-#number of trials for compilation. We add this here because sometime intermediate links of nvcc are missing
-#some object files, probably related to parallel make compilation, but we dont know yet how to solve this.
-#Workaround here is to try multiple times the compilation step
+number of trials for compilation. We add this here because sometime intermediate links of nvcc are missing
+some object files, probably related to parallel make compilation, but we dont know yet how to solve this.
+Workaround here is to try multiple times the compilation step
 num_make_rep=2
 
 error_code=0
 log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}_${RANDOM}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
-    echo "Log file ${log_file}"
-    for i in `seq 1 $num_make_rep`;
-    do
-      echo "COMPILATION # ${i}"
-      if [ ${i} -eq ${num_make_rep} ]; then
-          make  >& ${log_file};
-      else
-          make -j5  >& ${log_file};
-      fi
-      error_code=$?
-      if [ ${error_code} -eq 0 ]; then
-          break # Skip the make repetitions
-      fi
-    done
+   echo "Log file ${log_file}"
+   for i in `seq 1 $num_make_rep`;
+   do
+     echo "COMPILATION # ${i}"
+     if [ ${i} -eq ${num_make_rep} ]; then
+         make  >& ${log_file};
+     else
+         make -j5  >& ${log_file};
+     fi
+     error_code=$?
+     if [ ${error_code} -eq 0 ]; then
+         break # Skip the make repetitions
+     fi
+   done
 
-    if [ ${error_code} -ne 0 ]; then
-        cat ${log_file};
-    fi
+   if [ ${error_code} -ne 0 ]; then
+       cat ${log_file};
+   fi
 else
-    make -j10
-    error_code=$?
+   make -j10
+   error_code=$?
 fi
 
 if [[ -z ${DONOTCLEAN} ]]; then
-    test -e ${log_file}
-    if [ $? -eq 0 ] ; then
-       rm ${log_file}
-    fi
+   test -e ${log_file}
+   if [ $? -eq 0 ] ; then
+      rm ${log_file}
+   fi
 fi
 
 exit_if_error ${error_code}
 
 queue_str=""
 if [[ ${QUEUE} ]] ; then
-  queue_str="-q ${QUEUE}"
+ queue_str="-q ${QUEUE}"
 fi
 
 
@@ -257,43 +257,55 @@ exit_if_error $?
 
 if [[ "$RUN_MPI_TESTS" == "ON"  && ${STRUCTURED_GRIDS} == "ON" ]]
 then
-   if [ "x$CXX_STD" == "xcxx11" ]
-   then
-       if [ "x$TARGET" == "xcpu" ]
-       then
-           export MV2_USE_GPUDIRECT_GDRCOPY=0
-           export HOST_NAME=`hostname`
-           echo "running shallow water test with MPI"
-           echo "mpirun_rsh -np 4 $HOST_NAME $HOST_NAME $HOST_NAME $HOST_NAME ./build/shallow_water_enhanced 8 8 1 10"
-           mpirun_rsh -np 4 $HOST_NAME $HOST_NAME $HOST_NAME $HOST_NAME ./examples/shallow_water_enhanced 8 8 1 10
-           exit_if_error $?
+  if [ "x$CXX_STD" == "xcxx11" ]
+  then
+      if [ "x$TARGET" == "xcpu" ]
+      then
+          export MV2_USE_GPUDIRECT_GDRCOPY=0
+          export HOST_NAME=`hostname`
+          echo "running shallow water test with MPI"
+          echo "mpirun -np 4 ./build/shallow_water_enhanced 8 8 1 10"
+          mpirun -np 4 ./examples/shallow_water_enhanced 8 8 1 10
+          exit_if_error $?
 
-           echo "running copy stencil test with MPI"
-           echo "mpirun_rsh -np 2 $HOST_NAME $HOST_NAME ./build/copy_stencil_parallel 62 53 15"
-           mpirun_rsh -np 2 $HOST_NAME $HOST_NAME ./examples/copy_stencil_parallel 62 53 15
-           exit_if_error $?
-       fi
-       if [ "x$TARGET" == "xgpu" ]
-       then
-            # problems in the execution of the copy_stencil_parallel_cuda
-            # TODO fix
-            # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
-            # exit_if_error $?
-            # CUDA allocation error with more than 1 GPU in RELEASE mode
-            # To be fixed
-            # mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
-            # exit_if_error $?
-           export HOST_NAME=`hostname`
+          echo "running copy stencil test with MPI"
+          echo "mpirun -np 2 ./build/copy_stencil_parallel 62 53 15"
+          mpirun -np 2 ./examples/copy_stencil_parallel 62 53 15
+          exit_if_error $?
+      fi
+  fi
+fi
 
-           echo "running shallow water test with MPI and CUDA"
-           echo "mpirun_rsh -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2"
-           mpirun_rsh -np 1 $HOST_NAME ./examples/shallow_water_enhanced_cuda 8 8 1 2
-           exit_if_error $?
+## MPI-CUDA tests do not work properly on kesh
+if [[ "$RUN_MPI_TESTS" == "OFF"  && ${STRUCTURED_GRIDS} == "ON" ]]
+then
+  if [ "x$CXX_STD" == "xcxx11" ]
+  then
+      if [ "x$TARGET" == "xgpu" ]
+      then
+           # problems in the execution of the copy_stencil_parallel_cuda
+           # TODO fix
+           # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
+           # exit_if_error $?
+           # CUDA allocation error with more than 1 GPU in RELEASE mode
+           # To be fixed
+           # mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
+           # exit_if_error $?
 
-       fi
-       #TODO not updated to greina
-       #    ../examples/communication/run_communication_tests.sh
-   fi
+          echo "running shallow water test with MPI and CUDA"
+          echo "srun -p 1 ./build/shallow_water_enhanced_cuda 8 8 1 2"
+          srun -n 1 ./examples/shallow_water_enhanced_cuda 8 8 1 2
+          exit_if_error $?
+
+          echo "running parallel copy stencil test with MPI and CUDA"
+          echo "srun -p 1 ./build/parallel_copy_stencil_cuda 20 20 20"
+          srun -p 1 ./build/parallel_copy_stencil_cuda 20 20 20
+          exit_if_error $?
+
+      fi
+      #TODO not updated to greina
+      #    ../examples/communication/run_communication_tests.sh
+  fi
 fi
 
 exit 0

@@ -151,6 +151,10 @@ namespace copy_stencil {
         //#ifdef CXX11_ENABLED
         array< ushort_t, 3 > padding{0, 0, 0};
         array< ushort_t, 3 > halo{1, 1, 1};
+
+        if(PROCS == 1)//serial execution
+            halo[0]=halo[1]=halo[2]=0;
+
         typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
             pattern_type::grid_type > partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
@@ -171,11 +175,13 @@ namespace copy_stencil {
         printf("halo set up\n");
 #endif
 
-        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
-            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
+        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i){
+            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j){
                 for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
                     in(i, j, k) = (i + j + k) * (gridtools::PID + 1);
                 }
+            }
+        }
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
