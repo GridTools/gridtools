@@ -232,7 +232,7 @@ TEST(kcache, fill_backward) {
             ref(i, j, d3 - 1) = in(i, j, d3 - 1);
             for (int_t k = d3 - 2; k >= 0; --k) {
                 in(i, j, k) = i + j + k;
-                ref(i, j, k) = ref(i, j, k + 1) + in(i, j, k);
+                ref(i, j, k) = in(i, j, k + 1) + in(i, j, k);
             }
         }
     }
