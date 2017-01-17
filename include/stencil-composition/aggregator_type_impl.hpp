@@ -102,21 +102,6 @@ namespace gridtools {
             };
         };
 
-        // metafunction that removes the halo from a storage info type
-        template < typename T >
-        struct remove_halo_from_storage_info;
-
-        template < template < unsigned, typename, typename, typename > class StorageInfo,
-            unsigned Id,
-            typename Layout,
-            typename Halo,
-            typename Alignment >
-        struct remove_halo_from_storage_info< StorageInfo< Id, Layout, Halo, Alignment > > {
-            static_assert(is_storage_info< StorageInfo< Id, Layout, Halo, Alignment > >::value,
-                "given type is no storage info type.");
-            typedef StorageInfo< Id, Layout, typename zero_halo< Layout::length >::type, Alignment > type;
-        };
-
         // replace the storage_info ID contained in a given arg with a new ID
         template < typename NewId, typename T >
         struct replace_arg_storage_info;
@@ -125,10 +110,8 @@ namespace gridtools {
         struct replace_arg_storage_info< NewId, arg< Id, data_store< Storage, StorageInfo >, B > > {
             // replace the index
             typedef typename replace_storage_info_index< StorageInfo, NewId >::type new_storage_info_t;
-            // get rid of the halo
-            typedef typename remove_halo_from_storage_info< new_storage_info_t >::type halo_elided_storage_info_t;
             // rebuild new arg type
-            typedef arg< Id, data_store< Storage, halo_elided_storage_info_t >, B > type;
+            typedef arg< Id, data_store< Storage, new_storage_info_t >, B > type;
         };
 
         template < typename NewId, unsigned Id, typename DataStore, unsigned... N, bool B >

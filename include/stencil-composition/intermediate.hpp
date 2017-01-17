@@ -129,6 +129,7 @@ namespace gridtools {
     template < enumtype::platform BackendId,
         typename MssComponentsArray,
         typename StorageWrapperList,
+        typename ExtentMap,
         typename MaxExtents,
         bool IsStateful >
     struct create_mss_local_domains {
@@ -139,7 +140,7 @@ namespace gridtools {
         struct get_the_mss_local_domain {
             template < typename T >
             struct apply {
-                typedef mss_local_domain< BackendId, T, StorageWrapperList, MaxExtents, IsStateful > type;
+                typedef mss_local_domain< BackendId, T, StorageWrapperList, ExtentMap, MaxExtents, IsStateful > type;
             };
         };
 
@@ -152,18 +153,20 @@ namespace gridtools {
         typename MssArray2,
         typename Cond,
         typename StorageWrapperList,
+        typename ExtentMap,
         typename MaxExtents,
         bool IsStateful >
     struct create_mss_local_domains< BackendId,
         condition< MssArray1, MssArray2, Cond >,
         StorageWrapperList,
+        ExtentMap,
         MaxExtents,
         IsStateful > {
         typedef
-            typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, MaxExtents, IsStateful >::type
+            typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, ExtentMap, MaxExtents, IsStateful >::type
                 type1;
         typedef
-            typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, MaxExtents, IsStateful >::type
+            typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, ExtentMap, MaxExtents, IsStateful >::type
                 type2;
         typedef condition< type1, type2, Cond > type;
     };
@@ -396,6 +399,7 @@ namespace gridtools {
         typedef typename create_mss_local_domains< backend_id< Backend >::value,
             mss_components_array_t,
             storage_wrapper_list_t,
+            extent_map_t,
             max_extents_t,
             IsStateful >::type mss_local_domains_t;
 

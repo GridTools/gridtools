@@ -154,7 +154,7 @@ namespace gridtools {
         /**
            Static method in order to calculate the field offset.
         */
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename MaxExtent, typename StorageInfo>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename MaxExtents, typename StorageInfo>
         GT_FUNCTION static typename boost::enable_if_c<Tmp, int>::type 
         fields_offset(StorageInfo const* sinfo) {
             const uint_t i = processing_element_i();
@@ -162,10 +162,13 @@ namespace gridtools {
             const uint_t ni = gridDim.x;
             const uint_t nj = gridDim.y;
             const uint_t nk = sinfo->template dim<2>() / (ni*nj);
-            return StorageInfo::get_initial_offset() + sinfo->template stride<2>()*nk*((ni*j)+i);
+            // get_initial_offset will deliver (alignment<N> - max. iminus halo). But in order to be
+            // aligned we have to add a value to this offset if we have an extent in iminus that is
+            // smaller than the maximum extent in iminus.
+            return StorageInfo::get_initial_offset() + CurrentExtent::iminus::value + sinfo->template stride<2>()*nk*((ni*j)+i);
         }
 
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename MaxExtent, typename StorageInfo>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename MaxExtents, typename StorageInfo>
         GT_FUNCTION static typename boost::enable_if_c<!Tmp, int>::type 
         fields_offset(StorageInfo const* sinfo) {
             return StorageInfo::get_initial_offset();

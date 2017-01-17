@@ -438,7 +438,7 @@ namespace gridtools {
      * @tparam LocalDomain local domain type
      * @tparam PEBlockSize the processing elements block size
      * */
-    template < typename Backend, typename DataPtrCached, typename LocalDomain, typename PEBlockSize, typename MaxExtent >
+    template < typename Backend, typename DataPtrCached, typename LocalDomain, typename PEBlockSize, typename ExtentMap, typename MaxExtents >
     struct assign_storage_ptrs {
 
         GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached< DataPtrCached >::value), "Error: wrong type");
@@ -463,13 +463,15 @@ namespace gridtools {
 
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const typename storage_wrapper_t::storage_info_t * >::type::pos si_index_t;
+            typedef typename boost::mpl::at<ExtentMap, arg_t>::type max_extent_t;
 
-            const int offset = Backend::template fields_offset< LocalDomain, PEBlockSize, storage_wrapper_t::is_temporary, MaxExtent >(
+            const int offset = Backend::template fields_offset< LocalDomain, PEBlockSize, storage_wrapper_t::is_temporary, max_extent_t, MaxExtents >(
                     boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
             for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i) {
                 Backend::template once_per_block< pos_in_storage_wrapper_list_t::value, PEBlockSize >::assign(
                     m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i], sw.second[i] + offset);
             }
+
 /*
             printf("Assign storage ptr for arg %i\n", storage_wrapper_t::index_t::value);
             printf("pos in storage wrapper list: %i\n", pos_in_storage_wrapper_list_t::value);

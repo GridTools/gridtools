@@ -86,7 +86,6 @@ namespace gridtools {
             const uint_t i_size = grid.direction_i().total_length();
             const uint_t j_size = grid.direction_j().total_length();
             const uint_t k_size = (grid.value_at_top() + 1);
-
             return T(i_size, j_size, k_size);
         }
 
@@ -102,10 +101,8 @@ namespace gridtools {
             // create and return the storage info instance
             constexpr int diff_i_minus = boost::mpl::at_c<MaxExtents, 0>::type::value;
             constexpr int diff_i_plus = boost::mpl::at_c<MaxExtents, 1>::type::value;
-            constexpr int diff_j_minus = boost::mpl::at_c<MaxExtents, 2>::type::value;
-            constexpr int diff_j_plus = boost::mpl::at_c<MaxExtents, 3>::type::value;
-            return T((StorageWrapper::tileI_t::s_tile + diff_i_minus + diff_i_plus) * threads_i,
-                     (StorageWrapper::tileJ_t::s_tile + diff_j_minus + diff_j_plus) * threads_j,
+            return T((StorageWrapper::tileI_t::s_tile + diff_i_minus + diff_i_plus) * threads_i - diff_i_minus - diff_i_plus,
+                     (StorageWrapper::tileJ_t::s_tile) * threads_j,
                       k_size);
         }
 
@@ -119,12 +116,8 @@ namespace gridtools {
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
 
             // create and return the storage info instance
-            constexpr int diff_i_minus = boost::mpl::at_c<MaxExtents, 0>::type::value;
-            constexpr int diff_i_plus = boost::mpl::at_c<MaxExtents, 1>::type::value;
-            constexpr int diff_j_minus = boost::mpl::at_c<MaxExtents, 2>::type::value;
-            constexpr int diff_j_plus = boost::mpl::at_c<MaxExtents, 3>::type::value;
-            return T((StorageWrapper::tileI_t::s_tile + diff_i_minus + diff_i_plus),
-                     (StorageWrapper::tileJ_t::s_tile + diff_j_minus + diff_j_plus),
+            return T((StorageWrapper::tileI_t::s_tile),
+                     (StorageWrapper::tileJ_t::s_tile),
                       k_size * threads_i * threads_j);
         }
 
