@@ -211,10 +211,7 @@ TEST(iterate_domain_cache, flush) {
                                 boost::mpl::vector3< static_uint< 0 >, static_uint< 1 >, static_uint< 4 > > >::value),
         "Error");
 }
-template < typename T >
-struct printk {
-    BOOST_MPL_ASSERT_MSG((false), KKKKKKKKKKKKKKKKKKKKK, (T));
-};
+
 TEST(iterate_domain_cache, fill) {
 
     typedef detail::cache_impl< K, p_in1, fill, kminimum > cache1_t;
