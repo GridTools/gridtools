@@ -106,6 +106,23 @@ namespace gridtools {
         };
     };
 
+    template < typename AccIndex, enumtype::execution ExecutionPolicy >
+    struct prefill_cache {
+        template < int_t Offset >
+        struct apply_t {
+            template < typename IterateDomain, typename CacheStorage >
+            GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
+
+                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset - 1, Offset + 1 > >
+                    acc_t;
+                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::backward) ? -Offset - 1 : Offset + 1);
+
+                cache_st.at(acc_) = it_domain.gmem_access(acc_);
+                return 0;
+            }
+        };
+    };
+
     /**
      * @class iterate_domain_cache
      * class that provides all the caching functionality needed by the iterate domain.
@@ -178,6 +195,10 @@ namespace gridtools {
 
         typedef typename filter_map_indexes< k_caches_map_t, is_epflushing_cache >::type k_epflushing_caches_indexes_t;
 
+        typedef typename filter_map_indexes< k_caches_map_t, is_filling_cache >::type k_filling_caches_indexes_t;
+
+        typedef typename filter_map_indexes< k_caches_map_t, is_bpfilling_cache >::type k_bpfilling_caches_indexes_t;
+
         typedef
             typename get_cache_set_for_type< bypass, caches_t, typename IterateDomainArguments::local_domain_t >::type
                 bypass_caches_set_t;
@@ -236,6 +257,72 @@ namespace gridtools {
         };
 
         template < typename IterateDomain, typename IterationPolicy >
+        struct filling_functor {
+
+            // TODO KCACHE can we merge filling and flushing functors
+            GT_FUNCTION
+            filling_functor(IterateDomain const &it_domain, k_caches_tuple_t const &kcaches)
+                : m_it_domain(it_domain), m_kcaches(kcaches) {}
+
+            IterateDomain const &m_it_domain;
+            k_caches_tuple_t const &m_kcaches;
+
+            template < typename Idx >
+            GT_FUNCTION void operator()(Idx const &) const {
+#ifdef CXX11_ENABLED
+                typedef typename boost::mpl::at< k_caches_map_t, Idx >::type k_cache_storage_t;
+
+                constexpr int_t koffset =
+                    (IterationPolicy::value == enumtype::backward)
+                        ? boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
+                        : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
+
+                typedef accessor< Idx::value,
+                    enumtype::inout,
+                    extent< 0, 0, 0, 0, (koffset < 0) ? koffset : -koffset, (koffset > 0) ? koffset : -koffset > >
+                    acc_t;
+                constexpr acc_t acc_(0, 0, koffset);
+
+                boost::fusion::at_key< Idx >(m_kcaches).at(acc_) = m_it_domain.gmem_access(acc_);
+#endif
+            }
+        };
+
+        template < typename IterateDomain, typename IterationPolicy >
+        struct begin_filling_functor {
+
+            GT_FUNCTION
+            begin_filling_functor(IterateDomain const &it_domain, k_caches_tuple_t const &kcaches)
+                : m_it_domain(it_domain), m_kcaches(kcaches) {}
+
+            IterateDomain const &m_it_domain;
+            k_caches_tuple_t const &m_kcaches;
+
+            template < typename Idx >
+            GT_FUNCTION void operator()(Idx const &) const {
+#ifdef CXX11_ENABLED
+                typedef typename boost::mpl::at< k_caches_map_t, Idx >::type k_cache_storage_t;
+
+                GRIDTOOLS_STATIC_ASSERT(
+                    (boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value <= 0 &&
+                        boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value >= 0),
+                    "Error");
+
+                constexpr uint_t koffset =
+                    (IterationPolicy::value == enumtype::backward)
+                        ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
+                        : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
+
+                using seq = gridtools::apply_gt_integer_sequence<
+                    typename gridtools::make_gt_integer_sequence< int_t, koffset >::type >;
+
+                seq::template apply_void_lambda< prefill_cache< Idx, IterationPolicy::value >::apply_t >(
+                    m_it_domain, boost::fusion::at_key< Idx >(m_kcaches));
+#endif
+            }
+        };
+
+        template < typename IterateDomain, typename IterationPolicy >
         struct final_flushing_functor {
 
             GT_FUNCTION
@@ -270,9 +357,15 @@ namespace gridtools {
         };
 
         template < typename IterationPolicy, typename IterateDomain >
+        GT_FUNCTION void fill_caches(IterateDomain const &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            boost::mpl::for_each< k_filling_caches_indexes_t >(
+                filling_functor< IterateDomain, IterationPolicy >(it_domain, m_k_caches_tuple));
+        }
+
+        template < typename IterationPolicy, typename IterateDomain >
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            // copy of the non-tmp metadata into m_metadafromfromfromfromta_set
             boost::mpl::for_each< k_flushing_caches_indexes_t >(
                 flushing_functor< IterateDomain, IterationPolicy >(it_domain, m_k_caches_tuple));
         }
@@ -307,6 +400,46 @@ namespace gridtools {
 
 #endif
         };
+
+        template < typename IterationPolicy >
+        struct kcache_begin_fill_indexes {
+#ifdef CXX11_ENABLED
+            template < typename CacheStorage >
+            struct is_end_index {
+                //                GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "Internal Error");
+                using cache_t = typename CacheStorage::cache_t;
+                using to_index = typename level_to_index< typename IterationPolicy::to >::type;
+
+                static constexpr bool value = (IterationPolicy::value == enumtype::forward)
+                                                  ? (interval_from_index< typename cache_t::interval_t >::type::value ==
+                                                        level_to_index< typename IterationPolicy::from >::type::value)
+                                                  : (interval_to_index< typename cache_t::interval_t >::type::value ==
+                                                        level_to_index< typename IterationPolicy::from >::type::value);
+            };
+
+            using interval_filling_indexes_t = typename boost::mpl::filter_view< k_filling_caches_indexes_t,
+                is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
+
+            using interval_bpfilling_indexes_t =
+                typename vector_to_vector< typename boost::mpl::filter_view< k_bpfilling_caches_indexes_t,
+                    is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
+
+            using type =
+                typename boost::mpl::copy< interval_filling_indexes_t,
+                    boost::mpl::inserter< interval_bpfilling_indexes_t,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type;
+
+#endif
+        };
+
+        template < typename IterationPolicy, typename IterateDomain >
+        GT_FUNCTION void begin_fill(IterateDomain const &it_domain) {
+            typedef typename kcache_begin_fill_indexes< IterationPolicy >::type k_begin_filling_caches_indexes_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            boost::mpl::for_each< k_begin_filling_caches_indexes_t >(
+                begin_filling_functor< IterateDomain, IterationPolicy >(it_domain, m_k_caches_tuple));
+        }
 
         template < typename IterationPolicy, typename IterateDomain >
         GT_FUNCTION void final_flush(IterateDomain const &it_domain) {

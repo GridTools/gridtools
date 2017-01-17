@@ -96,8 +96,11 @@ namespace gridtools {
                     run_esf_functor_t;
 
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
+                    super::m_domain.template fill_caches< IterationPolicy >();
+
                     boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
                         run_esf_functor_t(super::m_domain));
+
                     super::m_domain.template flush_caches< IterationPolicy >();
                     super::m_domain.template slide_caches< IterationPolicy >();
                 }

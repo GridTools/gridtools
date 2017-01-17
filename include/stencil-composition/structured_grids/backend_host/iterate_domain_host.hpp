@@ -127,6 +127,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
         }
         template < typename IterationPolicy >
+        GT_FUNCTION void fill_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+        template < typename IterationPolicy >
         GT_FUNCTION void final_flush() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
         }

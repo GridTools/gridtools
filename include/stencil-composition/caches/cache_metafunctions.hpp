@@ -116,6 +116,18 @@ namespace gridtools {
     template < cache_type cacheType, typename Arg, typename Interval >
     struct is_epflushing_cache< detail::cache_impl< cacheType, Arg, epflush, Interval > > : boost::mpl::true_ {};
 
+    template < typename T >
+    struct is_filling_cache : boost::mpl::false_ {};
+
+    template < cache_type cacheType, typename Arg, typename Interval >
+    struct is_filling_cache< detail::cache_impl< cacheType, Arg, fill, Interval > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_bpfilling_cache : boost::mpl::false_ {};
+
+    template < cache_type cacheType, typename Arg, typename Interval >
+    struct is_bpfilling_cache< detail::cache_impl< cacheType, Arg, bpfill, Interval > > : boost::mpl::true_ {};
+
     /**
      * @struct cache_parameter
      *  trait returning the parameter Arg type of a user provided cache
