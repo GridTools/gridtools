@@ -261,11 +261,11 @@ namespace gridtools {
 
             // TODO KCACHE can we merge filling and flushing functors
             GT_FUNCTION
-            filling_functor(IterateDomain const &it_domain, k_caches_tuple_t const &kcaches)
+            filling_functor(IterateDomain const &it_domain, k_caches_tuple_t &kcaches)
                 : m_it_domain(it_domain), m_kcaches(kcaches) {}
 
             IterateDomain const &m_it_domain;
-            k_caches_tuple_t const &m_kcaches;
+            k_caches_tuple_t &m_kcaches;
 
             template < typename Idx >
             GT_FUNCTION void operator()(Idx const &) const {
