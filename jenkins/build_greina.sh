@@ -260,7 +260,7 @@ fi
 
 
 if [[ "$RUN_MPI_TESTS" == "ON" ]]; then
-    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS
+    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $USE_GPU
 else
     bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
 fi

@@ -35,6 +35,8 @@ export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
 export LAUNCH_MPI_TEST="srun"
 export JOB_ENV="export ENABLE_CUDA=1; export CUDA_AUTO_BOOST=0; export GCLOCK=875; export CUDA_AUTO_BOOST=0; export G2G=1"
+export MPI_HOST_JOB_ENV=""
+export MPI_CUDA_JOB_ENV="export MV2_USE_CUDA=1; export MV2_USE_GPUDIRECT=0; export CUDA_AUTO_BOOST=0; export GCLOCK=875; export CUDA_AUTO_BOOST=0; export G2G=2"
 export USE_MPI_COMPILER=ON
 export MPI_NODES=1
 export MPI_TASKS=4
