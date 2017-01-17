@@ -55,7 +55,7 @@
 #include "../caches/cache_metafunctions.hpp"
 #include "../caches/extract_extent_caches.hpp"
 #include "../accessor_fwd.hpp"
-#include "../../common/generic_metafunctions/vector_to_set.hpp"
+#include "../../common/generic_metafunctions/vector_to_vector.hpp"
 
 namespace gridtools {
 
@@ -176,6 +176,8 @@ namespace gridtools {
 
         typedef typename filter_map_indexes< k_caches_map_t, is_flushing_cache >::type k_flushing_caches_indexes_t;
 
+        typedef typename filter_map_indexes< k_caches_map_t, is_epflushing_cache >::type k_epflushing_caches_indexes_t;
+
         typedef
             typename get_cache_set_for_type< bypass, caches_t, typename IterateDomainArguments::local_domain_t >::type
                 bypass_caches_set_t;
@@ -291,8 +293,18 @@ namespace gridtools {
                                                         level_to_index< typename IterationPolicy::to >::type::value);
             };
 
-            using type = typename boost::mpl::filter_view< k_flushing_caches_indexes_t,
+            using interval_flushing_indexes_t = typename boost::mpl::filter_view< k_flushing_caches_indexes_t,
                 is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
+
+            using interval_epflushing_indexes_t =
+                typename vector_to_vector< typename boost::mpl::filter_view< k_epflushing_caches_indexes_t,
+                    is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
+
+            using type =
+                typename boost::mpl::copy< interval_flushing_indexes_t,
+                    boost::mpl::inserter< interval_epflushing_indexes_t,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type;
+
 #endif
         };
 
