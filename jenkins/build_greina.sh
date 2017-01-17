@@ -293,13 +293,8 @@ then
            # exit_if_error $?
 
           echo "running shallow water test with MPI and CUDA"
-          echo "srun -p 1 ./build/shallow_water_enhanced_cuda 8 8 1 2"
-          srun -n 1 ./examples/shallow_water_enhanced_cuda 8 8 1 2
-          exit_if_error $?
-
-          echo "running parallel copy stencil test with MPI and CUDA"
-          echo "srun -p 1 ./build/parallel_copy_stencil_cuda 20 20 20"
-          srun -p 1 ./build/parallel_copy_stencil_cuda 20 20 20
+          echo "./build/shallow_water_enhanced_cuda 8 8 1 2"
+          ./examples/shallow_water_enhanced_cuda 8 8 1 2
           exit_if_error $?
 
       fi
