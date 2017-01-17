@@ -374,7 +374,7 @@ namespace gridtools {
                 is_data_field< super >::value, "the get_value API is available only for data field storages.");
             // F is protected inside data_field
             assert(m_on_host);
-            (*m_storage).set< Snapshot, FieldDim >(f);
+            (*m_storage).template set< Snapshot, FieldDim >(f);
         }
 
         // forwarding constructor
