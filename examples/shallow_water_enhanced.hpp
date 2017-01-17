@@ -43,7 +43,6 @@
 #endif
 #include <gridtools.hpp>
 #include <stencil-composition/make_computation.hpp>
-#include <storage/parallel_storage.hpp>
 #include <storage/partitioner_trivial.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
@@ -53,7 +52,10 @@
 #include <boundary-conditions/apply.hpp>
 #endif
 
+#ifdef _GCL_MPI_
 #include <communication/halo_exchange.hpp>
+#include <storage/parallel_storage.hpp>
+#endif
 
 #include <tools/verifier.hpp>
 #include "shallow_water_reference.hpp"
