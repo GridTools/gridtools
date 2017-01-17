@@ -94,11 +94,11 @@ namespace gridtools {
         template < int_t Offset >
         struct apply_t {
             template < typename IterateDomain, typename CacheStorage >
-            GT_FUNCTION
-            static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
+            GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
 
-                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset-1, Offset+1 > > acc_t;
-                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -Offset-1 : Offset+1);
+                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset - 1, Offset + 1 > >
+                    acc_t;
+                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -Offset - 1 : Offset + 1);
 
                 it_domain.gmem_access(acc_) = cache_st.at(acc_);
                 return 0;
