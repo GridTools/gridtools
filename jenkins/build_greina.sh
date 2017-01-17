@@ -31,7 +31,7 @@ function help {
 INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
-VERBOSE_RUN="ON"
+VERBOSE_RUN="OFF"
 VERSION_="5.3"
 
 while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
@@ -180,7 +180,7 @@ export START_TIME=$SECONDS
 # env
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
--DCUDA_NVCC_FLAGS:STRING="-G;--relaxed-constexpr" \
+-DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
 -DCUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
@@ -201,53 +201,53 @@ cmake \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
- ~/src/GridTools/gridtools_crosetto2
+ ../
 
 exit_if_error $?
 
-number of trials for compilation. We add this here because sometime intermediate links of nvcc are missing
-some object files, probably related to parallel make compilation, but we dont know yet how to solve this.
-Workaround here is to try multiple times the compilation step
+#number of trials for compilation. We add this here because sometime intermediate links of nvcc are missing
+#some object files, probably related to parallel make compilation, but we dont know yet how to solve this.
+#Workaround here is to try multiple times the compilation step
 num_make_rep=2
 
 error_code=0
 log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}_${RANDOM}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
-   echo "Log file ${log_file}"
-   for i in `seq 1 $num_make_rep`;
-   do
-     echo "COMPILATION # ${i}"
-     if [ ${i} -eq ${num_make_rep} ]; then
-         make  >& ${log_file};
-     else
-         make -j5  >& ${log_file};
-     fi
-     error_code=$?
-     if [ ${error_code} -eq 0 ]; then
-         break # Skip the make repetitions
-     fi
-   done
+    echo "Log file ${log_file}"
+    for i in `seq 1 $num_make_rep`;
+    do
+      echo "COMPILATION # ${i}"
+      if [ ${i} -eq ${num_make_rep} ]; then
+          make  >& ${log_file};
+      else
+          make -j5  >& ${log_file};
+      fi
+      error_code=$?
+      if [ ${error_code} -eq 0 ]; then
+          break # Skip the make repetitions
+      fi
+    done
 
-   if [ ${error_code} -ne 0 ]; then
-       cat ${log_file};
-   fi
+    if [ ${error_code} -ne 0 ]; then
+        cat ${log_file};
+    fi
 else
-   make -j10
-   error_code=$?
+    make -j10
+    error_code=$?
 fi
 
 if [[ -z ${DONOTCLEAN} ]]; then
-   test -e ${log_file}
-   if [ $? -eq 0 ] ; then
-      rm ${log_file}
-   fi
+    test -e ${log_file}
+    if [ $? -eq 0 ] ; then
+       rm ${log_file}
+    fi
 fi
 
 exit_if_error ${error_code}
 
 queue_str=""
 if [[ ${QUEUE} ]] ; then
- queue_str="-q ${QUEUE}"
+  queue_str="-q ${QUEUE}"
 fi
 
 
