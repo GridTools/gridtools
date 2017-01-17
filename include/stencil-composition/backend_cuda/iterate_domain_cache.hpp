@@ -277,8 +277,9 @@ namespace gridtools {
                         ? boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
                         : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
 
+                // TODO KCACHE since this is read only once we want to bypass texture
                 typedef accessor< Idx::value,
-                    enumtype::inout,
+                    enumtype::in,
                     extent< 0, 0, 0, 0, (koffset < 0) ? koffset : -koffset, (koffset > 0) ? koffset : -koffset > >
                     acc_t;
                 constexpr acc_t acc_(0, 0, koffset);

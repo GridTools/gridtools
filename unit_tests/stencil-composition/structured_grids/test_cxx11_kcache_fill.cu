@@ -165,7 +165,7 @@ TEST(kcache, flush_forward) {
         grid,
         gridtools::make_multistage // mss_descriptor
         (execute< forward >(),
-            define_caches(cache< K, fill, kfull >(p_out())),
+            define_caches(cache< K, fill, kfull >(p_in())),
             gridtools::make_stage< shift_acc_forward >(p_in() // esf_descriptor
                 ,
                 p_out())));
