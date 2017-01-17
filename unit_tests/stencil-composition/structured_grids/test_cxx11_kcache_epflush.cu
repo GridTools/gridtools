@@ -129,11 +129,14 @@ TEST(kcache, epflush_forward) {
     storage_type out(meta_data_, float_type(-1.));
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
-            in(i, j, 0) = i + j;
-            for (uint_t k = 1; k < d3; ++k) {
+            for (uint_t k = 0; k < d3; ++k) {
                 in(i, j, k) = i + j + k;
             }
-            for (uint_t k = d3 - 2; k < d3; ++k) {
+
+            ref(i, j, 0) = in(i,j,0);
+            ref(i, j, 1) = in(i,j,1);
+
+            for (uint_t k = 2; k < d3; ++k) {
                 ref(i, j, k) = ref(i, j, k - 1) + ref(i, j, k - 2) + in(i, j, k);
             }
         }
@@ -166,7 +169,7 @@ TEST(kcache, epflush_forward) {
         grid,
         gridtools::make_multistage // mss_descriptor
         (execute< forward >(),
-            define_caches(cache< K, flush, kfull >(p_out())),
+            define_caches(cache< K, epflush, kfull >(p_out())),
             gridtools::make_stage< shift_acc_forward >(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -185,7 +188,7 @@ TEST(kcache, epflush_forward) {
     bool success = true;
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
+            for (uint_t k = 0; k < d3-2; ++k) {
                 if (ref(i, j, k) == out(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
                               << "ref = " << ref(i, j, k) << ", out = " << out(i, j, k) << std::endl;
