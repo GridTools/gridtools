@@ -689,6 +689,7 @@ namespace gridtools {
                     typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
                     Accessor,
                     storage_pointer_t >(real_storage_pointer, pointer_offset);
+
         }
     }
 
