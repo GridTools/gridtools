@@ -579,7 +579,7 @@ namespace gridtools {
     GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
     iterate_domain< IterateDomainImpl >::get_value(
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
-
+        typedef typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type return_t;
         // getting information about the storage
         typedef typename Accessor::index_type index_t;
 
