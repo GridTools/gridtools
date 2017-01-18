@@ -46,8 +46,9 @@ namespace gridtools {
 
     namespace _impl_strcuda {
 
-        template < int_t VBoundary >
-        struct padded_boundary : static_uint< VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
+        template < int VBoundary >
+        struct padded_boundary
+            : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
             BOOST_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8);
         };
 
@@ -166,10 +167,9 @@ namespace gridtools {
             }
             it_domain.set_index(0);
 
-            array< uint_t, 3 > initial_offsets_{grid_->i_low_bound(), grid_->j_low_bound(), 0};
             // initialize the indices
-            it_domain.template initialize< 0 >(initial_offsets_, i + starti, blockIdx.x);
-            it_domain.template initialize< 1 >(initial_offsets_, j + startj, blockIdx.y);
+            it_domain.template initialize< 0 >( i + starti, blockIdx.x);
+            it_domain.template initialize< 1 >( j + startj, blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
@@ -181,8 +181,7 @@ namespace gridtools {
                 typename grid_traits_from_id< enumtype::structured >::dim_k_t,
                 execution_type_t::type::iteration > iteration_policy_t;
 
-            it_domain.template initialize< grid_traits_from_id< enumtype::structured >::dim_k_t::value >(
-                initial_offsets_, grid_->template value_at< iteration_policy_t::from >());
+            it_domain.template initialize< grid_traits_from_id< enumtype::structured >::dim_k_t::value >( grid_->template value_at< iteration_policy_t::from >());
 
             // execute the k interval functors
             boost::mpl::for_each< typename RunFunctorArguments::loop_intervals_t >(
@@ -204,62 +203,6 @@ namespace gridtools {
                 (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
-
-            typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
-
-            // compute the union (or enclosing) extent for the extents of all ESFs.
-            // This maximum extent of all ESF will determine the size of the CUDA block:
-            // *  If there are redundant computations to be executed at the IMinus or IPlus halos,
-            //    each CUDA thread will execute two grid points (one at the core of the block and
-            //    another within one of the halo regions)
-            // *  Otherwise each CUDA thread executes only one grid point.
-            // Based on the previous we compute the size of the CUDA block required.
-            typedef typename boost::mpl::fold< typename RunFunctorArguments::extent_sizes_t,
-                extent< 0, 0, 0, 0, 0, 0 >,
-                enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type maximum_extent_t;
-
-            typedef block_size< block_size_t::i_size_t::value,
-                (block_size_t::j_size_t::value - maximum_extent_t::jminus::value + maximum_extent_t::jplus::value +
-                                    (maximum_extent_t::iminus::value != 0 ? 1 : 0) +
-                                    (maximum_extent_t::iplus::value != 0 ? 1 : 0)),
-                1 > cuda_block_size_t;
-
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_block_size< typename RunFunctorArguments::processing_elements_block_size_t >::value),
-                "internal type error");
-
-// re-create the run functor arguments, replacing the processing elements block size
-// with the corresponding, recently computed, block size
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
-            typedef typename replace_template_arguments< RunFunctorArguments,
-                typename RunFunctorArguments::processing_elements_block_size_t,
-                cuda_block_size_t >::type run_functor_arguments_cuda_t;
-#else
-            typedef run_functor_arguments< typename RunFunctorArguments::backend_ids_t,
-                cuda_block_size_t,
-                typename RunFunctorArguments::physical_domain_block_size_t,
-                typename RunFunctorArguments::functor_list_t,
-                typename RunFunctorArguments::esf_sequence_t,
-                typename RunFunctorArguments::esf_args_map_sequence_t,
-                typename RunFunctorArguments::loop_intervals_t,
-                typename RunFunctorArguments::functors_map_t,
-                typename RunFunctorArguments::extent_sizes_t,
-                typename RunFunctorArguments::local_domain_t,
-                typename RunFunctorArguments::cache_sequence_t,
-                typename RunFunctorArguments::async_esf_map_t,
-                typename RunFunctorArguments::grid_t,
-                typename RunFunctorArguments::execution_type_t,
-                typename RunFunctorArguments::is_reduction_t,
-                typename RunFunctorArguments::reduction_data_t,
-                typename RunFunctorArguments::color_t > run_functor_arguments_cuda_t;
-#endif
-
-            typedef typename run_functor_arguments_cuda_t::iterate_domain_t iterate_domain_t;
-            typedef const_iterate_domain< typename iterate_domain_t::data_pointer_array_t,
-                typename iterate_domain_t::array_tuple_t,
-                typename iterate_domain_t::dims_cached_t,
-                cuda_block_size_t,
-                backend_traits_from_id< enumtype::Cuda > > const_it_domain_t;
 
             // ctor
             explicit execute_kernel_functor_cuda(const local_domain_t &local_domain,
@@ -303,6 +246,24 @@ namespace gridtools {
                 const uint_t nx = (uint_t)(m_grid.i_high_bound() - m_grid.i_low_bound() + 1);
                 const uint_t ny = (uint_t)(m_grid.j_high_bound() - m_grid.j_low_bound() + 1);
 
+                typedef typename RunFunctorArguments::physical_domain_block_size_t block_size_t;
+
+                // compute the union (or enclosing) extent for the extents of all ESFs.
+                // This maximum extent of all ESF will determine the size of the CUDA block:
+                // *  If there are redundant computations to be executed at the IMinus or IPlus halos,
+                //    each CUDA thread will execute two grid points (one at the core of the block and
+                //    another within one of the halo regions)
+                // *  Otherwise each CUDA thread executes only one grid point.
+                // Based on the previous we compute the size of the CUDA block required.
+                typedef typename boost::mpl::fold< typename RunFunctorArguments::extent_sizes_t,
+                    extent< 0, 0, 0, 0, 0, 0 >,
+                    enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type maximum_extent_t;
+
+                typedef block_size< block_size_t::i_size_t::value,
+                    (block_size_t::j_size_t::value - maximum_extent_t::jminus::value + maximum_extent_t::jplus::value +
+                                        (maximum_extent_t::iminus::value != 0 ? 1 : 0) +
+                                        (maximum_extent_t::iplus::value != 0 ? 1 : 0)) > cuda_block_size_t;
+
                 // number of grid points that a cuda block covers
                 const uint_t ntx = block_size_t::i_size_t::value;
                 const uint_t nty = block_size_t::j_size_t::value;
@@ -316,6 +277,32 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
+// re-create the run functor arguments, replacing the processing elements block size
+// with the corresponding, recently computed, block size
+#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+                typedef typename replace_template_arguments< RunFunctorArguments,
+                    typename RunFunctorArguments::processing_elements_block_size_t,
+                    cuda_block_size_t >::type run_functor_arguments_cuda_t;
+#else
+                typedef run_functor_arguments< typename RunFunctorArguments::backend_ids_t,
+                    cuda_block_size_t,
+                    typename RunFunctorArguments::physical_domain_block_size_t,
+                    typename RunFunctorArguments::functor_list_t,
+                    typename RunFunctorArguments::esf_sequence_t,
+                    typename RunFunctorArguments::esf_args_map_sequence_t,
+                    typename RunFunctorArguments::loop_intervals_t,
+                    typename RunFunctorArguments::functors_map_t,
+                    typename RunFunctorArguments::extent_sizes_t,
+                    typename RunFunctorArguments::local_domain_t,
+                    typename RunFunctorArguments::cache_sequence_t,
+                    typename RunFunctorArguments::async_esf_map_t,
+                    typename RunFunctorArguments::grid_t,
+                    typename RunFunctorArguments::execution_type_t,
+                    typename RunFunctorArguments::is_reduction_t,
+                    typename RunFunctorArguments::reduction_data_t,
+                    typename RunFunctorArguments::color_t > run_functor_arguments_cuda_t;
+#endif
+
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
                 printf("nbx = %d, nby = %d, nbz = %d\n", nbx, nby, nbz);
@@ -323,6 +310,14 @@ namespace gridtools {
 #endif
 
                 typedef backend_traits_from_id< enumtype::Cuda > backend_traits_t;
+
+                typedef typename run_functor_arguments_cuda_t::iterate_domain_t iterate_domain_t;
+                typedef const_iterate_domain< typename iterate_domain_t::data_pointer_array_t,
+                                              typename iterate_domain_t::array_tuple_t,
+                                              typename iterate_domain_t::dims_cached_t,
+                                              cuda_block_size_t,
+                                              backend_traits_from_id< enumtype::Cuda > > const_it_domain_t;
+
                 const_it_domain_t const const_it_domain(m_local_domain, 0, 0);
 
 #if (FLOAT_PRECISION > 4)

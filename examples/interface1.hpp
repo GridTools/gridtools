@@ -71,14 +71,14 @@ namespace horizontal_diffusion {
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
         typedef accessor< 0, enumtype::inout > out;
-        typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 1 > > in;
+        typedef accessor< 1, enumtype::in, extent< > > in;
 
-        typedef boost::mpl::vector2< out, in > arg_list;
+        typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_lap) {
             eval(out()) = (gridtools::float_type)4 * eval(in()) -
-                          (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
+                (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
         }
     };
 
@@ -88,7 +88,7 @@ namespace horizontal_diffusion {
         typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0 > > in;
         typedef accessor< 2, enumtype::in, extent< 0, 1, 0, 0 > > lap;
 
-        typedef boost::mpl::vector3< out, in, lap > arg_list;
+        typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
@@ -105,7 +105,7 @@ namespace horizontal_diffusion {
         typedef accessor< 1, enumtype::in, extent< 0, 0, 0, 1 > > in;
         typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 1 > > lap;
 
-        typedef boost::mpl::vector3< out, in, lap > arg_list;
+        typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
@@ -124,7 +124,7 @@ namespace horizontal_diffusion {
         typedef accessor< 3, enumtype::in, extent< 0, 0, -1, 0 > > fly;
         typedef accessor< 4, enumtype::in > coeff;
 
-        typedef boost::mpl::vector5< out, in, flx, fly, coeff > arg_list;
+        typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_out) {
@@ -195,11 +195,11 @@ namespace horizontal_diffusion {
 // It must be noted that the only fields to be passed to the constructor are the non-temporary.
 // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
 // don't particularly like this)
-#if defined(CXX11_ENABLED)
-        gridtools::aggregator_type< accessor_list > domain((p_out() = out), (p_in() = in), (p_coeff() = coeff));
-#else
+// #if defined(CXX11_ENABLED)
+//         gridtools::aggregator_type< accessor_list > domain((p_out() = out), (p_in() = in), (p_coeff() = coeff));
+// #else
         gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out));
-#endif
+// #endif
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -234,7 +234,7 @@ namespace horizontal_diffusion {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
+                    // define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
                     gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
                     gridtools::make_independent                             // independent_esf
                     (gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
@@ -247,36 +247,106 @@ namespace horizontal_diffusion {
 
 #ifdef __CUDACC__
         repository.update_cpu();
+        in.d2h_update();
+        out.d2h_update();
 #endif
 
-        bool result = true;
+//////////// TEST VERIFICATION ////////////
 
+        bool success = true;
+
+        storage_type lap_ref(repository.storage_info_ijk(), "lap");
+        storage_type flx_ref(repository.storage_info_ijk(), "flx");
+        storage_type fly_ref(repository.storage_info_ijk(), "fly");
+        storage_type out_ref(repository.storage_info_ijk(), "fly");
+        storage_type coeff_ref(repository.storage_info_ijk(), float_type(0.025), "coeff");
+
+        double epsilon=1e-10;
         if (verify) {
-#ifdef CXX11_ENABLED
-#if FLOAT_PRECISION == 4
-            verifier verif(1e-6);
-#else
-            verifier verif(1e-12);
-#endif
-            array< array< uint_t, 2 >, 3 > halos{
-                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-            result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
-#else
-#if FLOAT_PRECISION == 4
-            verifier verif(1e-6, halo_size);
-#else
-            verifier verif(1e-12, halo_size);
-#endif
-            result = verif.verify(grid, repository.out_ref(), repository.out());
-#endif
+            for (uint_t i = 1; i < d1-1; ++i) {
+                for (uint_t j = 1; j < d2-1; ++j) {
+                    for (uint_t k = 0; k < d3; ++k) {
+
+                        lap_ref(i,j,k) = 4.*in(i, j, k)-(in(i-1,j,k)+in(i,j-1,k)+in(i+1,j,k)+in(i,j+1,k));
+                    }
+                }
+            }
+
+            for (uint_t i = 1; i < d1-2; ++i) {
+                for (uint_t j = 1; j < d2-1; ++j) {
+                    for (uint_t k = 0; k < d3; ++k) {
+
+                        flx_ref(i,j,k) = lap_ref(i+1,j,k)-lap_ref(i,j,k);
+                        if (flx_ref(i,j,k) * (in(i+1,j,k) - in(i,j,k)) > 0) {
+                            flx_ref(i,j,k) = 0.;
+                        }
+                    }
+                }
+            }
+
+            for (uint_t i = 1; i < d1-2; ++i) {
+                for (uint_t j = 1; j < d2-2; ++j) {
+                    for (uint_t k = 0; k < d3; ++k) {
+
+                        fly_ref(i,j,k) = lap_ref(i,j+1,k)-lap_ref(i,j,k);
+                        if (fly_ref(i,j,k) * (in(i,j+1,k) - in(i,j,k)) > 0) {
+                            fly_ref(i,j,k) = 0.;
+                        }
+                    }
+                }
+            }
+
+            for (uint_t i = 2; i < d1-2; ++i) {
+                for (uint_t j = 2; j < d2-2; ++j) {
+                    for (uint_t k = 0; k < d3; ++k) {
+
+                        out_ref(i,j,k) =
+                            in(i,j,k) - coeff_ref(i,j,k) * (flx_ref(i,j,k) - flx_ref(i-1,j,k) + fly_ref(i,j,k) - fly_ref(i,j-1,k));
+                    }
+                }
+            }
+
+
+            for (uint_t i = 2; i < d1-2; ++i) {
+                for (uint_t j = 2; j < d2-2; ++j) {
+                    for (uint_t k = 0; k < d3; ++k) {
+                        if (out_ref(i,j,k) <= repository.out()(i, j, k)-epsilon
+                            ||
+                            out_ref(i,j,k) >= repository.out()(i, j, k)+epsilon ) {
+                            std::cout << "error in " << i << ", " << j << ", " << k << ": "
+                                      << "in = " << out_ref(i,j,k) << ", out = " << repository.out()(i, j, k) << std::endl;
+                            success = false;
+                        }
+                    }
+                }
+            }
         }
 
-#ifdef BENCHMARK
-        benchmarker::run(horizontal_diffusion, t_steps);
-#endif
-        horizontal_diffusion->finalize();
 
-        return result;
+// #ifdef CXX11_ENABLED
+// #if FLOAT_PRECISION == 4
+//             verifier verif(1e-6);
+// #else
+//             verifier verif(1e-12);
+// #endif
+//             array< array< uint_t, 2 >, 3 > halos{
+//                 {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+//             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
+// #else
+// #if FLOAT_PRECISION == 4
+//             verifier verif(1e-6, halo_size);
+// #else
+//             verifier verif(1e-12, halo_size);
+// #endif
+//             result = verif.verify(grid, repository.out_ref(), repository.out());
+// #endif
+//         }
+
+// #ifdef BENCHMARK
+//         benchmarker::run(horizontal_diffusion, t_steps);
+// #endif
+//         horizontal_diffusion->finalize();
+        return success;// result;
     }
 
 } // namespace horizontal_diffusion

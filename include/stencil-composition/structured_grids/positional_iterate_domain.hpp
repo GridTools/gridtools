@@ -80,8 +80,7 @@ namespace gridtools {
         }
 
         template < ushort_t Coordinate >
-        GT_FUNCTION void initialize(
-            array< uint_t, 3 > const &initial_offsets_, uint_t const &index = 0, uint_t const &block = 0) {
+        GT_FUNCTION void initialize(uint_t const &index = 0, uint_t const &block = 0) {
             if (Coordinate == 0) {
                 m_i = index;
             }
@@ -91,7 +90,7 @@ namespace gridtools {
             if (Coordinate == 2) {
                 m_k = index;
             }
-            super::template initialize< Coordinate >(initial_offsets_, index, block);
+            super::template initialize< Coordinate >(index, block);
         }
 
         template < ushort_t Coordinate >

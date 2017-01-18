@@ -72,7 +72,7 @@ namespace gridtools {
         dims_t m_dims;
 
       public:
-        const_iterate_domain() {}
+        const_iterate_domain() = delete;
 
         template < typename F, typename U, typename C, bool K >
         const_iterate_domain(local_domain< F, U, C, K > const &local_domain_, int_t EU_id_i, int_t EU_id_j) {

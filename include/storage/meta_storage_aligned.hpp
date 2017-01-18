@@ -317,8 +317,7 @@ namespace gridtools {
         GT_FUNCTION static void initialize(uint_t const &steps_,
             uint_t const &block_,
             int_t *RESTRICT index_,
-            StridesVector const &RESTRICT strides_,
-            array< uint_t, 3 > const &initial_offsets_) {
+            StridesVector const &RESTRICT strides_) {
             uint_t steps_padded_ = steps_ +
 #ifdef CXX11_ENABLED
                                    cond< Coordinate >::value;

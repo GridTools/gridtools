@@ -179,7 +179,7 @@ namespace gridtools {
                     typedef typename ElemType::storage_info_type meta_t;
 
                     // calls the constructor of the storage
-                    meta_t meta_data(m_offset_k, m_n_i_threads, m_n_j_threads);
+                    meta_t meta_data(2, 2, m_offset_k, m_n_i_threads, m_n_j_threads);
                     e = new ElemType(meta_data, "blocked tmp storage", true /*do_allocate*/);
 
                     // insert new type in the map only if not present already

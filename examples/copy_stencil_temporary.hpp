@@ -35,38 +35,22 @@
 */
 #pragma once
 
-#include <stencil-composition/stencil-composition.hpp>
-#include "defs.hpp"
-#include "benchmarker.hpp"
+#include "copy_stencil.hpp"
 
 /**
   @file
-  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
+  This file implements a trivial acceptance test for temporary storages:
+  it consists of two stages: a copy of a field to a temporary, and a copy from
+  the temporary to the output. An offset is added to make things slightly more
+  interesting
 */
 
-using gridtools::level;
-using gridtools::accessor;
-using gridtools::extent;
-using gridtools::arg;
+namespace copy_stencil_temporary {
 
-using namespace gridtools;
-using namespace enumtype;
-
-namespace copy_stencil {
-#ifdef __CUDACC__
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
-#else
-    //                   strides  1 x xy
-    //                      dims  x y z
-    typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
-#endif
-
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using namespace copy_stencil;
 
     // These are the stencil operators that compose the multistage stencil in this test
-    struct copy_functor {
+    struct copy_functor1 {
 
         typedef accessor< 0, enumtype::in, extent<>, 3 > in;
         typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
@@ -75,16 +59,26 @@ namespace copy_stencil {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             // std::cout <<eval(out()) << " =1= " << eval(in()) << "\n ";
+
+            // if(threadIdx.x==0 && threadIdx.y==0)
+            //     printf("[%d, %d] address %x\n", blockIdx.x, blockIdx.y, &eval(out()));
             eval(out()) = eval(in());
         }
     };
 
-    /*
-     * The following operators and structs are for debugging only
-     */
-    std::ostream &operator<<(std::ostream &s, copy_functor const) { return s << "copy_functor"; }
+    // These are the stencil operators that compose the multistage stencil in this test
+    struct copy_functor2 {
 
-    void handle_error(int_t) { std::cout << "error" << std::endl; }
+        typedef accessor< 0, enumtype::in, extent<-1,0,-1,0>, 3 > in;
+        typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            // std::cout <<eval(out()) << " =2= " << eval(in()) << "\n ";
+            eval(out()) = eval(in(-1,-1,0));
+        }
+    };
 
     bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
@@ -119,35 +113,17 @@ namespace copy_stencil {
 
         typedef arg< 0, storage_type > p_in;
         typedef arg< 1, storage_type > p_out;
+        typedef arg< 2, tmp_storage_type > p_tmp;
 
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I don't particularly like this)
+        typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
         gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        uint_t di[5] = {1, 0, 1, d1 - 1, d1};
+        uint_t dj[5] = {1, 0, 1, d2 - 1, d2};
 
         gridtools::grid< axis > grid(di, dj);
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
-
-/*
-  Here we do lot of stuff
-  1) We pass to the intermediate representation ::run function the description
-  of the stencil, which is a multi-stage stencil (mss)
-  The mss includes (in order of execution) a laplacian, two fluxes which are independent
-  and a final step that is the out_function
-  2) The logical physical domain with the fields to use
-  3) The actual domain dimensions
-*/
 
 #ifdef CXX11_ENABLED
         auto
@@ -163,9 +139,9 @@ namespace copy_stencil {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
-                                                          ,
-                                                          p_out())));
+                 gridtools::make_stage< copy_functor1 >(p_in(), p_tmp())
+                 , gridtools::make_stage< copy_functor2 >(p_tmp(), p_out())
+                    ));
 
         copy->ready();
 
@@ -180,12 +156,12 @@ namespace copy_stencil {
 
         bool success = true;
         if (verify) {
-            for (uint_t i = 0; i < d1; ++i) {
-                for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t i = 1; i < d1; ++i) {
+                for (uint_t j = 1; j < d2; ++j) {
                     for (uint_t k = 0; k < d3; ++k) {
-                        if (in(i, j, k) != out(i, j, k)) {
+                        if (in(i-1, j-1, k) != out(i, j, k)) {
                             std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                      << "in = " << in(i, j, k) << ", out = " << out(i, j, k) << std::endl;
+                                      << "in = " << in(i-1, j-1, k) << ", out = " << out(i, j, k) << std::endl;
                             success = false;
                         }
                     }
