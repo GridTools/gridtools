@@ -26,8 +26,10 @@ include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/communication" )
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/communication/high-level" )
 if( USE_MPI )
-   include_directories( "${MPI_CXX_INCLUDE_PATH}" )
-   set( exe_LIBS ${exe_LIBS} ${MPI_CXX_LIBRARIES} )
+   if ( NOT USE_MPI_COMPILER )
+     include_directories( "${MPI_CXX_INCLUDE_PATH}" )
+     set( exe_LIBS ${exe_LIBS} ${MPI_CXX_LIBRARIES} )
+  endif()
 endif()
 
 # ===============
