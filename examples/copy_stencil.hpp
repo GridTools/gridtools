@@ -164,8 +164,8 @@ namespace copy_stencil {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
-                                                          ,
-                                                          p_out())));
+                        ,
+                        p_out())));
 
         copy->ready();
 

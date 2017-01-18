@@ -162,10 +162,6 @@ if [[ ${COMPILER} == "gcc" ]] ; then
 elif [[ ${COMPILER} == "clang" ]] ; then
     HOST_COMPILER=`which clang++`
     ADDITIONAL_FLAGS="-ftemplate-depth=1024"
-    if [[ ${USE_GPU} == "ON" ]]; then
-       echo "Clang not supported with nvcc"
-       exit_if_error 334
-    fi
 else
     echo "COMPILER ${COMPILER} not supported"
     exit_if_error 333

@@ -110,7 +110,8 @@ namespace horizontal_diffusion_temporary {
         for (uint_t i = 0; i < d1; ++i)
             for (uint_t j = 0; j < d2; ++j)
                 for (uint_t k = 0; k < d3; ++k) {
-                    in(i, j, k) = i+j*100+k*10000; // cannot chose a linear functional because its laplacian is 0
+                    in(i, j, k) =
+                        i + j * 100 + k * 10000; // cannot chose a linear functional because its laplacian is 0
                 }
 
         typedef arg< 0, storage_type > p_in;
@@ -120,7 +121,7 @@ namespace horizontal_diffusion_temporary {
         typedef arg< 4, tmp_storage_type > p_fly;
         typedef arg< 5, storage_type > p_coeff;
 
-        typedef boost::mpl::vector< p_in, p_out, p_lap , p_flx, p_fly, p_coeff> accessor_list;
+        typedef boost::mpl::vector< p_in, p_out, p_lap, p_flx, p_fly, p_coeff > accessor_list;
         gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out, &coeff));
 
         uint_t di[5] = {2, 2, 2, d1 - 3, d1};
@@ -144,13 +145,11 @@ namespace horizontal_diffusion_temporary {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                 gridtools::make_stage< lap_function >(p_lap(),p_in()),
-                 // gridtools::make_stage< copy_functor >(p_lap(),p_out())
-                 gridtools::make_independent(
-                     gridtools::make_stage< flx_function >(p_flx(),p_in(),p_lap()),
-                     gridtools::make_stage< fly_function >(p_fly(),p_in(),p_lap())),
-                 gridtools::make_stage< out_function >(p_out(),p_in(),p_flx(),p_fly(),p_coeff())
-                    ));
+                    gridtools::make_stage< lap_function >(p_lap(), p_in()),
+                    // gridtools::make_stage< copy_functor >(p_lap(),p_out())
+                    gridtools::make_independent(gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
+                        gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
+                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         copy->ready();
 
@@ -163,84 +162,82 @@ namespace horizontal_diffusion_temporary {
         in.d2h_update();
 #endif
 
-//////////// TEST VERIFICATION ////////////
+        //////////// TEST VERIFICATION ////////////
         storage_type lap_ref(meta_data_, "lap");
         storage_type flx_ref(meta_data_, "flx");
         storage_type fly_ref(meta_data_, "fly");
         storage_type out_ref(meta_data_, "fly");
         storage_type coeff_ref(meta_data_, float_type(1.), "coeff");
 
-        double epsilon=1e-10;
+        double epsilon = 1e-10;
         bool success = true;
         if (verify) {
-            for (uint_t i = 1; i < d1-1; ++i) {
-                for (uint_t j = 1; j < d2-1; ++j) {
+            for (uint_t i = 1; i < d1 - 1; ++i) {
+                for (uint_t j = 1; j < d2 - 1; ++j) {
                     for (uint_t k = 0; k < d3; ++k) {
 
-                        lap_ref(i,j,k) = 4.*in(i, j, k)-
-                            (in(i-1,j,k)+in(i,j-1,k)+in(i+1,j,k)+(in(i,j+1,k)));
+                        lap_ref(i, j, k) = 4. * in(i, j, k) -
+                                           (in(i - 1, j, k) + in(i, j - 1, k) + in(i + 1, j, k) + (in(i, j + 1, k)));
                     }
                 }
             }
 
-        // for (uint_t i = 1; i < d1-1; ++i) {
-        //         for (uint_t j = 1; j < d2-1; ++j) {
-        //             for (uint_t k = 0; k < d3; ++k) {
-        //                 if (lap_ref(i,j,k) <= out(i, j, k)-epsilon
-        //                     ||
-        //                     lap_ref(i,j,k) >= out(i, j, k)+epsilon ) {
-        //                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
-        //                               << "in = " << lap_ref(i,j,k) << ", out = " << out(i, j, k) << std::endl;
-        //                     success = false;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+            // for (uint_t i = 1; i < d1-1; ++i) {
+            //         for (uint_t j = 1; j < d2-1; ++j) {
+            //             for (uint_t k = 0; k < d3; ++k) {
+            //                 if (lap_ref(i,j,k) <= out(i, j, k)-epsilon
+            //                     ||
+            //                     lap_ref(i,j,k) >= out(i, j, k)+epsilon ) {
+            //                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
+            //                               << "in = " << lap_ref(i,j,k) << ", out = " << out(i, j, k) << std::endl;
+            //                     success = false;
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
 
-            for (uint_t i = 1; i < d1-2; ++i) {
-                for (uint_t j = 1; j < d2-1; ++j) {
+            for (uint_t i = 1; i < d1 - 2; ++i) {
+                for (uint_t j = 1; j < d2 - 1; ++j) {
                     for (uint_t k = 0; k < d3; ++k) {
 
-                        flx_ref(i,j,k) = lap_ref(i+1,j,k)-lap_ref(i,j,k);
-                        if (flx_ref(i,j,k) * (in(i+1,j,k) - in(i,j,k)) > 0) {
-                            flx_ref(i,j,k) = 0.;
+                        flx_ref(i, j, k) = lap_ref(i + 1, j, k) - lap_ref(i, j, k);
+                        if (flx_ref(i, j, k) * (in(i + 1, j, k) - in(i, j, k)) > 0) {
+                            flx_ref(i, j, k) = 0.;
                         }
                     }
                 }
             }
 
-        for (uint_t i = 1; i < d1-2; ++i) {
-                for (uint_t j = 1; j < d2-2; ++j) {
+            for (uint_t i = 1; i < d1 - 2; ++i) {
+                for (uint_t j = 1; j < d2 - 2; ++j) {
                     for (uint_t k = 0; k < d3; ++k) {
 
-                        fly_ref(i,j,k) = lap_ref(i,j+1,k)-lap_ref(i,j,k);
-                        if (fly_ref(i,j,k) * (in(i,j+1,k) - in(i,j,k)) > 0) {
-                            fly_ref(i,j,k) = 0.;
+                        fly_ref(i, j, k) = lap_ref(i, j + 1, k) - lap_ref(i, j, k);
+                        if (fly_ref(i, j, k) * (in(i, j + 1, k) - in(i, j, k)) > 0) {
+                            fly_ref(i, j, k) = 0.;
                         }
                     }
                 }
             }
 
-        for (uint_t i = 2; i < d1-2; ++i) {
-                for (uint_t j = 2; j < d2-2; ++j) {
+            for (uint_t i = 2; i < d1 - 2; ++i) {
+                for (uint_t j = 2; j < d2 - 2; ++j) {
                     for (uint_t k = 0; k < d3; ++k) {
 
-                        out_ref(i,j,k) =
-                            in(i,j,k) - coeff_ref(i,j,k) * (flx_ref(i,j,k) - flx_ref(i-1,j,k) + fly_ref(i,j,k) - fly_ref(i,j-1,k));
+                        out_ref(i, j, k) = in(i, j, k) -
+                                           coeff_ref(i, j, k) * (flx_ref(i, j, k) - flx_ref(i - 1, j, k) +
+                                                                    fly_ref(i, j, k) - fly_ref(i, j - 1, k));
                     }
                 }
             }
 
-
-        for (uint_t i = 2; i < d1-2; ++i) {
-                for (uint_t j = 2; j < d2-2; ++j) {
+            for (uint_t i = 2; i < d1 - 2; ++i) {
+                for (uint_t j = 2; j < d2 - 2; ++j) {
                     for (uint_t k = 0; k < d3; ++k) {
-                        if (out_ref(i,j,k) <= out(i, j, k)-epsilon
-                            ||
-                            out_ref(i,j,k) >= out(i, j, k)+epsilon ) {
+                        if (out_ref(i, j, k) <= out(i, j, k) - epsilon || out_ref(i, j, k) >= out(i, j, k) + epsilon) {
                             std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                      << "in = " << out_ref(i,j,k) << ", out = " << out(i, j, k) << std::endl;
+                                      << "in = " << out_ref(i, j, k) << ", out = " << out(i, j, k) << std::endl;
                             success = false;
                         }
                     }
@@ -248,9 +245,9 @@ namespace horizontal_diffusion_temporary {
             }
         }
 
-// #ifdef BENCHMARK
-//         benchmarker::run(copy, t_steps);
-// #endif
+        // #ifdef BENCHMARK
+        //         benchmarker::run(copy, t_steps);
+        // #endif
         copy->finalize();
 
         return success;

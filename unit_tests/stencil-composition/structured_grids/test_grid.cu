@@ -34,46 +34,29 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
-#include "copy_stencil_temporary.hpp"
-#include "Options.hpp"
+#include "test_grid.cpp"
 
-int main(int argc, char **argv) {
-
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
-
-    if (argc < 4) {
-        printf("Usage: copy_stencil_temporary_<whatever> dimx dimy dimz\n where args are integer sizes of the data "
-               "fields\n");
-        return 1;
+namespace {
+    template < typename Axis >
+    __global__ void test_copied_grid_on_device(grid< Axis > *expect, grid< Axis > *actual, bool *result) {
+        *result = test_grid_eq(*expect, *actual);
     }
-
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
-
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
-
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
-
-    return RUN_ALL_TESTS();
 }
 
-TEST(CopyStencil, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
+TEST_F(test_grid_copy_ctor, copy_on_device) {
+    grid< axis > copy(grid_);
 
-    if (t == 0)
-        t = 1;
+    grid_.clone_to_device();
+    copy.clone_to_device();
 
-    ASSERT_TRUE(copy_stencil_temporary::test(x, y, z, t, verify));
+    bool result;
+    bool *resultDevice;
+    cudaMalloc(&resultDevice, sizeof(bool));
+
+    test_copied_grid_on_device<<< 1, 1 >>>(grid_.device_pointer(), copy.device_pointer(), resultDevice);
+
+    cudaMemcpy(&result, resultDevice, sizeof(bool), cudaMemcpyDeviceToHost);
+
+    ASSERT_NE(grid_.device_pointer(), copy.device_pointer());
+    ASSERT_TRUE(result);
 }

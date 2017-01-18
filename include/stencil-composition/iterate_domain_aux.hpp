@@ -324,11 +324,7 @@ If you are not using generic accessors then you are using an unsupported storage
                 "Accessing an index out of bound in fusion tuple");
 
             boost::mpl::at< MetaStorageSequence, id_t >::type::value_type::template initialize< Coordinate >(
-                m_initial_pos,
-                m_block,
-                &m_index_array[id_t::value],
-                m_strides.template get< id_t::value >()
-                );
+                m_initial_pos, m_block, &m_index_array[id_t::value], m_strides.template get< id_t::value >());
         }
     };
 

@@ -114,14 +114,11 @@ namespace gridtools {
            This constructor creates a storage tile with one peace assigned to each thread.
            The partition of the storage in tiles is a strategy to enhance data locality.
          */
-        constexpr meta_storage_tmp(uint_t const &dim3,
-            uint_t const &n_i_threads,
-            uint_t const &n_j_threads)
-            : super((tile_i + minus_i + plus_i) * n_i_threads, (tile_j + minus_j + plus_j) * n_j_threads, dim3){}
+        constexpr meta_storage_tmp(uint_t const &dim3, uint_t const &n_i_threads, uint_t const &n_j_threads)
+            : super((tile_i + minus_i + plus_i) * n_i_threads, (tile_j + minus_j + plus_j) * n_j_threads, dim3) {}
 
         // copy ctor
-        __device__ constexpr meta_storage_tmp(meta_storage_tmp const &other)
-            : super(other) {}
+        __device__ constexpr meta_storage_tmp(meta_storage_tmp const &other) : super(other) {}
 
         constexpr meta_storage_tmp() : super() {}
 
@@ -180,11 +177,13 @@ namespace gridtools {
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
                 uint_t minus_ = Coordinate == 0 ? minus_i : minus_j;
                 uint_t plus_ = Coordinate == 0 ? plus_i : plus_j;
-                *index_ += ((steps_ - block_ * tile_ )
-#ifdef __CUDACC__  // TODO : remove this (both CUDA and block must do the same)
-                            + block_*(tile_+plus_+minus_)
+                *index_ += ((steps_ - block_ * tile_)
+#ifdef __CUDACC__ // TODO : remove this (both CUDA and block must do the same)
+                               +
+                               block_ * (tile_ + plus_ + minus_)
 #endif
-                    )* basic_type::template strides< Coordinate >(strides_);
+                                   ) *
+                           basic_type::template strides< Coordinate >(strides_);
             } else {
                 super::template initialize< Coordinate >(steps_, block_, index_, strides_);
             }
@@ -200,7 +199,7 @@ namespace gridtools {
         GT_FUNCTION
         uint_t fields_offset(int_t EU_id_i, int_t EU_id_j) const {
             return (super::template strides< 0 >(super::strides())) * (tile_i + minus_i + plus_i) * EU_id_i +
-                (super::template strides< 1 >(super::strides())) * (tile_j + minus_j + plus_j) * EU_id_j;
+                   (super::template strides< 1 >(super::strides())) * (tile_j + minus_j + plus_j) * EU_id_j;
         }
     };
 

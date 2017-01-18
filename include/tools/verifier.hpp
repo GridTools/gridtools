@@ -109,7 +109,7 @@ namespace gridtools {
         template < typename Grid >
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
             bool verified = true;
-            if (pos[2] < grid_.value_at_top()) {
+            if (pos[2] < grid_.k_max()) {
                 typename StorageType::storage_info_type const &meta = m_exp_field.meta_data();
 
                 typename StorageType::value_type expected = m_exp_field.fields()[m_field_id][meta.index(pos)];
@@ -198,7 +198,7 @@ namespace gridtools {
             for (gridtools::uint_t f = 0; f < StorageType::field_dimensions; ++f)
                 for (gridtools::uint_t i = halos[0][0]; i < idim - halos[0][1]; ++i) {
                     for (gridtools::uint_t j = halos[1][0]; j < jdim - halos[1][1]; ++j) {
-                        for (gridtools::uint_t k = 0; k < grid_.value_at_top(); ++k) {
+                        for (gridtools::uint_t k = 0; k < grid_.k_max(); ++k) {
                             if (metadata_.mine(i, j, k)) {
                                 typename StorageType::value_type expected = field2.get_value(i, j, k);
                                 typename StorageType::value_type actual = field1[metadata_.get_local_index(i, j, k)];
@@ -242,7 +242,7 @@ namespace gridtools {
             for (gridtools::uint_t f = 0; f < storage_type::field_dimensions; ++f)
                 for (gridtools::uint_t i = m_halo_size; i < idim - m_halo_size; ++i) {
                     for (gridtools::uint_t j = m_halo_size; j < jdim - m_halo_size; ++j) {
-                        for (gridtools::uint_t k = 0; k < grid_.value_at_top(); ++k) {
+                        for (gridtools::uint_t k = 0; k < grid_.k_max(); ++k) {
                             typename storage_type::value_type expected = field1.fields()[f][meta->index(i, j, k)];
                             typename storage_type::value_type actual = field2.fields()[f][meta->index(i, j, k)];
 
@@ -274,7 +274,7 @@ namespace gridtools {
             for (gridtools::uint_t f = 0; f < StorageType::field_dimensions; ++f)
                 for (gridtools::uint_t i = m_halo_size; i < idim - m_halo_size; ++i) {
                     for (gridtools::uint_t j = m_halo_size; j < jdim - m_halo_size; ++j) {
-                        for (gridtools::uint_t k = 0; k < grid_.value_at_top(); ++k) {
+                        for (gridtools::uint_t k = 0; k < grid_.k_max(); ++k) {
                             if (metadata_.mine(i, j, k)) {
                                 typename StorageType::value_type expected = field2.get_value(i, j, k);
                                 typename StorageType::value_type actual = field1[metadata_.get_local_index(i, j, k)];

@@ -295,7 +295,7 @@ namespace gridtools {
 
         /**@brief method for initializing the index */
         template < ushort_t Coordinate >
-        GT_FUNCTION void initialize( uint_t const initial_pos = 0, uint_t const block = 0) {
+        GT_FUNCTION void initialize(uint_t const initial_pos = 0, uint_t const block = 0) {
             boost::mpl::for_each< metadata_map_t >(initialize_index_functor< Coordinate,
                 array_tuple_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
@@ -747,7 +747,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim <= storage_t::storage_info_type::space_dimensions),
             "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
             "defining the placeholder.");
-
 
         // casting the storage pointer from void* to the sotrage value_type
         typename storage_t::value_type *RESTRICT real_storage_pointer =
