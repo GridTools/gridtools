@@ -46,9 +46,8 @@ namespace gridtools {
 
     namespace _impl_strcuda {
 
-        template < int VBoundary >
-        struct padded_boundary
-            : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
+        template < int_t VBoundary >
+        struct padded_boundary : static_uint< VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
             BOOST_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8);
         };
 
@@ -168,8 +167,8 @@ namespace gridtools {
             it_domain.set_index(0);
 
             // initialize the indices
-            it_domain.template initialize< 0 >( i + starti, blockIdx.x);
-            it_domain.template initialize< 1 >( j + startj, blockIdx.y);
+            it_domain.template initialize< 0 >(i + starti, blockIdx.x);
+            it_domain.template initialize< 1 >(j + startj, blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
@@ -181,7 +180,8 @@ namespace gridtools {
                 typename grid_traits_from_id< enumtype::structured >::dim_k_t,
                 execution_type_t::type::iteration > iteration_policy_t;
 
-            it_domain.template initialize< grid_traits_from_id< enumtype::structured >::dim_k_t::value >( grid_->template value_at< iteration_policy_t::from >());
+            it_domain.template initialize< grid_traits_from_id< enumtype::structured >::dim_k_t::value >(
+                grid_->template value_at< iteration_policy_t::from >());
 
             // execute the k interval functors
             boost::mpl::for_each< typename RunFunctorArguments::loop_intervals_t >(
@@ -313,10 +313,10 @@ namespace gridtools {
 
                 typedef typename run_functor_arguments_cuda_t::iterate_domain_t iterate_domain_t;
                 typedef const_iterate_domain< typename iterate_domain_t::data_pointer_array_t,
-                                              typename iterate_domain_t::array_tuple_t,
-                                              typename iterate_domain_t::dims_cached_t,
-                                              cuda_block_size_t,
-                                              backend_traits_from_id< enumtype::Cuda > > const_it_domain_t;
+                    typename iterate_domain_t::array_tuple_t,
+                    typename iterate_domain_t::dims_cached_t,
+                    cuda_block_size_t,
+                    backend_traits_from_id< enumtype::Cuda > > const_it_domain_t;
 
                 /*NOTE: the two zeros passed below identify the "processing element" in
                   the host version. Since we pass the pointers via const memory in the CUDA
