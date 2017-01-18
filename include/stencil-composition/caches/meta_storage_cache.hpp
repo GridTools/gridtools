@@ -46,7 +46,7 @@ namespace gridtools {
         template < unsigned N, typename OffsetTuple, typename... Offsets >
         GT_FUNCTION constexpr typename boost::enable_if_c<(N==0), int_t>::type 
         get_index(OffsetTuple const& ot, Offsets... o) const {
-            return m_value.index(o..., ot.template get<N-1>(), 0, 0);
+            return m_value.index(o..., 0, 0);
          }
  
          template < typename Accessor >

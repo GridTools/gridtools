@@ -61,8 +61,8 @@ namespace horizontal_diffusion {
     using gridtools::uint_t;
     using gridtools::int_t;
 
-    using storage_info_ijk_t = storage_tr::storage_info_t< 0, 3, gridtools::halo< 1, 1, 0 > >;
-    using storage_info_ij_t = storage_tr::special_storage_info_t< 1, gridtools::selector< 1, 1, 0 >, gridtools::halo< 1, 0, 0 > >;
+    using storage_info_ijk_t = storage_tr::storage_info_t< 0, 3, gridtools::halo< 2, 2, 0 > >;
+    using storage_info_ij_t = storage_tr::special_storage_info_t< 1, gridtools::selector< 1, 1, 0 >, gridtools::halo< 2, 2, 0 > >;
     using storage_info_j_t = storage_tr::special_storage_info_t< 2, gridtools::selector< 0, 1, 0 >, gridtools::halo< 0, 0, 0 > >;
     using storage_info_scalar_t = storage_tr::special_storage_info_t< 3, gridtools::selector< 0, 0, 0 >, gridtools::halo< 0, 0, 0 > >; 
 
@@ -86,7 +86,7 @@ namespace horizontal_diffusion {
 
       public:
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
-            : m_storage_info_ijk(idim-(2*halo_size-2), jdim-(2*halo_size-2), kdim), m_storage_info_ij(idim-(2*halo_size-2), jdim, kdim),
+            : m_storage_info_ijk(idim-(2*halo_size), jdim-(2*halo_size), kdim), m_storage_info_ij(idim-(2*halo_size), jdim-(2*halo_size), kdim),
               m_storage_info_j(1, jdim, 1), m_storage_info_scalar(1, 1, 1),
               in_(m_storage_info_ijk), crlato_(m_storage_info_j),
               crlatu_(m_storage_info_j), crlat0_(m_storage_info_j),
