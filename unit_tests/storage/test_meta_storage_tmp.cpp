@@ -65,10 +65,19 @@ TEST(tmp_storage_info, test_initialize) {
             int_t index_=0;
             instance_.initialize<0>(0, i, &index_, strides_);
             instance_.initialize<1>(0, j, &index_, strides_);
-            if(index_ != (0-i*5)*d3*9*5 + (0-j*3)*d3){
-                std::cout<<"["<<i << j << "]"<<index_<<" != "<<(i*7)*d3*9 + (j+9)*d3<<"\n";
+            if(index_ != (0-i*5
+#ifdef __CUDACC__ // TODO keep the cuda version
+                          + i*7
+#endif
+)*strides_[0] + (0-j*3
+#ifdef __CUDACC__ // TODO keep the cuda version
+                          + j*9
+#endif
+)*strides_[1]){
+                std::cout<<"Host: ["<<i << j << "]"<<index_<<" != "<<-(i*5)*strides_[0] - (j*3)*strides_[1]<<"\n";
+                std::cout<<"Cuda: ["<<i << j << "]"<<index_<<" != "<<(-i*5+i*7)*strides_[0] + (-j*3+j*9)*strides_[1]<<"\n";
                 success = false;
             }
-            ASSERT_TRUE((index_ == ((i*7+1)*d3*9*5 + (j*9+3)*d3)) && "error");
         }
+    ASSERT_TRUE(success);
 }

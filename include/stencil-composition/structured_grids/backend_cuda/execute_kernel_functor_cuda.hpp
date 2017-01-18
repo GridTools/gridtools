@@ -318,6 +318,14 @@ namespace gridtools {
                                               cuda_block_size_t,
                                               backend_traits_from_id< enumtype::Cuda > > const_it_domain_t;
 
+                /*NOTE: the two zeros passed below identify the "processing element" in
+                  the host version. Since we pass the pointers via const memory in the CUDA
+                  backend we don't know these yet. We pass the pointers to the beginning of
+                  the storages to the kernel, instead of pointers to the beginning of the
+                  tiles, and in the
+                  meta_storage_tmp we initialize the temporaries to the tile.
+                  TODO: this has to be made uniform for CUDA and Host
+                */
                 const_it_domain_t const const_it_domain(m_local_domain, 0, 0);
 
 #if (FLOAT_PRECISION > 4)
