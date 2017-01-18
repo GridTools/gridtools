@@ -105,16 +105,14 @@ namespace gridtools {
             }
         };
     };
-
     template < typename AccIndex, enumtype::execution ExecutionPolicy >
     struct prefill_cache {
         template < int_t Offset >
         struct apply_t {
             template < typename IterateDomain, typename CacheStorage >
-            GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
+            GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage &cache_st) {
 
-                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset - 1, Offset + 1 > >
-                    acc_t;
+                typedef accessor< AccIndex::value, enumtype::in, extent< 0, 0, 0, 0, -Offset - 1, Offset + 1 > > acc_t;
                 constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::backward) ? -Offset - 1 : Offset + 1);
 
                 cache_st.at(acc_) = it_domain.gmem_access(acc_);
@@ -292,11 +290,11 @@ namespace gridtools {
         struct begin_filling_functor {
 
             GT_FUNCTION
-            begin_filling_functor(IterateDomain const &it_domain, k_caches_tuple_t const &kcaches)
+            begin_filling_functor(IterateDomain const &it_domain, k_caches_tuple_t &kcaches)
                 : m_it_domain(it_domain), m_kcaches(kcaches) {}
 
             IterateDomain const &m_it_domain;
-            k_caches_tuple_t const &m_kcaches;
+            k_caches_tuple_t &m_kcaches;
 
             template < typename Idx >
             GT_FUNCTION void operator()(Idx const &) const {
@@ -316,8 +314,9 @@ namespace gridtools {
                 using seq = gridtools::apply_gt_integer_sequence<
                     typename gridtools::make_gt_integer_sequence< int_t, koffset >::type >;
 
+                auto &cache_st = boost::fusion::at_key< Idx >(m_kcaches);
                 seq::template apply_void_lambda< prefill_cache< Idx, IterationPolicy::value >::apply_t >(
-                    m_it_domain, boost::fusion::at_key< Idx >(m_kcaches));
+                    m_it_domain, cache_st);
 #endif
             }
         };

@@ -296,8 +296,9 @@ namespace vertical_advection_dycore {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
 #ifdef CXX11_ENABLED
-                    define_caches(cache< K, flush, kfull >(p_ccol()), cache< K, flush, kfull >(p_dcol())),
-//                        cache< K, fill, kfull >(p_u_stage())),
+                    define_caches(cache< K, flush, kfull >(p_ccol()),
+                        cache< K, flush, kfull >(p_dcol()),
+                        cache< K, fill, kfull >(p_u_stage())),
 #endif
                     gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
@@ -310,13 +311,16 @@ namespace vertical_advection_dycore {
                         p_ccol(),
                         p_dcol()) // esf_descriptor
                     ),
-                gridtools::make_multistage(
-                    execute< backward >(),
+                gridtools::make_multistage(execute< backward >(),
 #ifdef CXX11_ENABLED
                     define_caches(cache< K, flush, kfull >(p_data_col())),
 #endif
-                    gridtools::make_stage< u_backward_function< double > >(
-                        p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
+                    gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
+                                               p_u_pos(),
+                                               p_dtr_stage(),
+                                               p_ccol(),
+                                               p_dcol(),
+                                               p_data_col())));
 
         vertical_advection->ready();
 
