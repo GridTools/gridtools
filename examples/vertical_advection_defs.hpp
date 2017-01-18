@@ -46,16 +46,21 @@ namespace vertical_advection {
 #ifdef CUDA_EXAMPLE
     typedef gridtools::backend< gridtools::enumtype::Cuda,
         gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
+        gridtools::enumtype::Block >
+        va_backend;
+    typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
 #else
 #ifdef BACKEND_BLOCK
     typedef gridtools::backend< gridtools::enumtype::Host,
         gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
+        gridtools::enumtype::Block >
+        va_backend;
 #else
     typedef gridtools::backend< gridtools::enumtype::Host,
         gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > va_backend;
+        gridtools::enumtype::Naive >
+        va_backend;
 #endif
+    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
 #endif
 }
