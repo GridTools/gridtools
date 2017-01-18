@@ -33,6 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include <memory>
+
 #include "stencil-composition/stencil.hpp"
 #include "cache_flusher.hpp"
 #include "defs.hpp"

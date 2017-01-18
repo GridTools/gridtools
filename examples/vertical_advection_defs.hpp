@@ -33,8 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
+#include <stencil-composition/stencil-composition.hpp>
 #include <gridtools.hpp>
+#include <storage-facility.hpp>
 
 namespace vertical_advection {
 
@@ -46,8 +49,7 @@ namespace vertical_advection {
 #ifdef CUDA_EXAMPLE
     typedef gridtools::backend< gridtools::enumtype::Cuda,
         gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block >
-        va_backend;
+        gridtools::enumtype::Block > va_backend;
     typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
 #else
 #ifdef BACKEND_BLOCK

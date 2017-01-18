@@ -665,7 +665,7 @@ namespace gridtools {
         static_assert((val_t::value == Max::value) || (N < StorageInfo::Layout::length), "invalid stride array access");
         typedef boost::mpl::bool_< (StorageInfo::Layout::template at< N >() == Max::value) > is_max_t;
         typedef boost::mpl::bool_< (StorageInfo::Layout::template at< N >() == -1) > is_masked_t;
-        return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[N])) *
+        return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
                    offsets.template get< (OffsetTuple::n_dim - 1) - N >() +
                apply_accessor< Max, StridesCached, OffsetTuple, StorageInfo, N + 1 >(strides, offsets);
     }
@@ -675,9 +675,9 @@ namespace gridtools {
         StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
         typedef boost::mpl::int_< (StorageInfo::Layout::template at< N >()) > val_t;
         static_assert((val_t::value == Max::value) || (N < StorageInfo::Layout::length), "invalid stride array access");
-        typedef boost::mpl::bool_< (StorageInfo::Layout::template at< N >() == Max::value) > is_max_t;
-        typedef boost::mpl::bool_< (StorageInfo::Layout::template at< N >() == -1) > is_masked_t;
-        return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[N])) *
+        typedef boost::mpl::bool_< (val_t::value == Max::value) > is_max_t;
+        typedef boost::mpl::bool_< (val_t::value == -1) > is_masked_t;
+        return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
                offsets.template get< (OffsetTuple::n_dim - 1) - N >();
     }
 

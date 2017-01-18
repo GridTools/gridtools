@@ -594,9 +594,6 @@ namespace gridtools {
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
         //GTASSERT(pointer_offset >= 0);
-        //if(threadIdx.x == 0 && threadIdx.y == 0 && blockIdx.x == 0 && blockIdx.y == 0) {
-        //    printf("ptr offset: %p + %i \n", real_storage_pointer, pointer_offset);
-        //}
 
         return static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<
