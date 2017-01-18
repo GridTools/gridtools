@@ -59,7 +59,7 @@ def run_and_extract_times(path, executable, host, sizes, halos, filter_=None, st
             cmd = cmd + ' ' + filter_
     if target == 'cpu':
         nthreads = re.sub('thread','',thread)
-        cmd = '#!/bin/bash\nexport OMP_NUM_THREADS='+nthreads+'; '+cmd
+        cmd = '#!/bin/bash\nexport GOMP_CPU_AFFINITY="0-'+(nthreads-1)+'"\nexport OMP_NUM_THREADS='+nthreads+'; '+cmd
 
     avg_time = 0
 
