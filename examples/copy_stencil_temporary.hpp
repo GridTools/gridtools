@@ -69,14 +69,14 @@ namespace copy_stencil_temporary {
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor2 {
 
-        typedef accessor< 0, enumtype::in, extent< -1, 0, -1, 0 >, 3 > in;
+        typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0 >, 3 > in;
         typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             // std::cout <<eval(out()) << " =2= " << eval(in()) << "\n ";
-            eval(out()) = eval(in(-1, -1, 0));
+            eval(out()) = eval(in(0, 0, 0));
         }
     };
 
@@ -118,8 +118,8 @@ namespace copy_stencil_temporary {
         typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
         gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
 
-        uint_t di[5] = {1, 0, 1, d1 - 1, d1};
-        uint_t dj[5] = {1, 0, 1, d2 - 1, d2};
+        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
+        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
         gridtools::grid< axis > grid(di, dj);
         grid.value_list[0] = 0;
@@ -155,10 +155,10 @@ namespace copy_stencil_temporary {
 
         bool success = true;
         if (verify) {
-            for (uint_t i = 1; i < d1; ++i) {
-                for (uint_t j = 1; j < d2; ++j) {
+            for (uint_t i = 0; i < d1; ++i) {
+                for (uint_t j = 0; j < d2; ++j) {
                     for (uint_t k = 0; k < d3; ++k) {
-                        if (in(i - 1, j - 1, k) != out(i, j, k)) {
+                        if (in(i, j, k) != out(i, j, k)) {
                             std::cout << "error in " << i << ", " << j << ", " << k << ": "
                                       << "in = " << in(i - 1, j - 1, k) << ", out = " << out(i, j, k) << std::endl;
                             success = false;
