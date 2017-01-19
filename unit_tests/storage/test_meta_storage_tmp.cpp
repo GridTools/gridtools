@@ -43,7 +43,10 @@ using namespace gridtools;
 
 TEST(tmp_storage_info, test_initialize) {
 
-    typedef gridtools::meta_storage_base< static_int< 0 >, layout_map< 0, 1, 2 >, true > meta_t;
+    typedef gridtools::meta_storage_aligned<
+        gridtools::meta_storage_base< static_int< 0 >, layout_map< 0, 1, 2 >, true >,
+        aligned< 1 >,
+        halo< 0, 0, 0 > > meta_t;
 
     uint_t d3 = 10;
     uint_t blocks_i = 4;
@@ -58,20 +61,29 @@ TEST(tmp_storage_info, test_initialize) {
     ASSERT_TRUE((strides_[0] == instance_.template strides< 0 >()) && "error");
     ASSERT_TRUE((strides_[1] == instance_.template strides< 1 >()) && "error");
 
+#ifdef CXX11_EANBLED
+    array< uint_t, 3 > initial_offsets_{2, 2, 0};
+#else
+    array< uint_t, 3 > initial_offsets_;
+    initial_offsets_[0] = 2;
+    initial_offsets_[1] = 2;
+    initial_offsets_[2] = 0;
+#endif
+
     bool success = true;
     for (int_t i = 0; i < blocks_i; ++i)
         for (int_t j = 0; j < blocks_j; ++j) {
             int_t index_ = 0;
-            instance_.initialize< 0 >(0, i, &index_, strides_);
-            instance_.initialize< 1 >(0, j, &index_, strides_);
+            instance_.initialize< 0 >(0, i, &index_, strides_, initial_offsets_);
+            instance_.initialize< 1 >(0, j, &index_, strides_, initial_offsets_);
             if (index_ !=
-                (0 - i * 5
+                (0 - i * 5 - (2 - 1)
 #ifdef __CUDACC__ // TODO keep the cuda version
                     +
                     i * 7
 #endif
                     ) * strides_[0] +
-                    (0 - j * 3
+                    (0 - j * 3 - (2 - 3)
 #ifdef __CUDACC__ // TODO keep the cuda version
                         +
                         j * 9
