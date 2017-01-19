@@ -77,16 +77,20 @@ TEST(tmp_storage_info, test_initialize) {
             instance_.initialize< 0 >(0, i, &index_, strides_, initial_offsets_);
             instance_.initialize< 1 >(0, j, &index_, strides_, initial_offsets_);
             if (index_ !=
-                (0 - i * 5 - (2 - 1)
+                (0 - i * 5
 #ifdef __CUDACC__ // TODO keep the cuda version
                     +
                     i * 7
+#else
+                 - (2 - 1)
 #endif
                     ) * strides_[0] +
-                    (0 - j * 3 - (2 - 3)
+                    (0 - j * 3
 #ifdef __CUDACC__ // TODO keep the cuda version
                         +
                         j * 9
+#else
+                     - (2 - 3)
 #endif
                         ) *
                         strides_[1]) {
