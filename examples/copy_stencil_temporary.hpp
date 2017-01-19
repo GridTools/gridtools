@@ -100,7 +100,7 @@ namespace copy_stencil_temporary {
         typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_type;
         typedef BACKEND::temporary_storage_type< float_type, meta_data_t >::type tmp_storage_type;
 
-        meta_data_t meta_data_(x, y, z);
+        meta_data_t meta_data_(d1, d2, d3);
 
         // Definition of the actual data fields that are used for input/output
         storage_type in(meta_data_, "in");
@@ -140,7 +140,7 @@ namespace copy_stencil_temporary {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< copy_functor1 >(p_in(), p_tmp()),
-                    gridtools::make_stage< copy_functor2 >(p_tmp(), p_out())));
+                    gridtools::make_stage< copy_functor1 >(p_tmp(), p_out())));
 
         copy->ready();
 
@@ -148,10 +148,7 @@ namespace copy_stencil_temporary {
 
         copy->run();
 
-#ifdef __CUDACC__
-        out.d2h_update();
-        in.d2h_update();
-#endif
+        copy->finalize();
 
         bool success = true;
         if (verify) {
@@ -160,17 +157,13 @@ namespace copy_stencil_temporary {
                     for (uint_t k = 0; k < d3; ++k) {
                         if (in(i, j, k) != out(i, j, k)) {
                             std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                      << "in = " << in(i - 1, j - 1, k) << ", out = " << out(i, j, k) << std::endl;
+                                      << "in = " << in(i, j, k) << ", out = " << out(i, j, k) << std::endl;
                             success = false;
                         }
                     }
                 }
             }
         }
-#ifdef BENCHMARK
-        benchmarker::run(copy, t_steps);
-#endif
-        copy->finalize();
 
         return success;
     }
