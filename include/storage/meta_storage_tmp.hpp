@@ -189,10 +189,13 @@ namespace gridtools {
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
                 uint_t minus_ = Coordinate == 0 ? minus_i : minus_j;
                 uint_t plus_ = Coordinate == 0 ? plus_i : plus_j;
-                *index_ += ((steps_ - block_ * tile_ - (initial_offsets_[Coordinate] - minus_))
+                *index_ += ((steps_ - block_ * tile_)
 #ifdef __CUDACC__ // TODO : remove this (both CUDA and block must do the same)
                                +
                                block_ * (tile_ + plus_ + minus_)
+#else
+                               -
+                               (initial_offsets_[Coordinate] - minus_)
 #endif
                                    ) *
                            basic_type::template strides< Coordinate >(strides_);
