@@ -166,9 +166,10 @@ namespace gridtools {
             }
             it_domain.set_index(0);
 
+            array< uint_t, 3 > initial_offsets_{grid_->i_low_bound(), grid_->j_low_bound(), 0};
             // initialize the indices
-            it_domain.template initialize< 0 >(i + starti, blockIdx.x);
-            it_domain.template initialize< 1 >(j + startj, blockIdx.y);
+            it_domain.template initialize< 0 >(initial_offsets_, i + starti, blockIdx.x);
+            it_domain.template initialize< 1 >(initial_offsets_, j + startj, blockIdx.y);
 
             it_domain.set_block_pos(iblock, jblock);
 
@@ -181,7 +182,7 @@ namespace gridtools {
                 execution_type_t::type::iteration > iteration_policy_t;
 
             it_domain.template initialize< grid_traits_from_id< enumtype::structured >::dim_k_t::value >(
-                grid_->template value_at< iteration_policy_t::from >());
+                initial_offsets_, grid_->template value_at< iteration_policy_t::from >());
 
             // execute the k interval functors
             boost::mpl::for_each< typename RunFunctorArguments::loop_intervals_t >(

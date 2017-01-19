@@ -210,12 +210,13 @@ namespace gridtools {
 #endif // CXX11_ENABLED
 
         template < typename IterateDomain, typename BlockIdVector >
-        GT_FUNCTION void initialize(IterateDomain &it_domain, BlockIdVector const &block_id) {
+        GT_FUNCTION void initialize(
+            array< uint_t, 3 > const &initial_offsets_, IterateDomain &it_domain, BlockIdVector const &block_id) {
 #if defined(VERBOSE) && !defined(NDEBUG)
             std::cout << "initialize the iteration space " << First::s_id << " with " << loop.low_bound() << std::endl;
 #endif
-            it_domain.template initialize< First::s_id >(loop.low_bound(), block_id[First::s_id]);
-            next::initialize(it_domain, block_id);
+            it_domain.template initialize< First::s_id >(initial_offsets_, loop.low_bound(), block_id[First::s_id]);
+            next::initialize(initial_offsets_, it_domain, block_id);
             it_domain.get_index(restore_index);
         }
 
@@ -326,12 +327,13 @@ namespace gridtools {
         }
 
         template < typename IterateDomain, typename BlockIdVector >
-        GT_FUNCTION void initialize(IterateDomain &it_domain, BlockIdVector const &block_id) {
+        GT_FUNCTION void initialize(
+            array< uint_t, 3 > const &initial_offsets_, IterateDomain &it_domain, BlockIdVector const &block_id) {
 
 #if defined(VERBOSE) && !defined(NDEBUG)
             std::cout << "initialize the iteration space " << First::s_id << " with " << loop.low_bound() << std::endl;
 #endif
-            it_domain.template initialize< First::s_id >(loop.low_bound(), block_id[First::s_id]);
+            it_domain.template initialize< First::s_id >(initial_offsets_, loop.low_bound(), block_id[First::s_id]);
             it_domain.get_index(restore_index);
         }
     };

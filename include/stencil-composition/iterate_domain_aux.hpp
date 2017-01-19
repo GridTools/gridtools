@@ -295,6 +295,7 @@ If you are not using generic accessors then you are using an unsupported storage
         Strides const &RESTRICT m_strides;
         const int_t m_initial_pos;
         const uint_t m_block;
+        array< uint_t, 3 > const &m_initial_offsets;
 
         ArrayIndex &RESTRICT m_index_array;
 
@@ -303,9 +304,9 @@ If you are not using generic accessors then you are using an unsupported storage
 
       public:
         GT_FUNCTION
-        initialize_index_functor(initialize_index_functor const &other)
+        initialize_index_functor(initialize_index_functor const &other, array< uint_t, 3 > const &initial_offsets_)
             : m_strides(other.m_strides), m_initial_pos(other.m_initial_pos), m_block(other.m_block),
-              m_index_array(other.m_index_array) {}
+              m_index_array(other.m_index_array), m_initial_offsets(initial_offsets_) {}
 
         GT_FUNCTION
         initialize_index_functor(Strides const &RESTRICT strides
@@ -313,8 +314,10 @@ If you are not using generic accessors then you are using an unsupported storage
             ,
             const int_t initial_pos,
             const uint_t block,
-            ArrayIndex &RESTRICT index_array)
-            : m_strides(strides), m_initial_pos(initial_pos), m_block(block), m_index_array(index_array) {}
+            ArrayIndex &RESTRICT index_array,
+            array< uint_t, 3 > const &initial_offsets_)
+            : m_strides(strides), m_initial_pos(initial_pos), m_block(block), m_index_array(index_array),
+              m_initial_offsets(initial_offsets_) {}
 
         template < typename Pair >
         GT_FUNCTION void operator()(Pair const &) const {
@@ -324,7 +327,11 @@ If you are not using generic accessors then you are using an unsupported storage
                 "Accessing an index out of bound in fusion tuple");
 
             boost::mpl::at< MetaStorageSequence, id_t >::type::value_type::template initialize< Coordinate >(
-                m_initial_pos, m_block, &m_index_array[id_t::value], m_strides.template get< id_t::value >());
+                m_initial_pos,
+                m_block,
+                &m_index_array[id_t::value],
+                m_strides.template get< id_t::value >(),
+                m_initial_offsets);
         }
     };
 

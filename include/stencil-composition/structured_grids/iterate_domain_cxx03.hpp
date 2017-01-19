@@ -295,11 +295,12 @@ namespace gridtools {
 
         /**@brief method for initializing the index */
         template < ushort_t Coordinate >
-        GT_FUNCTION void initialize(uint_t const initial_pos = 0, uint_t const block = 0) {
+        GT_FUNCTION void initialize(
+            array< uint_t, 3 > const &initial_offsets_, uint_t const initial_pos = 0, uint_t const block = 0) {
             boost::mpl::for_each< metadata_map_t >(initialize_index_functor< Coordinate,
                 array_tuple_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
-                array_index_t >(strides(), initial_pos, block, m_index));
+                array_index_t >(strides(), initial_pos, block, m_index, initial_offsets_));
             static_cast< IterateDomainImpl * >(this)->template initialize_impl< Coordinate >();
         }
 

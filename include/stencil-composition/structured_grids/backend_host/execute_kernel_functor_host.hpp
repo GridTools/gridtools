@@ -82,7 +82,8 @@ namespace gridtools {
                 innermost_functor(IterateDomain &it_domain, const Grid &grid) : m_it_domain(it_domain), m_grid(grid) {}
 
                 void operator()() const {
-                    m_it_domain.template initialize< 2 >(m_grid.template value_at< typename IterationPolicy::from >());
+                    m_it_domain.template initialize< 2 >({m_grid.i_low_bound(), m_grid.j_low_bound(), 0},
+                        m_grid.template value_at< typename IterationPolicy::from >());
 
                     boost::mpl::for_each< LoopIntervals >(RunOnInterval(m_it_domain, m_grid));
                 }
@@ -215,7 +216,7 @@ namespace gridtools {
 
                 // reset the index
                 it_domain.set_index(0);
-                ij_loop.initialize(it_domain, m_block_id);
+                ij_loop.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), 0}, it_domain, m_block_id);
 
                 // define the kernel functor
                 typedef innermost_functor< loop_intervals_t,

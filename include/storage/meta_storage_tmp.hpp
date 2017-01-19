@@ -166,9 +166,21 @@ namespace gridtools {
             super::template increment< Coordinate >(steps_, index_, strides_);
         }
 
+        /**
+           @brief initializing a given coordinate (i.e. multiplying times its stride)
+
+           \param steps_ the input coordinate value
+           \param block_ the current block index
+           \param index_ the output index
+           \param strides_ the strides array
+
+        */
         template < uint_t Coordinate, typename StridesVector >
-        GT_FUNCTION static void initialize(
-            const int_t steps_, const uint_t block_, int_t *RESTRICT index_, StridesVector const &strides_) {
+        GT_FUNCTION static void initialize(const int_t steps_,
+            const uint_t block_,
+            int_t *RESTRICT index_,
+            StridesVector const &strides_,
+            array< uint_t, 3 > const &initial_offsets_) {
 
             GRIDTOOLS_STATIC_ASSERT((layout::template at_< Coordinate >::value >= -1), "wrong coordinate");
 
@@ -177,7 +189,7 @@ namespace gridtools {
                 uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
                 uint_t minus_ = Coordinate == 0 ? minus_i : minus_j;
                 uint_t plus_ = Coordinate == 0 ? plus_i : plus_j;
-                *index_ += ((steps_ - block_ * tile_)
+                *index_ += ((steps_ - block_ * tile_ - (initial_offsets_[Coordinate] - minus_))
 #ifdef __CUDACC__ // TODO : remove this (both CUDA and block must do the same)
                                +
                                block_ * (tile_ + plus_ + minus_)
@@ -185,7 +197,7 @@ namespace gridtools {
                                    ) *
                            basic_type::template strides< Coordinate >(strides_);
             } else {
-                super::template initialize< Coordinate >(steps_, block_, index_, strides_);
+                super::template initialize< Coordinate >(steps_, block_, index_, strides_, initial_offsets_);
             }
         }
 
