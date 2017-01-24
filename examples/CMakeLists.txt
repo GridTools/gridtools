@@ -6,12 +6,12 @@ else()
   list ( APPEND INC_ALL ${INC_ALL_} )
   file(GLOB_RECURSE INC_ALL_ "../include/[a-z|A-Z|0-9]*.hpp")
   list ( APPEND INC_ALL ${INC_ALL_} )
-  
+
   list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment advection_pdbott_prepare_tracers)
   list( APPEND X86_SRCFILES reduction)
 
   if( ENABLE_CXX11)
-    list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage  expandable_parameters expandable_parameters_single_kernel expandable_parameters_reassign_domain)
+    list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage  expandable_parameters  expandable_parameters_single_kernel expandable_parameters_reassign_domain)
   endif()
 
   set( GTEST_FILES Options.hpp Options.cpp)

@@ -60,7 +60,7 @@ typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_lap;
 /*!
   @brief This is the definition of the whole vertical axis
 */
-typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
+typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
 // [intervals]
 // [functor]

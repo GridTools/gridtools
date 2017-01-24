@@ -37,6 +37,7 @@
 
 #include "../../run_esf_functor.hpp"
 #include "../iterate_domain_remapper.hpp"
+#include "../../functor_decorator.hpp"
 
 namespace gridtools {
 
@@ -95,10 +96,15 @@ namespace gridtools {
             typename boost::disable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
 
+            typedef typename EsfArguments::functor_t original_functor_t;
             typedef typename EsfArguments::esf_t esf_t;
-            typedef typename esf_t::template esf_function< run_functor_arguments_t::color_t::color_t::value > functor_t;
+            typedef typename esf_t::template esf_function< run_functor_arguments_t::color_t::color_t::value >
+                colored_functor_t;
+            typedef functor_decorator< typename original_functor_t::id,
+                colored_functor_t,
+                typename original_functor_t::repeat_t > functor_t;
 
-            using n_colors_t = typename EsfArguments::esf_t::location_type::n_colors;
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, "wrong type");
 
             typedef typename get_trivial_iterate_domain_remapper< iterate_domain_t,
                 typename EsfArguments::esf_t,
@@ -106,7 +112,8 @@ namespace gridtools {
 
             iterate_domain_remapper_t iterate_domain_remapper(this->m_iterate_domain);
 
-            functor_t::Do(iterate_domain_remapper, IntervalType());
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
+                call_do_method(iterate_domain_remapper);
         }
 
         /*

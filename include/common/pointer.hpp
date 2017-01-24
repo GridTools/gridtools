@@ -133,7 +133,7 @@ namespace gridtools {
     };
 
     template < typename T >
-    pointer< T > make_pointer(T &t) {
+    GT_FUNCTION pointer< T > make_pointer(T &t) {
         return pointer< T >(&t);
     }
 
@@ -144,10 +144,11 @@ namespace gridtools {
      */
     struct delete_pointer {
 
+        GT_FUNCTION
         delete_pointer() {}
 
         template < typename U >
-        void operator()(U t) const {
+        GT_FUNCTION void operator()(U t) const {
             if (t.get())
                 delete t.get();
         }

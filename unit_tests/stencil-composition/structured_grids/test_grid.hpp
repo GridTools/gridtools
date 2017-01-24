@@ -33,11 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "dimension.hpp"
 
-#ifdef STRUCTURED_GRIDS
-#include "structured_grids/dimension_defs.hpp"
-#else
-#include "icosahedral_grids/dimension_defs.hpp"
-#endif
+#include "stencil-composition/structured_grids/grid.hpp"
+
+using namespace gridtools;
+
+template < typename Axis >
+GT_FUNCTION bool test_grid_eq(grid< Axis > &expect, grid< Axis > &actual) {
+    bool result = expect.direction_i() == actual.direction_i();
+    result &= expect.direction_j() == actual.direction_j();
+    for (int i = 0; i < expect.value_list.size(); ++i) {
+        result &= expect.value_list[i] == actual.value_list[i];
+    }
+    return result;
+}

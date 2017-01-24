@@ -27,6 +27,7 @@ if __name__ == "__main__":
     parser.add_argument('--jplan',nargs=1, type=str, help='JENKINS plan')
     parser.add_argument('--gtype', nargs=1, type=str, help='Grid Type') 
     parser.add_argument('--std',nargs=1, type=str, help='list of stds to run')
+    parser.add_argument('--prec',nargs=1, type=str, help='precision')
 
     args = parser.parse_args()
     if not args.jplan:
@@ -56,9 +57,13 @@ if __name__ == "__main__":
     else:
         stds=('cxx03','cxx11')
 
+    if args.prec:
+        precs=args.prec[0].split(',')
+    else:
+        precs=('float', 'double')
+
     json_file_out = json_file+'.out'
     targets=('gpu','cpu')
-    precs=('float','double')
     
     print('Running for confs: ', stds, targets, precs)
 

@@ -98,7 +98,7 @@ namespace gridtools {
             }
 
             /**
-               @brief initialize the storage vector, specisalization for the normal args
+               @brief initialize the storage vector, specialization for the normal args
              */
             template < ushort_t ID, typename Storage >
             void operator()(arg< ID, Storage >) {
