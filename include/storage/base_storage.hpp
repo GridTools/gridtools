@@ -96,15 +96,17 @@ namespace gridtools {
  */
 #ifdef CXX11_ENABLED
         template < typename Bool = bool >
-        base_storage(
-            MetaData const *meta_data_, char const *s = "default uninitialized storage", Bool do_allocate = true)
+        base_storage(pointer< const MetaData > meta_data_,
+            char const *s = "default uninitialized storage",
+            Bool do_allocate = true)
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Bool, bool >::type::value),
                 "The signature of the storage constructor is either storage(storage_info, \"name\", bool), or "
                 "storage(storage_info, float, \"name\"). So check the order/type of the arguments");
 #else
-        base_storage(
-            MetaData const *meta_data_, char const *s = "default uninitialized storage", bool do_allocate = true)
+        base_storage(pointer< const MetaData > meta_data_,
+            char const *s = "default uninitialized storage",
+            bool do_allocate = true)
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
 #endif
             if (do_allocate) {
@@ -117,7 +119,8 @@ namespace gridtools {
          * @tparam FloatType is the floating point type passed to the constructor for initialization.
          * It is a template parameter in order to match float, double, etc...
          */
-        base_storage(MetaData const *meta_data_, value_type const &init, char const *s = "default initialized storage")
+        base_storage(
+            pointer< const MetaData > meta_data_, value_type const &init, char const *s = "default initialized storage")
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             assert(is_set && "allocation failed.");
@@ -128,7 +131,7 @@ namespace gridtools {
          * @brief default constructor sets all the data members given the storage dimensions
          */
         template < typename Ret, typename T >
-        base_storage(MetaData const *meta_data_,
+        base_storage(pointer< const MetaData > meta_data_,
             Ret (*func)(T const &, T const &, T const &),
             char const *s = "storage initialized with lambda")
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
@@ -145,7 +148,8 @@ namespace gridtools {
          * wrap_pointer. In this way the storage destructor will not free the pointer.
          */
         template < typename FloatType >
-        explicit base_storage(MetaData const *meta_data_, FloatType *ptr, char const *s = "externally managed storage")
+        explicit base_storage(
+            pointer< const MetaData > meta_data_, FloatType *ptr, char const *s = "externally managed storage")
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< FloatType, value_type >::type::value),
                 "you passed in a pointer to the storage constructor which has a different type than the storage "

@@ -93,7 +93,6 @@ namespace gridtools {
         void clone_to_device() { assert(false); }
         void set_on_device() { assert(false); }
         void d2h_update() { assert(false); }
-        pointer< const storage_ptr_t > get_storage_pointer() const { assert(false); }
         void info(std::ostream &out_s) const {
             out_s << "No sorage type yet for storage type " << RegularStorageType() << "\n";
         }
@@ -137,17 +136,9 @@ namespace gridtools {
         const static ushort_t space_dimensions = BaseStorage::space_dimensions;
         const static ushort_t n_width = BaseStorage::n_width;
         // get the right pointer type to keep the base storage
-        typedef typename boost::mpl::if_< is_wrap_pointer< pointer_type >,
-            wrap_pointer< BaseStorage, false >,
-            typename boost::mpl::if_< is_hybrid_pointer< pointer_type >,
-                                              hybrid_pointer< BaseStorage, false >,
-                                              boost::mpl::void_ >::type >::type storage_ptr_t;
+        typedef pointer< BaseStorage > storage_ptr_t;
         // get the right pointer type to keep the meta data
-        typedef typename boost::mpl::if_< is_wrap_pointer< pointer_type >,
-            wrap_pointer< const storage_info_type, false >,
-            typename boost::mpl::if_< is_hybrid_pointer< pointer_type >,
-                                              hybrid_pointer< const storage_info_type, false >,
-                                              boost::mpl::void_ >::type >::type meta_data_ptr_t;
+        typedef pointer< const storage_info_type > meta_data_ptr_t;
 
       protected:
         meta_data_ptr_t m_meta_data;
@@ -161,17 +152,17 @@ namespace gridtools {
 
         void clone_to_device() {
 #ifdef _USE_GPU_
-            // if (!m_on_host)
-            //     return;
-            // clone meta dato to device
-            m_meta_data.update_gpu(); // useless if meta data is constexpr
-            // set the new meta data pointer in the storage
-            m_storage.set_on_host();
-            m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
-            // m_storage.set_on_host();
-            // m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
-            // update the storage itself
-            m_storage.update_gpu();
+// if (!m_on_host)
+//     return;
+// clone meta dato to device
+// m_meta_data.update_gpu(); // useless if meta data is constexpr
+// set the new meta data pointer in the storage
+// m_storage.set_on_host();
+// m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
+// m_storage.set_on_host();
+// m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
+// update the storage itself
+// m_storage.update_gpu();
 #endif
         }
 
@@ -180,13 +171,13 @@ namespace gridtools {
             if (m_on_host)
                 return;
             // no need to copy result back, just switch the pointers
-            m_meta_data.set_on_host();
+            // m_meta_data.set_on_host();
             // clone the storage itself from device
             // m_storage.update_cpu();
             // no need to copy result back, just switch the pointers
-            m_storage.set_on_host();
+            // m_storage.set_on_host();
             // set the new meta data pointer in the storage
-            (*m_storage).set_meta_data(m_meta_data.get_pointer_to_use());
+            (*m_storage).set_meta_data(m_meta_data.get());
             // clone storage contents from device
             (*m_storage).d2h_update();
             m_on_host = true;
@@ -197,15 +188,15 @@ namespace gridtools {
             if (!m_on_host)
                 return;
             // clone meta dato to device
-            m_storage.set_on_host();
-            m_meta_data.update_gpu();
+            // m_storage.set_on_host();
+            // m_meta_data.update_gpu();
             // m_meta_data.set_on_host();
             // set the new meta data pointer in the storage
-            (*m_storage).set_meta_data(m_meta_data.get_gpu_p());
+            (*m_storage).set_meta_data(m_meta_data.get());
             // clone storage contents to device
             (*m_storage).h2d_update();
-            // clone the storage itself to device
-            m_storage.update_gpu();
+            // // clone the storage itself to device
+            // m_storage.update_gpu();
             // set m_on_host to false
             m_on_host = false;
         }
@@ -217,21 +208,28 @@ namespace gridtools {
             return *m_meta_data;
         }
 
-        pointer< storage_info_type const > get_meta_data_cpu_pointer() const {
-            return pointer< storage_info_type const >(m_meta_data.get_cpu_p());
+        /** @brief returning the meta_data instance on the host
+        */
+        meta_data_ptr_t const &meta_data_ptr() const {
+            assert(m_on_host);
+            return m_meta_data;
         }
 
-        pointer< storage_info_type const > get_meta_data_cpu_pointer() {
-            return pointer< storage_info_type const >(m_meta_data.get_cpu_p());
-        }
+        // pointer< storage_info_type const > get_meta_data_cpu_pointer() const {
+        //     return pointer< storage_info_type const >(m_meta_data.get_cpu_p());
+        // }
 
-        pointer< storage_info_type const > get_meta_data_pointer() const {
-            return pointer< storage_info_type const >(m_meta_data.get_pointer_to_use());
-        }
+        // pointer< storage_info_type const > get_meta_data_cpu_pointer() {
+        //     return pointer< storage_info_type const >(m_meta_data.get_cpu_p());
+        // }
 
-        pointer< storage_info_type const > get_meta_data_pointer() {
-            return pointer< storage_info_type const >(m_meta_data.get_pointer_to_use());
-        }
+        // pointer< storage_info_type const > get_meta_data_pointer() const {
+        //     return pointer< storage_info_type const >(m_meta_data.get_pointer_to_use());
+        // }
+
+        // pointer< storage_info_type const > get_meta_data_pointer() {
+        //     return pointer< storage_info_type const >(m_meta_data.get_pointer_to_use());
+        // }
 
         pointer_type const &data() const {
             assert(m_on_host);
@@ -273,15 +271,10 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        pointer< storage_ptr_t > get_storage_pointer() { return pointer< storage_ptr_t >(&m_storage); }
-
-        GT_FUNCTION
         storage_ptr_t storage_pointer() { return m_storage; }
 
         GT_FUNCTION
-        pointer< const storage_ptr_t > get_storage_pointer() const {
-            return pointer< const storage_ptr_t >(&m_storage);
-        }
+        storage_ptr_t const &storage_pointer() const { return m_storage; }
 
         void print() {
             assert(m_on_host);
@@ -388,47 +381,44 @@ namespace gridtools {
         // forwarding constructor
         template < class... ExtraArgs >
         explicit storage(storage_info_type const &meta_data_, ExtraArgs... args)
-            : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), args...), false), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_)), m_storage(new BaseStorage(m_meta_data, args...)),
+              m_on_host(true) {}
 #else // CXX11_ENABLED
 
         explicit storage(storage_info_type const &meta_data_, const char *name_, bool do_allocate)
-            : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), name_, do_allocate), false), m_on_host(true) {
-        }
+            : m_meta_data(new storage_info_type(meta_data_)),
+              m_storage(new BaseStorage(m_meta_data, name_, do_allocate)), m_on_host(true) {}
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init)
-            : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, "default storage"), false),
-              m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_)),
+              m_storage(new BaseStorage(m_meta_data, init, "default storage")), m_on_host(true) {}
 
         explicit storage(storage_info_type const &meta_data_, value_type const &init, const char *name)
-            : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), init, name), false), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_)), m_storage(new BaseStorage(m_meta_data, init, name)),
+              m_on_host(true) {}
 
         template < typename Ret, typename T >
         explicit storage(storage_info_type const &meta_data_, Ret (*func)(T const &, T const &, T const &))
-            : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), func), false), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_)), m_storage(new BaseStorage(m_meta_data, func)),
+              m_on_host(true) {}
 
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg)
-            : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg), false), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_)), m_storage(new BaseStorage(m_meta_data, (FloatType *)arg)),
+              m_on_host(true) {}
 
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char *name)
-            : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use(), (FloatType *)arg, name), false),
-              m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_)),
+              m_storage(new BaseStorage(*m_meta_data, (FloatType *)arg, name)), m_on_host(true) {}
 
 #endif // CXX11_ENABLED
 
         /** @brief destructor freeing up the pointers to the storages
          */
         ~storage() {
-            m_storage.free_it();
-            m_meta_data.free_it();
+            m_storage.destroy();
+            m_meta_data.destroy();
         }
 
         /**@brief releasing the pointers to the data, and deleting them in case they need to be deleted */

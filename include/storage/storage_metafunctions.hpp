@@ -170,11 +170,11 @@ namespace gridtools {
         typedef typename ty::value_type storage_ty;
         GRIDTOOLS_STATIC_ASSERT((is_any_storage< storage_ty >::value || is_global_parameter< storage_ty >::value),
             "the passed pointer type does neither contain a storage- nor a global_parameter-type");
-        typedef typename storage_ty::storage_ptr_t storage_ptr_ty;
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_hybrid_pointer< storage_ptr_ty >::value || is_wrap_pointer< storage_ptr_ty >::value),
-            "the contained storage pointer type is neither a wrap nor a hybrid pointer type");
-        typedef pointer< storage_ptr_ty > type;
+        // typedef typename storage_ty::storage_ptr_t storage_ptr_ty;
+        // GRIDTOOLS_STATIC_ASSERT(
+        //     (is_hybrid_pointer< storage_ptr_ty >::value || is_wrap_pointer< storage_ptr_ty >::value),
+        //     "the contained storage pointer type is neither a wrap nor a hybrid pointer type");
+        typedef pointer< typename storage_ty::basic_type > type;
     };
 
     /** @brief metafunction class that is used to transform a fusion vector of pointer<storage<T>> into a
@@ -197,7 +197,7 @@ namespace gridtools {
         template < typename T >
         typename get_user_storage_ptrs_t< T >::type operator()(T &st) const {
             typedef typename get_user_storage_ptrs_t< T >::type ty;
-            return st->get_storage_pointer();
+            return st->storage_pointer();
         }
     };
 
@@ -216,7 +216,7 @@ namespace gridtools {
             T &st, typename boost::disable_if< is_global_parameter< typename T::value_type > >::type *a = 0) const {
             GRIDTOOLS_STATIC_ASSERT(is_any_storage< typename T::value_type >::value,
                 "passed object is neither a pointer<storage<T>> nor a pointer<global_parameter<T>>");
-            metadata_set.insert(st->get_meta_data_cpu_pointer());
+            metadata_set.insert(st->meta_data_ptr());
         }
 
         /** @brief overload for the case that the "storage" is a global_parameter. Skip the element in this case.

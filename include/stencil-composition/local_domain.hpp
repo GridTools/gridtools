@@ -83,8 +83,7 @@ namespace gridtools {
                 typedef typename boost::remove_reference<
                     typename boost::mpl::at< IndicesList, Id >::type >::type::index_type index_t;
 
-                boost::fusion::at_c< Id::value >(m_local_list) =
-                    boost::fusion::at_c< index_t::value >(m_arg_list)->get_cpu_p();
+                boost::fusion::at_c< Id::value >(m_local_list) = boost::fusion::at_c< index_t::value >(m_arg_list);
             }
         };
 
@@ -219,6 +218,7 @@ namespace gridtools {
             boost::mpl::push_back< boost::mpl::_1,
                 typename local_domain_aux::extract_types< StoragePointers >::template apply< boost::mpl::_2 > > >::type
             mpl_storages;
+
         /** creates a vector of storage types from the StoragePointers sequence */
         typedef typename boost::mpl::fold< domain_args_t,
             boost::mpl::vector0<>,

@@ -237,7 +237,7 @@ namespace gridtools {
         */
         GT_FUNCTION
         iterate_domain(const reduction_type_t &reduction_initial_value)
-            : iterate_domain_reduction_t(reduction_initial_value) {}
+            : iterate_domain_reduction_t(reduction_initial_value), m_index{0} {}
 
         /**
            @brief returns a single snapshot in the array of raw data pointers
@@ -351,7 +351,8 @@ namespace gridtools {
             specialization for the accessor placeholders for expressions
         */
         template < typename Accessor >
-        GT_FUNCTION void *get_data_pointer(expr_direct_access< Accessor > const &accessor) const {
+        GT_FUNCTION void *RESTRICT get_data_pointer(expr_direct_access< Accessor > const &accessor) const {
+
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return (
@@ -583,6 +584,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
+        assert(storage_pointer);
         typename storage_t::value_type *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
 

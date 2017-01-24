@@ -89,6 +89,9 @@ namespace gridtools {
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
             it_domain.set_const_iterate_domain_pointer_impl(&const_iterate_domain_);
 
+            typename ConstIterateDomain::data_pointer_array_t array_ = const_iterate_domain_.data_pointer();
+            it_domain.set_data_pointer_array(array_); // copy from const mem into registers
+
             __syncthreads();
 
             // computing the global position in the physical domain

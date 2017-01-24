@@ -143,20 +143,20 @@ namespace gridtools {
       private:
         Sequence &m_seq;
         typedef typename Arg::storage_ptr_t arg_ptr_t;
-        pointer< const arg_ptr_t > m_arg_ptr;
+        typename Arg::storage_ptr_t m_arg_ptr;
 
       public:
         GT_FUNCTION
-        insert_if_not_present(Sequence &seq_, Arg const &arg_) : m_seq(seq_), m_arg_ptr(arg_.get_storage_pointer()) {}
+        insert_if_not_present(Sequence &seq_, Arg const &arg_) : m_seq(seq_), m_arg_ptr(arg_.storage_pointer()) {}
 
         GT_FUNCTION
         void operator()() const {
             if (!m_seq.template present< pointer< const typename Arg::storage_info_type > >())
-                m_seq.insert((**m_arg_ptr).meta_data_ptr());
+                m_seq.insert((*m_arg_ptr).meta_data_ptr());
             else
                 assert(
                     *m_seq.template get< pointer< const typename Arg::storage_info_type > >() ==
-                        *(**m_arg_ptr).meta_data_ptr() &&
+                        *(*m_arg_ptr).meta_data_ptr() &&
                     "the passed storages contain different meta data (e.g., different dimension) which is not valid.");
         }
     };

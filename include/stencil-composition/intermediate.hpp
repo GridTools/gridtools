@@ -690,7 +690,7 @@ namespace gridtools {
             typedef boost::fusion::filter_view< actual_arg_list_type, is_temporary_storage< boost::mpl::_1 > >
                 view_type;
             view_type fview(m_actual_arg_list);
-            // boost::fusion::for_each(fview, _impl::delete_tmps());
+            boost::fusion::for_each(fview, _impl::delete_tmps());
         }
 
         /**

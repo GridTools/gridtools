@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 
 /**@file
    @brief file handling the access to the storage.
@@ -198,7 +199,7 @@ namespace gridtools {
            @brief returns the array of pointers to the raw data as const reference
         */
         GT_FUNCTION
-        data_pointer_array_t const &RESTRICT data_pointer() const {
+        data_pointer_array_t &RESTRICT data_pointer() const {
             return static_cast< const IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
@@ -263,7 +264,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void set_index(const int index) { set_index_recur< N_META_STORAGES - 1 >::set(index, m_index); }
+        void set_index(const int_t index) { set_index_recur< N_META_STORAGES - 1 >::set(index, m_index); }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
            \tparam Coordinate dimension being incremented
@@ -341,9 +342,9 @@ namespace gridtools {
            definitions)
         */
         template < typename Accessor >
-        GT_FUNCTION
-            typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
-            get_data_pointer(Accessor const &accessor) const {
+        GT_FUNCTION typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type,
+            const void * RESTRICT >::type
+        get_data_pointer(Accessor const &accessor) const {
 
             typedef typename Accessor::index_type index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
@@ -365,7 +366,7 @@ namespace gridtools {
             specialization for the accessor placeholders for expressions
         */
         template < typename Accessor >
-        GT_FUNCTION void *RESTRICT get_data_pointer(expr_direct_access< Accessor > const &accessor) const {
+        GT_FUNCTION const void *RESTRICT get_data_pointer(expr_direct_access< Accessor > const &accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
@@ -382,9 +383,9 @@ namespace gridtools {
             I.e., if we are dealing with  storage lists or data fields (see concepts page for definitions).
         */
         template < typename Accessor >
-        GT_FUNCTION
-            typename boost::enable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
-            get_data_pointer(Accessor const &accessor) const {
+        GT_FUNCTION typename boost::enable_if< typename accessor_holds_data_field< Accessor >::type,
+            const void * RESTRICT >::type
+        get_data_pointer(Accessor const &accessor) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
@@ -526,7 +527,7 @@ namespace gridtools {
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
            expression)*/
         template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int int_argument >
-        GT_FUNCTION auto operator()(Expression< Argument, int_argument > arg) const
+        GT_FUNCTION auto operator()(Expression< Argument, int_argument > const &arg) const
             -> decltype(expressions::evaluation::value((*this), arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, int_argument > >::value), "invalid expression");
@@ -554,7 +555,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
         assert(storage_pointer);
-        typename storage_t::value_type *RESTRICT real_storage_pointer =
+        typename storage_t::value_type const *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
 
         assert(real_storage_pointer);
@@ -636,7 +637,7 @@ namespace gridtools {
             "defining the placeholder.");
 
         // casting the storage pointer from void* to the sotrage value_type
-        typename storage_t::value_type *RESTRICT real_storage_pointer =
+        typename storage_t::value_type const *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
 
         // returning the value without adding the m_index

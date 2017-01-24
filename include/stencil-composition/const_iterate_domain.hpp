@@ -91,7 +91,8 @@ namespace gridtools {
         strides_t const &strides() const { return m_strides; }
         GT_FUNCTION
         dims_t const &dims() const { return m_dims; }
-        GT_FUNCTION
+
+        // accessed only on host
         data_pointer_array_t &data_pointer() { return m_data_pointer; }
 
       private:

@@ -104,12 +104,14 @@ namespace gridtools {
         const uint_t m_block_size_j;
         shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
         const_iterate_domain_t const *RESTRICT m_pconst_iterate_domain;
+        typename const_iterate_domain_t::data_pointer_array_t *m_data_pointer_array;
 
       public:
         GT_FUNCTION
         explicit iterate_domain_cuda(
             const reduction_type_t &reduction_initial_value, const uint_t block_size_i, const uint_t block_size_j)
-            : super(reduction_initial_value), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
+            : super(reduction_initial_value), m_block_size_i(block_size_i), m_block_size_j(block_size_j),
+              m_data_pointer_array{NULL} {}
 
         GT_FUNCTION
         uint_t thread_position_x() const { return threadIdx.x; }
@@ -164,9 +166,15 @@ namespace gridtools {
         void set_const_iterate_domain_pointer_impl(const_iterate_domain_t const *ptr) { m_pconst_iterate_domain = ptr; }
 
         GT_FUNCTION
-        data_pointer_array_t const &RESTRICT data_pointer_impl() const {
+        void set_data_pointer_array(typename const_iterate_domain_t::data_pointer_array_t &array_) {
             //        assert(m_pshared_iterate_domain);
-            return m_pconst_iterate_domain->data_pointer();
+            m_data_pointer_array = &array_; // copy
+        }
+
+        GT_FUNCTION
+        data_pointer_array_t &RESTRICT data_pointer_impl() const {
+            //        assert(m_pshared_iterate_domain);
+            return *m_data_pointer_array;
         }
 
         // GT_FUNCTION

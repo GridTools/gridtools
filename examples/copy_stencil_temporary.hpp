@@ -140,7 +140,7 @@ namespace copy_stencil_temporary {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< copy_functor1 >(p_in(), p_tmp()),
-                    gridtools::make_stage< copy_functor1 >(p_tmp(), p_out())));
+                    gridtools::make_stage< copy_functor2 >(p_tmp(), p_out())));
 
         copy->ready();
 
