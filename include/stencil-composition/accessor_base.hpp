@@ -51,11 +51,6 @@
 #include "../common/offset_tuple_mixed.hpp"
 #include "extent.hpp"
 #include "arg_fwd.hpp"
-
-#ifdef CXX11_ENABLED
-// TODO MYMERGE REMOVE
-#include "stencil-composition/expressions/expressions.hpp"
-#endif
 #include "dimension_fwd.hpp"
 
 namespace gridtools {
@@ -155,10 +150,6 @@ namespace gridtools {
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
             : m_offsets(other.offsets()) {}
-
-        // TODO MYMERGE remove
-        GT_FUNCTION
-        constexpr accessor_base(const int_t &x) : m_offsets(x) {}
 
 /**@brief constructor taking the dimension class as argument.
    This allows to specify the extra arguments out of order. Note that 'dimension' is a

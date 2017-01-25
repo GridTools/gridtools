@@ -122,7 +122,6 @@ namespace gridtools {
         /**
          * metafunction that determines if a given accessor is associated with an arg that is cached
          */
-        // TODO MYMERGE RENAME TO cached
         template < typename Accessor >
         struct cache_access_accessor {
             typedef typename accessor_is_cached< Accessor, all_caches_t >::type type;

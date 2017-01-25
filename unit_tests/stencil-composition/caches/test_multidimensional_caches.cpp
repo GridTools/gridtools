@@ -59,8 +59,7 @@ namespace test_multidimensional_caches {
         GRIDTOOLS_STATIC_ASSERT(m_.value().dim(4) == 7, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.value().dim(5) == 4, "error");
 
-        // TODO MYMERGE
-        //#ifndef __CUDACC__ // compiler internal catastrophic error until CUDA8
+#ifndef __CUDACC__ // compiler internal catastrophic error until CUDA8
         // for the layout_map::find_val (bug report)
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(1, 0, 0, 0, 0, 0)) == 1, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(2, 0, 0, 0, 0, 0)) == 2, "error");
@@ -98,7 +97,7 @@ namespace test_multidimensional_caches {
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 0, 0, 0, 1)) == 420 * 7, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 0, 0, 0, 2)) == 420 * 7 * 2, "error");
         GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 0, 0, 0, 3)) == 420 * 7 * 3, "error");
-//#endif
+#endif
 #endif
         return 0;
     }
