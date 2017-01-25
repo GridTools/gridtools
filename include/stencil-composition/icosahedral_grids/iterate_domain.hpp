@@ -455,7 +455,7 @@ namespace gridtools {
             // i+offset_i or j+offset_j or k+offset_k is too large.
             // Most probably this is due to you specifying a positive offset which is larger than expected,
             // or maybe you did a mistake when specifying the extents in the placehoders definition
-            assert((int)metadata_->size() > (m_index[metadata_index_t::value]));
+            assert((int_t)metadata_->size() > (m_index[metadata_index_t::value]));
 
             // the following assert fails when an out of bound access is observed,
             // i.e. when some offset is negative and either one of
@@ -474,7 +474,7 @@ namespace gridtools {
                 (m_index[metadata_index_t::value]) +
                 metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
-            assert((int)metadata_->size() > pointer_offset);
+            assert((int_t)metadata_->size() > pointer_offset);
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
                     typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
@@ -507,7 +507,7 @@ namespace gridtools {
             pointer< const typename storage_type::storage_info_type > const metadata_ =
                 boost::fusion::at< metadata_index_t >(m_local_domain.m_local_metadata);
 
-            assert((int)metadata_->size() > offset);
+            assert((int_t)metadata_->size() > offset);
 #endif
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
