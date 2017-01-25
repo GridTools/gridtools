@@ -119,6 +119,11 @@
 #endif
 #endif
 
+// max limit of indices for metastorages, beyond indices are reserved for library
+#ifndef META_STORAGE_INDEX_LIMIT
+#define META_STORAGE_INDEX_LIMIT 1000
+#endif
+
 #if defined(_OPENMP)
 #include <omp.h>
 #else
@@ -194,7 +199,7 @@ namespace gridtools {
 #else
         static const unsigned int vector_width = 4;
 #endif
-        static const unsigned int metastorage_library_indices_limit = 1000;
+        static const unsigned int metastorage_library_indices_limit = META_STORAGE_INDEX_LIMIT;
 
     } // namespace enumtype
 
