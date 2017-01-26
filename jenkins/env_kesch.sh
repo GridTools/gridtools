@@ -1,6 +1,17 @@
 #/bin/bash
 
-module load PrgEnv-gnu
+if [[ -z ${VERSION} ]]; then
+  VERSION="5.3"
+fi
+
+if [[ ${VERSION} == "5.3" ]] && [[ "${TARGET}" != "gpu" ]]; then
+  module unload GCC/4.9.3-binutils-2.25
+  module load mvapich2gdr_gnu/2.1_cuda_7.0
+  module load GCC/5.3.0-binutils-2.25
+else
+  module load PrgEnv-gnu
+fi
+
 #we need a decent cmake version in order to pass the HOST_COMPILER to nvcc
 module load CMake/3.3.2 
 #module load python/3.4.3

@@ -63,7 +63,7 @@ namespace gridtools {
         constexpr accessor() : super() {}
 
         /**inheriting all constructors from offset_tuple*/
-        using super::accessor_base;
+        using accessor_base< ID, Intend, Extent, FieldDimensions >::accessor_base;
 
         GT_FUNCTION
         constexpr explicit accessor(array< int_t, FieldDimensions > const &offsets) : super(offsets) {}

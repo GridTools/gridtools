@@ -54,7 +54,7 @@ fi
 
 slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test.${RANDOM}"
 cp ${JENKINSPATH}/submit.${myhost}.slurm ${slurm_script}
-cmd="srun --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
+cmd="srun --exclusive --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 /bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
 
@@ -77,7 +77,7 @@ fi
 
 export CUDA_AUTO_BOOST=0; export GCLOCK=875;
 
-bash ${JENKINSPATH}/monitorjobid `export CUDA_AUTO_BOOST=0; export GCLOCK=875; sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
+bash ${JENKINSPATH}/monitorjobid `export CUDA_AUTO_BOOST=0; export GCLOCK=875; sbatch --exclusive ${slurm_script} | gawk '{print $4}'` $maxsleep
 
 rm ${slurm_script}
 

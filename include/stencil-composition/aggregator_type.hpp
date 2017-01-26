@@ -219,10 +219,11 @@ namespace gridtools {
             boost::fusion::at< typename ArgStoragePair0::arg_type::index_type >(m_storage_pointers) = arg0.ptr;
             // storing the value of the pointers in a 'backup' fusion vector
             boost::fusion::at< typename ArgStoragePair0::arg_type::index_type >(m_original_pointers) = arg0.ptr;
-            if (!sequence_
-                     .template present< pointer< const typename ArgStoragePair0::storage_type::storage_info_type > >())
-                sequence_.insert(pointer< const typename ArgStoragePair0::storage_type::storage_info_type >(
-                    &(arg0.ptr->meta_data())));
+            if (!sequence_.template present< pointer<
+                     const typename extract_storage_info_type< typename ArgStoragePair0::storage_type >::type > >())
+                sequence_.insert(
+                    pointer< const typename extract_storage_info_type< typename ArgStoragePair0::storage_type >::type >(
+                        &(extract_meta_data(arg0.ptr))));
             assign_pointers(sequence_, other_args...);
         }
 

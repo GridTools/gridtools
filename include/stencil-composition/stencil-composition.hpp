@@ -46,7 +46,6 @@
 #include "stencil-composition/make_computation.hpp"
 #endif
 #include "stencil-composition/stencil.hpp"
-#include "stencil-composition/axis.hpp"
 #include "stencil-composition/grid.hpp"
 #include "stencil-composition/grid_traits.hpp"
 
