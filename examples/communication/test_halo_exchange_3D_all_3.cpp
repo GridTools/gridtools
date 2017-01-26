@@ -50,6 +50,7 @@
 
 #include "triplet.hpp"
 
+#include "../../unit_tests/communication/device_binding.hpp"
 
 namespace halo_exchange_3D_all_3 {
     int pid;
@@ -652,6 +653,13 @@ namespace halo_exchange_3D_all_3 {
 
 #ifdef STANDALONE
 int main(int argc, char** argv) {
+#ifdef _USE_GPU_
+    device_binding();
+#endif
+
+    MPI_Init(&argc, &argv);
+    gridtools::GCL_Init(argc, argv);
+
     if (argc != 10) {
         std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz halo1minus halo1plus halo2minus halo2plus halo3minus halo3plus\n where args are integer sizes of the data "
             "fields and halo width"
@@ -670,6 +678,8 @@ int main(int argc, char** argv) {
     int H3p = atoi(argv[9]);
 
     halo_exchange_3D_all_3::test(DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p);
+
+    MPI_Finalize();
 }
 #else
 TEST(Communication, test_halo_exchange_3D_all_3) {

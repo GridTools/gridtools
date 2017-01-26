@@ -33,10 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "../../unit_tests/communication/check_flags.hpp"
 #include <mpi.h>
-#if __CUDACC__
-#include "cuda.h"
-#endif
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -46,7 +44,12 @@
 #include <common/layout_map.hpp>
 #include <common/boollist.hpp>
 #include <sys/time.h>
+
 #include "gtest/gtest.h"
+
+#include "triplet.hpp"
+
+#include "../../unit_tests/communication/device_binding.hpp"
 
 namespace halo_exchange_3D_all_2 {
     int pid;
@@ -72,8 +75,6 @@ namespace halo_exchange_3D_all_2 {
 #else
     typedef gridtools::gcl_cpu arch_type;
 #endif
-
-#include "triplet.hpp"
 
     template < typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2 >
     bool run(ST &file,
@@ -628,6 +629,13 @@ namespace halo_exchange_3D_all_2 {
 
 #ifdef STANDALONE
 int main(int argc, char** argv) {
+#ifdef _USE_GPU_
+    device_binding();
+#endif
+
+    MPI_Init(&argc, &argv);
+    gridtools::GCL_Init(argc, argv);
+
     if (argc != 7) {
         std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz dim_halo1 dim_halo2 din_halo3\n where args are integer sizes of the data fields and halo width"
                   << std::endl;
@@ -642,6 +650,9 @@ int main(int argc, char** argv) {
     int H3 = atoi(argv[6]);
 
     halo_exchange_3D_all_2::test(DIM1, DIM2, DIM3, H1, H2, H3);
+
+
+    MPI_Finalize();
 }
 #else
 TEST(Communication, test_halo_exchange_3D_all_2) {
