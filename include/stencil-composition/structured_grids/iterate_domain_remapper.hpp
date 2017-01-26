@@ -195,7 +195,7 @@ namespace gridtools {
                 super;
 
             GT_FUNCTION
-            explicit positional_iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
+            explicit positional_iterate_domain_remapper(IterateDomain &iterate_domain) : super(iterate_domain) {}
 
             GT_FUNCTION
             uint_t i() const { return this->m_iterate_domain.i(); }
