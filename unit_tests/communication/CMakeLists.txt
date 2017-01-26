@@ -10,7 +10,7 @@ add_custom_host_test(ndloops ndloops.cpp ${CMAKE_CXX_FLAGS} ${exe_LIBS})
 if( NOT GCL_ONLY )
     if( USE_MPI )
         set(ccflags " ${HOST_SPECIFIC_OPTIONS}" )
-        set(ldflags " ${MPI_ADDITIONAL_LIBS}")
+        set(ldflags " ")
 
         add_custom_mpi_host_test(halo_exchange_3D halo_exchange_3D.cpp ${ccflags} ${ldflags})
         add_custom_mpi_host_test(halo_exchange_3D_all ${CMAKE_CURRENT_SOURCE_DIR}/../../examples/communication/test_halo_exchange_3D_all.cpp ${ccflags} ${ldflags})
@@ -21,7 +21,7 @@ if( NOT GCL_ONLY )
 
         if ( USE_GPU )
             set(ccflags " ")
-            set(ldflags "${exe_LIBS}")
+            set(ldflags " ")
 
             add_custom_mpi_gpu_test(cuda_halo_exchange_3D_all ${CMAKE_CURRENT_SOURCE_DIR}/../../examples/communication/test_halo_exchange_3D_all.cu ${ccflags} ${ldflags})
             add_custom_mpi_gpu_test(cuda_halo_exchange_3D_all_2 ${CMAKE_CURRENT_SOURCE_DIR}/../../examples/communication/test_halo_exchange_3D_all_2.cu ${ccflags} ${ldflags})
