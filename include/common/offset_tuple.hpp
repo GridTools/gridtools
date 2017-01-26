@@ -38,7 +38,7 @@
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/find.hpp>
 #include "defs.hpp"
-#include "../stencil-composition/dimension.hpp"
+#include "dimension.hpp"
 #include "generic_metafunctions/logical_ops.hpp"
 #include "generic_metafunctions/variadic_to_vector.hpp"
 #include "generic_metafunctions/accumulate.hpp"

@@ -41,4 +41,3 @@ export USE_MPI_COMPILER=ON
 export MPI_NODES=1
 export MPI_TASKS=4
 export CXX=`which g++`
-

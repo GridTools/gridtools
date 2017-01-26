@@ -78,7 +78,7 @@
    \endverbatim
 
 */
-#include "get_data_field_index.hpp"
+#include "../get_data_field_index.hpp"
 
 namespace gridtools {
 

@@ -156,7 +156,7 @@ namespace gridtools {
    language keyword used at the interface level.
 */
 #if defined(CXX11_ENABLED)
-        template < typename... Indices, typename Dummy = all_accessor_ctr_args< Indices... > >
+        template < typename... Indices, typename Dummy = all_integers< Indices... > >
         GT_FUNCTION constexpr accessor_base(Indices... x)
             : m_offsets(x...) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
