@@ -91,7 +91,8 @@ if( USE_GPU )
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
-  set(exe_LIBS  "-L. ${CUDA_CUDART_LIBRARY};${exe_LIBS}" )
+  set(exe_LIBS  ${exe_LIBS} ${CUDA_CUDART_LIBRARY} )
+  set (CUDA_LIBRARIES "")
   # adding the additional nvcc flags
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-arch=${CUDA_ARCH}" "-Xcudafe" "--diag_suppress=dupl_calling_convention")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe")
@@ -129,7 +130,6 @@ endif(ENABLE_PERFORMANCE_METERS)
 # always use fopenmp and lpthread as cc/ld flags
 # be careful! deleting this flags impacts performance
 # (even on single core and without pragmas).
-set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
 set ( exe_LIBS -lpthread ${exe_LIBS} )
 
 ## papi wrapper ##
