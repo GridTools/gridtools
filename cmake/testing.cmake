@@ -146,8 +146,6 @@ function(add_custom_mpi_gpu_test name sources cc_flags ld_flags)
     set(exe ${CMAKE_CURRENT_BINARY_DIR}/${name})
     # create the test
     #set(CUDA_SEPARABLE_COMPILATION OFF)
-    message ("GPU_SPECIFIC_FLAGS ${GPU_SPECIFIC_FLAGS}")
-    message (exe_LIBS "${exe_LIBS}")
     cuda_add_executable (${name} ${sources} OPTIONS ${GPU_SPECIFIC_FLAGS} ${cc_flags})
     target_link_libraries(${name} ${exe_LIBS} mpi_gtest_main)
     gridtools_add_cuda_mpi_test(${name} ${exe})
