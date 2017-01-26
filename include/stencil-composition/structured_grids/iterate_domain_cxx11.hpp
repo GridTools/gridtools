@@ -199,7 +199,7 @@ namespace gridtools {
            @brief returns the array of pointers to the raw data as const reference
         */
         GT_FUNCTION
-        data_pointer_array_t &RESTRICT data_pointer() const {
+        data_pointer_array_t const &RESTRICT data_pointer() const {
             return static_cast< const IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
@@ -342,9 +342,9 @@ namespace gridtools {
            definitions)
         */
         template < typename Accessor >
-        GT_FUNCTION typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type,
-            const void * RESTRICT >::type
-        get_data_pointer(Accessor const &accessor) const {
+        GT_FUNCTION
+            typename boost::disable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
+            get_data_pointer(Accessor const &accessor) const {
 
             typedef typename Accessor::index_type index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
@@ -366,7 +366,7 @@ namespace gridtools {
             specialization for the accessor placeholders for expressions
         */
         template < typename Accessor >
-        GT_FUNCTION const void *RESTRICT get_data_pointer(expr_direct_access< Accessor > const &accessor) const {
+        GT_FUNCTION void *RESTRICT get_data_pointer(expr_direct_access< Accessor > const &accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
@@ -383,9 +383,9 @@ namespace gridtools {
             I.e., if we are dealing with  storage lists or data fields (see concepts page for definitions).
         */
         template < typename Accessor >
-        GT_FUNCTION typename boost::enable_if< typename accessor_holds_data_field< Accessor >::type,
-            const void * RESTRICT >::type
-        get_data_pointer(Accessor const &accessor) const {
+        GT_FUNCTION
+            typename boost::enable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
+            get_data_pointer(Accessor const &accessor) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
@@ -555,8 +555,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
         assert(storage_pointer);
-        typename storage_t::value_type const *RESTRICT real_storage_pointer =
-            static_cast< typename storage_t::value_type * >(storage_pointer);
+        typename storage_t::value_type *RESTRICT real_storage_pointer =
+            static_cast< typename storage_t::value_type * RESTRICT >(storage_pointer);
 
         assert(real_storage_pointer);
         // getting information about the metadata
@@ -638,7 +638,7 @@ namespace gridtools {
 
         // casting the storage pointer from void* to the sotrage value_type
         typename storage_t::value_type const *RESTRICT real_storage_pointer =
-            static_cast< typename storage_t::value_type * >(storage_pointer);
+            static_cast< typename storage_t::value_type * RESTRICT >(storage_pointer);
 
         // returning the value without adding the m_index
         return *(real_storage_pointer +
