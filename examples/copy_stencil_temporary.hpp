@@ -80,6 +80,21 @@ namespace copy_stencil_temporary {
         }
     };
 
+    struct verify_functor {
+
+        typedef accessor< 0, enumtype::in, extent<>, 3 > in;
+        typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            // std::cout <<eval(out()) << " =1= " << eval(in()) << "\n ";
+
+            if (eval(out()) != eval(in()))
+                printf("error, %f != %f\n", eval(in()), eval(out()));
+        }
+    };
+
     bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
 
         uint_t d1 = x;
@@ -140,7 +155,8 @@ namespace copy_stencil_temporary {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     gridtools::make_stage< copy_functor1 >(p_in(), p_tmp()),
-                    gridtools::make_stage< copy_functor2 >(p_tmp(), p_out())));
+                    gridtools::make_stage< copy_functor2 >(p_tmp(), p_out()),
+                    gridtools::make_stage< verify_functor >(p_in(), p_out())));
 
         copy->ready();
 

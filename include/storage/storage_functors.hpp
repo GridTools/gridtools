@@ -134,7 +134,7 @@ namespace gridtools {
             if (s.get()) {
                 // update pointer should not copy the data!!
                 copy_data_impl< StorageType >(s);
-                s->clone_to_device();
+                // s->clone_to_device();
             }
         }
 
@@ -149,7 +149,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaDataType >::value), "type error");
             if (s.get()) {
-                s->clone_to_device();
+                // s->clone_to_device();
             }
         }
 

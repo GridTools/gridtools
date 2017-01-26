@@ -145,9 +145,12 @@ If you are not using generic accessors then you are using an unsupported storage
         template < typename ID, typename Storage_ >
         GT_FUNCTION void impl(
             typename boost::enable_if_c< is_any_storage< Storage_ >::type::value >::type *t = 0) const {
-            // TODO Add assert for m_storage->template access_value<ID>()
-            // BackendType::template once_per_block< ID::value, PEBlockSize >::assign(
-            //     m_data_pointer_array[Offset + ID::value], m_storage->template access_value< ID >() + m_offset);
+// TODO Add assert for m_storage->template access_value<ID>()
+// BackendType::template once_per_block< ID::value, PEBlockSize >::assign(
+//     m_data_pointer_array[Offset + ID::value], m_storage->template access_value< ID >() + m_offset);
+#ifdef __CUDACC__
+            assert(m_offset == 0);
+#endif
             m_data_pointer_array[Offset + ID::value] =
                 static_cast< typename Storage_::value_type * >(m_storage->template access_value< ID >() + m_offset);
         }

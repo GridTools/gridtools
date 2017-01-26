@@ -110,7 +110,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< Elem >::value), "Internal Error: wrong type");
 
                 elem.init(m_arg_ptr_list, m_meta_storages.sequence_view(), 0, 0, 0);
-                elem.clone_to_device();
+                // elem.clone_to_device();
             }
 
           private:
@@ -657,6 +657,17 @@ namespace gridtools {
         */
         virtual void steady() {
             if (is_storage_ready) {
+
+                // in this stage, all storages (including tmp storages) should be instantiated.
+                // following line is extracting the wrapped storages (that can be used on both
+                // device and host) from the user storage.
+                m_actual_arg_ptr_list = boost::fusion::transform(m_actual_arg_list, get_user_storage_ptrs());
+
+                boost::fusion::for_each(m_mss_local_domain_list,
+                    _impl::instantiate_mss_local_domain< actual_arg_ptr_list_type,
+                                            actual_metadata_list_type,
+                                            IsStateful >(m_actual_arg_ptr_list, m_actual_metadata_list));
+
                 setup_computation< Backend::s_backend_id >::apply(m_actual_arg_list, m_actual_metadata_list, m_domain);
 #ifdef VERBOSE
                 printf("Setup computation\n");
@@ -665,15 +676,6 @@ namespace gridtools {
                 printf("Setup computation FAILED\n");
                 exit(GT_ERROR_NO_TEMPS);
             }
-
-            // in this stage, all storages (including tmp storages) should be instantiated.
-            // following line is extracting the wrapped storages (that can be used on both
-            // device and host) from the user storage.
-            m_actual_arg_ptr_list = boost::fusion::transform(m_actual_arg_list, get_user_storage_ptrs());
-
-            boost::fusion::for_each(m_mss_local_domain_list,
-                _impl::instantiate_mss_local_domain< actual_arg_ptr_list_type, actual_metadata_list_type, IsStateful >(
-                                        m_actual_arg_ptr_list, m_actual_metadata_list));
 
 #ifdef VERBOSE
             m_domain.info();
