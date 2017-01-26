@@ -16,8 +16,8 @@ endif()
 # 4) build configurator (include path, compiler flags, etc.
 # ===============
 include (flags)
-include (testing)
 include (definitions)
+include (testing)
 
 # ===============
 # library header files
@@ -25,10 +25,11 @@ include (definitions)
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/communication" )
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/communication/high-level" )
+
 if( USE_MPI )
-   if ( NOT USE_MPI_COMPILER )
+   if ( USE_MPI_COMPILER )
      include_directories( "${MPI_CXX_INCLUDE_PATH}" )
-     set( exe_LIBS ${exe_LIBS} ${MPI_CXX_LIBRARIES} )
+     set( exe_LIBS  ${MPI_CXX_LIBRARIES} ${exe_LIBS} )
   endif()
 endif()
 
@@ -39,17 +40,6 @@ add_library( gcl src/GCL.cpp include/communication/GCL.hpp include/communication
 set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}")
 set(exe_LIBS ${exe_LIBS} gcl)
 
-# ===============
-if( NOT GCL_ONLY )
-    if( USE_MPI )
-        if ( USE_GPU )
-            include_directories ( "${CUDA_INCLUDE_DIRS}" )
-        endif()
-        add_library( mpi_gtest_main unit_tests/communication/mpi_test_driver.cpp )
-        set_target_properties(mpi_gtest_main PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}" )
-        target_link_libraries(mpi_gtest_main ${exe_LIBS} )
-    endif()
-endif()
 # ===============
 
 # ===============
