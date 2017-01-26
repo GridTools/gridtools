@@ -8,7 +8,7 @@ function exit_if_error {
     fi
 }
 
-
+module load CMake
 module load cudatoolkit/8.0.34_2.2.5_g8ce7a9a-2.1
 export BOOST_ROOT=/project/csstaff/mbianco/boost_1_62_0
 module rm   PrgEnv-cray
@@ -51,5 +51,5 @@ export MPI_CUDA_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST; export MPICH_R
 export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
-export USE_MPI_COMPILER=ON
+export USE_MPI_COMPILER=OFF
 export HOST_COMPILER=CC
