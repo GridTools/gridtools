@@ -39,18 +39,9 @@
 #include "esf_metafunctions.hpp"
 #include "mss_metafunctions.hpp"
 #include "./linearize_mss_functions.hpp"
+#include "functor_decorator.hpp"
 
 namespace gridtools {
-
-    /**
-       @brief MPL pair wrapper with more meaningful type names for the specific use case.
-    */
-    template < typename T1, typename T2, typename Repeat >
-    struct functor_id_pair {
-        typedef Repeat repeat_t;
-        typedef T1 id;
-        typedef T2 f_type;
-    };
 
     /**
      * @brief the mss components contains meta data associated to a mss descriptor.
@@ -98,12 +89,13 @@ namespace gridtools {
           times in an MSS both as dependent or independent, we cannot use the plain functor type as key for the
           abovementioned map, and we need to attach a unique index to its type.
         */
-        typedef typename boost::mpl::fold<
-            boost::mpl::range_c< ushort_t, 0, boost::mpl::size< functors_seq_t >::value >,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1,
-                functor_id_pair< boost::mpl::_2, boost::mpl::at< functors_seq_t, boost::mpl::_2 >, RepeatFunctor > > >::
-            type functors_list_t;
+        typedef
+            typename boost::mpl::fold< boost::mpl::range_c< ushort_t, 0, boost::mpl::size< functors_seq_t >::value >,
+                boost::mpl::vector0<>,
+                boost::mpl::push_back< boost::mpl::_1,
+                                           functor_decorator< boost::mpl::_2,
+                                               boost::mpl::at< functors_seq_t, boost::mpl::_2 >,
+                                               RepeatFunctor > > >::type functors_list_t;
 
         typedef ExtentSizes extent_sizes_t;
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;

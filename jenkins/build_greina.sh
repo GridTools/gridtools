@@ -32,7 +32,7 @@ INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
-VERSION="4.9"
+VERSION_="5.3"
 
 while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
     case "$opt" in
@@ -42,7 +42,7 @@ while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
         ;;
     b) BUILD_TYPE=$OPTARG
         ;;
-    t) TARGET=$OPTARG
+    t) TARGET_=$OPTARG
         ;;
     f) FLOAT_TYPE=$OPTARG
         ;;
@@ -66,23 +66,25 @@ while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
         ;;
     q) QUEUE=$OPTARG
         ;;
-    x) VERSION=$OPTARG
+    x) VERSION_=$OPTARG
         ;;
     esac
 done
 
-if [[ "$VERSION"  != "4.9" ]] && [[ "$VERSION" != "5.3" ]]; then
-    echo "VERSION $VERSION not supported"
+if [[ "$VERSION_"  != "4.9" ]] && [[ "$VERSION_" != "5.3" ]]; then
+    echo "VERSION $VERSION_ not supported"
     help
 fi
+export VERSION=${VERSION_}
 
 if [[ "$BUILD_TYPE" != "debug" ]] && [[ "$BUILD_TYPE" != "release" ]]; then
    help
 fi
 
-if [[ "$TARGET" != "gpu" ]] && [[ "$TARGET" != "cpu" ]]; then
+if [[ "$TARGET_" != "gpu" ]] && [[ "$TARGET_" != "cpu" ]]; then
    help
 fi
+export TARGET=${TARGET_}
 
 if [[ "$FLOAT_TYPE" != "float" ]] && [[ "$FLOAT_TYPE" != "double" ]]; then
    help
@@ -90,11 +92,6 @@ fi
 
 if [[ "$CXX_STD" != "cxx11" ]] && [[ "$CXX_STD" != "cxx03" ]]; then
    help
-fi
-
-if [[ "$TARGET"  == "gpu" ]] && [[ "$VERSION" != "4.9" ]]; then
-    echo "VERSION $VERSION not supported for gpu"
-    help
 fi
 
 echo $@
@@ -165,10 +162,6 @@ if [[ ${COMPILER} == "gcc" ]] ; then
 elif [[ ${COMPILER} == "clang" ]] ; then
     HOST_COMPILER=`which clang++`
     ADDITIONAL_FLAGS="-ftemplate-depth=1024"
-    if [[ ${USE_GPU} == "ON" ]]; then
-       echo "Clang not supported with nvcc"
-       exit_if_error 334
-    fi
 else
     echo "COMPILER ${COMPILER} not supported"
     exit_if_error 333

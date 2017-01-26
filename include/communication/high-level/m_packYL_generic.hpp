@@ -168,23 +168,20 @@ void m_packYL_generic(array_t const &fields, typename array_t::value_type::value
 
         if (nbx != 0 && nby != 0 && nbz != 0) {
             // the actual kernel launch
-            // clang-format off
-        m_packYLKernel_generic<<<blocks, threads, 0, YL_stream>>>
-        (fields[i].ptr,
-         reinterpret_cast<typename array_t::value_type::value_type**>(d_msgbufTab),
-         wrap_argument(d_msgsize+27*i),
-         *(reinterpret_cast<const gridtools::array<gridtools::halo_descriptor,3>*>(&fields[i])),
-         nx,
-         nz,
-         0);
+            m_packYLKernel_generic<<< blocks, threads, 0, YL_stream >>>(fields[i].ptr,
+                reinterpret_cast< typename array_t::value_type::value_type ** >(d_msgbufTab),
+                wrap_argument(d_msgsize + 27 * i),
+                *(reinterpret_cast< const gridtools::array< gridtools::halo_descriptor, 3 > * >(&fields[i])),
+                nx,
+                nz,
+                0);
 #ifdef CUDAMSG
-      int err = cudaGetLastError();
-      if(err != cudaSuccess){
-        printf("KLF in %s\n", __FILE__);
-        exit(-1);
-      }
+            int err = cudaGetLastError();
+            if (err != cudaSuccess) {
+                printf("KLF in %s\n", __FILE__);
+                exit(-1);
+            }
 #endif
-      // clang-format on
         }
     }
 

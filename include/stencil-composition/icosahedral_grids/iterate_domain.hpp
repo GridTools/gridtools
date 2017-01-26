@@ -44,6 +44,7 @@
 #include "common/generic_metafunctions/variadic_typedef.hpp"
 #include "common/array.hpp"
 #include "../../common/explode_array.hpp"
+#include "../../storage/expandable_parameters.hpp"
 #include "common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 #include "stencil-composition/total_storages.hpp"
@@ -51,6 +52,7 @@
 #include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../get_data_field_index.hpp"
 
 namespace gridtools {
 
@@ -101,6 +103,15 @@ namespace gridtools {
 
         typedef typename local_domain_t::storage_metadata_map metadata_map_t;
         typedef typename local_domain_t::actual_args_type actual_args_type;
+
+        //*****************
+        /**
+         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
+         */
+        template < typename Accessor >
+        struct accessor_holds_data_field
+            : arg_holds_data_field_h<
+                  typename get_arg_from_accessor< Accessor, iterate_domain_arguments_t >::type >::type {};
 
         // the number of different storage metadatas used in the current functor
         static const uint_t N_META_STORAGES = boost::mpl::size< metadata_map_t >::value;
@@ -325,7 +336,9 @@ namespace gridtools {
             typename LocationType,
             typename Extent,
             ushort_t FieldDimensions >
-        GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Extent, FieldDimensions > >::type
+        GT_FUNCTION typename boost::disable_if<
+            accessor_holds_data_field< accessor< ID, intend, LocationType, Extent, FieldDimensions > >,
+            typename accessor_return_type< accessor< ID, intend, LocationType, Extent, FieldDimensions > >::type >::type
         operator()(accessor< ID, intend, LocationType, Extent, FieldDimensions > const &accessor_) const {
             typedef accessor< ID, intend, LocationType, Extent, FieldDimensions > accessor_t;
             return get_value(accessor_,
@@ -354,6 +367,54 @@ namespace gridtools {
             }
 
             return result;
+        }
+
+        template < typename Accessor >
+        GT_FUNCTION typename boost::enable_if< accessor_holds_data_field< Accessor >,
+            typename accessor_return_type< Accessor >::type >::type
+        operator()(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+
+            return get_value(accessor, get_data_pointer(accessor));
+        }
+
+        /** @brief method returning the data pointer of an accessor
+            Specialization for the accessor placeholder for extended storages,
+            containg multiple snapshots of data fields with the same dimension and memory layout)
+
+            this method is enabled only if the current placeholder dimension exceeds the number of space dimensions of
+            the storage class.
+            I.e., if we are dealing with  storage lists or data fields (see concepts page for definitions).
+        */
+        template < typename Accessor >
+        GT_FUNCTION void *RESTRICT get_data_pointer(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+
+            typedef typename get_storage_accessor< local_domain_t, Accessor >::type::value_type storage_type;
+
+            // if the following assertion fails you have specified a dimension for the extended storage
+            // which does not correspond to the size of the extended placeholder for that storage
+            GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dim,
+                "the dimension of the accessor exceeds the data field dimension");
+
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim != storage_type::space_dimensions,
+                "The dimension of the data_field accessor must be bigger than the storage dimension, you specified it "
+                "equal to the storage dimension");
+
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim > storage_type::space_dimensions,
+                "You specified a too small dimension for the data_field");
+
+            GRIDTOOLS_STATIC_ASSERT(
+                N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
+
+            uint_t idx =
+                get_data_field_index< storage_type::traits::is_rectangular, Accessor, local_domain_t >::apply(accessor);
+
+            return (data_pointer())[idx];
         }
 
         /**
@@ -571,7 +632,7 @@ namespace gridtools {
         // TODO This should be merged with structured grids
         template < typename Accessor, typename StoragePointer >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
-            Accessor const &accessor, StoragePointer &RESTRICT storage_pointer) const {
+            Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
 
             // getting information about the storage
             typedef typename Accessor::index_type index_t;
@@ -582,6 +643,7 @@ namespace gridtools {
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
             using storage_type = typename std::remove_reference< decltype(*storage_) >::type;
+
             typename storage_type::value_type *RESTRICT real_storage_pointer =
                 static_cast< typename storage_type::value_type * >(storage_pointer);
 
@@ -615,6 +677,8 @@ namespace gridtools {
             const int_t pointer_offset =
                 metadata_->index(m_grid_position) +
                 metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
+
+            assert(metadata_->size() > pointer_offset);
 
             return *(real_storage_pointer + pointer_offset);
         }
