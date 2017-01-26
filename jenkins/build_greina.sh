@@ -158,7 +158,6 @@ WHERE_=`pwd`
 
 export JENKINS_COMMUNICATION_TESTS=1
 
-#<<<<<<< HEAD
 if [[ -z ${HOST_COMPILER} ]]; then
     if [[ ${COMPILER} == "gcc" ]] ; then
         HOST_COMPILER=`which g++`
@@ -173,17 +172,6 @@ if [[ -z ${HOST_COMPILER} ]]; then
         echo "COMPILER ${COMPILER} not supported"
         exit_if_error 333
     fi
-    case
-# =======
-# if [[ ${COMPILER} == "gcc" ]] ; then
-#     HOST_COMPILER=`which g++`
-# elif [[ ${COMPILER} == "clang" ]] ; then
-#     HOST_COMPILER=`which clang++`
-#     ADDITIONAL_FLAGS="-ftemplate-depth=1024"
-# else
-#     echo "COMPILER ${COMPILER} not supported"
-#     exit_if_error 333
-# >>>>>>> master
 fi
 
 if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
