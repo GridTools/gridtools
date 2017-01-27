@@ -73,7 +73,7 @@ namespace gridtools {
         /**
            @brief copy constructor
          */
-        GT_FUNCTION pointer(pointer< T > const &other_) : m_t(other_.m_t) { assert(m_t); }
+        GT_FUNCTION pointer(pointer< T > const &other_) : m_t(other_.m_t) {}
 
         GT_FUNCTION ~pointer() { m_t = NULL; }
 
