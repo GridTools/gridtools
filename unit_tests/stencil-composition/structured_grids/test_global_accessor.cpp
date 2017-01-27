@@ -144,7 +144,7 @@ TEST(test_global_accessor, boundary_conditions) {
 #ifdef __CUDACC__
     bd_.h2d_update();
 #else
-    bd_.update_data();
+// bd_.update_data();
 #endif
 
     // get the storage object from the gpu

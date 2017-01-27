@@ -143,6 +143,8 @@ namespace gridtools {
       protected:
         meta_data_ptr_t m_meta_data;
         storage_ptr_t m_storage;
+        storage_info_type *m_meta_data_device;
+        BaseStorage *m_storage_device;
         bool m_on_host;
         template < typename T >
         storage(T);
@@ -150,19 +152,21 @@ namespace gridtools {
       public:
         bool is_on_host() const { return m_on_host; }
 
+        BaseStorage *get_device_pointer() { return m_storage_device; }
+
         void clone_to_device() {
 #ifdef _USE_GPU_
-// if (!m_on_host)
-//     return;
-// clone meta dato to device
-// m_meta_data.update_gpu(); // useless if meta data is constexpr
-// set the new meta data pointer in the storage
-// m_storage.set_on_host();
-// m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
-// m_storage.set_on_host();
-// m_storage.get_cpu_p()->set_meta_data(m_meta_data.get_pointer_to_use());
-// update the storage itself
-// m_storage.update_gpu();
+            if (!m_on_host)
+                return;
+            // clone meta data to device
+            cudaMemcpy((void *)m_meta_data_device,
+                (void *)m_meta_data.get(),
+                sizeof(storage_info_type),
+                cudaMemcpyHostToDevice);
+            // set the new meta data pointer in the storage
+            m_storage->set_meta_data(m_meta_data_device);
+            // clone storage to device
+            cudaMemcpy((void *)m_storage_device, (void *)m_storage.get(), sizeof(BaseStorage), cudaMemcpyHostToDevice);
 #endif
         }
 
@@ -230,6 +234,10 @@ namespace gridtools {
         // pointer< storage_info_type const > get_meta_data_pointer() {
         //     return pointer< storage_info_type const >(m_meta_data.get_pointer_to_use());
         // }
+
+        storage_info_type *get_meta_data_device_pointer() const { return m_meta_data_device; }
+
+        BaseStorage *get_storage_device_pointer() const { return m_storage_device; }
 
         pointer_type const &data() const {
             assert(m_on_host);
@@ -410,7 +418,7 @@ namespace gridtools {
         template < class FloatType >
         explicit storage(storage_info_type const &meta_data_, FloatType *arg, const char *name)
             : m_meta_data(new storage_info_type(meta_data_)),
-              m_storage(new BaseStorage(*m_meta_data, (FloatType *)arg, name)), m_on_host(true) {}
+              m_storage(new BaseStorage(m_meta_data, (FloatType *)arg, name)), m_on_host(true) {}
 
 #endif // CXX11_ENABLED
 
@@ -427,12 +435,12 @@ namespace gridtools {
             (*m_storage).release();
         }
 
-        GT_FUNCTION
-        BaseStorage *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
+        // GT_FUNCTION
+        // BaseStorage *get_pointer_to_use() { return m_storage.get_pointer_to_use(); }
 
         explicit storage(storage_info_type const &meta_data_)
-            : m_meta_data(new storage_info_type(meta_data_), false),
-              m_storage(new BaseStorage(m_meta_data.get_pointer_to_use()), false), m_on_host(true) {}
+            : m_meta_data(new storage_info_type(meta_data_)), m_storage(new BaseStorage(m_meta_data)), m_on_host(true) {
+        }
 
         template < typename UInt >
         GT_FUNCTION value_type const &operator[](UInt const &index_) const {
@@ -487,9 +495,9 @@ namespace gridtools {
         GT_FUNCTION
         void set_on_device() {
             m_on_host = false;
-            m_storage->set_on_device();
-            m_storage.set_on_device();
-            m_meta_data.set_on_device();
+            // m_storage->set_on_device();
+            // m_storage.set_on_device();
+            // m_meta_data.set_on_device();
         }
 
         GT_FUNCTION

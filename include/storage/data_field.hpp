@@ -156,13 +156,13 @@ namespace gridtools {
 
         /**@brief default constructor*/
         template < typename... ExtraArgs >
-        data_field(typename basic_type::storage_info_type const *meta_data_, ExtraArgs const &... args_)
+        data_field(pointer< typename basic_type::storage_info_type const > meta_data_, ExtraArgs const &... args_)
             : super(meta_data_, args_...) {}
 
-        /**@brief device copy constructor*/
-        template < typename T >
-        __device__ data_field(T const &other)
-            : super(other) {}
+        // /**@brief device copy constructor*/
+        // template < typename T >
+        // __device__ data_field(T const &other)
+        //     : super(other) {}
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~data_field() {}

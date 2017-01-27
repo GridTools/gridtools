@@ -278,7 +278,7 @@ namespace gridtools {
 
     template < uint_t I, typename BaseType, typename C >
     struct is_plchldr_to_temp< arg< I, global_parameter< BaseType >, C > >
-        : is_plchldr_to_temp< arg< I, typename global_parameter< BaseType >::wrapped_type, C > > {};
+        : is_plchldr_to_temp< arg< I, typename global_parameter< BaseType >::value_type, C > > {};
 
     /**
      * Printing type information for debug purposes

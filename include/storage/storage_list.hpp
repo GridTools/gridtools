@@ -68,7 +68,7 @@ namespace gridtools {
 
         /**@brief constructor*/
         template < typename... Args >
-        storage_list(typename basic_type::storage_info_type const *meta_data_, Args const &... args_)
+        storage_list(pointer< typename basic_type::storage_info_type const > meta_data_, Args const &... args_)
             : super(meta_data_, args_...) {}
 
         /**@brief destructor: frees the pointers to the data fields */
@@ -109,11 +109,11 @@ namespace gridtools {
 
         // default constructor
         template < typename... Args >
-        storage_list(typename basic_type::storage_info_type const *meta_data_, Args const &... args_)
+        storage_list(pointer< typename basic_type::storage_info_type const > meta_data_, Args const &... args_)
             : super(meta_data_, args_...) {}
 
         // default constructor
-        storage_list(typename basic_type::storage_info_type const *meta_data_) : super(meta_data_) {}
+        storage_list(pointer< typename basic_type::storage_info_type const > meta_data_) : super(meta_data_) {}
 
         /**@brief destructor: frees the pointers to the data fields */
         virtual ~storage_list() {}
@@ -121,10 +121,10 @@ namespace gridtools {
         /**dimension number of snaphsots for the current field dimension*/
         static const ushort_t n_width = Storage::n_width;
 
-        /**@brief device copy constructor*/
-        template < typename T >
-        __device__ storage_list(T const &other)
-            : super(other) {}
+        // /**@brief device copy constructor*/
+        // template < typename T >
+        // __device__ storage_list(T const &other)
+        //     : super(other) {}
     };
 
     template < typename T >

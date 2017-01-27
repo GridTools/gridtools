@@ -174,7 +174,7 @@ namespace gridtools {
         // GRIDTOOLS_STATIC_ASSERT(
         //     (is_hybrid_pointer< storage_ptr_ty >::value || is_wrap_pointer< storage_ptr_ty >::value),
         //     "the contained storage pointer type is neither a wrap nor a hybrid pointer type");
-        typedef pointer< typename storage_ty::basic_type > type;
+        typedef typename storage_ty::storage_ptr_t type; // pointer< typename storage_ty::basic_type > type;
     };
 
     /** @brief metafunction class that is used to transform a fusion vector of pointer<storage<T>> into a
