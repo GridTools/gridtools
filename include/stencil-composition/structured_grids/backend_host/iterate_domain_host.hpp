@@ -123,11 +123,11 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
         }
         template < typename IterationPolicy >
-        GT_FUNCTION void flush_caches() {
+        GT_FUNCTION void flush_caches(const int_t klevel) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
         }
         template < typename IterationPolicy >
-        GT_FUNCTION void fill_caches() {
+        GT_FUNCTION void fill_caches(const int_t klevel) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
         }
         template < typename IterationPolicy >

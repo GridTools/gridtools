@@ -223,11 +223,12 @@ namespace gridtools {
         struct flushing_functor {
 
             GT_FUNCTION
-            flushing_functor(IterateDomain const &it_domain, k_caches_tuple_t const &kcaches)
-                : m_it_domain(it_domain), m_kcaches(kcaches) {}
+            flushing_functor(IterateDomain const &it_domain, k_caches_tuple_t const &kcaches, const int_t klevel)
+                : m_it_domain(it_domain), m_kcaches(kcaches), m_klevel(klevel) {}
 
             IterateDomain const &m_it_domain;
             k_caches_tuple_t const &m_kcaches;
+            const int_t m_klevel;
 
             template < typename Idx >
             GT_FUNCTION void operator()(Idx const &) const {
@@ -246,10 +247,12 @@ namespace gridtools {
 
                 constexpr int_t koffset = (IterationPolicy::value == enumtype::forward) ? kminus : kplus;
 
+                constexpr int_t koffset_abs = koffset > 0 ? koffset : -koffset;
                 typedef accessor< Idx::value, enumtype::inout, extent< 0, 0, 0, 0, kminus, kplus > > acc_t;
                 constexpr acc_t acc_(0, 0, koffset);
-
-                m_it_domain.gmem_access(acc_) = boost::fusion::at_key< Idx >(m_kcaches).at(acc_);
+                if (koffset_abs <= m_klevel) {
+                    m_it_domain.gmem_access(acc_) = boost::fusion::at_key< Idx >(m_kcaches).at(acc_);
+                }
 #endif
             }
         };
@@ -259,11 +262,12 @@ namespace gridtools {
 
             // TODO KCACHE can we merge filling and flushing functors
             GT_FUNCTION
-            filling_functor(IterateDomain const &it_domain, k_caches_tuple_t &kcaches)
-                : m_it_domain(it_domain), m_kcaches(kcaches) {}
+            filling_functor(IterateDomain const &it_domain, k_caches_tuple_t &kcaches, const int_t klevel)
+                : m_it_domain(it_domain), m_kcaches(kcaches), m_klevel(klevel) {}
 
             IterateDomain const &m_it_domain;
             k_caches_tuple_t &m_kcaches;
+            const int_t m_klevel;
 
             template < typename Idx >
             GT_FUNCTION void operator()(Idx const &) const {
@@ -275,13 +279,17 @@ namespace gridtools {
                         ? boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
                         : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
 
+                constexpr int_t koffset_abs = koffset > 0 ? koffset : -koffset;
+
                 typedef accessor< Idx::value,
                     enumtype::in,
                     extent< 0, 0, 0, 0, (koffset < 0) ? koffset : -koffset, (koffset > 0) ? koffset : -koffset > >
                     acc_t;
                 constexpr acc_t acc_(0, 0, koffset);
 
-                boost::fusion::at_key< Idx >(m_kcaches).at(acc_) = m_it_domain.gmem_access(acc_);
+                if (koffset_abs <= m_klevel) {
+                    boost::fusion::at_key< Idx >(m_kcaches).at(acc_) = m_it_domain.gmem_access(acc_);
+                }
 #endif
             }
         };
@@ -356,17 +364,17 @@ namespace gridtools {
         };
 
         template < typename IterationPolicy, typename IterateDomain >
-        GT_FUNCTION void fill_caches(IterateDomain const &it_domain) {
+        GT_FUNCTION void fill_caches(IterateDomain const &it_domain, const int_t klevel) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             boost::mpl::for_each< k_filling_caches_indexes_t >(
-                filling_functor< IterateDomain, IterationPolicy >(it_domain, m_k_caches_tuple));
+                filling_functor< IterateDomain, IterationPolicy >(it_domain, m_k_caches_tuple, klevel));
         }
 
         template < typename IterationPolicy, typename IterateDomain >
-        GT_FUNCTION void flush_caches(IterateDomain const &it_domain) {
+        GT_FUNCTION void flush_caches(IterateDomain const &it_domain, const int_t klevel) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             boost::mpl::for_each< k_flushing_caches_indexes_t >(
-                flushing_functor< IterateDomain, IterationPolicy >(it_domain, m_k_caches_tuple));
+                flushing_functor< IterateDomain, IterationPolicy >(it_domain, m_k_caches_tuple, klevel));
         }
 
         template < typename IterationPolicy >

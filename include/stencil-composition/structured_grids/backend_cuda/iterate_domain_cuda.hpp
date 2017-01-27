@@ -345,17 +345,17 @@ namespace gridtools {
         }
 
         template < typename IterationPolicy >
-        GT_FUNCTION void fill_caches() {
+        GT_FUNCTION void fill_caches(const int_t klevel) {
             // TODO KCACHE do not execute if no flush caches and/or not in iteration policy
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            m_iterate_domain_cache.template fill_caches< IterationPolicy >(*this);
+            m_iterate_domain_cache.template fill_caches< IterationPolicy >(*this, klevel);
         }
 
         template < typename IterationPolicy >
-        GT_FUNCTION void flush_caches() {
+        GT_FUNCTION void flush_caches(const int_t klevel) {
             // TODO KCACHE do not execute if no flush caches and/or not in iteration policy
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            m_iterate_domain_cache.template flush_caches< IterationPolicy >(*this);
+            m_iterate_domain_cache.template flush_caches< IterationPolicy >(*this, klevel);
         }
 
         template < typename IterationPolicy >
