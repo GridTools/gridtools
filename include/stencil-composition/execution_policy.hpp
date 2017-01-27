@@ -110,7 +110,11 @@ namespace gridtools {
                     boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
                         run_esf_functor_t(super::m_domain));
                     if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
-                        super::m_domain.template flush_caches< IterationPolicy >(k);
+
+                        //TODO KCACHE k_max should be the maximum defined as interval for this kcache, not the grid
+                        const int_t lev = (IterationPolicy::value == enumtype::backward) ? ((super::m_grid.k_max() - from) -(to -k)) : k - super::m_grid.k_max() ;
+
+                        super::m_domain.template flush_caches< IterationPolicy >( lev );
                         super::m_domain.template slide_caches< IterationPolicy >();
                     }
                 }
