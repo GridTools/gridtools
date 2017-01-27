@@ -264,8 +264,10 @@ namespace gridtools {
                 typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs_original;
                 // substitute the types for expandable parameters arg
                 typedef typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs;
+#ifndef ALLOW_EMPTY_EXTENTS
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
                     "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
+#endif
 
                 GRIDTOOLS_STATIC_ASSERT((is_sequence_of< outputs, pair_arg_extent >::value), "wrong sequence");
 
@@ -521,6 +523,13 @@ namespace gridtools {
         typedef typename associate_extents_to_esfs< Mss1, ExtentsMap, RepeatFunctor >::type type1;
         typedef typename associate_extents_to_esfs< Mss2, ExtentsMap, RepeatFunctor >::type type2;
         typedef condition< type1, type2, Cond > type;
+    };
+
+    // extract the extent vector of a given extent type
+    template < typename T >
+    struct get_extent_vec_t {
+        GRIDTOOLS_STATIC_ASSERT(is_extent< T >::value, "Given type is not an extent");
+        typedef typename T::extent_vec_t type;
     };
 
 } // namespace gridtools

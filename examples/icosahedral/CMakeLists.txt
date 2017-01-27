@@ -1,5 +1,5 @@
-list( APPEND SRCFILES #laplace 
-      stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields)
+list( APPEND SRCFILES #laplace
+      copy_stencil_icosahedral expandable_parameters_icosahedral stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields)
 
 set( GTEST_FILES ../Options.hpp ../Options.cpp unstructured_grid.cpp)
 
@@ -29,13 +29,18 @@ if(CUDA_FOUND)
          set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
          target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 
-         if( ${srcfile} STREQUAL "stencil_on_vertexes") 
+         if( ${srcfile} STREQUAL "stencil_on_vertexes")
              # K lenght larger than 48 fails for stencil_on_vertexes_cuda... this need to be investigated
              gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_cuda" "77 48 48")
              gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_cuda" "63 55 43")
          else()
-             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_cuda" "77 48 61")
-             gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_cuda" "63 55 43")
+                  if( ${srcfile} STREQUAL "expandable_parameters_icosahedral" OR ${srcfile} STREQUAL "copy_stencil_icosahedral")
+                               gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_cuda" "32 48 61")
+                               gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_cuda" "64 55 43")
+                  else()
+                               gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_cuda" "77 48 61")
+                               gridtools_add_test( tests.${srcfile}_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/icosahedral/${srcfile}_cuda" "63 55 43")
+                  endif()
          endif()
     endforeach(srcfile)
 endif()
@@ -63,6 +68,3 @@ endforeach(srcfile)
 #         target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 #    endforeach(srcfile)
 #endif()
-
-
-
