@@ -584,7 +584,6 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
-        assert(storage_pointer);
         typename storage_t::value_type *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
 
