@@ -48,10 +48,11 @@ namespace test_storage_info_gpu_using {
 
         for (int i = 0; i < 11; ++i)
             for (int j = 0; j < 12; ++j)
-                for (int k = 0; k < 13; ++k)
+                for (int k = 0; k < 13; ++k){
                     // st_->fields()[0].out();
                     // printf("(*st_)(i,j,k) = %d", (*st_)(i,j,k));
                     (*st_)(i, j, k) = (double)i + j + k;
+                }
     }
 
     TEST(storage_info, test_pointer) {
@@ -60,9 +61,7 @@ namespace test_storage_info_gpu_using {
         st_.h2d_update();
         st_.clone_to_device();
 
-        // clang-format off
-    set<<<1,1>>>(st_.get_pointer_to_use());
-        // clang-format on
+        set<<<1,1>>>(st_.get_storage_device_pointer());
 
         st_.d2h_update();
         // st_.print();
