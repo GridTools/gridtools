@@ -55,7 +55,7 @@ if __name__ == "__main__":
     if args.std:
         stds=args.std[0].split(',')
     else:
-        stds=('cxx11')
+        stds='cxx11'
 
     if args.prec:
         precs=args.prec[0].split(',')
