@@ -104,6 +104,11 @@ namespace gridtools {
                 }
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
                     if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
+                        // TODO KCACHE k_min should be the maximum defined as interval for this kcache, not the grid
+                        const int_t lev = (IterationPolicy::value == enumtype::backward)
+                                              ? ((to - k) - (super::m_grid.k_min() - from))
+                                              : super::m_grid.k_max() - k;
+
                         super::m_domain.template fill_caches< IterationPolicy >(super::m_grid.k_total_length() - 1 - k);
                     }
 
@@ -111,10 +116,12 @@ namespace gridtools {
                         run_esf_functor_t(super::m_domain));
                     if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
 
-                        //TODO KCACHE k_max should be the maximum defined as interval for this kcache, not the grid
-                        const int_t lev = (IterationPolicy::value == enumtype::backward) ? ((super::m_grid.k_max() - from) -(to -k)) : k - super::m_grid.k_max() ;
+                        // TODO KCACHE k_max should be the maximum defined as interval for this kcache, not the grid
+                        const int_t lev = (IterationPolicy::value == enumtype::backward)
+                                              ? ((super::m_grid.k_max() - from) - (to - k))
+                                              : k - super::m_grid.k_min();
 
-                        super::m_domain.template flush_caches< IterationPolicy >( lev );
+                        super::m_domain.template flush_caches< IterationPolicy >(lev);
                         super::m_domain.template slide_caches< IterationPolicy >();
                     }
                 }
