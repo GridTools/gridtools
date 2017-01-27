@@ -560,7 +560,7 @@ namespace gridtools {
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
            expression)*/
         template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
-        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg)
+        GT_FUNCTION auto operator()(Expression< Argument, exponent > &arg)
             -> decltype(expressions::evaluation::value((*this), arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
