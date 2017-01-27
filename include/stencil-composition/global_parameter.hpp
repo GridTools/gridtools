@@ -93,7 +93,7 @@ namespace gridtools {
 
         my_storage_ptr_t m_storage;
 
-        global_parameter(T &t) : m_storage(&t, false) {}
+        global_parameter(T &t) : m_storage(&t, 1, true) {}
 
         // this_type const &operator=(this_type const &other) { return other; }
 

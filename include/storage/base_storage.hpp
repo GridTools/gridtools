@@ -124,7 +124,7 @@ namespace gridtools {
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             assert(is_set && "allocation failed.");
-            initialize(init, 1);
+            initialize(init, 1u);
         }
 
         /**
@@ -137,7 +137,7 @@ namespace gridtools {
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             assert(is_set && "allocation failed.");
-            initialize(func, 1);
+            initialize(func, 1u);
         }
 
         /**
@@ -154,7 +154,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< FloatType, value_type >::type::value),
                 "you passed in a pointer to the storage constructor which has a different type than the storage "
                 "value_type. You have to explicit cast, e.g. storage_type s(sinfo, (double*) ptr )");
-            m_fields[0] = pointer_type(ptr, true);
+            m_fields[0] = pointer_type(ptr, meta_data_->size(), true);
             if (FieldDimension > 1) {
                 allocate(FieldDimension, 1, true);
             }
