@@ -428,8 +428,8 @@ namespace gridtools {
         GT_FUNCTION typename accessor_return_type< global_accessor< I > >::type &operator()(
             global_accessor< I > const &accessor) const {
 
-            typedef
-                typename local_domain_t::template get_storage< static_int< I > >::type::value_type *storage_ptr_type;
+            typedef typename local_domain_t::template get_storage< static_int< I > >::type::value_type::value_type
+                *storage_ptr_type;
 
             storage_ptr_type storage_ = static_cast< storage_ptr_type >(get_data_pointer(accessor));
 
