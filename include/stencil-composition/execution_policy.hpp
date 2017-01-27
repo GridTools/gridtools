@@ -103,7 +103,6 @@ namespace gridtools {
                     super::m_domain.template begin_fill< IterationPolicy >();
                 }
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
-                    std::cout << "TT " << from << " " << to << std::endl;
                     if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
                         super::m_domain.template fill_caches< IterationPolicy >(super::m_grid.k_total_length() - 1 - k);
                     }
