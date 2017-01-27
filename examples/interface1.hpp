@@ -66,7 +66,7 @@ namespace horizontal_diffusion {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_flx;
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_out;
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {

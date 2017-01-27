@@ -43,8 +43,7 @@ namespace gridtools {
     template < typename ToInsert, typename Seq >
     struct copy_into_set {
         typedef typename boost::mpl::copy< ToInsert,
-            boost::mpl::inserter< boost::mpl::set0<>, boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > >::type
-            type;
+            boost::mpl::inserter< Seq, boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > >::type type;
     };
 
 } // namespace
