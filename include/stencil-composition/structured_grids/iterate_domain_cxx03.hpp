@@ -244,7 +244,7 @@ namespace gridtools {
            \param i index in the array of raw data pointers
         */
         GT_FUNCTION
-        const void *data_pointer(ushort_t i) { return (data_pointer())[i]; }
+        void *data_pointer(ushort_t i) const { return (data_pointer())[i]; }
 
         /**@brief getter for the index array */
         GT_FUNCTION
@@ -342,8 +342,8 @@ namespace gridtools {
             get_data_pointer(Accessor const &accessor) const {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
-            return (data_pointer())
-                [current_storage< (acc_t::index_type::value == 0), local_domain_t, typename acc_t::type >::value];
+            return (data_pointer(
+                current_storage< (acc_t::index_type::value == 0), local_domain_t, typename acc_t::type >::value));
         }
 
 #ifdef CXX11_ENABLED
@@ -355,8 +355,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-            return (
-                data_pointer())[current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value];
+            return data_pointer(current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value);
         }
 #endif
 
@@ -403,21 +402,21 @@ namespace gridtools {
             // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template
             // get<2>()<<" , "<<std::endl;
 
-            return (data_pointer())
-                [(Accessor::n_dim <= storage_type::space_dimensions + 1 ? // static if
-                         accessor.template get< 0 >()
-                                                                        : // offset for the current dimension
-                         accessor.template get< 1 >()                     // offset for the current snapshot
-                             // limitation to "rectangular" vector fields for non-static fields dimensions
-                             +
-                             accessor.template get< 0 >() // select the dimension
-                                 *
-                                 storage_type::traits::n_width // stride of the current dimension inside the vector of
-                                                               // storages
-                     )
-                    //+ the offset of the other extra dimension
-                    +
-                    current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value];
+            return data_pointer(
+                (Accessor::n_dim <= storage_type::space_dimensions + 1 ? // static if
+                        accessor.template get< 0 >()
+                                                                       : // offset for the current dimension
+                        accessor.template get< 1 >()                     // offset for the current snapshot
+                            // limitation to "rectangular" vector fields for non-static fields dimensions
+                            +
+                            accessor.template get< 0 >() // select the dimension
+                                *
+                                storage_type::traits::n_width // stride of the current dimension inside the vector of
+                                                              // storages
+                    )
+                //+ the offset of the other extra dimension
+                +
+                current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value);
         }
 
         /** @brief method called in the Do methods of the functors.
@@ -697,20 +696,20 @@ namespace gridtools {
             "here.");
 
         return get_value(accessor,
-            (data_pointer())[(Accessor::n_dim <= metadata_t::space_dimensions + 1
-                                     ?                              // static if
-                                     accessor.template get< 0 >()   // offset for the current dimension
-                                     : accessor.template get< 1 >() // offset for the current snapshot
-                                           // limitation to "rectangular" vector fields for non-static fields dimensions
-                                           +
-                                           accessor.template get< 0 >() // select the dimension
-                                               *
-                                               storage_t::traits::n_width // stride of the current dimension inside the
-                                                                          // vector of storages
-                                 )
+            data_pointer((Accessor::n_dim <= metadata_t::space_dimensions + 1
+                                 ?                              // static if
+                                 accessor.template get< 0 >()   // offset for the current dimension
+                                 : accessor.template get< 1 >() // offset for the current snapshot
+                                       // limitation to "rectangular" vector fields for non-static fields dimensions
+                                       +
+                                       accessor.template get< 0 >() // select the dimension
+                                           *
+                                           storage_t::traits::n_width // stride of the current dimension inside the
+                                                                      // vector of storages
+                             )
                              //+ the offset of the other extra dimension
                              +
-                             current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value]);
+                             current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value));
     }
 
     /** @brief method called in the Do methods of the functors.

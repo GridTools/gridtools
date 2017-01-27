@@ -244,7 +244,7 @@ namespace gridtools {
            \param i index in the array of raw data pointers
         */
         GT_FUNCTION
-        const void *data_pointer(ushort_t i) { return (data_pointer())[i]; }
+        void *data_pointer(ushort_t i) const { return data_pointer()[i]; }
 
         /**@brief getter for the index array */
         GT_FUNCTION
@@ -359,7 +359,7 @@ namespace gridtools {
 
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
-            return (data_pointer())[current_storage< (acc_t::index_type::value == 0), local_domain_t, acc_t >::value];
+            return data_pointer(current_storage< (acc_t::index_type::value == 0), local_domain_t, acc_t >::value);
         }
 
         /** @brief method returning the data pointer of an accessor
@@ -370,8 +370,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-            return (
-                data_pointer())[current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value];
+            return data_pointer(current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value);
         }
 
         /** @brief method returning the data pointer of an accessor
@@ -413,7 +412,7 @@ namespace gridtools {
             uint_t idx =
                 get_data_field_index< storage_type::traits::is_rectangular, Accessor, local_domain_t >::apply(accessor);
 
-            return (data_pointer())[idx];
+            return (data_pointer(idx));
         }
 
         /** @brief method called in the Do methods of the functors.
