@@ -26,7 +26,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--jplan',nargs=1, type=str, help='JENKINS plan')
     parser.add_argument('--gtype', nargs=1, type=str, help='Grid Type') 
-#    parser.add_argument('--std',nargs=1, type=str, help='list of stds to run')
+    parser.add_argument('--std',nargs=1, type=str, help='list of stds to run')
     parser.add_argument('--prec',nargs=1, type=str, help='precision')
 
     std = 'cxx11'
@@ -54,7 +54,8 @@ if __name__ == "__main__":
     else:
         json_file = 'stencils_strgrid.json'
 
-#    if args.std:
+    if args.std:
+        print('--std will be ignored (cxx11 is the only supported options)')
 #        stds=args.std[0].split(',')
 #    else:
 #        stds=('cxx03', 'cxx11')
