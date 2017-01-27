@@ -424,18 +424,14 @@ namespace gridtools {
 
             specialization for the generic accessors placeholders
         */
-        template < uint_t I, enumtype::intend Intend >
-        GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
-            global_accessor< I, Intend > const &accessor) const {
-
-            // getting information about the storage
-            typedef typename global_accessor< I, Intend >::index_type index_t;
+        template < uint_t I >
+        GT_FUNCTION typename accessor_return_type< global_accessor< I > >::type &operator()(
+            global_accessor< I > const &accessor) const {
 
             typedef
                 typename local_domain_t::template get_storage< static_int< I > >::type::value_type *storage_ptr_type;
 
             storage_ptr_type storage_ = static_cast< storage_ptr_type >(get_data_pointer(accessor));
-            // boost::fusion::at< index_t >(local_domain.local_storages());
 
             return *storage_;
         }

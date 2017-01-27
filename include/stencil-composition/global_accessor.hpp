@@ -40,10 +40,16 @@
 
 namespace gridtools {
 
-    template < uint_t I, enumtype::intend Intend >
+    template < uint_t I >
     struct global_accessor {
 
-        typedef global_accessor< I, Intend > type;
+        GT_FUNCTION constexpr global_accessor(global_accessor const &){};
+        GT_FUNCTION constexpr global_accessor(){};
+        // move ctor from another accessor_base with different index
+        template < uint_t OtherIndex >
+        GT_FUNCTION constexpr global_accessor(global_accessor< OtherIndex > &other) {}
+
+        typedef global_accessor< I > type;
 
         typedef static_uint< I > index_type;
 
@@ -53,7 +59,7 @@ namespace gridtools {
     template < typename Type >
     struct is_global_accessor : boost::false_type {};
 
-    template < uint_t I, enumtype::intend Intend >
-    struct is_global_accessor< global_accessor< I, Intend > > : boost::true_type {};
+    template < uint_t I >
+    struct is_global_accessor< global_accessor< I > > : boost::true_type {};
 
 } // namespace gridtools

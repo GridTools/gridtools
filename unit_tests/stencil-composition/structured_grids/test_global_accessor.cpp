@@ -64,9 +64,9 @@ struct boundary {
 
 struct functor {
     typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
-    typedef global_accessor< 1, enumtype::inout > bd;
+    typedef global_accessor< 1 > bd;
 
-    typedef boost::mpl::vector< sol, bd > arg_list;
+    typedef boost::mpl::vector< sol > arg_list;
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {

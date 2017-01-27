@@ -129,6 +129,15 @@ namespace gridtools {
                 return m_iterate_domain(tmp_);
             }
 
+            /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
+            template < uint_t I >
+            GT_FUNCTION typename accessor_return_type< global_accessor< I > >::type operator()(
+                global_accessor< I > const &arg) const {
+                typedef typename remap_accessor_type< global_accessor< I >, esf_args_map_t >::type remap_accessor_t;
+                const remap_accessor_t tmp_(arg);
+                return m_iterate_domain(tmp_);
+            }
+
 #ifdef CUDA8 // i.e. CXX11_ENABLED on host
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template < typename Accessor, typename... Pairs >

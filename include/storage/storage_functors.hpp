@@ -154,21 +154,14 @@ namespace gridtools {
         }
 
       private:
-        // we do not copy data into the gpu in case of a generic accessor
-        template < typename StorageType >
-        GT_FUNCTION_WARNING void copy_data_impl(pointer< StorageType > &s,
-            typename boost::disable_if_c< is_storage< StorageType >::value >::type * = 0) const {}
-
         // we do not copy data into the gpu in case of a temporary
         template < typename StorageType >
         GT_FUNCTION_WARNING void copy_data_impl(pointer< StorageType > &s,
-            typename boost::enable_if_c< is_temporary_storage< StorageType >::value >::type * = 0,
-            typename boost::enable_if_c< is_storage< StorageType >::value >::type * = 0) const {}
+            typename boost::enable_if_c< is_temporary_storage< StorageType >::value >::type * = 0) const {}
 
         template < typename StorageType >
         GT_FUNCTION_WARNING void copy_data_impl(pointer< StorageType > &s,
-            typename boost::disable_if_c< is_temporary_storage< StorageType >::value >::type * = 0,
-            typename boost::enable_if_c< is_storage< StorageType >::value >::type * = 0) const {
+            typename boost::disable_if_c< is_temporary_storage< StorageType >::value >::type * = 0) const {
             s->h2d_update();
         }
     };

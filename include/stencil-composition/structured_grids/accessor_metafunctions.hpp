@@ -56,8 +56,8 @@ namespace gridtools {
     template < typename T >
     struct is_accessor< const T > : is_accessor< T > {};
 
-    template < uint_t ID, enumtype::intend Intend >
-    struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
+    template < uint_t ID >
+    struct is_accessor< global_accessor< ID > > : boost::mpl::true_ {};
 
 #ifdef CUDA8
     template < typename ArgType >
@@ -108,9 +108,9 @@ namespace gridtools {
     };
 #endif
 
-    template < uint_t ID, enumtype::intend Intend, typename ArgsMap >
-    struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
-        typedef global_accessor< ID, Intend > accessor_t;
+    template < uint_t ID, typename ArgsMap >
+    struct remap_accessor_type< global_accessor< ID >, ArgsMap > {
+        typedef global_accessor< ID > accessor_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), "Internal Error: wrong size");
         // check that the key type is an int (otherwise the later has_key would never find the key)
         GRIDTOOLS_STATIC_ASSERT(
@@ -123,7 +123,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
 
-        typedef global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend > type;
+        typedef global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value > type;
     };
 
 #ifdef CXX11_ENABLED
@@ -180,10 +180,7 @@ namespace gridtools {
     struct is_accessor_readonly< accessor< ID, enumtype::inout, Extend, Number > > : boost::mpl::false_ {};
 
     template < uint_t ID >
-    struct is_accessor_readonly< global_accessor< ID, enumtype::in > > : boost::mpl::true_ {};
-
-    template < uint_t ID >
-    struct is_accessor_readonly< global_accessor< ID, enumtype::inout > > : boost::mpl::true_ {};
+    struct is_accessor_readonly< global_accessor< ID > > : boost::mpl::true_ {};
 
     /* Is written is actually "can be written", since it checks if not read olnly.
        TODO: metafunction convention not completely respected */

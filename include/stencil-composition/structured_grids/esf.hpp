@@ -91,9 +91,13 @@ namespace gridtools {
         typedef ESF esf_function;
         typedef ArgArray args_t;
 
+        typedef typename boost::mpl::fold< typename esf_function::arg_list,
+            boost::mpl::vector0<>,
+            boost::mpl::if_< is_any_accessor< boost::mpl::_2 >,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
+                                               boost::mpl::_1 > >::type filtered_accessor_list_t;
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
-        typedef
-            typename impl::make_arg_with_extent_map< args_t, typename esf_function::arg_list >::type args_with_extents;
+        typedef typename impl::make_arg_with_extent_map< args_t, filtered_accessor_list_t >::type args_with_extents;
         typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////

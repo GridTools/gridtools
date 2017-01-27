@@ -420,12 +420,12 @@ namespace gridtools {
 
             specialization for the generic accessors placeholders
         */
-        template < uint_t I, enumtype::intend Intend >
-        GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
-            global_accessor< I, Intend > const &accessor) const {
+        template < uint_t I >
+        GT_FUNCTION typename accessor_return_type< global_accessor< I > >::type &operator()(
+            global_accessor< I > accessor) const {
 
             // getting information about the storage
-            typedef typename global_accessor< I, Intend >::index_type index_t;
+            typedef typename global_accessor< I >::index_type index_t;
 
             typedef typename local_domain_t::template get_storage< static_int< I > >::type::value_type::value_type
                 *storage_ptr_type;

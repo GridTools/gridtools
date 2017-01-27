@@ -259,11 +259,11 @@ namespace gridtools {
                 copy_pointers_functor< ArgListType, typename DomainType::arg_list >(
                     storage_pointers, domain.m_original_pointers));
 
-            boost::fusion::for_each(storage_pointers, update_pointer());
-
             // following line is extracting the correct meta_data pointers
             // from the previously handled/cloned storages.
             boost::fusion::for_each(storage_pointers, get_storage_metadata_ptrs< MetaData >(meta_data_));
+
+            boost::fusion::for_each(storage_pointers, update_pointer());
 
             return GT_NO_ERRORS;
         }
