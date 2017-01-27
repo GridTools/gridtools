@@ -121,7 +121,7 @@ namespace gridtools {
         uint_t nbx = (nx == 0) ? (1) : ((nx + ntx - 1) / ntx);                                                  \
         uint_t nby = (ny == 0) ? (1) : ((ny + nty - 1) / nty);                                                  \
         uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);                                                  \
-        dim3 blocks(nbx, nby, nbz);                                                                             \
+        assert(nx > 0 || ny > 0 || nz > 0 && "all boundary extents are empty") dim3 blocks(nbx, nby, nbz);      \
         loop_kernel<<< blocks, threads >>>(boundary_function,                                               \
             Direction(),                                                                                        \
             BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .get_pointer_to_use() BOOST_PP_INTERCEPT), \
@@ -145,7 +145,7 @@ namespace gridtools {
         uint_t nbx = (nx == 0) ? (1) : ((nx + ntx - 1) / ntx);                                                   \
         uint_t nby = (ny == 0) ? (1) : ((ny + nty - 1) / nty);                                                   \
         uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);                                                   \
-        dim3 blocks(nbx, nby, nbz);                                                                              \
+        assert(nx > 0 || ny > 0 || nz > 0 && "all boundary extents are empty") dim3 blocks(nbx, nby, nbz);       \
         loop_kernel<<< blocks, threads >>>(boundary_function,                                                \
             Direction(),                                                                                         \
             BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .get_pointer_to_use() BOOST_PP_INTERCEPT),  \
