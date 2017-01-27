@@ -26,8 +26,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--jplan',nargs=1, type=str, help='JENKINS plan')
     parser.add_argument('--gtype', nargs=1, type=str, help='Grid Type') 
-    parser.add_argument('--std',nargs=1, type=str, help='list of stds to run')
+#    parser.add_argument('--std',nargs=1, type=str, help='list of stds to run')
     parser.add_argument('--prec',nargs=1, type=str, help='precision')
+
+    std = 'cxx11'
 
     args = parser.parse_args()
     if not args.jplan:
@@ -52,10 +54,10 @@ if __name__ == "__main__":
     else:
         json_file = 'stencils_strgrid.json'
 
-    if args.std:
-        stds=args.std[0].split(',')
-    else:
-        stds='cxx11'
+#    if args.std:
+#        stds=args.std[0].split(',')
+#    else:
+#        stds=('cxx03', 'cxx11')
 
     if args.prec:
         precs=args.prec[0].split(',')
@@ -65,10 +67,10 @@ if __name__ == "__main__":
     json_file_out = json_file+'.out'
     targets=('gpu','cpu')
     
-    print('Running for confs: ', stds, targets, precs)
+    print('Running for confs: ', targets, precs)
 
     commit_hash=None
-    for target, prec, std in product(targets, precs, stds):
+    for target, prec in product(targets, precs):
         path=build_path("kesch",jplan, target, prec, std)
         gitrev_cmd='git rev-parse  HEAD '+path 
         gitrev_out=subprocess.Popen(gitrev_cmd, shell=True, stdout=subprocess.PIPE)
@@ -84,7 +86,7 @@ if __name__ == "__main__":
         print(hash_)
    
     processes=[] 
-    for target, prec, std in product(targets, precs, stds):
+    for target, prec in product(targets, precs):
         print(target, prec, std)
     
     
@@ -99,7 +101,7 @@ if __name__ == "__main__":
    
 
     out_jsonfiles=[] 
-    for target, prec, std in product(targets, precs, stds):
+    for target, prec in product(targets, precs):
         outdir=build_outdir(gtype,target,prec,std)
         if not os.path.isdir(outdir):
             print("Output directory: "+outdir+" not found")
@@ -130,7 +132,7 @@ if __name__ == "__main__":
     fw.write(json.dumps(decode,  indent=4, separators=(',', ': ')) )
     fw.close()
     
-    for target, prec, std in product(targets, precs, stds):
+    for target, prec in product(targets, precs):
         print('Copying to PROJECTS...')
         
         outdir=build_outdir(gtype, target,prec,std)
