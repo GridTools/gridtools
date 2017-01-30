@@ -56,7 +56,9 @@ else()
     add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
     target_link_libraries(shallow_water_enhanced gcl ${ADD_MPI_LIBS} ${exe_LIBS} gtest gtest_main)
     set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
-    gridtools_add_test( tests.shallow_water_enhanced ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced" "8 8 1 1")
+    if( NOT GCL_MPI ) # when MPI is on this test must be executed in parallel
+      gridtools_add_test( tests.shallow_water_enhanced ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced" "8 8 1 1")
+    endif(NOT GCL_MPI)
 
     if( GCL_MPI )
 
