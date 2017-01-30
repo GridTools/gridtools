@@ -240,25 +240,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (index_t::value < ArrayIndex::n_dimensions), "Accessing an index out of bound in fusion tuple");
-            impl< tmp_info_t, index_t >(sinfo);
-        }
-
-        // increment for temporaries
-        template < typename BoolT,
-            typename IndexT,
-            typename StorageInfo,
-            typename boost::enable_if_c< BoolT::value, int >::type = 0 >
-        GT_FUNCTION void impl(const StorageInfo *sinfo) const {
-            // TODO: implement properly
-            impl< boost::mpl::false_, IndexT >(sinfo);
-        }
-
-        // increment for non temporaries
-        template < typename BoolT,
-            typename IndexT,
-            typename StorageInfo,
-            typename boost::enable_if_c< !BoolT::value, int >::type = 0 >
-        GT_FUNCTION void impl(const StorageInfo *sinfo) const {
+            
             // get the max coordinate of given StorageInfo
             typedef typename boost::mpl::deref< typename boost::mpl::max_element<
                 typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
@@ -268,10 +250,11 @@ namespace gridtools {
             if (pos >= 0) {
                 auto stride = (max_t::value < 0)
                                   ? 0
-                                  : ((pos == max_t::value) ? 1 : m_strides_cached.template get< IndexT::value >()[pos]);
-                m_index_array[IndexT::value] += (stride * m_increment);
+                                  : ((pos == max_t::value) ? 1 : m_strides_cached.template get< index_t::value >()[pos]);
+                m_index_array[index_t::value] += (stride * m_increment);
             }
         }
+
     };
 
     /**@brief assigning all the storage pointers to the m_data_pointers array
@@ -368,61 +351,27 @@ namespace gridtools {
         GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const StorageInfo * >::type::pos index_t;
+            // check if the current storage info a temporary
             typedef
                 typename boost::mpl::at< typename LocalDomain::storage_info_tmp_info_t, StorageInfo >::type tmp_info_t;
+            // get the max coordinate of given StorageInfo
+            typedef typename boost::mpl::deref< typename boost::mpl::max_element<
+                typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
 
             GRIDTOOLS_STATIC_ASSERT(
                 (index_t::value < ArrayIndex::n_dimensions), "Accessing an index out of bound in fusion tuple");
-            m_index_array[index_t::value] += impl< tmp_info_t, index_t, StorageInfo >(storage_info);
-        }
-
-        // temporary
-        template < typename BoolT,
-            typename IndexT,
-            typename StorageInfo,
-            typename boost::enable_if_c< BoolT::value, int >::type = 0 >
-        GT_FUNCTION unsigned impl(const StorageInfo *storage_info) const {
-            // return impl<boost::mpl::false_, IndexT, StorageInfo>(storage_info);
-            // get the max coordinate of given StorageInfo
-            typedef typename boost::mpl::deref< typename boost::mpl::max_element<
-                typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
-
-            // get the position
-            constexpr int pos = StorageInfo::Layout::template at< Coordinate >();
-            // modify the offset in I
-
-            const int new_initial_pos =
-                (m_initial_pos)-m_block * ((Coordinate == 1) ? PEBlockSize::j_size_t::value
-                                                             : ((Coordinate == 0) ? PEBlockSize::i_size_t::value : 0));
-            if (Coordinate < StorageInfo::Layout::length && pos >= 0) {
-                auto stride = (max_t::value < 0)
-                                  ? 0
-                                  : ((pos == max_t::value) ? 1 : m_strides.template get< IndexT::value >()[pos]);
-                return stride * new_initial_pos;
-            }
-            return 0;
-        }
-
-        // non temporary
-        template < typename BoolT,
-            typename IndexT,
-            typename StorageInfo,
-            typename boost::enable_if_c< !BoolT::value, int >::type = 0 >
-        GT_FUNCTION unsigned impl(const StorageInfo *storage_info) const {
-            // get the max coordinate of given StorageInfo
-            typedef typename boost::mpl::deref< typename boost::mpl::max_element<
-                typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
-
-            // get the position
+            const int_t initial_pos = (tmp_info_t::value) ? 
+                ((m_initial_pos)-m_block * ((Coordinate == 1) ? PEBlockSize::j_size_t::value : ((Coordinate == 0) ? PEBlockSize::i_size_t::value : 0))) :
+                m_initial_pos;
             constexpr int pos = StorageInfo::Layout::template at< Coordinate >();
             if (Coordinate < StorageInfo::Layout::length && pos >= 0) {
                 auto stride = (max_t::value < 0)
                                   ? 0
-                                  : ((pos == max_t::value) ? 1 : m_strides.template get< IndexT::value >()[pos]);
-                return stride * m_initial_pos;
-            }
-            return 0;
+                                  : ((pos == max_t::value) ? 1 : m_strides.template get< index_t::value >()[pos]);
+                m_index_array[index_t::value] += (stride * initial_pos);
+            }            
         }
+
     };
 
     /**@brief functor assigning all the storage pointers to the m_data_pointers array
