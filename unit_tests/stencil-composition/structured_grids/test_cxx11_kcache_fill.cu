@@ -56,41 +56,50 @@ typedef gridtools::interval< level< 0, 1 >, level< 1, -1 > > kbody_high;
 typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
 typedef gridtools::interval< level< 1, -1 >, level< 1, -1 > > kmaximum;
 typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kbody_low;
+typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
 
 // These are the stencil operators that compose the multistage stencil in this test
 struct shift_acc_forward {
 
-    typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0, -1, 0 > > in;
+    typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0, -1, 1 > > in;
     typedef accessor< 1, enumtype::inout, extent<> > out;
 
     typedef boost::mpl::vector< in, out > arg_list;
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
-        eval(out()) = eval(in());
+        eval(out()) = eval(in())+eval(in(0,0,1));
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
+    GT_FUNCTION static void Do(Evaluation &eval, kbody) {
+        eval(out()) = eval(in(0, 0, -1)) + eval(in())+eval(in(0,0,1));
+    }
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in(0, 0, -1)) + eval(in());
     }
 };
 
 struct shift_acc_backward {
 
-    typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0, 0, 1 > > in;
+    typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0, -1, 1 > > in;
     typedef accessor< 1, enumtype::inout, extent<> > out;
 
     typedef boost::mpl::vector< in, out > arg_list;
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
-        eval(out()) = eval(in());
+        eval(out()) = eval(in()) + eval(in(0,0,-1));
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
-        eval(out()) = eval(in(0, 0, 1)) + eval(in());
+    GT_FUNCTION static void Do(Evaluation &eval, kbody) {
+        eval(out()) = eval(in(0, 0, 1)) + eval(in()) + eval(in(0,0,-1));
+    }
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
+        eval(out()) = eval(in()) + eval(in(0,0,1));
     }
 };
 
@@ -129,12 +138,15 @@ TEST(kcache, fill_forward) {
     storage_type out(meta_data_, float_type(-1.));
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
-            in(i, j, 0) = i + j;
-            ref(i, j, 0) = in(i, j, 0);
-            for (uint_t k = 1; k < d3; ++k) {
+            for (uint_t k = 0; k < d3; ++k) {
                 in(i, j, k) = i + j + k;
-                ref(i, j, k) = in(i, j, k - 1) + in(i, j, k);
             }
+            ref(i, j, 0) = in(i, j, 0) + in(i,j,1);
+            for (uint_t k = 1; k < d3-1; ++k) {
+                ref(i, j, k) = in(i, j, k - 1) + in(i, j, k) + in(i,j,k+1);
+            }
+            ref(i, j, d3-1) = in(i, j, d3-1) + in(i,j,d3-2);
+
         }
     }
 
@@ -228,12 +240,15 @@ TEST(kcache, fill_backward) {
     storage_type out(meta_data_, float_type(-1.));
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
-            in(i, j, d3 - 1) = i + j + d3 - 1;
-            ref(i, j, d3 - 1) = in(i, j, d3 - 1);
-            for (int_t k = d3 - 2; k >= 0; --k) {
+            for (int_t k = 0; k < d3; --k) {
                 in(i, j, k) = i + j + k;
-                ref(i, j, k) = in(i, j, k + 1) + in(i, j, k);
             }
+ 
+            ref(i, j, d3 - 1) = in(i, j, d3 - 1) + in(i,j,d3-2);
+            for (int_t k = d3 - 2; k >= 1; --k) {
+                ref(i, j, k) = in(i, j, k + 1) + in(i, j, k) + in(i,j,k-1);
+            }
+            ref(i, j, 0) = in(i, j, 1) + in(i, j, 0);
         }
     }
 

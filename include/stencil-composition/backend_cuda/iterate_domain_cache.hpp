@@ -96,9 +96,9 @@ namespace gridtools {
             template < typename IterateDomain, typename CacheStorage >
             GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
 
-                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset - 1, Offset + 1 > >
+                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset -1, Offset+1 > >
                     acc_t;
-                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -Offset - 1 : Offset + 1);
+                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -Offset-1 : Offset+1 );
 
                 it_domain.gmem_access(acc_) = cache_st.at(acc_);
                 return 0;
@@ -112,8 +112,8 @@ namespace gridtools {
             template < typename IterateDomain, typename CacheStorage >
             GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage &cache_st) {
 
-                typedef accessor< AccIndex::value, enumtype::in, extent< 0, 0, 0, 0, -Offset - 1, Offset + 1 > > acc_t;
-                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::backward) ? -Offset - 1 : Offset + 1);
+                typedef accessor< AccIndex::value, enumtype::in, extent< 0, 0, 0, 0, -Offset , Offset  > > acc_t;
+                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::backward) ? -Offset  : Offset );
 
                 cache_st.at(acc_) = it_domain.gmem_access(acc_);
                 return 0;
@@ -290,6 +290,7 @@ namespace gridtools {
                 if (koffset_abs <= m_klevel) {
                     boost::fusion::at_key< Idx >(m_kcaches).at(acc_) = m_it_domain.gmem_access(acc_);
                 }
+ 
 #endif
             }
         };

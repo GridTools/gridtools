@@ -108,8 +108,7 @@ namespace gridtools {
                         const int_t lev = (IterationPolicy::value == enumtype::backward)
                                               ? ((to - k) - (super::m_grid.k_min() - from))
                                               : super::m_grid.k_max() - k;
-
-                        super::m_domain.template fill_caches< IterationPolicy >(super::m_grid.k_total_length() - 1 - k);
+                        super::m_domain.template fill_caches< IterationPolicy >(lev);
                     }
 
                     boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
