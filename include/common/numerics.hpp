@@ -56,6 +56,13 @@ namespace gridtools {
         struct static_pow3 {
             static const int value = 3 * static_pow3< I - 1 >::value;
         };
+
+        /* provide a constexpr version of std::ceil */
+        GT_FUNCTION constexpr unsigned static_ceil(float num) {
+            return (static_cast< float >(static_cast< unsigned >(num)) == num)
+                       ? static_cast< unsigned >(num)
+                       : static_cast< unsigned >(num) + ((num > 0) ? 1 : 0);
+        }
     }
 }
 
