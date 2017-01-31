@@ -263,7 +263,7 @@ namespace gridtools {
         };
 
         /** @brief Functor used to instantiate and allocate all temporary storages */
-        template < typename AggregatorType, typename Grid, typename Backend, typename MaxExtents >
+        template < typename AggregatorType, typename Grid, typename Backend >
         struct instantiate_tmps {
             AggregatorType &m_agg;
             Grid const &m_grid;
@@ -278,7 +278,7 @@ namespace gridtools {
                 // some typedefs
                 typedef typename T::storage_info_t storage_info_t;
                 // instantiate the right storage info (according to grid and used strategy)
-                auto storage_info = Backend::template instantiate_storage_info< storage_info_t, T, MaxExtents >(m_grid);
+                auto storage_info = Backend::template instantiate_storage_info< storage_info_t, T >(m_grid);
                 // create a storage and fill the aggregator
                 auto ptr = gridtools::pointer< typename T::storage_t >(new typename T::storage_t(storage_info));
                 ptr.get()->allocate();

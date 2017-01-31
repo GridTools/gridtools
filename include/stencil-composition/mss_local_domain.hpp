@@ -59,7 +59,7 @@ namespace gridtools {
          * @name Few short and obvious metafunctions
          * @{
          * */
-        template < typename StorageWrapperList, typename ExtentMap, typename MaxExtents, bool IsStateful >
+        template < typename StorageWrapperList, typename ExtentMap, bool IsStateful >
         struct get_local_domain {
             template < typename Esf >
             struct apply {
@@ -74,7 +74,7 @@ namespace gridtools {
 
                 // create a local_domain type specialized with the  local view wrapper list and a
                 // single Esf (vector is needed because local_domains (esfs) might be fusioned later on)
-                typedef local_domain< local_view_wrapper_list, typename Esf::args_t, ExtentMap, MaxExtents, IsStateful > type;
+                typedef local_domain< local_view_wrapper_list, typename Esf::args_t, ExtentMap, IsStateful > type;
             };
         };
     } // namespace _impl
@@ -83,7 +83,6 @@ namespace gridtools {
         typename MssComponents,
         typename StorageWrapperList,
         typename ExtentMap,
-        typename MaxExtents,
         bool IsStateful >
     struct mss_local_domain {
         GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: invalid type");
@@ -93,7 +92,7 @@ namespace gridtools {
          *
          */
         typedef typename boost::mpl::transform< typename MssComponents::linear_esf_t,
-            _impl::get_local_domain< StorageWrapperList, ExtentMap, MaxExtents, IsStateful > >::type mpl_local_domain_list;
+            _impl::get_local_domain< StorageWrapperList, ExtentMap, IsStateful > >::type mpl_local_domain_list;
 
         typedef
             typename boost::fusion::result_of::as_vector< mpl_local_domain_list >::type unfused_local_domain_sequence_t;
@@ -115,9 +114,8 @@ namespace gridtools {
         typename MssType,
         typename StorageWrapperList,
         typename ExtentMap,
-        typename MaxExtents,
         bool IsStateful >
-    struct is_mss_local_domain< mss_local_domain< BackendId, MssType, StorageWrapperList, ExtentMap, MaxExtents, IsStateful > >
+    struct is_mss_local_domain< mss_local_domain< BackendId, MssType, StorageWrapperList, ExtentMap, IsStateful > >
         : boost::mpl::true_ {};
 
     template < typename T >

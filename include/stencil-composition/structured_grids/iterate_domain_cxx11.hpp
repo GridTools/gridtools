@@ -252,7 +252,7 @@ namespace gridtools {
         GT_FUNCTION void assign_storage_pointers() {
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
                 assign_storage_ptrs< BackendType, data_ptr_cached_t, local_domain_t, processing_elements_block_size_t, 
-                    typename local_domain_t::extents_map_t, typename local_domain_t::max_extents_t >(
+                    typename local_domain_t::extents_map_t >(
                     data_pointer(), local_domain.m_local_storage_info_ptrs));
         }
 

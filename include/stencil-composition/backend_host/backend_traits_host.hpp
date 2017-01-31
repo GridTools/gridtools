@@ -160,20 +160,18 @@ namespace gridtools {
            |__|__|  and therefore we don't consider the j offset at the moment.
                     The real offset is the offset calculated here + offset halo i + offset halo j!
         */
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename MaxExtents, typename StorageInfo>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo>
         static typename boost::enable_if_c<Tmp, int>::type 
         fields_offset(StorageInfo const* sinfo) {
             const uint_t i = processing_element_i();
-            constexpr int diff_i_minus = boost::mpl::at_c<MaxExtents, 0>::type::value;
-            constexpr int diff_i_plus = boost::mpl::at_c<MaxExtents, 1>::type::value;
-            constexpr int diff_j_minus = boost::mpl::at_c<MaxExtents, 2>::type::value;
-            constexpr int blocksize = (diff_i_minus + PEBlockSize::i_size_t::value + diff_i_plus);
+            constexpr int halo_i = StorageInfo::Halo::template at<0>();
+            constexpr int halo_j = StorageInfo::Halo::template at<1>();
+            constexpr int blocksize = 2*halo_i + PEBlockSize::i_size_t::value;
             return  StorageInfo::get_initial_offset() + 
-                sinfo->template stride<0>() * (blocksize * i - diff_i_minus) - 
-                sinfo->template stride<1>() * diff_j_minus;
+                sinfo->template stride<0>() * (blocksize * i - halo_i);
         }
 
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename MaxExtents, typename StorageInfo>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo>
         static typename boost::enable_if_c<!Tmp, int>::type 
         fields_offset(StorageInfo const* sinfo) {
             return StorageInfo::get_initial_offset();

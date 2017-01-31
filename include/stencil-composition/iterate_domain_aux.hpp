@@ -390,8 +390,7 @@ namespace gridtools {
         typename DataPtrCached,
         typename LocalDomain,
         typename PEBlockSize,
-        typename ExtentMap,
-        typename MaxExtents >
+        typename ExtentMap >
     struct assign_storage_ptrs {
 
         GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached< DataPtrCached >::value), "Error: wrong type");
@@ -420,8 +419,7 @@ namespace gridtools {
             const int offset = Backend::template fields_offset< LocalDomain,
                 PEBlockSize,
                 storage_wrapper_t::is_temporary,
-                max_extent_t,
-                MaxExtents >(boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
+                max_extent_t>(boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
             for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i) {
                 Backend::template once_per_block< pos_in_storage_wrapper_list_t::value, PEBlockSize >::assign(
                     m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i], sw.second[i] + offset);

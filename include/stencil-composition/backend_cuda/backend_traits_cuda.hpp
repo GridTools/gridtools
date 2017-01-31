@@ -36,6 +36,7 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
 
+#include "../../common/numerics.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
@@ -154,21 +155,25 @@ namespace gridtools {
         /**
            Static method in order to calculate the field offset.
         */
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename MaxExtents, typename StorageInfo>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo>
         GT_FUNCTION static typename boost::enable_if_c<Tmp, int>::type 
         fields_offset(StorageInfo const* sinfo) {
-            const uint_t i = processing_element_i();
-            const uint_t j = processing_element_j();
-            const uint_t ni = gridDim.x;
-            const uint_t nj = gridDim.y;
-            const uint_t nk = static_cast<const uint_t>(static_cast<float>(sinfo->template dim<2>()+0.1) / static_cast<float>((ni*nj)));
+            constexpr int block_size_i = 2*StorageInfo::Halo::template at<0>() + PEBlockSize::i_size_t::value;
+            constexpr int block_size_j = 2*StorageInfo::Halo::template at<1>() + PEBlockSize::j_size_t::value;
+            // protect against div. by 0
+            constexpr int diff_between_blocks = (StorageInfo::Alignment::value) ? 
+                _impl::static_ceil(static_cast<float>(block_size_i)/StorageInfo::Alignment::value) * 
+                StorageInfo::Alignment::value : PEBlockSize::i_size_t::value;
+            // compute position in i and j
+            const uint_t i = processing_element_i() * diff_between_blocks;
+            const uint_t j = diff_between_blocks * gridDim.x * processing_element_j() * block_size_j;
             // get_initial_offset will deliver (alignment<N> - max. iminus halo). But in order to be
             // aligned we have to add a value to this offset if we have an extent in iminus that is
             // smaller than the maximum extent in iminus.
-            return StorageInfo::get_initial_offset() + CurrentExtent::iminus::value + sinfo->template stride<2>()*nk*((ni*j)+i);
+            return StorageInfo::get_initial_offset() + CurrentExtent::iminus::value + i + j;
         }
 
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename MaxExtents, typename StorageInfo>
+        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo>
         GT_FUNCTION static typename boost::enable_if_c<!Tmp, int>::type 
         fields_offset(StorageInfo const* sinfo) {
             return StorageInfo::get_initial_offset();
