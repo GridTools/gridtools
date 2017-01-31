@@ -159,12 +159,12 @@ namespace gridtools {
             const uint_t i = processing_element_i();
             constexpr int halo_i = StorageInfo::Halo::template at< 0 >();
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
-            return sinfo->index(i * blocksize, 0, 0);
+            return StorageInfo::get_initial_offset() + sinfo->template stride<0>() * i * blocksize;
         }
 
         template < typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo >
         static typename boost::enable_if_c< !Tmp, int >::type fields_offset(StorageInfo const *sinfo) {
-            return sinfo->index(0, 0, 0);
+            return StorageInfo::get_initial_offset();
         }
 
         /**
