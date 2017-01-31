@@ -83,7 +83,7 @@ namespace gridtools {
             template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
             typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(T &t) const {
                 // make a view
-                if(get_arg_storage_pair< T >().ptr.get())
+                if (get_arg_storage_pair< T >().ptr.get())
                     t = make_host_view(*(get_arg_storage_pair< T >().ptr));
             }
 
@@ -91,7 +91,7 @@ namespace gridtools {
             typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
                 T &t) const {
                 // make a view
-                if(get_arg_storage_pair< T >().ptr.get())
+                if (get_arg_storage_pair< T >().ptr.get())
                     t = make_field_host_view(*(get_arg_storage_pair< T >().ptr));
             }
         };
@@ -152,29 +152,19 @@ namespace gridtools {
         };
 
         /**
-           Static method in order to calculate the field offset. 
-
-           We only use the offset in i at this stage. Why?
-            __ __   Here we have two blocks. No matter what the halo is we want
-           |  |  |  to end up in the left top position of each element,
-           |__|__|  and therefore we don't consider the j offset at the moment.
-                    The real offset is the offset calculated here + offset halo i + offset halo j!
+           Static method in order to calculate the field offset.
         */
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo>
-        static typename boost::enable_if_c<Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo) {
+        template < typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo >
+        static typename boost::enable_if_c< Tmp, int >::type fields_offset(StorageInfo const *sinfo) {
             const uint_t i = processing_element_i();
-            constexpr int halo_i = StorageInfo::Halo::template at<0>();
-            constexpr int halo_j = StorageInfo::Halo::template at<1>();
-            constexpr int blocksize = 2*halo_i + PEBlockSize::i_size_t::value;
-            return  StorageInfo::get_initial_offset() + 
-                sinfo->template stride<0>() * (blocksize * i - halo_i);
+            constexpr int halo_i = StorageInfo::Halo::template at< 0 >();
+            constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
+            return sinfo->index(i * blocksize, 0, 0);
         }
 
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo>
-        static typename boost::enable_if_c<!Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo) {
-            return StorageInfo::get_initial_offset();
+        template < typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo >
+        static typename boost::enable_if_c< !Tmp, int >::type fields_offset(StorageInfo const *sinfo) {
+            return sinfo->index(0, 0, 0);
         }
 
         /**
