@@ -179,27 +179,45 @@ namespace tridiagonal {
 #endif
 #endif
 
-        //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
-        typedef gridtools::layout_map< 0, 1, 2 > layout_t;
-        typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
-        typedef gridtools::BACKEND::storage_type< float_type, meta_t >::type storage_type;
-        typedef gridtools::BACKEND::temporary_storage_type< float_type, meta_t >::type tmp_storage_type;
+        typedef gridtools::BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_t;
+        typedef gridtools::BACKEND::storage_traits_t::data_store_t< float_type, meta_t > storage_type;
 
         // Definition of the actual data fields that are used for input/output
-        // storage_type in(d1,d2,d3,-1, "in"));
         meta_t meta_(d1, d2, d3);
-        storage_type out(meta_, 0., "out");
-        storage_type inf(meta_, -1., "inf");
-        storage_type diag(meta_, 3., "diag");
-        storage_type sup(meta_, 1., "sup");
-        storage_type rhs(meta_, 3., "rhs");
+        storage_type out(meta_);
+        storage_type inf(meta_);
+        storage_type diag(meta_);
+        storage_type sup(meta_);
+        storage_type rhs(meta_);
+        storage_type solution(meta_);
+        out.allocate();
+        inf.allocate();
+        diag.allocate();
+        sup.allocate();
+        rhs.allocate();
+        solution.allocate();
 
-        storage_type solution(meta_, 1., "sol");
+        // create views
+        auto outv = make_host_view(out);
+        auto infv = make_host_view(inf);
+        auto diagv = make_host_view(diag);
+        auto supv = make_host_view(sup);
+        auto rhsv = make_host_view(rhs);
+        auto solv = make_host_view(solution);
 
+        // init fields
         for (int_t i = 0; i < d1; ++i) {
             for (int_t j = 0; j < d2; ++j) {
-                rhs(i, j, 0) = 4.;
-                rhs(i, j, 5) = 2.;
+                for (int_t k = 0; k < d3; ++k) {
+                    rhsv(i,j,k) = 3.0;
+                    supv(i,j,k) = 1.0;
+                    diagv(i,j,k) = 3.0;
+                    infv(i,j,k) = -1.0;
+                    outv(i,j,k) = 0.0;
+                    solv(i,j,k) = 1.0;
+                }
+                rhsv(i, j, 0) = 4.;
+                rhsv(i, j, 5) = 2.;
             }
         }
         // result is 1
@@ -221,7 +239,7 @@ namespace tridiagonal {
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&inf, &diag, &sup, &rhs, &out));
+        gridtools::aggregator_type< accessor_list > domain(inf, diag, sup, rhs, out);
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -244,16 +262,7 @@ namespace tridiagonal {
   3) The actual domain dimensions
  */
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            solver = gridtools::make_computation< gridtools::BACKEND >(
+        auto solver = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor
