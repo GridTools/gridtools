@@ -425,25 +425,6 @@ namespace gridtools {
                         return (data_pointer())[idx];*/
         }
 
-        /** @brief method called in the Do methods of the functors.
-
-            specialization for the generic accessors placeholders
-        */
-        template < uint_t I, enumtype::intend Intend >
-        GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
-            global_accessor< I, Intend > const &accessor) const {
-
-            // getting information about the storage
-            typedef typename global_accessor< I, Intend >::index_t index_t;
-
-            typedef typename get_storage_pointer_accessor< local_domain_t, global_accessor< I, Intend > >::type
-                storage_ptr_type;
-
-            storage_ptr_type storage = boost::fusion::at< typename local_domain_t::template get_arg< index_t >::type >(
-                local_domain.m_local_data_ptrs);
-            return *storage;
-        }
-
         /**@brief returns the dimension of the storage corresponding to the given accessor
 
            Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
@@ -474,6 +455,19 @@ namespace gridtools {
         template < typename Accessor >
         using cached = typename cache_access_accessor< Accessor, all_caches_t >::type;
 
+
+        /** @brief method called in the Do methods of the functors.
+
+            specialization for the generic accessors placeholders
+        */
+        template < uint_t I, enumtype::intend Intend >
+        GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
+            global_accessor< I, Intend > const &accessor) const {
+            typedef typename accessor_return_type< global_accessor< I, Intend > >::type return_t;
+            typedef typename global_accessor< I, Intend >::index_t index_t;
+            return *static_cast<return_t*>(data_pointer().template get< index_t::value >()[0]);
+        }
+
         /** @brief method called in the Do methods of the functors.
 
             Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of
@@ -491,7 +485,7 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION typename boost::disable_if<
-            boost::mpl::or_< cached< Accessor >, boost::mpl::not_< is_accessor< Accessor > > >,
+            boost::mpl::or_< cached< Accessor >, boost::mpl::not_< is_accessor< Accessor > >, is_global_accessor< Accessor > >,
             typename accessor_return_type< Accessor >::type >::type
         operator()(Accessor const &accessor) const {
             GRIDTOOLS_STATIC_ASSERT(

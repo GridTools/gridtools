@@ -231,7 +231,10 @@ namespace gridtools {
             int_t const increment, ArrayIndex &RESTRICT index_array, StridesCached &RESTRICT strides_cached)
             : m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached) {}
 
-        template < typename StorageInfo >
+        template < typename StorageInfo, typename boost::enable_if_c<(Coordinate >= StorageInfo::Layout::length), int>::type = 0 >
+        GT_FUNCTION void operator()(const StorageInfo *sinfo) const {}
+
+        template < typename StorageInfo, typename boost::enable_if_c<(Coordinate < StorageInfo::Layout::length), int>::type = 0 >
         GT_FUNCTION void operator()(const StorageInfo *sinfo) const {
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const StorageInfo * >::type::pos index_t;
@@ -347,7 +350,10 @@ namespace gridtools {
             Strides &RESTRICT strides, const int_t initial_pos, const uint_t block, ArrayIndex &RESTRICT index_array)
             : m_strides(strides), m_initial_pos(initial_pos), m_block(block), m_index_array(index_array) {}
 
-        template < typename StorageInfo >
+        template < typename StorageInfo, typename boost::enable_if_c<(Coordinate >= StorageInfo::Layout::length), int>::type = 0 >
+        GT_FUNCTION void operator()(const StorageInfo *storage_info) const {}
+
+        template < typename StorageInfo, typename boost::enable_if_c<(Coordinate < StorageInfo::Layout::length), int>::type = 0 >
         GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const StorageInfo * >::type::pos index_t;
@@ -573,19 +579,6 @@ namespace gridtools {
 
         typedef typename get_storage_type<
             typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::storage_t >::type::data_t type;
-    };
-
-    /**
-       @brief partial specialization for the global_accessor
-
-       for the global accessor the value_type is the storage object type itself.
-    */
-    template < ushort_t I, enumtype::intend Intend, typename IterateDomainArguments >
-    struct get_arg_value_type_from_accessor< global_accessor< I, Intend >, IterateDomainArguments > {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
-
-        typedef typename boost::mpl::at< typename IterateDomainArguments::local_domain_t::mpl_storages,
-            static_int< I > >::type::value_type::value_type type;
     };
 
     /**
