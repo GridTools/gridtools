@@ -55,10 +55,7 @@ if __name__ == "__main__":
         json_file = 'stencils_strgrid.json'
 
     if args.std:
-        print('--std will be ignored (cxx11 is the only supported options)')
-#        stds=args.std[0].split(',')
-#    else:
-#        stds=('cxx03', 'cxx11')
+        print('--std will be ignored (cxx11 is the only supported option)')
 
     if args.prec:
         precs=args.prec[0].split(',')
