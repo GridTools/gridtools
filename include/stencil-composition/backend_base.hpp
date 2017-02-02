@@ -55,7 +55,6 @@
 #include "./aggregator_type.hpp"
 #include "./axis.hpp"
 #include "./conditionals/condition.hpp"
-#include "./global_parameter.hpp"
 #include "./intermediate_impl.hpp"
 #include "./mss.hpp"
 #include "./mss_local_domain.hpp"
@@ -125,17 +124,44 @@ namespace gridtools {
 
         typedef backend_traits_from_id< BackendId > backend_traits_t;
         typedef grid_traits_from_id< GridId > grid_traits_t;
+        typedef storage_traits< BackendId > storage_traits_t;
         typedef typename backend_traits_t::template select_strategy< backend_ids_t >::type strategy_traits_t;
 
         static const enumtype::strategy s_strategy_id = StrategyId;
         static const enumtype::platform s_backend_id = BackendId;
         static const enumtype::grid_type s_grid_type_id = GridId;
 
+
         /** types of the functions used to compute the thread grid information
             for allocating the temporary storages and such
         */
         typedef uint_t (*query_i_threads_f)(uint_t);
         typedef uint_t (*query_j_threads_f)(uint_t);
+
+        /**
+            Method to retrieve a global parameter
+         */
+        template < typename T >
+        static typename storage_traits_t::template data_store_t<T, typename storage_traits_t::template special_storage_info_t<0, selector<0u> > > 
+        make_global_parameter(T const& t) {
+            typename storage_traits_t::template special_storage_info_t<0, selector<0u> > si(1);
+            typename storage_traits_t::template data_store_t<T, decltype(si)> ds(si);
+            ds.allocate();
+            make_host_view(ds)(0) = t;
+            return ds;
+        }
+
+        /**
+            Method to update a global parameter
+         */
+        template < typename T, typename V >
+        static void update_global_parameter(T& gp, V const& new_val) {
+            gp.sync();
+            auto view = make_host_view(gp);
+            assert(valid(gp, view) && "Cannot create a valid view to a global parameter. Properly synced?");
+            view(0) = new_val;
+            gp.sync();
+        }
 
         /**
             Method to instantiate the views (according to the given backend)

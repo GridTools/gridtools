@@ -93,7 +93,7 @@ TEST(test_global_accessor, boundary_conditions) {
 
     boundary bd(20);
 
-    auto bd_ = make_global_parameter<storage_traits_t>(bd);    
+    auto bd_ = backend_t::make_global_parameter(bd);    
     typedef arg< 1, decltype(bd_) > p_bd;
 
     halo_descriptor di = halo_descriptor(0, 1, 1, 9, 10);
@@ -133,7 +133,7 @@ TEST(test_global_accessor, boundary_conditions) {
     // get the configuration object from the gpu
     // modify configuration object (boundary)
     bd.int_value = 30;
-    update_global_parameter(bd_, bd);    
+    backend_t::update_global_parameter(bd_, bd);    
 
     // get the storage object from the gpu
     // modify storage object
