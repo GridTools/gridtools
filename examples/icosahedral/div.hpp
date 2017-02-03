@@ -107,10 +107,10 @@ namespace ico_operators {
         l_over_A.initialize(0.0);
 
         {
-            typedef arg< 0, edge_2d_storage_type > p_edge_length;
-            typedef arg< 1, cell_2d_storage_type > p_cell_area_reciprocal;
-            typedef arg< 2, edges_of_cells_storage_type > p_orientation_of_normal;
-            typedef arg< 3, cells_4d_storage_type > p_div_weights;
+            typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;
+            typedef arg< 1, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
+            typedef arg< 2, edges_of_cells_storage_type, enumtype::edges > p_orientation_of_normal;
+            typedef arg< 3, cells_4d_storage_type, enumtype::cells > p_div_weights;
 
             typedef boost::mpl::vector< p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights >
                 accessor_list_t;
@@ -139,9 +139,9 @@ namespace ico_operators {
         }
 
         {
-            typedef arg< 0, edge_2d_storage_type > p_edge_length;
-            typedef arg< 1, cell_2d_storage_type > p_cell_area_reciprocal;
-            typedef arg< 2, edges_4d_storage_type > p_l_over_A;
+            typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;
+            typedef arg< 1, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
+            typedef arg< 2, edges_4d_storage_type, enumtype::edges > p_l_over_A;
 
             typedef boost::mpl::vector< p_edge_length, p_cell_area_reciprocal, p_l_over_A > accessor_list_t;
 
@@ -174,9 +174,9 @@ namespace ico_operators {
          */
 
         {
-            typedef arg< 0, edge_storage_type > p_in_edges;
-            typedef arg< 1, cells_4d_storage_type > p_div_weights;
-            typedef arg< 2, cell_storage_type > p_out_cells;
+            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+            typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
+            typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
 
             typedef boost::mpl::vector< p_in_edges, p_div_weights, p_out_cells > accessor_list_t;
 
@@ -212,9 +212,9 @@ namespace ico_operators {
          * stencil of div reduction into scalar
          */
         {
-            typedef arg< 0, edge_storage_type > p_in_edges;
-            typedef arg< 1, cells_4d_storage_type > p_div_weights;
-            typedef arg< 2, cell_storage_type > p_out_cells;
+            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+            typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
+            typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
 
             typedef boost::mpl::vector< p_in_edges, p_div_weights, p_out_cells > accessor_list_t;
 
@@ -252,10 +252,10 @@ namespace ico_operators {
         //         * stencil of div flow convention
         //         */
         //        {
-        //            typedef arg< 0, edge_storage_type > p_in_edges;
-        //            typedef arg< 1, edge_2d_storage_type > p_edge_length;
-        //            typedef arg< 2, cell_2d_storage_type > p_cell_area_reciprocal;
-        //            typedef arg< 3, cell_storage_type > p_out_cells;
+        //            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+        //            typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
+        //            typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
+        //            typedef arg< 3, cell_storage_type, enumtype::cells > p_out_cells;
 
         //            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells >
         //                accessor_list_t;
@@ -295,10 +295,10 @@ namespace ico_operators {
          * stencil of div flow convention
          */
         {
-            typedef arg< 0, edge_storage_type > p_in_edges;
-            typedef arg< 1, edge_2d_storage_type > p_edge_length;
-            typedef arg< 2, cell_2d_storage_type > p_cell_area_reciprocal;
-            typedef arg< 3, cell_storage_type > p_out_cells;
+            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+            typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
+            typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
+            typedef arg< 3, cell_storage_type, enumtype::cells > p_out_cells;
 
             typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells >
                 accessor_list_t;
@@ -335,10 +335,10 @@ namespace ico_operators {
         }
 
         //        {
-        //            typedef arg< 0, edge_storage_type > p_in_edges;
-        //            typedef arg< 1, edge_2d_storage_type > p_edge_length;
-        //            typedef arg< 2, cell_2d_storage_type > p_cell_area_reciprocal;
-        //            typedef arg< 3, cell_storage_type > p_out_cells;
+        //            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+        //            typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
+        //            typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
+        //            typedef arg< 3, cell_storage_type, enumtype::cells > p_out_cells;
 
         //            typedef boost::mpl::vector< p_in_edges, p_edge_length, p_cell_area_reciprocal, p_out_cells >
         //                accessor_list_t;
@@ -382,9 +382,9 @@ namespace ico_operators {
         //        }
 
         //        {
-        //            typedef arg< 0, edge_storage_type > p_in_edges;
-        //            typedef arg< 1, cells_of_edges_storage_type > p_l_over_A;
-        //            typedef arg< 2, cell_storage_type > p_out_cells;
+        //            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+        //            typedef arg< 1, cells_of_edges_storage_type, enumtype::cells > p_l_over_A;
+        //            typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
 
         //            typedef boost::mpl::vector< p_in_edges, p_l_over_A, p_out_cells > accessor_list_t;
 

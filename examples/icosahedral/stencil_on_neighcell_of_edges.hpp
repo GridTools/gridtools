@@ -109,8 +109,8 @@ namespace soncoe {
         out_edges.initialize(0.0);
         ref_edges.initialize(0.0);
 
-        typedef arg< 0, cell_storage_type > p_in_cells;
-        typedef arg< 1, edge_storage_type > p_out_edges;
+        typedef arg< 0, cell_storage_type, enumtype::cells > p_in_cells;
+        typedef arg< 1, edge_storage_type, enumtype::edges > p_out_edges;
 
         typedef boost::mpl::vector< p_in_cells, p_out_edges > accessor_list_t;
 

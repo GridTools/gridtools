@@ -111,8 +111,8 @@ namespace soneoc {
         out_cells.initialize(0.0);
         ref_on_edges.initialize(0.0);
 
-        typedef arg< 0, edge_storage_type > p_in_edges;
-        typedef arg< 1, cell_storage_type > p_out_cells;
+        typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+        typedef arg< 1, cell_storage_type, enumtype::cells > p_out_cells;
 
         typedef boost::mpl::vector< p_in_edges, p_out_cells > accessor_list_edges_t;
 

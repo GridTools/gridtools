@@ -84,7 +84,7 @@ namespace sov {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type =
+        using vertex_storage_type =
             typename icosahedral_topology_t::storage_t< icosahedral_topology_t::vertices, double >;
 
         const uint_t halo_nc = 1;
@@ -109,8 +109,8 @@ namespace sov {
         out_vertices.initialize(0.0);
         ref_vertices.initialize(0.0);
 
-        typedef arg< 0, cell_storage_type > p_in_vertices;
-        typedef arg< 1, cell_storage_type > p_out_vertices;
+        typedef arg< 0, vertex_storage_type, enumtype::vertices > p_in_vertices;
+        typedef arg< 1, vertex_storage_type, enumtype::vertices > p_out_vertices;
 
         typedef boost::mpl::vector< p_in_vertices, p_out_vertices > accessor_list_t;
 

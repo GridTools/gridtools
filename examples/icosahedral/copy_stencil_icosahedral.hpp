@@ -109,8 +109,8 @@ namespace test_copy_stencil_icosahedral {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        using p_out = arg< 0, decltype(storage1) >;
-        using p_in = arg< 1, decltype(storage10) >;
+        using p_out = arg< 0, decltype(storage1), enumtype::cells >;
+        using p_in = arg< 1, decltype(storage10), enumtype::cells >;
 
         typedef boost::mpl::vector< p_out, p_in > args_t;
 

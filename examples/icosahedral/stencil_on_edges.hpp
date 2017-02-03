@@ -108,8 +108,8 @@ namespace soe {
         out_edges.initialize(0.0);
         ref_edges.initialize(0.0);
 
-        typedef arg< 0, edge_storage_type > p_in_edges;
-        typedef arg< 1, edge_storage_type > p_out_edges;
+        typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
+        typedef arg< 1, edge_storage_type, enumtype::edges > p_out_edges;
 
         typedef boost::mpl::vector< p_in_edges, p_out_edges > accessor_list_t;
 
