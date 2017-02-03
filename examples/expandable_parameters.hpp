@@ -41,6 +41,7 @@ For information: http://eth-cscs.github.io/gridtools/
 
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
+#include "benchmarker.hpp"
 
 namespace test_expandable_parameters {
 
@@ -145,6 +146,11 @@ namespace test_expandable_parameters {
         comp_->ready();
         comp_->steady();
         comp_->run();
+
+#ifdef BENCHMARK
+        benchmarker::run(comp_, 10);
+#endif
+
         comp_->finalize();
 
         bool success = true;
