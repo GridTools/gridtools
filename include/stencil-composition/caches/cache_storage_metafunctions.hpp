@@ -137,12 +137,13 @@ namespace gridtools {
         struct compute_size;
 
         template < uint_t NColors, typename... Minus, typename... Plus, typename... Tiles, typename Storage >
-        struct compute_size< NColors, variadic_to_vector< Minus... >,
+        struct compute_size< NColors,
+            variadic_to_vector< Minus... >,
             variadic_to_vector< Plus... >,
             variadic_to_vector< Tiles... >,
             Storage > {
-            static constexpr auto value =
-                accumulate(multiplies(), (Plus::value + Tiles::value - Minus::value)...) * Storage::field_dimensions * NColors;
+            static constexpr auto value = accumulate(multiplies(), (Plus::value + Tiles::value - Minus::value)...) *
+                                          Storage::field_dimensions * NColors;
         };
 #endif
 

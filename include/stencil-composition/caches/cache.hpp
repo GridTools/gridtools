@@ -79,9 +79,9 @@ namespace gridtools {
             typedef Arg arg_t;
 // TODO ICO_STORAGE
 #ifndef STRUCTURED_GRIDS
-           GRIDTOOLS_STATIC_ASSERT((!boost::is_same< 
-                         typename Arg::location_type_t, 
-                         enumtype::default_location_type>::value), "args in irregular grids require a location type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (!boost::is_same< typename Arg::location_type_t, enumtype::default_location_type >::value),
+                "args in irregular grids require a location type");
 #endif
             typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;
         };
