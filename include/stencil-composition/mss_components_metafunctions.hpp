@@ -288,10 +288,26 @@ namespace gridtools {
             typedef mss_descriptor< execution_engine_t, new_esf_sequence_t, cache_sequence_t > type;
         };
 
+        template < typename MssDesc >
+        struct fix_mss_components_reduction_desc {
+            static_assert(is_reduction_descriptor<MssDesc>::value, "Given type is no mss_descriptor.");
+            typedef typename MssDesc::reduction_type_t reduction_type_t;
+            typedef typename MssDesc::bin_op_t bin_op_t;
+            typedef typename MssDesc::esf_sequence_t esf_sequence_t;
+            typedef typename boost::mpl::transform< esf_sequence_t, fix_esf_sequence >::type new_esf_sequence_t;
+            typedef reduction_descriptor< reduction_type_t, bin_op_t, new_esf_sequence_t > type;
+        };
+
         GRIDTOOLS_STATIC_ASSERT((is_meta_array< MetaArray< Sequence, Pred > >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), "Internal Error: wrong type");
 
-        typedef typename boost::mpl::transform< Sequence, fix_mss_components_desc< boost::mpl::_1 > >::type
+        typedef typename boost::mpl::fold< 
+            Sequence, 
+            boost::mpl::vector<>,
+            boost::mpl::if_< is_reduction_descriptor< boost::mpl::_2 >,
+                boost::mpl::push_back< boost::mpl::_1, fix_mss_components_reduction_desc< boost::mpl::_2 > >,
+                boost::mpl::push_back< boost::mpl::_1, fix_mss_components_desc< boost::mpl::_2 > >
+            > >::type
             new_mss_descriptor_t;
         typedef MetaArray< new_mss_descriptor_t, Pred > type;
     };
@@ -342,7 +358,13 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_meta_array< MetaArray< Sequence, Pred > >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), "Internal Error: wrong type");
 
-        typedef typename boost::mpl::transform< Sequence, fix_mss_components_desc< boost::mpl::_1 > >::type
+        typedef typename boost::mpl::fold< 
+            Sequence, 
+            boost::mpl::vector<>,
+            boost::mpl::if_<is_reduction_descriptor<boost::mpl::_2>,
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2>,
+                boost::mpl::push_back<boost::mpl::_1, fix_mss_components_desc< boost::mpl::_2 > >
+            > >::type
             new_mss_descriptor_t;
         typedef MetaArray< new_mss_descriptor_t, Pred > type;
     };
