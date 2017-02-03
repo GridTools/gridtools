@@ -149,16 +149,16 @@ namespace ico_operators {
          */
         {
             // div
-            typedef arg< 0, edge_2d_storage_type > p_edge_length;
-            typedef arg< 1, cell_2d_storage_type > p_cell_area_reciprocal;
-            typedef arg< 2, edges_of_cells_storage_type > p_orientation_of_normal;
-            typedef arg< 3, cells_4d_storage_type > p_div_weights;
+            typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;
+            typedef arg< 1, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
+            typedef arg< 2, edges_of_cells_storage_type, enumtype::edges > p_orientation_of_normal;
+            typedef arg< 3, cells_4d_storage_type, enumtype::cells > p_div_weights;
 
             // curl
-            typedef arg< 4, vertex_2d_storage_type > p_dual_area_reciprocal;
-            typedef arg< 5, edge_2d_storage_type > p_dual_edge_length;
-            typedef arg< 6, vertices_4d_storage_type > p_curl_weights;
-            typedef arg< 7, edges_of_vertices_storage_type > p_edge_orientation;
+            typedef arg< 4, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
+            typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
+            typedef arg< 6, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
+            typedef arg< 7, edges_of_vertices_storage_type, enumtype::edges > p_edge_orientation;
 
             typedef boost::mpl::vector< p_edge_length,
                 p_cell_area_reciprocal,
@@ -212,22 +212,22 @@ namespace ico_operators {
          */
         {
             // input
-            typedef arg< 0, edge_storage_type > p_in_edges;
+            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
 
             // fields for div
-            typedef arg< 1, cells_4d_storage_type > p_div_weights;
-            typedef arg< 2, tmp_cell_storage_type > p_div_on_cells;
+            typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
+            typedef arg< 2, tmp_cell_storage_type, enumtype::cells > p_div_on_cells;
 
             // fields for curl
-            typedef arg< 3, vertices_4d_storage_type > p_curl_weights;
-            typedef arg< 4, tmp_vertex_storage_type > p_curl_on_vertices;
+            typedef arg< 3, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
+            typedef arg< 4, tmp_vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
 
             // fields for lap
-            typedef arg< 5, edge_2d_storage_type > p_dual_edge_length_reciprocal;
-            typedef arg< 6, edge_2d_storage_type > p_edge_length_reciprocal;
+            typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;
+            typedef arg< 6, edge_2d_storage_type, enumtype::edges > p_edge_length_reciprocal;
 
             // output
-            typedef arg< 7, edge_storage_type > p_out_edges;
+            typedef arg< 7, edge_storage_type, enumtype::edges > p_out_edges;
 
             typedef boost::mpl::vector< p_in_edges,
                 p_div_weights,
@@ -285,24 +285,24 @@ namespace ico_operators {
          */
         {
             // input
-            typedef arg< 0, edge_storage_type > p_in_edges;
+            typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
 
             // fields for div
-            typedef arg< 1, edge_2d_storage_type > p_edge_length;
-            typedef arg< 2, cell_2d_storage_type > p_cell_area_reciprocal;
-            typedef arg< 3, tmp_cell_storage_type > p_div_on_cells;
+            typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
+            typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
+            typedef arg< 3, tmp_cell_storage_type, enumtype::cells > p_div_on_cells;
 
             // fields for curl
-            typedef arg< 4, vertex_2d_storage_type > p_dual_area_reciprocal;
-            typedef arg< 5, edge_2d_storage_type > p_dual_edge_length;
-            typedef arg< 6, tmp_vertex_storage_type > p_curl_on_vertices;
+            typedef arg< 4, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
+            typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
+            typedef arg< 6, tmp_vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
 
             // fields for lap
-            typedef arg< 7, edge_2d_storage_type > p_dual_edge_length_reciprocal;
-            typedef arg< 8, edge_2d_storage_type > p_edge_length_reciprocal;
+            typedef arg< 7, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;
+            typedef arg< 8, edge_2d_storage_type, enumtype::edges > p_edge_length_reciprocal;
 
             // output
-            typedef arg< 9, edge_storage_type > p_out_edges;
+            typedef arg< 9, edge_storage_type, enumtype::edges > p_out_edges;
 
             typedef boost::mpl::vector< p_in_edges,
                 p_edge_length,
@@ -329,7 +329,7 @@ namespace ico_operators {
                 grid_,
                 gridtools::make_multistage(
                     execute< forward >(),
-                    define_caches(cache< IJ, local >(p_div_on_cells(), p_curl_on_vertices())),
+                    define_caches(cache< IJ, local >(p_div_on_cells())), //p_curl_on_vertices())),
                     make_stage< div_functor_flow_convention_connectivity,
                         icosahedral_topology_t,
                         icosahedral_topology_t::cells >(

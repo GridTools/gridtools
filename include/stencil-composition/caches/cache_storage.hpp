@@ -118,7 +118,7 @@ namespace gridtools {
             typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
             typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
 #else
-            assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
+            assert((_impl::compute_size< NColors, minus_t, plus_t, tiles_t, storage_t >::value == size()));
 #endif
 
             // manually aligning the storage
@@ -127,11 +127,10 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
                                   (thread_pos[1] - jminus::value) * s_storage_info.template strides< 1 >() +
 #else
-                                  Color + s_storage_info.template strides< 1 >() +
+                                  Color * s_storage_info.template strides< 1 >() +
                                   (thread_pos[1] - jminus::value) * s_storage_info.template strides< 2 >() +
 #endif
                                   s_storage_info.index(accessor_);
-
             assert((extra_) < size());
             assert((extra_) >= 0);
 
@@ -143,7 +142,7 @@ namespace gridtools {
         value_type m_values[size()];
 #else
 
-        value_type m_values[_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value];
+        value_type m_values[_impl::compute_size< NColors, minus_t, plus_t, tiles_t, storage_t >::value];
 #endif
     };
 
