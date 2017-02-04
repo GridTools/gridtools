@@ -44,7 +44,6 @@ For information: http://eth-cscs.github.io/gridtools/
 #include "../common/host_device.hpp"
 #include "../common/defs.hpp"
 #include "../common/array.hpp"
-#include "stencil-composition/accessor_fwd.hpp"
 
 /**
    @file
