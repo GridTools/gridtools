@@ -41,7 +41,7 @@
 #include "computation_grammar.hpp"
 #include "make_computation_cxx11_impl.hpp"
 #include "make_computation_helper_cxx11.hpp"
-#include "./all_args_in_aggregator.hpp"
+#include "all_args_in_aggregator.hpp"
 
 namespace gridtools {
 
