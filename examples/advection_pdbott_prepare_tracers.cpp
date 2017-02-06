@@ -57,15 +57,6 @@ int main(int argc, char **argv) {
         Options::getInstance().m_size[i] = atoi(argv[i + 1]);
     }
 
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
-
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
-
     return RUN_ALL_TESTS();
 }
 
@@ -77,5 +68,5 @@ TEST(advection_pdbott_prepare_tracers, test) {
 
     if (tsteps == 0)
         tsteps = 10;
-    ASSERT_TRUE(adv_prepare_tracers::test(x, y, z, 10 /*tsteps*/));
+    ASSERT_TRUE(adv_prepare_tracers::test(x, y, z, tsteps));
 }
