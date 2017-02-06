@@ -37,7 +37,6 @@
 
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
-//#include "stencil-composition/all_args_in_aggregator.hpp"
 
 namespace all_args_in_aggregator {
     typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
@@ -85,4 +84,5 @@ namespace all_args_in_aggregator {
         static_assert(gridtools::_impl::all_args_in_aggregator<agg, decltype(good), decltype(good)>::type::value, "");
         static_assert(!gridtools::_impl::all_args_in_aggregator<agg, decltype(bad), decltype(good)>::type::value, "");
     }
+
 } // namespace all_args_in_aggregator
