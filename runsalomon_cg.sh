@@ -4,12 +4,13 @@ prefix=/home/kardoj/gridtools/build/build
 tasks_per_node=4
 
 max_it=50
-nsamples=5
-nthreads=12
-eps=1e-14
 
-for n in 128 ; do
-for nproc in 1 2 4 8 16 32 64 128 256; do
+nthreads=12
+eps=1e-16
+
+for nsamples in 5; do #100 200 400 800 1600 3200 6400; do
+for n in 128 256 512 1024; do
+for nproc in 512 1024; do #1 2 4 8 16 32 64 128 256; do
 
 comp_nodes=$((nproc/tasks_per_node))
 if [ ${comp_nodes} -eq 0 ]
@@ -22,10 +23,11 @@ qsub <<-_EOF
 #
 #PBS -N gridtools
 #PBS -A DD-16-7
+#PBS -q qmpp
 #PBS -l select=${comp_nodes}
-#PBS -l walltime=06:00:00
-#PBS -e cg_${n}_${comp_nodes}_${nproc}.e
-#PBS -o cg_${n}_${comp_nodes}_${nproc}.o
+#PBS -l walltime=00:45:00
+#PBS -e /home/kardoj/gridtools/build/examples/four_ppn/cg_${n}_${comp_nodes}_${nproc}_${nsamples}.e
+#PBS -o /home/kardoj/gridtools/build/examples/four_ppn/cg_${n}_${comp_nodes}_${nproc}_${nsamples}.o
 
 # Load modules
 . ~/gridtools/gridtools_setup.sh
@@ -37,5 +39,6 @@ cd $PBS_O_WORKDIR
 OMP_NUM_THREADS=${nthreads} mpirun -n ${nproc} -ppn ${tasks_per_node} ${prefix}/cg_naive_block $n $n $n $max_it $eps $nsamples
 _EOF
 
+done
 done
 done
