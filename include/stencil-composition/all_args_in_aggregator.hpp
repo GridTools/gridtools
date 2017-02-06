@@ -59,6 +59,15 @@ namespace gridtools {
                     typename investigate_placeholder<Aggregator>::template apply<boost::mpl::_1, boost::mpl::_2>
                     >::type;
             };
+
+            template <typename CurrentResult, typename ESFs>
+            struct apply<CurrentResult, independent_esf<ESFs> > {
+                using type = typename boost::mpl::fold<
+                    ESFs,
+                    CurrentResult,
+                    apply<boost::mpl::_1, boost::mpl::_2>
+                    >::type;
+            };
         };
 
         template <typename Aggregator, typename... RestOfMss>
@@ -72,6 +81,13 @@ namespace gridtools {
                 CurrentResult,
                 typename investigate_esf<Aggregator>::template apply<boost::mpl::_1, boost::mpl::_2>
                 >::type;
+        };
+
+        template <typename CurrentResult, typename Aggregator,
+                  typename FirstMss0, typename FirstMss1, typename Tag, typename... RestOfMss>
+        struct unwrap_esf_sequence<CurrentResult, Aggregator, condition<FirstMss0, FirstMss1, Tag>, RestOfMss...> {
+            using tmp = typename unwrap_esf_sequence<CurrentResult, Aggregator, FirstMss0, RestOfMss...>::type;
+            using type = typename unwrap_esf_sequence<tmp, Aggregator, FirstMss1, RestOfMss...>::type;
         };
 
         // SHORT CIRCUITING THE AND

@@ -82,5 +82,7 @@ namespace all_args_in_aggregator {
         static_assert(gridtools::_impl::all_args_in_aggregator<agg, decltype(good)>::type::value, "");
         static_assert(!gridtools::_impl::all_args_in_aggregator<agg, decltype(bad)>::type::value, "");
 
+        static_assert(gridtools::_impl::all_args_in_aggregator<agg, decltype(good), decltype(good)>::type::value, "");
+        static_assert(!gridtools::_impl::all_args_in_aggregator<agg, decltype(bad), decltype(good)>::type::value, "");
     }
 } // namespace all_args_in_aggregator
