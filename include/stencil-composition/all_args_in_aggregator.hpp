@@ -59,31 +59,43 @@ namespace gridtools {
                     typename investigate_placeholder<Aggregator>::template apply<boost::mpl::_1, boost::mpl::_2>
                     >::type;
             };
+
+            template <typename CurrentResult, typename ESFs>
+            struct apply<CurrentResult, independent_esf<ESFs> > {
+                using type = typename boost::mpl::fold<
+                    ESFs,
+                    CurrentResult,
+                    apply<boost::mpl::_1, boost::mpl::_2>
+                    >::type;
+            };
         };
 
-        template <typename Aggregator, typename... RestOfMss>
+        template <typename CurrentResult, typename Aggregator, typename... RestOfMss>
         struct unwrap_esf_sequence;
+
+        // Recursion base
+        template <typename CurrentResult, typename Aggregator>
+        struct unwrap_esf_sequence<CurrentResult, Aggregator> {
+            using type = CurrentResult;
+        };
 
         template <typename CurrentResult, typename Aggregator, typename FirstMss, typename... RestOfMss>
         struct unwrap_esf_sequence<CurrentResult, Aggregator, FirstMss, RestOfMss...> {
             using esfs = typename FirstMss::esf_sequence_t;
-            using type = typename boost::mpl::fold<
+            using CR = typename boost::mpl::fold<
                 esfs,
                 CurrentResult,
                 typename investigate_esf<Aggregator>::template apply<boost::mpl::_1, boost::mpl::_2>
                 >::type;
+            using type = typename unwrap_esf_sequence<CR, Aggregator, RestOfMss...>::type;
         };
 
-        // SHORT CIRCUITING THE AND
-        template <typename Aggregator, typename... RestOfMss>
-        struct unwrap_esf_sequence<boost::mpl::false_, Aggregator, RestOfMss...> {
-            using type = boost::mpl::false_;
-        };
-
-        // Recursion base
-        template <typename Aggregator>
-        struct unwrap_esf_sequence<Aggregator> {
-            using type = boost::mpl::true_;
+        template <typename CurrentResult, typename Aggregator,
+                  typename Mss0, typename Mss1, typename Tag, typename... RestOfMss>
+        struct unwrap_esf_sequence<CurrentResult, Aggregator, condition<Mss0, Mss1, Tag>, RestOfMss...> {
+            using CR1 = typename unwrap_esf_sequence<CurrentResult, Aggregator, Mss0>::type;
+            using CR2 = typename unwrap_esf_sequence<CR1, Aggregator, Mss1>::type;
+            using type = typename unwrap_esf_sequence<CR2, Aggregator, RestOfMss...>::type;
         };
 
         /**
