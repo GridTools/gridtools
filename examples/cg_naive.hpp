@@ -281,11 +281,6 @@ namespace cg_naive{
 
     bool CGsolver::solver(storage_type &x, storage_type &b, uint_t MAX_ITER, const double EPS, Timers &timers) {
 
-
-        if (PID == 0){
-            printf("Running CG for domain %d x %d x %d, %d iterations, tolerance %e\n", xdim, ydim, zdim, MAX_ITER, EPS);
-        }
-
         bool converged = false;
 
         // 2D partitioning scheme info

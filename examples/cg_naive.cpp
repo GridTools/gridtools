@@ -22,6 +22,7 @@ using namespace cg_naive;
  * all the random samples because the array simply does not fit
  * into the memory, therefore the hack with the PERF macro.
  */
+#define PERF
 
 // I am using another add functor because if the add_functor
 // from .hpp file is used it produces a compilation error,
@@ -79,7 +80,6 @@ int main(int argc, char** argv)
     CGsolver cg(dimx, dimy, dimz);
     auto metadata_ = cg.meta_->get_metadata();
 
-#ifndef PERF
     int mpi_size;
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 
@@ -91,7 +91,8 @@ int main(int argc, char** argv)
     long int global_domain_size = dimx*dimy*dimz;
     long int count = global_domain_size*nrhs;
     long int local_count = count / mpi_size;
-    
+
+#ifndef PERF    
     int dimx_local = metadata_.template dims<0>() - 2;
     int dimy_local = metadata_.template dims<1>() - 2;
     int dimz_local = metadata_.template dims<2>() - 2;
@@ -223,6 +224,10 @@ int main(int argc, char** argv)
     }
 #endif
 
+   if (PID == 0){
+        printf("Running CG for domain %d x %d x %d, %d iterations, tolerance %e\n", dimx, dimy, dimz, maxit, eps);
+   }
+
     // Start timer
     timers.start(Timers::TIMER_GLOBAL);
 
@@ -283,7 +288,7 @@ int main(int argc, char** argv)
      *  Extract and print the diagonal estimate
      *  =======================================
      */
-#if 1 
+#if 0 
     double *estimator;
     if (PID == MASTER)
     {
@@ -345,7 +350,7 @@ int main(int argc, char** argv)
                         int offset = pidx*local_domain_size + z*dimx_local*dimy_local + y*dimx_local + x; // index in gathered domain
                         int idx = (py*dimx_local + x) + (px*dimy_local + y)*dimx + z*dimx*dimy; //row of the A
                         if(offset >= global_domain_size) {printf("OFFSET > domain size\n");}
-                        printf ("Diagonal element (%d, %d): %32.24e\n", idx, idx, estimator[offset]);
+                        //printf ("Diagonal element (%d, %d): %32.24e\n", idx, idx, estimator[offset]);
                         fprintf (fileout, "%32.24e\n", estimator[offset]);
                     }
                 }
