@@ -44,6 +44,7 @@
 #include "../../common/generic_metafunctions/mpl_sequence_to_fusion_vector.hpp"
 #include "../iterate_domain_fwd.hpp" // to statically check arguments
 #include "../interval.hpp"           // to check if region is valid
+#include "../functor_decorator.hpp"
 
 namespace gridtools {
     // TODO: stencil functions works only for 3D stencils.
@@ -235,6 +236,10 @@ namespace gridtools {
         };
     } // namespace _impl
 
+    template < typename T >
+    struct wrap_default_interval {
+        typedef T default_interval;
+    };
     /** Main interface for calling stencil operators as functions.
 
         Usage C++11: call<functor, region>::[at<offseti, offsetj, offsetk>::]with(eval, accessors...);
@@ -253,10 +258,11 @@ namespace gridtools {
 
         typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
             Functor,
-            functor_decorator< Functor, Region > >::type functor_t;
+            functor_default_interval< Functor, Region > >::type functor_t;
+
         typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
-            Region,
-            typename functor_t::default_interval >::type interval_t;
+            wrap_default_interval< Region >,
+            functor_t >::type::default_interval interval_t;
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value),
             "Region should be a valid interval tag to select the Do specialization in the called stencil function,");
 
@@ -533,10 +539,10 @@ namespace gridtools {
 
         typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
             Functor,
-            functor_decorator< Functor, Region > >::type functor_t;
+            functor_default_interval< Functor, Region > >::type functor_t;
         typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
-            Region,
-            typename functor_t::default_interval >::type interval_t;
+            wrap_default_interval< Region >,
+            functor_t >::type::default_interval interval_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value),
             "Region should be a valid interval tag to select the Do specialization in the called stencil function,");
