@@ -52,6 +52,8 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/min_element.hpp>
+#include <boost/mpl/max_element.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
@@ -60,7 +62,6 @@
 #include "./loopintervals.hpp"
 #include "./functor_do_methods.hpp"
 #include "./functor_do_method_lookup_maps.hpp"
-#include "./axis.hpp"
 #include "./local_domain.hpp"
 #include "./computation.hpp"
 #include "./heap_allocated_temps.hpp"
@@ -453,6 +454,38 @@ namespace gridtools {
         typedef typename extract_mss_domains< Vec1 >::type type;
     };
 
+    // function that checks if the given extents (I+- and J+-)
+    // are within the halo that was defined when creating the grid.
+    template < typename ExtentsVec, typename Grid >
+    void check_grid_against_extents(Grid const &grid) {
+        typedef ExtentsVec all_extents_vecs_t;
+        // get smallest i_minus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 0 > > >::type >::type >::type >::
+            type IM_t;
+        // get smallest j_minus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 2 > > >::type >::type >::type >::
+            type JM_t;
+        // get largest i_plus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 1 > > >::type >::type >::type >::
+            type IP_t;
+        // get largest j_plus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 3 > > >::type >::type >::type >::
+            type JP_t;
+        const bool check = (IM_t::value >= -static_cast< int >(grid.direction_i().minus())) &&
+                           (IP_t::value <= static_cast< int >(grid.direction_i().plus())) &&
+                           (JM_t::value >= -static_cast< int >(grid.direction_j().minus())) &&
+                           (JP_t::value <= static_cast< int >(grid.direction_j().plus()));
+        assert(check && "One of the stencil accessor extents is exceeding the halo region.");
+    }
+
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -492,6 +525,12 @@ namespace gridtools {
             grid_traits_t,
             placeholders_t,
             RepeatFunctor >::type extent_map_t;
+
+        // collect the extents
+        typedef typename boost::mpl::transform< placeholders_t, boost::mpl::at< extent_map_t, boost::mpl::_1 > >::type
+            all_extents_t;
+        typedef typename boost::mpl::transform< all_extents_t, get_extent_vec_t< boost::mpl::_1 > >::type
+            all_extents_vecs_t;
 
         /* Second we need to associate an extent to each esf, so that
            we can associate loop bounds to the functors.
@@ -587,7 +626,7 @@ namespace gridtools {
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
-
+            check_grid_against_extents< all_extents_vecs_t >(grid);
             copy_domain_storage_pointers();
             copy_domain_metadata_pointers();
         }

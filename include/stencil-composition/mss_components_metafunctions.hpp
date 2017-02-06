@@ -206,7 +206,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
             typedef typename boost::mpl::if_< typename sfinae::has_two_args< Functor >::type,
                 Functor,
-                functor_decorator< Functor, typename Grid::axis_type > >::type functor_t;
+                functor_default_interval< Functor, typename Grid::axis_type > >::type functor_t;
 
             typedef typename compute_functor_do_methods< functor_t, typename Grid::axis_type >::type type;
 #else
