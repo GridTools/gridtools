@@ -103,7 +103,7 @@ namespace gridtools {
 
     template < typename BaseType >
     struct is_actual_storage< pointer< global_parameter< BaseType > > >
-        : public is_actual_storage< pointer< BaseType > > {};
+        : public boost::mpl::false_ {};
 
 #ifdef CXX11_ENABLED
     // Decorator is e.g. a data_field
