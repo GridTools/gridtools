@@ -236,6 +236,8 @@ namespace gridtools {
         };
     } // namespace _impl
 
+    /** wrap the regular interval in this identity metafunction, for doing lazy type instantiation in the
+     * boost::mpl::if_*/
     template < typename T >
     struct wrap_default_interval {
         typedef T default_interval;
@@ -257,109 +259,17 @@ namespace gridtools {
     template < typename Functor, typename Region = void, int Offi = 0, int Offj = 0, int Offk = 0 >
     struct call {
 
-        typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
-            Functor,
-            functor_default_interval< Functor, Region > >::type functor_t;
-
-        typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
-            wrap_default_interval< Region >,
-            functor_t >::type::default_interval interval_t;
+        GRIDTOOLS_STATIC_ASSERT((sfinae::has_two_args< Functor >::value),
+            "you cannot pass a specific vertical "
+            "interval to call a Do method with only one "
+            "argument (i.e. using the default interval)");
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value),
             "Region should be a valid interval tag to select the Do specialization in the called stencil function,");
-
-        GRIDTOOLS_STATIC_ASSERT(((boost::is_same< interval< level< 0, 0 >, level< 0, 0 > >, Region >::type::value &&
-                                     !sfinae::has_two_args< Functor >::type::value) ||
-                                    (!boost::is_same< interval< level< 0, 0 >, level< 0, 0 > >, Region >::type::value &&
-                                        sfinae::has_two_args< Functor >::type::value)),
-            "You should either specify or not a vertical interval when using the call<> interface, depending on "
-            "whether the functor you are calling requires it (i.e. its Do() method has two arguments or one)");
 
         /** This alias is used to move the computation at a certain offset
          */
         template < int I, int J, int K >
-        using at = call< functor_t, interval_t, I, J, K >;
-
-      private:
-        /**
-           Obtain the result tyoe of the function based on it's
-           signature
-         */
-        template < typename Eval, typename Funct >
-        struct get_result_type {
-            typedef accessor< _impl::_get_index_of_first_non_const< Funct >::value > accessor_t;
-
-            typedef typename Eval::template accessor_return_type< accessor_t >::type r_type;
-
-            typedef typename std::decay< r_type >::type type;
-        };
-
-      public:
-        /** With this interface a stencil function can be invoked and
-            the offsets specified in the passed accessors are used to
-            access values, w.r.t the offsets specified in a optional
-            at<..> statement.
-         */
-        template < typename Evaluator, typename... Args >
-        GT_FUNCTION static typename get_result_type< Evaluator, functor_t >::type with_offsets(
-            Evaluator const &eval, Args const &... args) {
-
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
-                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
-
-            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< functor_t >::value,
-                "Trying to invoke stencil operator with more than one output as a function\n");
-
-            typedef typename get_result_type< Evaluator, functor_t >::type result_type;
-            typedef _impl::function_aggregator_offsets< Evaluator,
-                Offi,
-                Offj,
-                Offk,
-                typename gridtools::variadic_to_vector< Args... >::type,
-                result_type,
-                _impl::_get_index_of_first_non_const< functor_t >::value > f_aggregator_t;
-
-            result_type result;
-
-            functor_t::Do(
-                f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...)), interval_t());
-
-            return result;
-        }
-
-        /** With this interface a stencil function can be invoked and
-            the offsets specified in the passed accessors are ignored.
-         */
-        template < typename Evaluator, typename... Args >
-        GT_FUNCTION static typename get_result_type< Evaluator, functor_t >::type with(
-            Evaluator const &eval, Args const &...) {
-
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
-                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
-
-            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< functor_t >::value,
-                "Trying to invoke stencil operator with more than one output as a function\n");
-
-            typedef typename get_result_type< Evaluator, functor_t >::type result_type;
-
-            result_type result;
-            typedef _impl::function_aggregator< Evaluator,
-                Offi,
-                Offj,
-                Offk,
-                typename gridtools::variadic_to_vector< Args... >::type,
-                result_type,
-                _impl::_get_index_of_first_non_const< functor_t >::value > f_aggregator_t;
-
-            functor_t::Do(f_aggregator_t(eval, result), interval_t());
-
-            return result;
-        }
-    };
-
-    template < typename Functor, int Offi, int Offj, int Offk >
-    struct call< Functor, void, Offi, Offj, Offk > {
+        using at = call< Functor, Region, I, J, K >;
 
       private:
         /**
@@ -403,7 +313,7 @@ namespace gridtools {
 
             result_type result;
 
-            Functor::Do(f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...)));
+            Functor::Do(f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...)), Region());
 
             return result;
         }
@@ -429,6 +339,87 @@ namespace gridtools {
                 Offi,
                 Offj,
                 Offk,
+                typename gridtools::variadic_to_vector< Args... >::type,
+                result_type,
+                _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
+
+            Functor::Do(f_aggregator_t(eval, result), Region());
+
+            return result;
+        }
+    };
+
+    template < typename Functor >
+    struct call< Functor, void, 0, 0, 0 > {
+
+      private:
+        /**
+           Obtain the result tyoe of the function based on it's
+           signature
+         */
+        template < typename Eval, typename Funct >
+        struct get_result_type {
+            typedef accessor< _impl::_get_index_of_first_non_const< Funct >::value > accessor_t;
+
+            typedef typename Eval::template accessor_return_type< accessor_t >::type r_type;
+
+            typedef typename std::decay< r_type >::type type;
+        };
+
+      public:
+        /** With this interface a stencil function can be invoked and
+            the offsets specified in the passed accessors are used to
+            access values, w.r.t the offsets specified in a optional
+            at<..> statement.
+         */
+        template < typename Evaluator, typename... Args >
+        GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with_offsets(
+            Evaluator const &eval, Args const &... args) {
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
+                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+
+            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
+                "Trying to invoke stencil operator with more than one output as a function\n");
+
+            typedef typename get_result_type< Evaluator, Functor >::type result_type;
+            typedef _impl::function_aggregator_offsets< Evaluator,
+                0,
+                0,
+                0,
+                typename gridtools::variadic_to_vector< Args... >::type,
+                result_type,
+                _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
+
+            result_type result;
+
+            Functor::Do(f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...)));
+
+            return result;
+        }
+
+        /** With this interface a stencil function can be invoked and
+            the offsets specified in the passed accessors are ignored.
+         */
+        template < typename Evaluator, typename... Args >
+        GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(
+            Evaluator const &eval, Args const &...) {
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
+                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+
+            GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
+                "Trying to invoke stencil operator with more than one output as a function\n");
+
+            typedef typename get_result_type< Evaluator, Functor >::type result_type;
+
+            result_type result;
+            typedef _impl::function_aggregator< Evaluator,
+                0,
+                0,
+                0,
                 typename gridtools::variadic_to_vector< Args... >::type,
                 result_type,
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
@@ -626,20 +617,13 @@ namespace gridtools {
     template < typename Functor, typename Region, int Offi = 0, int Offj = 0, int Offk = 0 >
     struct call_proc {
 
-        typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
-            Functor,
-            functor_default_interval< Functor, Region > >::type functor_t;
-        typedef typename boost::mpl::if_< sfinae::has_two_args< Functor >,
-            wrap_default_interval< Region >,
-            functor_t >::type::default_interval interval_t;
-
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value),
             "Region should be a valid interval tag to select the Do specialization in the called stencil function,");
 
         /** This alias is used to move the computation at a certain offset
          */
         template < int I, int J, int K >
-        using at = call_proc< functor_t, interval_t, I, J, K >;
+        using at = call_proc< Functor, Region, I, J, K >;
 
         /** With this interface a stencil function can be invoked and
             the offsets specified in the passed accessors are ignored.
@@ -659,7 +643,7 @@ namespace gridtools {
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-            functor_t::Do(f_aggregator_t(eval, y), interval_t());
+            Functor::Do(f_aggregator_t(eval, y), Region());
         }
 
         /** With this interface a stencil function can be invoked and
@@ -682,7 +666,7 @@ namespace gridtools {
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-            functor_t::Do(f_aggregator_t(eval, y), interval_t());
+            Functor::Do(f_aggregator_t(eval, y), Region());
         }
     };
 
