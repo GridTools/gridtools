@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "partitioner.hpp"
+#include "../boundary-conditions/predicate.hpp"
 
 /**
 @file
@@ -304,7 +305,7 @@ namespace gridtools {
            @param flag_ a direction (UP or LOW) for the given dimension
            formula:
            * compute \f$ flag_*2^{component_}\f$ , which will
-           be in binary representation a series of 0s with a 1 at position either component_, or component_ +
+           be in binary representation a serie of 0s with a 1 at position either component_, or component_ +
            n_dimensions
            (depending on wether the flag is UP or LOW).
            * compare this with boundary(), which is a bitmap having 1s in position "p" if the current partition is
@@ -319,7 +320,8 @@ namespace gridtools {
 #ifndef __CUDACC__
             assert(component_ < communicator_t::ndims);
 #endif
-            return (((uint_t)flag_ * (1 << component_))) & boundary();
+            // bitwise and
+            return boundary_function::compute_boundary_id(component_, flag_) & boundary();
         }
 
         GT_FUNCTION

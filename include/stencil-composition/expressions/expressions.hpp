@@ -65,13 +65,6 @@ namespace gridtools {
 
     namespace expressions {
 
-        template < int Exponent,
-            typename FloatType,
-            typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
-        GT_FUNCTION constexpr FloatType pow(FloatType arg1) {
-            return gt_pow< Exponent >::apply(arg1);
-        }
-
         /**Expressions defining the interface for specifiyng a given offset for a specified dimension
            \tparam Coordinate: direction in which to apply the offset
            \param offset: the offset to be applied in the Coordinate direction

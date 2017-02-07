@@ -36,6 +36,12 @@
 #pragma once
 #include "direction.hpp"
 
+/**
+@file
+@brief This file contains the most common predicates used for the boundary condition assignment.
+The predicates identify a regoin given a @ref gridtools::direction and its data members.
+*/
+
 namespace gridtools {
 
     struct default_predicate {
@@ -45,29 +51,41 @@ namespace gridtools {
         }
     };
 
+    namespace boundary_function {
+        /**@brief taking the power of the component to identify the boundary
+
+           formula:
+           * compute \f$ flag_*2^{component_}\f$ , which will
+           be in binary representation a serie of 0s with a 1 at position either component_, or component_ +
+           n_dimensions
+           (depending on wether the flag is UP or LOW).
+        */
+        template < typename Flag >
+        GT_FUNCTION static uint_t compute_boundary_id(ushort_t const &component_, Flag flag_) {
+            return (((uint_t)flag_ * (1 << component_)));
+        }
+    }
+
+    /**@brief predicate returning whether I am or not at the global boundary, based on a bitmap flag which is set by the
+     * @ref gridtools::partitioner_trivial*/
     struct bitmap_predicate {
         uint_t m_boundary_bitmap; // see storage/partitioner_trivial.hpp
 
-        enum Flag{UP=1, LOW=8};
+        enum Flag { UP = 1, LOW = 8 };
 
-        bitmap_predicate(uint_t bm)
-            : m_boundary_bitmap(bm)
-        {}
+        bitmap_predicate(uint_t bm) : m_boundary_bitmap(bm) {}
 
-        template <sign I, sign J, sign K>
-        bool operator()(direction<I,J,K>) const {
-            return (at_boundary(0, ((I==minus_)?UP:LOW) )) ||
-                (at_boundary(1, ((J==minus_)?UP:LOW))) ||
-                (at_boundary(2, ((K==minus_)?UP:LOW)));
+        template < sign I, sign J, sign K >
+        bool operator()(direction< I, J, K >) const {
+            return (at_boundary(0, ((I == minus_) ? UP : LOW))) || (at_boundary(1, ((J == minus_) ? UP : LOW))) ||
+                   (at_boundary(2, ((K == minus_) ? UP : LOW)));
         }
 
-    private:
+      private:
         GT_FUNCTION
-        bool at_boundary(ushort_t const& component_, Flag flag_) const {
-            uint_t ret = (((uint_t)flag_ * (1<<component_)) ) & m_boundary_bitmap;
+        bool at_boundary(ushort_t const &component_, Flag flag_) const {
+            uint_t ret = boundary_function::compute_boundary_id(component_, flag_) & m_boundary_bitmap;
             return ret;
         }
-
     };
-
 } // namespace gridtools
