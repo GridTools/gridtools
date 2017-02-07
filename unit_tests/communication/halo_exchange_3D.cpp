@@ -164,7 +164,8 @@ TEST(Communication, Halo_Exchange_3D) {
 
     gridtools::Halo_Exchange_3D< test_type::grid_type > he(pg);
 
-    // std::cout << "@" << gridtools::PID << "@ SEND " << &iminus << " - " << &iplus << " - " << &jminus << " - " << &jplus
+    // std::cout << "@" << gridtools::PID << "@ SEND " << &iminus << " - " << &iplus << " - " << &jminus << " - " <<
+    // &jplus
     //           << " - " << &kminus << " - " << &kplus << " - " << &iminusjminus << " - " << &iplusjminus << " - "
     //           << &iminusjplus << " - " << &iplusjplus << " - " << &iminuskminus << " - " << &ipluskminus << " - "
     //           << &iminuskplus << " - " << &ipluskplus << " - " << &jminuskminus << " - " << &jpluskminus << " - "
@@ -177,7 +178,8 @@ TEST(Communication, Halo_Exchange_3D) {
     //           << " - " << &ipluskminus_r << " - " << &iminuskplus_r << " - " << &ipluskplus_r << " - "
     //           << &jminuskminus_r << " - " << &jpluskminus_r << " - " << &jminuskplus_r << " - " << &jpluskplus_r
     //           << " - " << &iminusjminuskminus_r << " - " << &iplusjminuskminus_r << " - " << &iminusjpluskminus_r
-    //           << " - " << &iplusjpluskminus_r << " - " << &iminusjminuskplus_r << " - " << &iplusjminuskplus_r << " - "
+    //           << " - " << &iplusjpluskminus_r << " - " << &iminusjminuskplus_r << " - " << &iplusjminuskplus_r << " -
+    //           "
     //           << &iminusjpluskplus_r << " - " << &iplusjpluskplus_r << std::endl;
 
     he.register_send_to_buffer< -1, -1, -1 >(&iminusjminuskminus, sizeof(int));

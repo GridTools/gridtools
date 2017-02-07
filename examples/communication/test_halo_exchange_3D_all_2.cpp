@@ -78,15 +78,15 @@ namespace halo_exchange_3D_all_2 {
 
     template < typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2 >
     bool run(ST &file,
-             int DIM1,
-             int DIM2,
-             int DIM3,
-             int H1,
-             int H2,
-             int H3,
-             triple_t< USE_DOUBLE > *_a,
-             triple_t< USE_DOUBLE > *_b,
-             triple_t< USE_DOUBLE > *_c) {
+        int DIM1,
+        int DIM2,
+        int DIM3,
+        int H1,
+        int H2,
+        int H3,
+        triple_t< USE_DOUBLE > *_a,
+        triple_t< USE_DOUBLE > *_b,
+        triple_t< USE_DOUBLE > *_c) {
 
         //        typedef typename gridtools::reverse_map< gridtools::layout_map< I1, I2, I3 > >::type layoutmap;
         typedef gridtools::layout_map< I1, I2, I3 > layoutmap;
@@ -104,26 +104,26 @@ namespace halo_exchange_3D_all_2 {
                     c(ii, jj, kk) = triple_t< USE_DOUBLE >();
                 }
             }
-        //   a(0,0,0) = triple_t<USE_DOUBLE>(3000+gridtools::PID, 4000+gridtools::PID, 5000+gridtools::PID);
-        //   b(0,0,0) = triple_t<USE_DOUBLE>(3010+gridtools::PID, 4010+gridtools::PID, 5010+gridtools::PID);
-        //   c(0,0,0) = triple_t<USE_DOUBLE>(3020+gridtools::PID, 4020+gridtools::PID, 5020+gridtools::PID);
+//   a(0,0,0) = triple_t<USE_DOUBLE>(3000+gridtools::PID, 4000+gridtools::PID, 5000+gridtools::PID);
+//   b(0,0,0) = triple_t<USE_DOUBLE>(3010+gridtools::PID, 4010+gridtools::PID, 5010+gridtools::PID);
+//   c(0,0,0) = triple_t<USE_DOUBLE>(3020+gridtools::PID, 4020+gridtools::PID, 5020+gridtools::PID);
 
-        /* The pattern type is defined with the layouts, data types and
-           number of dimensions.
+/* The pattern type is defined with the layouts, data types and
+   number of dimensions.
 
-           The logical assumption done in the program is that 'i' is the
-           first dimension (rows), 'j' is the second, and 'k' is the
-           third. The first layout states that 'i' is the second dimension
-           in order of strides, while 'j' is the first and 'k' is the third
-           (just by looking at the initialization loops this shoule be
-           clear).
+   The logical assumption done in the program is that 'i' is the
+   first dimension (rows), 'j' is the second, and 'k' is the
+   third. The first layout states that 'i' is the second dimension
+   in order of strides, while 'j' is the first and 'k' is the third
+   (just by looking at the initialization loops this shoule be
+   clear).
 
-           The second layout states that the first dimension in data ('i')
-           identify also the first dimension in the communicator. Logically,
-           moving on 'i' dimension from processot (p,q,r) will lead you
-           logically to processor (p+1,q,r). The other dimensions goes as
-           the others.
-        */
+   The second layout states that the first dimension in data ('i')
+   identify also the first dimension in the communicator. Logically,
+   moving on 'i' dimension from processot (p,q,r) will lead you
+   logically to processor (p+1,q,r). The other dimensions goes as
+   the others.
+*/
 #ifndef PACKING_TYPE
 #define PACKING_TYPE gridtools::version_manual
 #endif
@@ -131,11 +131,11 @@ namespace halo_exchange_3D_all_2 {
         static const int version = PACKING_TYPE;
 
         typedef gridtools::halo_exchange_dynamic_ut< layoutmap,
-                                                     gridtools::layout_map< 0, 1, 2 >,
-                                                     triple_t< USE_DOUBLE >::data_type,
-                                                     gridtools::MPI_3D_process_grid_t< 3 >,
-                                                     arch_type,
-                                                     version > pattern_type;
+            gridtools::layout_map< 0, 1, 2 >,
+            triple_t< USE_DOUBLE >::data_type,
+            gridtools::MPI_3D_process_grid_t< 3 >,
+            arch_type,
+            version > pattern_type;
 
         /* The pattern is now instantiated with the periodicities and the
            communicator. The periodicity of the communicator is
@@ -169,21 +169,21 @@ namespace halo_exchange_3D_all_2 {
                 for (int kk = H3; kk < DIM3 + H3; ++kk) {
                     a(ii, jj, kk) = //(100*(pid))+
                         triple_t< USE_DOUBLE >(
-                                               ii - H1 + (DIM1)*coords[0], jj - H2 + (DIM2)*coords[1], kk - H3 + (DIM3)*coords[2]);
+                            ii - H1 + (DIM1)*coords[0], jj - H2 + (DIM2)*coords[1], kk - H3 + (DIM3)*coords[2]);
                     b(ii, jj, kk) = //(200*(pid))+
                         triple_t< USE_DOUBLE >(ii - H1 + (DIM1)*coords[0] + B_ADD,
-                                               jj - H2 + (DIM2)*coords[1] + B_ADD,
-                                               kk - H3 + (DIM3)*coords[2] + B_ADD);
+                            jj - H2 + (DIM2)*coords[1] + B_ADD,
+                            kk - H3 + (DIM3)*coords[2] + B_ADD);
                     c(ii, jj, kk) = // 300*(pid))+
                         triple_t< USE_DOUBLE >(ii - H1 + (DIM1)*coords[0] + C_ADD,
-                                               jj - H2 + (DIM2)*coords[1] + C_ADD,
-                                               kk - H3 + (DIM3)*coords[2] + C_ADD);
+                            jj - H2 + (DIM2)*coords[1] + C_ADD,
+                            kk - H3 + (DIM3)*coords[2] + C_ADD);
                 }
 
         printbuff(file, a, DIM1 + 2 * H1, DIM2 + 2 * H2, DIM3 + 2 * H3);
 
-        /* This is self explanatory now
-         */
+/* This is self explanatory now
+ */
 #ifdef __CUDACC__
         file << "GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU \n";
 
@@ -191,34 +191,37 @@ namespace halo_exchange_3D_all_2 {
         triple_t< USE_DOUBLE > *gpu_b = 0;
         triple_t< USE_DOUBLE > *gpu_c = 0;
         cudaError_t status;
-        status = cudaMalloc(&gpu_a, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >));
+        status =
+            cudaMalloc(&gpu_a, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >));
         if (!checkCudaStatus(status))
             return false;
-        status = cudaMalloc(&gpu_b, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >));
+        status =
+            cudaMalloc(&gpu_b, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >));
         if (!checkCudaStatus(status))
             return false;
-        status = cudaMalloc(&gpu_c, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >));
+        status =
+            cudaMalloc(&gpu_c, (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >));
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(gpu_a,
-                            a.ptr,
-                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyHostToDevice);
+            a.ptr,
+            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(gpu_b,
-                            b.ptr,
-                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyHostToDevice);
+            b.ptr,
+            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(gpu_c,
-                            c.ptr,
-                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyHostToDevice);
+            c.ptr,
+            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
 
@@ -261,22 +264,22 @@ namespace halo_exchange_3D_all_2 {
 
         lapse_time1 =
             ((static_cast< double >(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop1_tv.tv_usec)) -
-             (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
+                (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
             1000.0;
 
         lapse_time2 =
             ((static_cast< double >(stop2_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop2_tv.tv_usec)) -
-             (static_cast< double >(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop1_tv.tv_usec))) *
+                (static_cast< double >(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop1_tv.tv_usec))) *
             1000.0;
 
         lapse_time3 =
             ((static_cast< double >(stop3_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop3_tv.tv_usec)) -
-             (static_cast< double >(stop2_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop2_tv.tv_usec))) *
+                (static_cast< double >(stop2_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop2_tv.tv_usec))) *
             1000.0;
 
         lapse_time4 =
             ((static_cast< double >(stop3_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop3_tv.tv_usec)) -
-             (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
+                (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
             1000.0;
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -290,23 +293,23 @@ namespace halo_exchange_3D_all_2 {
 
 #ifdef __CUDACC__
         status = cudaMemcpy(a.ptr,
-                            gpu_a,
-                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyDeviceToHost);
+            gpu_a,
+            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyDeviceToHost);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(b.ptr,
-                            gpu_b,
-                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyDeviceToHost);
+            gpu_b,
+            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyDeviceToHost);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(c.ptr,
-                            gpu_c,
-                            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyDeviceToHost);
+            gpu_c,
+            (DIM1 + 2 * H1) * (DIM2 + 2 * H2) * (DIM3 + 2 * H3) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyDeviceToHost);
         if (!checkCudaStatus(status))
             return false;
 
@@ -404,8 +407,6 @@ namespace halo_exchange_3D_all_2 {
         return passed;
     }
 
-
-
     int test(int DIM1, int DIM2, int DIM3, int H1, int H2, int H3) {
 
         /* Here we compute the computing gris as in many applications
@@ -449,169 +450,218 @@ namespace halo_exchange_3D_all_2 {
 #ifdef BENCH
         for (int i = 0; i < BENCH; ++i) {
             file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-            passed = passed and run< std::ostream, 0, 1, 2, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+            passed = passed and
+                     run< std::ostream, 0, 1, 2, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
         }
 #else
         file << "Permutation 0,1,2\n";
 
         file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 1, 2, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 1, 2, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,1,2, true, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 1, 2, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 1, 2, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,1,2, true, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 1, 2, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 1, 2, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,1,2, true, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 1, 2, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 1, 2, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,1,2, false, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 1, 2, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 1, 2, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,1,2, false, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 1, 2, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 1, 2, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,1,2, false, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 1, 2, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 1, 2, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,1,2, false, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 1, 2, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed = passed and
+                 run< std::ostream, 0, 1, 2, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 0,2,1\n";
 
         file << "run<std::ostream, 0,2,1, true, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 2, 1, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 2, 1, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,2,1, true, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 2, 1, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 2, 1, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,2,1, true, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 2, 1, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 2, 1, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,2,1, true, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 2, 1, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 2, 1, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,2,1, false, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 2, 1, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 2, 1, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,2,1, false, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 2, 1, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 2, 1, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,2,1, false, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 2, 1, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 0, 2, 1, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 0,2,1, false, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 0, 2, 1, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed = passed and
+                 run< std::ostream, 0, 2, 1, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 1,0,2\n";
 
         file << "run<std::ostream, 1,0,2, true, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 0, 2, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 0, 2, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,0,2, true, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 0, 2, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 0, 2, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,0,2, true, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 0, 2, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 0, 2, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,0,2, true, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 0, 2, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 0, 2, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,0,2, false, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 0, 2, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 0, 2, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,0,2, false, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 0, 2, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 0, 2, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,0,2, false, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 0, 2, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 0, 2, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,0,2, false, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 0, 2, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed = passed and
+                 run< std::ostream, 1, 0, 2, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 1,2,0\n";
 
         file << "run<std::ostream, 1,2,0, true, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 2, 0, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 2, 0, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,2,0, true, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 2, 0, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 2, 0, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,2,0, true, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 2, 0, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 2, 0, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,2,0, true, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 2, 0, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 2, 0, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,2,0, false, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 2, 0, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 2, 0, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,2,0, false, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 2, 0, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 2, 0, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,2,0, false, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 2, 0, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 1, 2, 0, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 1,2,0, false, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 1, 2, 0, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed = passed and
+                 run< std::ostream, 1, 2, 0, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 2,0,1\n";
 
         file << "run<std::ostream, 2,0,1, true, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 0, 1, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 0, 1, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,0,1, true, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 0, 1, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 0, 1, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,0,1, true, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 0, 1, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 0, 1, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,0,1, true, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 0, 1, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 0, 1, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,0,1, false, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 0, 1, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 0, 1, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,0,1, false, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 0, 1, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 0, 1, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,0,1, false, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 0, 1, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 0, 1, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,0,1, false, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 0, 1, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed = passed and
+                 run< std::ostream, 2, 0, 1, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 2,1,0\n";
 
         file << "run<std::ostream, 2,1,0, true, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 1, 0, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 1, 0, true, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,1,0, true, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 1, 0, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 1, 0, true, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,1,0, true, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 1, 0, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 1, 0, true, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,1,0, true, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 1, 0, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 1, 0, true, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,1,0, false, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 1, 0, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 1, 0, false, true, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,1,0, false, true, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 1, 0, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 1, 0, false, true, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,1,0, false, false, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 1, 0, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed =
+            passed and run< std::ostream, 2, 1, 0, false, false, true >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
 
         file << "run<std::ostream, 2,1,0, false, false, false>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
-        passed = passed and run< std::ostream, 2, 1, 0, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
+        passed = passed and
+                 run< std::ostream, 2, 1, 0, false, false, false >(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c);
         file << "---------------------------------------------------\n";
 #endif
 
@@ -628,7 +678,7 @@ namespace halo_exchange_3D_all_2 {
 }
 
 #ifdef STANDALONE
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 #ifdef _USE_GPU_
     device_binding();
 #endif
@@ -637,7 +687,8 @@ int main(int argc, char** argv) {
     gridtools::GCL_Init(argc, argv);
 
     if (argc != 7) {
-        std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz dim_halo1 dim_halo2 din_halo3\n where args are integer sizes of the data fields and halo width"
+        std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz dim_halo1 dim_halo2 din_halo3\n where args are "
+                     "integer sizes of the data fields and halo width"
                   << std::endl;
         return 1;
     }
@@ -650,7 +701,6 @@ int main(int argc, char** argv) {
     int H3 = atoi(argv[6]);
 
     halo_exchange_3D_all_2::test(DIM1, DIM2, DIM3, H1, H2, H3);
-
 
     MPI_Finalize();
 }
