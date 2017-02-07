@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-
+#include <algorithm>
 namespace gridtools {
 
     template < typename T >

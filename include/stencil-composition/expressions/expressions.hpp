@@ -53,13 +53,13 @@ For information: http://eth-cscs.github.io/gridtools/
     @{
 */
 #include "expr_base.hpp"
-#include "expr_plus.hpp"
-#include "expr_minus.hpp"
-#include "expr_times.hpp"
+#include "expr_derivative.hpp"
+#include "expr_direct_access.hpp"
 #include "expr_pow.hpp"
 #include "expr_divide.hpp"
-#include "expr_direct_access.hpp"
-#include "expr_derivative.hpp"
+#include "expr_minus.hpp"
+#include "expr_plus.hpp"
+#include "expr_times.hpp"
 
 namespace gridtools {
 

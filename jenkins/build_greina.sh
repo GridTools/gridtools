@@ -255,16 +255,21 @@ bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
 
 exit_if_error $?
 
-if [[ "$RUN_MPI_TESTS" == "ON" && ${myhost} == "greina" && ${STRUCTURED_GRIDS} == "ON" ]]
+if [[ "$RUN_MPI_TESTS" == "ON"  && ${STRUCTURED_GRIDS} == "ON" ]]
 then
    if [ "x$CXX_STD" == "xcxx11" ]
    then
        if [ "x$TARGET" == "xcpu" ]
        then
-           mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 10
+           export HOST_NAME=`hostname`
+           echo "running shallow water test with MPI"
+           echo "mpirun_rsh -np 4 $HOST_NAME $HOST_NAME $HOST_NAME $HOST_NAME ./build/shallow_water_enhanced 8 8 1 10"
+           mpirun_rsh -np 4 $HOST_NAME $HOST_NAME $HOST_NAME $HOST_NAME ./examples/shallow_water_enhanced 8 8 1 10
            exit_if_error $?
 
-           mpiexec -np 2 ./build/copy_stencil_parallel 62 53 15
+           echo "running copy stencil test with MPI"
+           echo "mpirun_rsh -np 2 $HOST_NAME $HOST_NAME ./build/copy_stencil_parallel 62 53 15"
+           mpirun_rsh -np 2 $HOST_NAME $HOST_NAME ./examples/copy_stencil_parallel 62 53 15
            exit_if_error $?
        fi
        if [ "x$TARGET" == "xgpu" ]
@@ -277,8 +282,11 @@ then
             # To be fixed
             # mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
             # exit_if_error $?
+           export HOST_NAME=`hostname`
 
-           mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2
+           echo "running shallow water test with MPI and CUDA"
+           echo "mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2"
+           mpiexec -np 1 $HOST_NAME ./examples/shallow_water_enhanced_cuda 8 8 1 2
            exit_if_error $?
 
        fi
