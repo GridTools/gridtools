@@ -125,7 +125,7 @@ namespace ico_operators {
             out_vertices.d2h_update();
 #endif
 
-            verifier ver(1e-10);
+            verifier ver(1e-9);
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);
