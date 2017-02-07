@@ -349,6 +349,13 @@ namespace gridtools {
         }
     };
 
+    /**
+       \brief specialization for when we call a stencil function without specifiyng any interval (using as default
+       interval the whole axis).
+
+       The main restriction is that the compile-time offsets template parameters must be 0
+       NOTE: There is some code replication with the primary template class
+     */
     template < typename Functor >
     struct call< Functor, void, 0, 0, 0 > {
 
@@ -614,7 +621,7 @@ namespace gridtools {
         \tparam Offj Offset along the j-direction
         \tparam Offk Offset along the k-direction
     */
-    template < typename Functor, typename Region, int Offi = 0, int Offj = 0, int Offk = 0 >
+    template < typename Functor, typename Region = void, int Offi = 0, int Offj = 0, int Offk = 0 >
     struct call_proc {
 
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value),
@@ -667,6 +674,59 @@ namespace gridtools {
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
             Functor::Do(f_aggregator_t(eval, y), Region());
+        }
+    };
+
+    /**
+       \brief specialization for when we call a stencil function without specifiyng any interval (using as default
+       interval the whole axis).
+
+       The main restriction is that the compile-time offsets template parameters must be 0
+       NOTE: There is some code replication with the primary template class
+     */
+    template < typename Functor >
+    struct call_proc< Functor, void, 0, 0, 0 > {
+
+        /** With this interface a stencil function can be invoked and
+            the offsets specified in the passed accessors are ignored.
+         */
+        template < typename Evaluator, typename... Args >
+        GT_FUNCTION static void with(Evaluator const &eval, Args const &... args) {
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
+                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+
+            typedef _impl::
+                function_aggregator_procedure< Evaluator, 0, 0, 0, typename _impl::package_args< Args... >::type >
+                    f_aggregator_t;
+
+            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
+
+            Functor::Do(f_aggregator_t(eval, y));
+        }
+
+        /** With this interface a stencil function can be invoked and
+            the offsets specified in the passed accessors are used to
+            access values, w.r.t the offsets specified in a optional
+            at<..> statement.
+         */
+        template < typename Evaluator, typename... Args >
+        GT_FUNCTION static void with_offsets(Evaluator const &eval, Args const &... args) {
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
+                "The first argument must be the Evaluator/Aggregator of the stencil operator.");
+
+            typedef _impl::function_aggregator_procedure_offsets< Evaluator,
+                0,
+                0,
+                0,
+                typename _impl::package_args< Args... >::type > f_aggregator_t;
+
+            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
+
+            Functor::Do(f_aggregator_t(eval, y));
         }
     };
 

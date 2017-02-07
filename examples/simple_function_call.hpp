@@ -68,12 +68,12 @@ namespace simple_function_call {
         // call average on the lower
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, lower) {
-            eval(out()) = call< delta >::with(eval, in()); // TODO get rid of the full_domain
+            eval(out()) = call< delta >::with(eval, in());
         }
         // call average on the upper do something additional
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, upper) {
-            eval(out()) = 2. * call< delta >::with(eval, in()); // TODO get rid of the full_domain
+            eval(out()) = 2. * call< delta >::with_offsets(eval, in(0, 1, 0));
         }
     };
 
