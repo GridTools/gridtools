@@ -35,7 +35,7 @@
 */
 #pragma once
 
-namespace gridtools{
+namespace gridtools {
     /**@brief decorates the user function with a defaiult interval, in case no interval was specified by the user
 
        A SFINAE mechanism detects wether the user gave the vertical interval as input to the Do method,
@@ -52,7 +52,13 @@ namespace gridtools{
         static const constexpr int_t from_offset = Axis::FromLevel::Offset::value;
         static const constexpr uint_t from_splitter = Axis::FromLevel::Splitter::value;
 
-        // NOTE: the offsets cannot be 0
+        // NOTE: because of API convention the default interval representing the whole vertical axis must have the same
+        // splitters as Axis,
+        // and offsets which are strictly enclosed in those defined by the Axis template argument
+        // NOTE: the offsets cannot be 0 because of API conventions,
+        // for this reason whe have to devise a special case for when the "from" offset in the vertical Axis is -1
+        // (in that case the interval representing the whole axis must start from 1 instead of 0, so we have to add
+        // -1+2=1)
         typedef gridtools::interval< level< from_splitter, (from_offset != -1) ? from_offset + 1 : from_offset + 2 >,
             level< to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2 > > default_interval;
 
