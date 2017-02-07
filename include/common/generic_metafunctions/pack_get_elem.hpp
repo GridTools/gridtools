@@ -54,10 +54,14 @@ namespace gridtools {
             return (pos == Idx) ? first : pack_get_elem_< ReturnType, Idx >(pos + 1, elems...);
         }
 
+        // This metafunction is only for reporting a readable error message to a call to pack_get_elem with
+        // a negative index
         template < int_t Idx >
         struct pack_get_elem_null {
             template < typename... ElemTypes >
             GT_FUNCTION static constexpr int apply(ElemTypes... elems) {
+                GRIDTOOLS_STATIC_ASSERT(
+                    (Idx < 0), "Error: trying to retrieve a element of a pack with a negative index");
                 return 0;
             }
         };
