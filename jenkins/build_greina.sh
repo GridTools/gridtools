@@ -257,43 +257,23 @@ exit_if_error $?
 
 if [[ "$RUN_MPI_TESTS" == "ON"  && ${STRUCTURED_GRIDS} == "ON" ]]
 then
-   if [ "x$CXX_STD" == "xcxx11" ]
-   then
-       if [ "x$TARGET" == "xcpu" ]
-       then
-           export MV2_USE_GPUDIRECT_GDRCOPY=0
-           export HOST_NAME=`hostname`
-           echo "running shallow water test with MPI"
-           echo "mpirun_rsh -np 4 $HOST_NAME $HOST_NAME $HOST_NAME $HOST_NAME ./build/shallow_water_enhanced 8 8 1 10"
-           mpirun_rsh -np 4 $HOST_NAME $HOST_NAME $HOST_NAME $HOST_NAME ./examples/shallow_water_enhanced 8 8 1 10
-           exit_if_error $?
+  if [ "x$CXX_STD" == "xcxx11" ]
+  then
+      if [ "x$TARGET" == "xcpu" ]
+      then
+          export MV2_USE_GPUDIRECT_GDRCOPY=0
+          export HOST_NAME=`hostname`
+          echo "running shallow water test with MPI"
+          echo "mpirun -np 4 ./build/shallow_water_enhanced 8 8 1 10"
+          mpirun -np 4 ./examples/shallow_water_enhanced 8 8 1 10
+          exit_if_error $?
 
-           echo "running copy stencil test with MPI"
-           echo "mpirun_rsh -np 2 $HOST_NAME $HOST_NAME ./build/copy_stencil_parallel 62 53 15"
-           mpirun_rsh -np 2 $HOST_NAME $HOST_NAME ./examples/copy_stencil_parallel 62 53 15
-           exit_if_error $?
-       fi
-       if [ "x$TARGET" == "xgpu" ]
-       then
-            # problems in the execution of the copy_stencil_parallel_cuda
-            # TODO fix
-            # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
-            # exit_if_error $?
-            # CUDA allocation error with more than 1 GPU in RELEASE mode
-            # To be fixed
-            # mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
-            # exit_if_error $?
-           export HOST_NAME=`hostname`
-
-           echo "running shallow water test with MPI and CUDA"
-           echo "mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2"
-           mpiexec -np 1 $HOST_NAME ./examples/shallow_water_enhanced_cuda 8 8 1 2
-           exit_if_error $?
-
-       fi
-       #TODO not updated to greina
-       #    ../examples/communication/run_communication_tests.sh
-   fi
+          echo "running copy stencil test with MPI"
+          echo "mpirun -np 2 ./build/copy_stencil_parallel 62 53 15"
+          mpirun -np 2 ./examples/copy_stencil_parallel 62 53 15
+          exit_if_error $?
+      fi
+  fi
 fi
 
 exit 0

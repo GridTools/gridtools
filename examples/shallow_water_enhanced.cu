@@ -34,4 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 For information: http://eth-cscs.github.io/gridtools/
 */
 #define CUDA_EXAMPLE
+#define RESTORE__GCL_MPI_ _GCL_MPI_
+#undef _GCL_MPI_ // compiling the CUDA test without MPI,
+ // because of problems with GCL and multiple GPUs in cache
 #include "shallow_water_enhanced.cpp"
+#define _GCL_MPI_ RESTORE__GCL_MPI_

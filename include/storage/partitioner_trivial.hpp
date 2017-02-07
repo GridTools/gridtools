@@ -106,6 +106,10 @@ namespace gridtools {
 
             where d is the number of dimensions of the processors grid.
             The boundary flag is a single integer containing the sum of the touched boundaries (i.e. a bit map).
+
+            \param comm the processor grid communicator
+            \param halo the internal halos exchanged between neighbouring processors
+            \param padding the halo at the global boundary, needed by the boundary condition
         */
         partitioner_trivial(const communicator_t &comm,
             const gridtools::array< ushort_t, space_dimensions > &halo,
@@ -224,9 +228,9 @@ namespace gridtools {
                 tile_dimension + (compute_halo(component, LOW)) - 1,
                 tile_dimension + (compute_halo(component, UP)) + (compute_halo(component, LOW)));
 
-            coordinates_gcl[component] = halo_descriptor(compute_halo(component, LOW),
-                compute_halo(component, UP),
-                compute_halo(component, LOW),
+            coordinates_gcl[component] = halo_descriptor(m_halo[component],
+                m_halo[component],
+                m_halo[component],
                 tile_dimension + (compute_halo(component, LOW)) - 1,
                 tile_dimension + (compute_halo(component, UP)) + (compute_halo(component, LOW)));
 

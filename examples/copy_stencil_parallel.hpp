@@ -125,14 +125,14 @@ namespace copy_stencil {
             gridtools::layout_map< 0, 1, 2 >,
             pointer_type::pointee_t,
             MPI_3D_process_grid_t< 3 >,
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
             gridtools::gcl_gpu,
 #else
             gridtools::gcl_cpu,
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(pattern_type::grid_type::period_type(false, false, false), GCL_WORLD, &dimensions);
+        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, &dimensions);
 #ifdef VERBOSE
         printf("halo exchange ok\n");
 #endif
@@ -151,6 +151,10 @@ namespace copy_stencil {
         //#ifdef CXX11_ENABLED
         array< ushort_t, 3 > padding{0, 0, 0};
         array< ushort_t, 3 > halo{1, 1, 1};
+
+        if(PROCS == 1)//serial execution
+            halo[0]=halo[1]=halo[2]=0;
+
         typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
             pattern_type::grid_type > partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
@@ -165,17 +169,19 @@ namespace copy_stencil {
         he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
         he.add_halo< 2 >(meta_.template get_halo_gcl< 2 >());
 
-        he.setup(2);
+        he.setup(3);
 
 #ifdef VERBOSE
         printf("halo set up\n");
 #endif
 
-        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
-            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
+        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i){
+            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j){
                 for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
                     in(i, j, k) = (i + j + k) * (gridtools::PID + 1);
                 }
+            }
+        }
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -183,7 +189,7 @@ namespace copy_stencil {
         gridtools::grid< axis, partitioner_t > grid(part, meta_);
         // k dimension not partitioned
         grid.value_list[0] = 0;
-        grid.value_list[1] = d3;
+        grid.value_list[1] = d3 - 1;
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
         // that are used, temporary and not
