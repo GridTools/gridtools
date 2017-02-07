@@ -89,8 +89,8 @@ namespace copy_stencil {
         template < typename Direction, typename DataField0, typename DataField1 >
         GT_FUNCTION void operator()(
             Direction, DataField0 &data_field0, DataField1 &data_field1, uint_t i, uint_t j, uint_t k) const {
-            data_field0(i, j, k) = -(float)m_partitioner.boundary();
-            data_field1(i, j, k) = -(float)m_partitioner.boundary();
+            data_field0(i, j, k) = -(float_type)m_partitioner.boundary();
+            data_field1(i, j, k) = -(float_type)m_partitioner.boundary();
         }
     };
 
@@ -152,8 +152,8 @@ namespace copy_stencil {
         array< ushort_t, 3 > padding{0, 0, 0};
         array< ushort_t, 3 > halo{1, 1, 1};
 
-        if(PROCS == 1)//serial execution
-            halo[0]=halo[1]=halo[2]=0;
+        if (PROCS == 1) // serial execution
+            halo[0] = halo[1] = halo[2] = 0;
 
         typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
             pattern_type::grid_type > partitioner_t;
@@ -175,8 +175,8 @@ namespace copy_stencil {
         printf("halo set up\n");
 #endif
 
-        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i){
-            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j){
+        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i) {
+            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j) {
                 for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
                     in(i, j, k) = (i + j + k) * (gridtools::PID + 1);
                 }
