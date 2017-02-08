@@ -93,12 +93,12 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     uint_t d2 = 13;
     uint_t d3 = 18;
 
-    meta_ijk_t meta_ijk_(d1 + 3, d2 + 2, d3 + 1);
+    meta_ijk_t meta_ijk_(d1, d2, d3);
     storage_type read_only_texture_arg(meta_ijk_);
     meta_kji_t meta_kji_(d1, d2, d3);
     storage_buff_type read_only_bypass_arg(meta_kji_);
 
-    meta_ij_t meta_ij_(d1 + 2, d2 + 1);
+    meta_ij_t meta_ij_(d1, d2);
     storage_out_type out(meta_ij_);
 
     storage_bool_type read_only_non_texture_type_arg(meta_ij_);
