@@ -63,14 +63,19 @@ namespace test_iterate_domain {
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
-        typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0 > > in;
+        typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0 > > read_only_texture_arg;
         typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 > > out;
-        typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 0 > > buff1;
-        typedef accessor< 3, enumtype::in, extent< 0, 0, 0, 0 > > buff2;
-        typedef accessor< 4, enumtype::in, extent< -2, 1, -3, 4 > > buff3;
-        typedef accessor< 5, enumtype::inout, extent< 0, 0, 0, 0, -1, 2 > > buff4;
+        typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 0 > > read_only_bypass_arg;
+        typedef accessor< 3, enumtype::in, extent< 0, 0, 0, 0 > > read_only_non_texture_type_arg;
+        typedef accessor< 4, enumtype::in, extent< -2, 1, -3, 4 > > shared_mem_arg;
+        typedef accessor< 5, enumtype::inout, extent< 0, 0, 0, 0, -1, 2 > > kcache_arg;
 
-        typedef boost::mpl::vector< in, out, buff1, buff2, buff3, buff4 > arg_list;
+        typedef boost::mpl::vector< read_only_texture_arg,
+            out,
+            read_only_bypass_arg,
+            read_only_non_texture_type_arg,
+            shared_mem_arg,
+            kcache_arg > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
@@ -89,51 +94,66 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     uint_t d3 = 18;
 
     meta_ijk_t meta_ijk_(d1 + 3, d2 + 2, d3 + 1);
-    storage_type in(meta_ijk_);
+    storage_type read_only_texture_arg(meta_ijk_);
     meta_kji_t meta_kji_(d1, d2, d3);
-    storage_buff_type buff1(meta_kji_);
+    storage_buff_type read_only_bypass_arg(meta_kji_);
 
     meta_ij_t meta_ij_(d1 + 2, d2 + 1);
     storage_out_type out(meta_ij_);
 
-    storage_bool_type buff2(meta_ij_);
-    storage_type buff3(meta_ijk_);
-    storage_type buff4(meta_ijk_);
+    storage_bool_type read_only_non_texture_type_arg(meta_ij_);
+    storage_type shared_mem_arg(meta_ijk_);
+    storage_type kcache_arg(meta_ijk_);
 
-    typedef arg< 0, storage_type > p_in;
+    typedef arg< 0, storage_type > p_read_only_texture_arg;
     typedef arg< 1, storage_out_type > p_out;
-    typedef arg< 2, storage_buff_type > p_buff1;
-    typedef arg< 3, storage_bool_type > p_buff2;
-    typedef arg< 4, storage_type > p_buff3;
-    typedef arg< 5, storage_type > p_buff4;
+    typedef arg< 2, storage_buff_type > p_read_only_bypass_arg;
+    typedef arg< 3, storage_bool_type > p_read_only_non_texture_type_arg;
+    typedef arg< 4, storage_type > p_shared_mem_arg;
+    typedef arg< 5, storage_type > p_kcache_arg;
 
-    typedef boost::mpl::vector< p_in, p_out, p_buff1, p_buff2, p_buff3, p_buff4 > accessor_list;
+    typedef boost::mpl::vector< p_read_only_texture_arg,
+        p_out,
+        p_read_only_bypass_arg,
+        p_read_only_non_texture_type_arg,
+        p_shared_mem_arg,
+        p_kcache_arg > accessor_list;
 
-    gridtools::aggregator_type< accessor_list > domain((p_in() = in),
+    gridtools::aggregator_type< accessor_list > domain((p_read_only_texture_arg() = read_only_texture_arg),
         (p_out() = out),
-        (p_buff1() = buff1),
-        (p_buff2() = buff2),
-        (p_buff3() = buff3),
-        (p_buff4() = buff4));
+        (p_read_only_bypass_arg() = read_only_bypass_arg),
+        (p_read_only_non_texture_type_arg() = read_only_non_texture_type_arg),
+        (p_shared_mem_arg() = shared_mem_arg),
+        (p_kcache_arg() = kcache_arg));
 
     uint_t di[5] = {4, 4, 4, d1 - 4 - 1, d1};
     uint_t dj[5] = {4, 4, 4, d2 - 4 - 1, d2};
 
     gridtools::grid< axis > grid(di, dj);
 
-    using caches_t = decltype(
-        define_caches(cache< bypass, local >(p_buff1()), cache< IJ, local >(p_buff3()), cache< K, local >(p_buff4())));
+    using caches_t = decltype(define_caches(cache< bypass, local >(p_read_only_bypass_arg()),
+        cache< IJ, local >(p_shared_mem_arg()),
+        cache< K, local >(p_kcache_arg())));
 
-    auto computation_ = gridtools::make_computation< backend_t >(
-        domain,
-        grid,
-        gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
-            caches_t(),
-            gridtools::make_stage< dummy_functor >(p_in(), p_out(), p_buff1(), p_buff2(), p_buff3(), p_buff4())));
+    auto computation_ =
+        gridtools::make_computation< backend_t >(domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                                                     caches_t(),
+                                                     gridtools::make_stage< dummy_functor >(p_read_only_texture_arg(),
+                                                         p_out(),
+                                                         p_read_only_bypass_arg(),
+                                                         p_read_only_non_texture_type_arg(),
+                                                         p_shared_mem_arg(),
+                                                         p_kcache_arg())));
 
-    typedef decltype(
-        gridtools::make_stage< dummy_functor >(p_in(), p_out(), p_buff1(), p_buff2(), p_buff3(), p_buff4())) esf_t;
+    typedef decltype(gridtools::make_stage< dummy_functor >(p_read_only_texture_arg(),
+        p_out(),
+        p_read_only_bypass_arg(),
+        p_read_only_non_texture_type_arg(),
+        p_shared_mem_arg(),
+        p_kcache_arg())) esf_t;
 
     typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
     typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
@@ -154,28 +174,40 @@ TEST(test_iterate_domain, accessor_metafunctions) {
             boost::mpl::false_,
             notype > > it_domain_t;
 
-    static_assert((it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::in >::type::value), "Error");
     static_assert(
-        (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::buff1 >::type::value), "Error");
+        (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::read_only_texture_arg >::type::value),
+        "Error");
+    static_assert(
+        (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::read_only_bypass_arg >::type::value),
+        "Error");
 
     static_assert(!(it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::out >::type::value), "Error");
 
-    static_assert((it_domain_t::template accessor_read_from_texture< dummy_functor::in >::type::value), "Error");
+    static_assert(
+        (it_domain_t::template accessor_read_from_texture< dummy_functor::read_only_texture_arg >::type::value),
+        "Error");
 
     // because is output field
     static_assert(!(it_domain_t::template accessor_read_from_texture< dummy_functor::out >::type::value), "Error");
     // because is being bypass
-    static_assert(!(it_domain_t::template accessor_read_from_texture< dummy_functor::buff1 >::type::value), "Error");
+    static_assert(
+        !(it_domain_t::template accessor_read_from_texture< dummy_functor::read_only_bypass_arg >::type::value),
+        "Error");
     // because is not a texture supported type
-    static_assert(!(it_domain_t::template accessor_read_from_texture< dummy_functor::buff2 >::type::value), "Error");
+    static_assert(!(it_domain_t::template accessor_read_from_texture<
+                      dummy_functor::read_only_non_texture_type_arg >::type::value),
+        "Error");
 
     // access via shared mem
-    static_assert((it_domain_t::template accessor_from_shared_mem< dummy_functor::buff3 >::type::value), "Error");
-    static_assert(!(it_domain_t::template accessor_from_shared_mem< dummy_functor::buff1 >::type::value), "Error");
+    static_assert(
+        (it_domain_t::template accessor_from_shared_mem< dummy_functor::shared_mem_arg >::type::value), "Error");
+    static_assert(
+        !(it_domain_t::template accessor_from_shared_mem< dummy_functor::read_only_bypass_arg >::type::value), "Error");
 
     // access via kcache reg
-    static_assert((it_domain_t::template accessor_from_kcache_reg< dummy_functor::buff4 >::type::value), "Error");
-    static_assert(!(it_domain_t::template accessor_from_kcache_reg< dummy_functor::buff3 >::type::value), "Error");
+    static_assert((it_domain_t::template accessor_from_kcache_reg< dummy_functor::kcache_arg >::type::value), "Error");
+    static_assert(
+        !(it_domain_t::template accessor_from_kcache_reg< dummy_functor::shared_mem_arg >::type::value), "Error");
 
     ASSERT_TRUE(true);
 }
