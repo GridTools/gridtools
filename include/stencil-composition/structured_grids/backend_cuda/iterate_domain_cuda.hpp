@@ -266,7 +266,8 @@ namespace gridtools {
         GT_FUNCTION typename boost::enable_if< accessor_from_shared_mem< Accessor >, ReturnType >::type
         get_cache_value_impl(Accessor const &accessor_) const {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value),
+                "Internal Error: Bug or missing user protection. Please fill a bug report.");
 
             //        assert(m_pshared_iterate_domain);
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
