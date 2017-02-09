@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#define PEDANTIC_DISABLED
 #include <stencil-composition/stencil-composition.hpp>
 #include "Options.hpp"
 #include "extended_4D_verify.hpp"
@@ -100,16 +101,32 @@ typedef BACKEND::storage_type< float_type, metadata_local_quad_t >::type storage
 
 namespace assembly {
 
+    template < typename ValueType, typename Layout, uint_t... Dims >
+    struct storage {
+        typedef ValueType value_type;
+        typedef meta_storage_cache< Layout, Dims... > meta_t;
+
+        GT_FUNCTION
+        constexpr storage() : m_values{0} {}
+
+        template < typename... Ints >
+        GT_FUNCTION value_type &operator()(Ints &&... args_) {
+            return m_values[meta_t{}.index(args_...)];
+        }
+
+        value_type m_values[accumulate(multiplies(), Dims...)];
+    };
+
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct integration {
-        typedef in_accessor< 0, extent<>, 4 > phi;
-        typedef in_accessor< 1, extent<>, 4 > psi; // how to detect when index is wrong??
-        typedef in_accessor< 2, extent<>, 4 > jac;
-        typedef in_accessor< 3, extent<>, 6 > f;
-        typedef inout_accessor< 4, extent<>, 6 > result;
-        typedef boost::mpl::vector< phi, psi, jac, f, result > arg_list;
+        typedef in_accessor< 0, extent<>, 4 > jac;
+        typedef in_accessor< 1, extent<>, 6 > f;
+        typedef inout_accessor< 2, extent<>, 6 > result;
+        typedef global_accessor< 3 > phi_t;
+        typedef global_accessor< 4 > psi_t; // how to detect when index is wrong??
+        typedef boost::mpl::vector< jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -120,6 +137,8 @@ namespace assembly {
             dimension< 5 > dj;
             dimension< 6 > dk;
             quad qp;
+            phi_t phi;
+            psi_t psi;
             // projection of f on a (e.g.) P1 FE space:
             // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
@@ -127,25 +146,24 @@ namespace assembly {
                 for (short_t J = 0; J < 2; ++J)
                     for (short_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
-                        assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
+                        // assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
                             eval(result{di + I, dj + J, dk + K, qp}) +=
-                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i, j, k, qp + q} * jac{i, j, k, qp + q} *
-                                         f{i, j, k, di, dj, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, j, k, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, j, k, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, k, k, di, dj, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k + 1, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i, j + 1, k + 1, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k + 1, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk + 1}) /
+                                eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
+                                     phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj, dk} +
+                                     phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di, dj + 1, dk} +
+                                     phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, k, k, di, dj, dk + 1} +
+                                     phi(I, J, K, q) * psi(1, 1, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj + 1, dk} +
+                                     phi(I, J, K, q) * psi(1, 0, 1, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj, dk + 1} +
+                                     phi(I, J, K, q) * psi(0, 1, 1, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di, dj + 1, dk + 1} +
+                                     phi(I, J, K, q) * psi(1, 1, 1, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj + 1, dk + 1}) /
                                 8;
                         }
                     }
@@ -156,23 +174,17 @@ namespace assembly {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        typedef arg< 0, storage_local_quad_t > p_phi;
-        typedef arg< 1, storage_local_quad_t > p_psi;
-        typedef arg< 2, storage_global_quad_t > p_jac;
-        typedef arg< 3, storage_type > p_f;
-        typedef arg< 4, storage_type > p_result;
+        static const uint_t nbQuadPt = 2; // referenceFE_Type::nbQuadPt;
+        static const uint_t b1 = 2;
+        static const uint_t b2 = 2;
+        static const uint_t b3 = 2;
+        // // basis functions available in a 2x2x2 cell, because of P1 FE
+        // metadata_local_quad_t local_metadata(b1, b2, b3, nbQuadPt);
 
-        typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
-
-        uint_t nbQuadPt = 2; // referenceFE_Type::nbQuadPt;
-        uint_t b1 = 2;
-        uint_t b2 = 2;
-        uint_t b3 = 2;
-        // basis functions available in a 2x2x2 cell, because of P1 FE
-        metadata_local_quad_t local_metadata(b1, b2, b3, nbQuadPt);
-
-        storage_local_quad_t phi(local_metadata, 0., "phi");
-        storage_local_quad_t psi(local_metadata, 0., "psi");
+        storage< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > phi;
+        storage< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > psi;
+        // storage_local_quad_t phi(local_metadata, 0., "phi");
+        // storage_local_quad_t psi(local_metadata, 0., "psi");
 
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU
@@ -193,11 +205,23 @@ namespace assembly {
                         psi(i, j, k, q) = 11.;
                     }
 
+        auto g_phi = make_global_parameter(phi);
+        auto g_psi = make_global_parameter(psi);
+
         metadata_t meta_(d1, d2, d3, b1, b2, b3);
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
+        typedef arg< 0, decltype(g_phi) > p_phi;
+        typedef arg< 1, decltype(g_psi) > p_psi;
+        typedef arg< 2, decltype(jac) > p_jac;
+        typedef arg< 3, decltype(f) > p_f;
+        typedef arg< 4, decltype(result) > p_result;
+
+        typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
+
+        gridtools::aggregator_type< accessor_list > domain(
+            boost::fusion::make_vector(&g_phi, &g_psi, &jac, &f, &result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
@@ -223,7 +247,7 @@ namespace assembly {
                 grid,
                 make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                    make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+                    make_stage< integration >(p_jac(), p_f(), p_result(), p_phi(), p_psi())));
 
         fe_comp->ready();
         fe_comp->steady();

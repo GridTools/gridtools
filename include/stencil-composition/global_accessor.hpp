@@ -40,14 +40,37 @@
 
 namespace gridtools {
 
-    template < uint_t I, enumtype::intend Intend >
+    template < typename GlobalAccessor, typename... Args >
+    struct global_accessor_with_arguments {
+      private:
+        boost::fusion::vector< Args... > m_arguments;
+
+      public:
+        typedef GlobalAccessor super;
+        typedef typename super::index_type index_type;
+
+        GT_FUNCTION
+        global_accessor_with_arguments(Args... args_) : m_arguments(args_...) {}
+        GT_FUNCTION
+        boost::fusion::vector< Args... > const &get_arguments() const { return m_arguments; };
+    };
+
+    template < uint_t I, enumtype::intend Intend = enumtype::in >
     struct global_accessor {
+
+        static const constexpr enumtype::intend intent = Intend;
 
         typedef global_accessor< I, Intend > type;
 
-        typedef static_uint< I > index_type;
+        // TODO: I want to put here a uint...
+        typedef static_short< I > index_type;
 
         typedef empty_extent extent_t;
+
+        template < typename... Args >
+        GT_FUNCTION global_accessor_with_arguments< global_accessor, Args... > operator()(Args &&... args_) {
+            return global_accessor_with_arguments< global_accessor, Args... >(std::forward< Args >(args_)...);
+        }
     };
 
     template < typename Type >
@@ -55,5 +78,8 @@ namespace gridtools {
 
     template < uint_t I, enumtype::intend Intend >
     struct is_global_accessor< global_accessor< I, Intend > > : boost::true_type {};
+
+    template < typename Global, typename... Args >
+    struct is_global_accessor< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
 
 } // namespace gridtools

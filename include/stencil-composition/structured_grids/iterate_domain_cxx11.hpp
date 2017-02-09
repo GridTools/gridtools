@@ -356,11 +356,6 @@ namespace gridtools {
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
-        /** specialization for expr_direct_access*/
-        template < typename Accessor, typename StoragePointer >
-        GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
-            expr_direct_access< Accessor > const &expr, StoragePointer const &RESTRICT storage_pointer) const;
-
         /** @brief method returning the data pointer of an accessor
             specialization for the accessor placeholders for standard storages
 
@@ -386,18 +381,6 @@ namespace gridtools {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
             return (data_pointer())[current_storage< (acc_t::index_type::value == 0), local_domain_t, acc_t >::value];
-        }
-
-        /** @brief method returning the data pointer of an accessor
-            specialization for the accessor placeholders for expressions
-        */
-        template < typename Accessor >
-        GT_FUNCTION void *RESTRICT get_data_pointer(expr_direct_access< Accessor > const &accessor) const {
-
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-            return (
-                data_pointer())[current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value];
         }
 
         /** @brief method returning the data pointer of an accessor
@@ -457,6 +440,41 @@ namespace gridtools {
             storage_ptr_type storage_ = boost::fusion::at< index_t >(local_domain.m_local_args);
 
             return *storage_;
+        }
+
+        template < typename Container, typename Tuple, uint_t... Ids >
+        GT_FUNCTION auto static tuple_to_container(
+            Container &&container_, Tuple const &tuple_, gt_integer_sequence< uint_t, Ids... >)
+            -> decltype(container_(boost::fusion::at_c< Ids >(tuple_)...)) {
+            return container_(boost::fusion::at_c< Ids >(tuple_)...);
+        }
+
+        template < typename Acc, typename... Args >
+        using ret_t = typename boost::remove_reference< decltype(
+            tuple_to_container(std::declval< typename get_storage_accessor< local_domain_t, Acc >::type::value_type >(),
+                std::declval< global_accessor_with_arguments< Acc, Args... > >().get_arguments(),
+                make_gt_integer_sequence< uint_t, sizeof...(Args) >())) >::type;
+
+        /** @brief method called in the Do methods of the functors.
+
+            specialization for the generic accessors placeholders with arguments
+        */
+        template < typename Acc, typename... Args >
+        GT_FUNCTION auto operator()(global_accessor_with_arguments< Acc, Args... > const &accessor) const
+
+            -> ret_t< Acc, Args... >
+
+        {
+
+            // getting information about the storage
+            typedef typename Acc::index_type index_t;
+
+            typedef typename get_storage_accessor< local_domain_t, Acc >::type storage_ptr_type;
+
+            storage_ptr_type storage_ = boost::fusion::at< index_t >(local_domain.m_local_args);
+
+            return tuple_to_container(
+                *storage_, accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
         }
 
         /**@brief returns the dimension of the storage corresponding to the given accessor
@@ -523,22 +541,15 @@ namespace gridtools {
             return get_value(accessor, get_data_pointer(accessor));
         }
 
-        template < typename Accessor >
-        GT_FUNCTION typename accessor_return_type< Accessor >::type operator()(
-            expr_direct_access< Accessor > const &accessor) const {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-            return get_value(accessor, get_data_pointer(accessor));
-        }
-
         /** @brief method called in the Do methods of the functors
 
             Overload of the operator() for expressions.
         */
-        template < typename... Arguments, template < typename... Args > class Expression >
+        template < typename... Arguments,
+            template < typename... Args > class Expression,
+            typename boost::enable_if< is_expr< Expression< Arguments... > >, int >::type = 0 >
         GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
             -> decltype(expressions::evaluation::value(*this, arg)) {
-
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
             return expressions::evaluation::value((*this), arg);
         }
@@ -624,49 +635,6 @@ namespace gridtools {
                 typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
                 Accessor,
                 storage_pointer_t >(real_storage_pointer, pointer_offset);
-    }
-
-    /** @brief method called in the Do methods of the functors.
-
-        specialization for the expr_direct_access<Accessor> placeholders (high level syntax: '@plch').
-        Allows direct access to the storage by only using the offsets
-    */
-    template < typename IterateDomainImpl >
-    template < typename Accessor, typename StoragePointer >
-    GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
-    iterate_domain< IterateDomainImpl >::get_value(
-        expr_direct_access< Accessor > const &expr, StoragePointer const &RESTRICT storage_pointer) const {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-
-        // getting information about the storage
-        typedef typename Accessor::index_type index_t;
-
-        typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
-
-        // getting information about the metadata
-        typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
-
-        pointer< const typename storage_t::storage_info_type > const metadata_ =
-            boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
-
-        // error checks
-        GTASSERT(metadata_->size() >
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
-
-        GTASSERT(
-            metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()) >= 0);
-
-        GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim <= storage_t::storage_info_type::space_dimensions),
-            "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
-            "defining the placeholder.");
-
-        // casting the storage pointer from void* to the sotrage value_type
-        typename storage_t::value_type *RESTRICT real_storage_pointer =
-            static_cast< typename storage_t::value_type * >(storage_pointer);
-
-        // returning the value without adding the m_index
-        return *(real_storage_pointer +
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
     }
 
 } // namespace gridtools

@@ -94,6 +94,15 @@ namespace gridtools {
         typedef typename boost::mpl::transform< PlaceholderArray, substitute_expandable_param< Size > >::type type;
     };
 
+    template < typename PlaceholderArray >
+    struct remove_global_accessors {
+        typedef typename boost::mpl::fold< PlaceholderArray,
+            boost::mpl::vector0<>,
+            boost::mpl::if_< is_extent< boost::mpl::second< boost::mpl::_2 > >,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
+                                               boost::mpl::_1 > >::type type;
+    };
+
     /** This funciton initializes the map between placeholders and extents by
         producing an mpl::map where the keys are the elements of PlaceholdersVector,
         while the values are all InitExtent.
@@ -263,7 +272,12 @@ namespace gridtools {
                 // First determine which are the outputs
                 typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs_original;
                 // substitute the types for expandable parameters arg
-                typedef typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs;
+                typedef
+                    typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs_with_globals;
+
+                // substitute the types for expandable parameters arg
+                typedef typename remove_global_accessors< outputs_with_globals >::type outputs;
+
 #ifndef ALLOW_EMPTY_EXTENTS
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
                     "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");

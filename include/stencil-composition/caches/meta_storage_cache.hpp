@@ -66,6 +66,11 @@ namespace gridtools {
             return m_value.template strides< Id >();
         }
 
+        template < typename... D, typename Dummy = all_integers< typename std::remove_reference< D >::type... > >
+        GT_FUNCTION constexpr int_t index(D &&... args_) const {
+            return m_value.index(args_...);
+        }
+
         template < typename Accessor >
         GT_FUNCTION constexpr int_t index(Accessor const &arg_) const {
             return m_value._index(arg_.offsets());
