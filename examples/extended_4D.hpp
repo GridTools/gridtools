@@ -125,7 +125,7 @@ namespace assembly {
         typedef in_accessor< 1, extent<>, 6 > f;
         typedef inout_accessor< 2, extent<>, 6 > result;
         typedef global_accessor< 3 > phi_t;
-        typedef global_accessor< 4 > psi_t; // how to detect when index is wrong??
+        typedef global_accessor< 4 > psi_t;
         typedef boost::mpl::vector< jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
@@ -146,7 +146,7 @@ namespace assembly {
                 for (short_t J = 0; J < 2; ++J)
                     for (short_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
-                        // assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
+                        assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
                             eval(result{di + I, dj + J, dk + K, qp}) +=
                                 eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
@@ -178,13 +178,9 @@ namespace assembly {
         static const uint_t b1 = 2;
         static const uint_t b2 = 2;
         static const uint_t b3 = 2;
-        // // basis functions available in a 2x2x2 cell, because of P1 FE
-        // metadata_local_quad_t local_metadata(b1, b2, b3, nbQuadPt);
-
+        // basis functions available in a 2x2x2 cell, because of P1 FE
         storage< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > phi;
         storage< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > psi;
-        // storage_local_quad_t phi(local_metadata, 0., "phi");
-        // storage_local_quad_t psi(local_metadata, 0., "psi");
 
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU
