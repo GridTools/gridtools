@@ -106,7 +106,7 @@ namespace gridtools {
 
             /**Elem is a local_domain*/
             template < typename Elem >
-            GT_FUNCTION void operator()(Elem &elem) const {
+            void operator()(Elem &elem) const {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< Elem >::value), "Internal Error: wrong type");
 
                 elem.init(m_arg_ptr_list, m_meta_storages.sequence_view(), 0, 0, 0);

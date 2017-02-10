@@ -81,7 +81,7 @@ namespace gridtools {
             using lambda = next_stride< MaxIndex - T, MaxIndex, Layout >;
 
             template < typename... UIntType, typename Dummy = all_integers< UIntType... > >
-            static constexpr array< int_t, MaxIndex + 1 > apply(UIntType... args) {
+            GT_FUNCTION static constexpr array< int_t, MaxIndex + 1 > apply(UIntType... args) {
                 using seq =
                     apply_gt_integer_sequence< typename make_gt_integer_sequence< int_t, sizeof...(args) >::type >;
                 return seq::template apply< array< int_t, MaxIndex + 1 >, lambda >((int_t)args...);
