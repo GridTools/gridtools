@@ -403,7 +403,7 @@ namespace gridtools {
            @param k index in the vertical direction
         */
         template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
-        typename super::value_type &get_value(Int... args) {
+        GT_FUNCTION typename super::value_type &get_value(Int... args) {
 
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
@@ -417,7 +417,7 @@ namespace gridtools {
            same as the previous one, but returning a constant reference
         */
         template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
-        typename super::value_type const &get_value(Int... args) const {
+        GT_FUNCTION typename super::value_type const &get_value(Int... args) const {
 
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");

@@ -63,7 +63,7 @@ namespace gridtools {
         typedef typename get_storage_accessor< LocalDomain, Accessor >::type::value_type storage_type;
         typedef typename storage_type::storage_info_type metadata_t;
 
-        static constexpr uint_t apply(Accessor const &accessor_) {
+        static constexpr GT_FUNCTION uint_t apply(Accessor const &accessor_) {
 
             GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields % storage_type::traits::n_width == 0),
                 "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr "
