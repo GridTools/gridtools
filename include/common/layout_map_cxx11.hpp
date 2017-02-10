@@ -317,8 +317,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value),
                 "the find_val method must be used with tuples of offset_tuple type");
 
-            return ((pos_< I >::value >= length)) ? DefaultVal
-                                                  : indices.template get< OffsetTuple::n_dim - pos_< I >::value - 1 >();
+            return (((ushort_t)pos_< I >::value >= length))
+                       ? DefaultVal
+                       : indices.template get< (short_t)OffsetTuple::n_dim - pos_< I >::value - 1 >();
             // this calls accessor::get
         }
 
