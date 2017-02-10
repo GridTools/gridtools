@@ -94,7 +94,7 @@ namespace gridtools {
         static const constexpr short_t layout_vector[sizeof...(Args)] = {Args...};
         typedef boost::mpl::vector_c< short_t, Args... > layout_vector_t;
 
-        constexpr layout_map(){};
+        GT_FUNCTION constexpr layout_map(){};
 
         GT_FUNCTION constexpr short_t operator[](ushort_t id_) const { return layout_vector[id_]; }
 
@@ -265,7 +265,9 @@ namespace gridtools {
         GT_FUNCTION static constexpr T find_val(First const &first, Indices const &... indices) {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Indices) <= length, "Too many arguments");
             // lazy template instantiation
-            typedef typename boost::mpl::eval_if_c< (pos_< I >::value >= sizeof...(Indices) + 1),
+            // HACK: the comparison is a hack, pos_< I >::value is negative (-2) if index is not in map
+            // the explicit cast suppresses a warning
+            typedef typename boost::mpl::eval_if_c< ((std::size_t)pos_< I >::value >= sizeof...(Indices) + 1),
                 identity< T, DefaultVal >,
                 tied_type< I, T > >::type type;
 
@@ -373,12 +375,14 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(I <= length, "Index out of bound");
             GRIDTOOLS_STATIC_ASSERT((short_t)I >= 0, "Accessing a negative dimension");
 
+            // HACK: the casts to short_t should not be there, but x can be negative...
             GT_FUNCTION static short_t constexpr find_pos(short_t const &x, bool is_here = false) {
                 return is_here ? x : x == length ? -2
-                                                 : find_pos(x + 1, layout_vector[(x + 1 >= length) ? x : x + 1] == I);
+                                                 : find_pos(x + 1,
+                                                       layout_vector[((x + 1) >= length) ? x : x + 1] == (short_t)I);
             };
 
-            static constexpr short_t value = find_pos(0, layout_vector[0] == I);
+            static constexpr short_t value = find_pos(0, layout_vector[0] == (short_t)I);
         };
     };
 
