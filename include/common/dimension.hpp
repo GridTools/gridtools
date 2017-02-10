@@ -64,7 +64,7 @@ namespace gridtools {
         {
             GRIDTOOLS_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
             GRIDTOOLS_STATIC_ASSERT(
-                Coordinate > 0, "The coordinate values passed to the accessor must be positive integerts");
+                Coordinate > 0, "The coordinate values passed to the accessor must be positive integers");
         }
 
         /**@brief Constructor*/

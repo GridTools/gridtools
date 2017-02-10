@@ -45,6 +45,7 @@
 #include <boost/fusion/include/at_key.hpp>
 #include "stencil-composition/accessor.hpp"
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "common/generic_metafunctions/void_if_empty.hpp"
 
 namespace gridtools {
 
@@ -64,7 +65,7 @@ namespace gridtools {
       private:
         DataPointerArray m_data_pointer;
         StridesType m_strides;
-        IJCachesTuple m_ij_caches_tuple;
+        void_if_empty_t< IJCachesTuple > m_ij_caches_tuple; // HACK: see void_if_empty_t
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
         // constructed with the result_of::as_map from a fusion vector.
