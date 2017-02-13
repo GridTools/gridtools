@@ -299,7 +299,7 @@ namespace gridtools {
 
         /**empty functor*/
         struct empty {
-            void operator()() const {}
+            GT_FUNCTION_WARNING void operator()() const {}
         };
 
         /**
