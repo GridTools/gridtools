@@ -100,5 +100,4 @@ TEST(Communication, boollist) {
     }
 
     EXPECT_TRUE(pass);
-
 }

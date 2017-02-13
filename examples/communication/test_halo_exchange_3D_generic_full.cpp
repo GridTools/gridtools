@@ -68,7 +68,6 @@ namespace halo_exchange_3D_generic_full {
 #define B_ADD 1
 #define C_ADD 2
 
-
 #define VECTOR_INTERFACE
 #ifdef VECTOR_INTERFACE
     typedef int T1;
@@ -88,39 +87,39 @@ namespace halo_exchange_3D_generic_full {
 
     template < typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2 >
     bool run(ST &file,
-             int DIM1,
-             int DIM2,
-             int DIM3,
-             int H1m1,
-             int H1p1,
-             int H2m1,
-             int H2p1,
-             int H3m1,
-             int H3p1,
-             int H1m2,
-             int H1p2,
-             int H2m2,
-             int H2p2,
-             int H3m2,
-             int H3p2,
-             int H1m3,
-             int H1p3,
-             int H2m3,
-             int H2p3,
-             int H3m3,
-             int H3p3,
-             triple_t< USE_DOUBLE, T1 > *_a,
-             triple_t< USE_DOUBLE, T2 > *_b,
-             triple_t< USE_DOUBLE, T3 > *_c) {
+        int DIM1,
+        int DIM2,
+        int DIM3,
+        int H1m1,
+        int H1p1,
+        int H2m1,
+        int H2p1,
+        int H3m1,
+        int H3p1,
+        int H1m2,
+        int H1p2,
+        int H2m2,
+        int H2p2,
+        int H3m2,
+        int H3p2,
+        int H1m3,
+        int H1p3,
+        int H2m3,
+        int H2p3,
+        int H3m3,
+        int H3p3,
+        triple_t< USE_DOUBLE, T1 > *_a,
+        triple_t< USE_DOUBLE, T2 > *_b,
+        triple_t< USE_DOUBLE, T3 > *_c) {
 
         typedef gridtools::layout_map< I1, I2, I3 > layoutmap;
 
         array< triple_t< USE_DOUBLE, T1 >, layoutmap > a(
-                                                         _a, (DIM1 + H1m1 + H1p1), (DIM2 + H2m1 + H2p1), (DIM3 + H3m1 + H3p1));
+            _a, (DIM1 + H1m1 + H1p1), (DIM2 + H2m1 + H2p1), (DIM3 + H3m1 + H3p1));
         array< triple_t< USE_DOUBLE, T2 >, layoutmap > b(
-                                                         _b, (DIM1 + H1m2 + H1p2), (DIM2 + H2m2 + H2p2), (DIM3 + H3m2 + H3p2));
+            _b, (DIM1 + H1m2 + H1p2), (DIM2 + H2m2 + H2p2), (DIM3 + H3m2 + H3p2));
         array< triple_t< USE_DOUBLE, T3 >, layoutmap > c(
-                                                         _c, (DIM1 + H1m3 + H1p3), (DIM2 + H2m3 + H2p3), (DIM3 + H3m3 + H3p3));
+            _c, (DIM1 + H1m3 + H1p3), (DIM2 + H2m3 + H2p3), (DIM3 + H3m3 + H3p3));
 
         /* The pattern type is defined with the layouts, data types and
            number of dimensions.
@@ -138,8 +137,10 @@ namespace halo_exchange_3D_generic_full {
            logically to processor (p+1,q,r). The other dimensions goes as
            the others.
         */
-        typedef gridtools::
-            halo_exchange_generic< gridtools::layout_map< 0, 1, 2 >, 3, arch_type, gridtools::version_manual > pattern_type;
+        typedef gridtools::halo_exchange_generic< gridtools::layout_map< 0, 1, 2 >,
+            3,
+            arch_type,
+            gridtools::version_manual > pattern_type;
 
         /* The pattern is now instantiated with the periodicities and the
            communicator. The periodicity of the communicator is
@@ -172,27 +173,27 @@ namespace halo_exchange_3D_generic_full {
         gridtools::array< gridtools::halo_descriptor, 3 > h_example;
 #define MAX3(a, b, c) std::max(a, std::max(b, c))
         h_example[0] = gridtools::halo_descriptor(MAX3(H1m1, H1m2, H1m3),
-                                                  MAX3(H1p1, H1p2, H1p3),
-                                                  MAX3(H1m1, H1m2, H1m3),
-                                                  DIM1 + MAX3(H1m1, H1m2, H1m3) - 1,
-                                                  DIM1 + MAX3(H1m1, H1m2, H1m3) + MAX3(H1p1, H1p3, H1p3));
+            MAX3(H1p1, H1p2, H1p3),
+            MAX3(H1m1, H1m2, H1m3),
+            DIM1 + MAX3(H1m1, H1m2, H1m3) - 1,
+            DIM1 + MAX3(H1m1, H1m2, H1m3) + MAX3(H1p1, H1p3, H1p3));
         h_example[1] = gridtools::halo_descriptor(MAX3(H2m1, H2m2, H2m3),
-                                                  MAX3(H2p1, H2p2, H2p3),
-                                                  MAX3(H2m1, H2m2, H2m3),
-                                                  DIM2 + MAX3(H2m1, H2m2, H2m3) - 1,
-                                                  DIM2 + MAX3(H2m1, H2m2, H2m3) + MAX3(H2p1, H2p3, H2p3));
+            MAX3(H2p1, H2p2, H2p3),
+            MAX3(H2m1, H2m2, H2m3),
+            DIM2 + MAX3(H2m1, H2m2, H2m3) - 1,
+            DIM2 + MAX3(H2m1, H2m2, H2m3) + MAX3(H2p1, H2p3, H2p3));
         h_example[2] = gridtools::halo_descriptor(MAX3(H3m1, H3m2, H3m3),
-                                                  MAX3(H3p1, H3p2, H3p3),
-                                                  MAX3(H3m1, H3m2, H3m3),
-                                                  DIM3 + MAX3(H3m1, H3m2, H3m3) - 1,
-                                                  DIM3 + MAX3(H3m1, H3m2, H3m3) + MAX3(H3p1, H3p3, H3p3));
+            MAX3(H3p1, H3p2, H3p3),
+            MAX3(H3m1, H3m2, H3m3),
+            DIM3 + MAX3(H3m1, H3m2, H3m3) - 1,
+            DIM3 + MAX3(H3m1, H3m2, H3m3) + MAX3(H3p1, H3p3, H3p3));
 #undef MAX3
         he.setup(3,
-                 gridtools::field_on_the_fly< int, layoutmap, pattern_type::traits >(NULL, h_example), // BEWARE!!!!
-                 std::max(sizeof(triple_t< USE_DOUBLE, T1 >::data_type),
-                          std::max(sizeof(triple_t< USE_DOUBLE, T2 >::data_type),
-                                   sizeof(triple_t< USE_DOUBLE, T3 >::data_type)) // Estimates the size
-                          ));
+            gridtools::field_on_the_fly< int, layoutmap, pattern_type::traits >(NULL, h_example), // BEWARE!!!!
+            std::max(sizeof(triple_t< USE_DOUBLE, T1 >::data_type),
+                     std::max(sizeof(triple_t< USE_DOUBLE, T2 >::data_type),
+                         sizeof(triple_t< USE_DOUBLE, T3 >::data_type)) // Estimates the size
+                     ));
 
         file << "Proc: (" << coords[0] << ", " << coords[1] << ", " << coords[2] << ")\n";
 
@@ -222,23 +223,23 @@ namespace halo_exchange_3D_generic_full {
             for (int jj = H2m1; jj < DIM2 + H2m1; ++jj)
                 for (int kk = H3m1; kk < DIM3 + H3m1; ++kk) {
                     a(ii, jj, kk) = triple_t< USE_DOUBLE, T1 >(
-                                                               ii - H1m1 + (DIM1)*coords[0], jj - H2m1 + (DIM2)*coords[1], kk - H3m1 + (DIM3)*coords[2]);
+                        ii - H1m1 + (DIM1)*coords[0], jj - H2m1 + (DIM2)*coords[1], kk - H3m1 + (DIM3)*coords[2]);
                 }
 
         for (int ii = H1m2; ii < DIM1 + H1m2; ++ii)
             for (int jj = H2m2; jj < DIM2 + H2m2; ++jj)
                 for (int kk = H3m2; kk < DIM3 + H3m2; ++kk) {
                     b(ii, jj, kk) = triple_t< USE_DOUBLE, T2 >(ii - H1m2 + (DIM1)*coords[0] + B_ADD,
-                                                               jj - H2m2 + (DIM2)*coords[1] + B_ADD,
-                                                               kk - H3m2 + (DIM3)*coords[2] + B_ADD);
+                        jj - H2m2 + (DIM2)*coords[1] + B_ADD,
+                        kk - H3m2 + (DIM3)*coords[2] + B_ADD);
                 }
 
         for (int ii = H1m3; ii < DIM1 + H1m3; ++ii)
             for (int jj = H2m3; jj < DIM2 + H2m3; ++jj)
                 for (int kk = H3m3; kk < DIM3 + H3m3; ++kk) {
                     c(ii, jj, kk) = triple_t< USE_DOUBLE, T3 >(ii - H1m3 + (DIM1)*coords[0] + C_ADD,
-                                                               jj - H2m3 + (DIM2)*coords[1] + C_ADD,
-                                                               kk - H3m3 + (DIM3)*coords[2] + C_ADD);
+                        jj - H2m3 + (DIM2)*coords[1] + C_ADD,
+                        kk - H3m3 + (DIM3)*coords[2] + C_ADD);
                 }
 
         file << "A \n";
@@ -257,57 +258,64 @@ namespace halo_exchange_3D_generic_full {
         triple_t< USE_DOUBLE, T3 >::data_type *gpu_c = 0;
         cudaError_t status;
         status = cudaMalloc(&gpu_a,
-                            (DIM1 + H1m1 + H1p1) * (DIM2 + H2m1 + H2p1) * (DIM3 + H3m1 + H3p1) * sizeof(triple_t< USE_DOUBLE >::data_type));
+            (DIM1 + H1m1 + H1p1) * (DIM2 + H2m1 + H2p1) * (DIM3 + H3m1 + H3p1) *
+                sizeof(triple_t< USE_DOUBLE >::data_type));
         if (!checkCudaStatus(status))
             return false;
         status = cudaMalloc(&gpu_b,
-                            (DIM1 + H1m2 + H1p2) * (DIM2 + H2m2 + H2p2) * (DIM3 + H3m2 + H3p2) * sizeof(triple_t< USE_DOUBLE >::data_type));
+            (DIM1 + H1m2 + H1p2) * (DIM2 + H2m2 + H2p2) * (DIM3 + H3m2 + H3p2) *
+                sizeof(triple_t< USE_DOUBLE >::data_type));
         if (!checkCudaStatus(status))
             return false;
         status = cudaMalloc(&gpu_c,
-                            (DIM1 + H1m3 + H1p3) * (DIM2 + H2m3 + H2p3) * (DIM3 + H3m3 + H3p3) * sizeof(triple_t< USE_DOUBLE >::data_type));
+            (DIM1 + H1m3 + H1p3) * (DIM2 + H2m3 + H2p3) * (DIM3 + H3m3 + H3p3) *
+                sizeof(triple_t< USE_DOUBLE >::data_type));
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(gpu_a,
-                            a.ptr,
-                            (DIM1 + H1m1 + H1p1) * (DIM2 + H2m1 + H2p1) * (DIM3 + H3m1 + H3p1) * sizeof(triple_t< USE_DOUBLE >::data_type),
-                            cudaMemcpyHostToDevice);
+            a.ptr,
+            (DIM1 + H1m1 + H1p1) * (DIM2 + H2m1 + H2p1) * (DIM3 + H3m1 + H3p1) *
+                sizeof(triple_t< USE_DOUBLE >::data_type),
+            cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(gpu_b,
-                            b.ptr,
-                            (DIM1 + H1m2 + H1p2) * (DIM2 + H2m2 + H2p2) * (DIM3 + H3m2 + H3p2) * sizeof(triple_t< USE_DOUBLE >::data_type),
-                            cudaMemcpyHostToDevice);
+            b.ptr,
+            (DIM1 + H1m2 + H1p2) * (DIM2 + H2m2 + H2p2) * (DIM3 + H3m2 + H3p2) *
+                sizeof(triple_t< USE_DOUBLE >::data_type),
+            cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(gpu_c,
-                            c.ptr,
-                            (DIM1 + H1m3 + H1p3) * (DIM2 + H2m3 + H2p3) * (DIM3 + H3m3 + H3p3) * sizeof(triple_t< USE_DOUBLE >::data_type),
-                            cudaMemcpyHostToDevice);
+            c.ptr,
+            (DIM1 + H1m3 + H1p3) * (DIM2 + H2m3 + H2p3) * (DIM3 + H3m3 + H3p3) *
+                sizeof(triple_t< USE_DOUBLE >::data_type),
+            cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
 
-        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T1 >::data_type, layoutmap, pattern_type::traits >
-            field1(reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(gpu_a), halo_dsc1);
-        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T2 >::data_type, layoutmap, pattern_type::traits >
-            field2(reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(gpu_b), halo_dsc2);
-        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T3 >::data_type, layoutmap, pattern_type::traits >
-            field3(reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(gpu_c), halo_dsc3);
+        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T1 >::data_type, layoutmap, pattern_type::traits > field1(
+            reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(gpu_a), halo_dsc1);
+        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T2 >::data_type, layoutmap, pattern_type::traits > field2(
+            reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(gpu_b), halo_dsc2);
+        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T3 >::data_type, layoutmap, pattern_type::traits > field3(
+            reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(gpu_c), halo_dsc3);
 #else
-        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T1 >::data_type, layoutmap, pattern_type::traits >
-            field1(reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(a.ptr), halo_dsc1);
-        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T2 >::data_type, layoutmap, pattern_type::traits >
-            field2(reinterpret_cast< triple_t< USE_DOUBLE, T2 >::data_type * >(b.ptr), halo_dsc2);
-        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T3 >::data_type, layoutmap, pattern_type::traits >
-            field3(reinterpret_cast< triple_t< USE_DOUBLE, T3 >::data_type * >(c.ptr), halo_dsc3);
+        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T1 >::data_type, layoutmap, pattern_type::traits > field1(
+            reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(a.ptr), halo_dsc1);
+        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T2 >::data_type, layoutmap, pattern_type::traits > field2(
+            reinterpret_cast< triple_t< USE_DOUBLE, T2 >::data_type * >(b.ptr), halo_dsc2);
+        gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T3 >::data_type, layoutmap, pattern_type::traits > field3(
+            reinterpret_cast< triple_t< USE_DOUBLE, T3 >::data_type * >(c.ptr), halo_dsc3);
 #endif
 
 #ifdef VECTOR_INTERFACE
 
-        std::vector< gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T1 >::data_type, layoutmap, pattern_type::traits > >
+        std::vector<
+            gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T1 >::data_type, layoutmap, pattern_type::traits > >
             vect(3);
 
         vect[0] = field1;
@@ -343,22 +351,22 @@ namespace halo_exchange_3D_generic_full {
 
         lapse_time1 =
             ((static_cast< double >(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop1_tv.tv_usec)) -
-             (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
+                (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
             1000.0;
 
         lapse_time2 =
             ((static_cast< double >(stop2_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop2_tv.tv_usec)) -
-             (static_cast< double >(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop1_tv.tv_usec))) *
+                (static_cast< double >(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop1_tv.tv_usec))) *
             1000.0;
 
         lapse_time3 =
             ((static_cast< double >(stop3_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop3_tv.tv_usec)) -
-             (static_cast< double >(stop2_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop2_tv.tv_usec))) *
+                (static_cast< double >(stop2_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop2_tv.tv_usec))) *
             1000.0;
 
         lapse_time4 =
             ((static_cast< double >(stop3_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop3_tv.tv_usec)) -
-             (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
+                (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
             1000.0;
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -368,26 +376,28 @@ namespace halo_exchange_3D_generic_full {
         file << "TIME ALL : " << lapse_time1 + lapse_time2 + lapse_time3 << std::endl;
         file << "TIME TOT : " << lapse_time4 << std::endl;
 
-
 #ifdef __CUDACC__
         status = cudaMemcpy(a.ptr,
-                            gpu_a,
-                            (DIM1 + H1m1 + H1p1) * (DIM2 + H2m1 + H2p1) * (DIM3 + H3m1 + H3p1) * sizeof(triple_t< USE_DOUBLE, T1 >::data_type),
-                            cudaMemcpyDeviceToHost);
+            gpu_a,
+            (DIM1 + H1m1 + H1p1) * (DIM2 + H2m1 + H2p1) * (DIM3 + H3m1 + H3p1) *
+                sizeof(triple_t< USE_DOUBLE, T1 >::data_type),
+            cudaMemcpyDeviceToHost);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(b.ptr,
-                            gpu_b,
-                            (DIM1 + H1m2 + H1p2) * (DIM2 + H2m2 + H2p2) * (DIM3 + H3m2 + H3p2) * sizeof(triple_t< USE_DOUBLE, T2 >::data_type),
-                            cudaMemcpyDeviceToHost);
+            gpu_b,
+            (DIM1 + H1m2 + H1p2) * (DIM2 + H2m2 + H2p2) * (DIM3 + H3m2 + H3p2) *
+                sizeof(triple_t< USE_DOUBLE, T2 >::data_type),
+            cudaMemcpyDeviceToHost);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(c.ptr,
-                            gpu_c,
-                            (DIM1 + H1m3 + H1p3) * (DIM2 + H2m3 + H2p3) * (DIM3 + H3m3 + H3p3) * sizeof(triple_t< USE_DOUBLE, T3 >::data_type),
-                            cudaMemcpyDeviceToHost);
+            gpu_c,
+            (DIM1 + H1m3 + H1p3) * (DIM2 + H2m3 + H2p3) * (DIM3 + H3m3 + H3p3) *
+                sizeof(triple_t< USE_DOUBLE, T3 >::data_type),
+            cudaMemcpyDeviceToHost);
         if (!checkCudaStatus(status))
             return false;
 
@@ -542,31 +552,29 @@ namespace halo_exchange_3D_generic_full {
             file << "RESULT: FAILED!\n";
 
         return passed;
-
     }
 
-    bool test (int DIM1,
-               int DIM2,
-               int DIM3,
-               int H1m1,
-               int H1p1,
-               int H2m1,
-               int H2p1,
-               int H3m1,
-               int H3p1,
-               int H1m2,
-               int H1p2,
-               int H2m2,
-               int H2p2,
-               int H3m2,
-               int H3p2,
-               int H1m3,
-               int H1p3,
-               int H2m3,
-               int H2p3,
-               int H3m3,
-               int H3p3)
-    {
+    bool test(int DIM1,
+        int DIM2,
+        int DIM3,
+        int H1m1,
+        int H1p1,
+        int H2m1,
+        int H2p1,
+        int H3m1,
+        int H3p1,
+        int H1m2,
+        int H1p2,
+        int H2m2,
+        int H2p2,
+        int H3m2,
+        int H3p2,
+        int H1m3,
+        int H1p3,
+        int H2m3,
+        int H2p3,
+        int H3m3,
+        int H3p3) {
 
         /* Here we compute the computing gris as in many applications
          */
@@ -631,1398 +639,1446 @@ namespace halo_exchange_3D_generic_full {
 
         file << "Permutation 0,1,2\n";
 
-        file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
 
         bool passed = true;
 
         passed = passed and run< std::ostream, 0, 1, 2, true, true, true >(file,
-                                                                           DIM1,
-                                                                           DIM2,
-                                                                           DIM3,
-                                                                           H1m1,
-                                                                           H1p1,
-                                                                           H2m1,
-                                                                           H2p1,
-                                                                           H3m1,
-                                                                           H3p1,
-                                                                           H1m2,
-                                                                           H1p2,
-                                                                           H2m2,
-                                                                           H2p2,
-                                                                           H3m2,
-                                                                           H3p2,
-                                                                           H1m3,
-                                                                           H1p3,
-                                                                           H2m3,
-                                                                           H2p3,
-                                                                           H3m3,
-                                                                           H3p3,
-                                                                           _a,
-                                                                           _b,
-                                                                           _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,1,2, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 0,1,2, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 0, 1, 2, true, true, false >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,1,2, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 0,1,2, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 0, 1, 2, true, false, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,1,2, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 0,1,2, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 0, 1, 2, true, false, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,1,2, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 0,1,2, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 0, 1, 2, false, true, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,1,2, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 0,1,2, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 0, 1, 2, false, true, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,1,2, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 0,1,2, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 0, 1, 2, false, false, true >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,1,2, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file << "run<std::ostream, 0,1,2, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, "
+                "_a, "
+                "_b, _c)\n";
         passed = passed and run< std::ostream, 0, 1, 2, false, false, false >(file,
-                                                                              DIM1,
-                                                                              DIM2,
-                                                                              DIM3,
-                                                                              H1m1,
-                                                                              H1p1,
-                                                                              H2m1,
-                                                                              H2p1,
-                                                                              H3m1,
-                                                                              H3p1,
-                                                                              H1m2,
-                                                                              H1p2,
-                                                                              H2m2,
-                                                                              H2p2,
-                                                                              H3m2,
-                                                                              H3p2,
-                                                                              H1m3,
-                                                                              H1p3,
-                                                                              H2m3,
-                                                                              H2p3,
-                                                                              H3m3,
-                                                                              H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                              _a,
-                                                                              _b,
-                                                                              _c);
+                                _a,
+                                _b,
+                                _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 0,2,1\n";
 
-        file << "run<std::ostream, 0,2,1, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 0,2,1, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 0, 2, 1, true, true, true >(file,
-                                                                           DIM1,
-                                                                           DIM2,
-                                                                           DIM3,
-                                                                           H1m1,
-                                                                           H1p1,
-                                                                           H2m1,
-                                                                           H2p1,
-                                                                           H3m1,
-                                                                           H3p1,
-                                                                           H1m2,
-                                                                           H1p2,
-                                                                           H2m2,
-                                                                           H2p2,
-                                                                           H3m2,
-                                                                           H3p2,
-                                                                           H1m3,
-                                                                           H1p3,
-                                                                           H2m3,
-                                                                           H2p3,
-                                                                           H3m3,
-                                                                           H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                           _a,
-                                                                           _b,
-                                                                           _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,2,1, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 0,2,1, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 0, 2, 1, true, true, false >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,2,1, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 0,2,1, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 0, 2, 1, true, false, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,2,1, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 0,2,1, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 0, 2, 1, true, false, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,2,1, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 0,2,1, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 0, 2, 1, false, true, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,2,1, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 0,2,1, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 0, 2, 1, false, true, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,2,1, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 0,2,1, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 0, 2, 1, false, false, true >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 0,2,1, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file << "run<std::ostream, 0,2,1, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, "
+                "_a, "
+                "_b, _c)\n";
         passed = passed and run< std::ostream, 0, 2, 1, false, false, false >(file,
-                                                                              DIM1,
-                                                                              DIM2,
-                                                                              DIM3,
-                                                                              H1m1,
-                                                                              H1p1,
-                                                                              H2m1,
-                                                                              H2p1,
-                                                                              H3m1,
-                                                                              H3p1,
-                                                                              H1m2,
-                                                                              H1p2,
-                                                                              H2m2,
-                                                                              H2p2,
-                                                                              H3m2,
-                                                                              H3p2,
-                                                                              H1m3,
-                                                                              H1p3,
-                                                                              H2m3,
-                                                                              H2p3,
-                                                                              H3m3,
-                                                                              H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                              _a,
-                                                                              _b,
-                                                                              _c);
+                                _a,
+                                _b,
+                                _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 1,0,2\n";
 
-        file << "run<std::ostream, 1,0,2, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 1,0,2, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 1, 0, 2, true, true, true >(file,
-                                                                           DIM1,
-                                                                           DIM2,
-                                                                           DIM3,
-                                                                           H1m1,
-                                                                           H1p1,
-                                                                           H2m1,
-                                                                           H2p1,
-                                                                           H3m1,
-                                                                           H3p1,
-                                                                           H1m2,
-                                                                           H1p2,
-                                                                           H2m2,
-                                                                           H2p2,
-                                                                           H3m2,
-                                                                           H3p2,
-                                                                           H1m3,
-                                                                           H1p3,
-                                                                           H2m3,
-                                                                           H2p3,
-                                                                           H3m3,
-                                                                           H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                           _a,
-                                                                           _b,
-                                                                           _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,0,2, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 1,0,2, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 1, 0, 2, true, true, false >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,0,2, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 1,0,2, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 1, 0, 2, true, false, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,0,2, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 1,0,2, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 1, 0, 2, true, false, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,0,2, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 1,0,2, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 1, 0, 2, false, true, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,0,2, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 1,0,2, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 1, 0, 2, false, true, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,0,2, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 1,0,2, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 1, 0, 2, false, false, true >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,0,2, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file << "run<std::ostream, 1,0,2, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, "
+                "_a, "
+                "_b, _c)\n";
         passed = passed and run< std::ostream, 1, 0, 2, false, false, false >(file,
-                                                                              DIM1,
-                                                                              DIM2,
-                                                                              DIM3,
-                                                                              H1m1,
-                                                                              H1p1,
-                                                                              H2m1,
-                                                                              H2p1,
-                                                                              H3m1,
-                                                                              H3p1,
-                                                                              H1m2,
-                                                                              H1p2,
-                                                                              H2m2,
-                                                                              H2p2,
-                                                                              H3m2,
-                                                                              H3p2,
-                                                                              H1m3,
-                                                                              H1p3,
-                                                                              H2m3,
-                                                                              H2p3,
-                                                                              H3m3,
-                                                                              H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                              _a,
-                                                                              _b,
-                                                                              _c);
+                                _a,
+                                _b,
+                                _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 1,2,0\n";
 
-        file << "run<std::ostream, 1,2,0, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 1,2,0, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 1, 2, 0, true, true, true >(file,
-                                                                           DIM1,
-                                                                           DIM2,
-                                                                           DIM3,
-                                                                           H1m1,
-                                                                           H1p1,
-                                                                           H2m1,
-                                                                           H2p1,
-                                                                           H3m1,
-                                                                           H3p1,
-                                                                           H1m2,
-                                                                           H1p2,
-                                                                           H2m2,
-                                                                           H2p2,
-                                                                           H3m2,
-                                                                           H3p2,
-                                                                           H1m3,
-                                                                           H1p3,
-                                                                           H2m3,
-                                                                           H2p3,
-                                                                           H3m3,
-                                                                           H3p3,
-                                                                           _a,
-                                                                           _b,
-                                                                           _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,2,0, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 1,2,0, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 1, 2, 0, true, true, false >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,2,0, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 1,2,0, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 1, 2, 0, true, false, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,2,0, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 1,2,0, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 1, 2, 0, true, false, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,2,0, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 1,2,0, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 1, 2, 0, false, true, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,2,0, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 1,2,0, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 1, 2, 0, false, true, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,2,0, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 1,2,0, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 1, 2, 0, false, false, true >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 1,2,0, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H31, _a, "
-            "_b, _c)\n";
+        file << "run<std::ostream, 1,2,0, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H31, "
+                "_a, "
+                "_b, _c)\n";
         passed = passed and run< std::ostream, 1, 2, 0, false, false, false >(file,
-                                                                              DIM1,
-                                                                              DIM2,
-                                                                              DIM3,
-                                                                              H1m1,
-                                                                              H1p1,
-                                                                              H2m1,
-                                                                              H2p1,
-                                                                              H3m1,
-                                                                              H3p1,
-                                                                              H1m2,
-                                                                              H1p2,
-                                                                              H2m2,
-                                                                              H2p2,
-                                                                              H3m2,
-                                                                              H3p2,
-                                                                              H1m3,
-                                                                              H1p3,
-                                                                              H2m3,
-                                                                              H2p3,
-                                                                              H3m3,
-                                                                              H3p3,
-                                                                              _a,
-                                                                              _b,
-                                                                              _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 2,0,1\n";
 
-        file << "run<std::ostream, 2,0,1, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 2,0,1, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 2, 0, 1, true, true, true >(file,
-                                                                           DIM1,
-                                                                           DIM2,
-                                                                           DIM3,
-                                                                           H1m1,
-                                                                           H1p1,
-                                                                           H2m1,
-                                                                           H2p1,
-                                                                           H3m1,
-                                                                           H3p1,
-                                                                           H1m2,
-                                                                           H1p2,
-                                                                           H2m2,
-                                                                           H2p2,
-                                                                           H3m2,
-                                                                           H3p2,
-                                                                           H1m3,
-                                                                           H1p3,
-                                                                           H2m3,
-                                                                           H2p3,
-                                                                           H3m3,
-                                                                           H3p3,
-                                                                           _a,
-                                                                           _b,
-                                                                           _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,0,1, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 2,0,1, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 2, 0, 1, true, true, false >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,0,1, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 2,0,1, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 2, 0, 1, true, false, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,0,1, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 2,0,1, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 2, 0, 1, true, false, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,0,1, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 2,0,1, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 2, 0, 1, false, true, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,0,1, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 2,0,1, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 2, 0, 1, false, true, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,0,1, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 2,0,1, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 2, 0, 1, false, false, true >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,0,1, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file << "run<std::ostream, 2,0,1, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, "
+                "_a, "
+                "_b, _c)\n";
         passed = passed and run< std::ostream, 2, 0, 1, false, false, false >(file,
-                                                                              DIM1,
-                                                                              DIM2,
-                                                                              DIM3,
-                                                                              H1m1,
-                                                                              H1p1,
-                                                                              H2m1,
-                                                                              H2p1,
-                                                                              H3m1,
-                                                                              H3p1,
-                                                                              H1m2,
-                                                                              H1p2,
-                                                                              H2m2,
-                                                                              H2p2,
-                                                                              H3m2,
-                                                                              H3p2,
-                                                                              H1m3,
-                                                                              H1p3,
-                                                                              H2m3,
-                                                                              H2p3,
-                                                                              H3m3,
-                                                                              H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                              _a,
-                                                                              _b,
-                                                                              _c);
+                                _a,
+                                _b,
+                                _c);
         file << "---------------------------------------------------\n";
 
         file << "Permutation 2,1,0\n";
 
-        file << "run<std::ostream, 2,1,0, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 2,1,0, true, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 2, 1, 0, true, true, true >(file,
-                                                                           DIM1,
-                                                                           DIM2,
-                                                                           DIM3,
-                                                                           H1m1,
-                                                                           H1p1,
-                                                                           H2m1,
-                                                                           H2p1,
-                                                                           H3m1,
-                                                                           H3p1,
-                                                                           H1m2,
-                                                                           H1p2,
-                                                                           H2m2,
-                                                                           H2p2,
-                                                                           H3m2,
-                                                                           H3p2,
-                                                                           H1m3,
-                                                                           H1p3,
-                                                                           H2m3,
-                                                                           H2p3,
-                                                                           H3m3,
-                                                                           H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                           _a,
-                                                                           _b,
-                                                                           _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,1,0, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 2,1,0, true, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 2, 1, 0, true, true, false >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,1,0, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 2,1,0, true, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 2, 1, 0, true, false, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,1,0, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 2,1,0, true, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 2, 1, 0, true, false, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,1,0, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, _b, "
-            "_c)\n";
+        file << "run<std::ostream, 2,1,0, false, true, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+                "_b, "
+                "_c)\n";
         passed = passed and run< std::ostream, 2, 1, 0, false, true, true >(file,
-                                                                            DIM1,
-                                                                            DIM2,
-                                                                            DIM3,
-                                                                            H1m1,
-                                                                            H1p1,
-                                                                            H2m1,
-                                                                            H2p1,
-                                                                            H3m1,
-                                                                            H3p1,
-                                                                            H1m2,
-                                                                            H1p2,
-                                                                            H2m2,
-                                                                            H2p2,
-                                                                            H3m2,
-                                                                            H3p2,
-                                                                            H1m3,
-                                                                            H1p3,
-                                                                            H2m3,
-                                                                            H2p3,
-                                                                            H3m3,
-                                                                            H3p3,
-                                                                            _a,
-                                                                            _b,
-                                                                            _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,1,0, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 2,1,0, false, true, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 2, 1, 0, false, true, false >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,1,0, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file
+            << "run<std::ostream, 2,1,0, false, false, true>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
+               "_b, _c)\n";
         passed = passed and run< std::ostream, 2, 1, 0, false, false, true >(file,
-                                                                             DIM1,
-                                                                             DIM2,
-                                                                             DIM3,
-                                                                             H1m1,
-                                                                             H1p1,
-                                                                             H2m1,
-                                                                             H2p1,
-                                                                             H3m1,
-                                                                             H3p1,
-                                                                             H1m2,
-                                                                             H1p2,
-                                                                             H2m2,
-                                                                             H2p2,
-                                                                             H3m2,
-                                                                             H3p2,
-                                                                             H1m3,
-                                                                             H1p3,
-                                                                             H2m3,
-                                                                             H2p3,
-                                                                             H3m3,
-                                                                             H3p3,
-                                                                             _a,
-                                                                             _b,
-                                                                             _c);
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
+                                _a,
+                                _b,
+                                _c);
 
-        file << "run<std::ostream, 2,1,0, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, _a, "
-            "_b, _c)\n";
+        file << "run<std::ostream, 2,1,0, false, false, false>(file, DIM1, DIM2, DIM3, H1m, H1p, H2m, H2p, H3m, H3p, "
+                "_a, "
+                "_b, _c)\n";
         passed = passed and run< std::ostream, 2, 1, 0, false, false, false >(file,
-                                                                              DIM1,
-                                                                              DIM2,
-                                                                              DIM3,
-                                                                              H1m1,
-                                                                              H1p1,
-                                                                              H2m1,
-                                                                              H2p1,
-                                                                              H3m1,
-                                                                              H3p1,
-                                                                              H1m2,
-                                                                              H1p2,
-                                                                              H2m2,
-                                                                              H2p2,
-                                                                              H3m2,
-                                                                              H3p2,
-                                                                              H1m3,
-                                                                              H1p3,
-                                                                              H2m3,
-                                                                              H2p3,
-                                                                              H3m3,
-                                                                              H3p3,
+                                DIM1,
+                                DIM2,
+                                DIM3,
+                                H1m1,
+                                H1p1,
+                                H2m1,
+                                H2p1,
+                                H3m1,
+                                H3p1,
+                                H1m2,
+                                H1p2,
+                                H2m2,
+                                H2p2,
+                                H3m2,
+                                H3p2,
+                                H1m3,
+                                H1p3,
+                                H2m3,
+                                H2p3,
+                                H3m3,
+                                H3p3,
 
-                                                                              _a,
-                                                                              _b,
-                                                                              _c);
+                                _a,
+                                _b,
+                                _c);
         file << "---------------------------------------------------\n";
 
         return passed;
@@ -2030,7 +2086,7 @@ namespace halo_exchange_3D_generic_full {
 }
 
 #ifdef STANDALONE
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 #ifdef _USE_GPU_
     device_binding();
 #endif
@@ -2039,7 +2095,9 @@ int main(int argc, char** argv) {
     gridtools::GCL_Init(argc, argv);
 
     if (argc != 22) {
-        std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz h1m1 hip1 h2m1 h2m1 h3m1 h3p1 h1m2 hip2 h2m2 h2m2 h3m2 h3p2 h1m3 hip3 h2m3 h2m3 h3m3 h3p3\n where args are integer sizes of the data fields and halo width"
+        std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz h1m1 hip1 h2m1 h2m1 h3m1 h3p1 h1m2 hip2 h2m2 h2m2 "
+                     "h3m2 h3p2 h1m3 hip3 h2m3 h2m3 h3m3 h3p3\n where args are integer sizes of the data fields and "
+                     "halo width"
                   << std::endl;
         return 1;
     }
@@ -2065,16 +2123,33 @@ int main(int argc, char** argv) {
     int H3m3 = atoi(argv[20]);
     int H3p3 = atoi(argv[21]);
 
-    halo_exchange_3D_generic_full::test(DIM1, DIM2, DIM3,
-                                        H1m1, H1p1, H2m1, H2p1, H3m1, H3p1,
-                                        H1m2, H1p2, H2m2, H2p2, H3m2, H3p2,
-                                        H1m3, H1p3, H2m3, H2p3, H3m3, H3p3);
+    halo_exchange_3D_generic_full::test(DIM1,
+        DIM2,
+        DIM3,
+        H1m1,
+        H1p1,
+        H2m1,
+        H2p1,
+        H3m1,
+        H3p1,
+        H1m2,
+        H1p2,
+        H2m2,
+        H2p2,
+        H3m2,
+        H3p2,
+        H1m3,
+        H1p3,
+        H2m3,
+        H2p3,
+        H3m3,
+        H3p3);
 
     MPI_Finalize();
 }
 #else
-    TEST(Communication, test_halo_exchange_3D_generic_full) {
-        bool passed = halo_exchange_3D_generic_full::test(98, 54, 87, 0,1,2,3,2,1,0,1,2,3,2,1,0,1,2,3,0,1);
-        EXPECT_TRUE(passed);
-    }
+TEST(Communication, test_halo_exchange_3D_generic_full) {
+    bool passed = halo_exchange_3D_generic_full::test(98, 54, 87, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 2, 1, 0, 1, 2, 3, 0, 1);
+    EXPECT_TRUE(passed);
+}
 #endif

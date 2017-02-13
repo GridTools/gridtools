@@ -77,13 +77,13 @@ namespace halo_exchange_3D_all {
 
     template < typename ST, int I1, int I2, int I3, bool per0, bool per1, bool per2 >
     bool run(ST &file,
-             int DIM1,
-             int DIM2,
-             int DIM3,
-             int H,
-             triple_t< USE_DOUBLE > *_a,
-             triple_t< USE_DOUBLE > *_b,
-             triple_t< USE_DOUBLE > *_c) {
+        int DIM1,
+        int DIM2,
+        int DIM3,
+        int H,
+        triple_t< USE_DOUBLE > *_a,
+        triple_t< USE_DOUBLE > *_b,
+        triple_t< USE_DOUBLE > *_c) {
 
         typedef gridtools::layout_map< I1, I2, I3 > layoutmap;
 
@@ -117,14 +117,15 @@ namespace halo_exchange_3D_all {
            logically to processor (p+1,q,r). The other dimensions goes as
            the others.
         */
-        static const int version = gridtools::version_manual; // 0 is the usual version, 1 is the one that build the whole
+        static const int version =
+            gridtools::version_manual; // 0 is the usual version, 1 is the one that build the whole
         // datatype (Only vector interface supported)
         typedef gridtools::halo_exchange_dynamic_ut< layoutmap,
-                                                     gridtools::layout_map< 0, 1, 2 >,
-                                                     triple_t< USE_DOUBLE >::data_type,
-                                                     gridtools::MPI_3D_process_grid_t< 3 >,
-                                                     arch_type,
-                                                     version > pattern_type;
+            gridtools::layout_map< 0, 1, 2 >,
+            triple_t< USE_DOUBLE >::data_type,
+            gridtools::MPI_3D_process_grid_t< 3 >,
+            arch_type,
+            version > pattern_type;
 
         /* The pattern is now instantiated with the periodicities and the
            communicator. The periodicity of the communicator is
@@ -157,21 +158,21 @@ namespace halo_exchange_3D_all {
             for (int jj = H; jj < DIM2 + H; ++jj)
                 for (int kk = H; kk < DIM3 + H; ++kk) {
                     a(ii, jj, kk) = triple_t< USE_DOUBLE >(
-                                                           ii - H + (DIM1)*coords[0], jj - H + (DIM2)*coords[1], kk - H + (DIM3)*coords[2]);
+                        ii - H + (DIM1)*coords[0], jj - H + (DIM2)*coords[1], kk - H + (DIM3)*coords[2]);
                     b(ii, jj, kk) = triple_t< USE_DOUBLE >(ii - H + (DIM1)*coords[0] + B_ADD,
-                                                           jj - H + (DIM2)*coords[1] + B_ADD,
-                                                           kk - H + (DIM3)*coords[2] + B_ADD);
+                        jj - H + (DIM2)*coords[1] + B_ADD,
+                        kk - H + (DIM3)*coords[2] + B_ADD);
                     c(ii, jj, kk) = triple_t< USE_DOUBLE >(ii - H + (DIM1)*coords[0] + C_ADD,
-                                                           jj - H + (DIM2)*coords[1] + C_ADD,
-                                                           kk - H + (DIM3)*coords[2] + C_ADD);
+                        jj - H + (DIM2)*coords[1] + C_ADD,
+                        kk - H + (DIM3)*coords[2] + C_ADD);
                 }
 
         printbuff(file, a, DIM1 + 2 * H, DIM2 + 2 * H, DIM3 + 2 * H);
-        //  printbuff(file,b, DIM1+2*H, DIM2+2*H, DIM3+2*H);
-        //  printbuff(file,c, DIM1+2*H, DIM2+2*H, DIM3+2*H);
+//  printbuff(file,b, DIM1+2*H, DIM2+2*H, DIM3+2*H);
+//  printbuff(file,c, DIM1+2*H, DIM2+2*H, DIM3+2*H);
 
-        /* This is self explanatory now
-         */
+/* This is self explanatory now
+ */
 
 #ifdef __CUDACC__
         file << "GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU \n";
@@ -191,23 +192,23 @@ namespace halo_exchange_3D_all {
             return false;
 
         status = cudaMemcpy(gpu_a,
-                            a.ptr,
-                            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyHostToDevice);
+            a.ptr,
+            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(gpu_b,
-                            b.ptr,
-                            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyHostToDevice);
+            b.ptr,
+            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(gpu_c,
-                            c.ptr,
-                            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyHostToDevice);
+            c.ptr,
+            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
 
@@ -240,17 +241,17 @@ namespace halo_exchange_3D_all {
 
         lapse_time1 =
             ((static_cast< double >(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop1_tv.tv_usec)) -
-             (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
+                (static_cast< double >(start_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(start_tv.tv_usec))) *
             1000.0;
 
         lapse_time2 =
             ((static_cast< double >(stop2_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop2_tv.tv_usec)) -
-             (static_cast< double >(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop1_tv.tv_usec))) *
+                (static_cast< double >(stop1_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop1_tv.tv_usec))) *
             1000.0;
 
         lapse_time3 =
             ((static_cast< double >(stop3_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop3_tv.tv_usec)) -
-             (static_cast< double >(stop2_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop2_tv.tv_usec))) *
+                (static_cast< double >(stop2_tv.tv_sec) + 1 / 1000000.0 * static_cast< double >(stop2_tv.tv_usec))) *
             1000.0;
 
         MPI_Barrier(MPI_COMM_WORLD);
@@ -263,23 +264,23 @@ namespace halo_exchange_3D_all {
 
 #ifdef __CUDACC__
         status = cudaMemcpy(a.ptr,
-                            gpu_a,
-                            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyDeviceToHost);
+            gpu_a,
+            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyDeviceToHost);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(b.ptr,
-                            gpu_b,
-                            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyDeviceToHost);
+            gpu_b,
+            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyDeviceToHost);
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(c.ptr,
-                            gpu_c,
-                            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
-                            cudaMemcpyDeviceToHost);
+            gpu_c,
+            (DIM1 + 2 * H) * (DIM2 + 2 * H) * (DIM3 + 2 * H) * sizeof(triple_t< USE_DOUBLE >),
+            cudaMemcpyDeviceToHost);
         if (!checkCudaStatus(status))
             return false;
 
@@ -647,11 +648,10 @@ namespace halo_exchange_3D_all {
 
         return passed;
     }
-
 }
 
 #ifdef STANDALONE
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 
 #ifdef _USE_GPU_
     device_binding();
@@ -662,7 +662,7 @@ int main(int argc, char** argv) {
 
     if (argc != 5) {
         std::cout << "Usage: test_halo_exchange_3D dimx dimy dimz dim_halo\n where args are integer sizes of the data "
-            "fields and halo width"
+                     "fields and halo width"
                   << std::endl;
         return 1;
     }

@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
 
     // set up a custom listener that prints messages in an MPI-friendly way
-    auto& listeners = testing::UnitTest::GetInstance()->listeners();
+    auto &listeners = testing::UnitTest::GetInstance()->listeners();
     // first delete the original printer
     delete listeners.Release(listeners.default_result_printer());
     // now add our custom printer
