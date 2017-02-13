@@ -25,13 +25,6 @@ while $fatto ; do
         else
             sleep 1
         fi
-    JOB_IDS=`scontrol show jobs -o -Q|sed 's/JobId=\([0-9]*[0-9]\).*/\1/'`
-    JOB_PRESENT=`for match_id in $JOB_IDS; do if [ "$match_id" -eq "$ID" ]; then echo "$ID" ; fi ; done`
-    echo "x$JOB_PRESENT != x$ID"
-    if [ "x$JOB_PRESENT" != "x$ID" ] ; then # check that the job ID is still there, otherwise exit
-        echo "no job with ID $ID"
-        fatto=false;
-    fi
     else
         echo
         echo no job found or job finished
@@ -40,5 +33,12 @@ while $fatto ; do
     if [ $TIME -lt `date +%s` ]; then
         echo Timeout while monitoring job
         exit 2
+    fi
+    JOB_IDS=`scontrol show jobs -o -Q|sed 's/JobId=\([0-9]*[0-9]\).*/\1/'`
+    JOB_PRESENT=`for match_id in $JOB_IDS; do if [ "$match_id" -eq "$ID" ]; then echo "$ID" ; fi ; done`
+    echo "x$JOB_PRESENT != x$ID"
+    if [ "x$JOB_PRESENT" != "x$ID" ] ; then # check that the job ID is still there, otherwise exit
+        echo "no job with ID $ID"
+        fatto=false;
     fi
 done
