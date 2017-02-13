@@ -109,7 +109,7 @@ namespace adv_prepare_tracers {
         aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_, &rho));
 
         auto comp_ =
-            make_computation< BACKEND >(expand_factor< 11 >(),
+            make_computation< BACKEND >(expand_factor< 2 >(),
                 domain_,
                 grid_,
                 make_multistage(enumtype::execute< enumtype::forward >(),
