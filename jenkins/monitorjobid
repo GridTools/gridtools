@@ -13,6 +13,8 @@ FAIL="JobState=FAILED"
 while $fatto ; do
     STR1=`scontrol show jobs $ID -o -Q|gawk '{match($0, /JobState[^ ]*/); print RSTART " " RLENGHT " " substr($0, RSTART, RLENGTH);}'`
     STR=`echo $STR1 | gawk '{print $NF}'`
+    printf "STR1:%s          \r" $STR1 ;
+    printf "STR:%s          \r" $STR ;
     if [ -n "$STR" ]; then
         printf "%s          \r" $STR ;
 
@@ -39,6 +41,10 @@ while $fatto ; do
     echo "x$JOB_PRESENT != x$ID"
     if [ "x$JOB_PRESENT" != "x$ID" ] ; then # check that the job ID is still there, otherwise exit
         echo "no job with ID $ID"
+        fatto=false;
+    fi
+    if [ "x$STR" != "x" ] ; then # check that STR contains some value
+        echo "wierd error"
         fatto=false;
     fi
 done
