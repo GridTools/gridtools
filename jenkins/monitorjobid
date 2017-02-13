@@ -12,8 +12,8 @@ DONE="JobState=COMPLETED"
 FAIL="JobState=FAILED"
 while $fatto ; do
     JOB_IDS=`scontrol show jobs -o -Q|sed 's/JobId=\([0-9][0-9][0-9][0-9][0-9]\).*/\1/'`
-    JOB_PRESENT=`for match_id in $JOB_IDS; do if [ "$match_id" -eq "$ID" ]; then echo "$ID"; fi; done`
-    if ["x$JOB_PRESENT" -ne "x$ID"] # check that the job ID is still there
+    JOB_PRESENT=`for match_id in $JOB_IDS; do if [ "$match_id" -eq "$ID" ]; then echo "$ID" ; fi ; done`
+    if ["x$JOB_PRESENT" -ne "x$ID"] ; then # check that the job ID is still there
         exit 0
     fi
     STR1=`scontrol show jobs $ID -o -Q|gawk '{match($0, /JobState[^ ]*/); print RSTART " " RLENGHT " " substr($0, RSTART, RLENGTH);}'`
