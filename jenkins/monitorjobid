@@ -43,7 +43,7 @@ while $fatto ; do
         echo "no job with ID $ID"
         fatto=false;
     fi
-    if [ "x$STR" != "x" ] ; then # check that STR contains some value
+    if [ "x$STR" == "x" ] ; then # check that STR contains some value
         echo "wierd error"
         fatto=false;
     fi
