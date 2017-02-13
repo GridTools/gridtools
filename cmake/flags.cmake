@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set( SUPPRESS_MESSAGES "ON" CACHE BOOL "suppress compilation messages")
 set( VERBOSE "OFF" CACHE BOOL "set verbosity for output")
-set( BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers" )
+set( BOOST_FUSION_MAX_SIZE 40 CACHE STRING "max sizes of boost fusion containers" )
 set( ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
 set( ENABLE_CXX11 "ON" CACHE BOOL "Enable examples and tests featuring C++11 features" )
 set( ENABLE_PYTHON "OFF" CACHE BOOL "Enable Python front-end and tests. Requires Python >=3.0" )
