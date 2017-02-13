@@ -13,8 +13,8 @@ FAIL="JobState=FAILED"
 while $fatto ; do
     STR1=`scontrol show jobs $ID -o -Q|gawk '{match($0, /JobState[^ ]*/); print RSTART " " RLENGHT " " substr($0, RSTART, RLENGTH);}'`
     STR=`echo $STR1 | gawk '{print $NF}'`
-    printf "STR1:%s          \r" $STR1 ;
-    printf "STR:%s          \r" $STR ;
+    echo "STR1:$STR1";
+    echo "STR:$STR";
     if [ -n "$STR" ]; then
         printf "%s          \r" $STR ;
 
