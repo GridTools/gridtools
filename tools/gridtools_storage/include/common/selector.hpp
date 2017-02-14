@@ -33,42 +33,23 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
 
-#include <assert.h>
+#include <boost/mpl/bool.hpp>
 
-#include "../common/storage_info_interface.hpp"
+#include "defs.hpp"
 
 namespace gridtools {
 
-    template < unsigned Id,
-        typename Layout,
-        typename Halo = typename zero_halo< Layout::length >::type,
-        typename Alignment = alignment< 32 > >
-    struct cuda_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
-      private:
-        mutable cuda_storage_info< Id, Layout, Halo, Alignment > *m_gpu_ptr;
-
-      public:
-        template < typename... Dims >
-        constexpr cuda_storage_info(Dims... dims_)
-            : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {}
-
-        // no cudaFree here, this will lead to double-frees
-        ~cuda_storage_info() = default;
-
-        cuda_storage_info< Id, Layout, Halo, Alignment > *get_gpu_ptr() const { 
-            if(!m_gpu_ptr) {
-                cudaError_t err = cudaMalloc(&m_gpu_ptr, sizeof(cuda_storage_info< Id, Layout, Halo, Alignment >));
-                assert((err == cudaSuccess) && "failed to allocate GPU memory.");
-                err = cudaMemcpy((void *)m_gpu_ptr,
-                    (void *)this,
-                    sizeof(cuda_storage_info< Id, Layout, Halo, Alignment >),
-                    cudaMemcpyHostToDevice);
-                assert((err == cudaSuccess) && "failed to clone storage_info to the device.");
-            }
-            return m_gpu_ptr; 
-        }
+    template < bool... Bitmask >
+    struct selector {
+        static constexpr unsigned size = sizeof...(Bitmask);
     };
+
+    template < typename T >
+    struct is_selector : boost::mpl::false_ {};
+
+    template < bool... Bitmask >
+    struct is_selector< selector<Bitmask...> > : boost::mpl::true_ {};
+
 }

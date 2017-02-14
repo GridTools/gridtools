@@ -55,8 +55,11 @@ if( USE_GPU )
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
   
   set(exe_LIBS "${CUDA_CUDART_LIBRARY}" "${exe_LIBS}" )
-  set(CUDA_SEPARABLE_COMPILATION ON)
+  set(CUDA_SEPARABLE_COMPILATION OFF)
   # adding the additional nvcc flags
+  set(CUDA_NVCC_FLAGS_MINSIZEREL "${CUDA_NVCC_FLAGS_MINSIZEREL}" "-Os" "-DNDEBUG")
+  set(CUDA_NVCC_FLAGS_RELEASE "${CUDA_NVCC_FLAGS_RELEASE}" "-O3" "-DNDEBUG")
+  set(CUDA_NVCC_FLAGS_RELWITHDEBINFO "${CUDA_NVCC_FLAGS_RELWITHDEBINFO}" "-O2" "-g" "-DNDEBUG")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-arch=${CUDA_ARCH}" "-Xcudafe" "--diag_suppress=dupl_calling_convention")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--diag_suppress=implicit_return_from_non_void_function" "-Xcudafe")

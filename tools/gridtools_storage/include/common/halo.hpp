@@ -38,6 +38,8 @@
 
 #include <array>
 
+#include <boost/mpl/bool.hpp>
+
 namespace gridtools {
 
     template < unsigned... N >
@@ -46,6 +48,7 @@ namespace gridtools {
 
         template < unsigned V >
         static constexpr unsigned at() {
+            static_assert((V<sizeof...(N)), "Out of bounds access in halo type discovered.");
             return value[V];
         }
 
@@ -62,4 +65,12 @@ namespace gridtools {
     struct zero_halo< 0, Vals... > {
         typedef halo< Vals... > type;
     };
+
+    /* used to check if a given type is a halo type */
+    template < typename T >
+    struct is_halo : boost::mpl::false_ {};
+
+    template < unsigned... N >
+    struct is_halo< halo<N...> > : boost::mpl::true_ {};
+
 }

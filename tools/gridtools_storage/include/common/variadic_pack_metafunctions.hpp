@@ -35,14 +35,29 @@
 */
 #pragma once
 
+#include <stdexcept>
+
+#include <boost/utility.hpp>
+
 #include "defs.hpp"
 
 namespace gridtools {
 
     struct error {
-        template < typename T >
-        static constexpr T trigger() {
-            return (false) ? T() : throw 1;
+
+        template <typename T>
+        GT_FUNCTION static T get() { 
+            assert(false && "Error triggered");
+            #ifdef __CUDACC__
+            return *((T*)(0x0));
+            #else
+            throw std::logic_error("Error triggered");
+            #endif
+        }
+
+        template < typename T = unsigned >
+        GT_FUNCTION static constexpr T trigger() {
+            return get<T>();
         }
     };
 
@@ -83,7 +98,7 @@ namespace gridtools {
     struct get_index_of_element_in_pack_functor< 0 > {
         template < typename First, typename... Dims >
         GT_FUNCTION static constexpr unsigned apply(unsigned Index, First needle, Dims... d) {
-            return (get_value_from_pack(Index, d...) == needle) ? Index : error::trigger< unsigned >();
+            return (get_value_from_pack(Index, d...) == needle) ? Index : error::trigger();
         }
     };
 

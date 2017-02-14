@@ -88,10 +88,8 @@ namespace gridtools {
             if (ReadOnly)
                 return m_device_view ? !m_state_machine_ptr->m_dnu : !m_state_machine_ptr->m_hnu;
             // check state machine ptrs
-            const bool hnu = m_state_machine_ptr->m_hnu;
-            const bool dnu = m_state_machine_ptr->m_dnu;
-            const bool od = m_state_machine_ptr->m_od;
-            return m_device_view ? (hnu && !dnu && od) : (!hnu && dnu && !od);
+            return m_device_view ? ((m_state_machine_ptr->m_hnu) && !(m_state_machine_ptr->m_dnu) && (m_state_machine_ptr->m_od)) : 
+                (!(m_state_machine_ptr->m_hnu) && (m_state_machine_ptr->m_dnu) && !(m_state_machine_ptr->m_od));
         }
     };
 

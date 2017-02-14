@@ -47,6 +47,12 @@ namespace gridtools {
         const static unsigned value = N;
     };
 
+    template < typename T >
+    struct is_alignment : boost::mpl::false_ {};
+
+    template < unsigned N >
+    struct is_alignment< alignment<N> > : boost::mpl::true_ {};
+
     /* aligned storage infos use this struct */
     template < typename Alignment, typename Layout, typename Halo >
     struct alignment_impl;
@@ -90,4 +96,5 @@ namespace gridtools {
             return 0;
         }
     };
+
 }

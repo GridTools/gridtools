@@ -49,11 +49,6 @@
 
 namespace gridtools {
 
-    template < bool... Bitmask >
-    struct selector {
-        const static unsigned size = sizeof...(Bitmask);
-    };
-
     template < typename T, int First, int... Vals >
     struct get_mpl_vector
         : get_mpl_vector< typename boost::mpl::push_back< T, boost::mpl::int_< First > >::type, Vals... > {};

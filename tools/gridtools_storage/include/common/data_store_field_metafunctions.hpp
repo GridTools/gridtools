@@ -39,12 +39,12 @@
 #include <array>
 #include <type_traits>
 
-#include <boost/utility.hpp>
-#include <boost/mpl/vector.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/size.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/utility.hpp>
 
 namespace gridtools {
 
@@ -109,13 +109,10 @@ namespace gridtools {
     };
 
     /* Given a data_field<T, MetaData, X...> this function will accumulate X... until a given point (N). */
-    template < int N, unsigned First, unsigned... Dims >
-    struct get_accumulated_data_field_index {
-        static const unsigned value = First + get_accumulated_data_field_index< N - 1, Dims..., First >::value;
-    };
+    constexpr unsigned get_accumulated_data_field_index(int N) { return 0; }
 
-    template < unsigned First, unsigned... Dims >
-    struct get_accumulated_data_field_index< 0, First, Dims... > {
-        static const unsigned value = 0;
-    };
+    template < typename First, typename... Ints >
+    constexpr unsigned get_accumulated_data_field_index(int N, First F, Ints... M) {
+        return (N == 0) ? 0 : F + get_accumulated_data_field_index(N - 1, M...);
+    }
 }

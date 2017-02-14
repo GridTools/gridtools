@@ -36,14 +36,15 @@
 
 #pragma once
 
-#include "layout_map.hpp"
-
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/count_if.hpp>
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/remove.hpp>
 #include <boost/type_traits.hpp>
+
+#include "layout_map.hpp"
+#include "selector.hpp"
 
 namespace gridtools {
 
