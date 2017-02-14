@@ -52,10 +52,6 @@
 */
 namespace gridtools {
 
-    // fwd decl
-    template < typename T >
-    struct is_vector_accessor;
-
     template < typename T >
     struct is_layout_map;
 
