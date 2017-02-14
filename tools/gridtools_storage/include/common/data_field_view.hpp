@@ -50,6 +50,7 @@ namespace gridtools {
         using StorageInfo = typename DataStoreField::storage_info_t;
         static const unsigned N = DataStoreField::size;
         static const unsigned Dims = DataStoreField::dims;
+        const static bool read_only = ReadOnly;
 
         DataType *m_raw_ptrs[N];
         StateMachine *m_state_machines[N];
