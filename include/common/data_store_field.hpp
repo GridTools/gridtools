@@ -41,8 +41,8 @@
 #include <boost/mpl/vector_c.hpp>
 
 #include "data_store.hpp"
-#include "storage_info_interface.hpp"
 #include "data_store_field_metafunctions.hpp"
+#include "storage_info_interface.hpp"
 
 namespace gridtools {
 
@@ -54,7 +54,7 @@ namespace gridtools {
         using state_machine_t = typename DataStore::state_machine_t;
         using storage_info_t = typename DataStore::storage_info_t;
 
-        const static unsigned size = get_accumulated_data_field_index< sizeof...(N), N... >::value;
+        const static unsigned size = get_accumulated_data_field_index(sizeof...(N), N...);
         const static unsigned dims = sizeof...(N);
 
         // tuple of arrays (e.g., { {s00,s01,s02}, {s10, s11}, {s20} }, 3-dimensional field with snapshot sizes 3, 2,
@@ -72,12 +72,12 @@ namespace gridtools {
 
         template < unsigned Dim, unsigned Snapshot >
         DataStore &get() {
-            return m_field[get_accumulated_data_field_index< Dim, N... >::value + Snapshot];
+            return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
 
         template < unsigned Dim, unsigned Snapshot >
         void set(DataStore &store) {
-            m_field[get_accumulated_data_field_index< Dim, N... >::value + Snapshot] = store;
+            m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot] = store;
         }
 
         void allocate() {

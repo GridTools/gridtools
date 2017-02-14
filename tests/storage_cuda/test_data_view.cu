@@ -54,7 +54,7 @@ TEST(DataViewTest, Simple) {
     typedef cuda_storage_info<0, layout_map<2,1,0> > storage_info_t;
     typedef data_store< cuda_storage<double>, storage_info_t> data_store_t;
     // create and allocate a data_store
-    storage_info_t si(3,3,3);
+    constexpr storage_info_t si(3,3,3);
     data_store_t ds(si);
     ds.allocate();
     // create a rw view and fill with some data
@@ -62,6 +62,16 @@ TEST(DataViewTest, Simple) {
     static_assert(is_data_view<decltype(dv)>::value, "is_data_view check failed");
     dv(0,0,0) = 50;
     dv(1,0,0) = 60;
+    // check if the user protections are working
+    static_assert(si.index(1,0,0) == 1, "constexpr index method call failed");    
+#ifndef NDEBUG
+    std::cout << "Execute death tests.\n";
+    ASSERT_DEATH(si.index(0,0,3), "Error triggered");
+    ASSERT_DEATH(si.index(0,3,0), "Error triggered");
+    ASSERT_DEATH(si.index(3,0,0), "Error triggered");
+    ASSERT_DEATH(si.index(5,5,5), "Error triggered");
+#endif
+    ASSERT_TRUE(si.index(1,0,1) == 97);
     // check if data is there
     EXPECT_EQ(50, dv(0,0,0));
     EXPECT_EQ(dv(1,0,0), 60);

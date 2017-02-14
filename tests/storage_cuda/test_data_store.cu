@@ -37,6 +37,7 @@
 #include "gtest/gtest.h"
 
 #include "common/data_store.hpp"
+#include "common/variadic_pack_metafunctions.hpp"
 #include "storage_cuda/storage.hpp"
 #include "storage_cuda/storage_info.hpp"
 
@@ -61,6 +62,21 @@ __global__
 void mul2(double* s) {
     s[0] *= 2.0;
     s[1] *= 2.0;
+}
+
+template <typename StorageInfo>
+__global__
+void check_vals(double* s, StorageInfo const* si) {
+    for(unsigned i=0; i<128; ++i) 
+        for(unsigned j=0; j<128; ++j) 
+            for(unsigned k=0; k<80; ++k) {
+                int x = si->index(i,j,k);
+                if(s[x] > 3.141499 && s[x] < 3.141501) {
+                    s[x] = 1.0;
+                } else {
+                    s[x] = 0.0;
+                }
+            }
 }
 
 TEST(DataStoreTest, Simple) {
@@ -114,9 +130,10 @@ TEST(DataStoreTest, Simple) {
 
     // create unallocated data_store
     data_store_t ds(si);
+#ifndef NDEBUG
+    std::cout << "Execute death tests.\n";
     // try to copy and get_storage -> should fail
     ASSERT_DEATH(ds.get_storage_ptr(), "data_store is in a non-initialized state.");
-#ifndef __CUDACC__
     // death tests that call cudaMalloc, etc. do not work
     ASSERT_DEATH(invalid_copy(), "Cannot copy a non-initialized data_store.");
     ASSERT_DEATH(invalid_copy_assign(), "Cannot copy a non-initialized data_store.");
@@ -129,7 +146,10 @@ TEST(DataStoreTest, Simple) {
     data_store_t ds1(si);
     ds1.allocate();
     ds1.free(); // destroy the data_store
+#ifndef NDEBUG
+    std::cout << "Execute death tests.\n";
     ASSERT_DEATH(ds1.get_storage_ptr(), "data_store is in a non-initialized state.");
+#endif
 
     // create a copy of a data_store and check equivalence
     data_store_t datast(si);
@@ -204,4 +224,15 @@ TEST(DataStoreTest, States) {
     EXPECT_FALSE(ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu);
     EXPECT_TRUE(ds.is_on_host());
     EXPECT_FALSE(ds.is_on_device());
+}
+
+TEST(DataStoreTest, Initializer) {
+    storage_info_t si(128, 128, 80);
+    data_store< cuda_storage< double >, storage_info_t > ds(si, 3.1415);
+    check_vals<<<1,1>>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
+    ds.clone_from_device();
+    for(unsigned i=0; i<128; ++i) 
+        for(unsigned j=0; j<128; ++j) 
+            for(unsigned k=0; k<80; ++k)
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 1.0);
 }

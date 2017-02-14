@@ -47,17 +47,28 @@ TEST(DataViewTest, Simple) {
     typedef host_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
     typedef data_store< host_storage< double >, storage_info_t > data_store_t;
     // create and allocate a data_store
-    storage_info_t si(3, 3, 3);
+    constexpr storage_info_t si(3, 3, 3);
     data_store_t ds(si);
     ds.allocate();
     // create a rw view and fill with some data
     data_view< data_store_t > dv = make_host_view(ds);
+    EXPECT_TRUE(dv.valid());    
     static_assert(is_data_view< decltype(dv) >::value, "is_data_view check failed");
     dv(0, 0, 0) = 50;
     dv(0, 0, 1) = 60;
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
     EXPECT_EQ(dv(0, 0, 1), 60);
+    // check if the user protections are working
+    static_assert(si.index(1,0,0) == 1, "constexpr index method call failed");
+#ifndef NDEBUG
+    std::cout << "Execute death tests.\n";
+    ASSERT_DEATH(si.index(0,0,3), "Error triggered");
+    ASSERT_DEATH(si.index(0,3,0), "Error triggered");
+    ASSERT_DEATH(si.index(3,0,0), "Error triggered");
+    ASSERT_DEATH(si.index(5,5,5), "Error triggered");
+#endif
+    ASSERT_TRUE(si.index(1,0,1) == 10);    
     // create a ro view
     data_view< data_store_t, true > dvro = make_host_view< true >(ds);
     // check if data is the same

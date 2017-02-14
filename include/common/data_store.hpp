@@ -60,7 +60,11 @@ namespace gridtools {
         constexpr data_store(StorageInfo const &info)
             : m_shared_storage(nullptr), m_shared_storage_info(new storage_info_t(info)) {}
 
-        data_store(data_store &&other) = default;
+        constexpr data_store(StorageInfo const &info, data_t initializer)
+            : m_shared_storage(new storage_t(info.size(), initializer)), 
+              m_shared_storage_info(new storage_info_t(info)) {}
+
+        constexpr data_store(data_store &&other) = default;
 
         data_store(data_store const &other)
             : m_shared_storage(other.m_shared_storage), m_shared_storage_info(other.m_shared_storage_info) {

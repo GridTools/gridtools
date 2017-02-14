@@ -39,8 +39,6 @@
 #include <array>
 #include <assert.h>
 
-#include <cuda_runtime_api.h>
-#include <cuda.h>
 #include <boost/mpl/bool.hpp>
 
 #include "../storage_host/storage.hpp"
@@ -63,10 +61,19 @@ namespace gridtools {
 
       public:
         cuda_storage(unsigned size) : m_cpu_ptr(new T[size]), m_size(size) {
-
             cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(T));
             assert((err == cudaSuccess) && "failed to allocate GPU memory.");
         }
+ 
+        cuda_storage(unsigned size, T initializer) : m_cpu_ptr(new T[size]), m_size(size) {
+            for(unsigned i=0; i<size; ++i) {
+                m_cpu_ptr[i] = initializer;
+            }
+            cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(T));
+            assert((err == cudaSuccess) && "failed to allocate GPU memory.");
+            this->clone_to_device();
+        }
+
         ~cuda_storage() {
             assert(m_gpu_ptr && "This would end up in a double-free.");
             cudaFree(m_gpu_ptr);

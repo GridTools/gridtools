@@ -109,7 +109,8 @@ TEST(DataStoreTest, Simple) {
     // create unallocated data_store
     data_store< host_storage< double >, storage_info_t > ds(si);
 // try to copy and get_storage -> should fail
-#ifdef DEBUG
+#ifndef NDEBUG
+    std::cout << "Execute death tests.\n";
     ASSERT_DEATH(ds.get_storage_ptr(), "data_store is in a non-initialized state.");
     ASSERT_DEATH(invalid_copy(), "Cannot copy a non-initialized data_store.");
     ASSERT_DEATH(invalid_copy_assign(), "Cannot copy a non-initialized data_store.");
@@ -122,7 +123,8 @@ TEST(DataStoreTest, Simple) {
     data_store< host_storage< double >, storage_info_t > ds1(si);
     ds1.allocate();
     ds1.free(); // destroy the data_store
-#ifdef DEBUG
+#ifndef NDEBUG
+    std::cout << "Execute death tests.\n";
     ASSERT_DEATH(ds1.get_storage_ptr(), "data_store is in a non-initialized state.");
 #endif
 
@@ -141,4 +143,13 @@ TEST(DataStoreTest, Simple) {
 
     EXPECT_EQ((datast_cpy.get_storage_ptr()->get_cpu_ptr()[0]), 100);
     EXPECT_EQ((datast_cpy.get_storage_ptr()->get_cpu_ptr()[1]), 200);
+}
+
+TEST(DataStoreTest, Initializer) {
+    storage_info_t si(128, 128, 80);
+    data_store< host_storage< double >, storage_info_t > ds(si, 3.1415);
+    for(unsigned i=0; i<128; ++i) 
+        for(unsigned j=0; j<128; ++j) 
+            for(unsigned k=0; k<80; ++k) 
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
 }

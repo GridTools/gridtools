@@ -96,9 +96,11 @@ namespace gridtools {
             return device_view ? !d.get_storage_ptr()->get_state_machine_ptr()->m_dnu
                                : !d.get_storage_ptr()->get_state_machine_ptr()->m_hnu;
         // get storage state
-        const bool hnu = d.get_storage_ptr()->get_state_machine_ptr()->m_hnu;
-        const bool dnu = d.get_storage_ptr()->get_state_machine_ptr()->m_dnu;
-        const bool od = d.get_storage_ptr()->get_state_machine_ptr()->m_od;
-        return device_view ? (hnu && !dnu && od) : (!hnu && dnu && !od);
+        return device_view ? ((d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) && 
+                !(d.get_storage_ptr()->get_state_machine_ptr()->m_dnu) && 
+                (d.get_storage_ptr()->get_state_machine_ptr()->m_od)) : 
+            (!(d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) && 
+                (d.get_storage_ptr()->get_state_machine_ptr()->m_dnu) && 
+                !(d.get_storage_ptr()->get_state_machine_ptr()->m_od));
     }
 }

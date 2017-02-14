@@ -104,7 +104,10 @@ TEST(DataStoreFieldTest, FillAndReadData) {
     static_assert(is_data_field_view<decltype(dv)>::value, "is_data_field_view is not working anymore");
     EXPECT_FALSE(valid(f,hv));
     EXPECT_TRUE(valid(f,dv));
+#ifndef NDEBUG
+    std::cout << "Execute death tests.\n";
     ASSERT_DEATH((f.reactivate_host_write_views()), "device views are in write mode");
+#endif
     mul2<<<1,1>>>(dv);
 
     // create a host read view for 0,0 and 0,1 

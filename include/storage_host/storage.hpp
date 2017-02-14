@@ -54,6 +54,13 @@ namespace gridtools {
 
       public:
         constexpr host_storage(unsigned size) : m_cpu_ptr(new T[size]) {}
+
+        host_storage(unsigned size, T initializer) : m_cpu_ptr(new T[size]) {
+            for(unsigned i=0; i<size; ++i) {
+                m_cpu_ptr[i] = initializer;
+            }
+        }
+
         ~host_storage() {
             assert(m_cpu_ptr && "This would end up in a double-free.");
             delete[] m_cpu_ptr;

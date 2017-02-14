@@ -39,6 +39,16 @@
 #include "storage_cuda/storage.hpp"
 
 __global__
+void initial_check_s1(int* s) {
+    assert(s[0] == 10);
+    assert(s[1] == 10);
+    if(s[0] != 10 || s[1] != 10) {
+        s[0] = -1;
+        s[1] = -1;
+    }
+}
+
+__global__
 void check_s1(int* s) {
     assert(s[0] == 10);
     assert(s[1] == 20);
@@ -103,4 +113,28 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s1.get_cpu_ptr()[0], 300);
     EXPECT_EQ(s2.get_gpu_ptr(), tmp[1]);
     EXPECT_EQ(s2.get_cpu_ptr(), tmp[0]);
+}
+
+
+TEST(StorageHostTest, InitializedStorage) {
+    // create two storages
+    gridtools::cuda_storage< int > s1(2, 10);
+    // initial check
+    initial_check_s1<<<1,1>>>(s1.get_gpu_ptr());
+    s1.clone_from_device();
+    // check values
+    EXPECT_EQ(s1.get_cpu_ptr()[0], 10);
+    EXPECT_EQ(s1.get_cpu_ptr()[1], 10);
+    // change one value
+    s1.get_cpu_ptr()[1] = 20;
+    // check values
+    EXPECT_EQ(s1.get_cpu_ptr()[0], 10);
+    EXPECT_EQ(s1.get_cpu_ptr()[1], 20);
+    // some device things
+    s1.clone_to_device();
+    check_s1<<<1,1>>>(s1.get_gpu_ptr());
+    s1.clone_from_device();
+    // check again
+    EXPECT_EQ(s1.get_cpu_ptr()[0], 30);
+    EXPECT_EQ(s1.get_cpu_ptr()[1], 40);
 }
