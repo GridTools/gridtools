@@ -122,13 +122,15 @@ namespace gridtools {
         GT_FUNCTION void slide_caches() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
         }
-        template < typename IterationPolicy >
-        GT_FUNCTION void flush_caches(const int_t klevel) {
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
         }
-        template < typename IterationPolicy >
-        GT_FUNCTION void fill_caches(const int_t klevel) {
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
         }
         template < typename IterationPolicy >
         GT_FUNCTION void final_flush() {

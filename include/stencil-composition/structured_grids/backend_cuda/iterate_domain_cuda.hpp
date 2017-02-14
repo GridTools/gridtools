@@ -345,18 +345,22 @@ namespace gridtools {
             m_iterate_domain_cache.template slide_caches< IterationPolicy >();
         }
 
-        template < typename IterationPolicy >
-        GT_FUNCTION void fill_caches(const int_t klevel) {
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
             // TODO KCACHE do not execute if no flush caches and/or not in iteration policy
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            m_iterate_domain_cache.template fill_caches< IterationPolicy >(*this, klevel);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+
+            m_iterate_domain_cache.template fill_caches< IterationPolicy >(*this, klevel, grid);
         }
 
-        template < typename IterationPolicy >
-        GT_FUNCTION void flush_caches(const int_t klevel) {
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
             // TODO KCACHE do not execute if no flush caches and/or not in iteration policy
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-            m_iterate_domain_cache.template flush_caches< IterationPolicy >(*this, klevel);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+
+            m_iterate_domain_cache.template flush_caches< IterationPolicy >(*this, klevel, grid);
         }
 
         template < typename IterationPolicy >

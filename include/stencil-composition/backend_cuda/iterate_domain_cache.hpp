@@ -219,16 +219,22 @@ namespace gridtools {
             boost::fusion::for_each(m_k_caches_tuple, slide_cache_functor< IterationPolicy >());
         }
 
-        template < typename IterateDomain, typename IterationPolicy >
+        template < typename IterateDomain, typename IterationPolicy, typename Grid >
         struct flushing_functor {
 
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "error");
+
             GT_FUNCTION
-            flushing_functor(IterateDomain const &it_domain, k_caches_tuple_t const &kcaches, const int_t klevel)
-                : m_it_domain(it_domain), m_kcaches(kcaches), m_klevel(klevel) {}
+            flushing_functor(
+                IterateDomain const &it_domain, k_caches_tuple_t const &kcaches, const int_t klevel, Grid const &grid)
+                : m_it_domain(it_domain), m_kcaches(kcaches), m_klevel(klevel), m_grid(grid) {}
 
             IterateDomain const &m_it_domain;
             k_caches_tuple_t const &m_kcaches;
             const int_t m_klevel;
+            Grid const &m_grid;
 
             template < typename Idx >
             GT_FUNCTION void operator()(Idx const &) const {
@@ -250,24 +256,37 @@ namespace gridtools {
                 constexpr int_t koffset_abs = koffset > 0 ? koffset : -koffset;
                 typedef accessor< Idx::value, enumtype::inout, extent< 0, 0, 0, 0, kminus, kplus > > acc_t;
                 constexpr acc_t acc_(0, 0, koffset);
-                if (koffset_abs <= m_klevel) {
+
+                const int_t limit_lev =
+                    (IterationPolicy::value == enumtype::backward)
+                        ? m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::ToLevel >() -
+                              m_klevel
+                        : m_klevel -
+                              m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::FromLevel >();
+
+                if (koffset_abs <= limit_lev) {
                     m_it_domain.gmem_access(acc_) = boost::fusion::at_key< Idx >(m_kcaches).at(acc_);
                 }
 #endif
             }
         };
 
-        template < typename IterateDomain, typename IterationPolicy >
+        template < typename IterateDomain, typename IterationPolicy, typename Grid >
         struct filling_functor {
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "error");
 
             // TODO KCACHE can we merge filling and flushing functors
             GT_FUNCTION
-            filling_functor(IterateDomain const &it_domain, k_caches_tuple_t &kcaches, const int_t klevel)
-                : m_it_domain(it_domain), m_kcaches(kcaches), m_klevel(klevel) {}
+            filling_functor(
+                IterateDomain const &it_domain, k_caches_tuple_t &kcaches, const int_t klevel, Grid const &grid)
+                : m_it_domain(it_domain), m_kcaches(kcaches), m_klevel(klevel), m_grid(grid) {}
 
             IterateDomain const &m_it_domain;
             k_caches_tuple_t &m_kcaches;
             const int_t m_klevel;
+            Grid const &m_grid;
 
             template < typename Idx >
             GT_FUNCTION void operator()(Idx const &) const {
@@ -287,7 +306,14 @@ namespace gridtools {
                     acc_t;
                 constexpr acc_t acc_(0, 0, koffset);
 
-                if (koffset_abs <= m_klevel) {
+                const int_t limit_lev =
+                    (IterationPolicy::value == enumtype::backward)
+                        ? m_klevel -
+                              m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::FromLevel >()
+                        : m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::ToLevel >() -
+                              m_klevel;
+
+                if (koffset_abs <= limit_lev) {
                     boost::fusion::at_key< Idx >(m_kcaches).at(acc_) = m_it_domain.gmem_access(acc_);
                 }
 
@@ -364,18 +390,22 @@ namespace gridtools {
             }
         };
 
-        template < typename IterationPolicy, typename IterateDomain >
-        GT_FUNCTION void fill_caches(IterateDomain const &it_domain, const int_t klevel) {
+        template < typename IterationPolicy, typename IterateDomain, typename Grid >
+        GT_FUNCTION void fill_caches(IterateDomain const &it_domain, const int_t klevel, const Grid &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+
             boost::mpl::for_each< k_filling_caches_indexes_t >(
-                filling_functor< IterateDomain, IterationPolicy >(it_domain, m_k_caches_tuple, klevel));
+                filling_functor< IterateDomain, IterationPolicy, Grid >(it_domain, m_k_caches_tuple, klevel, grid));
         }
 
-        template < typename IterationPolicy, typename IterateDomain >
-        GT_FUNCTION void flush_caches(IterateDomain const &it_domain, const int_t klevel) {
+        template < typename IterationPolicy, typename IterateDomain, typename Grid >
+        GT_FUNCTION void flush_caches(IterateDomain const &it_domain, const int_t klevel, Grid const &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+
             boost::mpl::for_each< k_flushing_caches_indexes_t >(
-                flushing_functor< IterateDomain, IterationPolicy >(it_domain, m_k_caches_tuple, klevel));
+                flushing_functor< IterateDomain, IterationPolicy, Grid >(it_domain, m_k_caches_tuple, klevel, grid));
         }
 
         template < typename IterationPolicy >
