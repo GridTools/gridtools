@@ -198,7 +198,7 @@ namespace gridtools {
             Storage &m_storage;
 
           public:
-            shift(Storage &storage_) : m_storage(storage_) {}
+            GT_FUNCTION_WARNING shift(Storage &storage_) : m_storage(storage_) {}
 
             template < typename Id >
             void operator()(Id) {
@@ -207,7 +207,7 @@ namespace gridtools {
         };
 
         template < typename Storage >
-        static void apply(Storage &storage_) {
+        GT_FUNCTION_WARNING static void apply(Storage &storage_) {
             GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
                 "\"advance\" can only be called with instanced of type \"data_field\" ");
 

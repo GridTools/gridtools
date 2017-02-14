@@ -43,7 +43,7 @@ namespace gridtools {
     class parallel_storage_info;
 
     template < typename value_type >
-    GT_FUNCTION bool compare_below_threshold(value_type expected, value_type actual, double precision) {
+    bool compare_below_threshold(value_type expected, value_type actual, double precision) {
         if (std::fabs(expected) < 1e-3 && std::fabs(actual) < 1e-3) {
             if (std::fabs(expected - actual) < precision)
                 return true;
