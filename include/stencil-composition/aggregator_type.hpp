@@ -173,13 +173,6 @@ namespace gridtools {
         template < typename... DataStores >
         aggregator_type(DataStores &... ds) : m_arg_storage_pair_list(), m_metadata_set() {
 
-            typedef typename boost::mpl::fold< boost::mpl::vector< DataStores... >,
-                boost::mpl::true_,
-                boost::mpl::and_< boost::mpl::or_< is_data_store< boost::mpl::_2 >,
-                                      is_data_store_field< boost::mpl::_2 > >,
-                                                   boost::mpl::_1 > >::type is_valid_element_pack;
-
-            GRIDTOOLS_STATIC_ASSERT(is_valid_element_pack::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
                 "Computations with no data_stores are not supported. "
                 "Add at least one data_store to the aggregator_type "
@@ -264,13 +257,7 @@ namespace gridtools {
 
         template < typename... DataStores >
         void reassign(DataStores &... stores) {
-            typedef typename boost::mpl::fold< boost::mpl::vector< DataStores... >,
-                boost::mpl::true_,
-                boost::mpl::and_< boost::mpl::or_< is_data_store< boost::mpl::_2 >,
-                                      is_data_store_field< boost::mpl::_2 > >,
-                                                   boost::mpl::_1 > >::type is_valid_element_pack;
 
-            GRIDTOOLS_STATIC_ASSERT(is_valid_element_pack::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
                 "the assign_pointers must be called with at least one argument. "
                 "otherwise what are you calling it for?");
