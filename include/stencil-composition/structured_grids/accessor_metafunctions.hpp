@@ -70,6 +70,14 @@ namespace gridtools {
     struct is_accessor< accessor_mixed< ArgType, Pair... > > : boost::mpl::true_ {};
 #endif
 
+    template <typename Accessor, unsigned Ext>
+    struct accessor_extend;
+    
+    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, unsigned Ext >
+    struct accessor_extend< accessor< ID, Intend, Extend, Number >, Ext > {
+        typedef accessor< ID, Intend, Extend, (Number+Ext) > type;
+    };
+
     // TODOMEETING accessor_index should be common to all grids
     template < typename Accessor >
     struct accessor_index {
