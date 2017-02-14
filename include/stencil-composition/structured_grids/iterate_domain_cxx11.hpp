@@ -78,7 +78,6 @@
    \endverbatim
 
 */
-//#include "get_data_field_index.hpp"
 
 namespace gridtools {
 
@@ -391,38 +390,22 @@ namespace gridtools {
         GT_FUNCTION
             typename boost::enable_if< typename accessor_holds_data_field< Accessor >::type, void * RESTRICT >::type
             get_data_pointer(Accessor const &accessor) const {
-            assert(false);
-            /*
-                        GRIDTOOLS_STATIC_ASSERT(
-                            (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+                GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+                typedef typename Accessor::index_t index_t;
+                typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-                        typedef typename get_storage_accessor< local_domain_t, Accessor >::type::value_type
-               storage_type;
+                typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+                    storage_wrapper_t;
+                typedef typename storage_wrapper_t::storage_t storage_t;
+                typedef typename storage_wrapper_t::storage_info_t storage_info_t;
+                typedef typename storage_wrapper_t::data_t data_t;
 
-                        // if the following assertion fails you have specified a dimension for the extended storage
-                        // which does not correspond to the size of the extended placeholder for that storage
-                        GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions + 2  >= Accessor::n_dim, // + 2 because
-               of max. extra dimensions
-                            "the dimension of the accessor exceeds the data field dimension");
+                GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim == storage_info_t::Layout::length+2,
+                    "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and snapshot)");
 
-                        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim != storage_type::space_dimensions,
-                            "The dimension of the data_field accessor must be bigger than the storage dimension, you
-               specified it "
-                            "equal to the storage dimension");
-
-                        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim > storage_type::space_dimensions,
-                            "You specified a too small dimension for the data_field");
-
-                        // for the moment the extra dimensionality of the storage is limited to max 2
-                        //(3 space dim + 2 extra= 5, which gives n_dim==4)
-                        GRIDTOOLS_STATIC_ASSERT(
-                            N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
-
-                        uint_t idx =
-                            get_data_field_index< storage_type::traits::is_rectangular, Accessor, local_domain_t
-               >::apply(accessor);
-
-                        return (data_pointer())[idx];*/
+                const uint_t idx = get_accumulated_data_field_index_h<storage_t>::apply(accessor.template get< 1 >()) 
+                    + accessor.template get< 0 >();
+                return data_pointer().template get< index_t::value >()[idx];
         }
 
         /**@brief returns the dimension of the storage corresponding to the given accessor

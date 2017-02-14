@@ -53,103 +53,86 @@ using namespace enumtype;
 #define BACKEND_V Cuda
 typedef backend< BACKEND_V, GRIDBACKEND, Block > be;
 #else
+#ifdef BACKEND_BLOCK
 #define BACKEND_V Host
 typedef backend< BACKEND_V, GRIDBACKEND, Block > be;
+#else
+#define BACKEND_V Host
+typedef backend< BACKEND_V, GRIDBACKEND, Naive > be;
+#endif
 #endif
 
 typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
 struct A {
-
-    typedef accessor< 0, in, extent< 0, 1, 0, 1, 0, 0 >, 3 > pin;
-    typedef accessor< 1, inout, extent<>, 3 > pout;
+    typedef accessor_extend< accessor< 0, in, extent<>, 3 >, 2 >::type pin;
+    typedef accessor_extend< accessor< 1, inout, extent<>, 3 >, 2 >::type pout;
+    typedef dimension< 4 > comp;
+    typedef dimension< 5 > snap;
     typedef boost::mpl::vector< pin, pout > arg_list;
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-        eval(pout()) = eval(pin(1, 1, 0));
+        // copy first component elements
+        eval(pout(comp(0), snap(0))) = eval(pin(comp(0), snap(0)));
+        // copy second component elements
+        eval(pout(comp(1), snap(0))) = eval(pin(comp(1), snap(0)));
+        eval(pout(comp(1), snap(1))) = eval(pin(comp(1), snap(1)));
+        // copy third component elements
+        eval(pout(comp(2), snap(0))) = eval(pin(comp(2), snap(0)));
+        eval(pout(comp(2), snap(1))) = eval(pin(comp(2), snap(1)));
+        eval(pout(comp(2), snap(2))) = eval(pin(comp(2), snap(2)));
     }
 };
-struct B {
-
-    typedef accessor< 0, in, extent<>, 3 > pin;
-    typedef accessor< 1, in, extent< -1, 0, -1, 0, 0, 0 >, 3 > prealin;
-    typedef accessor< 2, inout, extent<>, 3 > pout;
-    typedef boost::mpl::vector< pin, prealin, pout > arg_list;
-
-    template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-        eval(pout()) = eval(pin()) + eval(prealin(-1, -1, 0));
-    }
-};
-
-template < typename T >
-void print_all(T const &t) {
-    for (int i = 0; i < 40; ++i) {
-        for (int j = 0; j < 40; ++j) {
-            std::cout << t(i, j, 0) << " ";
-        }
-        std::cout << std::endl;
-    }
-    std::cout << std::endl;
-}
 
 int main() {
     int d1 = 128;
     int d2 = 128;
     int d3 = 80;
 
-    typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_ty;
-    typedef storage_traits< BACKEND_V >::storage_info_t< 1, 3 > storage_info_ty1;
-    typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_ty > data_store_t;
-    typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_ty1 > data_store_t1;
-    typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_ty > data_store_t2;
-    typedef storage_traits< BACKEND_V >::data_store_field_t< float_type, storage_info_ty1, 1, 2, 3 > data_store_field_t;
+    typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_ty; // storage info type
+    typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_ty > data_store_t; // data store type
+    typedef storage_traits< BACKEND_V >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 > data_store_field_t; // data store field type with 3 components with size 1, 2, 3
 
     storage_info_ty si(d1, d2, d3);
-    storage_info_ty1 si1(d1, d2, d3);
-    data_store_field_t dsf_in(si1);
-    data_store_field_t dsf_out(si1);
+    data_store_field_t dsf_in(si);
+    data_store_field_t dsf_out(si);
 
     dsf_in.allocate();
     dsf_out.allocate();
 
-    data_store_t ds_in(si);
-    data_store_t2 ds_w(si);
-    data_store_t ds_out(si);
-    ds_in.allocate();
-    ds_out.allocate();
-    ds_w.allocate();
-    auto hv_in = make_host_view(ds_in);
-    auto hv_out = make_host_view(ds_out);
+    auto hv_in = make_field_host_view(dsf_in);
+    auto hv_out = make_field_host_view(dsf_out);
 
     // fill with values
     unsigned x = 0;
     for (int i = 0; i < d1; ++i)
         for (int j = 0; j < d2; ++j)
             for (int k = 0; k < d3; ++k) {
-                hv_in(i, j, k) = 1; // x++;
-                hv_out(i, j, k) = 123;
+                hv_in.template get<0,0>()(i, j, k) = 1;
+                hv_in.template get<1,0>()(i, j, k) = 1;
+                hv_in.template get<1,1>()(i, j, k) = 1;
+                hv_in.template get<2,0>()(i, j, k) = 1;
+                hv_in.template get<2,1>()(i, j, k) = 1;
+                hv_in.template get<2,2>()(i, j, k) = 1;
+
+                hv_out.template get<0,0>()(i, j, k) = 123;
+                hv_out.template get<1,0>()(i, j, k) = 123;
+                hv_out.template get<1,1>()(i, j, k) = 123;
+                hv_out.template get<2,0>()(i, j, k) = 123;
+                hv_out.template get<2,1>()(i, j, k) = 123;
+                hv_out.template get<2,2>()(i, j, k) = 123;
             }
 
     // create some gridtools stuff
-    typedef arg< 0, data_store_t, false > p_in;
-    typedef arg< 1, data_store_t, false > p_out;
-    typedef arg< 2, data_store_t, true > p_tmp;
+    typedef arg< 0, data_store_field_t > p_in;
+    typedef arg< 1, data_store_field_t > p_out;
 
-    /*
-    typedef arg< 4, data_store_t2, true > p_tmp;
-    typedef arg< 5, data_store_t2, true > p_tmp2;
-    typedef arg< 1, data_store_t2, false > p_w;*/
-    typedef arg< 3, data_store_field_t, false > p_dsf_in;
-    typedef arg< 4, data_store_field_t, false > p_dsf_out;
+    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+    aggregator_type< accessor_list > domain(dsf_in, dsf_out);
 
-    typedef boost::mpl::vector< p_in, p_out, p_tmp /*, p_w, p_tmp2, p_dsf*/ > accessor_list;
-    aggregator_type< accessor_list > domain(ds_in, ds_out);
-    //    domain.print();
-
-    int halo_size = 2;
+    int halo_size = 0;
 
     uint_t di[5] = {halo_size, halo_size, halo_size, d1 - 1 - halo_size, d1};
     uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - 1 - halo_size, d2};
@@ -157,47 +140,46 @@ int main() {
     grid< axis > gr(di, dj);
     gr.value_list[0] = 0;
     gr.value_list[1] = d3 - 1;
-    std::cout << "###BEFORE COMPUTATION####\n";
 
     auto z = make_computation< be >(
         domain,
         gr,
         make_multistage(
-            execute< forward >(), make_stage< A >(p_in(), p_tmp()), make_stage< B >(p_tmp(), p_in(), p_out())));
+            execute< forward >(), 
+            make_stage< A >(p_in(), p_out())
+        ));
 
     z->ready();
-    //    domain.print();
     z->steady();
-
-    double start = omp_get_wtime();
     z->run();
-    double end = omp_get_wtime();
-    std::cout << (end - start) << "s" << std::endl;
-
     z->finalize();
     std::cout << "time: " << z->print_meter() << std::endl;
-
-    // print_all(hv_out);
 
     bool valid = true;
     for (int i = halo_size; i < d1 - halo_size; ++i) {
         for (int j = halo_size; j < d2 - halo_size; ++j) {
             for (int k = 0; k < d3; ++k) {
-                valid &= (hv_out(i, j, k) ==
-                          hv_in(i + 1, j + 1, k) +
-                              hv_in(i - 1, j - 1, k)); // (abs(hv_out(i, j, k) - tan(pow(hv_in(i, j, k),
-                                                       // ((int)hv_in(i, j, k) % 13)))+5) < 1e-5);
+                valid &= (hv_out.template get<0,0>()(i, j, k) ==
+                          hv_in.template get<0,0>()(i, j, k));
+
+                valid &= (hv_out.template get<1,0>()(i, j, k) ==
+                          hv_in.template get<1,0>()(i, j, k));
+                valid &= (hv_out.template get<1,1>()(i, j, k) ==
+                          hv_in.template get<1,1>()(i, j, k));
+
+                valid &= (hv_out.template get<2,0>()(i, j, k) ==
+                          hv_in.template get<2,0>()(i, j, k));
+                valid &= (hv_out.template get<2,1>()(i, j, k) ==
+                          hv_in.template get<2,1>()(i, j, k));
+                valid &= (hv_out.template get<2,2>()(i, j, k) ==
+                          hv_in.template get<2,2>()(i, j, k));
+                          
                 if (!valid) {
-                    std::cout << i << " " << j << " " << k << std::endl;
-                    // std::cout << (tan(pow(hv_in(i, j, k), ((int)hv_in(i, j, k) % 13)))+5) << std::endl;
-                    std::cout << (hv_in(i + 1, j + 1, k) + hv_in(i - 1, j - 1, k)) << std::endl;
-                    std::cout << hv_out(i, j, k) << std::endl;
+                    std::cout << "ERROR IN: " << i << " " << j << " " << k << std::endl;
                     abort();
                 }
             }
-            // std::cout << "\n";
         }
-        // std::cout << "\n";
     }
 
     std::cout << "valid: " << valid << std::endl;

@@ -562,6 +562,16 @@ namespace gridtools {
         typedef T type;
     };
 
+    template < typename DSF >
+    struct get_accumulated_data_field_index_h;
+
+    template < typename DS, unsigned... N >
+    struct get_accumulated_data_field_index_h< data_store_field<DS, N...> > {
+        GT_FUNCTION static constexpr unsigned apply(unsigned M) {
+            return get_accumulated_data_field_index(M, N...);
+        }
+    };
+
     /**
      * metafunction that retrieves the arg type associated with an accessor
      */
@@ -599,7 +609,7 @@ namespace gridtools {
     };
 
     template < typename Max, typename StridesCached, typename OffsetTuple, typename StorageInfo, unsigned N >
-    GT_FUNCTION constexpr typename boost::enable_if_c< (N < (OffsetTuple::n_dim - 1)), int_t >::type apply_accessor(
+    GT_FUNCTION constexpr typename boost::enable_if_c< (N < (StorageInfo::Layout::length - 1)), int_t >::type apply_accessor(
         StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
         typedef boost::mpl::int_< (StorageInfo::Layout::template at< N >()) > val_t;
         static_assert((val_t::value == Max::value) || (N < StorageInfo::Layout::length), "invalid stride array access");
@@ -611,7 +621,7 @@ namespace gridtools {
     }
 
     template < typename Max, typename StridesCached, typename OffsetTuple, typename StorageInfo, unsigned N >
-    GT_FUNCTION constexpr typename boost::enable_if_c< (N == (OffsetTuple::n_dim - 1)), int_t >::type apply_accessor(
+    GT_FUNCTION constexpr typename boost::enable_if_c< (N == (StorageInfo::Layout::length - 1)), int_t >::type apply_accessor(
         StridesCached const &RESTRICT strides, OffsetTuple const &RESTRICT offsets) {
         typedef boost::mpl::int_< (StorageInfo::Layout::template at< N >()) > val_t;
         static_assert((val_t::value == Max::value) || (N < StorageInfo::Layout::length), "invalid stride array access");
