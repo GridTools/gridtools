@@ -149,17 +149,17 @@ namespace gridtools {
             return k_max() - k_min() + 1;
         }
 
-        halo_descriptor const &direction_i() const { return m_direction_i; }
+        GT_FUNCTION halo_descriptor const &direction_i() const { return m_direction_i; }
 
-        halo_descriptor const &direction_j() const { return m_direction_j; }
+        GT_FUNCTION halo_descriptor const &direction_j() const { return m_direction_j; }
 
-        const Partitioner &partitioner() const {
+        GT_FUNCTION const Partitioner &partitioner() const {
             // the partitioner must be set
             return m_partitioner;
         }
 
         template < typename Flag >
-        bool at_boundary(ushort_t const &coordinate_, Flag const &flag_) const {
+        GT_FUNCTION bool at_boundary(ushort_t const &coordinate_, Flag const &flag_) const {
             return m_partitioner.at_boundary(coordinate_, flag_);
         }
 
