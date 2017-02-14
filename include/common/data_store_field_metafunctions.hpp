@@ -109,10 +109,11 @@ namespace gridtools {
     };
 
     /* Given a data_field<T, MetaData, X...> this function will accumulate X... until a given point (N). */
+    GT_FUNCTION
     constexpr unsigned get_accumulated_data_field_index(int N) { return 0; }
 
     template < typename First, typename... Ints >
-    constexpr unsigned get_accumulated_data_field_index(int N, First F, Ints... M) {
+    GT_FUNCTION constexpr unsigned get_accumulated_data_field_index(int N, First F, Ints... M) {
         return (N == 0) ? 0 : F + get_accumulated_data_field_index(N - 1, M...);
     }
 }
