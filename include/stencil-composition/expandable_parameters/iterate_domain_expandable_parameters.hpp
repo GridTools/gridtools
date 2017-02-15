@@ -61,8 +61,6 @@ namespace gridtools {
     template < typename IterateDomain, ushort_t Position >
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
-        iterate_domain_expandable_parameters(sfinae::_impl::dummy_type) { assert(false); } // using this just for SFINAE
-
         GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, "wrong type");
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;

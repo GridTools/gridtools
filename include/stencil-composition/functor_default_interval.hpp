@@ -45,8 +45,9 @@ namespace gridtools {
        \tparam F the user functor
        \tparam Axis the vertical axis
      */
-    template < typename F, typename Axis >
+    template < typename Functor, typename Axis >
     struct functor_default_interval {
+        GRIDTOOLS_STATIC_ASSERT(is_interval< Axis >::value, "Internal error");
         static const constexpr int_t to_offset = Axis::ToLevel::Offset::value;
         static const constexpr uint_t to_splitter = Axis::ToLevel::Splitter::value;
         static const constexpr int_t from_offset = Axis::FromLevel::Offset::value;
@@ -62,12 +63,12 @@ namespace gridtools {
         typedef gridtools::interval< level< from_splitter, (from_offset != -1) ? from_offset + 1 : from_offset + 2 >,
             level< to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2 > > default_interval;
 
-        typedef F type;
-        typedef typename F::arg_list arg_list;
+        typedef Functor type;
+        typedef typename Functor::arg_list arg_list;
 
         template < typename Eval >
         GT_FUNCTION static void Do(Eval const &eval_, default_interval) {
-            F::Do(eval_);
+            Functor::Do(eval_);
         }
     };
     template < typename T >

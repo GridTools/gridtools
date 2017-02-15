@@ -80,9 +80,6 @@ namespace gridtools {
         typedef TToLevel ToLevel;
     };
 
-    template <>
-    struct interval< level< 0, 0 >, level< 0, 0 > > {}; // null interval
-
     /**
      * @struct is_interval
      * Trait returning true it the template parameter is an interval
