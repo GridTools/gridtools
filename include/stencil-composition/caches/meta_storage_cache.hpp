@@ -32,23 +32,27 @@ namespace gridtools {
             return m_value.template stride< Id >();
         }
 
+        GT_FUNCTION constexpr nano_array<unsigned, Layout::length> const &strides() const {
+            return m_value.template strides();
+        }
+
         template < ushort_t Id >
         GT_FUNCTION constexpr int_t const &dim() const {
             return m_value.template dim< Id >();
         }
 
         template < unsigned N, typename OffsetTuple, typename... Offsets >
-        GT_FUNCTION constexpr typename boost::enable_if_c<(N>0), int_t>::type 
+        GT_FUNCTION constexpr typename boost::enable_if_c<(N>0), int_t>::type
         get_index(OffsetTuple const& ot, Offsets... o) const {
             return get_index<N-1>(ot, o..., ot.template get<N-1>());
         }
 
         template < unsigned N, typename OffsetTuple, typename... Offsets >
-        GT_FUNCTION constexpr typename boost::enable_if_c<(N==0), int_t>::type 
+        GT_FUNCTION constexpr typename boost::enable_if_c<(N==0), int_t>::type
         get_index(OffsetTuple const& ot, Offsets... o) const {
             return m_value.index(o..., 0, 0);
          }
- 
+
          template < typename Accessor >
          GT_FUNCTION constexpr int_t index(Accessor const &arg_) const {
             typedef typename Accessor::offset_tuple_t OffsetTuple;

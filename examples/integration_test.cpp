@@ -36,15 +36,7 @@
 
 #include <iostream>
 
-#include <stencil-composition/aggregator_type.hpp>
-#include <stencil-composition/arg.hpp>
-#include <stencil-composition/backend.hpp>
-#include <stencil-composition/make_stage.hpp>
-#include <stencil-composition/make_stencils_cxx11.hpp>
-#include <storage-facility.hpp>
-#define POSITIONAL_WHEN_DEBUGGING true
-#include <stencil-composition/grid.hpp>
-#include <stencil-composition/make_computation_cxx11.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -128,8 +120,9 @@ int main() {
     // create some gridtools stuff
     typedef arg< 0, data_store_field_t > p_in;
     typedef arg< 1, data_store_field_t > p_out;
+    typedef arg< 2, data_store_field_t, true > p_tmp;
 
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+    typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
     aggregator_type< accessor_list > domain(dsf_in, dsf_out);
 
     int halo_size = 0;
@@ -145,8 +138,10 @@ int main() {
         domain,
         gr,
         make_multistage(
-            execute< forward >(), 
-            make_stage< A >(p_in(), p_out())
+            execute< forward >() ,
+            define_caches(cache< IJ, local >(p_tmp())),
+            make_stage< A >(p_in(), p_tmp()),
+            make_stage< A >(p_tmp(), p_out())
         ));
 
     z->ready();
@@ -173,7 +168,7 @@ int main() {
                           hv_in.template get<2,1>()(i, j, k));
                 valid &= (hv_out.template get<2,2>()(i, j, k) ==
                           hv_in.template get<2,2>()(i, j, k));
-                          
+
                 if (!valid) {
                     std::cout << "ERROR IN: " << i << " " << j << " " << k << std::endl;
                     abort();

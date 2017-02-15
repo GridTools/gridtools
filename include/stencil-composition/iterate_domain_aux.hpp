@@ -51,6 +51,7 @@
 #include "common/generic_metafunctions/reversed_range.hpp"
 #include "common/generic_metafunctions/static_if.hpp"
 #include "stencil-composition/total_storages.hpp"
+#include "run_functor_arguments.hpp"
 
 /**
    @file
@@ -243,7 +244,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (index_t::value < ArrayIndex::n_dimensions), "Accessing an index out of bound in fusion tuple");
-            
+
             // get the max coordinate of given StorageInfo
             typedef typename boost::mpl::deref< typename boost::mpl::max_element<
                 typename StorageInfo::Layout::static_layout_vector >::type >::type max_t;
@@ -366,7 +367,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (index_t::value < ArrayIndex::n_dimensions), "Accessing an index out of bound in fusion tuple");
-            const int_t initial_pos = (tmp_info_t::value) ? 
+            const int_t initial_pos = (tmp_info_t::value) ?
                 ((m_initial_pos)-m_block * ((Coordinate == 1) ? PEBlockSize::j_size_t::value : ((Coordinate == 0) ? PEBlockSize::i_size_t::value : 0))) :
                 m_initial_pos;
             constexpr int pos = StorageInfo::Layout::template at< Coordinate >();
@@ -375,7 +376,7 @@ namespace gridtools {
                                   ? 0
                                   : ((pos == max_t::value) ? 1 : m_strides.template get< index_t::value >()[pos]);
                 m_index_array[index_t::value] += (stride * initial_pos);
-            }            
+            }
         }
 
     };
@@ -632,7 +633,7 @@ namespace gridtools {
     }
 
     // pointer offset computation
-    template < typename StorageWrapper, typename StorageInfo, typename AccessorOffset, typename StridesCached >
+    template < typename StorageInfo, typename AccessorOffset, typename StridesCached >
     GT_FUNCTION constexpr int_t compute_offset(
         StridesCached const &RESTRICT strides_cached, AccessorOffset const &RESTRICT acc_offset) {
         // get the max coordinate of given StorageInfo

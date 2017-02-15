@@ -40,6 +40,7 @@
 #include "../block_size.hpp"
 #include "../extent.hpp"
 #include "../../common/offset_tuple.hpp"
+#include "../iterate_domain_aux.hpp"
 
 #ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"
@@ -111,8 +112,8 @@ namespace gridtools {
             // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template stride< 0 >() +
                                   (thread_pos[1] - jminus::value) * m_value.template stride< 1 >() +
-                                  m_value.index(accessor_);
-
+                compute_offset<typename meta_t::meta_storage_t>(m_value.strides(), accessor_);
+//m_value.index
             assert((extra_) < size());
             assert((extra_) >= 0);
 
