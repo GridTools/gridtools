@@ -103,11 +103,11 @@ int main() {
         for (int j = 0; j < d2; ++j)
             for (int k = 0; k < d3; ++k) {
                 hv_in.template get<0,0>()(i, j, k) = 1;
-                hv_in.template get<1,0>()(i, j, k) = 1;
-                hv_in.template get<1,1>()(i, j, k) = 1;
-                hv_in.template get<2,0>()(i, j, k) = 1;
-                hv_in.template get<2,1>()(i, j, k) = 1;
-                hv_in.template get<2,2>()(i, j, k) = 1;
+                hv_in.template get<1,0>()(i, j, k) = 2;
+                hv_in.template get<1,1>()(i, j, k) = 3;
+                hv_in.template get<2,0>()(i, j, k) = 4;
+                hv_in.template get<2,1>()(i, j, k) = 5;
+                hv_in.template get<2,2>()(i, j, k) = 6;
 
                 hv_out.template get<0,0>()(i, j, k) = 123;
                 hv_out.template get<1,0>()(i, j, k) = 123;
