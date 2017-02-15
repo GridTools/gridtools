@@ -61,7 +61,6 @@ namespace gridtools {
 
     template < typename IterationPolicy >
     struct slide_cache_functor {
-        // TODO KCACHE use lambda
       public:
         slide_cache_functor() {}
 
@@ -290,7 +289,6 @@ namespace gridtools {
 
             template < typename Idx >
             GT_FUNCTION void operator()(Idx const &) const {
-#ifdef CXX11_ENABLED
                 typedef typename boost::mpl::at< k_caches_map_t, Idx >::type k_cache_storage_t;
 
                 constexpr int_t koffset =
@@ -316,8 +314,6 @@ namespace gridtools {
                 if (koffset_abs <= limit_lev) {
                     boost::fusion::at_key< Idx >(m_kcaches).at(acc_) = m_it_domain.gmem_access(acc_);
                 }
-
-#endif
             }
         };
 
