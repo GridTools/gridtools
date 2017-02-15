@@ -83,7 +83,7 @@ namespace adv_prepare_tracers {
                 }
     }
 
-    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
+    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps, bool verify) {
 
         typedef BACKEND::storage_info< 23, layout_t > meta_data_t;
         typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
@@ -124,14 +124,16 @@ namespace adv_prepare_tracers {
 #endif
         comp_->finalize();
 
-        verifier verif(1e-6);
-        array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
         bool result = true;
+        if (verify) {
+            verifier verif(1e-6);
+            array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-        for (int_t l = 0; l < 11; ++l) {
-            storage_t s_ref_(meta_data_, 0., "ref storage");
-            reference(*list_in_[l], rho, s_ref_);
-            result = result && verif.verify(grid_, *(list_out_[l]), s_ref_, halos);
+            for (int_t l = 0; l < 11; ++l) {
+                storage_t s_ref_(meta_data_, 0., "ref storage");
+                reference(*list_in_[l], rho, s_ref_);
+                result = result && verif.verify(grid_, *(list_out_[l]), s_ref_, halos);
+            }
         }
 
         return result;
