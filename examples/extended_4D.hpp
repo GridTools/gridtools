@@ -101,13 +101,16 @@ typedef BACKEND::storage_type< float_type, metadata_local_quad_t >::type storage
 
 namespace assembly {
 
+    /**this is a user-defined class which will be used from whithin the user functor
+     by calling its  operator(). It can represent in this case values which are local to the elements
+     e.g. values of the basis functions in the quad points. */
     template < typename ValueType, typename Layout, uint_t... Dims >
-    struct storage {
+    struct elemental {
         typedef ValueType value_type;
         typedef meta_storage_cache< Layout, Dims... > meta_t;
 
         GT_FUNCTION
-        constexpr storage() : m_values{0} {}
+        constexpr elemental() : m_values{0} {}
 
         template < typename... Ints >
         GT_FUNCTION value_type &operator()(Ints &&... args_) {
@@ -179,8 +182,8 @@ namespace assembly {
         static const uint_t b2 = 2;
         static const uint_t b3 = 2;
         // basis functions available in a 2x2x2 cell, because of P1 FE
-        storage< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > phi;
-        storage< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > psi;
+        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > phi;
+        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > psi;
 
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU

@@ -50,7 +50,7 @@ namespace gridtools {
         typedef typename super::index_type index_type;
 
         GT_FUNCTION
-        global_accessor_with_arguments(Args... args_) : m_arguments(args_...) {}
+        global_accessor_with_arguments(Args &&... args_) : m_arguments(std::forward< Args >(args_)...) {}
         GT_FUNCTION
         boost::fusion::vector< Args... > const &get_arguments() const { return m_arguments; };
     };

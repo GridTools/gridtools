@@ -473,6 +473,15 @@ namespace gridtools {
             return *storage_;
         }
 
+        /**@brief helper function that given an input in_ and a tuple t_ calls in_.operator() with the elements of the
+           tuple as arguments.
+
+           For example, if the tuple is an accessor containing the offsets 1,2,3, and the
+           input is a storage st_, this function returns st_(1,2,3).
+
+           \param container the input class
+           \param tuple the tuple
+         */
         template < typename Container, typename Tuple, uint_t... Ids >
         GT_FUNCTION auto static tuple_to_container(
             Container &&container_, Tuple const &tuple_, gt_integer_sequence< uint_t, Ids... >)

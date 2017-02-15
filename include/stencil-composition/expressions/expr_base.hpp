@@ -145,10 +145,6 @@ namespace gridtools {
     namespace expressions {
 
         template < typename... Args >
-        using both_arithmetic_types =
-            boost::mpl::bool_< accumulate(logical_and(), boost::is_arithmetic< Args >::value...) >;
-
-        template < typename... Args >
         using no_expr_types = boost::mpl::bool_< accumulate(logical_and(), !is_expr< Args >::value...) >;
 
         template < typename... Args >

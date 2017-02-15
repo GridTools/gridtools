@@ -94,9 +94,11 @@ namespace gridtools {
         typedef typename boost::mpl::transform< PlaceholderArray, substitute_expandable_param< Size > >::type type;
     };
 
-    template < typename PlaceholderArray >
+    /** metafunction removing global accessors from an mpl_vector of pairs <extent, placeholders>.
+        Note: the global accessors do not have extents (have mpl::void_ instead). */
+    template < typename PlaceholderExtentPair >
     struct remove_global_accessors {
-        typedef typename boost::mpl::fold< PlaceholderArray,
+        typedef typename boost::mpl::fold< PlaceholderExtentPair,
             boost::mpl::vector0<>,
             boost::mpl::if_< is_extent< boost::mpl::second< boost::mpl::_2 > >,
                                                boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
