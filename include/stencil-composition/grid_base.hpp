@@ -48,19 +48,19 @@ namespace gridtools {
 
     using namespace enumtype_axis;
 
-    template < typename Axis, typename Partitioner = partitioner_dummy >
+    template < typename AxisInterval, typename Partitioner = partitioner_dummy >
     struct grid_base {
-        GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), "Internal Error: wrong type");
-        typedef Axis axis_type;
+        GRIDTOOLS_STATIC_ASSERT((is_interval< AxisInterval >::value), "Internal Error: wrong type");
+        typedef AxisInterval axis_type;
         typedef Partitioner partitioner_t;
 
         typedef typename boost::mpl::plus<
-            boost::mpl::minus< typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter >,
+            boost::mpl::minus< typename AxisInterval::ToLevel::Splitter, typename AxisInterval::FromLevel::Splitter >,
             static_int< 1 > >::type size_type;
 
         array< uint_t, size_type::value > value_list;
 
-        GT_FUNCTION grid_base(const grid_base< Axis, Partitioner > &other)
+        GT_FUNCTION grid_base(const grid_base< AxisInterval, Partitioner > &other)
             : m_partitioner(other.m_partitioner), m_direction_i(other.m_direction_i),
               m_direction_j(other.m_direction_j) {
             value_list = other.value_list;
@@ -132,11 +132,11 @@ namespace gridtools {
             return value_list[Level::Splitter::value] + offs;
         }
 
-        GT_FUNCTION uint_t k_min() const { return value_at< typename Axis::FromLevel >(); }
+        GT_FUNCTION uint_t k_min() const { return value_at< typename AxisInterval::FromLevel >(); }
 
         GT_FUNCTION uint_t k_max() const {
             // -1 because the axis has to be one level bigger than the largest k interval
-            return value_at< typename Axis::ToLevel >() - 1;
+            return value_at< typename AxisInterval::ToLevel >() - 1;
         }
 
         /**
@@ -144,8 +144,8 @@ namespace gridtools {
          */
         GT_FUNCTION
         uint_t k_total_length() const {
-            const uint_t begin_of_k = value_at< typename Axis::FromLevel >();
-            const uint_t end_of_k = value_at< typename Axis::ToLevel >() - 1;
+            const uint_t begin_of_k = value_at< typename AxisInterval::FromLevel >();
+            const uint_t end_of_k = value_at< typename AxisInterval::ToLevel >() - 1;
             return k_max() - k_min() + 1;
         }
 

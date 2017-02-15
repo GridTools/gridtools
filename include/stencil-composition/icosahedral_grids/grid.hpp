@@ -40,9 +40,9 @@
 
 namespace gridtools {
 
-    template < typename Axis, typename GridTopology >
-    struct grid : public grid_base< Axis >, public clonable_to_gpu< grid< Axis, GridTopology > > {
-        GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), "Internal Error: wrong type");
+    template < typename AxisInterval, typename GridTopology >
+    struct grid : public grid_base< AxisInterval >, public clonable_to_gpu< grid< AxisInterval, GridTopology > > {
+        GRIDTOOLS_STATIC_ASSERT((is_interval< AxisInterval >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Internal Error: wrong type");
 
         typedef GridTopology grid_topology_t;
@@ -55,16 +55,16 @@ namespace gridtools {
         // TODO make grid const
         // TODO should be removed (use ctor with halo_descriptor)
         explicit grid(GridTopology &grid_topology, const array< uint_t, 5 > &i, const array< uint_t, 5 > &j)
-            : grid_base< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
+            : grid_base< AxisInterval >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
                   halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
               m_grid_topology(grid_topology) {}
 
         GT_FUNCTION
         explicit grid(
             GridTopology &grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : grid_base< Axis >(direction_i, direction_j), m_grid_topology(grid_topology) {}
+            : grid_base< AxisInterval >(direction_i, direction_j), m_grid_topology(grid_topology) {}
 
-        __device__ grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
+        __device__ grid(grid const &other) : grid_base< AxisInterval >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
         GridTopology const &grid_topology() const { return m_grid_topology; }
@@ -73,6 +73,6 @@ namespace gridtools {
     template < typename Grid >
     struct is_grid : boost::mpl::false_ {};
 
-    template < typename Axis, typename GridTopology >
-    struct is_grid< grid< Axis, GridTopology > > : boost::mpl::true_ {};
+    template < typename AxisInterval, typename GridTopology >
+    struct is_grid< grid< AxisInterval, GridTopology > > : boost::mpl::true_ {};
 }
