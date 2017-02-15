@@ -62,7 +62,7 @@ namespace copy_stencil {
 #endif
 
     // This is the definition of the special regions in the "vertical" direction
-    using axis_t = axis< 2 >;
+    using axis_t = axis< 1 >;
     using x_interval = axis_t::full_interval;
 
     // These are the stencil operators that compose the multistage stencil in this test

@@ -54,7 +54,10 @@ namespace gridtools {
         template < typename... IntervalSizes >
         axis(IntervalSizes... interval_sizes)
             // TODO protection for int types
-            : interval_sizes_{interval_sizes...} {}
+            : interval_sizes_{interval_sizes...} {
+            GRIDTOOLS_STATIC_ASSERT(
+                (sizeof...(interval_sizes) == NIntervals), "Number of intervals does not match the axis");
+        }
 
         uint_t interval_size(const uint_t index) const { return interval_sizes_[index]; }
 
