@@ -14,12 +14,6 @@ export CXX=`which g++`
 if [[ ${VERSION} == "5.3" ]] && [[ "${TARGET}" != "gpu" ]]; then
   module unload GCC/4.9.3-binutils-2.25
   module load GCC/5.3.0-binutils-2.25
-else
-    echo 0000
-  # VERSION="4.9"
-  # module load PrgEnv-gnu
-  # module swap GCC/4.9.3-binutils-2.25
-  # export HOST_COMPILER=`which g++`
 fi
 
 #we need a decent cmake version in order to pass the HOST_COMPILER to nvcc
@@ -42,7 +36,7 @@ export BOOST_INCLUDE=/scratch/stefanm/boost_1_62_0/include/
 export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
 export LAUNCH_MPI_TEST="srun"
-export JOB_ENV="export ENABLE_CUDA=1; export CUDA_AUTO_BOOST=0; export GCLOCK=875; export CUDA_AUTO_BOOST=0; export G2G=1"
+export JOB_ENV="export ENABLE_CUDA=1; export CUDA_AUTO_BOOST=0; export GCLOCK=875; export G2G=1"
 export MPI_HOST_JOB_ENV=""
 export MPI_CUDA_JOB_ENV="export MV2_USE_CUDA=1; export MV2_USE_GPUDIRECT=1 ; export GCLOCK=875; export CUDA_AUTO_BOOST=0; export G2G=2"
 export USE_MPI_COMPILER=ON

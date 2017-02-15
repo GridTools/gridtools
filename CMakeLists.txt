@@ -26,13 +26,6 @@ include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/communication" )
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/communication/high-level" )
 
-if( USE_MPI )
-   if ( USE_MPI_COMPILER )
-     include_directories( "${MPI_CXX_INCLUDE_PATH}" )
-     set( exe_LIBS  ${MPI_CXX_LIBRARIES} ${exe_LIBS} )
-  endif()
-endif()
-
 # ===============
 # compile gcl:
 # ===============
@@ -40,7 +33,6 @@ add_library( gcl src/GCL.cpp include/communication/GCL.hpp include/communication
 set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}")
 set(exe_LIBS ${exe_LIBS} gcl)
 
-# ===============
 
 # ===============
 # add all cpp files in src:
