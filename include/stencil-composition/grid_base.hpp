@@ -38,6 +38,7 @@
 #include "../common/array.hpp"
 #include "../storage/partitioner.hpp"
 #include "interval.hpp"
+#include "axis.hpp"
 
 namespace gridtools {
 

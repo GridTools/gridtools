@@ -66,4 +66,18 @@ namespace gridtools {
 
     template < typename AxisInterval, typename Partitioner >
     struct is_grid< grid< AxisInterval, Partitioner > > : boost::mpl::true_ {};
+
+    template < typename Axis >
+    grid< typename Axis::axis_interval_t > make_grid(
+        halo_descriptor const &direction_i, halo_descriptor const &direction_j, Axis axis) {
+        grid< typename Axis::axis_interval_t > grid_(direction_i, direction_j);
+
+        // TODO fix this hack
+        grid_.value_list[0] = 0;
+        grid_.value_list[1] = axis.interval_size(0) - 1;
+        for (size_t i = 2; i < grid_.value_list.size(); ++i) {
+            grid_.value_list[i] = grid_.value_list[i - 1] + axis.interval_size(i - 1);
+        }
+        return grid_;
+    };
 }

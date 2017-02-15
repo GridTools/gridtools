@@ -35,61 +35,13 @@
 */
 
 #include "gtest/gtest.h"
-#include "test_grid.hpp"
 #include "stencil-composition/axis.hpp"
 
-TEST(test_grid, k_total_length) {
-    static const int_t offset_from = -2;
-    static const int_t offset_to = 2;
+using namespace gridtools;
 
-    uint_t splitter_begin = 5;
-    uint_t splitter_end = 50;
+TEST(test_axis, make_axis) {
+    auto axis_ = make_axis(5, 4);
 
-    typedef interval< level< 0, offset_from >, level< 1, offset_to + 1 > > axis;
-    grid< axis > grid_(halo_descriptor(0, 0, 0, 0, 0), halo_descriptor(0, 0, 0, 0, 0));
-    grid_.value_list[0] = splitter_begin;
-    grid_.value_list[1] = splitter_end;
-
-    uint_t expected_total_length = splitter_end - splitter_begin - offset_from + offset_to;
-
-    ASSERT_EQ(expected_total_length, grid_.k_total_length());
-}
-
-class test_grid_copy_ctor : public ::testing::Test {
-  private:
-    halo_descriptor halo_i;
-    halo_descriptor halo_j;
-    const int value_0;
-    const int value_1;
-
-  public:
-    typedef interval< level< 0, -1 >, level< 1, -1 > > axis;
-    grid< axis > grid_;
-
-    test_grid_copy_ctor()
-        : halo_i(1, 2, 3, 4, 5), halo_j(6, 7, 8, 9, 10), value_0(2), value_1(5), grid_(halo_i, halo_j) {
-        grid_.value_list[0] = value_0;
-        grid_.value_list[1] = value_1;
-    }
-};
-
-TEST_F(test_grid_copy_ctor, copy_on_host) {
-    grid< axis > copy(grid_);
-
-    ASSERT_TRUE(test_grid_eq(grid_, copy));
-}
-
-TEST(test_grid, make_grid_makes_splitters_and_values) {
-    halo_descriptor empty_{0, 0, 0, 0, 0};
-
-    const uint_t interval1_size = 5;
-    const uint_t interval2_size = 10;
-
-    auto grid_ = make_grid(empty_, empty_, make_axis(5, 10));
-
-    ASSERT_EQ(3, grid_.value_list.size());
-
-    ASSERT_EQ(0, grid_.value_list[0]);
-    ASSERT_EQ(interval1_size - 1, grid_.value_list[1]);
-    ASSERT_EQ(interval1_size + interval2_size - 1, grid_.value_list[2]);
+    ASSERT_EQ(5, axis_.interval_size(0));
+    ASSERT_EQ(4, axis_.interval_size(1));
 }

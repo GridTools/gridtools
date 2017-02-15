@@ -62,8 +62,8 @@ namespace copy_stencil {
 #endif
 
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using axis_t = axis< 2 >;
+    using x_interval = axis_t::full_interval;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
@@ -131,12 +131,10 @@ namespace copy_stencil {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        halo_descriptor di{0, 0, 0, d1 - 1, d1};
+        halo_descriptor dj{0, 0, 0, d2 - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(di, dj, axis_t(d3));
 
 /*
   Here we do lot of stuff
