@@ -63,48 +63,41 @@ TEST(partitioner_trivial, test_partitioner) {
     typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2, 3, 4 > > >, comm > party;
     party part_(comm_, halo, padding);
     bool success = true;
-    success = success && part_.boundary() == 316;
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(part_.boundary() == 316);
 
-    success = success && part_.at_boundary(0, party::LOW) == true;
-    ASSERT_TRUE(success);
-    success = success && part_.at_boundary(0, party::UP) == false;
-    ASSERT_TRUE(success);
-    success = success && part_.at_boundary(1, party::LOW) == false;
-    ASSERT_TRUE(success);
-    success = success && part_.at_boundary(1, party::UP) == false;
-    ASSERT_TRUE(success);
-    success = success && part_.at_boundary(2, party::LOW) == false;
-    ASSERT_TRUE(success);
-    success = success && part_.at_boundary(2, party::UP) == true;
-    ASSERT_TRUE(success);
-    success = success && part_.at_boundary(3, party::LOW) == true; // only 1 dimension in this component
-    ASSERT_TRUE(success);
-    success = success && part_.at_boundary(3, party::UP) == true;
-    ASSERT_TRUE(success);
-    success = success && part_.at_boundary(4, party::LOW) == false;
-    ASSERT_TRUE(success);
-    success = success && part_.at_boundary(4, party::UP) == true;
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(part_.at_boundary(0, party::LOW) == true);
 
-    success = success && part_.compute_halo(0, party::LOW) == 6; // global boundary, returns padding
-    ASSERT_TRUE(success);
-    success = success && part_.compute_halo(0, party::UP) == 1;
-    ASSERT_TRUE(success);
-    success = success && part_.compute_halo(1, party::LOW) == 2;
-    ASSERT_TRUE(success);
-    success = success && part_.compute_halo(1, party::UP) == 2;
-    ASSERT_TRUE(success);
-    success = success && part_.compute_halo(2, party::LOW) == 3;
-    ASSERT_TRUE(success);
-    success = success && part_.compute_halo(2, party::UP) == 3; // not returning the padding because periodic
-    ASSERT_TRUE(success);
-    success = success && part_.compute_halo(3, party::LOW) == 9; // padding, because only 1 dim. and not periodic
-    ASSERT_TRUE(success);
-    success = success && part_.compute_halo(3, party::UP) == 9; // padding, because only 1 dim. and not periodic
-    ASSERT_TRUE(success);
-    success = success && part_.compute_halo(4, party::LOW) == 5;
-    ASSERT_TRUE(success);
-    success = success && part_.compute_halo(4, party::UP) == 5; // not returning the padding because periodic
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(part_.at_boundary(0, party::UP) == false);
+
+    ASSERT_TRUE(part_.at_boundary(1, party::LOW) == false);
+
+    ASSERT_TRUE(part_.at_boundary(1, party::UP) == false);
+
+    ASSERT_TRUE(part_.at_boundary(2, party::LOW) == false);
+
+    ASSERT_TRUE(part_.at_boundary(2, party::UP) == true);
+
+    ASSERT_TRUE(part_.at_boundary(3, party::LOW) == true); // only 1 dimension in this component
+    ASSERT_TRUE(part_.at_boundary(3, party::UP) == true);
+
+    ASSERT_TRUE(part_.at_boundary(4, party::LOW) == false);
+
+    ASSERT_TRUE(part_.at_boundary(4, party::UP) == true);
+
+    ASSERT_TRUE(part_.compute_halo(0, party::LOW) == 6); // global boundary, returns padding
+
+    ASSERT_TRUE(part_.compute_halo(0, party::UP) == 1);
+
+    ASSERT_TRUE(part_.compute_halo(1, party::LOW) == 2);
+
+    ASSERT_TRUE(part_.compute_halo(1, party::UP) == 2);
+
+    ASSERT_TRUE(part_.compute_halo(2, party::LOW) == 3);
+
+    ASSERT_TRUE(part_.compute_halo(2, party::UP) == 3); // not returning the padding because periodic)
+
+    ASSERT_TRUE(part_.compute_halo(3, party::LOW) == 9); // padding, because only 1 dim. and not periodic
+    ASSERT_TRUE(part_.compute_halo(3, party::UP) == 9);  // padding, because only 1 dim. and not periodic
+    ASSERT_TRUE(part_.compute_halo(4, party::LOW) == 5);
+    ASSERT_TRUE(part_.compute_halo(4, party::UP) == 5); // not returning the padding because periodic
 }

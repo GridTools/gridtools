@@ -260,8 +260,8 @@ namespace copy_stencil {
         halos[2] = meta_.template get_halo_descriptor< 2 >();
 
         typename gridtools::boundary_apply< boundary_conditions< partitioner_t >,
-            typename gridtools::bitmap_predicate >(
-            halos, boundary_conditions< partitioner_t >(part), gridtools::bitmap_predicate(part.boundary()))
+            typename gridtools::bitmap_predicate< partitioner_t > >(
+            halos, boundary_conditions< partitioner_t >(part), gridtools::bitmap_predicate< partitioner_t >(part))
             .apply(in, out);
 
         std::vector< pointer_type::pointee_t * > vec(2);
