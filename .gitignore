@@ -15,18 +15,16 @@
 
 *.exe
 
-examples/CMakeFiles/
-examples/CTestTestfile.cmake
-examples/Makefile
-examples/cmake_install.cmake
+CMakeFiles/
+CTestTestfile.cmake
+Makefile
+cmake_install.cmake
+
 include/workarounds/
-unit_tests/CMakeFiles/
-unit_tests/CTestTestfile.cmake
-unit_tests/Makefile
-unit_tests/cmake_install.cmake
 
 # ignore everything in the root folder
 /*
+
 # except
 !cmake
 !docs
@@ -40,7 +38,6 @@ unit_tests/cmake_install.cmake
 !unit_tests
 !.clang-format
 !.gitignore
-!LICENSE
 !CMakeLists.txt
 !Doxyfile.in
 !GridToolsConfig.cmake.in
