@@ -131,7 +131,6 @@ namespace gridtools {
             const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template stride< 0 >() +
                                   (thread_pos[1] - jminus::value) * m_value.template stride< 1 >() +
                 compute_offset(m_value, accessor_);
-//m_value.index
             assert((extra_) < size());
             assert((extra_) >= 0);
 
