@@ -161,7 +161,7 @@ namespace shallow_water {
         using arg_list = boost::mpl::vector2< tmpx, sol >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
 
             const float_type &tl = 2.;
 #ifndef CUDA8
@@ -220,7 +220,7 @@ namespace shallow_water {
         using arg_list = boost::mpl::vector< tmpy, sol >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
 
             const float_type &tl = 2.;
 #ifndef CUDA8
@@ -282,7 +282,7 @@ namespace shallow_water {
         // Using a strategy to define some arguments beforehand
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             const float_type &tl = 2.;
 #ifndef CUDA8
             dimension< 1 > i;

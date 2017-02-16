@@ -89,7 +89,7 @@ namespace adv_prepare_tracers {
             rho > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, interval_t) {
+        GT_FUNCTION static void Do(Evaluation &eval, interval_t) {
             eval(data0()) = eval(rho()) * eval(data_nnow0());
             eval(data1()) = eval(rho()) * eval(data_nnow1());
             eval(data2()) = eval(rho()) * eval(data_nnow2());

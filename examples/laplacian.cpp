@@ -89,7 +89,7 @@ struct lap_function {
        removed?
     */
     template < typename t_domain >
-    GT_FUNCTION static void Do(t_domain const &dom, x_lap) {
+    GT_FUNCTION static void Do(t_domain &dom, x_lap) {
 
         dom(out()) = 4 * dom(in()) - (dom(in(1, 0, 0)) + dom(in(0, 1, 0)) + dom(in(-1, 0, 0)) + dom(in(0, -1, 0)));
     }

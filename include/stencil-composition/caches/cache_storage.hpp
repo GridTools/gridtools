@@ -74,7 +74,6 @@ namespace gridtools {
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
      */
-    // TODO KCACHE eliminate the Storage since it is already derived from the arg of the Cache
     template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename Storage >
     struct cache_storage< Cache, block_size< Tiles... >, extent< ExtentBounds... >, Storage > {
         GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "Internal Error: wrong type");
@@ -84,6 +83,20 @@ namespace gridtools {
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_t;
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_t;
         typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
+
+        using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
+        using jminus_t = typename boost::mpl::at_c< typename minus_t::type, 1 >::type;
+        using kminus_t = typename boost::mpl::at_c< typename minus_t::type, 2 >::type;
+        using iplus_t = typename boost::mpl::at_c< typename plus_t::type, 0 >::type;
+        using jplus_t = typename boost::mpl::at_c< typename plus_t::type, 1 >::type;
+        using kplus_t = typename boost::mpl::at_c< typename plus_t::type, 2 >::type;
+
+        GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
+                                                                         iplus_t::value == 0 && jplus_t::value == 0),
+            "KCaches can not be use with a non null extent in the horizontal dimensions");
+
+        GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
+            "Only KCaches can be accessed with a non null extent in K");
 
         // Storage must be a gridtools::pointer to storage
         GRIDTOOLS_STATIC_ASSERT(is_pointer< Storage >::value, "wrong type");
@@ -110,9 +123,6 @@ namespace gridtools {
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
-            typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
-            typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
-
 #ifdef CUDA8
             typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
             typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
@@ -121,8 +131,8 @@ namespace gridtools {
 #endif
 
             // manually aligning the storage
-            const uint_t extra_ = (thread_pos[0] - iminus::value) * s_storage_info.template strides< 0 >() +
-                                  (thread_pos[1] - jminus::value) * s_storage_info.template strides< 1 >() +
+            const uint_t extra_ = (thread_pos[0] - iminus_t::value) * s_storage_info.template strides< 0 >() +
+                                  (thread_pos[1] - jminus_t::value) * s_storage_info.template strides< 1 >() +
                                   s_storage_info.index(accessor_);
 
             assert((extra_) < size());
@@ -131,7 +141,6 @@ namespace gridtools {
             return m_values[extra_];
         }
 
-        // TODO KCACHE have only one version for const /non const
         template < typename Accessor >
         GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_) const {
             constexpr const meta_t s_storage_info;
@@ -139,11 +148,6 @@ namespace gridtools {
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
-            // TODO KCACHE check there are no IJ accesses
-            typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
-            typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
-            typedef typename boost::mpl::at_c< typename minus_t::type, 2 >::type kminus;
-
 #ifdef CUDA8
             typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
             typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
@@ -151,24 +155,20 @@ namespace gridtools {
             assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
 #endif
 
-            assert(s_storage_info.index(accessor_) - kminus::value < size());
-            assert(s_storage_info.index(accessor_) - kminus::value >= 0);
+            assert(s_storage_info.index(accessor_) - kminus_t::value < size());
+            assert(s_storage_info.index(accessor_) - kminus_t::value >= 0);
 
-            return m_values[s_storage_info.index(accessor_) - kminus::value];
+            return m_values[s_storage_info.index(accessor_) - kminus_t::value];
         }
 
         template < typename Accessor >
         GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_) {
+            // TODO KCACHE check accessor values are within extent
             constexpr const meta_t s_storage_info;
 
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
-            // TODO KCACHE check there are no IJ accesses
-            typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
-            typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
-            typedef typename boost::mpl::at_c< typename minus_t::type, 2 >::type kminus;
-
 #ifdef CUDA8
             typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
             typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
@@ -176,22 +176,19 @@ namespace gridtools {
             assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
 #endif
 
-            assert(s_storage_info.index(accessor_) - kminus::value < size());
-            assert(s_storage_info.index(accessor_) - kminus::value >= 0);
-            return m_values[s_storage_info.index(accessor_) - kminus::value];
+            assert(s_storage_info.index(accessor_) - kminus_t::value < size());
+            assert(s_storage_info.index(accessor_) - kminus_t::value >= 0);
+            return m_values[s_storage_info.index(accessor_) - kminus_t::value];
         }
 
         template < typename IterationPolicy >
         GT_FUNCTION void slide() {
-            // TODO KCACHE check there are no IJ
             // TODO do not slide if cache interval out of ExecutionPolicy intervals
 
+            GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value == K), "Error: we can only slide KCaches");
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "Error");
 
-            typedef typename boost::mpl::at_c< typename minus_t::type, 2 >::type kminus;
-            typedef typename boost::mpl::at_c< typename plus_t::type, 2 >::type kplus;
-
-            constexpr uint_t ksize = kplus::value - kminus::value + 1;
+            constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;
             constexpr uint_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : ksize - 1;
             constexpr uint_t kend = (IterationPolicy::value == enumtype::backward) ? ksize - 2 : 1;
             for (int_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {

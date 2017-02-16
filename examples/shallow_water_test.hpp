@@ -152,14 +152,14 @@ namespace shallow_water {
             typename DimensionX,
             typename DimensionY >
         GT_FUNCTION static float_type /*&&*/ half_step_v(
-            Evaluation const &eval, ComponentU U, ComponentV V, DimensionX d1, DimensionY d2, float_type const &delta) {
+            Evaluation &eval, ComponentU U, ComponentV V, DimensionX d1, DimensionY d2, float_type const &delta) {
             return /*std::move*/ (eval((sol(V, d1, d2) + sol(V, d1) / 2. -
                                         sol(U, d1, d2) * sol(V, d1, d2) / sol(d1, d2) * (dt() / (2 * delta)) -
                                         sol(U, d2) * sol(V, d2) / sol(d2))));
         }
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             // x i;
             // y j;
 
