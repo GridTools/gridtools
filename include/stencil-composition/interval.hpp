@@ -43,6 +43,13 @@
 #include "../common/host_device.hpp"
 
 namespace gridtools {
+
+    namespace internal {
+        constexpr int_t add_offset(int_t offset, int_t value) {
+            return (offset + value == 0) ? (offset + 2 * value) : (offset + value);
+        }
+    }
+
     /**
      * @struct Interval
      * Structure defining a closed interval on an axis given two levels
@@ -74,6 +81,21 @@ namespace gridtools {
         // define the from and to splitter indexes
         typedef TFromLevel FromLevel;
         typedef TToLevel ToLevel;
+
+        // User API: helper to access the first and last level as an interval
+        using first_level = interval< TFromLevel, TFromLevel >;
+        using last_level = interval< TToLevel, TToLevel >;
+
+        // User API: move bounds of the interval
+        template < int_t left, int_t right >
+        struct modify_interval {
+            // TODO ensure we do not access splitter outside the max. offset
+            using type =
+                interval< level< TFromLevel::Splitter::value, internal::add_offset(TFromLevel::Offset::value, left) >,
+                    level< TToLevel::Splitter::value, internal::add_offset(TToLevel::Offset::value, right) > >;
+        };
+        template < int_t left, int_t right >
+        using modify = typename modify_interval< left, right >::type;
     };
 
     /**

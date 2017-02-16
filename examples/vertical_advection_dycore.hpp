@@ -56,12 +56,11 @@ using namespace enumtype;
 
 namespace vertical_advection_dycore {
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kbody_low;
-    typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
-    typedef gridtools::interval< level< 1, -1 >, level< 1, -1 > > kmaximum;
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+    using axis_t = axis< 1 >;
+    using kbody = axis_t::full_interval::modify< 1, -1 >;
+    using kbody_low = axis_t::full_interval::modify< 0, -1 >;
+    using kminimum = axis_t::full_interval::first_level;
+    using kmaximum = axis_t::full_interval::last_level;
 
     template < typename T >
     struct u_forward_function {
@@ -273,12 +272,10 @@ namespace vertical_advection_dycore {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(di, dj, axis_t(d3));
 
 #ifdef CXX11_ENABLED
         auto
