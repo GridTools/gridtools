@@ -63,7 +63,6 @@ namespace gridtools {
         typedef gridtools::interval< level< from_splitter, (from_offset != -1) ? from_offset + 1 : from_offset + 2 >,
             level< to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2 > > default_interval;
 
-        typedef Functor type;
         typedef typename Functor::arg_list arg_list;
 
         template < typename Eval >

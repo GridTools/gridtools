@@ -41,21 +41,22 @@ namespace gridtools {
        @brief type list containing the user function type together with some meta information
 
        \tparam T1 an identifier for the user function
-       \tparam T2 the type of the user function
+       \tparam Functor the type of the user function
        \tparam Repeat a type specifying how many times to repeat the functor call
        (used for expandable parameters)
     */
-    template < typename T1, typename T2, typename Repeat, typename Axis >
+    template < typename T1, typename Functor, typename Repeat, typename Axis >
     struct functor_decorator {
         typedef Repeat repeat_t;
         typedef T1 id;
-        typedef functor_default_interval< T2, Axis > f_type;
-        typedef typename T2::arg_list arg_list;
+        typedef Functor f_type;
+        typedef functor_default_interval< Functor, Axis > f_with_default_interval;
+        typedef typename Functor::arg_list arg_list;
     };
 
     template < typename T >
     struct is_functor_decorator : boost::mpl::false_ {};
 
-    template < typename T1, typename T2, typename Repeat, typename Axis >
-    struct is_functor_decorator< functor_decorator< T1, T2, Repeat, Axis > > : boost::mpl::true_ {};
+    template < typename T1, typename Functor, typename Repeat, typename Axis >
+    struct is_functor_decorator< functor_decorator< T1, Functor, Repeat, Axis > > : boost::mpl::true_ {};
 } // namespace gridtools
