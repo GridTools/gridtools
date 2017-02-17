@@ -141,6 +141,10 @@ namespace gridtools {
             #endif
         }
 
+        GT_FUNCTION nano_array<unsigned, Layout::length> const& strides() const {
+            return m_strides;
+        }
+
         GT_FUNCTION static constexpr unsigned get_initial_offset() {
             return alignment_impl< Alignment, Layout, Halo >::InitialOffset;
         }
