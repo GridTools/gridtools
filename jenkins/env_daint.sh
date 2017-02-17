@@ -8,7 +8,7 @@ function exit_if_error {
     fi
 }
 
-module load /users/vogtha/modules/CMake/
+module load /users/vogtha/modules/CMake/3.7.2
 module load cudatoolkit/8.0.34_2.2.5_g8ce7a9a-2.1
 module rm   PrgEnv-cray
 module load PrgEnv-gnu/6.0.3
@@ -25,7 +25,7 @@ if [[ ${COMPILER} == "gcc" ]]; then
     fi
   fi
 elif [[ ${COMPILER} == "clang" ]]; then
-  module load /users/vogtha/modules/compilers/clang
+  module load /users/vogtha/modules/compilers/clang/4.0.0rc2
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
