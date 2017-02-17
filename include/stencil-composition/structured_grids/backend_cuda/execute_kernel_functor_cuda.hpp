@@ -322,6 +322,14 @@ namespace gridtools {
                     local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
 
+#ifndef NDEBUG
+                cudaDeviceSynchronize();
+                cudaError_t error = cudaGetLastError();
+                if (error != cudaSuccess) {
+                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+                    exit(-1);
+                }
+#endif
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
                 cudaDeviceSynchronize();
             }
