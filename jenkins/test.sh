@@ -37,7 +37,7 @@ if [ $myhost == "greina" ]; then
 elif [ $myhost == "kesch" ]; then
     cmd="srun --ntasks=1 -K -u bash ${JENKINSPATH}/../build/run_tests.sh"
 elif [ $myhost == "daint" ]; then
-    cmd="aprun -B bash ${JENKINSPATH}/../build/run_tests.sh"
+    cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
 fi
 echo "replacing in ${slurm_script} command by ${cmd}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
