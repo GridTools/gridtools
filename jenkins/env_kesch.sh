@@ -27,3 +27,5 @@ export BOOST_ROOT=/scratch/stefanm/boost_1_62_0/
 export BOOST_INCLUDE=/scratch/stefanm/boost_1_62_0/include/
 export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
+export USE_MPI_COMPILER=ON
+export CXX=`which g++`
