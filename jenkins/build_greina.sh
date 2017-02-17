@@ -228,6 +228,12 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
       fi
     done
 
+    nwarnings=`grep "warning: " ${log_file} | wc -l`
+    if [ ${nwarnings} -ne 0 ]; then
+        echo 'Build failed because of ${nwarnings} warnings!\n'
+        error_code=$((error_code || `echo "1"` ))    
+    fi
+
     if [ ${error_code} -ne 0 ]; then
         cat ${log_file};
     fi
