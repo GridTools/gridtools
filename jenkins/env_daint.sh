@@ -8,8 +8,9 @@ function exit_if_error {
     fi
 }
 
+module unload CMake
 module load /users/vogtha/modules/CMake/3.7.2
-module load cudatoolkit/8.0.34_2.2.5_g8ce7a9a-2.1
+module load cudatoolkit
 module rm   PrgEnv-cray
 module load PrgEnv-gnu/6.0.3
 export BOOST_ROOT=/apps/daint/UES/jenkins/dom-acceptance/haswell/easybuild/software/Boost/1.61.0-CrayGNU-2016.11-Python-2.7.12/
@@ -25,17 +26,14 @@ if [[ ${COMPILER} == "gcc" ]]; then
     fi
   fi
 elif [[ ${COMPILER} == "clang" ]]; then
-  module load /users/vogtha/modules/compilers/clang/4.0.0rc2
+  module unload gcc
+  module load /users/vogtha/modules/compilers/clang/3.9.1
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
 fi
 
 
-#module load python/3.4.3
-#module load mvapich2/gcc/64/2.2-gcc-4.8.4-cuda-7.0
-#export Boost_NO_SYSTEM_PATHS=true
-#export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
