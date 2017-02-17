@@ -27,7 +27,7 @@ if [[ ${COMPILER} == "gcc" ]]; then
   fi
 elif [[ ${COMPILER} == "clang" ]]; then
   module unload gcc
-  module load /users/vogtha/modules/compilers/clang/3.9.1
+  module load /users/vogtha/modules/compilers/clang/3.8.1
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
