@@ -42,9 +42,11 @@ else()
 endif()
 
 if(Boost_FOUND)
-    # HACK: This is a non-platform independent and polutes the environment
-    set(ENV{CPLUS_INCLUDE_PATH} "${Boost_INCLUDE_DIRS}:$ENV{CPLUS_INCLUDE_PATH}")
-    set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
+  # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
+  foreach(dir ${Boost_INCLUDE_DIRS})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${dir}")
+  endforeach()
+  set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -mtune=native")
