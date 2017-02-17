@@ -42,7 +42,8 @@ else()
 endif()
 
 if(Boost_FOUND)
-    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
+    # HACK: This is a non-platform independent and polutes the environment
+    set(ENV{CPLUS_INCLUDE_PATH} "${Boost_INCLUDE_DIRS}:$ENV{CPLUS_INCLUDE_PATH}")
     set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
