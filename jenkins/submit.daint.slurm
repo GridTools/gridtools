@@ -6,7 +6,8 @@
 #SBATCH --output=test.out
 #SBATCH --time=00:30:00
 #SBATCH --gres=gpu:1
-#SBATCH --distribution block:block
+#SBATCH --account=c01
+#SBATCH -C gpu
 
 echo $LD_LIBRARY_PATH
 
