@@ -57,19 +57,19 @@ namespace gridtools {
 
     namespace impl_{
         /** helper function computing sum(offset*stride ...)*/
-        template <typename StorageInfo, typename Accessor>
+        template < unsigned N = 0, typename StorageInfo, typename Accessor, typename... Ints >
         GT_FUNCTION
-        constexpr uint_t compute_offset(StorageInfo&& si_, Accessor&& acc_){
-            GRIDTOOLS_STATIC_ASSERT(is_storage_info<StorageInfo>::value, "Internal error");
-            return compute_offset_impl(std::forward<StorageInfo>(si_), std::forward<Accessor>(acc_), make_gt_integer_sequence<uint_t, Accessor::n_dim>());
+        constexpr typename boost::enable_if_c<(N==StorageInfo::layout_t::length), uint_t>::type 
+        compute_offsets(StorageInfo si_, Accessor acc_, Ints... strides) {
+            return compute_offset<typename StorageInfo::meta_storage_t>(array<int_t, N>{strides...}, acc_);
         }
 
-        template <typename StorageInfo, typename Accessor, uint_t ... Ids>
+        template < unsigned N = 0, typename StorageInfo, typename Accessor, typename... Ints >
         GT_FUNCTION
-        constexpr uint_t compute_offset_impl(StorageInfo&& si_, Accessor&& acc_, gt_integer_sequence<uint_t, Ids ...>) {
-            return accumulate(add_functor(), si_.template stride<Ids>() * acc_.template get<Ids>() ...);
+        constexpr typename boost::enable_if_c<(N<StorageInfo::layout_t::length), uint_t>::type 
+        compute_offsets(StorageInfo si_, Accessor acc_, Ints... strides) {
+            return compute_offsets<N+1, StorageInfo>(si_, acc_, si_.template stride<N>(), strides...);
         }
-
     }
 
 #ifdef CXX11_ENABLED
@@ -130,7 +130,7 @@ namespace gridtools {
             // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template stride< 0 >() +
                                   (thread_pos[1] - jminus::value) * m_value.template stride< 1 >() +
-                compute_offset(m_value, accessor_);
+                                  impl_::compute_offsets<0, meta_t>(m_value, accessor_.offsets());
             assert((extra_) < size());
             assert((extra_) >= 0);
 

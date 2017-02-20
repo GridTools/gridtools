@@ -9,11 +9,11 @@ namespace gridtools {
     struct meta_storage_cache {
 
         typedef storage_info_interface< 0, Layout > meta_storage_t;
-
-      private:
-        const meta_storage_t m_value;
+        typedef Layout layout_t;
 
       public:
+        const meta_storage_t m_value;
+
         GT_FUNCTION
         constexpr meta_storage_cache(meta_storage_cache const &other) : m_value{other.m_value} {};
 
