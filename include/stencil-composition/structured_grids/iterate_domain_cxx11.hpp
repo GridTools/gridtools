@@ -217,7 +217,7 @@ namespace gridtools {
         */
         GT_FUNCTION
         strides_cached_t &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
-        
+
         /**
            @brief returns the array of pointers to the raw data
         */
@@ -250,7 +250,7 @@ namespace gridtools {
         template < typename BackendType >
         GT_FUNCTION void assign_storage_pointers() {
             boost::fusion::for_each(local_domain.m_local_data_ptrs,
-                assign_storage_ptrs< BackendType, data_ptr_cached_t, local_domain_t, processing_elements_block_size_t, 
+                assign_storage_ptrs< BackendType, data_ptr_cached_t, local_domain_t, processing_elements_block_size_t,
                     typename local_domain_t::extents_map_t >(
                     data_pointer(), local_domain.m_local_storage_info_ptrs));
         }
@@ -403,7 +403,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim == storage_info_t::Layout::length+2,
                     "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and snapshot)");
 
-                const uint_t idx = get_accumulated_data_field_index_h<storage_t>::apply(accessor.template get< 1 >()) 
+                const uint_t idx = get_accumulated_data_field_index_h<storage_t>::apply(accessor.template get< 1 >())
                     + accessor.template get< 0 >();
                 return data_pointer().template get< index_t::value >()[idx];
         }
@@ -528,7 +528,7 @@ namespace gridtools {
         // getting information about the storage
         typedef typename Accessor::index_t index_t;
         typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
-        
+
         typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
             storage_wrapper_t;
         typedef typename storage_wrapper_t::storage_t storage_t;
@@ -551,8 +551,8 @@ namespace gridtools {
 
         // control your instincts: changing the following
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
-        const int_t pointer_offset = m_index[storage_info_index_t::value] + 
-            compute_offset< storage_wrapper_t, storage_info_t >(
+        const int_t pointer_offset = m_index[storage_info_index_t::value] +
+            compute_offset< storage_info_t >(
                 strides().template get< storage_info_index_t::value >(),
                 accessor.offsets());
 

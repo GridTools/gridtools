@@ -141,6 +141,10 @@ namespace gridtools {
             #endif
         }
 
+        GT_FUNCTION nano_array<unsigned, Layout::length> const& strides() const {
+            return m_strides;
+        }
+
         GT_FUNCTION static constexpr unsigned get_initial_offset() {
             return alignment_impl< Alignment, Layout, Halo >::InitialOffset;
         }
@@ -152,7 +156,7 @@ namespace gridtools {
         constexpr storage_info_interface() {}
 
         template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c<(N<=Layout::length-1), bool>::type 
+        GT_FUNCTION constexpr typename boost::enable_if_c<(N<=Layout::length-1), bool>::type
         check_bounds(Ints... idx) const {
             // check for out of bounds access; each index is checked if it does not exceed the unaligned dimension.
             // masked dimensions are skipped and a recursive call is performed until all indices are checked.
@@ -160,7 +164,7 @@ namespace gridtools {
         }
 
         template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c<(N==Layout::length), bool>::type 
+        GT_FUNCTION constexpr typename boost::enable_if_c<(N==Layout::length), bool>::type
         check_bounds(Ints... idx) const {
             // base case out of bounds check
             return true;

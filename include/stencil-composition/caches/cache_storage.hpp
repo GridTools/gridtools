@@ -40,6 +40,8 @@
 #include "../block_size.hpp"
 #include "../extent.hpp"
 #include "../../common/offset_tuple.hpp"
+#include "../../common/generic_metafunctions/accumulate.hpp"
+#include "../iterate_domain_aux.hpp"
 
 #ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"
@@ -52,6 +54,23 @@ namespace gridtools {
 
     template < typename BlockSize, typename Extent, typename StorageWrapper >
     struct cache_storage;
+
+    namespace impl_{
+        /** helper function computing sum(offset*stride ...)*/
+        template < unsigned N = 0, typename StorageInfo, typename Accessor, typename... Ints >
+        GT_FUNCTION
+        constexpr typename boost::enable_if_c<(N==StorageInfo::layout_t::length), uint_t>::type 
+        compute_offsets(StorageInfo si_, Accessor acc_, Ints... strides) {
+            return compute_offset<typename StorageInfo::meta_storage_t>(array<int_t, N>{strides...}, acc_);
+        }
+
+        template < unsigned N = 0, typename StorageInfo, typename Accessor, typename... Ints >
+        GT_FUNCTION
+        constexpr typename boost::enable_if_c<(N<StorageInfo::layout_t::length), uint_t>::type 
+        compute_offsets(StorageInfo si_, Accessor acc_, Ints... strides) {
+            return compute_offsets<N+1, StorageInfo>(si_, acc_, si_.template stride<N>(), strides...);
+        }
+    }
 
 #ifdef CXX11_ENABLED
     /**
@@ -111,8 +130,7 @@ namespace gridtools {
             // manually aligning the storage
             const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template stride< 0 >() +
                                   (thread_pos[1] - jminus::value) * m_value.template stride< 1 >() +
-                                  m_value.index(accessor_);
-
+                                  impl_::compute_offsets<0, meta_t>(m_value, accessor_.offsets());
             assert((extra_) < size());
             assert((extra_) >= 0);
 
