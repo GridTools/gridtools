@@ -99,7 +99,7 @@ namespace gridtools {
 
         /**
            This metafuction is for debugging purpose. It checks that
-           all the pplaceholders used in the making of a computation
+           all the placeholders used in the making of a computation
            are also listed in the aggregator.
         */
         template < typename Aggregator, typename... Mss >

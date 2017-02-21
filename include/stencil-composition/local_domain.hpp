@@ -124,7 +124,8 @@ namespace gridtools {
             struct apply {
                 GRIDTOOLS_STATIC_ASSERT(
                     (fusion_vector_check_bound< typename ElemType::index_type, StorageList >::value),
-                    "Access out of boud");
+                    "Access out of bound. Be aware that this assert may show up before others that are more "
+                    "informative about the problem at hand. Please, check the error log for further static asserts.");
                 typedef typename boost::remove_reference< typename boost::fusion::result_of::at< StorageList,
                     typename ElemType::index_type >::type >::type type;
             };
