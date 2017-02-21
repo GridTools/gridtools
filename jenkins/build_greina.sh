@@ -16,7 +16,6 @@ function help {
    echo "-f      floating point precision [float|double]"
    echo "-c      cxx standard             [cxx11|cxx03]"
    echo "-l      compiler                 [gcc|clang]  "
-   echo "-p      activate python                       "
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "
    echo "-z      force build                           "
@@ -34,7 +33,7 @@ FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
 
-while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
+while getopts "h:b:t:f:c:l:zmsidvq:x:" opt; do
     case "$opt" in
     h|\?)
         help
@@ -47,8 +46,6 @@ while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
     f) FLOAT_TYPE=$OPTARG
         ;;
     c) CXX_STD=$OPTARG
-        ;;
-    p) PYTHON="ON"
         ;;
     m) MPI="ON"
         ;;
@@ -109,12 +106,6 @@ fi
 mkdir -p build;
 cd build;
 
-#
-# full path to the virtual environment where the Python tests run
-#
-VENV_PATH=${HOME}/venv_gridtools4py
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:${VENV_PATH}/lib/python3.4/site-packages/PySide-1.2.2-py3.4-linux-x86_64.egg/PySide
-
 if [ "x$TARGET" == "xgpu" ]; then
     USE_GPU=ON
 else
@@ -142,13 +133,6 @@ else
     USE_MPI=OFF
 fi
 echo "MPI = $USE_MPI"
-
-if [[ "$PYTHON" == "ON" ]]; then
-    USE_PYTHON=ON
-else
-    USE_PYTHON=OFF
-fi
-echo "PYTHON = $PYTHON_ON"
 
 RUN_MPI_TESTS=$USE_MPI ##$SINGLE_PRECISION
 
@@ -195,8 +179,6 @@ cmake \
 -DUSE_MPI_COMPILER:BOOL=$USE_MPI  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
 -DENABLE_CXX11:BOOL=$CXX_11 \
--DENABLE_PYTHON:BOOL=$USE_PYTHON \
--DPYTHON_INSTALL_PREFIX:STRING="${VENV_PATH}" \
 -DENABLE_PERFORMANCE_METERS:BOOL=ON \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
@@ -211,7 +193,7 @@ exit_if_error $?
 num_make_rep=2
 
 error_code=0
-log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}_${RANDOM}.log"
+log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${MPI}_${RANDOM}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
     echo "Log file ${log_file}"
     for i in `seq 1 $num_make_rep`;
