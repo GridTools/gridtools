@@ -251,7 +251,7 @@ namespace halo_exchange_3D_generic_full {
         file.flush();
 
 #ifdef __CUDACC__
-        file << "GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU \n";
+        file << "***** GPU ON *****\n";
 
         triple_t< USE_DOUBLE, T1 >::data_type *gpu_a = 0;
         triple_t< USE_DOUBLE, T2 >::data_type *gpu_b = 0;

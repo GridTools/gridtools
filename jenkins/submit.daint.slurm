@@ -6,6 +6,8 @@
 #SBATCH --time=00:10:00
 #SBATCH -C gpu
 #SBATCH --cpus-per-task=<CPUSPERTASK>
+#SBATCH --account=c01
+
 
 echo $LD_LIBRARY_PATH
 

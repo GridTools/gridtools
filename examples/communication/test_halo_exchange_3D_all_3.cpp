@@ -180,7 +180,7 @@ namespace halo_exchange_3D_all_3 {
         printbuff(file, c, DIM1 + H1m + H1p, DIM2 + H2m + H2p, DIM3 + H3m + H3p);
 
 #ifdef __CUDACC__
-        file << "GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU GPU \n";
+        file << "***** GPU ON *****\n";
 
         triple_t< USE_DOUBLE > *gpu_a = 0;
         triple_t< USE_DOUBLE > *gpu_b = 0;
