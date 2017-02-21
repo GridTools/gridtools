@@ -58,7 +58,6 @@ namespace all_args_in_aggregator {
         using value_type = float;
     };
 
-
     TEST(testdomain, testindices) {
         typedef gridtools::arg< 0, storage_type > p_in;
         typedef gridtools::arg< 1, storage_type > p_out;
@@ -67,22 +66,19 @@ namespace all_args_in_aggregator {
         typedef boost::mpl::vector< p_in, p_out > accessor_list;
         using agg = gridtools::aggregator_type< accessor_list >;
 
-        auto bad = gridtools::make_multistage
-            (gridtools::enumtype::execute< gridtools::enumtype::forward >(),
-             gridtools::make_stage< copy_functor >(p_in(), p_err()),
-             gridtools::make_stage< copy_functor >(p_in(), p_out()));
+        auto bad = gridtools::make_multistage(gridtools::enumtype::execute< gridtools::enumtype::forward >(),
+            gridtools::make_stage< copy_functor >(p_in(), p_err()),
+            gridtools::make_stage< copy_functor >(p_in(), p_out()));
 
-        auto good = gridtools::make_multistage
-            (gridtools::enumtype::execute< gridtools::enumtype::forward >(),
-             gridtools::make_stage< copy_functor >(p_in(), p_out()),
-             gridtools::make_stage< copy_functor >(p_in(), p_out()));
+        auto good = gridtools::make_multistage(gridtools::enumtype::execute< gridtools::enumtype::forward >(),
+            gridtools::make_stage< copy_functor >(p_in(), p_out()),
+            gridtools::make_stage< copy_functor >(p_in(), p_out()));
 
+        static_assert(gridtools::_impl::all_args_in_aggregator< agg, decltype(good) >::type::value, "");
+        static_assert(!gridtools::_impl::all_args_in_aggregator< agg, decltype(bad) >::type::value, "");
 
-        static_assert(gridtools::_impl::all_args_in_aggregator<agg, decltype(good)>::type::value, "");
-        static_assert(!gridtools::_impl::all_args_in_aggregator<agg, decltype(bad)>::type::value, "");
-
-        static_assert(gridtools::_impl::all_args_in_aggregator<agg, decltype(good), decltype(good)>::type::value, "");
-        static_assert(!gridtools::_impl::all_args_in_aggregator<agg, decltype(bad), decltype(good)>::type::value, "");
+        static_assert(gridtools::_impl::all_args_in_aggregator< agg, decltype(good), decltype(good) >::type::value, "");
+        static_assert(!gridtools::_impl::all_args_in_aggregator< agg, decltype(bad), decltype(good) >::type::value, "");
     }
 
 } // namespace all_args_in_aggregator

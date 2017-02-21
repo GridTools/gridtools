@@ -44,8 +44,9 @@ namespace gridtools {
        \tparam IndexType Index type (need ::value to access the value)
        \tparam FusionVector the fusion vector
      */
-    template <typename IndexType, typename FusionVector>
+    template < typename IndexType, typename FusionVector >
     struct fusion_vector_check_bound {
-        static const bool value = /*IndexType::value>0 &&*/ IndexType::value < boost::fusion::result_of::size<FusionVector>::type::value;
+        static const bool value =
+            /*IndexType::value>0 &&*/ IndexType::value < boost::fusion::result_of::size< FusionVector >::type::value;
     };
 } // namespace gridtools

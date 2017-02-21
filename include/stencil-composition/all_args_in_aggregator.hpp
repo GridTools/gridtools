@@ -41,61 +41,60 @@
 namespace gridtools {
 
     namespace _impl {
-        template <typename Aggregator>
+        template < typename Aggregator >
         struct investigate_esf {
-            template <typename Agg>
+            template < typename Agg >
             struct investigate_placeholder {
-                template <typename CR, typename Plc>
+                template < typename CR, typename Plc >
                 struct apply {
-                    using type = typename boost::mpl::and_<CR, typename boost::mpl::contains<typename Agg::placeholders, Plc>::type>::type;
+                    using type = typename boost::mpl::and_< CR,
+                        typename boost::mpl::contains< typename Agg::placeholders, Plc >::type >::type;
                 };
             };
 
-            template <typename CurrentResult, typename ESF>
+            template < typename CurrentResult, typename ESF >
             struct apply {
-                using type = typename boost::mpl::fold<
-                    typename ESF::args_t,
+                using type = typename boost::mpl::fold< typename ESF::args_t,
                     CurrentResult,
-                    typename investigate_placeholder<Aggregator>::template apply<boost::mpl::_1, boost::mpl::_2>
-                    >::type;
+                    typename investigate_placeholder< Aggregator >::template apply< boost::mpl::_1,
+                                                            boost::mpl::_2 > >::type;
             };
 
-            template <typename CurrentResult, typename ESFs>
-            struct apply<CurrentResult, independent_esf<ESFs> > {
-                using type = typename boost::mpl::fold<
-                    ESFs,
-                    CurrentResult,
-                    apply<boost::mpl::_1, boost::mpl::_2>
-                    >::type;
+            template < typename CurrentResult, typename ESFs >
+            struct apply< CurrentResult, independent_esf< ESFs > > {
+                using type =
+                    typename boost::mpl::fold< ESFs, CurrentResult, apply< boost::mpl::_1, boost::mpl::_2 > >::type;
             };
         };
 
-        template <typename CurrentResult, typename Aggregator, typename... RestOfMss>
+        template < typename CurrentResult, typename Aggregator, typename... RestOfMss >
         struct unwrap_esf_sequence;
 
         // Recursion base
-        template <typename CurrentResult, typename Aggregator>
-        struct unwrap_esf_sequence<CurrentResult, Aggregator> {
+        template < typename CurrentResult, typename Aggregator >
+        struct unwrap_esf_sequence< CurrentResult, Aggregator > {
             using type = CurrentResult;
         };
 
-        template <typename CurrentResult, typename Aggregator, typename FirstMss, typename... RestOfMss>
-        struct unwrap_esf_sequence<CurrentResult, Aggregator, FirstMss, RestOfMss...> {
+        template < typename CurrentResult, typename Aggregator, typename FirstMss, typename... RestOfMss >
+        struct unwrap_esf_sequence< CurrentResult, Aggregator, FirstMss, RestOfMss... > {
             using esfs = typename FirstMss::esf_sequence_t;
-            using CR = typename boost::mpl::fold<
-                esfs,
+            using CR = typename boost::mpl::fold< esfs,
                 CurrentResult,
-                typename investigate_esf<Aggregator>::template apply<boost::mpl::_1, boost::mpl::_2>
-                >::type;
-            using type = typename unwrap_esf_sequence<CR, Aggregator, RestOfMss...>::type;
+                typename investigate_esf< Aggregator >::template apply< boost::mpl::_1, boost::mpl::_2 > >::type;
+            using type = typename unwrap_esf_sequence< CR, Aggregator, RestOfMss... >::type;
         };
 
-        template <typename CurrentResult, typename Aggregator,
-                  typename Mss0, typename Mss1, typename Tag, typename... RestOfMss>
-        struct unwrap_esf_sequence<CurrentResult, Aggregator, condition<Mss0, Mss1, Tag>, RestOfMss...> {
-            using CR1 = typename unwrap_esf_sequence<CurrentResult, Aggregator, Mss0>::type;
-            using CR2 = typename unwrap_esf_sequence<CR1, Aggregator, Mss1>::type;
-            using type = typename unwrap_esf_sequence<CR2, Aggregator, RestOfMss...>::type;
+        template < typename CurrentResult,
+            typename Aggregator,
+            typename Mss0,
+            typename Mss1,
+            typename Tag,
+            typename... RestOfMss >
+        struct unwrap_esf_sequence< CurrentResult, Aggregator, condition< Mss0, Mss1, Tag >, RestOfMss... > {
+            using CR1 = typename unwrap_esf_sequence< CurrentResult, Aggregator, Mss0 >::type;
+            using CR2 = typename unwrap_esf_sequence< CR1, Aggregator, Mss1 >::type;
+            using type = typename unwrap_esf_sequence< CR2, Aggregator, RestOfMss... >::type;
         };
 
         /**
@@ -103,9 +102,9 @@ namespace gridtools {
            all the pplaceholders used in the making of a computation
            are also listed in the aggregator.
         */
-        template <typename Aggregator, typename... Mss>
+        template < typename Aggregator, typename... Mss >
         struct all_args_in_aggregator {
-            using type = typename unwrap_esf_sequence<boost::mpl::true_, Aggregator, Mss...>::type;
+            using type = typename unwrap_esf_sequence< boost::mpl::true_, Aggregator, Mss... >::type;
         }; // struct all_args_in_domain
-    } // namespace _impl
+    }      // namespace _impl
 } // namespace gridtools

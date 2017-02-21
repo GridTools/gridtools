@@ -122,7 +122,9 @@ namespace gridtools {
         struct extract_types {
             template < typename ElemType >
             struct apply {
-                GRIDTOOLS_STATIC_ASSERT((fusion_vector_check_bound<typename ElemType::index_type, StorageList>::value), "Access out of boud");
+                GRIDTOOLS_STATIC_ASSERT(
+                    (fusion_vector_check_bound< typename ElemType::index_type, StorageList >::value),
+                    "Access out of boud");
                 typedef typename boost::remove_reference< typename boost::fusion::result_of::at< StorageList,
                     typename ElemType::index_type >::type >::type type;
             };
