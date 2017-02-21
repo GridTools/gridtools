@@ -103,10 +103,17 @@ namespace gridtools {
                 reinterpret_cast< const mask_object< const DerivedType > * >(
                     (static_cast< const DerivedType * >(this)));
 
-            // clang-format off
-            construct<<<1,1>>>(*maskT);
-            // clang-format on
-            cudaDeviceSynchronize();
+            construct<<< 1, 1 >>>(*maskT);
+
+            cudaDeviceSynchronize(); // if you want to remove this, then move it in the #ifndef NDEBUG
+
+#ifndef NDEBUG
+            cudaError_t error = cudaGetLastError();
+            if (error != cudaSuccess) {
+                fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+                exit(-1);
+            }
+#endif
         }
 
         /** Member function to update the object from the gpu calling the copy constructor of the
