@@ -97,6 +97,52 @@ namespace gridtools {
         fused_local_domain_sequence_t local_domain_list;
     };
 
+    template < enumtype::platform BackendId1,
+        typename MssComponents1,
+        typename DomainType1,
+        typename ActualArgListType1,
+        typename MetaStorageListType1,
+        bool IsStateful1,
+        enumtype::platform BackendId2,
+        typename MssComponents2,
+        typename DomainType2,
+        typename ActualArgListType2,
+        typename MetaStorageListType2,
+        bool IsStateful2 >
+    struct combine< mss_local_domain< BackendId1,
+                        MssComponents1,
+                        DomainType1,
+                        ActualArgListType1,
+                        MetaStorageListType1,
+                        IsStateful1 >,
+        mss_local_domain< BackendId2,
+                        MssComponents2,
+                        DomainType2,
+                        ActualArgListType2,
+                        MetaStorageListType2,
+                        IsStateful2 > > {
+
+        GRIDTOOLS_STATIC_ASSERT((IsStateful1 == IsStateful2), "Internal error, wrong type");
+        GRIDTOOLS_STATIC_ASSERT((BackendId1 == BackendId2), "Internal error, wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType1 >::type::value), "Internal error, wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType2 >::type::value), "Internal error, wrong type");
+
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents1 >::type::value), "Internal error, wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents2 >::type::value), "Internal error, wrong type");
+
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same< DomainType1, DomainType2 >::type::value),
+            "Internal error, probably wrong usage of conditionals");
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same< MetaStorageListType1, MetaStorageListType2 >::type::value),
+            "Internal error, probably wrong usage of conditionals");
+
+        typedef mss_local_domain< BackendId1,
+            MssComponents1,
+            DomainType1,
+            typename combine< ActualArgListType1, ActualArgListType2 >::type,
+            MetaStorageListType1,
+            IsStateful1 > type;
+    };
+
     template < typename T >
     struct is_mss_local_domain : boost::mpl::false_ {};
 

@@ -445,13 +445,12 @@ namespace gridtools {
     template < typename Vec1, typename Vec2, typename Cond >
     struct extract_mss_domains< condition< Vec1, Vec2, Cond > > {
 
-        // TODO: how to do the check described below?
-        // GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename extract_mss_domains<Vec1>::type, typename
-        // extract_mss_domains<Vec2>::type>::type::value), "The case in which 2 different mss are enabled/disabled using
-        // conditionals is supported only when they work with the same placeholders. Here you are trying to switch
-        // between MSS for which the type (or the order) of the placeholders is not the same");
-        // consider the first one
-        typedef typename extract_mss_domains< Vec1 >::type type;
+        typedef typename boost::mpl::fold<
+            boost::mpl::range_c< int_t, 0, boost::mpl::size< Vec1 >::type::value >,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back< boost::mpl::_1,
+                combine< boost::mpl::at< Vec1, boost::mpl::_2 >, boost::mpl::at< Vec2, boost::mpl::_2 > > > >::type
+            type;
     };
 
     // function that checks if the given extents (I+- and J+-)
