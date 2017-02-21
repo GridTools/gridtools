@@ -68,6 +68,19 @@ namespace test_conditionals {
         }
     };
 
+    template < uint_t Id >
+    struct functor2args {
+
+        typedef accessor< 0, enumtype::inout > p_dummy;
+        typedef accessor< 1, enumtype::in > p_dummy2;
+        typedef boost::mpl::vector2< p_dummy, p_dummy2 > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            eval(p_dummy()) = eval(p_dummy2()) + Id;
+        }
+    };
+
     bool predicate1() { return false; }
     bool predicate2() { return true; }
 
@@ -96,10 +109,12 @@ namespace test_conditionals {
         typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
         meta_data_t meta_data_(3, 3, 3);
         storage_t dummy(meta_data_, 0., "dummy");
+        storage_t dummy2(meta_data_, 0., "dummy2");
         typedef arg< 0, storage_t > p_dummy;
+        typedef arg< 1, storage_t > p_dummy2;
 
-        typedef boost::mpl::vector1< p_dummy > arg_list;
-        aggregator_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
+        typedef boost::mpl::vector2< p_dummy, p_dummy2 > arg_list;
+        aggregator_type< arg_list > domain_(boost::fusion::make_vector(&dummy, &dummy2));
 
 #ifdef CXX11_ENABLED
         auto
@@ -113,13 +128,13 @@ namespace test_conditionals {
             comp_ = make_computation< BACKEND >(
                 domain_,
                 grid_,
-                if_(cond,
-                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
-                    if_(cond2,
-                        make_multistage(
-                            enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
-                        make_multistage(
-                            enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
+                // if_(cond,
+                //     make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
+                if_(cond2,
+                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
+                    make_multistage(
+                        enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))) //)
+            ;
 
         bool result = true;
         comp_->ready();
