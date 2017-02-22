@@ -257,7 +257,6 @@ namespace halo_exchange_3D_generic {
         gettimeofday(&stop3_tv, NULL);
 #else
 
-        cudaDeviceSynchronize();
         MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&start_tv, NULL);
         he.pack(field1, field2, field3);
@@ -268,7 +267,6 @@ namespace halo_exchange_3D_generic {
         gettimeofday(&stop2_tv, NULL);
         he.unpack(field1, field2, field3);
 
-        cudaDeviceSynchronize();
         MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&stop3_tv, NULL);
 #endif
