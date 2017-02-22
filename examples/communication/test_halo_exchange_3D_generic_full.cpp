@@ -68,7 +68,6 @@ namespace halo_exchange_3D_generic_full {
 #define B_ADD 1
 #define C_ADD 2
 
-#define VECTOR_INTERFACE
 #ifdef VECTOR_INTERFACE
     typedef int T1;
     typedef int T2;
@@ -2081,9 +2080,9 @@ namespace halo_exchange_3D_generic_full {
                                 _c);
         file << "---------------------------------------------------\n";
 
-        delete [] _a;
-        delete [] _b;
-        delete [] _c;
+        delete[] _a;
+        delete[] _b;
+        delete[] _c;
 
         return passed;
     }

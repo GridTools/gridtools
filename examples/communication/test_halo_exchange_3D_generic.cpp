@@ -236,7 +236,6 @@ namespace halo_exchange_3D_generic {
             reinterpret_cast< triple_t< USE_DOUBLE >::data_type * >(c.ptr), halo_dsc);
 #endif
 
-#define VECTOR_INTERFACE
 #ifdef VECTOR_INTERFACE
         std::vector< gridtools::field_on_the_fly< triple_t< USE_DOUBLE >::data_type, layoutmap, pattern_type::traits > >
             vect(3);
