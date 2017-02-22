@@ -299,9 +299,9 @@ namespace halo_exchange_3D_generic_full {
         gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T1 >::data_type, layoutmap, pattern_type::traits > field1(
             reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(gpu_a), halo_dsc1);
         gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T2 >::data_type, layoutmap, pattern_type::traits > field2(
-            reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(gpu_b), halo_dsc2);
+            reinterpret_cast< triple_t< USE_DOUBLE, T2 >::data_type * >(gpu_b), halo_dsc2);
         gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T3 >::data_type, layoutmap, pattern_type::traits > field3(
-            reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(gpu_c), halo_dsc3);
+            reinterpret_cast< triple_t< USE_DOUBLE, T3 >::data_type * >(gpu_c), halo_dsc3);
 #else
         gridtools::field_on_the_fly< triple_t< USE_DOUBLE, T1 >::data_type, layoutmap, pattern_type::traits > field1(
             reinterpret_cast< triple_t< USE_DOUBLE, T1 >::data_type * >(a.ptr), halo_dsc1);
