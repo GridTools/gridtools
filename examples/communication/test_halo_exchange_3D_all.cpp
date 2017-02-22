@@ -356,21 +356,21 @@ namespace halo_exchange_3D_all {
 
                     if (a(ii, jj, kk) != ta) {
                         passed = false;
-                        file << ii << ", " << jj << ", " << kk << " values found != expct: "
+                        file << ii << ", " << jj << ", " << kk << " values found != expected: "
                              << " -> "
                              << "a " << a(ii, jj, kk) << " != " << ta << "\n";
                     }
 
                     if (b(ii, jj, kk) != tb) {
                         passed = false;
-                        file << ii << ", " << jj << ", " << kk << " values found != expct: "
+                        file << ii << ", " << jj << ", " << kk << " values found != expected: "
                              << " -> "
                              << "b " << b(ii, jj, kk) << " != " << tb << "\n";
                     }
 
                     if (c(ii, jj, kk) != tc) {
                         passed = false;
-                        file << ii << ", " << jj << ", " << kk << " values found != expct: "
+                        file << ii << ", " << jj << ", " << kk << " values found != expected: "
                              << " -> "
                              << "c " << c(ii, jj, kk) << " != " << tc << "\n";
                     }
@@ -645,6 +645,10 @@ namespace halo_exchange_3D_all {
             file << "RESULT: PASSED!\n";
         else
             file << "RESULT: FAILED!\n";
+
+        delete[] _a;
+        delete[] _b;
+        delete[] _c;
 
         return passed;
     }

@@ -461,7 +461,7 @@ namespace halo_exchange_3D_generic_full {
 
                     if (a(ii, jj, kk) != ta) {
                         passed = false;
-                        file << ii << ", " << jj << ", " << kk << " values found != expct: "
+                        file << ii << ", " << jj << ", " << kk << " values found != expected: "
                              << "a " << a(ii, jj, kk) << " != " << ta << "\n";
                     }
                 }
@@ -501,7 +501,7 @@ namespace halo_exchange_3D_generic_full {
 
                     if (b(ii, jj, kk) != tb) {
                         passed = false;
-                        file << ii << ", " << jj << ", " << kk << " values found != expct: "
+                        file << ii << ", " << jj << ", " << kk << " values found != expected: "
                              << "b " << b(ii, jj, kk) << " != " << tb << "\n";
                     }
                 }
@@ -541,7 +541,7 @@ namespace halo_exchange_3D_generic_full {
 
                     if (c(ii, jj, kk) != tc) {
                         passed = false;
-                        file << ii << ", " << jj << ", " << kk << " values found != expct: "
+                        file << ii << ", " << jj << ", " << kk << " values found != expected: "
                              << "c " << c(ii, jj, kk) << " != " << tc << "\n";
                     }
                 }
@@ -2080,6 +2080,10 @@ namespace halo_exchange_3D_generic_full {
                                 _b,
                                 _c);
         file << "---------------------------------------------------\n";
+
+        delete [] _a;
+        delete [] _b;
+        delete [] _c;
 
         return passed;
     }
