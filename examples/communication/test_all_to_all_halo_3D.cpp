@@ -175,12 +175,15 @@ namespace test_all_to_all_halo_3D {
                     }
                 }
 
+        file << "RESULT: ";
+        if (correct) {
+            file << "PASSED!\n";
+        } else {
+            file << "FAILED!\n";
+        }
+
         file.flush();
         file.close();
-
-        MPI_Barrier(gridtools::GCL_WORLD);
-
-        gridtools::GCL_Finalize();
 
         return correct;
     }
@@ -207,12 +210,9 @@ int main(int argc, char **argv) {
 
     bool passed = test_all_to_all_halo_3D::test(N, H);
 
-    file << "RESULT: ";
-    if (passed) {
-        file << "PASSED!\n";
-    } else {
-        file << "FAILED!\n";
-    }
+    MPI_Barrier(gridtools::GCL_WORLD);
+
+    gridtools::GCL_Finalize();
 
     MPI_Finalize();
 }
