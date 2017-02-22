@@ -35,7 +35,7 @@ export BOOST_INCLUDE=/scratch/stefanm/boost_1_62_0/include/
 export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
 export LAUNCH_MPI_TEST="srun"
-export JOB_ENV="export ENBLE_CUDA=1; export CUDA_AUTO_BOOST=0; export GCLOCK=875;"
+export JOB_ENV="export CUDA_AUTO_BOOST=0; export GCLOCK=875;"
 export MPI_HOST_JOB_ENV=""
 export MPI_CUDA_JOB_ENV="export GCLOCK=875; export CUDA_AUTO_BOOST=0; export G2G=2"
 export USE_MPI_COMPILER=ON
