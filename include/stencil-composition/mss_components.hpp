@@ -101,6 +101,20 @@ namespace gridtools {
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
     };
 
+    template < typename MssDescriptor,
+        typename ExtentSizes,
+        typename RepeatFunctor,
+        typename MssDescriptor2,
+        typename ExtentSizes2,
+        typename RepeatFunctor2 >
+    struct combine< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor >,
+        mss_components< MssDescriptor2, ExtentSizes2, RepeatFunctor2 > > {
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same< RepeatFunctor, RepeatFunctor2 >::value), "Internal error");
+        typedef mss_components< typename combine< MssDescriptor, MssDescriptor2 >::type,
+            typename combine< ExtentSizes, ExtentSizes2 >::type,
+            RepeatFunctor > type;
+    };
+
     template < typename T >
     struct is_mss_components : boost::mpl::false_ {};
 

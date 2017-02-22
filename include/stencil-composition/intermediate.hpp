@@ -448,9 +448,10 @@ namespace gridtools {
         typedef typename boost::mpl::fold<
             boost::mpl::range_c< int_t, 0, boost::mpl::size< Vec1 >::type::value >,
             boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1,
-                combine< boost::mpl::at< Vec1, boost::mpl::_2 >, boost::mpl::at< Vec2, boost::mpl::_2 > > > >::type
-            type;
+            boost::mpl::push_back<
+                boost::mpl::_1,
+                combine< boost::mpl::at< typename extract_mss_domains< Vec1 >::type, boost::mpl::_2 >,
+                    boost::mpl::at< typename extract_mss_domains< Vec2 >::type, boost::mpl::_2 > > > >::type type;
     };
 
     // function that checks if the given extents (I+- and J+-)

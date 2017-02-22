@@ -173,6 +173,7 @@ namespace gridtools {
             typedef typename mss_local_domain_list< mss_local_domain_t >::type local_domain_list_t;
             typedef typename mss_local_domain_esf_args_map< mss_local_domain_t >::type local_domain_esf_args_map_t;
 
+            // Why?? If I'm not fusing MSS shouldn't this be larger than 1?
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size< local_domain_list_t >::value == 1), "Internal Error: wrong size");
             typedef typename boost::mpl::back< local_domain_list_t >::type local_domain_t;

@@ -136,7 +136,7 @@ namespace gridtools {
             "Internal error, probably wrong usage of conditionals");
 
         typedef mss_local_domain< BackendId1,
-            MssComponents1,
+            typename combine< MssComponents1, MssComponents2 >::type,
             DomainType1,
             typename combine< ActualArgListType1, ActualArgListType2 >::type,
             MetaStorageListType1,

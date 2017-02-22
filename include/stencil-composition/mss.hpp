@@ -76,6 +76,20 @@ namespace gridtools {
         typedef static_bool< false > is_reduction_t;
     };
 
+    template < typename ExecutionEngine,
+        typename EsfDescrSequence,
+        typename CacheSequence,
+        typename ExecutionEngine2,
+        typename EsfDescrSequence2,
+        typename CacheSequence2 >
+    struct combine< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence >,
+        mss_descriptor< ExecutionEngine2, EsfDescrSequence2, CacheSequence2 > > {
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same< ExecutionEngine, ExecutionEngine2 >::value), "Internal error");
+        typedef mss_descriptor< ExecutionEngine,
+            typename combine< EsfDescrSequence, EsfDescrSequence2 >::type,
+            typename combine< CacheSequence, CacheSequence2 >::type > type;
+    };
+
     template < typename mss >
     struct is_mss_descriptor : boost::mpl::false_ {};
 

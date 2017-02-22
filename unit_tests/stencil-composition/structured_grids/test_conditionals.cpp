@@ -33,6 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
+#define PEDANTIC_DISABLED
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/conditionals/condition_pool.hpp>
@@ -132,9 +134,8 @@ namespace test_conditionals {
                 //     make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
                 if_(cond2,
                     make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
-                    make_multistage(
-                        enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))) //)
-            ;
+                    make_multistage(enumtype::execute< enumtype::forward >(),
+                        make_stage< functor2args< 2 > >(p_dummy(), p_dummy2())))) /*)*/;
 
         bool result = true;
         comp_->ready();
