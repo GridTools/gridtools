@@ -62,8 +62,8 @@
 #include <boost/mpl/vector.hpp>
 #include "../location_type.hpp"
 #include "common/array_addons.hpp"
-#include "common/gpu_clone.hpp"
-#include "common/selector.hpp"
+#include "../../common/gpu_clone.hpp"
+#include "../../common/selector.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 
@@ -159,27 +159,6 @@ namespace gridtools {
 
     template < typename T >
     struct is_grid_topology;
-
-    //    template < typename DestLocation, typename GridTopology, uint_t SourceColor >
-    //    struct get_connectivity_index {
-
-    //        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Error");
-    //        GRIDTOOLS_STATIC_ASSERT((is_location_type< DestLocation >::value), "Error");
-
-    //        template < int Idx >
-    //        struct get_element {
-    //            GT_FUNCTION
-    //            constexpr get_element() {}
-
-    //            template < typename Offsets >
-    //            GT_FUNCTION static uint_t apply(
-    //                GridTopology const &grid_topology, array< uint_t, 3 > const &i, Offsets offsets) {
-    //                return boost::fusion::at_c< DestLocation::value >(grid_topology.virtual_storages())
-    //                    .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i,
-    //                    offsets));
-    //            }
-    //        };
-    //    };
 
     /**
      * Following specializations provide all information about the connectivity of the icosahedral/ocahedral grid
