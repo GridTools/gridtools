@@ -71,7 +71,7 @@ namespace gridtools {
 
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
-        typedef typename grid_topology_t::layout_map_t layout_map_t;
+        typedef typename grid_topology_t::default_4d_layout_map_t default_4d_layout_map_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
@@ -547,7 +547,7 @@ namespace gridtools {
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             const int_t pointer_offset = (m_index[metadata_index_t::value]) +
-                                         metadata_->template _index< layout_map_t >(
+                                         metadata_->template _index< default_4d_layout_map_t >(
                                              strides().template get< metadata_index_t::value >(), position_offset);
 
             return get_raw_value(accessor_t(),
