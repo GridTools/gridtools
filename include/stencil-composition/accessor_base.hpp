@@ -111,7 +111,7 @@ namespace gridtools {
         static const ushort_t n_dim = Dim;
 
         typedef static_uint< I > index_type;
-        typedef enumtype::enum_type< enumtype::intend, Intend > intend_t;
+        typedef enumtype::enum_type< enumtype::intend, Intend > intent_t;
         typedef Extend extent_t;
         typedef offset_tuple< n_dim, n_dim > offset_tuple_t;
 
@@ -143,7 +143,10 @@ namespace gridtools {
         GT_FUNCTION
         constexpr accessor_base(type const &other) : m_offsets(other.m_offsets) {}
 
-        // copy ctor from another accessor_base with different index
+        /**
+            @brief copy ctor from another accessor_base with different index (used in iterate_domain_remapper for stage
+           fusion)
+         */
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
             : m_offsets(other.offsets()) {}
@@ -275,7 +278,7 @@ namespace gridtools {
 
     template < uint_t I, typename BaseType, typename C >
     struct is_plchldr_to_temp< arg< I, global_parameter< BaseType >, C > >
-        : is_plchldr_to_temp< arg< I, typename global_parameter< BaseType >::wrapped_type, C > > {};
+        : is_plchldr_to_temp< arg< I, typename global_parameter< BaseType >::value_type, C > > {};
 
     /**
      * Printing type information for debug purposes

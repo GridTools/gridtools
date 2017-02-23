@@ -105,8 +105,7 @@ namespace copy_stencil {
 
         // Definition of the actual data fields that are used for input/output
         typedef field< storage_t, 2 >::type storage_type;
-        storage_type in(meta_data_);
-        in.initialize(0.);
+        storage_type in(meta_data_, 0.);
         for (uint_t i = 0; i < d1; ++i) {
             for (uint_t j = 0; j < d2; ++j) {
                 for (uint_t k = 0; k < d3; ++k) {

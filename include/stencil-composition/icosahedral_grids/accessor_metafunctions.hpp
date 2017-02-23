@@ -77,7 +77,7 @@ namespace gridtools {
                 int >::value),
             "Internal Error");
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        typedef typename static_int< ID > index_type_t;
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
 

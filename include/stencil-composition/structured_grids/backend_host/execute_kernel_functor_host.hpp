@@ -46,6 +46,8 @@
 #include "../../iteration_policy.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
+#include "../../const_iterate_domain.hpp"
+#include "../../backend_host/backend_traits_host.hpp"
 
 namespace gridtools {
 
@@ -80,7 +82,8 @@ namespace gridtools {
                 innermost_functor(IterateDomain &it_domain, const Grid &grid) : m_it_domain(it_domain), m_grid(grid) {}
 
                 void operator()() const {
-                    m_it_domain.template initialize< 2 >(m_grid.template value_at< typename IterationPolicy::from >());
+                    m_it_domain.template initialize< 2 >({m_grid.i_low_bound(), m_grid.j_low_bound(), 0},
+                        m_grid.template value_at< typename IterationPolicy::from >());
 
                     boost::mpl::for_each< LoopIntervals >(RunOnInterval(m_it_domain, m_grid));
                 }
@@ -175,16 +178,26 @@ namespace gridtools {
 #endif
 
                 typename iterate_domain_t::data_pointer_array_t data_pointer;
-                typedef typename iterate_domain_t::strides_cached_t strides_t;
-                strides_t strides;
+                typedef typename iterate_domain_t::array_tuple_t strides_t;
 
-                iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
+                typedef typename RunFunctorArguments::processing_elements_block_size_t processing_elements_block_size_t;
 
-                it_domain.set_data_pointer_impl(&data_pointer);
-                it_domain.set_strides_pointer_impl(&strides);
+                GRIDTOOLS_STATIC_ASSERT(
+                    (is_block_size< processing_elements_block_size_t >::value), "internal type error");
 
-                it_domain.template assign_storage_pointers< backend_traits_t >();
-                it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
+                typedef const_iterate_domain< typename iterate_domain_t::data_pointer_array_t,
+                    typename iterate_domain_t::array_tuple_t,
+                    typename iterate_domain_t::dims_cached_t,
+                    processing_elements_block_size_t,
+                    backend_traits_from_id< enumtype::Host > > const_it_domain_t;
+
+                const_it_domain_t const const_it_domain_(
+                    m_local_domain, backend_traits_t::processing_element_i(), backend_traits_t::processing_element_j());
+
+                iterate_domain_t it_domain( // m_local_domain,
+                    m_reduction_data.initial_value());
+
+                it_domain.set_const_iterate_domain_pointer_impl(&const_it_domain_);
 
                 typedef typename boost::mpl::front< loop_intervals_t >::type interval;
                 typedef typename index_to_level< typename interval::first >::type from;
@@ -203,7 +216,7 @@ namespace gridtools {
 
                 // reset the index
                 it_domain.set_index(0);
-                ij_loop.initialize(it_domain, m_block_id);
+                ij_loop.initialize({m_grid.i_low_bound(), m_grid.j_low_bound(), 0}, it_domain, m_block_id);
 
                 // define the kernel functor
                 typedef innermost_functor< loop_intervals_t,

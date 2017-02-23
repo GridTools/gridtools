@@ -47,21 +47,21 @@ namespace gridtools {
     template < typename T >
     struct is_accessor : boost::mpl::false_ {};
 
-    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
 
-    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_accessor< const T > : is_accessor< T > {};
 
-    template < ushort_t ID, enumtype::intend Intend >
-    struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
+    template < uint_t ID >
+    struct is_accessor< global_accessor< ID > > : boost::mpl::true_ {};
 
 #ifdef CUDA8
     template < typename ArgType >
-    struct is_accessor_mixed;
+    struct is_accessor_mixed : boost::mpl::false_ {};
 
     template < typename... Types >
     struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
@@ -84,50 +84,46 @@ namespace gridtools {
     template < typename Accessor, typename ArgsMap, typename Enable = void >
     struct remap_accessor_type {};
 
-    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
+    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
     struct remap_accessor_type< accessor< ID, Intend, Extend, Number >, ArgsMap > {
         typedef accessor< ID, Intend, Extend, Number > accessor_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), "Internal Error: wrong size");
-        // check that the key type is an int (otherwise the later has_key would never find the key)
+        // check that the key type is a uint_t (otherwise the later has_key would never find the key)
         GRIDTOOLS_STATIC_ASSERT(
             (boost::is_same<
                 typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
-                int >::value),
+                uint_t >::value),
             "Internal Error");
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, static_uint< ID > >::value), "Internal Error");
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
-
-        typedef accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend, Extend, Number > type;
+        typedef accessor< boost::mpl::at< ArgsMap, static_uint< ID > >::type::value, Intend, Extend, Number > type;
     };
 
 #ifdef CUDA8
     template < typename Accessor, typename ArgsMap, typename... Pairs >
     struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
 
-        typedef typename remap_accessor_type< Accessor, ArgsMap >::index_type_t index_type_t;
-
         typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
     };
 #endif
 
-    template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
-    struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
-        typedef global_accessor< ID, Intend > accessor_t;
+    template < uint_t ID, typename ArgsMap >
+    struct remap_accessor_type< global_accessor< ID >, ArgsMap > {
+        typedef global_accessor< ID > accessor_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), "Internal Error: wrong size");
         // check that the key type is an int (otherwise the later has_key would never find the key)
         GRIDTOOLS_STATIC_ASSERT(
             (boost::is_same<
                 typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
-                int >::value),
+                uint_t >::value),
             "Internal Error");
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        typedef static_uint< ID > index_type_t;
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
 
-        typedef global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend > type;
+        typedef global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value > type;
     };
 
 #ifdef CXX11_ENABLED
@@ -145,13 +141,22 @@ namespace gridtools {
         typedef Expression< typename remap_accessor_type< Arguments, ArgsMap >::type... > type;
     };
 
+    /** specialization for the expressions having integer template arguments (like the exponent for the power
+     * expression)*/
+    template < typename ArgsMap, int_t IntArgs, template < typename T1, int_t > class Expression, typename T1 >
+    struct remap_accessor_type< Expression< T1, IntArgs >,
+        ArgsMap,
+        typename boost::enable_if< typename is_expr< Expression< T1, IntArgs > >::type, void >::type > {
+        typedef Expression< typename remap_accessor_type< T1, ArgsMap >::type, IntArgs > type;
+    };
+
     template < typename ArgsMap >
     struct remap_accessor_type< float_type, ArgsMap > {
         // when a leaf is a float don't do anything
         typedef float_type type;
     };
 
-    template < typename ArgsMap, template < typename Acc, int N > class Expression, typename Accessor, int Number >
+    template < typename ArgsMap, template < typename Acc, int N > class Expression, typename Accessor, ushort_t Number >
     struct remap_accessor_type< Expression< Accessor, Number >, ArgsMap > {
         // Specialization done to catch also the "pow" expression, for which a template argument is an
         // integer (the exponent)
@@ -168,17 +173,14 @@ namespace gridtools {
     struct is_accessor_readonly< accessor_mixed< Accessor, Pair... > > : is_accessor_readonly< Accessor > {};
 #endif
 
-    template < ushort_t ID, typename Extend, ushort_t Number >
+    template < uint_t ID, typename Extend, ushort_t Number >
     struct is_accessor_readonly< accessor< ID, enumtype::in, Extend, Number > > : boost::mpl::true_ {};
 
-    template < ushort_t ID, typename Extend, ushort_t Number >
+    template < uint_t ID, typename Extend, ushort_t Number >
     struct is_accessor_readonly< accessor< ID, enumtype::inout, Extend, Number > > : boost::mpl::false_ {};
 
-    template < ushort_t ID >
-    struct is_accessor_readonly< global_accessor< ID, enumtype::in > > : boost::mpl::true_ {};
-
-    template < ushort_t ID >
-    struct is_accessor_readonly< global_accessor< ID, enumtype::inout > > : boost::mpl::true_ {};
+    template < uint_t ID >
+    struct is_accessor_readonly< global_accessor< ID > > : boost::mpl::true_ {};
 
     /* Is written is actually "can be written", since it checks if not read olnly.
        TODO: metafunction convention not completely respected */

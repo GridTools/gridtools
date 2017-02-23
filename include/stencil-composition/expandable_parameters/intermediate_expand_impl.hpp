@@ -180,7 +180,7 @@ namespace gridtools {
                     (*(ptr_chunk_->storage_pointer())).set(*ptr_full_, m_idx);
                     ptr_chunk_->set_on_host();
                     // update the device pointers (TODO: should not copy the heavy data)
-                    ptr_chunk_->clone_to_device();
+                    // ptr_chunk_->clone_to_device();
                 }
             }
         };

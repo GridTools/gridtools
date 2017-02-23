@@ -287,7 +287,11 @@ namespace gridtools {
     struct check_all_extents_are {
         template < typename Pair >
         struct _check {
-            typedef typename boost::is_same< typename Pair::second, Extent >::type type;
+            // if Extent is not an extent type (like in the case of global_accessor) return true
+            typedef typename boost::mpl::if_< boost::is_same< typename Pair::second, empty_extent >,
+                boost::mpl::true_,
+                boost::mpl::or_< boost::mpl::not_< is_extent< typename Pair::second > >,
+                                                  boost::is_same< typename Pair::second, Extent > > >::type type;
         };
 
         typedef typename is_sequence_of< VectorOfPairs, _check >::type type;

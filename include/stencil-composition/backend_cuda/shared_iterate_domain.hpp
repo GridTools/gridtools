@@ -55,15 +55,12 @@ namespace gridtools {
      * @tparam StridesType strides cached type
      * @tparam IJCachesTuple fusion map of <index_type, cache_storage>
      */
-    template < typename DataPointerArray, typename StridesType, typename MaxExtent, typename IJCachesTuple >
+    template < typename IJCachesTuple >
     class shared_iterate_domain {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesType >::value), "Internal Error: wrong type");
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
         // TODO: protect IJCachesTuple
 
       private:
-        DataPointerArray m_data_pointer;
-        StridesType m_strides;
         IJCachesTuple m_ij_caches_tuple;
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
@@ -72,16 +69,7 @@ namespace gridtools {
         typedef typename fusion_map_to_mpl_map< IJCachesTuple >::type ij_caches_map_t;
 
       public:
-        shared_iterate_domain() {}
-
-        GT_FUNCTION
-        DataPointerArray const &data_pointer() const { return m_data_pointer; }
-        GT_FUNCTION
-        StridesType const &strides() const { return m_strides; }
-        GT_FUNCTION
-        DataPointerArray &data_pointer() { return m_data_pointer; }
-        GT_FUNCTION
-        StridesType &strides() { return m_strides; }
+        GT_FUNCTION shared_iterate_domain() {}
 
         template < typename IndexType >
         GT_FUNCTION typename boost::mpl::at< ij_caches_map_t, IndexType >::type &RESTRICT get_ij_cache() {

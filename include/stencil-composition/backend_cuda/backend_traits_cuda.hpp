@@ -40,7 +40,6 @@
 #include "run_esf_functor_cuda.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
-#include "strategy_cuda.hpp"
 
 #ifdef ENABLE_METERS
 #include "timer_cuda.hpp"
@@ -51,6 +50,9 @@
 /**@file
 @brief type definitions and structures specific for the CUDA backend*/
 namespace gridtools {
+
+    template < enumtype::strategy >
+    struct strategy_from_id_cuda;
 
     /**forward declaration*/
     namespace _impl_cuda {
@@ -77,7 +79,8 @@ namespace gridtools {
             in the CUDA backend), in a 2D grid of threads.
         */
         static uint_t n_i_pes(const uint_t i_size) {
-            typedef typename strategy_from_id_cuda< enumtype::Block >::block_size_t block_size_t;
+
+            typedef block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 > block_size_t;
             return (i_size + block_size_t::i_size_t::value) / block_size_t::i_size_t::value;
         }
 
@@ -87,7 +90,7 @@ namespace gridtools {
             in the CUDA backend), in a 2D grid of threads.
         */
         static uint_t n_j_pes(const uint_t j_size) {
-            typedef typename strategy_from_id_cuda< enumtype::Block >::block_size_t block_size_t;
+            typedef block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 > block_size_t;
             return (j_size + block_size_t::j_size_t::value) / block_size_t::j_size_t::value;
         }
 
@@ -132,7 +135,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
             template < typename LocalDomain, typename Grid, typename ReductionData >
-            static void run(LocalDomain &local_domain,
+            static void run(LocalDomain const &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const uint_t bi,
@@ -186,7 +189,7 @@ namespace gridtools {
         template < enumtype::strategy StrategyId >
         struct get_block_size {
             GRIDTOOLS_STATIC_ASSERT(StrategyId == enumtype::Block, "For CUDA backend only Block strategy is supported");
-            typedef typename strategy_from_id_cuda< StrategyId >::block_size_t type;
+            typedef block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 > type;
         };
 
         /**

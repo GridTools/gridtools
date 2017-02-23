@@ -82,6 +82,8 @@ namespace gridtools {
             for (int c = halo_minus; c < size - halo_plus; ++c) {
                 array< uint_t, NCoord + 1 > new_pos = pos.prepend_dim(c);
                 verified = verified & next_loop(grid_, new_pos);
+                if (!verified)
+                    return verified;
             }
             return verified;
         }
@@ -116,7 +118,7 @@ namespace gridtools {
                     std::cout << "Error in field dimension " << m_field_id << " and position " << pos
                               << " ; expected : " << expected << " ; actual : " << actual << "  "
                               << std::fabs((expected - actual) / (expected)) << std::endl;
-                    verified = false;
+                    return false;
                 }
             }
             return verified;
@@ -154,6 +156,8 @@ namespace gridtools {
             array< uint_t, 1 > new_pos(c);
 #endif
             verified = verified & next_loop(grid_, new_pos);
+            if (!verified)
+                return verified;
         }
         return verified;
     }
@@ -203,7 +207,7 @@ namespace gridtools {
                                     std::cout << "Error in position " << i << " " << j << " " << k
                                               << " ; expected : " << expected << " ; actual : " << actual << "  "
                                               << std::fabs((expected - actual) / (expected)) << std::endl;
-                                    verified = false;
+                                    return false;
                                 }
                             }
                         }
@@ -246,7 +250,7 @@ namespace gridtools {
                                 std::cout << "Error in position " << i << " " << j << " " << k
                                           << " ; expected : " << expected << " ; actual : " << actual << "  "
                                           << std::fabs((expected - actual) / (expected)) << std::endl;
-                                verified = false;
+                                return false;
                             }
                         }
                     }
@@ -279,7 +283,7 @@ namespace gridtools {
                                     std::cout << "Error in position " << i << " " << j << " " << k
                                               << " ; expected : " << expected << " ; actual : " << actual << "  "
                                               << std::fabs((expected - actual) / (expected)) << std::endl;
-                                    verified = false;
+                                    return false;
                                 }
                             }
                         }

@@ -99,7 +99,7 @@ namespace gridtools {
 #else  // CXX11_ENABLED
             template < typename Accessor >
             struct accessor_return_type {
-                typedef typename iterate_domain_t::template accessor_return_typ_impl<
+                typedef typename iterate_domain_t::accessor_return_type<
                     typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type type;
             };
 #endif // CXX11_ENABLED
@@ -125,6 +125,15 @@ namespace gridtools {
 #endif // CXX11_ENABLED
             {
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
+                const remap_accessor_t tmp_(arg);
+                return m_iterate_domain(tmp_);
+            }
+
+            /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
+            template < uint_t I >
+            GT_FUNCTION typename accessor_return_type< global_accessor< I > >::type operator()(
+                global_accessor< I > const &arg) const {
+                typedef typename remap_accessor_type< global_accessor< I >, esf_args_map_t >::type remap_accessor_t;
                 const remap_accessor_t tmp_(arg);
                 return m_iterate_domain(tmp_);
             }

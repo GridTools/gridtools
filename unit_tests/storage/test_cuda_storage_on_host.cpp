@@ -117,12 +117,12 @@ TEST(cuda_storage_on_host, test_storage) {
                 foo_field(i, j, k) = z;
     // get storage ptr and on_host information
     ASSERT_TRUE(foo_field.m_on_host && "The storage should not be located on the device.");
-    base_st *ptr1 = foo_field.m_storage.get_pointer_to_use();
+    base_st *ptr1 = foo_field.get_storage_device_pointer();
 #ifdef _USE_GPU_
     // copy the field to the gpu and check
     // for correct behaviour.
     foo_field.h2d_update();
-    base_st *ptr2 = foo_field.m_storage.get_pointer_to_use();
+    base_st *ptr2 = foo_field.get_storage_device_pointer();
     ASSERT_FALSE(foo_field.m_on_host && "The storage should be located on the device.");
     ASSERT_TRUE(ptr1 != ptr2 && "Pointers to the storage must not be the same.");
     // copy the field back from the gpu
@@ -130,7 +130,7 @@ TEST(cuda_storage_on_host, test_storage) {
 #endif
     // check if the pointers are right and the
     // field is on the host again.
-    base_st *ptr3 = foo_field.m_storage.get_pointer_to_use();
+    base_st *ptr3 = foo_field.get_storage_device_pointer();
     ASSERT_TRUE(ptr1 == ptr3 && "Pointers to the storage must be the same.");
     ASSERT_TRUE(foo_field.m_on_host && "The storage should not be located on the device.");
 }

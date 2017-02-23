@@ -39,11 +39,17 @@ namespace gridtools {
     /**@brief class handling the computation of the */
     template < typename IterateDomainImpl >
     struct positional_iterate_domain : public iterate_domain< IterateDomainImpl > {
-        typedef iterate_domain< IterateDomainImpl > base_t;
-        typedef typename base_t::reduction_type_t reduction_type_t;
-        typedef typename base_t::local_domain_t local_domain_t;
+        typedef iterate_domain< IterateDomainImpl > super;
+        typedef typename super::reduction_type_t reduction_type_t;
+        typedef typename super::local_domain_t local_domain_t;
 
+#ifdef CUDA8
         using iterate_domain< IterateDomainImpl >::iterate_domain;
+#else
+        template < typename ReductionT >
+        GT_FUNCTION positional_iterate_domain(ReductionT const &rt)
+            : super(rt) {}
+#endif
 
         /**@brief method for incrementing the index when moving forward along the k direction */
         template < ushort_t Coordinate, typename Execution >
@@ -56,7 +62,7 @@ namespace gridtools {
             }
             if (Coordinate == 2)
                 m_k += Execution::value;
-            base_t::template increment< Coordinate, Execution >();
+            super::template increment< Coordinate, Execution >();
         }
 
         /**@brief method for incrementing the index when moving forward along the k direction */
@@ -70,11 +76,12 @@ namespace gridtools {
             }
             if (Coordinate == 2)
                 m_k += steps_;
-            base_t::template increment< Coordinate >(steps_);
+            super::template increment< Coordinate >(steps_);
         }
 
         template < ushort_t Coordinate >
-        GT_FUNCTION void initialize(uint_t const &index = 0, uint_t const &block = 0) {
+        GT_FUNCTION void initialize(
+            array< uint_t, 3 > const &initial_offsets_, uint_t const &index = 0, uint_t const &block = 0) {
             if (Coordinate == 0) {
                 m_i = index;
             }
@@ -84,7 +91,7 @@ namespace gridtools {
             if (Coordinate == 2) {
                 m_k = index;
             }
-            base_t::template initialize< Coordinate >(index, block);
+            super::template initialize< Coordinate >(initial_offsets_, index, block);
         }
 
         template < ushort_t Coordinate >

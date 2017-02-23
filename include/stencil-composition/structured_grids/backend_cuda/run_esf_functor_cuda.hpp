@@ -71,8 +71,6 @@ namespace gridtools {
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
-        using super::m_iterate_domain;
-
         GT_FUNCTION
         explicit run_esf_functor_cuda(iterate_domain_t &iterate_domain) : super(iterate_domain) {}
 
@@ -82,7 +80,7 @@ namespace gridtools {
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
         template < typename IntervalType, typename EsfArguments >
-        __device__ void do_impl() const {
+        __device__ static void do_impl(iterate_domain_t &it_domain) {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
 
             // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
@@ -90,7 +88,7 @@ namespace gridtools {
             typedef typename get_iterate_domain_remapper< iterate_domain_t,
                 typename EsfArguments::esf_args_map_t >::type iterate_domain_remapper_t;
 
-            iterate_domain_remapper_t iterate_domain_remapper(m_iterate_domain);
+            iterate_domain_remapper_t iterate_domain_remapper(it_domain);
 
             typedef typename EsfArguments::functor_t functor_t;
             typedef typename EsfArguments::extent_t extent_t;
@@ -99,8 +97,8 @@ namespace gridtools {
 
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
-            if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
-                // call the user functor at the core of the block
+            if (it_domain.template is_thread_in_domain< extent_t >()) {
+                // call the user functor at the core of the block (multiple times in case of expandable parameters)
                 _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
                     call_do_method(iterate_domain_remapper);
             }

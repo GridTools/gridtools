@@ -165,7 +165,7 @@ namespace gridtools {
 
     /** true in case of non temporary storage arg*/
     template < uint_t I, typename Storage >
-    struct arg_index< arg< I, Storage > > : boost::mpl::integral_c< int, I > {};
+    struct arg_index< arg< I, Storage > > : static_uint< I > {};
 
     template < typename T >
     struct is_storage_arg : boost::mpl::false_ {};
@@ -178,7 +178,7 @@ namespace gridtools {
      * metafunction that determines if an arg type is holding the storage type of a data field
      */
     template < typename Arg >
-    struct arg_holds_data_field;
+    struct arg_holds_data_field : boost::mpl::false_ {};
 
     template < uint_t I, typename Storage >
     struct arg_holds_data_field< arg< I, Storage > > {

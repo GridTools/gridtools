@@ -134,7 +134,7 @@ namespace test_iterate_domain {
 
         mss_local_domain1_t mss_local_domain1 = boost::fusion::at_c< 0 >(computation_->mss_local_domain_list());
         auto local_domain1 = boost::fusion::at_c< 0 >(mss_local_domain1.local_domain_list);
-        it_domain_t it_domain(local_domain1, 0);
+        it_domain_t it_domain(0);
 
         GRIDTOOLS_STATIC_ASSERT(it_domain_t::N_STORAGES == 3, "bug in iterate domain, incorrect number of storages");
 
@@ -142,16 +142,19 @@ namespace test_iterate_domain {
             it_domain_t::N_DATA_POINTERS == 23, "bug in iterate domain, incorrect number of data pointers");
 
         typename it_domain_t::data_pointer_array_t data_pointer;
-        typedef typename it_domain_t::strides_cached_t strides_t;
-        strides_t strides;
+        typedef typename it_domain_t::array_tuple_t strides_t;
+
+        typedef const_iterate_domain< typename it_domain_t::data_pointer_array_t,
+            typename it_domain_t::array_tuple_t,
+            typename it_domain_t::dims_cached_t,
+            block_size< 32, 4 >,
+            backend_traits_from_id< enumtype::Host > > const_it_domain_t;
+
+        const_it_domain_t const const_it_domain_(local_domain1, 0, 0);
+
+        it_domain.set_const_iterate_domain_pointer_impl(&const_it_domain_);
 
         typedef backend_traits_from_id< Host > backend_traits_t;
-
-        it_domain.set_data_pointer_impl(&data_pointer);
-        it_domain.set_strides_pointer_impl(&strides);
-
-        it_domain.template assign_storage_pointers< backend_traits_t >();
-        it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
 
         // check data pointers initialization
 
@@ -384,17 +387,6 @@ namespace test_iterate_domain {
         assert(&it_domain(acc_t(dimension< 1 >(1))) == &it_domain(acc_(dimension< 1 >(1))));
 
 #endif
-
-        // check strides initialization
-
-        assert(in.meta_data().strides(1) == strides.get< 2 >()[0]);
-        assert(in.meta_data().strides(2) == strides.get< 2 >()[1]);
-        assert(in.meta_data().strides(3) == strides.get< 2 >()[2]); // 4D storage
-
-        assert(buff.meta_data().strides(1) == strides.get< 1 >()[0]);
-        assert(buff.meta_data().strides(2) == strides.get< 1 >()[1]); // 3D storage
-
-        assert(out.meta_data().strides(1) == strides.get< 0 >()[0]); // 2D storage
 
         return true;
     }

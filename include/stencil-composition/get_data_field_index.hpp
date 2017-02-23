@@ -50,7 +50,7 @@ namespace gridtools {
     template < typename LocalD, typename Accessor >
     struct current_storage< false, LocalD, Accessor > {
         static const uint_t value =
-            (total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
+            (total_storages< typename LocalD::local_storage_type, Accessor::index_type::value >::value);
     };
 
     template < bool cond, typename Accessor, typename LocalDomain >
@@ -60,10 +60,19 @@ namespace gridtools {
     template < typename Accessor, typename LocalDomain >
     struct get_data_field_index< true, Accessor, LocalDomain > {
 
-        typedef typename get_storage_accessor< LocalDomain, Accessor >::type::value_type storage_type;
+        typedef typename Accessor::index_type index_t;
+        typedef typename LocalDomain::template get_storage< index_t >::type::value_type storage_type;
         typedef typename storage_type::storage_info_type metadata_t;
 
         static constexpr uint_t apply(Accessor const &accessor_) {
+
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim >= storage_type::storage_info_type::space_dimensions + 1,
+                "dimensionality error in the storage accessor. increase the number of dimensions when "
+                "defining the accessor.");
+
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_type::storage_info_type::space_dimensions + 2,
+                "dimensionality error in the storage accessor. decrease the number of dimensions when "
+                "defining the accessor.");
 
             GRIDTOOLS_STATIC_ASSERT((storage_type::traits::n_fields % storage_type::traits::n_width == 0),
                 "You specified a non-rectangular field: if you need to use a non-rectangular field the constexpr "
@@ -92,7 +101,8 @@ namespace gridtools {
                                  +
                                  accessor_.template get< 0 >() // select the dimension
                                      *
-                                     storage_type::traits::n_width // stride of the current dimension inside the vector
+                                     storage_type::traits::n_width // stride of the current dimension inside
+                                                                   // the vector
                                                                    // of
                        // storages
                        ) + //+ the offset of the other extra dimension
@@ -106,7 +116,8 @@ namespace gridtools {
 
         static constexpr uint_t apply(Accessor const &accessor_) {
 
-            typedef typename get_storage_accessor< LocalDomain, Accessor >::type::value_type storage_t;
+            typedef typename Accessor::index_type index_t;
+            typedef typename LocalDomain::template get_storage< index_t >::type::value_type storage_t;
             typedef typename storage_t::storage_info_type metadata_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::template get_constexpr< 0 >() >= 0,

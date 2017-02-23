@@ -195,7 +195,7 @@ namespace gridtools {
                 //#endif
 
                 typename iterate_domain_t::data_pointer_array_t data_pointer;
-                typedef typename iterate_domain_t::strides_cached_t strides_t;
+                typedef typename iterate_domain_t::array_tuple_t strides_t;
                 strides_t strides;
 
                 iterate_domain_t it_domain(m_local_domain, m_grid.grid_topology());

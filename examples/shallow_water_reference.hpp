@@ -61,7 +61,7 @@ struct shallow_water_reference {
 #define PTR(ARR, SIZE, EXT) pointer_type(ARR, SIZE, EXT)
 #else
     typedef wrap_pointer< float_type > pointer_type;
-#define PTR(ARR, SIZE, EXT) pointer_type(ARR, EXT)
+#define PTR(ARR, SIZE, EXT) pointer_type(ARR, SIZE, EXT)
 #endif
 
     static constexpr uint_t strides[2] = {DimI, 1};

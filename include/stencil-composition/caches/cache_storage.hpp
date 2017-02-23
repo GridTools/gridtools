@@ -96,7 +96,7 @@ namespace gridtools {
         static constexpr uint_t size() { return meta_t{}.size(); }
 
         template < typename Accessor >
-        GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Accessor const &accessor_) {
+        GT_FUNCTION value_type &RESTRICT at(array< int_t, 2 > const &thread_pos, Accessor const &accessor_) {
             constexpr const meta_t s_storage_info;
 
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
@@ -127,7 +127,6 @@ namespace gridtools {
 #if defined(CUDA8)
         value_type m_values[size()];
 #else
-
         value_type m_values[_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value];
 #endif
     };
@@ -164,23 +163,22 @@ namespace gridtools {
         typedef typename Storage::value_type::basic_type storage_t;
         typedef typename storage_t::value_type value_type;
 
+        GT_FUNCTION
         explicit cache_storage() {}
 
         template < typename Offset >
-        GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
+        GT_FUNCTION value_type &RESTRICT at(array< int_t, 2 > const &thread_pos, Offset const &offset) {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_offset_tuple< typename Offset::offset_tuple_t >::value), "Error type is not offset tuple");
-            assert(index(thread_pos, offset.offsets()) < storage_size_t::value);
-            assert(index(thread_pos, offset.offsets()) >= 0);
+            // assert(index(thread_pos, offset.offsets()) < storage_size_t::value);
+            // assert(index(thread_pos, offset.offsets()) >= 0);
 
-            return m_values[index(thread_pos, offset.offsets())];
-        }
-
-      private:
-        template < typename Offset >
-        GT_FUNCTION int_t index(array< int, 2 > const &thread_pos, Offset const &offset) {
-            return (thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value) * i_stride_t::value +
-                   (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value) * j_stride_t::value;
+            return m_values[(thread_pos[0] + offset.template get< Offset::offset_tuple_t::n_args - 1 >() -
+                                iminus::value) *
+                                i_stride_t::value +
+                            (thread_pos[1] + offset.template get< Offset::offset_tuple_t::n_args - 2 >() -
+                                jminus::value) *
+                                j_stride_t::value];
         }
 
         value_type m_values[storage_size_t::value];

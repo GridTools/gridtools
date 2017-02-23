@@ -72,12 +72,12 @@ namespace gridtools {
            check before this is instantiated.
         */
         template < typename CallerAggregator,
-            int Offi,
-            int Offj,
-            int Offk,
+            int_t Offi,
+            int_t Offj,
+            int_t Offk,
             typename PassedAccessors,
             typename ReturnType,
-            int OutArg >
+            int_t OutArg >
         struct function_aggregator {
 
             GRIDTOOLS_STATIC_ASSERT(
@@ -85,7 +85,7 @@ namespace gridtools {
                 "The first argument must be an iterate_domain or a function_aggregator");
 
             CallerAggregator const &m_caller_aggregator;
-            ReturnType *__restrict__ m_result;
+            ReturnType *RESTRICT m_result;
 
             template < typename Accessor >
             struct accessor_return_type {
@@ -169,12 +169,12 @@ namespace gridtools {
         check before this is instantiated.
         */
         template < typename CallerAggregator,
-            int Offi,
-            int Offj,
-            int Offk,
+            int_t Offi,
+            int_t Offj,
+            int_t Offk,
             typename PassedAccessors,
             typename ReturnType,
-            int OutArg >
+            int_t OutArg >
         struct function_aggregator_offsets {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
@@ -182,7 +182,7 @@ namespace gridtools {
 
             typedef typename boost::fusion::result_of::as_vector< PassedAccessors >::type accessors_list_t;
             CallerAggregator const &m_caller_aggregator;
-            ReturnType *__restrict__ m_result;
+            ReturnType *RESTRICT m_result;
             accessors_list_t const &m_accessors_list;
 
             template < typename Accessor >
@@ -249,7 +249,7 @@ namespace gridtools {
         \tparam Offj Offset along the j-direction
         \tparam Offk Offset along the k-direction
     */
-    template < typename Functor, typename Region, int Offi = 0, int Offj = 0, int Offk = 0 >
+    template < typename Functor, typename Region, int_t Offi = 0, int_t Offj = 0, int_t Offk = 0 >
     struct call {
 
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value),
@@ -257,7 +257,7 @@ namespace gridtools {
 
         /** This alias is used to move the computation at a certain offset
          */
-        template < int I, int J, int K >
+        template < int_t I, int_t J, int_t K >
         using at = call< Functor, Region, I, J, K >;
 
       private:
@@ -360,7 +360,7 @@ namespace gridtools {
            \tparam Offk Offset along the k-direction were the function is evaluated
            \tparam PassedArguments The list of accessors and other orguments the caller need to pass to the function
         */
-        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        template < typename CallerAggregator, int_t Offi, int_t Offj, int_t Offk, typename PassedArguments >
         struct function_aggregator_procedure_offsets {
 
             GRIDTOOLS_STATIC_ASSERT(
@@ -370,7 +370,7 @@ namespace gridtools {
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments
             typedef
-                typename boost::mpl::fold< boost::mpl::range_c< int, 0, boost::mpl::size< PassedArguments >::value >,
+                typename boost::mpl::fold< boost::mpl::range_c< int_t, 0, boost::mpl::size< PassedArguments >::value >,
                     boost::mpl::vector0<>,
                     typename _impl::insert_index_if_not_accessor< PassedArguments >::template apply< boost::mpl::_2,
                                                boost::mpl::_1 > >::type non_accessor_indices;
@@ -440,7 +440,7 @@ namespace gridtools {
            \tparam Offk Offset along the k-direction were the function is evaluated
            \tparam PassedArguments The list of accessors and other orguments the caller need to pass to the function
         */
-        template < typename CallerAggregator, int Offi, int Offj, int Offk, typename PassedArguments >
+        template < typename CallerAggregator, int_t Offi, int_t Offj, int_t Offk, typename PassedArguments >
         struct function_aggregator_procedure {
 
             GRIDTOOLS_STATIC_ASSERT(
@@ -450,7 +450,7 @@ namespace gridtools {
             // Collect the indices of the arguments that are not accessors among
             // the PassedArguments
             typedef
-                typename boost::mpl::fold< boost::mpl::range_c< int, 0, boost::mpl::size< PassedArguments >::value >,
+                typename boost::mpl::fold< boost::mpl::range_c< int_t, 0, boost::mpl::size< PassedArguments >::value >,
                     boost::mpl::vector0<>,
                     typename _impl::insert_index_if_not_accessor< PassedArguments >::template apply< boost::mpl::_2,
                                                boost::mpl::_1 > >::type non_accessor_indices;
@@ -522,7 +522,7 @@ namespace gridtools {
         \tparam Offj Offset along the j-direction
         \tparam Offk Offset along the k-direction
     */
-    template < typename Functor, typename Region, int Offi = 0, int Offj = 0, int Offk = 0 >
+    template < typename Functor, typename Region, int_t Offi = 0, int_t Offj = 0, int_t Offk = 0 >
     struct call_proc {
 
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value),
@@ -530,7 +530,7 @@ namespace gridtools {
 
         /** This alias is used to move the computation at a certain offset
          */
-        template < int I, int J, int K >
+        template < int_t I, int_t J, int_t K >
         using at = call_proc< Functor, Region, I, J, K >;
 
         /** With this interface a stencil function can be invoked and

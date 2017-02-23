@@ -36,7 +36,6 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
-#include "defs.hpp"
 #include "benchmarker.hpp"
 
 /**
@@ -74,6 +73,7 @@ namespace copy_stencil {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+            // std::cout <<eval(out()) << " =1= " << eval(in()) << "\n ";
             eval(out()) = eval(in());
         }
     };
@@ -102,14 +102,14 @@ namespace copy_stencil {
 #endif
 
         typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
-        typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
+        typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_type;
+        typedef BACKEND::temporary_storage_type< float_type, meta_data_t >::type tmp_storage_type;
 
         meta_data_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
-        typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
-        storage_type out(meta_data_, float_type(-1.));
+        storage_type out(meta_data_, float_type(-1.), "out");
         for (uint_t i = 0; i < d1; ++i)
             for (uint_t j = 0; j < d2; ++j)
                 for (uint_t k = 0; k < d3; ++k) {

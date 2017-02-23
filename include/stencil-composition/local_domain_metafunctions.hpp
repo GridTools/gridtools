@@ -122,10 +122,19 @@ namespace gridtools {
             typedef typename boost::mpl::find< merged_esf_args_t, Arg >::type pos;
             GRIDTOOLS_STATIC_ASSERT((!boost::is_same< pos, merged_esf_args_t >::value), "Internal Error: wrong type");
 
-            typedef
-                typename boost::mpl::distance< typename boost::mpl::begin< merged_esf_args_t >::type, pos >::type type;
-            BOOST_STATIC_CONSTANT(int, value = (type::value));
+            typedef typename boost::mpl::distance< typename boost::mpl::begin< merged_esf_args_t >::type, pos >::type
+                dst_type;
+            BOOST_STATIC_CONSTANT(uint_t, value = (dst_type::value));
+            // cast to uint_t
+            typedef static_uint< value > type;
         };
+
+#ifndef CXX11_ENABLED
+        template < typename T >
+        struct cast_to_uint {
+            typedef static_uint< T::value > type;
+        };
+#endif
 
         template < typename LocalDomain >
         struct generate_esf_args_map {
@@ -133,11 +142,16 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
             typedef typename boost::mpl::fold<
                 boost::mpl::zip_view< boost::mpl::vector2< local_domain_esf_args_t,
-                    boost::mpl::range_c< int, 0, boost::mpl::size< local_domain_esf_args_t >::value > > >,
+                    boost::mpl::range_c< uint_t, 0, boost::mpl::size< local_domain_esf_args_t >::value > > >,
                 boost::mpl::map0<>,
                 boost::mpl::insert<
                     boost::mpl::_1,
-                    boost::mpl::pair< boost::mpl::back< boost::mpl::_2 >,
+                    boost::mpl::pair<
+#ifdef CXX11_ENABLED
+                        boost::mpl::back< boost::mpl::_2 >,
+#else
+                        cast_to_uint< boost::mpl::back< boost::mpl::_2 > >,
+#endif
                         find_arg_position_in_merged_domain< boost::mpl::front< boost::mpl::_2 > > > > >::type type;
         };
 
@@ -187,7 +201,7 @@ namespace gridtools {
     template < typename Index, typename BackendId >
     struct extract_local_domain_index {
         typedef typename boost::mpl::if_< typename backend_traits_from_id< BackendId::value >::mss_fuse_esfs_strategy,
-            boost::mpl::int_< 0 >,
+            static_uint< 0 >,
             Index >::type type;
     };
 } // gridtools

@@ -111,8 +111,6 @@ namespace gridtools {
             typedef esf_arguments< run_functor_arguments_t, Index > esf_arguments_t;
 
             typedef typename esf_arguments_t::interval_map_t interval_map_t;
-            typedef typename esf_arguments_t::esf_args_map_t esf_args_map_t;
-            typedef typename esf_arguments_t::functor_t functor_t;
 
             if (boost::mpl::has_key< interval_map_t, interval_t >::type::value) {
                 typedef typename boost::mpl::at< interval_map_t, interval_t >::type interval_type;
@@ -124,6 +122,7 @@ namespace gridtools {
 // also referenced in the functor.
 
 #ifdef PEDANTIC // we might want to use the same placeholder twice?
+                typedef typename esf_arguments_t::esf_args_map_t esf_args_map_t;
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::size< esf_args_map_t >::value ==
                         boost::mpl::size<
@@ -136,7 +135,7 @@ namespace gridtools {
 	            also referenced in the functor. You get this error if you specify twice the same placeholder");
 #endif
 
-                static_cast< const RunEsfFunctorImpl * >(this)->template do_impl< interval_type, esf_arguments_t >();
+                RunEsfFunctorImpl::template do_impl< interval_type, esf_arguments_t >(m_iterate_domain);
             }
         }
 

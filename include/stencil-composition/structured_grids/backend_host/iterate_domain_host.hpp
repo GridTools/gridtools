@@ -39,6 +39,7 @@
 #include "stencil-composition/iterate_domain.hpp"
 #include "stencil-composition/iterate_domain_metafunctions.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
+#include "../../const_iterate_domain.hpp"
 
 namespace gridtools {
 
@@ -62,42 +63,32 @@ namespace gridtools {
         using super::operator();
         typedef iterate_domain_host iterate_domain_t;
         typedef typename super::data_pointer_array_t data_pointer_array_t;
-        typedef typename super::strides_cached_t strides_cached_t;
+        typedef typename super::array_tuple_t array_tuple_t;
+        typedef typename super::dims_cached_t dims_cached_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
 
+        typedef const_iterate_domain< data_pointer_array_t,
+            array_tuple_t,
+            dims_cached_t,
+            typename IterateDomainArguments::processing_elements_block_size_t,
+            backend_traits_from_id< enumtype::Host > > const_iterate_domain_t;
+
+      private:
+        const_iterate_domain_t const *RESTRICT m_pconst_iterate_domain;
+
+      public:
         GT_FUNCTION
-        explicit iterate_domain_host(
-            local_domain_t const &local_domain, const reduction_type_t &reduction_initial_value)
-            : super(local_domain, reduction_initial_value), m_data_pointer(0), m_strides(0) {}
+        explicit iterate_domain_host(const reduction_type_t &reduction_initial_value)
+            : super(reduction_initial_value) {}
 
-        void set_data_pointer_impl(data_pointer_array_t *RESTRICT data_pointer) {
-            assert(data_pointer);
-            m_data_pointer = data_pointer;
-        }
-
-        data_pointer_array_t &RESTRICT data_pointer_impl() {
-            assert(m_data_pointer);
-            return *m_data_pointer;
-        }
         data_pointer_array_t const &RESTRICT data_pointer_impl() const {
-            assert(m_data_pointer);
-            return *m_data_pointer;
+            return m_pconst_iterate_domain->data_pointer();
         }
 
-        strides_cached_t &RESTRICT strides_impl() {
-            assert(m_strides);
-            return *m_strides;
-        }
+        array_tuple_t const &RESTRICT strides_impl() const { return m_pconst_iterate_domain->strides(); }
 
-        strides_cached_t const &RESTRICT strides_impl() const {
-            assert(m_strides);
-            return *m_strides;
-        }
-
-        void set_strides_pointer_impl(strides_cached_t *RESTRICT strides) {
-            assert(strides);
-            m_strides = strides;
-        }
+        GT_FUNCTION
+        void set_const_iterate_domain_pointer_impl(const_iterate_domain_t const *ptr) { m_pconst_iterate_domain = ptr; }
 
         iterate_domain_host const &get() const { return *this; }
 
@@ -112,21 +103,11 @@ namespace gridtools {
 
         template < typename ReturnType, typename Accessor, typename StoragePointer >
         GT_FUNCTION ReturnType get_value_impl(
-            StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+            typename StoragePointer::value_type *RESTRICT storage_pointer, const uint_t pointer_offset) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
 
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
         }
-
-        //    template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
-        //    typename boost::enable_if_c< is_any_storage<typename ArgStoragePair0::storage_type>::type::value
-        //                                , void>::type assign_pointers
-
-        //    typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0
-
-      private:
-        data_pointer_array_t *RESTRICT m_data_pointer;
-        strides_cached_t *RESTRICT m_strides;
     };
 
     template < template < class > class IterateDomainBase, typename IterateDomainArguments >

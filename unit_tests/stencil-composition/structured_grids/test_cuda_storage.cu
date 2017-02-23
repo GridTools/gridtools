@@ -100,7 +100,7 @@ bool test_cuda_storage() {
     data.clone_to_device();
 
     // clang-format off
-    add_on_gpu<<<1,1>>>(data.get_meta_data_pointer().get(), data.get_pointer_to_use(), d1, d2, d3);
+    add_on_gpu<<<1,1>>>(data.get_meta_data_device_pointer(), data.get_storage_device_pointer(), d1, d2, d3);
     // clang-format on
     cudaDeviceSynchronize();
 

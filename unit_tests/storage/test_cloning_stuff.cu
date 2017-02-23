@@ -55,7 +55,7 @@ namespace cloningstuff_test {
         uint_t size;
         uint_t &ref;
 
-        B(uint_t size) : size(size), ref(size), pointer_to_use(size) {}
+        B(uint_t size) : size(size), ref(size), pointer_to_use(size, false) {}
 
         __host__ __device__ B(B const &other) : pointer_to_use(other.pointer_to_use), size(other.size), ref(size) {}
 

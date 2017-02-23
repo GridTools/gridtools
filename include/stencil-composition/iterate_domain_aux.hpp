@@ -50,6 +50,7 @@
 #include "common/generic_metafunctions/static_if.hpp"
 #include "common/generic_metafunctions/reversed_range.hpp"
 #include "stencil-composition/total_storages.hpp"
+#include "array_tuple.hpp"
 
 /**
    @file
@@ -80,108 +81,6 @@ namespace gridtools {
     template < typename T >
     struct is_any_iterate_domain_meta_storage_pointer
         : boost::mpl::and_< is_any_iterate_domain_meta_storage< typename T::value_type >, is_pointer< T > > {};
-
-    /**
-       @brief struct to allocate recursively all the strides with the proper dimension
-
-       the purpose of this struct is to allocate the storage for the strides of a set of storages. Tipically
-       it is used to cache these strides in a fast memory (e.g. shared memory).
-       \tparam ID recursion index, representing the current storage
-       \tparam StorageList typelist of the storages
-    */
-    // TODOCOSUNA this is just an array, no need for special class, looks like
-    template < ushort_t ID, typename StorageList >
-    struct strides_cached : public strides_cached< ID - 1, StorageList > {
-        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< StorageList >::value > ID,
-            "Library internal error: strides index exceeds the number of storages");
-        typedef typename boost::mpl::at_c< StorageList, ID >::type storage_type;
-        typedef strides_cached< ID - 1, StorageList > super;
-        typedef array< int_t, storage_type::space_dimensions - 1 > data_array_t;
-
-#ifdef CXX11_ENABLED
-        template < short_t Idx >
-        using return_t = typename boost::mpl::if_< boost::mpl::bool_< Idx == ID >,
-            data_array_t,
-            typename super::template return_t< Idx > >::type;
-#else
-        template < short_t Idx >
-        struct return_t {
-            typedef typename boost::mpl::if_< boost::mpl::bool_< Idx == ID >,
-                data_array_t,
-                typename super::template return_t< Idx >::type >::type type;
-        };
-#endif
-
-        /**@brief constructor, doing nothing more than allocating the space*/
-        GT_FUNCTION
-        strides_cached() : super() {}
-
-        template < short_t Idx >
-        GT_FUNCTION
-#ifdef CXX11_ENABLED
-            return_t< Idx >
-#else
-        typename return_t<Idx>::type
-#endif
-            const &RESTRICT get() const {
-            return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
-        }
-
-        template < short_t Idx >
-        GT_FUNCTION
-#ifdef CXX11_ENABLED
-            return_t< Idx >
-#else
-        typename return_t<Idx>::type
-#endif
-                &RESTRICT get() {
-            return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
-        }
-
-      private:
-        data_array_t m_data;
-        strides_cached(strides_cached const &);
-    };
-
-    /**specialization to stop the recursion*/
-    template < typename MetaStorageList >
-    struct strides_cached< (ushort_t)0, MetaStorageList > {
-        typedef typename boost::mpl::at_c< MetaStorageList, 0 >::type storage_type;
-
-        GT_FUNCTION
-        strides_cached() {}
-
-        typedef array< int_t, storage_type::space_dimensions - 1 > data_array_t;
-
-        template < short_t Idx >
-#ifdef CXX11_ENABLED
-        using return_t = data_array_t;
-#else
-        struct return_t {
-            typedef data_array_t type;
-        };
-#endif
-
-        template < short_t Idx >
-        GT_FUNCTION data_array_t &RESTRICT get() { // stop recursion
-            return m_data;
-        }
-
-        template < short_t Idx >
-        GT_FUNCTION data_array_t const &RESTRICT get() const { // stop recursion
-            return m_data;
-        }
-
-      private:
-        data_array_t m_data;
-        strides_cached(strides_cached const &);
-    };
-
-    template < typename T >
-    struct is_strides_cached : boost::mpl::false_ {};
-
-    template < uint_t ID, typename StorageList >
-    struct is_strides_cached< strides_cached< ID, StorageList > > : boost::mpl::true_ {};
 
     /**@brief functor assigning the 'raw' data pointers to an input data pointers array (i.e. the m_data_pointers
        array).
@@ -246,9 +145,14 @@ If you are not using generic accessors then you are using an unsupported storage
         template < typename ID, typename Storage_ >
         GT_FUNCTION void impl(
             typename boost::enable_if_c< is_any_storage< Storage_ >::type::value >::type *t = 0) const {
-            // TODO Add assert for m_storage->template access_value<ID>()
-            BackendType::template once_per_block< ID::value, PEBlockSize >::assign(
-                m_data_pointer_array[Offset + ID::value], m_storage->template access_value< ID >() + m_offset);
+// TODO Add assert for m_storage->template access_value<ID>()
+// BackendType::template once_per_block< ID::value, PEBlockSize >::assign(
+//     m_data_pointer_array[Offset + ID::value], m_storage->template access_value< ID >() + m_offset);
+#ifdef __CUDACC__
+            assert(m_offset == 0);
+#endif
+            m_data_pointer_array[Offset + ID::value] =
+                static_cast< typename Storage_::value_type * >(m_storage->template access_value< ID >() + m_offset);
         }
 
         /**@brief implementation in case of a generic accessor*/
@@ -257,8 +161,10 @@ If you are not using generic accessors then you are using an unsupported storage
             typename boost::enable_if_c< boost::mpl::not_< typename is_any_storage< Storage_ >::type >::value >::type
                 *t = 0) const {
             // TODO Add assert for m_storage->template access_value<ID>()
-            BackendType::template once_per_block< ID::value, PEBlockSize >::assign(
-                m_data_pointer_array[Offset + ID::value], m_storage->template access_value< ID >());
+            // BackendType::template once_per_block< ID::value, PEBlockSize >::assign(
+            //     m_data_pointer_array[Offset + ID::value], m_storage->template access_value< ID >());
+            m_data_pointer_array[Offset + ID::value] =
+                static_cast< typename Storage_::value_type * >(m_storage->template access_value< ID >());
         }
     };
 
@@ -281,18 +187,15 @@ If you are not using generic accessors then you are using an unsupported storage
     template < uint_t Coordinate, typename StridesCached, typename MetaStorageSequence, typename ArrayIndex >
     struct increment_index_functor {
 
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesCached >::value), "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_array_tuple< StridesCached >::value), "internal error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< MetaStorageSequence, is_pointer >::value), "internal error: wrong type");
 
         GT_FUNCTION
-        increment_index_functor(MetaStorageSequence const &storages,
-            int_t const increment,
-            ArrayIndex &RESTRICT index_array,
-            StridesCached &RESTRICT strides_cached)
-            : m_storages(storages), m_increment(increment), m_index_array(index_array),
-              m_strides_cached(strides_cached) {}
+        increment_index_functor(
+            int_t const increment, ArrayIndex &RESTRICT index_array, StridesCached const &RESTRICT array_tuple)
+            : m_increment(increment), m_index_array(index_array), m_array_tuple(array_tuple) {}
 
         template < typename Pair >
         GT_FUNCTION void operator()(Pair const &) const {
@@ -302,23 +205,20 @@ If you are not using generic accessors then you are using an unsupported storage
 
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size< MetaStorageSequence >::value),
                 "Accessing an index out of bound in fusion tuple");
-            boost::fusion::at_c< ID::value >(m_storages)
-                ->template increment< Coordinate >(
-                    m_increment, &m_index_array[ID::value], m_strides_cached.template get< ID::value >());
+            boost::mpl::at< MetaStorageSequence, ID >::type::value_type::template increment< Coordinate >(
+                m_increment, &m_index_array[ID::value], m_array_tuple.template get< ID::value >());
         }
 
         GT_FUNCTION
         increment_index_functor(increment_index_functor const &other)
-            : m_storages(other.m_storages), m_increment(other.m_increment), m_index_array(other.m_index_array),
-              m_strides_cached(other.m_strides_cached){};
+            : m_increment(other.m_increment), m_index_array(other.m_index_array), m_array_tuple(other.m_array_tuple){};
 
       private:
         increment_index_functor();
 
-        MetaStorageSequence const &m_storages;
         const int_t m_increment;
         ArrayIndex &RESTRICT m_index_array;
-        StridesCached &RESTRICT m_strides_cached;
+        StridesCached const &RESTRICT m_array_tuple;
     };
 
     /**@brief assigning all the storage pointers to the m_data_pointers array
@@ -390,32 +290,37 @@ If you are not using generic accessors then you are using an unsupported storage
     template < uint_t Coordinate, typename Strides, typename MetaStorageSequence, typename ArrayIndex >
     struct initialize_index_functor {
       private:
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_array_tuple< Strides >::value), "internal error: wrong type");
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< MetaStorageSequence, is_pointer >::value), "internal error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), "internal error: wrong type");
 
-        Strides &RESTRICT m_strides;
-        MetaStorageSequence const &RESTRICT m_storages;
+        Strides const &RESTRICT m_strides;
         const int_t m_initial_pos;
         const uint_t m_block;
+        array< uint_t, 3 > const &m_initial_offsets;
+
         ArrayIndex &RESTRICT m_index_array;
+
+      private:
         initialize_index_functor();
 
       public:
         GT_FUNCTION
-        initialize_index_functor(initialize_index_functor const &other)
-            : m_strides(other.m_strides), m_storages(other.m_storages), m_initial_pos(other.m_initial_pos),
-              m_block(other.m_block), m_index_array(other.m_index_array) {}
+        initialize_index_functor(initialize_index_functor const &other, array< uint_t, 3 > const &initial_offsets_)
+            : m_strides(other.m_strides), m_initial_pos(other.m_initial_pos), m_block(other.m_block),
+              m_index_array(other.m_index_array), m_initial_offsets(initial_offsets_) {}
 
         GT_FUNCTION
-        initialize_index_functor(Strides &RESTRICT strides,
-            MetaStorageSequence const &RESTRICT storages,
+        initialize_index_functor(Strides const &RESTRICT strides
+            // MetaStorageSequence const &RESTRICT storages,
+            ,
             const int_t initial_pos,
             const uint_t block,
-            ArrayIndex &RESTRICT index_array)
-            : m_strides(strides), m_storages(storages), m_initial_pos(initial_pos), m_block(block),
-              m_index_array(index_array) {}
+            ArrayIndex &RESTRICT index_array,
+            array< uint_t, 3 > const &initial_offsets_)
+            : m_strides(strides), m_initial_pos(initial_pos), m_block(block), m_index_array(index_array),
+              m_initial_offsets(initial_offsets_) {}
 
         template < typename Pair >
         GT_FUNCTION void operator()(Pair const &) const {
@@ -424,9 +329,12 @@ If you are not using generic accessors then you are using an unsupported storage
             GRIDTOOLS_STATIC_ASSERT((id_t::value < boost::fusion::result_of::size< MetaStorageSequence >::value),
                 "Accessing an index out of bound in fusion tuple");
 
-            boost::fusion::at< id_t >(m_storages)
-                ->template initialize< Coordinate >(
-                    m_initial_pos, m_block, &m_index_array[id_t::value], m_strides.template get< id_t::value >());
+            boost::mpl::at< MetaStorageSequence, id_t >::type::value_type::template initialize< Coordinate >(
+                m_initial_pos,
+                m_block,
+                &m_index_array[id_t::value],
+                m_strides.template get< id_t::value >(),
+                m_initial_offsets);
         }
     };
 
@@ -523,6 +431,7 @@ If you are not using generic accessors then you are using an unsupported storage
                     boost::fusion::at< ID >(m_storages),
                     metadata_->fields_offset(m_EU_id_i, m_EU_id_j)));
         }
+
         /**
            @brief Overload when the accessor associated with this ID is a user-defined global accessor
 
@@ -553,98 +462,6 @@ If you are not using generic accessors then you are using an unsupported storage
     };
 
     /**
-       @brief functor assigning the storage strides to the m_strides array.
-       This is the unrolling of the inner nested loop
-
-       @tparam BackendType the type of backend
-       @tparam PEBlockSize the processing elements block size
-    */
-    template < typename BackendType, typename PEBlockSize >
-    struct assign_strides_inner_functor {
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), "Error: wrong type");
-
-      private:
-        // while the strides are uint_t type in the storage metadata,
-        // we stored them as int in the strides cached object in order to force vectorization
-        int_t *RESTRICT m_left;
-        const int_t *RESTRICT m_right;
-
-      public:
-        GT_FUNCTION
-        assign_strides_inner_functor(int_t *RESTRICT l, const int_t *RESTRICT r) : m_left(l), m_right(r) {}
-
-        template < typename ID >
-        GT_FUNCTION void operator()(ID const &) const {
-            assert(m_left);
-            assert(m_right);
-            BackendType::template once_per_block< ID::value, PEBlockSize >::assign(
-                m_left[ID::value], m_right[ID::value]);
-        }
-    };
-
-    /**@brief functor assigning the strides to a lobal array (i.e. m_strides).
-
-       It implements the unrolling of a double loop: i.e. is n_f is the number of fields in this user function,
-       and n_d(i) is the number of space dimensions per field (dependent on the ith field), then the loop for assigning
-       the strides
-       would look like
-       for(i=0; i<n_f; ++i)
-       for(j=0; j<n_d(i); ++j)
-       * @tparam BackendType the type of backend
-       * @tparam StridesCached strides cached type
-       * @tparam MetaStorageSequence sequence of storages
-       * @tparam PEBlockSize the processing elements block size
-       */
-    template < typename BackendType, typename StridesCached, typename MetaStorageSequence, typename PEBlockSize >
-    struct assign_strides_functor {
-
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesCached >::value), "internal error: wrong type");
-
-      private:
-        StridesCached &RESTRICT m_strides;
-        const MetaStorageSequence &RESTRICT m_storages;
-        assign_strides_functor();
-
-      public:
-        GT_FUNCTION
-        assign_strides_functor(assign_strides_functor const &other)
-            : m_strides(other.m_strides), m_storages(other.m_storages) {}
-
-        GT_FUNCTION
-        assign_strides_functor(StridesCached &RESTRICT strides, MetaStorageSequence const &RESTRICT storages)
-            : m_strides(strides), m_storages(storages) {}
-
-        template < typename Pair >
-        GT_FUNCTION void operator()(Pair const &) const {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::second< Pair >::type::value <
-                                        boost::fusion::result_of::size< MetaStorageSequence >::value),
-                "Accessing an index out of bound in fusion tuple");
-
-            typedef typename boost::mpl::second< Pair >::type ID;
-
-            typedef typename boost::mpl::first< Pair >::type meta_storage_type;
-
-            // if the following fails, the ID is larger than the number of storage types
-            GRIDTOOLS_STATIC_ASSERT(ID::value < boost::mpl::size< MetaStorageSequence >::value,
-                "the ID is larger than the number of storage types");
-
-#ifdef CXX11_ENABLED
-#ifndef __CUDACC__
-#if !defined(__INTEL_COMPILER)
-            GRIDTOOLS_STATIC_ASSERT(
-                (std::remove_reference< decltype(m_strides.template get< ID::value >()) >::type::size() ==
-                    meta_storage_type::space_dimensions - 1),
-                "internal error: the length of the strides vectors does not match. The bug fairy has no mercy.");
-#endif
-#endif
-#endif
-            boost::mpl::for_each< boost::mpl::range_c< short_t, 0, meta_storage_type::space_dimensions - 1 > >(
-                assign_strides_inner_functor< BackendType, PEBlockSize >(&(m_strides.template get< ID::value >()[0]),
-                    &(boost::fusion::template at_c< ID::value >(m_storages)->strides(1))));
-        }
-    };
-
-    /**
      * metafunction that evaluates if an accessor is cached by the backend
      * the Accessor parameter is either an Accessor or an expressions
      */
@@ -664,29 +481,35 @@ If you are not using generic accessors then you are using an unsupported storage
     };
 
     template < typename LocalDomain, typename Accessor >
-    struct get_storage_accessor {
+    struct get_arg_accessor {
         GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocalDomain >::value, "Wrong type");
         GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "Wrong type");
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< typename LocalDomain::local_args_type >::value > Accessor::index_type::value),
-            "Wrong type");
+        typedef typename LocalDomain::domain_args_t arg_list_t;
 
-        typedef
-            typename boost::mpl::at< typename LocalDomain::local_args_type, typename Accessor::index_type >::type type;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< arg_list_t >::value > Accessor::index_type::value),
+            "accessor has an ID which is too large");
+
+        typedef typename boost::mpl::at< arg_list_t, typename Accessor::index_type >::type type;
     };
 
+    template < typename LocalDomain, typename Accessor >
+    struct get_storage_accessor {
+        typedef typename get_arg_accessor< LocalDomain, Accessor >::type arg_type;
+
+        typedef typename arg_type::storage_type type;
+    };
     template < typename LocalDomain, typename Accessor >
     struct get_storage_pointer_accessor {
         GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocalDomain >::value, "Wrong type");
         GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "Wrong type");
 
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< typename LocalDomain::local_args_type >::value > Accessor::index_type::value),
+            (boost::mpl::size< typename LocalDomain::domain_args_t >::value > Accessor::index_type::value),
             "Wrong type");
 
         typedef typename boost::add_pointer<
-            typename get_storage_accessor< LocalDomain, Accessor >::type::value_type::value_type >::type type;
+            typename get_storage_accessor< LocalDomain, Accessor >::type::value_type >::type type;
     };
 
     template < typename T >
@@ -714,6 +537,11 @@ If you are not using generic accessors then you are using an unsupported storage
     struct get_arg_value_type_from_accessor {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
 
+        GRIDTOOLS_STATIC_ASSERT(
+            !(boost::is_same< typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type,
+                boost::mpl::void_ >::type::value),
+            "No argument matching a given accessor. You probably forgot one argument in the call to a stage of the "
+            "computation.");
         typedef typename get_storage_type< typename get_arg_from_accessor< Accessor,
             IterateDomainArguments >::type::storage_type >::type::value_type type;
     };
@@ -723,8 +551,8 @@ If you are not using generic accessors then you are using an unsupported storage
 
        for the global accessor the value_type is the storage object type itself.
     */
-    template < ushort_t I, enumtype::intend Intend, typename IterateDomainArguments >
-    struct get_arg_value_type_from_accessor< global_accessor< I, Intend >, IterateDomainArguments > {
+    template < int_t I, typename IterateDomainArguments >
+    struct get_arg_value_type_from_accessor< global_accessor< I >, IterateDomainArguments > {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), "Wrong type");
 
         typedef typename boost::mpl::at< typename IterateDomainArguments::local_domain_t::mpl_storages,

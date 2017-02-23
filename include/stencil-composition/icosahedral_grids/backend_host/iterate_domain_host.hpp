@@ -58,7 +58,7 @@ namespace gridtools {
       public:
         typedef iterate_domain_host iterate_domain_t;
         typedef typename super::data_pointer_array_t data_pointer_array_t;
-        typedef typename super::strides_cached_t strides_cached_t;
+        typedef typename super::array_tuple_t array_tuple_t;
         typedef typename super::local_domain_t local_domain_t;
         typedef typename super::grid_topology_t grid_topology_t;
         typedef boost::mpl::map0<> ij_caches_map_t;
@@ -81,17 +81,17 @@ namespace gridtools {
             return *m_data_pointer;
         }
 
-        strides_cached_t &RESTRICT strides_impl() {
+        array_tuple_t &RESTRICT strides_impl() {
             assert(m_strides);
             return *m_strides;
         }
 
-        strides_cached_t const &RESTRICT strides_impl() const {
+        array_tuple_t const &RESTRICT strides_impl() const {
             assert(m_strides);
             return *m_strides;
         }
 
-        void set_strides_pointer_impl(strides_cached_t *RESTRICT strides) {
+        void set_strides_pointer_impl(array_tuple_t *RESTRICT strides) {
             assert(strides);
             m_strides = strides;
         }
@@ -107,7 +107,7 @@ namespace gridtools {
 
       private:
         data_pointer_array_t *RESTRICT m_data_pointer;
-        strides_cached_t *RESTRICT m_strides;
+        array_tuple_t *RESTRICT m_strides;
     };
 
     template < template < class > class IterateDomainBase, typename IterateDomainArguments >

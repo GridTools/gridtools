@@ -40,7 +40,6 @@
 #include "run_esf_functor_host.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_host.hpp"
-#include "strategy_host.hpp"
 #include "empty_iterate_domain_cache.hpp"
 
 #ifdef ENABLE_METERS
@@ -53,6 +52,10 @@
 @brief type definitions and structures specific for the Host backend
 */
 namespace gridtools {
+
+    template < enumtype::strategy >
+    struct strategy_from_id_host;
+
     namespace _impl_host {
         /**forward declaration*/
         template < typename Arguments >
@@ -133,7 +136,7 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
             template < typename LocalDomain, typename Grid, typename ReductionData >
-            static void run(LocalDomain &local_domain,
+            static void run(LocalDomain const &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const uint_t bi,

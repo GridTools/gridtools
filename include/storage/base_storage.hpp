@@ -1,37 +1,37 @@
 /*
-  GridTools Libraries
+ GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
-  All rights reserved.
+ Copyright (c) 2016, GridTools Consortium
+ All rights reserved.
 
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are
+ met:
 
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
+ 1. Redistributions of source code must retain the above copyright
+ notice, this list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
+ 2. Redistributions in binary form must reproduce the above copyright
+ notice, this list of conditions and the following disclaimer in the
+ documentation and/or other materials provided with the distribution.
 
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
+ 3. Neither the name of the copyright holder nor the names of its
+ contributors may be used to endorse or promote products derived from
+ this software without specific prior written permission.
 
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  For information: http://eth-cscs.github.io/gridtools/
+ For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
 #include "../common/array.hpp"
@@ -91,12 +91,24 @@ namespace gridtools {
         template < typename T, typename M, bool I, ushort_t F >
         friend std::ostream &operator<<(std::ostream &, base_storage< T, M, F > const &);
 
-        /**
-         * @brief the parallel storage calls the empty constructor to do lazy initialization
-         */
-        base_storage(
-            MetaData const *meta_data_, char const *s = "default uninitialized storage", bool do_allocate = true)
+/**
+ * @brief the parallel storage calls the empty constructor to do lazy initialization
+ */
+#ifdef CXX11_ENABLED
+        template < typename Bool = bool >
+        base_storage(pointer< const MetaData > meta_data_,
+            char const *s = "default uninitialized storage",
+            Bool do_allocate = true)
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Bool, bool >::type::value),
+                "The signature of the storage constructor is either storage(storage_info, \"name\", bool), or "
+                "storage(storage_info, float, \"name\"). So check the order/type of the arguments");
+#else
+        base_storage(pointer< const MetaData > meta_data_,
+            char const *s = "default uninitialized storage",
+            bool do_allocate = true)
+            : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
+#endif
             if (do_allocate) {
                 allocate();
             }
@@ -107,24 +119,25 @@ namespace gridtools {
          * @tparam FloatType is the floating point type passed to the constructor for initialization.
          * It is a template parameter in order to match float, double, etc...
          */
-        base_storage(MetaData const *meta_data_, value_type const &init, char const *s = "default initialized storage")
+        base_storage(
+            pointer< const MetaData > meta_data_, value_type const &init, char const *s = "default initialized storage")
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             assert(is_set && "allocation failed.");
-            initialize(init, 1);
+            initialize(init, 1u);
         }
 
         /**
          * @brief default constructor sets all the data members given the storage dimensions
          */
         template < typename Ret, typename T >
-        base_storage(MetaData const *meta_data_,
+        base_storage(pointer< const MetaData > meta_data_,
             Ret (*func)(T const &, T const &, T const &),
             char const *s = "storage initialized with lambda")
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
             allocate();
             assert(is_set && "allocation failed.");
-            initialize(func, 1);
+            initialize(func, 1u);
         }
 
         /**
@@ -135,9 +148,13 @@ namespace gridtools {
          * wrap_pointer. In this way the storage destructor will not free the pointer.
          */
         template < typename FloatType >
-        explicit base_storage(MetaData const *meta_data_, FloatType *ptr, char const *s = "externally managed storage")
+        explicit base_storage(
+            pointer< const MetaData > meta_data_, FloatType *ptr, char const *s = "externally managed storage")
             : is_set(false), m_name(malloc_and_copy(s)), m_meta_data(meta_data_) {
-            m_fields[0] = pointer_type(ptr, true);
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same< FloatType, value_type >::type::value),
+                "you passed in a pointer to the storage constructor which has a different type than the storage "
+                "value_type. You have to explicit cast, e.g. storage_type s(sinfo, (double*) ptr )");
+            m_fields[0] = pointer_type(ptr, meta_data_->size(), true);
             if (FieldDimension > 1) {
                 allocate(FieldDimension, 1, true);
             }

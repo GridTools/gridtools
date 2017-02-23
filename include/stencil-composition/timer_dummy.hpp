@@ -55,6 +55,11 @@ namespace gridtools {
         __host__ void set_impl(double const & /*time_*/) {}
 
         /**
+        * Set counters
+        */
+        __host__ void set_impl(double const & /*time_*/) {}
+
+        /**
         * Start the stop watch
         */
         __host__ void start_impl() {}

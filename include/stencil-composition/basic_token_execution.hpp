@@ -96,7 +96,7 @@ namespace gridtools {
                 : m_grid(grid), m_domain(domain) {}
 
             template < typename Interval >
-            GT_FUNCTION void operator()(Interval const &) const {
+            GT_FUNCTION void operator()(Interval const &) {
                 typedef typename index_to_level< typename Interval::first >::type from_t;
                 typedef typename index_to_level< typename Interval::second >::type to_t;
 
@@ -114,8 +114,7 @@ namespace gridtools {
                 uint_t const from = m_grid.template value_at< from_t >();
                 uint_t const to = m_grid.template value_at< to_t >();
 
-                static_cast< RunFOnIntervalImpl * >(const_cast< run_f_on_interval_base< RunFOnIntervalImpl > * >(this))
-                    ->template k_loop< iteration_policy_t, Interval >(from, to);
+                RunFOnIntervalImpl::template k_loop< iteration_policy_t, Interval >(m_domain, from, to);
             }
 
           protected:

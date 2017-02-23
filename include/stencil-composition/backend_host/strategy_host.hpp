@@ -209,7 +209,8 @@ namespace gridtools {
                 boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
+            static void run(
+                LocalDomainListArray const &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
 
                 uint_t n = grid.i_high_bound() - grid.i_low_bound();

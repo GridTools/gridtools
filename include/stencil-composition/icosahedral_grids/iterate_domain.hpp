@@ -122,8 +122,7 @@ namespace gridtools {
             boost::mpl::size< typename local_domain_t::mpl_storages >::type::value >::value;
 
         typedef array< void * RESTRICT, N_DATA_POINTERS > data_pointer_array_t;
-        typedef strides_cached< N_META_STORAGES - 1, typename local_domain_t::storage_metadata_vector_t >
-            strides_cached_t;
+        typedef array_tuple< N_META_STORAGES - 1, typename local_domain_t::storage_metadata_vector_t > array_tuple_t;
 
         /**@brief local class instead of using the inline (cond)?a:b syntax, because in the latter both branches get
          * compiled (generating sometimes a compile-time overflow) */
@@ -138,7 +137,7 @@ namespace gridtools {
         template < typename LocalD, typename Accessor >
         struct current_storage< false, LocalD, Accessor > {
             static const uint_t value =
-                (total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
+                (total_storages< typename LocalD::local_storage_type, Accessor::index_type::value >::value);
         };
 
         /**
@@ -206,7 +205,7 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const {
+        array_tuple_t const &RESTRICT strides() const {
             return static_cast< IterateDomainImpl const * >(this)->strides_impl();
         }
 
@@ -214,7 +213,7 @@ namespace gridtools {
            @brief returns the strides as const reference
         */
         GT_FUNCTION
-        strides_cached_t &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
+        array_tuple_t &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -230,11 +229,14 @@ namespace gridtools {
             boost::mpl::for_each< typename reversed_range< uint_t, 0, N_STORAGES >::type >(
                 assign_storage_functor< BackendType,
                     data_pointer_array_t,
-                    typename local_domain_t::local_args_type,
+                    typename local_domain_t::local_storage_type,
                     typename local_domain_t::local_metadata_type,
                     metadata_map_t,
-                    processing_elements_block_size_t >(
-                    data_pointer(), m_local_domain.m_local_args, m_local_domain.m_local_metadata, EU_id_i, EU_id_j));
+                    processing_elements_block_size_t >(data_pointer(),
+                    m_local_domain.local_storages(),
+                    m_local_domain.local_metadata(),
+                    EU_id_i,
+                    EU_id_j));
         }
 
         /**
@@ -242,11 +244,11 @@ namespace gridtools {
 
            copies them from the
            local_domain.m_local_metadata vector, and stores them into an instance of the
-           \ref strides_cached class.
+           \ref array_tuple class.
          */
         template < typename BackendType, typename Strides >
         GT_FUNCTION void assign_stride_pointers() {
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error type");
+            GRIDTOOLS_STATIC_ASSERT((is_array_tuple< Strides >::value), "internal error type");
             boost::mpl::for_each< metadata_map_t >(assign_strides_functor< BackendType,
                 Strides,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
@@ -257,7 +259,7 @@ namespace gridtools {
         template < ushort_t Coordinate >
         GT_FUNCTION void initialize(uint_t const initial_pos = 0, uint_t const block = 0) {
             boost::mpl::for_each< metadata_map_t >(initialize_index_functor< Coordinate,
-                strides_cached_t,
+                array_tuple_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
                 array_index_t >(
                 strides(), boost::fusion::as_vector(m_local_domain.m_local_metadata), initial_pos, block, m_index));
@@ -273,7 +275,7 @@ namespace gridtools {
         template < ushort_t Coordinate, typename Steps >
         GT_FUNCTION void increment() {
             boost::mpl::for_each< metadata_map_t >(increment_index_functor< Coordinate,
-                strides_cached_t,
+                array_tuple_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
                 array_index_t >(
                 boost::fusion::as_vector(m_local_domain.m_local_metadata), Steps::value, m_index, strides()));
@@ -289,7 +291,7 @@ namespace gridtools {
         template < ushort_t Coordinate >
         GT_FUNCTION void increment(int_t steps_) {
             boost::mpl::for_each< metadata_map_t >(increment_index_functor< Coordinate,
-                strides_cached_t,
+                array_tuple_t,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
                 array_index_t >(boost::fusion::as_vector(m_local_domain.m_local_metadata), steps_, m_index, strides()));
             static_cast< IterateDomainImpl * >(this)->template increment_impl< Coordinate >(steps_);
@@ -637,7 +639,7 @@ namespace gridtools {
             // getting information about the storage
             typedef typename Accessor::index_type index_t;
 
-            auto const storage_ = boost::fusion::at< index_t >(m_local_domain.m_local_args);
+            auto const storage_ = boost::fusion::at< index_t >(m_local_domain.local_storages());
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
@@ -690,7 +692,7 @@ namespace gridtools {
             // getting information about the storage
             typedef typename Accessor::index_type index_t;
 
-            auto const storage_ = boost::fusion::at< index_t >(m_local_domain.m_local_args);
+            auto const storage_ = boost::fusion::at< index_t >(m_local_domain.local_storages());
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");

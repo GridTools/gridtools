@@ -68,24 +68,29 @@ namespace gridtools {
         /**
            @brief construct from raw pointer
          */
-        template < typename U >
-        GT_FUNCTION pointer(U *t_)
-            : m_t(t_) {
-            assert(m_t);
-        }
+        GT_FUNCTION pointer(T *t_) : m_t(t_) { assert(m_t); }
+
+        /**
+           @brief copy constructor
+         */
+        GT_FUNCTION pointer(pointer< T > const &other_) : m_t(other_.m_t) {}
+
+        GT_FUNCTION ~pointer() { m_t = NULL; }
 
         /**
            @brief assign operator
          */
-        template < typename U >
-        GT_FUNCTION void operator=(U *t_) {
-            m_t = t_;
-        }
+        GT_FUNCTION void operator=(T *t_) { m_t = t_; }
 
         /**
            @brief assign operator
          */
         GT_FUNCTION void operator=(pointer< T > const &other_) { m_t = other_.m_t; }
+
+        /**
+           @brief move assignment operator
+         */
+        GT_FUNCTION void operator=(pointer< T > &&other_) { m_t = other_.m_t; }
 
         /**
            @brief assign operator
@@ -94,7 +99,7 @@ namespace gridtools {
          */
         template < typename U >
         GT_FUNCTION void operator=(pointer< U > other_) {
-            *m_t = *other_.get();
+            m_t = const_cast< T * >(other_.get());
         }
 
         /**
