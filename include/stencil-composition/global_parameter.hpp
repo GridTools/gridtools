@@ -70,7 +70,7 @@ namespace gridtools {
         storage_ptr_t m_storage;
         T const &m_ref;
 
-        global_parameter(T const &t) : T(t), m_storage(static_cast< this_type * >(this), true), m_ref(t) {}
+        global_parameter(T const &t) : T(t), m_storage(static_cast< this_type * >(this), 1, true), m_ref(t) {}
 
         this_type const &operator=(this_type const &other) { return other; }
 
