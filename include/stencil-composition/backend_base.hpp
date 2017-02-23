@@ -61,6 +61,7 @@
 #include "./tile.hpp"
 #include "../storage/storage-facility.hpp"
 #include "./conditionals/condition.hpp"
+#include "../common/stencil_serializer.hpp"
 
 /**
    @file
@@ -400,6 +401,35 @@ namespace gridtools {
             strategy_traits_t::template fused_mss_loop< MssComponentsArray, backend_ids_t, ReductionData >::run(
                 mss_local_domain_list, grid, reduction_data);
         }
+
+#ifdef CXX11_ENABLED
+        /**
+         * \brief Calls the \ref gridtools::run_functor for each functor in the FunctorList.
+         *
+         * \see
+         *    gridtools::backend_base::run
+         */
+        template < typename MssComponentsArray,
+            typename Grid,
+            typename MssLocalDomainArray,
+            typename ReductionData,
+            typename SerializerType >
+        static void run_and_serialize(Grid const &grid,
+            MssLocalDomainArray &mss_local_domain_list,
+            ReductionData &reduction_data,
+            stencil_serializer< SerializerType > &stencil_ser) {
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
+
+            strategy_traits_t::template fused_mss_loop< MssComponentsArray,
+                backend_ids_t,
+                ReductionData >::run_and_serialize(mss_local_domain_list, grid, reduction_data, stencil_ser);
+        }
+#endif
 
         template < typename ArgList, typename MetaList, typename Grid >
         static void prepare_temporaries(ArgList &arg_list_, MetaList &meta_list_, Grid const &grid) {

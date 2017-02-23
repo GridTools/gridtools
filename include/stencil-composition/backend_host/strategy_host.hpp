@@ -36,9 +36,11 @@
 #pragma once
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
+#include "../mss_functor_serializable.hpp"
 #include "stencil-composition/backend_host/execute_kernel_functor_host.hpp"
 #include "../../storage/meta_storage.hpp"
 #include "../tile.hpp"
+#include "../../common/stencil_serializer.hpp"
 
 namespace gridtools {
 
@@ -80,6 +82,23 @@ namespace gridtools {
                     mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(
                         local_domain_lists, grid, reduction_data, 0, 0));
             }
+
+#ifdef CXX11_ENABLED
+            template < typename LocalDomainListArray, typename Grid, class SerializerType >
+            static void run_and_serialize(LocalDomainListArray &local_domain_lists,
+                const Grid &grid,
+                ReductionData &reduction_data,
+                stencil_serializer< SerializerType > &stencil_ser) {
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+
+                boost::mpl::for_each< iter_range >(mss_functor_serializable< MssComponentsArray,
+                    Grid,
+                    LocalDomainListArray,
+                    BackendIds,
+                    ReductionData,
+                    SerializerType >(local_domain_lists, grid, reduction_data, 0, 0, stencil_ser));
+            }
+#endif
         };
 
         /**
