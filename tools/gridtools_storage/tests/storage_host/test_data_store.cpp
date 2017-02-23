@@ -153,3 +153,8 @@ TEST(DataStoreTest, Initializer) {
             for(unsigned k=0; k<80; ++k) 
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
 }
+
+TEST(DataStoreTest, InvalidSize) {
+    EXPECT_THROW(storage_info_t(128, 128, 0), std::runtime_error);
+    EXPECT_THROW(storage_info_t(-128, 128, 80), std::runtime_error);
+}

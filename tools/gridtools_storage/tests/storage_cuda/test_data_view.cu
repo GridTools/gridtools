@@ -66,10 +66,10 @@ TEST(DataViewTest, Simple) {
     static_assert(si.index(1,0,0) == 1, "constexpr index method call failed");    
 #ifndef NDEBUG
     std::cout << "Execute death tests.\n";
-    ASSERT_DEATH(si.index(0,0,3), "Error triggered");
-    ASSERT_DEATH(si.index(0,3,0), "Error triggered");
-    ASSERT_DEATH(si.index(3,0,0), "Error triggered");
-    ASSERT_DEATH(si.index(5,5,5), "Error triggered");
+    ASSERT_DEATH(si.index(0,0,3), "Assertion `false' failed");
+    ASSERT_DEATH(si.index(0,3,0), "Assertion `false' failed");
+    ASSERT_DEATH(si.index(3,0,0), "Assertion `false' failed");
+    ASSERT_DEATH(si.index(5,5,5), "Assertion `false' failed");
 #endif
     ASSERT_TRUE(si.index(1,0,1) == 97);
     // check if data is there

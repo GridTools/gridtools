@@ -75,8 +75,16 @@ namespace gridtools {
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
 
+        DataStore &get(unsigned Dim, unsigned Snapshot) {
+            return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
+        }
+
         template < unsigned Dim, unsigned Snapshot >
         void set(DataStore &store) {
+            m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot] = store;
+        }
+
+        void set(unsigned Dim, unsigned Snapshot, DataStore &store) {
             m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot] = store;
         }
 

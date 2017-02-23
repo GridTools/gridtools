@@ -61,13 +61,17 @@ TEST(DataViewTest, Simple) {
     EXPECT_EQ(dv(0, 0, 1), 60);
     // check if the user protections are working
     static_assert(si.index(1,0,0) == 1, "constexpr index method call failed");
-#ifndef NDEBUG
+
     std::cout << "Execute death tests.\n";
-    ASSERT_DEATH(si.index(0,0,3), "Error triggered");
-    ASSERT_DEATH(si.index(0,3,0), "Error triggered");
-    ASSERT_DEATH(si.index(3,0,0), "Error triggered");
-    ASSERT_DEATH(si.index(5,5,5), "Error triggered");
+
+// this checks are only performed in debug mode
+#ifndef NDEBUG
+    EXPECT_THROW(si.index(0,0,3), std::runtime_error);
+    EXPECT_THROW(si.index(0,3,0), std::runtime_error);
+    EXPECT_THROW(si.index(3,0,0), std::runtime_error);
+    EXPECT_THROW(si.index(5,5,5), std::runtime_error);
 #endif
+
     ASSERT_TRUE(si.index(1,0,1) == 10);    
     // create a ro view
     data_view< data_store_t, true > dvro = make_host_view< true >(ds);

@@ -46,18 +46,19 @@ namespace gridtools {
     struct error {
 
         template <typename T>
-        GT_FUNCTION static T get() { 
-            assert(false && "Error triggered");
+        GT_FUNCTION static T get(char const* msg) { 
             #ifdef __CUDACC__
+            assert(false);
             return *((T*)(0x0));
             #else
-            throw std::logic_error("Error triggered");
+            throw std::runtime_error(msg);
+            assert(false);
             #endif
         }
 
         template < typename T = unsigned >
-        GT_FUNCTION static constexpr T trigger() {
-            return get<T>();
+        GT_FUNCTION static constexpr T trigger(char const* msg = "Error triggered") {
+            return get<T>(msg);
         }
     };
 

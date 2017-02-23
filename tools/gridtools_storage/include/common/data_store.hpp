@@ -36,8 +36,8 @@
 
 #pragma once
 
-#include <memory>
 #include <assert.h>
+#include <memory>
 
 #include <boost/mpl/bool.hpp>
 
@@ -61,10 +61,10 @@ namespace gridtools {
             : m_shared_storage(nullptr), m_shared_storage_info(new storage_info_t(info)) {}
 
         constexpr data_store(StorageInfo const &info, data_t initializer)
-            : m_shared_storage(new storage_t(info.size(), initializer)), 
+            : m_shared_storage(new storage_t(info.size(), initializer)),
               m_shared_storage_info(new storage_info_t(info)) {}
 
-        constexpr data_store(data_store &&other) = default;
+        data_store(data_store &&other) = default;
 
         data_store(data_store const &other)
             : m_shared_storage(other.m_shared_storage), m_shared_storage_info(other.m_shared_storage_info) {
@@ -78,9 +78,7 @@ namespace gridtools {
             return *this;
         }
 
-        void allocate() {
-            m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->size());
-        }
+        void allocate() { m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->size()); }
 
         void free() { m_shared_storage.reset(); }
 
