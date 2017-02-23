@@ -33,4 +33,30 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_copy_into_set.cpp"
+#include "gtest/gtest.h"
+#include <common/generic_metafunctions/is_pack_of.hpp>
+
+using namespace gridtools;
+
+#ifdef CUDA8
+
+template < typename T >
+struct is_int : boost::mpl::false_ {};
+template <>
+struct is_int< int > : boost::mpl::true_ {};
+
+template < typename... Int, typename = is_pack_of< is_int, Int... > >
+GT_FUNCTION constexpr int test_fn(Int...) {
+    return 1;
+}
+
+GT_FUNCTION
+constexpr int test_fn(double, double) { return 2; }
+
+TEST(is_offset_of, int) { GRIDTOOLS_STATIC_ASSERT((test_fn(int(3), int(4)) == 1), "ERROR"); }
+
+TEST(is_offset_of, empty) { GRIDTOOLS_STATIC_ASSERT((test_fn() == 1), "ERROR"); }
+
+TEST(is_offset_of, long) { GRIDTOOLS_STATIC_ASSERT((test_fn(long(3), int(4)) == 2), "ERROR"); }
+
+#endif

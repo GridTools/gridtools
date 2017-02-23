@@ -52,8 +52,8 @@ namespace gridtools {
             : public boost::mpl::bool_< (T1::index_type::value < T3::index_type::value) > {};
 
         /**specialization for storage placeholders*/
-        template < ushort_t I1, typename T1, ushort_t I2, typename T2 >
-        struct apply< arg< I1, T1 >, arg< I2, T2 > > : public boost::mpl::bool_< (I1 < I2) > {};
+        template < ushort_t I1, typename T1, typename L1, ushort_t I2, typename T2, typename L2 >
+        struct apply< arg< I1, T1, L1 >, arg< I2, T2, L2 > > : public boost::mpl::bool_< (I1 < I2) > {};
 
         /**specialization for static integers*/
         template < typename T, T T1, T T2 >

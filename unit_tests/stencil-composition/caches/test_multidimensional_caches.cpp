@@ -46,7 +46,7 @@ namespace test_multidimensional_caches {
         typedef pointer<
             base_storage< wrap_pointer< double >, meta_storage_base< static_int< 0 >, layout_t, false >, 4 > >
             storage_t;
-        typedef cache_storage< block_size< 8, 3, 4, 5, 6 >, extent< -1, 1, -2, 2, 0, 2, 0, 0, -1, 0 >, storage_t >
+        typedef cache_storage< block_size< 8, 3, 4, 5, 6 >, extent< -1, 1, -2, 2, 0, 2, 0, 0, -1, 0 >, 1, storage_t >
             cache_storage_t;
         typedef accessor< 0, enumtype::in, extent<>, 7 > acc_t;
 

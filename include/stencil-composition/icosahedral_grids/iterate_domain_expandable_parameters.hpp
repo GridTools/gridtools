@@ -35,7 +35,7 @@
 */
 #pragma once
 #include "../iterate_domain.hpp"
-#include "extent.hpp"
+#include "../extent.hpp"
 
 /** @file iterate_domain for expandable parameters*/
 

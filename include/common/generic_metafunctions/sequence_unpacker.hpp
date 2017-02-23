@@ -33,43 +33,40 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "stencil_on_vertexes.hpp"
-#include "../Options.hpp"
+#pragma once
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/pop_front.hpp>
+#include "../defs.hpp"
+#include "variadic_typedef.hpp"
 
-int main(int argc, char **argv) {
+namespace gridtools {
+#ifdef CXX11_ENABLED
+    /*
+     * converts a mpl sequence of types into a variadic_typedef of a variadic pack of types
+     * Example sequence_unpacker< int,float >::type == variadic_typedef< int, float >
+     */
+    template < typename Seq, typename... Args >
+    struct sequence_unpacker {
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Seq >::value > 0 || sizeof...(Args) > 0), "Error");
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+        template < typename Seq_ >
+        struct rec_unpack {
+            typedef typename sequence_unpacker< typename boost::mpl::pop_front< Seq_ >::type,
+                Args...,
+                typename boost::mpl::at_c< Seq_, 0 >::type >::type type;
+        };
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
-    }
+        template < typename... Args_ >
+        struct get_variadic_args {
+            using type = variadic_typedef< Args... >;
+        };
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
-    if (argc > 4) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
-    if (argc == 6) {
-        if ((std::string(argv[5]) == "-d"))
-            Options::getInstance().m_verify = false;
-    }
+        typedef typename boost::mpl::eval_if_c< (boost::mpl::size< Seq >::value > 0),
+            rec_unpack< Seq >,
+            get_variadic_args< Args... > >::type type;
+    };
+#endif
 
-    return RUN_ALL_TESTS();
-}
-
-TEST(StencilOnVertexes, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    bool verify = Options::getInstance().m_verify;
-
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(sov::test(x, y, z, t, verify));
-}
+} // namespace gridtools
