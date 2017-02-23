@@ -10,7 +10,7 @@ function exit_if_error {
 
 module unload CMake
 module load /users/vogtha/modules/CMake/3.7.2
-module load cudatoolkit/8.0.34_2.2.5_g8ce7a9a-2.1
+module load cudatoolkit
 module rm   PrgEnv-cray
 module load PrgEnv-gnu/6.0.3
 export BOOST_ROOT=/apps/daint/UES/jenkins/dom-acceptance/haswell/easybuild/software/Boost/1.61.0-CrayGNU-2016.11-Python-2.7.12/
