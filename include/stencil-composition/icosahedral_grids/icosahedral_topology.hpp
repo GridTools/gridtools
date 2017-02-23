@@ -46,6 +46,7 @@
 #include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/fusion/include/size.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
 #include <boost/fusion/container/vector.hpp>
@@ -57,11 +58,10 @@
 #include <boost/fusion/sequence/io.hpp>
 #include <boost/fusion/include/io.hpp>
 
-#include <common/array.hpp>
+#include "../../common/array.hpp"
 #include "../../common/gt_assert.hpp"
-#include <boost/mpl/vector.hpp>
 #include "../location_type.hpp"
-#include "common/array_addons.hpp"
+#include "../../common/array_addons.hpp"
 #include "../../common/gpu_clone.hpp"
 #include "../../common/selector.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
