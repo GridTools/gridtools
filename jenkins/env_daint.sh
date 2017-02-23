@@ -26,7 +26,7 @@ if [[ ${COMPILER} == "gcc" ]]; then
     fi
   fi
 elif [[ ${COMPILER} == "clang" ]]; then
-  module unload gcc
+  module unload PrgEnv-gnu
   module load /users/vogtha/modules/compilers/clang/3.8.1
 else
   echo "compiler not supported in environment: ${COMPILER}"
