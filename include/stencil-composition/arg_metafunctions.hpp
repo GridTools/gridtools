@@ -48,14 +48,24 @@ namespace gridtools {
 
     // metafunction to access the storage type given the arg
     template < typename T >
-    struct get_storage_from_arg {
-        typedef typename T::storage_t type;
+    struct get_storage_from_arg;
+
+    template < unsigned I, typename T, bool B >
+    struct get_storage_from_arg< arg<I,T,B> > {
+        typedef T type;
+    };
+
+    template < unsigned I, typename T, bool B >
+    struct get_storage_from_arg< arg<I, std::vector<T>,B> > {
+        typedef T type;
     };
 
     // metafunction to access the metadata type given the arg
     template < typename T >
     struct get_storage_info_from_arg {
-        typedef typename T::storage_t::storage_info_t type;
+        static_assert(is_arg<T>::value, "Given type is not an arg.");
+        typedef typename get_storage_from_arg<T>::type storage_t;
+        typedef typename storage_t::storage_info_t type;
     };
 
 } // namespace gridtools

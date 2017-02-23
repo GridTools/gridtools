@@ -312,7 +312,8 @@ namespace gridtools {
         uint_t RepeatFunctor >
     struct intermediate : public computation< ReductionType > {
         // fix the temporaries by replacing the given storage info index with a new one
-        typedef typename fix_temporary_args< MssDescriptorArrayIn, DomainType >::type MssDescriptorArrayFixedArgs;
+        // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
+        typedef typename fix_args< MssDescriptorArrayIn, DomainType, RepeatFunctor >::type MssDescriptorArrayFixedArgs;
         typedef typename fix_temporary_caches< MssDescriptorArrayFixedArgs, DomainType >::type MssDescriptorArray;
 
         GRIDTOOLS_STATIC_ASSERT(

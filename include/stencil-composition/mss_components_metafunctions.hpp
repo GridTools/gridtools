@@ -238,15 +238,16 @@ namespace gridtools {
             type; // vector of maps, indexed by functors indices in Functor vector.
     };
 
-    template < typename MssComponents, typename AggregatorType >
-    struct fix_temporary_args;
+    template < typename MssComponents, typename AggregatorType, uint_t RepeatFunctor >
+    struct fix_args;
 
     template < template < typename, typename > class MetaArray,
         typename Sequence,
         typename Pred,
-        typename AggregatorType >
-    struct fix_temporary_args< MetaArray< Sequence, Pred >, AggregatorType > {
-
+        typename AggregatorType,
+        uint_t RepeatFunctor >
+    struct fix_args< MetaArray< Sequence, Pred >, AggregatorType, RepeatFunctor > {
+        
         struct fix_esf_sequence {
             template < typename T >
             struct apply;
@@ -266,7 +267,11 @@ namespace gridtools {
                             _impl::replace_arg_storage_info< typename AggregatorType::tmp_storage_info_id_t,
                                              boost::mpl::_2 >,
                             boost::mpl::_2 > > >::type new_arg_array_t;
-                typedef EsfDescriptor< ESF, new_arg_array_t, Staggering > type;
+                typedef typename boost::mpl::transform<
+                    new_arg_array_t,
+                    substitute_expandable_param< RepeatFunctor >
+                >::type new_exp_arg_array_t;
+                typedef EsfDescriptor< ESF, new_exp_arg_array_t, Staggering > type;
             };
 
 

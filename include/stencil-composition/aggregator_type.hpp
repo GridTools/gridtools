@@ -293,9 +293,8 @@ namespace gridtools {
     template < uint_t... Indices, typename... Storages >
     aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > > instantiate_aggregator_type(
         gt_integer_sequence< uint_t, Indices... > seq_, Storages &... storages_) {
-        auto dom_ = aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(
-            boost::fusion::make_vector(&storages_...));
-        return dom_;
+        return aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(
+            storages_...);
     }
 
     template < typename... Storage >

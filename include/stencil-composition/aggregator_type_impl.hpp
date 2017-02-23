@@ -47,9 +47,12 @@
 #include <boost/type_traits/remove_pointer.hpp>
 
 #include "../gridtools.hpp"
+#include "../common/is_vector.hpp"
 #include "accessor.hpp"
 #include "arg.hpp"
-#include "storage-facility.hpp"
+#include "expandable_parameters/specializations.hpp"
+
+#include <storage-facility.hpp>
 
 template < typename RegularStorageType >
 struct no_storage_type_yet;
@@ -59,21 +62,41 @@ namespace gridtools {
     namespace _debug {
         struct print_type {
             template < typename T >
-            typename boost::enable_if< is_pointer< T >, void >::type operator()(T const &t) const {
+            typename boost::enable_if_c<is_pointer<T>::value, void >::type 
+            operator()(T const &t) const {
                 std::cout << boost::typeindex::type_id< T >().pretty_name() << std::endl;
                 std::cout << t.get() << "\n---\n";
             }
 
             template < typename T >
-            typename boost::enable_if< is_arg_storage_pair< T >, void >::type operator()(T const &t) const {
+            typename boost::enable_if_c<(is_arg_storage_pair< T >::value && is_data_store< typename T::storage_t >::value), void>::type
+            operator()(T const &t) const {
                 std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
                 std::cout << t.ptr.get() << "\n---\n";
             }
+
+            template < typename T >
+            typename boost::enable_if_c<(is_arg_storage_pair< T >::value && is_vector< typename T::storage_t >::value), void>::type
+            operator()(T const &t) const {
+                std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
+                std::cout << t.ptr.get() << std::endl;
+                for(unsigned i=0; i<t.ptr.get()->size(); ++i) {
+                    std::cout << "\t" << &(*t.ptr.get())[i] << std::endl;
+                }
+            }
+ 
+            template < typename T >
+            typename boost::enable_if_c<is_arg_storage_pair< T >::value && is_data_store_field< typename T::storage_t >::value, void >::type 
+            operator()(T const &t) const {
+                std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
+                std::cout << t.ptr.get() << std::endl;
+                for(auto e : t.ptr->get_field()) {
+                    std::cout << "\t" << &e << std::endl;
+                }
+            }
+
         };
     }
-
-    template < typename Storage, uint_t Size >
-    struct expandable_parameters;
 
     namespace _impl {
 
@@ -96,7 +119,8 @@ namespace gridtools {
             template < typename T >
             struct apply {
                 static_assert(is_arg< T >::value, "given type is no arg type");
-                typedef typename T::storage_t::storage_info_t storage_info_t;
+                typedef typename get_storage_from_arg<T>::type storage_t;
+                typedef typename storage_t::storage_info_t storage_info_t;
                 static_assert(is_storage_info< storage_info_t >::value, "given type is no arg type");
                 typedef boost::mpl::int_< storage_info_t::id > type;
             };
@@ -318,6 +342,13 @@ namespace gridtools {
             template < typename T, typename boost::enable_if< is_pointer< T >, int >::type = 0 >
             void operator()(T &ds) const {
                 this->operator()(*ds.get());
+            }
+
+            template < typename T, typename boost::enable_if< is_vector< T >, int >::type = 0 >
+            void operator()(T &ds) const {
+                typedef typename T::value_type::storage_info_t storage_info_t;
+                typedef pointer< const storage_info_t > ptr_t;
+                m_storageinfo_set.insert(ptr_t(ds[0].get_storage_info_ptr()));
             }
 
             template < typename T, typename boost::enable_if< is_data_store< T >, int >::type = 0 >

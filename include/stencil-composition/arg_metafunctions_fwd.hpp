@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include "./expandable_parameters/specializations.hpp"
+
 namespace gridtools {
     template < typename T >
     struct is_arg;

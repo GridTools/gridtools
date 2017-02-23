@@ -5,11 +5,7 @@
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
-typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
 #else
-//                   strides   1  x  xy
-//                      dims   x  y  z
-typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
@@ -34,20 +30,26 @@ namespace adv_prepare_tracers {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, interval_t) {
-            eval(data()) = eval(rho()); // * eval(data_nnow());
+            eval(data()) = eval(rho()) * eval(data_nnow());
         }
     };
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
 
-        typedef BACKEND::storage_info< 23, layout_t > meta_data_t;
-        typedef typename field< BACKEND::storage_type< float_type, meta_data_t >::type, 1 >::type storage_t;
+        typedef BACKEND::storage_traits_t::storage_info_t< 23, 3 > meta_data_t;
+        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         meta_data_t meta_data_(d1, d2, d3);
 
-        std::vector< pointer< storage_t > > list_out_(20, new storage_t(meta_data_, 0., "a storage"));
-        std::vector< pointer< storage_t > > list_in_(20, new storage_t(meta_data_, 0., "a storage"));
-        storage_t rho(meta_data_, 1.1, "rho");
+        std::vector< storage_t > list_out_;
+        std::vector< storage_t > list_in_;
+
+        for(unsigned i=0; i<20; ++i) {
+            list_out_.push_back(storage_t(meta_data_, 0.0));
+            list_in_.push_back(storage_t(meta_data_, i));
+        }
+
+        storage_t rho(meta_data_, 1.1);
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
@@ -56,19 +58,18 @@ namespace adv_prepare_tracers {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        typedef arg< 0, std::vector< pointer< storage_t > > > p_list_out;
-        typedef arg< 1, std::vector< pointer< storage_t > > > p_list_in;
+        typedef arg< 0, std::vector< storage_t > > p_list_out;
+        typedef arg< 1, std::vector< storage_t > > p_list_in;
         typedef arg< 2, storage_t > p_rho;
         typedef boost::mpl::vector< p_list_out, p_list_in, p_rho > args_t;
 
-        aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_, &rho));
-
+        aggregator_type< args_t > domain_(list_out_, list_in_, rho);
         auto comp_ =
-            make_computation< BACKEND >(expand_factor< 20 >(),
+            make_computation< BACKEND >(expand_factor< 3 >(),
                 domain_,
                 grid_,
                 make_multistage(enumtype::execute< enumtype::forward >(),
-                                            make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
+                    make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
 
         comp_->ready();
         comp_->steady();
@@ -79,6 +80,23 @@ namespace adv_prepare_tracers {
 #endif
         comp_->finalize();
 
-        return true;
+        bool result = true;
+        for(unsigned i=0; i<20; ++i) {
+            auto out_v = make_host_view(list_out_[i]);
+            auto in_v = make_host_view(list_in_[i]);
+            auto rho_v = make_host_view(rho);
+            for(unsigned a=0; a<d1; ++a) {
+                for(unsigned b=0; b<d2; ++b) {
+                    for(unsigned c=0; c<d3; ++c) {
+                        if(out_v(a,b,c) != rho_v(a,b,c)*in_v(a,b,c)) {
+                            std::cout << "error in out field " << i << " in " << a << " " << b << " " << c << ": " << out_v(a,b,c) << " == " << rho_v(a,b,c) << std::endl;
+                            result = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return result;
     }
 }

@@ -41,6 +41,7 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "./amss_descriptor.hpp"
+#include "./expandable_parameters/specializations.hpp"
 #include "./conditionals/condition.hpp"
 #include "./esf_metafunctions.hpp"
 #include "./grid_traits_metafunctions.hpp"
@@ -59,9 +60,6 @@
 
 namespace gridtools {
 
-    template < typename Storage, uint_t >
-    struct expandable_parameters;
-
     /**substituting the std::vector type in the args<> with a correspondent
        expandable_parameter placeholder*/
     template < uint_t Size >
@@ -73,16 +71,8 @@ namespace gridtools {
         };
 
         template < ushort_t ID, typename Storage, bool Temporary >
-        struct apply< arg< ID, std::vector< pointer< storage< Storage > > >, Temporary > > {
-            typedef arg< ID, storage< expandable_parameters< typename Storage::basic_type, Size > >, Temporary > type;
-        };
-
-        template < ushort_t ID, typename Storage, bool Temporary >
-        struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< storage< Storage > > > >, Temporary > > {
-            typedef arg< ID,
-                no_storage_type_yet< storage< expandable_parameters< typename Storage::basic_type, Size > > >,
-                Temporary >
-                type;
+        struct apply< arg< ID, std::vector< Storage >, Temporary > > {
+            typedef arg< ID, data_store_field< Storage, Size >, Temporary > type;
         };
 
         template < typename Arg, typename Extent >

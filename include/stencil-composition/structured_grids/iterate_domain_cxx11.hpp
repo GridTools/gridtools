@@ -403,8 +403,9 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim == storage_info_t::Layout::length+2,
                     "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and snapshot)");
 
-                const uint_t idx = get_accumulated_data_field_index_h<storage_t>::apply(accessor.template get< 1 >())
-                    + accessor.template get< 0 >();
+                const uint_t idx = get_accumulated_data_field_index_h<storage_t>::apply(accessor.template get< 0 >()) 
+                    + accessor.template get< 1 >();
+
                 return data_pointer().template get< index_t::value >()[idx];
         }
 
