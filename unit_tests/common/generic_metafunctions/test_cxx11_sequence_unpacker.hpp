@@ -33,52 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+#include "gtest/gtest.h"
+#include "common/generic_metafunctions/sequence_unpacker.hpp"
 
-#include <boost/mpl/max.hpp>
-#include <boost/mpl/int.hpp>
-#include <boost/mpl/vector.hpp>
+using namespace gridtools;
 
-namespace gridtools {
+void test_sequence_unpacker(bool *result) {
+    *result = true;
 
-    template < int_t R = 0 >
-    struct extent {
-        static const int_t value = R;
-        typedef boost::mpl::vector6< boost::mpl::int_< -value >,
-            boost::mpl::int_< value >,
-            boost::mpl::int_< -value >,
-            boost::mpl::int_< value >,
-            boost::mpl::int_< 0 >,
-            boost::mpl::int_< 0 > > extent_vec_t;
-    };
+    using test_type = boost::mpl::vector4< int, float, char, double >;
 
-    template < typename T >
-    struct is_extent : boost::mpl::false_ {};
-
-    template < int R >
-    struct is_extent< extent< R > > : boost::mpl::true_ {};
-
-    /**
-     * Metafunction taking two extents and yielding a extent containing them
-     */
-    template < typename Extent1, typename Extent2 >
-    struct enclosing_extent {
-        BOOST_MPL_ASSERT((is_extent< Extent1 >));
-        BOOST_MPL_ASSERT((is_extent< Extent2 >));
-
-        typedef extent< boost::mpl::max< static_uint< Extent1::value >, static_uint< Extent2::value > >::type::value >
-            type;
-    };
-
-    /**
-     * Metafunction to add two extents
-     */
-    template < typename Extent1, typename Extent2 >
-    struct sum_extent {
-        BOOST_MPL_ASSERT((is_extent< Extent1 >));
-        BOOST_MPL_ASSERT((is_extent< Extent2 >));
-
-        typedef extent< Extent1::value + Extent2::value > type;
-    };
-
-} // namespace gridtools
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< sequence_unpacker< test_type >::type, variadic_typedef< int, float, char, double > >::value),
+        "Error");
+}
