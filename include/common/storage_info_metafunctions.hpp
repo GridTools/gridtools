@@ -58,7 +58,8 @@ namespace gridtools {
     struct extend_by_halo {
         template < typename Dim >
         static constexpr unsigned extend(Dim d) {
-            return (LayoutArg == -1) ? 1 : d + 2 * HaloVal;
+            return (d<=0) ? error::trigger("Tried to instantiate storage info with zero or negative dimensions") : 
+                ((LayoutArg == -1) ? 1 : d + 2 * HaloVal);
         }
     };
 

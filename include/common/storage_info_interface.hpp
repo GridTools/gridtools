@@ -76,20 +76,10 @@ namespace gridtools {
               m_alignment(nano_array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(
                               dims_)...},
                   get_strides< Layout >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
-            static_assert((sizeof...(Dims) == Layout::length), "error");
+            static_assert((sizeof...(Dims) == Layout::length), "Number of passed dimensions do not match the layout map length.");
         }
 
         constexpr storage_info_interface(storage_info_interface const &other) = default;
-
-        template < unsigned From = Layout::length - 1 >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From > 0), unsigned >::type size_part() const {
-            return m_dims[From] * size_part< From - 1 >();
-        }
-
-        template < unsigned From = Layout::length - 1 >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From == 0), unsigned >::type size_part() const {
-            return m_dims[0];
-        }
 
         GT_FUNCTION constexpr unsigned size() const { return size_part() + get_initial_offset(); }
 
@@ -119,25 +109,13 @@ namespace gridtools {
                                                                     : stride< Coord >();
         }
 
-        template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (N < Layout::length), int >::type index_part(
-            int first, Ints... ints) const {
-            return first * m_strides[N] + index_part< N + 1 >(ints..., first);
-        }
-
-        template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (N == Layout::length), int >::type index_part(
-            int first, Ints... ints) const {
-            return 0;
-        }
-
         template < typename... Ints >
         GT_FUNCTION constexpr int index(Ints... idx) const {
             static_assert(sizeof...(Ints) == Layout::length, "Index function called with wrong number of arguments.");
             #ifdef NDEBUG
             return index_part< 0 >(idx...) + get_initial_offset();
             #else
-            return (check_bounds<0>(idx...)) ? index_part< 0 >(idx...) + get_initial_offset() : error::trigger();
+            return (check_bounds<0>(idx...)) ? index_part< 0 >(idx...) + get_initial_offset() : error::trigger("Storage out of bounds access");
             #endif
         }
 
@@ -164,6 +142,28 @@ namespace gridtools {
         check_bounds(Ints... idx) const {
             // base case out of bounds check
             return true;
+        }
+
+        template < unsigned N, typename... Ints >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (N < Layout::length), int >::type index_part(
+            int first, Ints... ints) const {
+            return first * m_strides[N] + index_part< N + 1 >(ints..., first);
+        }
+
+        template < unsigned N, typename... Ints >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (N == Layout::length), int >::type index_part(
+            int first, Ints... ints) const {
+            return 0;
+        }
+
+        template < unsigned From = Layout::length - 1 >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From > 0), unsigned >::type size_part() const {
+            return m_dims[From] * size_part< From - 1 >();
+        }
+
+        template < unsigned From = Layout::length - 1 >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From == 0), unsigned >::type size_part() const {
+            return m_dims[0];
         }
     };
 
