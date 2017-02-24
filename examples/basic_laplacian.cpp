@@ -53,15 +53,26 @@ int main_naive(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     uint_t d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-    typedef gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::Naive >::storage_type< double,
-        gridtools::layout_map< 0, 1, 2 > >::type storage_type;
-
+    #define BACKEND backend< Host, GRIDBACKEND, Naive >
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    
     std::ofstream file_i("basic_naive_in");
     std::ofstream file_o("basic_naive_out");
 
-    storage_type in(d1, d2, d3, -1., "in");
-    storage_type out(d1, d2, d3, -7.3, "out");
-    out.print(file_i);
+    storage_info_t md(d1, d2, d3);
+    storage_t in_s(md, -1.);
+    storage_t out_s(md, -7.3);
+    auto out = make_host_view(out_s);
+    auto in = make_host_view(in_s);
+
+    for(unsigned i=0; i<d1; ++i) {
+        for(unsigned j=0; j<d2; ++j) {
+            for(unsigned k=0; k<d3; ++k) {
+                file_i << in(i,j,k) << ",";
+            }
+        }
+    }
 
     boost::timer::cpu_timer time;
     for (int i = 2; i < d1 - 2; ++i) {
@@ -75,7 +86,13 @@ int main_naive(int argc, char **argv) {
     }
     boost::timer::cpu_times lapse_time = time.elapsed();
 
-    out.print(file_o);
+    for(unsigned i=0; i<d1; ++i) {
+        for(unsigned j=0; j<d2; ++j) {
+            for(unsigned k=0; k<d3; ++k) {
+                file_o << out(i,j,k) << ",";
+            }
+        }
+    }
 
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
@@ -99,15 +116,27 @@ int main_block(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     uint_t d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-    typedef gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::Naive >::storage_type< double,
-        gridtools::layout_map< 0, 1, 2 > >::type storage_type;
+
+    #define BACKEND backend< Host, GRIDBACKEND, Naive >
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
     std::ofstream file_i("basic_block_in");
     std::ofstream file_o("basic_block_out");
 
-    storage_type in(d1, d2, d3, -1., "in");
-    storage_type out(d1, d2, d3, -7.3, "out");
-    out.print(file_i);
+    storage_info_t md(d1, d2, d3);
+    storage_t in_s(md, -1.);
+    storage_t out_s(md, -7.3);
+    auto out = make_host_view(out_s);
+    auto in = make_host_view(in_s);
+
+    for(unsigned i=0; i<d1; ++i) {
+        for(unsigned j=0; j<d2; ++j) {
+            for(unsigned k=0; k<d3; ++k) {
+                file_i << in(i,j,k) << ",";
+            }
+        }
+    }
 
     boost::timer::cpu_timer time;
     int BI = 4;
@@ -199,7 +228,13 @@ int main_block(int argc, char **argv) {
 
     boost::timer::cpu_times lapse_time = time.elapsed();
 
-    out.print(file_o);
+    for(unsigned i=0; i<d1; ++i) {
+        for(unsigned j=0; j<d2; ++j) {
+            for(unsigned k=0; k<d3; ++k) {
+                file_o << out(i,j,k) << ",";
+            }
+        }
+    }
 
     std::cout << "TIME " << boost::timer::format(lapse_time) << std::endl;
 
