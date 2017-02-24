@@ -57,7 +57,7 @@ using gridtools::plus_;
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
@@ -129,15 +129,16 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef BACKEND::storage_type< int_t, BACKEND::storage_info< 0, gridtools::layout_map< 0, 1, 2 > > >::type
-        storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo<1,1,1> > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;        
 
     // Definition of the actual data fields that are used for input/output
-    storage_type::storage_info_type meta_(d1, d2, d3);
-    storage_type in(meta_, "in");
-    in.initialize(-1);
-    storage_type out(meta_, "out");
-    out.initialize(-7);
+    meta_data_t meta_(d1, d2, d3);
+    storage_t in_s(meta_, -1);
+    storage_t out_s(meta_, -7);
+
+    auto in = make_host_view(in_s);
+    auto out = make_host_view(out_s);
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
@@ -153,15 +154,32 @@ int main(int argc, char **argv) {
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-#ifdef CUDA_EXAMPLE
-    // TODO also metadata must be copied/used here
-    in.h2d_update();
-    out.h2d_update();
+    // sync the data stores if needed
+    in_s.sync();
+    out_s.sync();
+
+#ifdef __CUDACC__
+    auto dvin = make_device_view(in_s);
+    auto dvout = make_device_view(out_s);
 
     gridtools::boundary_apply_gpu< direction_bc_input< uint_t > >(halos, direction_bc_input< uint_t >(2))
-        .apply(in, out);
-    in.d2h_update();
+        .apply(dvin, dvout);
 #else
     gridtools::boundary_apply< direction_bc_input< uint_t > >(halos, direction_bc_input< uint_t >(2)).apply(in, out);
 #endif
+
+    // sync the data stores if needed
+    in_s.sync();
+    out_s.sync();
+
+    //TODO: perform checks
+    for (uint_t i = 0; i < d1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
+                //std::cout << in(i, j, k) << "\n";
+                //std::cout << out(i, j, k) << "\n";
+            }
+        }
+    }
+
 }

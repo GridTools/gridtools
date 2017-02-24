@@ -62,7 +62,7 @@ namespace gridtools {
         BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField) >                                                 \
     __global__ void loop_kernel(BoundaryFunction boundary_function,                                                 \
         Direction direction,                                                                                        \
-        BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, *data_field),                                       \
+        BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, data_field),                                        \
         uint_t starti,                                                                                              \
         uint_t startj,                                                                                              \
         uint_t startk,                                                                                              \
@@ -74,7 +74,7 @@ namespace gridtools {
         uint_t k = blockIdx.z * blockDim.z + threadIdx.z;                                                           \
         if ((i < nx) && (j < ny) && (k < nz)) {                                                                     \
             boundary_function(                                                                                      \
-                direction, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), *data_field), i + starti, j + startj, k + startk); \
+                direction, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field), i + starti, j + startj, k + startk);  \
         }                                                                                                           \
     }
 
@@ -122,9 +122,9 @@ namespace gridtools {
         uint_t nby = (ny + nty - 1) / nty;                                                                      \
         uint_t nbz = (nz + ntz - 1) / ntz;                                                                      \
         dim3 blocks(nbx, nby, nbz);                                                                             \
-        loop_kernel<<< blocks, threads >>>(boundary_function,                                               \
+        loop_kernel<<< blocks, threads >>>(boundary_function,                                                   \
             Direction(),                                                                                        \
-            BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), data_field, .get_pointer_to_use() BOOST_PP_INTERCEPT), \
+            BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field),                                                  \
             halo_descriptors[0].loop_low_bound_outside(Direction::I),                                           \
             halo_descriptors[1].loop_low_bound_outside(Direction::J),                                           \
             halo_descriptors[2].loop_low_bound_outside(Direction::K),                                           \
