@@ -84,7 +84,7 @@ if( USE_GPU )
          set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ ")
       endif()
   else()
-      error(STATUS "CUDA 6.0 or lower does not support C++11 (disabling)")
+      error(STATUS "CUDA 6.0 or lower does not supported")
   endif()
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 
