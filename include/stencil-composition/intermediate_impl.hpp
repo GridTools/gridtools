@@ -257,8 +257,8 @@ namespace gridtools {
         /** @brief Functor used to delete all temporary storages */
         struct delete_tmp_data_store {
             template < typename T >
-            void operator()(T const &t) const {
-                delete t.ptr.get();
+            void operator()(T &t) const {
+                t.ptr.destroy();
             }
         };
 
@@ -272,7 +272,6 @@ namespace gridtools {
 
             template < typename T, typename boost::enable_if_c< T::is_temporary, int >::type = 0 >
             void operator()(T const &) const {
-                // mem-leak protection: if the somebody calls ready multiple times
                 assert(!m_agg.template get_arg_storage_pair< typename T::arg_t >().ptr.get() && 
                     "temporary storage already initialized (maybe ready() was called multiple times). reinitialization would produce a memory leak. ");
                 // some typedefs
@@ -293,13 +292,23 @@ namespace gridtools {
         struct sync_data_stores {
             // case for non temporary storages (perform sync)
             template < typename T >
-            typename boost::disable_if< is_arg_storage_pair_to_tmp< T >, void >::type operator()(T const &t) const {
+            typename boost::enable_if_c< !is_arg_storage_pair_to_tmp< T >::value && is_vector<typename T::storage_t>::value, void >::type 
+            operator()(T const &t) const {
+                for(unsigned i=0; i<t.ptr.get()->size(); ++i)
+                    (*t.ptr)[i].sync();
+            }
+
+            // case for non temporary storages (perform sync)
+            template < typename T >
+            typename boost::enable_if_c< !is_arg_storage_pair_to_tmp< T >::value && !is_vector<typename T::storage_t>::value, void >::type 
+            operator()(T const &t) const {
                 t.ptr.get()->sync();
             }
 
             // temporary storages don't have to be synced.
             template < typename T >
-            typename boost::enable_if< is_arg_storage_pair_to_tmp< T >, void >::type operator()(T const &t) const {}
+            typename boost::enable_if_c< is_arg_storage_pair_to_tmp< T >::value, void >::type 
+            operator()(T const &t) const {}
         };
 
         /** @brief Metafunction class used to get the view type */

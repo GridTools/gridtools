@@ -436,9 +436,9 @@ namespace gridtools {
             // sync the data stores that should be synced
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
 
-            auto all_arg_storage_pairs = m_domain.get_arg_storage_pairs();
-            boost::fusion::filter_view< decltype(all_arg_storage_pairs), is_arg_storage_pair_to_tmp< boost::mpl::_ > >
-                filter(all_arg_storage_pairs);
+            auto& all_arg_storage_pairs = m_domain.get_arg_storage_pairs();
+            boost::fusion::filter_view< typename DomainType::arg_storage_pair_fusion_list_t, 
+                is_arg_storage_pair_to_tmp< boost::mpl::_ > > filter(all_arg_storage_pairs);
             boost::fusion::for_each(filter, _impl::delete_tmp_data_store());
         }
 
@@ -471,7 +471,7 @@ namespace gridtools {
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
         template < typename... DataStores >
-        void reassign(DataStores &... stores) { m_domain.reassing_impl(stores...); }
+        void reassign(DataStores &... stores) { m_domain.reassign_impl(stores...); }
 
         void reassign_aggregator(DomainType& new_domain) { m_domain = new_domain; }
 

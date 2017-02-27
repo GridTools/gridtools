@@ -230,7 +230,7 @@ namespace gridtools {
         /**
          * @brief returning by const reference the arg_storage_pairs
          */
-        arg_storage_pair_fusion_list_t const &get_arg_storage_pairs() const { return m_arg_storage_pair_list; }
+        arg_storage_pair_fusion_list_t &get_arg_storage_pairs() { return m_arg_storage_pair_list; }
 
         /**
          *  @brief given the placeholder type returns the corresponding arg_storage_pair by const reference
