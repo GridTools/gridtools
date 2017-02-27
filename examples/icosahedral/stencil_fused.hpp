@@ -198,7 +198,7 @@ namespace sf {
             }
 
 #if FLOAT_PRECISION == 4
-            verifier ver(1e-12);
+            verifier ver(1e-10);
 #else
             verifier ver(1e-6);
 #endif

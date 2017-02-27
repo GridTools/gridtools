@@ -128,9 +128,9 @@ namespace test_copy_stencil_icosahedral {
         comp_->finalize();
 
 #if FLOAT_PRECISION == 4
-            verifier ver(1e-12);
+        verifier ver(1e-10);
 #else
-            verifier ver(1e-6);
+        verifier ver(1e-6);
 #endif
 
         array< array< uint_t, 2 >, 4 > halos = {{{0, 0}, {0, 0}, {0, 0}, {0, 0}}};
