@@ -72,19 +72,27 @@ namespace gridtools {
 
         template < unsigned Dim, unsigned Snapshot >
         DataStore &get() {
+            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size, 
+                "Data store field out of bounds access");
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
 
         DataStore &get(unsigned Dim, unsigned Snapshot) {
+            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size && 
+                "Data store field out of bounds access");
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
 
         template < unsigned Dim, unsigned Snapshot >
-        void set(DataStore &store) {
+        void set(DataStore const &store) {
+            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size, 
+                "Data store field out of bounds access");
             m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot] = store;
         }
 
-        void set(unsigned Dim, unsigned Snapshot, DataStore &store) {
+        void set(unsigned Dim, unsigned Snapshot, DataStore const& store) {
+            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size && 
+                "Data store field out of bounds access");
             m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot] = store;
         }
 
