@@ -155,16 +155,26 @@ namespace ico_operators {
             std::random_device rd;
             std::mt19937 gen(rd());
             std::uniform_real_distribution<> dis(0, 1);
+            const double PI = std::atan(1.) * 4.;
+
+            double dx = 1. / (double)(m_idim);
+            double dy = 1. / (double)(m_jdim);
+
             // init u
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
+                        double x = dx * i;
+                        double y = dy * j;
+
                         for (uint_t k = 0; k < m_kdim; ++k) {
-                            m_u(i, c, j, k) = i * 1000000 + j * 10000 + c * 100 + k * 10;
-                            m_edge_length(i, c, j, 0) = (2.95 + dis(gen));
+                            m_u(i, c, j, k) = k + 8 * (2. + cos(PI * (x + 1.5 * y)) + sin(2 * PI * (x + 1.5 * y))) / 4.;
+                            m_edge_length(i, c, j, 0) =
+                                2.95 + (2. + cos(PI * (x + 1.5 * y)) + sin(2 * PI * (x + 1.5 * y))) / 4.;
                             m_edge_length_reciprocal(i, c, j, 0) = 1 / m_edge_length(i, c, j, 0);
 
-                            m_dual_edge_length(i, c, j, 0) = (2.2 + dis(gen));
+                            m_dual_edge_length(i, c, j, 0) =
+                                2.2 + (2. + cos(PI * (x + 2.5 * y)) + sin(2 * PI * (x + 3.5 * y))) / 4.;
                             m_dual_edge_length_reciprocal(i, c, j, 0) = 1 / m_dual_edge_length(i, c, j, 0);
                         }
                     }
@@ -174,14 +184,16 @@ namespace ico_operators {
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::vertices::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
-                        m_dual_area(i, c, j, 0) = 1.1 + dis(gen);
+                        m_dual_area(i, c, j, 0) =
+                            1.1 + (2. + cos(PI * (1.5 * x + y)) + sin(1.5 * PI * (x + 1.5 * y))) / 4.;
                     }
                 }
             }
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
-                        m_cell_area(i, c, j, 0) = 2.53 + dis(gen);
+                        m_cell_area(i, c, j, 0) =
+                            2.53 + (2. + cos(PI * (1.5 * x + 2.5 * y)) + sin(2 * PI * (x + 1.5 * y))) / 4.;
                         m_cell_area_reciprocal(i, c, j, 0) = (float_type)1. / m_cell_area(i, c, j, 0);
                     }
                 }
