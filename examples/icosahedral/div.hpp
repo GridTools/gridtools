@@ -83,7 +83,11 @@ namespace ico_operators {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        verifier ver(1e-10);
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-12);
+#else
+            verifier ver(1e-6);
+#endif
 
         array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
 

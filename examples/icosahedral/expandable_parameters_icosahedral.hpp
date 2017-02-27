@@ -152,7 +152,11 @@ namespace test_expandable_parameters_icosahedral {
         comp_->run();
         comp_->finalize();
 
-        verifier ver(1e-10);
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-12);
+#else
+            verifier ver(1e-6);
+#endif
 
         array< array< uint_t, 2 >, 4 > halos = {{{0, 0}, {0, 0}, {0, 0}, {0, 0}}};
         bool result = ver.verify(grid_, storage1, storage10, halos);
