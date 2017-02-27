@@ -120,29 +120,25 @@ TEST(Laplace, test) {
     using namespace enumtype;
 // [start_main]
 
-// [backend]
+    // [backend]
 #ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
     // [backend]
-
-    // [layout_map]
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t;
-    // [layout_map]
 
     // [storage_type]
     /**
        - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy
        for the backend (policy pattern)?
     */
-    typedef BACKEND::storage_info< 0, layout_t > storage_info_t;
-    typedef BACKEND::storage_type< float_type, storage_info_t >::type storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
+    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
     // [storage_type]
 
     // [storage_initialization]
@@ -150,8 +146,8 @@ TEST(Laplace, test) {
         - Instantiation of the actual data fields that are used for input/output
     */
     storage_info_t metadata_(d1, d2, d3);
-    storage_type in(metadata_, -1., "in");
-    storage_type out(metadata_, -7.3, "out");
+    storage_t in(metadata_, -1.);
+    storage_t out(metadata_, -7.3);
     // [storage_initialization]
 
     // [placeholders]
@@ -160,8 +156,8 @@ TEST(Laplace, test) {
        especially the non-temporary ones, in the construction of the domain.
        A placeholder only contains a static const index and a storage type
     */
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
+    typedef arg< 0, storage_t > p_in;
+    typedef arg< 1, storage_t > p_out;
 
     /**
        - Creation of an array of placeholders to be passed to the domain
@@ -180,7 +176,7 @@ TEST(Laplace, test) {
        \note aggregator_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is
        'clonable to gpu' must derive from the CRTP base class.
     */
-    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+    gridtools::aggregator_type< accessor_list > domain(in, out);
     // [aggregator_type]
 
     // [grid]
@@ -215,16 +211,7 @@ TEST(Laplace, test) {
   \ref gridtools::intermediate "intermediate" class.
   \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
 */
-#ifdef CXX11_ENABLED
-    auto
-#else
-#ifdef __CUDACC__
-    stencil *
-#else
-    boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-        laplace = make_computation< gridtools::BACKEND >(
+        auto laplace = make_computation< gridtools::BACKEND >(
             domain,
             grid,
             make_multistage        //! \todo all the arguments in the call to make_multistage are actually dummy.
@@ -263,13 +250,15 @@ TEST(Laplace, test) {
 
     // [generate reference]
 
-    storage_type ref(metadata_, -7.3, "ref");
+    storage_t ref(metadata_, -7.3);
 
+    auto refv = make_host_view(ref);
+    auto inv = make_host_view(in);
     for (uint_t i = halo_size; i != d1 - halo_size; ++i) {
         for (uint_t j = halo_size; j != d2 - halo_size; ++j) {
             for (uint_t k = 0; k != d3; ++k) {
-                ref(i, j, k) =
-                    4 * in(i, j, k) - (in(i + 1, j, k) + in(i, j + 1, k) + in(i - 1, j, k) + in(i, j - 1, k));
+                refv(i, j, k) =
+                    4 * inv(i, j, k) - (inv(i + 1, j, k) + inv(i, j + 1, k) + inv(i - 1, j, k) + inv(i, j - 1, k));
             }
         }
     }
