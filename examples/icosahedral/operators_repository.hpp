@@ -164,7 +164,7 @@ namespace ico_operators {
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
-                        double x = dx * i;
+                        double x = dx * (i+c/(double)icosahedral_topology_t::edges::n_colors::value);
                         double y = dy * j;
 
                         for (uint_t k = 0; k < m_kdim; ++k) {
@@ -184,6 +184,9 @@ namespace ico_operators {
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::vertices::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
+                        double x = dx * (i+c/icosahedral_topology_t::vertices::n_colors::value);
+                        double y = dy * j;
+
                         m_dual_area(i, c, j, 0) =
                             1.1 + (2. + cos(PI * (1.5 * x + y)) + sin(1.5 * PI * (x + 1.5 * y))) / 4.;
                     }
@@ -192,6 +195,9 @@ namespace ico_operators {
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
+                        double x = dx * (i+c/icosahedral_topology_t::cells::n_colors::value);
+                        double y = dy * j;
+
                         m_cell_area(i, c, j, 0) =
                             2.53 + (2. + cos(PI * (1.5 * x + 2.5 * y)) + sin(2 * PI * (x + 1.5 * y))) / 4.;
                         m_cell_area_reciprocal(i, c, j, 0) = (float_type)1. / m_cell_area(i, c, j, 0);
