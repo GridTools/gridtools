@@ -59,7 +59,6 @@ namespace gridtools {
         */
         template < typename DomainFull, typename Vec >
         struct initialize_storage {
-
           private:
             DomainFull const &m_dom_full;
             Vec &m_vec_to;
@@ -67,7 +66,7 @@ namespace gridtools {
             ushort_t& m_size;
 
           public:
-            initialize_storage(DomainFull const &dom_full_, Vec &vec_to_, ushort_t& size) 
+            initialize_storage(DomainFull const &dom_full_, Vec &vec_to_, ushort_t& size)
              : m_dom_full(dom_full_), m_vec_to(vec_to_), m_called(false), m_size(size) {}
 
             /**
@@ -79,10 +78,12 @@ namespace gridtools {
                 typedef typename boost::mpl::at_c<Vec, ID>::type arg_storage_pair_t;
                 typedef typename arg_storage_pair_t::storage_t data_store_field_t;
                 const auto expandable_param = (*(m_dom_full.template get_arg_storage_pair<placeholder_t,placeholder_t>()).ptr);
-                auto ptr = new data_store_field_t(*(expandable_param[0].get_storage_info_ptr()));
-                ptr->allocate();
-                boost::fusion::at< static_ushort< ID > >(m_vec_to) = 
-                    arg_storage_pair_t(ptr);
+                data_store_field_t* ptr = new data_store_field_t(*(expandable_param[0].get_storage_info_ptr()));
+                // fill in the first bunch of ptrs
+                for(unsigned i=0; i<data_store_field_t::size; ++i) {
+                    ptr->set(0, i, expandable_param[i]);
+                }
+                boost::fusion::at< static_ushort< ID > >(m_vec_to) = arg_storage_pair_t(static_cast<data_store_field_t*>(ptr));
                 // the lines below are checking if the expandable params are all of the same size
                 if(m_called) {
                     assert(m_size == expandable_param.size() && "Non-tmp expandable parameters must have the same size");
@@ -92,9 +93,7 @@ namespace gridtools {
             }
 
             template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< T >, true >) {
-                boost::fusion::at< static_ushort< ID > >(m_vec_to) = nullptr;
-            }
+            void operator()(arg< ID, std::vector< T >, true >) {}
 
             /**
                @brief initialize the storage vector, specisalization for the normal args

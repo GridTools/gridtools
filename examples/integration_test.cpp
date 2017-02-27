@@ -154,20 +154,14 @@ int main() {
     for (int i = halo_size; i < d1 - halo_size; ++i) {
         for (int j = halo_size; j < d2 - halo_size; ++j) {
             for (int k = 0; k < d3; ++k) {
-                valid &= (hv_out.template get<0,0>()(i, j, k) ==
-                          hv_in.template get<0,0>()(i, j, k));
+                valid &= (hv_out.template get<0,0>()(i, j, k) == 1);
 
-                valid &= (hv_out.template get<1,0>()(i, j, k) ==
-                          hv_in.template get<1,0>()(i, j, k));
-                valid &= (hv_out.template get<1,1>()(i, j, k) ==
-                          hv_in.template get<1,1>()(i, j, k));
+                valid &= (hv_out.template get<1,0>()(i, j, k) == 2);
+                valid &= (hv_out.template get<1,1>()(i, j, k) == 3);
 
-                valid &= (hv_out.template get<2,0>()(i, j, k) ==
-                          hv_in.template get<2,0>()(i, j, k));
-                valid &= (hv_out.template get<2,1>()(i, j, k) ==
-                          hv_in.template get<2,1>()(i, j, k));
-                valid &= (hv_out.template get<2,2>()(i, j, k) ==
-                          hv_in.template get<2,2>()(i, j, k));
+                valid &= (hv_out.template get<2,0>()(i, j, k) == 4);
+                valid &= (hv_out.template get<2,1>()(i, j, k) == 5);
+                valid &= (hv_out.template get<2,2>()(i, j, k) == 6);
 
                 if (!valid) {
                     std::cout << "ERROR IN: " << i << " " << j << " " << k << std::endl;

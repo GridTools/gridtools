@@ -469,6 +469,12 @@ namespace gridtools {
         virtual void reset_meter() { m_meter.reset(); }
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
+
+        template < typename... DataStores >
+        void reassign(DataStores &... stores) { m_domain.reassing_impl(stores...); }
+
+        void reassign_aggregator(DomainType& new_domain) { m_domain = new_domain; }
+
     };
 
 } // namespace gridtools

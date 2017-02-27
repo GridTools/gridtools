@@ -80,8 +80,9 @@ namespace gridtools {
             operator()(T const &t) const {
                 std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
                 std::cout << t.ptr.get() << std::endl;
+                if(t.ptr.get())
                 for(unsigned i=0; i<t.ptr.get()->size(); ++i) {
-                    std::cout << "\t" << &(*t.ptr.get())[i] << std::endl;
+                    std::cout << "\t" << &(*t.ptr.get())[i] << " -> " << (*t.ptr.get())[i].get_storage_ptr() << std::endl;
                 }
             }
  
@@ -90,8 +91,10 @@ namespace gridtools {
             operator()(T const &t) const {
                 std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
                 std::cout << t.ptr.get() << std::endl;
-                for(auto e : t.ptr->get_field()) {
-                    std::cout << "\t" << &e << std::endl;
+                if(t.ptr.get())
+                for(auto& e : t.ptr->get_field()) {
+                    auto* ptr = (e.valid() ? e.get_storage_ptr() : 0x0);
+                    std::cout << "\t" << &e << " -> " << ptr << std::endl;
                 }
             }
 
@@ -142,6 +145,12 @@ namespace gridtools {
         struct replace_arg_storage_info< NewId, arg< Id, data_store_field< DataStore, N... >, B > > {
             typedef typename replace_arg_storage_info< NewId, arg< Id, DataStore, B > >::type new_data_store_t;
             typedef arg< Id, data_store_field< typename new_data_store_t::storage_t, N... >, B > type;
+        };
+
+        template < typename NewId, unsigned Id, typename DataStore, bool B >
+        struct replace_arg_storage_info< NewId, arg< Id, std::vector< DataStore >, B > > {
+            typedef typename replace_arg_storage_info< NewId, arg< Id, DataStore, B > >::type new_data_store_t;
+            typedef arg< Id, std::vector< typename new_data_store_t::storage_t >, B > type;
         };
 
         struct l_get_type {

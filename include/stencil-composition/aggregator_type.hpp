@@ -102,8 +102,11 @@ namespace gridtools {
         const static uint_t len = boost::mpl::size< sorted_placeholders_t >::type::value;
 
         // create a unique id that will be used as temporary storage info id
+        typedef typename boost::mpl::fold<Placeholders, boost::mpl::vector<>,
+            boost::mpl::if_< is_tmp_arg<boost::mpl::_2>, boost::mpl::_1, boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2> > >::type
+            non_tmp_placeholders_t;
         typedef typename boost::mpl::next<
-            typename boost::mpl::deref< typename boost::mpl::max_element< typename boost::mpl::transform< Placeholders,
+            typename boost::mpl::deref< typename boost::mpl::max_element< typename boost::mpl::transform< non_tmp_placeholders_t,
                 _impl::extract_storage_info_id_from_arg >::type >::type >::type >::type tmp_storage_info_id_t;
 
         // replace the storage_info_t of all temporary args with the new index type
@@ -211,7 +214,7 @@ namespace gridtools {
         aggregator_type(aggregator_type const &other)
             : m_arg_storage_pair_list(other.m_arg_storage_pair_list), m_metadata_set(other.m_metadata_set) {}
 
-        void print() {
+        void print() const {
             printf("aggregator_type: Storage pointers\n");
             boost::fusion::for_each(m_arg_storage_pair_list, _debug::print_type());
             printf("aggregator_type: Metadata set pointers\n");
@@ -256,7 +259,7 @@ namespace gridtools {
         }
 
         template < typename... DataStores >
-        void reassign(DataStores &... stores) {
+        void reassign_impl(DataStores &... stores) {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
                 "the assign_pointers must be called with at least one argument. "

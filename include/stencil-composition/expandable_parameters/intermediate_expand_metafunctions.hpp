@@ -47,8 +47,8 @@ namespace gridtools {
         template < typename T >
         struct is_expandable_arg : boost::mpl::false_ {};
 
-        template < ushort_t N, typename Storage >
-        struct is_expandable_arg< arg< N, Storage > > : is_vector< Storage > {};
+        template < ushort_t N, typename Storage, bool Temporary >
+        struct is_expandable_arg< arg< N, Storage, Temporary > > : is_vector< Storage > {};
 
         struct create_arg {
             template < typename T, typename ExpandFactor >
