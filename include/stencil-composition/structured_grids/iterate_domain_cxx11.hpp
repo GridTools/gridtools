@@ -588,47 +588,60 @@ namespace gridtools {
     template < typename IterateDomainImpl >
     template < typename Accessor, typename StoragePointer >
     GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
-    iterate_domain< IterateDomainImpl >::get_value(
-        expr_direct_access< Accessor > const &expr, StoragePointer const &RESTRICT storage_pointer) const {
-        assert(false);
-        /*        GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor
-           type");
+    iterate_domain< IterateDomainImpl >::get_value(expr_direct_access< Accessor > const &expr, StoragePointer const &RESTRICT storage_pointer) const {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
-                // getting information about the storage
-                typedef typename Accessor::index_t index_t;
+        // getting information about the storage
+        typedef typename Accessor::index_t index_t;
+        typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-                typedef typename local_domain_t::template get_storage< index_t >::type storage_t;
-                typedef typename storage_t::storage_info_t storage_info_t;
-                typedef typename storage_t::data_t data_t;
+        typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+            storage_wrapper_t;
+        typedef typename storage_wrapper_t::storage_t storage_t;
+        typedef typename storage_wrapper_t::storage_info_t storage_info_t;
+        typedef typename storage_wrapper_t::data_t data_t;
 
-                const storage_info_t* storage_info =
-                    boost::fusion::deref(boost::fusion::find< const storage_info_t*
-           >(local_domain.m_local_storage_info_ptrs));
-                    //TODO: implement properly
+        // this index here describes the position of the storage info in the m_index array (can be different to the
+        // storage info id)
+        typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
+            const storage_info_t * >::type::pos storage_info_index_t;
 
+        const storage_info_t *storage_info =
+            boost::fusion::at< storage_info_index_t >(local_domain.m_local_storage_info_ptrs);
 
-                // error checks
-                GTASSERT(storage_info->size() >
-                         storage_info->index(strides().template get< metadata_index_t::value >(),
-           expr.first_operand.offsets()));
+        GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
-                GTASSERT(
-                    metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets())
-           >= 0);
+        assert(storage_pointer);
+        data_t *RESTRICT real_storage_pointer = static_cast< data_t * >(storage_pointer);
+        assert(real_storage_pointer);
 
-                GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim <= storage_t::storage_info_type::space_dimensions),
-                    "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
-                    "defining the placeholder.");
+        // control your instincts: changing the following
+        // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
+        const int_t pointer_offset = compute_offset< storage_info_t >(
+                strides().template get< storage_info_index_t::value >(),
+                expr.first_operand.offsets());
 
-                // casting the storage pointer from void* to the sotrage value_type
-                typename storage_t::value_type *RESTRICT real_storage_pointer =
-                    static_cast< typename storage_t::value_type * >(storage_pointer);
+        // the following assert fails when an out of bound access is observed, i.e. either one of
+        // i+offset_i or j+offset_j or k+offset_k is too large.
+        // Most probably this is due to you specifying a positive offset which is larger than expected,
+        // or maybe you did a mistake when specifying the ranges in the placehoders definition
+        // GTASSERT(storage_info->size() > pointer_offset);
 
-                // returning the value without adding the m_index
-                return *(real_storage_pointer +
-                         metadata_->_index(strides().template get< metadata_index_t::value >(),
-           expr.first_operand.offsets()));
-        */
+        // the following assert fails when an out of bound access is observed,
+        // i.e. when some offset is negative and either one of
+        // i+offset_i or j+offset_j or k+offset_k is too small.
+        // Most probably this is due to you specifying a negative offset which is
+        // smaller than expected, or maybe you did a mistake when specifying the ranges
+        // in the placehoders definition.
+        // If you are running a parallel simulation another common reason for this to happen is
+        // the definition of an halo region which is too small in one direction
+        //GTASSERT(pointer_offset >= 0);
+
+        return static_cast< const IterateDomainImpl * >(this)
+            ->template get_value_impl<
+                typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+                Accessor,
+                data_t * >(real_storage_pointer, pointer_offset);
     }
 
 } // namespace gridtools

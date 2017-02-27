@@ -376,7 +376,6 @@ namespace gridtools {
                                   ? 0
                                   : ((pos == max_t::value) ? 1 : m_strides.template get< index_t::value >()[pos]);
                 m_index_array[index_t::value] += (stride * initial_pos);
-                assert((int_t)m_index_array[index_t::value] < (int_t)storage_info->size());
             }
         }
 
