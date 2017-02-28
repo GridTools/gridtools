@@ -140,7 +140,12 @@ namespace ico_operators {
         auto &ref_edges = repository.lap_ref();
 
         bool result = true;
-        verifier ver(1e-15);
+#if FLOAT_PRECISION == 4
+        verifier ver(1e-7);
+#else
+        verifier ver(1e-14);
+#endif
+
         array< array< uint_t, 2 >, 4 > halos = {
             {{halo_nc + 1, halo_nc + 1}, {0, 0}, {halo_mc + 1, halo_mc + 1}, {halo_k, halo_k}}};
 
