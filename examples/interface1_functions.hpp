@@ -224,7 +224,6 @@ namespace horizontal_diffusion_functions {
 #endif
 
         typedef horizontal_diffusion::repository::storage_type storage_type;
-        typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
 
         horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
         repository.init_fields();
@@ -238,8 +237,8 @@ namespace horizontal_diffusion_functions {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, tmp_storage_type > p_flx;
-        typedef arg< 1, tmp_storage_type > p_fly;
+        typedef arg< 0, storage_type, true > p_flx;
+        typedef arg< 1, storage_type, true > p_fly;
         typedef arg< 2, storage_type > p_coeff;
         typedef arg< 3, storage_type > p_in;
         typedef arg< 4, storage_type > p_out;
@@ -248,16 +247,13 @@ namespace horizontal_diffusion_functions {
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_flx, p_fly, p_coeff, p_in, p_out > accessor_list;
 
-// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
-// used, temporary and not
-// It must be noted that the only fields to be passed to the constructor are the non-temporary.
-// The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
-// don't particularly like this)
-#if defined(CXX11_ENABLED) && !defined(CUDA_EXAMPLE)
-        gridtools::aggregator_type< accessor_list > domain_((p_out() = out), (p_in() = in), (p_coeff() = coeff));
-#else
-        gridtools::aggregator_type< accessor_list > domain_(boost::fusion::make_vector(&coeff, &in, &out));
-#endif
+        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
+        // used, temporary and not
+        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
+        // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
+        // don't particularly like this)
+        gridtools::aggregator_type< accessor_list > domain_(coeff, in, out);
+
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -269,16 +265,7 @@ namespace horizontal_diffusion_functions {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
+        auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
                 domain_,
                 grid_,
                 gridtools::make_multistage // mss_descriptor
@@ -298,9 +285,7 @@ namespace horizontal_diffusion_functions {
 
         horizontal_diffusion->run();
 
-#ifdef __CUDACC__
-        repository.update_cpu();
-#endif
+        repository.out().sync();
 
         bool result = true;
         if (verify) {
@@ -317,6 +302,8 @@ namespace horizontal_diffusion_functions {
 #else
             result = verif.verify(repository.out_ref(), repository.out());
 #endif
+        } else {
+            std::cout << "WARNING: No verification performed." << std::endl;
         }
         if (!result) {
             std::cout << "ERROR" << std::endl;
@@ -334,7 +321,7 @@ namespace horizontal_diffusion_functions {
         std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
-        return result; /// lapse_time.wall<5000000 &&
+        return result;
     }
 
 } // namespace horizontal_diffusion_functions
