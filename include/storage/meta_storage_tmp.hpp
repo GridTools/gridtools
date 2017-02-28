@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "meta_storage_base.hpp"
+#include "storage_grid_traits.hpp"
 
 /**
    @file
@@ -124,7 +125,18 @@ namespace gridtools {
             uint_t const &dim3,
             uint_t const &n_i_threads = 1,
             uint_t const &n_j_threads = 1)
+// TODO ICO_STORAGE INTRODUCTING GRIDS IN STORAGE
+#ifdef STRUCTURED_GRIDS
             : super((tile_i + minus_i + plus_i) * n_i_threads, (tile_j + minus_j + plus_j) * n_j_threads, dim3)
+#else
+            : super((tile_i + minus_i + plus_i) * n_i_threads,
+                  3,
+                  // the metafunction below does not work for temporaries
+                  // get_location_by_metastorage_index<super::index_type::value>::type::value,
+                  (tile_j + minus_j + plus_j) * n_j_threads,
+                  dim3)
+#endif
+
 #ifdef CXX11_ENABLED
               ,
               m_initial_offsets {
@@ -150,9 +162,8 @@ namespace gridtools {
 
         /**
            @brief returns the index (in the array of data snapshots) corresponding to the specified offset
-
-           It returns offset unless it is negative or it exceeds the size of the internal array of snapshots. In the
-           latter case it returns offset modulo the size of the array.
+           basically it returns offset unless it is negative or it exceeds the size of the internal array of snapshots.
+           In the latter case it returns offset modulo the size of the array.
            In the former case it returns the array size's complement of -offset.
         */
         GT_FUNCTION
@@ -206,9 +217,17 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((layout::template at_< Coordinate >::value >= -1), "wrong coordinate");
 
             // no blocking along k
-            if (Coordinate != 2 && layout::template at_< Coordinate >::value >= 0) {
-                uint_t tile_ = Coordinate == 0 ? tile_i : tile_j;
-                *index_ += (steps_ - block_ * tile_ - m_initial_offsets[Coordinate]) *
+            // TODO ICO_STORAGE
+            if (Coordinate == storage_grid_traits::dim_i_t::value ||
+                Coordinate == storage_grid_traits::dim_j_t::value) {
+                uint_t tile_ = Coordinate == storage_grid_traits::dim_i_t::value ? (tile_i) : (tile_j);
+                BOOST_STATIC_ASSERT(layout::template at_< Coordinate >::value >= 0);
+                *index_ += (steps_ - block_ * tile_ -
+#ifdef STRUCTURED_GRIDS
+                               m_initial_offsets[Coordinate]) *
+#else
+                               m_initial_offsets[Coordinate == storage_grid_traits::dim_j_t::value ? 1 : 0]) *
+#endif
                            basic_type::template strides< Coordinate >(strides_);
             } else {
                 super::template initialize< Coordinate >(steps_, block_, index_, strides_);
@@ -224,8 +243,10 @@ namespace gridtools {
         */
         GT_FUNCTION
         uint_t fields_offset(int_t EU_id_i, int_t EU_id_j) const {
-            return (super::template strides< 0 >(super::strides())) * (tile_i + minus_i + plus_i) * EU_id_i +
-                   (super::template strides< 1 >(super::strides())) * (tile_j + minus_j + plus_j) * EU_id_j;
+            return (super::template strides< storage_grid_traits::dim_i_t::value >(super::strides())) *
+                       (tile_i + minus_i + plus_i) * EU_id_i +
+                   (super::template strides< storage_grid_traits::dim_j_t::value >(super::strides())) *
+                       (tile_j + minus_j + plus_j) * EU_id_j;
         }
     };
 
@@ -233,8 +254,8 @@ namespace gridtools {
     struct is_meta_storage;
 
 #ifdef CXX11_ENABLED
-    template < typename MetaStorageBase, typename FirstTile, typename... Tiles >
-    struct is_meta_storage< meta_storage_tmp< MetaStorageBase, FirstTile, Tiles... > > : boost::mpl::true_ {};
+    template < typename MetaStorageBase, typename... Tiles >
+    struct is_meta_storage< meta_storage_tmp< MetaStorageBase, Tiles... > > : boost::mpl::true_ {};
 #else
     template < typename MetaStorageBase, typename TileI, typename TileJ >
     struct is_meta_storage< meta_storage_tmp< MetaStorageBase, TileI, TileJ > > : boost::mpl::true_ {};
@@ -244,8 +265,8 @@ namespace gridtools {
     struct is_meta_storage_tmp : boost::mpl::false_ {};
 
 #ifdef CXX11_ENABLED
-    template < typename MetaStorageBase, typename FirstTile, typename... Tiles >
-    struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, FirstTile, Tiles... > > : boost::mpl::true_ {};
+    template < typename MetaStorageBase, typename... Tiles >
+    struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, Tiles... > > : boost::mpl::true_ {};
 #else
     template < typename MetaStorageBase, typename TileI, typename TileJ >
     struct is_meta_storage_tmp< meta_storage_tmp< MetaStorageBase, TileI, TileJ > > : boost::mpl::true_ {};

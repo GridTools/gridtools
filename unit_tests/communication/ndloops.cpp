@@ -45,6 +45,8 @@
 #include <common/ndloops.hpp>
 #include <common/array.hpp>
 #include <sys/time.h>
+#include "gtest/gtest.h"
+
 struct sumup {
     mutable double res;
     int N;
@@ -85,7 +87,7 @@ struct print_int {
     void operator()(int idx) const { std::cout << "(" << idx << ")\n"; }
 };
 
-int main(int argc, char **argv) {
+TEST(Communication, ndloops) {
 
     gridtools::array< int, 4 > indices; /*= {3, 4, 3, 2}; // enabled in C++0x */
     indices[0] = 3;
@@ -99,17 +101,9 @@ int main(int argc, char **argv) {
     dimensions[3] = 5;
     std::cout << gridtools::access_to< 4 >()(indices, dimensions) << "\n";
 
-    int N = 3; // TODO: atoi(argv[1]);
+    int N = 3;
 
     gridtools::array< gridtools::bounds, 4 > ab;
-    //   ab[0].imin=2;
-    //   ab[0].imax=dimensions[0]-1;
-    //   ab[1].imin=3;
-    //   ab[1].imax=dimensions[1]-3;
-    //   ab[2].imin=10;
-    //   ab[2].imax=dimensions[2]-2;
-    //   ab[3].imin=0;
-    //   ab[3].imax=dimensions[3]-1;
     ab[0].imin = 0;
     ab[0].imax = N - 1;
     ab[1].imin = 0;
@@ -216,5 +210,5 @@ int main(int argc, char **argv) {
 
     std::cout << "result " << summ2.res << " time " << time << "\n";
 
-    return 0;
+    EXPECT_TRUE(true);
 }

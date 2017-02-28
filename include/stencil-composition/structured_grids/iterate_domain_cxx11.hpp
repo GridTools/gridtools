@@ -116,42 +116,15 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_holds_data_field {
-            typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
-                arg_holds_data_field_h< get_arg_from_accessor< Accessor, iterate_domain_arguments_t > >,
-                boost::mpl::identity< boost::mpl::false_ > >::type type;
-        };
-
-        /**
-         * metafunction that determines if a given accessor is associated with an arg holding a data field
-         * and the parameter refers to a storage in main memory (i.e. is not cached)
-         */
-        template < typename Accessor, typename CachesMap >
-        struct mem_access_with_data_field_accessor {
-            typedef typename boost::mpl::and_<
-                typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
-                typename accessor_holds_data_field< Accessor >::type >::type type;
-        };
-
-        /**
-         * metafunction that determines if a given accessor is associated with an arg holding a
-         * standard field (i.e. not a data field)
-         * and the parameter refers to a storage in main memory (i.e. is not cached)
-         */
-        template < typename Accessor, typename CachesMap >
-        struct mem_access_with_standard_accessor {
-            typedef typename boost::mpl::and_<
-                typename boost::mpl::and_<
-                    typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
-                    typename boost::mpl::not_< typename accessor_holds_data_field< Accessor >::type >::type >::type,
-                typename is_accessor< Accessor >::type > type;
+            typedef typename aux::accessor_holds_data_field< Accessor, iterate_domain_arguments_t >::type type;
         };
 
         /**
          * metafunction that determines if a given accessor is associated with an arg that is cached
          */
-        template < typename Accessor, typename CachesMap >
+        template < typename Accessor >
         struct cache_access_accessor {
-            typedef typename accessor_is_cached< Accessor, CachesMap >::type type;
+            typedef typename accessor_is_cached< Accessor, all_caches_t >::type type;
         };
 
         /**
@@ -162,7 +135,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_return_type {
-            typedef typename accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type type;
+            typedef typename ::gridtools::accessor_return_type_impl< Accessor, iterate_domain_arguments_t >::type type;
         };
 
         typedef typename local_domain_t::storage_metadata_map metadata_map_t;
@@ -493,7 +466,7 @@ namespace gridtools {
 
         // some aliases to ease the notation
         template < typename Accessor >
-        using cached = typename cache_access_accessor< Accessor, all_caches_t >::type;
+        using cached = typename cache_access_accessor< Accessor >::type;
 
         /** @brief method called in the Do methods of the functors.
 

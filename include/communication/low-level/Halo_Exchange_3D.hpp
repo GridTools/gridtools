@@ -280,7 +280,7 @@ namespace gridtools {
         template < int I, int J, int K >
         void post_receive() {
             if (m_recv_buffers.size(I, J, K)) {
-#ifndef NDEBUG
+#ifdef VERBOSE
                 std::cout << "@" << gridtools::PID << "@ IRECV (" << I << "," << J << "," << K << ") "
                           << " P " << m_proc_grid.template proc< I, J, K >() << " - "
                           << " T " << TAG< -I, -J, -K >::value << " - "
@@ -327,7 +327,7 @@ namespace gridtools {
         template < int I, int J, int K >
         void perform_isend() {
             if (m_send_buffers.size(I, J, K)) {
-#ifndef NDEBUG
+#ifdef VERBOSE
                 std::cout << "@" << gridtools::PID << "@ ISEND (" << I << "," << J << "," << K << ") "
                           << " P " << m_proc_grid.template proc< I, J, K >() << " - "
                           << " T " << TAG< I, J, K >::value << " - "
@@ -407,7 +407,7 @@ namespace gridtools {
         template < int I, int J, int K >
         void wait() {
             if (m_recv_buffers.size(I, J, K)) {
-#ifndef NDEBUG
+#ifdef VERBOSE
                 std::cout << "@" << gridtools::PID << "@ WAIT  (" << I << "," << J << "," << K << ") "
                           << " R " << translate()(-I, -J, -K) << "\n";
 #endif
@@ -497,7 +497,7 @@ namespace gridtools {
             assert((J >= -1 && J <= 1));
             assert((K >= -1 && K <= 1));
 
-#ifndef NDEBUG
+#ifdef VERBOSE
 //       std::cout << "@" << gridtools::PID
 //                 << "@ " << __PRETTY_FUNCTION__
 //                 << " : " << p << " size " << s
@@ -565,7 +565,7 @@ namespace gridtools {
             assert((J >= -1 && J <= 1));
             assert((K >= -1 && K <= 1));
 
-#ifndef NDEBUG
+#ifdef VERBOSE
 //       std::cout << "@" << gridtools::PID
 //                 << "@ " << __PRETTY_FUNCTION__
 //                 << " : " << p << " size " << s
