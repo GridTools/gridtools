@@ -143,7 +143,7 @@ namespace ico_operators {
 #if FLOAT_PRECISION == 4
         verifier ver(1e-6);
 #else
-        verifier ver(1e-10);
+        verifier ver(1e-9);
 #endif
         array< array< uint_t, 2 >, 4 > halos = {
             {{halo_nc + 1, halo_nc + 1}, {0, 0}, {halo_mc + 1, halo_mc + 1}, {halo_k, halo_k}}};
