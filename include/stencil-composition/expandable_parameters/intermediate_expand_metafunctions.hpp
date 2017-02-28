@@ -62,12 +62,7 @@ namespace gridtools {
 
         template < typename T >
         struct get_basic_storage {
-            typedef typename T::storage_type::basic_type type;
-        };
-
-        template < ushort_t ID, typename T >
-        struct get_basic_storage< arg< ID, std::vector< pointer< T > > > > {
-            typedef typename T::basic_type type;
+            typedef typename arg2storage< T >::type::basic_type type;
         };
 
         template < typename T >

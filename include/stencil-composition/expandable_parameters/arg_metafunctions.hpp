@@ -35,13 +35,12 @@
 */
 
 #pragma once
+#include "../arg_fwd.hpp"
+
 namespace gridtools {
 
     template < typename Storage, uint_t Size >
     struct expandable_parameters;
-
-    template < uint_t I, typename Storage, typename Cond >
-    struct arg;
 
     // metafunction to access the storage type given the arg
     template < ushort_t ID, typename T >
@@ -49,13 +48,13 @@ namespace gridtools {
         typedef T type;
     };
 
-    template < ushort_t I, typename T, typename C >
-    struct arg_holds_data_field_h< arg< I, pointer< T >, C > > {
+    template < ushort_t I, typename T, typename L, typename C >
+    struct arg_holds_data_field_h< arg< I, pointer< T >, L, C > > {
         typedef typename boost::mpl::bool_< (T::field_dimensions > 1) > type;
     };
 
-    template < ushort_t I, typename T, typename C >
-    struct arg_holds_data_field_h< arg< I, std::vector< T >, C > > {
+    template < ushort_t I, typename T, typename L, typename C >
+    struct arg_holds_data_field_h< arg< I, std::vector< T >, L, C > > {
         typedef typename boost::mpl::true_ type;
     };
 }

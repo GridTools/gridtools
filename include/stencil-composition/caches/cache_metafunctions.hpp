@@ -241,9 +241,11 @@ namespace gridtools {
                 "Internal Error: extend associated to cache not found.");
             typedef
                 typename boost::mpl::if_< is_k_cache< Cache >, block_size< 1, 1, 1 >, BlockSize >::type block_size_t;
+
             typedef cache_storage< Cache,
                 block_size_t,
                 typename boost::mpl::at< CacheExtendsMap, Cache >::type,
+                cache_parameter< Cache >::type::location_type_t::n_colors::value,
                 StoragePtr > type;
         };
 

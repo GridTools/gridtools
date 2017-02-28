@@ -35,10 +35,10 @@
 */
 #pragma once
 #include "arg_metafunctions_fwd.hpp"
+#include "arg_fwd.hpp"
 
 namespace gridtools {
-    template < uint_t I, typename Storage, typename Condition >
-    struct arg;
+
     /**
      * @struct arg_hods_data_field_h
      * high order metafunction of arg_holds_data_field
@@ -55,14 +55,30 @@ namespace gridtools {
 
     // metafunction to access the storage type given the arg
     template < typename T >
-    struct arg2storage {
-        typedef typename T::storage_type type;
+    struct arg2storage;
+
+    template < uint_t I, typename Storage, typename LocationType, typename is_temporary_storage >
+    struct arg2storage< arg< I, Storage, LocationType, is_temporary_storage > > {
+        typedef Storage type;
+    };
+
+    template < uint_t I, typename Storage, typename LocationType, typename is_temporary_storage >
+    struct arg2storage< arg< I, std::vector< pointer< Storage > >, LocationType, is_temporary_storage > > {
+        typedef Storage type;
     };
 
     // metafunction to access the metadata type given the arg
     template < typename T >
-    struct arg2metadata {
-        typedef typename arg2storage< T >::type::storage_info_type type;
+    struct arg2metadata;
+
+    template < uint_t I, typename Storage, typename LocationType, typename is_temporary_storage >
+    struct arg2metadata< arg< I, Storage, LocationType, is_temporary_storage > > {
+        typedef typename Storage::storage_info_type type;
+    };
+
+    template < uint_t I, typename Storage, typename LocationType, typename is_temporary_storage >
+    struct arg2metadata< arg< I, std::vector< pointer< Storage > >, LocationType, is_temporary_storage > > {
+        typedef typename Storage::storage_info_type type;
     };
 
     /** metafunction extracting the location type from the storage*/

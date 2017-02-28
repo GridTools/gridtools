@@ -44,3 +44,10 @@ TEST(offset_tuple, test_offset_tuple) {
     test_offset_tuple(&result);
     ASSERT_TRUE(result);
 }
+
+TEST(offset_tuple, test_offset_tuple_array_and_dim) {
+
+    bool result;
+    test_offset_tuple_array_and_dim(&result);
+    ASSERT_TRUE(result);
+}
