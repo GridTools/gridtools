@@ -52,29 +52,33 @@ TEST(StorageFacility, TypesTest) {
 /*########## STORAGE INFO CHECKS ########## */
 #ifdef __CUDACC__
     // storage info check
-    typedef storage_traits< BACKEND >::storage_info_t< 0, 3, halo<1,2,3> > storage_info_ty;
+    typedef storage_traits< BACKEND >::storage_info_t< 0, 3, halo< 1, 2, 3 > > storage_info_ty;
     static_assert(
         (is_storage_info< storage_info_ty >::type::value), "is_storage_info metafunction is not working anymore");
-    static_assert((boost::is_same< storage_info_ty, cuda_storage_info< 0, layout_map< 2, 1, 0 >, halo< 1, 2, 3 >, alignment< 32 > > >::type::value),
+    static_assert((boost::is_same< storage_info_ty,
+                      cuda_storage_info< 0, layout_map< 2, 1, 0 >, halo< 1, 2, 3 >, alignment< 32 > > >::type::value),
         "storage info test failed");
 
     // special layout
-    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > > special_storage_info_ty;
-    static_assert(
-        (boost::is_same< special_storage_info_ty, cuda_storage_info< 0, layout_map< 1, 0, -1 >, halo< 1, 2, 3 >, alignment< 32 > > >::type::value),
+    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > >
+        special_storage_info_ty;
+    static_assert((boost::is_same< special_storage_info_ty,
+                      cuda_storage_info< 0, layout_map< 1, 0, -1 >, halo< 1, 2, 3 >, alignment< 32 > > >::type::value),
         "storage info test failed");
 #else
     // storage info check
-    typedef storage_traits< BACKEND >::storage_info_t< 0, 3, halo<1,2,3> > storage_info_ty;
+    typedef storage_traits< BACKEND >::storage_info_t< 0, 3, halo< 1, 2, 3 > > storage_info_ty;
     static_assert(
         (is_storage_info< storage_info_ty >::type::value), "is_storage_info metafunction is not working anymore");
-    static_assert((boost::is_same< storage_info_ty, host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 >, alignment< 0 > > >::type::value),
+    static_assert((boost::is_same< storage_info_ty,
+                      host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 >, alignment< 0 > > >::type::value),
         "storage info test failed");
 
     // special layout
-    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > > special_storage_info_ty;
-    static_assert(
-        (boost::is_same< special_storage_info_ty, host_storage_info< 0, layout_map< 0, 1, -1 >, halo< 1, 2, 3 >, alignment< 0 > > >::type::value),
+    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > >
+        special_storage_info_ty;
+    static_assert((boost::is_same< special_storage_info_ty,
+                      host_storage_info< 0, layout_map< 0, 1, -1 >, halo< 1, 2, 3 >, alignment< 0 > > >::type::value),
         "storage info test failed");
 #endif
 
@@ -140,7 +144,7 @@ TEST(StorageFacility, ViewTests) {
 
 // do some computation
 #ifdef __CUDACC__
-    kernel<<<1, 1>>>(make_device_view(ds));
+    kernel< < < 1, 1 > > >(make_device_view(ds));
 #else
     ds.reactivate_host_write_views();
     for (int i = 0; i < 3; ++i)
@@ -161,4 +165,150 @@ TEST(StorageFacility, ViewTests) {
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
                 EXPECT_EQ(hrv(i, j, k), 2 * z++);
+}
+
+TEST(StorageFacility, LayoutTests) {
+    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 1 >::Layout layout1_t;
+    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 2 >::Layout layout2_t;
+    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 3 >::Layout layout3_t;
+    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 4 >::Layout layout4_t;
+    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 5 >::Layout layout5_t;
+
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 1, 1 > >::Layout layout_s5_t;
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 1, 1 > >::Layout layout_s51_t;
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 1, 1, 1 > >::Layout layout_s52_t;
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 1, 1 > >::Layout layout_s53_t;
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 0, 1 > >::Layout layout_s54_t;
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 1, 0 > >::Layout layout_s55_t;
+
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 1, 1, 1 > >::Layout layout_s56_t;
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 0, 1, 1 > >::Layout layout_s57_t;
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 0, 1 > >::Layout layout_s58_t;
+    typedef
+        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 0, 0 > >::Layout layout_s59_t;
+
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 0, 1, 1 > >::Layout
+        layout_s510_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 1, 0, 1 > >::Layout
+        layout_s511_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 1, 0 > >::Layout
+        layout_s512_t;
+
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 0, 1 > >::Layout
+        layout_s513_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 1, 1, 0 > >::Layout
+        layout_s514_t;
+
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 1, 0 > >::Layout
+        layout_s515_t;
+
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 0, 1, 1 > >::Layout
+        layout_s516_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 0, 0, 1 > >::Layout
+        layout_s517_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 0, 0 > >::Layout
+        layout_s518_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 0, 0 > >::Layout
+        layout_s519_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 1, 1, 0 > >::Layout
+        layout_s520_t;
+
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 0, 0, 0 > >::Layout
+        layout_s521_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 0, 0, 0 > >::Layout
+        layout_s522_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 1, 0, 0 > >::Layout
+        layout_s523_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 0, 1, 0 > >::Layout
+        layout_s524_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 0, 0, 1 > >::Layout
+        layout_s525_t;
+#ifdef __CUDACC__
+    static_assert((boost::is_same< layout1_t, layout_map< 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout2_t, layout_map< 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout3_t, layout_map< 2, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout4_t, layout_map< 3, 2, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout5_t, layout_map< 4, 3, 2, 1, 0 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s5_t, layout_map< 4, 3, 2, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s51_t, layout_map< -1, 3, 2, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s52_t, layout_map< 3, -1, 2, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s53_t, layout_map< 3, 2, -1, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s54_t, layout_map< 3, 2, 1, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s55_t, layout_map< 3, 2, 1, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s56_t, layout_map< -1, -1, 2, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s57_t, layout_map< 2, -1, -1, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s58_t, layout_map< 2, 1, -1, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s59_t, layout_map< 2, 1, 0, -1, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s510_t, layout_map< -1, 2, -1, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s511_t, layout_map< 2, -1, 1, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s512_t, layout_map< 2, 1, -1, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s513_t, layout_map< -1, 2, 1, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s514_t, layout_map< 2, -1, 1, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s515_t, layout_map< -1, 2, 1, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s516_t, layout_map< -1, -1, -1, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s517_t, layout_map< 1, -1, -1, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s518_t, layout_map< 1, 0, -1, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s519_t, layout_map< -1, 1, 0, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s520_t, layout_map< -1, -1, 1, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s521_t, layout_map< 0, -1, -1, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s522_t, layout_map< -1, 0, -1, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s523_t, layout_map< -1, -1, 0, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s524_t, layout_map< -1, -1, -1, 0, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s525_t, layout_map< -1, -1, -1, -1, 0 > >::value), "layout type is wrong");
+#else
+    static_assert((boost::is_same< layout1_t, layout_map< 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout2_t, layout_map< 0, 1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout3_t, layout_map< 0, 1, 2 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout4_t, layout_map< 1, 2, 3, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout5_t, layout_map< 2, 3, 4, 0, 1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s5_t, layout_map< 2, 3, 4, 0, 1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s51_t, layout_map< -1, 2, 3, 0, 1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s52_t, layout_map< 2, -1, 3, 0, 1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s53_t, layout_map< 2, 3, -1, 0, 1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s54_t, layout_map< 1, 2, 3, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s55_t, layout_map< 1, 2, 3, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s56_t, layout_map< -1, -1, 2, 0, 1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s57_t, layout_map< 2, -1, -1, 0, 1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s58_t, layout_map< 1, 2, -1, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s59_t, layout_map< 0, 1, 2, -1, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s510_t, layout_map< -1, 2, -1, 0, 1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s511_t, layout_map< 1, -1, 2, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s512_t, layout_map< 1, 2, -1, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s513_t, layout_map< -1, 1, 2, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s514_t, layout_map< 1, -1, 2, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s515_t, layout_map< -1, 1, 2, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s516_t, layout_map< -1, -1, -1, 0, 1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s517_t, layout_map< 1, -1, -1, -1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s518_t, layout_map< 0, 1, -1, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s519_t, layout_map< -1, 0, 1, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s520_t, layout_map< -1, -1, 1, 0, -1 > >::value), "layout type is wrong");
+
+    static_assert((boost::is_same< layout_s521_t, layout_map< 0, -1, -1, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s522_t, layout_map< -1, 0, -1, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s523_t, layout_map< -1, -1, 0, -1, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s524_t, layout_map< -1, -1, -1, 0, -1 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout_s525_t, layout_map< -1, -1, -1, -1, 0 > >::value), "layout type is wrong");
+#endif
 }

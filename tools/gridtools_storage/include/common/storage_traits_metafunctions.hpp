@@ -36,11 +36,11 @@
 
 #pragma once
 
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/push_back.hpp>
 #include <boost/mpl/count_if.hpp>
 #include <boost/mpl/int.hpp>
+#include <boost/mpl/push_back.hpp>
 #include <boost/mpl/remove.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/type_traits.hpp>
 
 #include "layout_map.hpp"
@@ -49,15 +49,15 @@
 namespace gridtools {
 
     /* Layout map extender, takes a given layout and extends it by n dimensions (ascending and descending version) */
-    template < unsigned Ext, typename Layout >
+    template < unsigned Dim, unsigned Current, typename Layout >
     struct layout_map_ext_asc;
 
-    template < unsigned Ext, int... Dims >
-    struct layout_map_ext_asc< Ext, layout_map< Dims... > >
-        : layout_map_ext_asc< Ext - 1, layout_map< Ext, Dims... > > {};
+    template < unsigned Dim, unsigned Current, int... Dims >
+    struct layout_map_ext_asc< Dim, Current, layout_map< Dims... > >
+        : layout_map_ext_asc< Dim - 1, Current + 1, layout_map< Dims..., Current > > {};
 
-    template < int... Dims >
-    struct layout_map_ext_asc< 0, layout_map< Dims... > > {
+    template < unsigned Current, int... Dims >
+    struct layout_map_ext_asc< 0, Current, layout_map< Dims... > > {
         typedef layout_map< Dims... > type;
     };
 
@@ -76,12 +76,12 @@ namespace gridtools {
     /* get a standard layout_map (either 3 or n-dimensional and ascending or descending) */
     template < unsigned Dim, bool Asc >
     struct get_layout;
- 
+
     template <>
     struct get_layout< 1, true > {
         typedef layout_map< 0 > type;
     };
- 
+
     template <>
     struct get_layout< 1, false > {
         typedef layout_map< 0 > type;
@@ -107,16 +107,18 @@ namespace gridtools {
         typedef layout_map< 2, 1, 0 > type;
     };
 
+    // get a multidimensional layout in ascending order (e.g., host backend)
     template < unsigned Dim >
     struct get_layout< Dim, true > {
         static_assert(Dim > 0, "Zero dimensional layout makes no sense.");
-        typedef typename layout_map_ext_asc< Dim - 1, layout_map< 0 > >::type type;
+        typedef typename layout_map_ext_asc< Dim - 3, 0, layout_map< Dim - 3, Dim - 2, Dim - 1 > >::type type;
     };
 
+    // get a multidimensional layout in descending order (e.g., gpu backend)
     template < unsigned Dim >
     struct get_layout< Dim, false > {
         static_assert(Dim > 0, "Zero dimensional layout makes no sense.");
-        typedef typename layout_map_ext_dsc< Dim - 1, layout_map< Dim > >::type type;
+        typedef typename layout_map_ext_dsc< Dim - 1, layout_map< Dim - 1 > >::type type;
     };
 
     /* special layout construction mechanisms */
@@ -137,9 +139,9 @@ namespace gridtools {
     struct fix_values< ValueVec, layout_map< D... > > {
         typedef layout_map< boost::mpl::if_< boost::is_same< boost::mpl::int_< -1 >, boost::mpl::int_< D > >,
             boost::mpl::int_< -1 >,
-            boost::mpl::int_< (int)(
-                D - (int)boost::mpl::count_if< ValueVec,
-                        boost::mpl::less< boost::mpl::_, boost::mpl::int_< D > > >::type::value) > >::type::value... >
+            boost::mpl::int_< (int)(D - (int)boost::mpl::count_if< ValueVec,
+                                            boost::mpl::less< boost::mpl::_, boost::mpl::int_< D > > >::type::
+                                            value) > >::type::value... >
             type;
     };
 
