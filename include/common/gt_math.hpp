@@ -55,4 +55,57 @@ namespace gridtools {
             return 1.;
         }
     };
+
+    namespace math {
+
+        template < typename Value >
+        GT_FUNCTION Value max(Value const val0) {
+            assert(false);
+        }
+
+        template < typename Value >
+        GT_FUNCTION Value max() {
+            assert(false);
+        }
+
+        template < typename Value >
+        GT_FUNCTION Value max(Value const val0, Value const val1) {
+            return val0 > val1 ? val0 : val1;
+        }
+
+        template < typename ValueFirst, typename... OtherValues >
+        GT_FUNCTION ValueFirst max(ValueFirst val0, OtherValues... vals) {
+            return val0 > max(vals...) ? val0 : max(vals...);
+        }
+
+        template < typename Value >
+        GT_FUNCTION Value min(Value const val0) {
+            assert(false);
+        }
+
+        template < typename Value >
+        GT_FUNCTION Value min() {
+            assert(false);
+        }
+
+        template < typename Value >
+        GT_FUNCTION Value min(Value const val0, Value const val1) {
+            return val0 > val1 ? val1 : val0;
+        }
+
+        template < typename ValueFirst, typename... OtherValues >
+        GT_FUNCTION ValueFirst min(ValueFirst val0, OtherValues... vals) {
+            return val0 > min(vals...) ? min(vals...) : val0;
+        }
+
+        template < typename Value >
+        GT_FUNCTION Value fabs(Value const val) {
+            return ::fabs(val);
+        }
+        template < typename Value >
+        GT_FUNCTION Value abs(Value const val) {
+            return ::abs(val);
+        }
+    } // namespace math
+
 } // namespace gridtools
