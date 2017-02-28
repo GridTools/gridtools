@@ -164,7 +164,7 @@ namespace ico_operators {
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
-                        double x = dx * (i+c/(double)icosahedral_topology_t::edges::n_colors::value);
+                        double x = dx * (i + c / (double)icosahedral_topology_t::edges::n_colors::value);
                         double y = dy * j;
 
                         for (uint_t k = 0; k < m_kdim; ++k) {
@@ -184,7 +184,7 @@ namespace ico_operators {
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::vertices::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
-                        double x = dx * (i+c/icosahedral_topology_t::vertices::n_colors::value);
+                        double x = dx * (i + c / icosahedral_topology_t::vertices::n_colors::value);
                         double y = dy * j;
 
                         m_dual_area(i, c, j, 0) =
@@ -195,7 +195,7 @@ namespace ico_operators {
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
-                        double x = dx * (i+c/icosahedral_topology_t::cells::n_colors::value);
+                        double x = dx * (i + c / icosahedral_topology_t::cells::n_colors::value);
                         double y = dy * j;
 
                         m_cell_area(i, c, j, 0) =
