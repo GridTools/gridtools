@@ -35,9 +35,11 @@
 */
 #include "gtest/gtest.h"
 #include <common/generic_metafunctions/repeat_template.hpp>
-#include <storage/halo.hpp>
 
 using namespace gridtools;
+
+template < unsigned... N >
+struct halo {};
 
 TEST(test_common_metafunctions, test_repeat_template) {
     typedef repeat_template_v< static_int< 5 >, static_int< 3 >, uint_t, halo >::type test1;
