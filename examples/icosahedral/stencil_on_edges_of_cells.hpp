@@ -173,9 +173,9 @@ namespace soeov {
             }
 
 #if FLOAT_PRECISION == 4
-            verifier ver(1e-10);
-#else
             verifier ver(1e-6);
+#else
+            verifier ver(1e-10);
 #endif
 
             array< array< uint_t, 2 >, 5 > halos = {
