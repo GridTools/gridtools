@@ -88,4 +88,22 @@ namespace gridtools {
             FieldDimensions > type;
     };
 
+    template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
+    struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
+        typedef global_accessor< ID, Intend > accessor_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), "Internal Error: wrong size");
+        // check that the key type is an int (otherwise the later has_key would never find the key)
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::is_same<
+                typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
+                int >::value),
+            "Internal Error");
+
+        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
+
+        typedef global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend > type;
+    };
+
 } // namespace gridtools
