@@ -45,12 +45,14 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/preprocessor.hpp>
+#include <boost/type_traits/is_same.hpp>
 
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
 #include "../../stencil-composition/caches/cache_definitions.hpp"
 #include "../../stencil-composition/accessor.hpp"
+#include "../../stencil-composition/location_type.hpp"
 
 namespace gridtools {
 
@@ -76,6 +78,12 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_arg< Arg >::value), "argument passed to ij cache is not of the right arg<> type");
             typedef Arg arg_t;
+// TODO ICO_STORAGE
+#ifndef STRUCTURED_GRIDS
+            GRIDTOOLS_STATIC_ASSERT(
+                (!boost::is_same< typename Arg::location_type_t, enumtype::default_location_type >::value),
+                "args in irregular grids require a location type");
+#endif
             typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;
         };
 

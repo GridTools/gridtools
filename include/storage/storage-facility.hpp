@@ -34,5 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/mpl/int.hpp>
 #include "storage_metafunctions.hpp"
 #include "storage_traits.hpp"

@@ -190,8 +190,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_pointer< StoragePtr >::value, "wrong type");
             GRIDTOOLS_STATIC_ASSERT(is_storage< typename StoragePtr::value_type >::value, "wrong type");
 
-            typedef cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, StoragePtr >
-                type;
+            typedef cache_storage< BlockSize,
+                typename boost::mpl::at< CacheExtendsMap, Cache >::type,
+                cache_parameter< Cache >::type::location_type_t::n_colors::value,
+                StoragePtr > type;
         };
 
         // first we build an mpl vector of pairs
