@@ -170,8 +170,8 @@ namespace ico_operators {
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
-                        (float_type) x = dx * (i + c / (float_type)icosahedral_topology_t::edges::n_colors::value);
-                        (float_type) y = dy * j;
+                        float_type x = dx * (i + c / (float_type)icosahedral_topology_t::edges::n_colors::value);
+                        float_type y = dy * j;
 
                         for (uint_t k = 0; k < m_kdim; ++k) {
                             m_u(i, c, j, k) = k +
