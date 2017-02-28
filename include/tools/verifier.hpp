@@ -47,7 +47,7 @@ namespace gridtools {
         value_type M = std::max(std::fabs(expected), std::fabs(actual));
         value_type m = std::min(std::fabs(expected), std::fabs(actual));
         value_type e = (M - m) / M;
-        if ((m == M) || (e <= precision) || (M < precision)) {
+        if ((m == M) || (e <= precision) || ((M - m) < precision)) {
             return true;
         }
         return false;
