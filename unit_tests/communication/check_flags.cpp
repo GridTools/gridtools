@@ -33,6 +33,13 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
-#include <cuda.h>
-#include "test_halo_exchange_3D_generic.cpp"
+#pragma once
+#ifdef __CUDACC__
+#ifndef _GCL_GPU_
+#define _GCL_GPU_
+#endif
+#else
+#ifdef _GCL_GPU_
+#undef _GCL_GPU_
+#endif
+#endif

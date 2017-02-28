@@ -44,12 +44,11 @@ namespace gridtools {
 
     template < typename value_type >
     GT_FUNCTION bool compare_below_threshold(value_type expected, value_type actual, double precision) {
-        if (std::fabs(expected) < 1e-3 && std::fabs(actual) < 1e-3) {
-            if (std::fabs(expected - actual) < precision)
-                return true;
-        } else {
-            if (std::fabs((expected - actual) / (precision * expected)) < 1.0)
-                return true;
+        value_type M = std::max(std::fabs(expected), std::fabs(actual));
+        value_type m = std::min(std::fabs(expected), std::fabs(actual));
+        value_type e = (M-m)/M;
+        if ((m==M) || (e <= precision) || (M<precision)) {
+            return true;
         }
         return false;
     }
