@@ -52,6 +52,12 @@ cp ${JENKINSPATH}/submit.${myhost}.slurm ${slurm_script}
 cmd="srun --exclusive --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 /bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
+/bin/sed -i 's|<MPI_NODES>|'"1"'|g' ${slurm_script}
+/bin/sed -i 's|<MPI_TASKS>|'"1"'|g' ${slurm_script}
+/bin/sed -i 's|<MPI_PPN>|'"1"'|g' ${slurm_script}
+/bin/sed -i 's|<CPUSPERTASK>|'"1"'|g' ${slurm_script}
+/bin/sed -i 's|<OUTPUTFILE>|'"test.out"'|g' ${slurm_script}
+/bin/sed -i 's|<JOB_ENV>|'"$JOB_ENV"'|g' ${slurm_script}
 
 if [[ ${TARGET} == "cpu" ]]; then
     if [[ -z ${CPUS_PER_SOCKET} ]]; then

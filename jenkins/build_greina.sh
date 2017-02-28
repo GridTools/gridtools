@@ -99,6 +99,7 @@ if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
     test -e build
     if [ $? -ne 0 ] ; then
+        echo "REMOVING ALL FILES"
         rm -rf build
     fi
 fi
@@ -162,6 +163,7 @@ export START_TIME=$SECONDS
 
 # echo "Printing ENV"
 # env
+
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
@@ -176,7 +178,7 @@ cmake \
 -DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}" \
 -DCUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
 -DUSE_MPI:BOOL=$USE_MPI \
--DUSE_MPI_COMPILER:BOOL=$USE_MPI  \
+-DUSE_MPI_COMPILER:BOOL=$USE_MPI_COMPILER  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
 -DENABLE_CXX11:BOOL=$CXX_11 \
 -DENABLE_PERFORMANCE_METERS:BOOL=ON \
@@ -233,7 +235,11 @@ if [[ ${QUEUE} ]] ; then
 fi
 
 
-bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
+if [[ "$RUN_MPI_TESTS" == "ON" ]]; then
+    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $USE_GPU
+else
+    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
+fi
 
 exit_if_error $?
 

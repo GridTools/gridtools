@@ -16,5 +16,7 @@ set( GCL_ONLY "OFF" CACHE BOOL "If on only library is build but not the examples
 set( USE_MPI_COMPILER "OFF" CACHE BOOL "On rosa turn this flag off since compiler takes care of mpi already" )
 set( HOST_SPECIFIC_OPTIONS "" CACHE STRING "Options passed only to HOST COMPILER and not ACCELERATOR COMPILER" )
 set( TEST_SCRIPT ${CMAKE_BINARY_DIR}/run_tests.sh )
+set( TEST_MPI_SCRIPT ${CMAKE_BINARY_DIR}/run_mpi_tests.sh )
+set( TEST_CUDA_MPI_SCRIPT ${CMAKE_BINARY_DIR}/run_cuda_mpi_tests.sh )
 set( ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" )
 set( NVCC_CLANG_SPECIFIC_OPTIONS "" CACHE STRING "Options passed to NVCC when compiling with clang as host compiler" )
