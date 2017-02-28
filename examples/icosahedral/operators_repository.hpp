@@ -323,8 +323,8 @@ namespace ico_operators {
                             auto neighbours_vc = m_ugrid.neighbours_of< icosahedral_topology_t::edges,
                                 icosahedral_topology_t::vertices >({i, c, j, k});
 
-                            (float_type) grad_n = 0;
-                            (float_type) grad_tau = 0;
+                            float_type grad_n = 0;
+                            float_type grad_tau = 0;
                             ushort_t e = 0;
                             assert(neighbours_ec.size() == 2);
                             assert(neighbours_vc.size() == 2);
