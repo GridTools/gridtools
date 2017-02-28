@@ -62,11 +62,11 @@ namespace ico_operators {
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             constexpr auto neighbors_offsets_cell = connectivity< edges, cells, Color >::offsets();
 
-            double grad_n{(eval(in_cells(neighbors_offsets_cell[1])) - eval(in_cells(neighbors_offsets_cell[0]))) *
-                          eval(dual_edge_length_reciprocal())};
+            float_type grad_n{(eval(in_cells(neighbors_offsets_cell[1])) - eval(in_cells(neighbors_offsets_cell[0]))) *
+                              eval(dual_edge_length_reciprocal())};
 
             constexpr auto neighbors_offsets_vertex = connectivity< edges, vertices, Color >::offsets();
-            double grad_tau{
+            float_type grad_tau{
                 (eval(in_vertices(neighbors_offsets_vertex[1])) - eval(in_vertices(neighbors_offsets_vertex[0]))) *
                 eval(edge_length_reciprocal())};
 
@@ -119,7 +119,7 @@ namespace ico_operators {
         // for div weights
         auto &orientation_of_normal = repository.orientation_of_normal();
         auto div_weights =
-            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double, selector< 1, 1, 1, 1, 1 > >(
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 1, 1 > >(
                 "weights", 3);
 
         // for curl
@@ -128,7 +128,7 @@ namespace ico_operators {
         // for curl weights
         auto &edge_orientation = repository.edge_orientation();
         vertices_4d_storage_type curl_weights(
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, selector< 1, 1, 1, 1, 1 > >(
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 1, 1 > >(
                 "curl_weights", 6));
 
         // for lap
@@ -136,7 +136,7 @@ namespace ico_operators {
         auto &edge_length_reciprocal = repository.edge_length_reciprocal();
 
         auto &in_edges = repository.u();
-        auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("out");
+        auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type >("out");
         auto &ref_edges = repository.lap_ref();
 
         bool result = true;

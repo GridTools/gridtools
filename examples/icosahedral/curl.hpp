@@ -47,7 +47,7 @@ namespace ico_operators {
         auto &out_vertices = repo.out_vertex();
 
         vertices_4d_storage_type curl_weights(
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, selector< 1, 1, 1, 1, 1 > >(
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 1, 1 > >(
                 "weights", 6));
         edges_of_vertices_storage_type &edge_orientation = repo.edge_orientation();
 
