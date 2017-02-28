@@ -144,7 +144,7 @@ TEST(StorageFacility, ViewTests) {
 
 // do some computation
 #ifdef __CUDACC__
-    kernel< < < 1, 1 > > >(make_device_view(ds));
+    kernel<<< 1, 1 >>>(make_device_view(ds));
 #else
     ds.reactivate_host_write_views();
     for (int i = 0; i < 3; ++i)

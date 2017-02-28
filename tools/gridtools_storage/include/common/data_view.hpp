@@ -50,19 +50,22 @@ namespace gridtools {
     // data view implementation for data stores
     template < typename DataStore, bool ReadOnly = false >
     struct data_view {
+        typedef typename DataStore::data_t data_t;
+        typedef typename DataStore::state_machine_t state_machine_t;
+        typedef typename DataStore::storage_info_t storage_info_t;
         const static bool read_only = ReadOnly;
         const static unsigned N = 1;
 
-        typename DataStore::data_t *m_raw_ptrs[1];
-        typename DataStore::state_machine_t *m_state_machine_ptr;
-        typename DataStore::storage_info_t const *m_storage_info;
+        data_t *m_raw_ptrs[1];
+        state_machine_t *m_state_machine_ptr;
+        storage_info_t const *m_storage_info;
         bool m_device_view;
 
         GT_FUNCTION data_view() {}
 
-        GT_FUNCTION data_view(typename DataStore::data_t *data_ptr,
-            typename DataStore::storage_info_t const *info_ptr,
-            typename DataStore::state_machine_t *state_ptr,
+        GT_FUNCTION data_view(data_t *data_ptr,
+            storage_info_t const *info_ptr,
+            state_machine_t *state_ptr,
             bool device_view)
             : m_raw_ptrs{data_ptr}, m_state_machine_ptr(state_ptr), m_storage_info(info_ptr),
               m_device_view(device_view) {
@@ -71,7 +74,7 @@ namespace gridtools {
         }
 
         template < typename... Coords >
-        typename boost::mpl::if_c< ReadOnly, typename DataStore::data_t const &, typename DataStore::data_t & >::type
+        typename boost::mpl::if_c< ReadOnly, data_t const &, data_t & >::type
             GT_FUNCTION
             operator()(Coords... c) const {
             return m_raw_ptrs[0][m_storage_info->index(c...)];

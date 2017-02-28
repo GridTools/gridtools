@@ -45,24 +45,25 @@ namespace gridtools {
 
     template < typename DataStoreField, bool ReadOnly >
     struct data_field_view {
-        using DataType = typename DataStoreField::data_t;
-        using StateMachine = typename DataStoreField::state_machine_t;
-        using StorageInfo = typename DataStoreField::storage_info_t;
+        typedef typename DataStoreField::data_store_t data_store_t;
+        typedef typename DataStoreField::data_t data_t;
+        typedef typename DataStoreField::state_machine_t state_machine_t;
+        typedef typename DataStoreField::storage_info_t storage_info_t;
         static const unsigned N = DataStoreField::size;
         static const unsigned Dims = DataStoreField::dims;
         const static bool read_only = ReadOnly;
 
-        DataType *m_raw_ptrs[N];
-        StateMachine *m_state_machines[N];
-        StorageInfo const *m_storage_infos[Dims];
+        data_t *m_raw_ptrs[N];
+        state_machine_t *m_state_machines[N];
+        storage_info_t const *m_storage_infos[Dims];
         unsigned m_offsets[Dims];
         bool m_device_view;
 
         data_field_view() {}
 
-        data_field_view(DataType *data_ptrs[N],
-            StorageInfo const *info_ptrs[Dims],
-            StateMachine *state_machines[N],
+        data_field_view(data_t *data_ptrs[N],
+            storage_info_t const *info_ptrs[Dims],
+            state_machine_t *state_machines[N],
             unsigned offsets[Dims],
             bool device_view)
             : m_device_view(device_view) {
@@ -77,23 +78,23 @@ namespace gridtools {
         }
 
         template < unsigned Dim, unsigned Snapshot >
-        GT_FUNCTION data_view< typename DataStoreField::data_store_t, ReadOnly > get() const {
-            return data_view< typename DataStoreField::data_store_t, ReadOnly >(m_raw_ptrs[m_offsets[Dim] + Snapshot],
+        GT_FUNCTION data_view< data_store_t, ReadOnly > get() const {
+            return data_view< data_store_t, ReadOnly >(m_raw_ptrs[m_offsets[Dim] + Snapshot],
                 m_storage_infos[Dim],
                 m_state_machines[m_offsets[Dim] + Snapshot],
                 m_device_view);
         }
 
-        GT_FUNCTION data_view< typename DataStoreField::data_store_t, ReadOnly > get(
+        GT_FUNCTION data_view< data_store_t, ReadOnly > get(
             unsigned Dim, unsigned Snapshot) const {
-            return data_view< typename DataStoreField::data_store_t, ReadOnly >(m_raw_ptrs[m_offsets[Dim] + Snapshot],
+            return data_view< data_store_t, ReadOnly >(m_raw_ptrs[m_offsets[Dim] + Snapshot],
                 m_storage_infos[Dim],
                 m_state_machines[m_offsets[Dim] + Snapshot],
                 m_device_view);
         }
 
         template < unsigned Dim, unsigned Snapshot, typename... Coords >
-        typename boost::mpl::if_c< ReadOnly, DataType const &, DataType & >::type GT_FUNCTION get_value(
+        typename boost::mpl::if_c< ReadOnly, data_t const &, data_t & >::type GT_FUNCTION get_value(
             Coords... c) const {
             return get< Dim, Snapshot >()(c...);
         }
