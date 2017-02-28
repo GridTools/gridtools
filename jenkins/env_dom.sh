@@ -8,9 +8,9 @@ function exit_if_error {
     fi
 }
 
-module unload CMake
-module load /users/vogtha/modules/CMake/3.7.2
-module load cudatoolkit
+
+module load cudatoolkit/8.0.34_2.2.5_g8ce7a9a-2.1
+module load Boost/1.61.0-CrayGNU-2016.11-Python-2.7.12
 module rm   PrgEnv-cray
 module load PrgEnv-gnu/6.0.3
 export BOOST_ROOT=/apps/daint/UES/jenkins/dom-acceptance/haswell/easybuild/software/Boost/1.61.0-CrayGNU-2016.11-Python-2.7.12/
@@ -26,24 +26,28 @@ if [[ ${COMPILER} == "gcc" ]]; then
     fi
   fi
 elif [[ ${COMPILER} == "clang" ]]; then
-  module unload PrgEnv-gnu
-  module load /users/vogtha/modules/compilers/clang/3.8.1
+  echo "compiler not supported in environment: ${COMPILER}"
+  exit_if_error 444
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
 fi
 
 
+#module load python/3.4.3
+#module load mvapich2/gcc/64/2.2-gcc-4.8.4-cuda-7.0
+#export Boost_NO_SYSTEM_PATHS=true
+#export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
 export MPICH_RDMA_ENABLED_CUDA=1
 export MPICH_G2G_PIPELINE=30
-export CUDA_ARCH=sm_60
+export CUDA_ARCH=sm_35
 export LAUNCH_MPI_TEST="srun"
-export JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST; export MPICH_RDMA_ENABLED_CUDA=1; export MPICH_G2G_PIPELINE=30"
-export MPI_HOST_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST;"
-export MPI_CUDA_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST; export MPICH_RDMA_ENABLED_CUDA=1; export MPICH_G2G_PIPELINE=64"
+export JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST; module swap gcc/5.3.0; export MPICH_RDMA_ENABLED_CUDA=1; export MPICH_G2G_PIPELINE=30"
+export MPI_HOST_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST"
+export MPI_CUDA_JOB_ENV="export LAUNCH_MPI_TEST=$LAUNCH_MPI_TEST; export MV2_USE_CUDA=1; export MV2_USE_GPUDIRECT=0; export CUDA_AUTO_BOOST=0; export GCLOCK=875; export CUDA_AUTO_BOOST=0; export G2G=2"
 export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal

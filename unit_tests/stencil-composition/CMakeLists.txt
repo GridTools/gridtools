@@ -2,7 +2,7 @@
 fetch_host_tests(.)
 fetch_gpu_tests(.)
 
-# collect the cache and redcution tests. 
+# collect the cache and redcution tests.
 #those are only enabled when using structured grids
 if (STRUCTURED_GRIDS)
     fetch_host_tests(caches)

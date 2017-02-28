@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include <iostream>
 #include <gridtools.hpp>
 #include <common/halo_descriptor.hpp>
 
