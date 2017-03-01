@@ -105,6 +105,6 @@ namespace gridtools {
         template < typename Aggregator, typename... Mss >
         struct all_args_in_aggregator {
             using type = typename unwrap_esf_sequence< boost::mpl::true_, Aggregator, Mss... >::type;
-        }; // struct all_args_in_domain
-    }      // namespace _impl
+        };
+    } // namespace _impl
 } // namespace gridtools

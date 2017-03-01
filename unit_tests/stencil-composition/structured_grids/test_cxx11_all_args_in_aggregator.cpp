@@ -33,7 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
 
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
