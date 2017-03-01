@@ -263,7 +263,6 @@ namespace gridtools {
                 boost::mpl::map0<>,
                 merge_extent_temporary_maps< boost::mpl::_1,
                     obtain_map_extents_temporaries_mss< AggregatorType, boost::mpl::_2 > > >::type type;
-            typedef typename MssComponentsArray::elements bla;
         };
 
         template < typename AggregatorType, typename MssArray1, typename MssArray2, typename Cond >

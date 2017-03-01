@@ -214,7 +214,6 @@ namespace gridtools {
                         boost::mpl::at< ViewList, boost::mpl::_2 >,
                         tile< 0, 0, 0 >,
                         tile< 0, 0, 0 > > > > >::type complete_list;
-
         // filter the list
         typedef
             typename boost::mpl::filter_view< complete_list, is_storage_wrapper< boost::mpl::_1 > >::type filtered_list;
@@ -313,8 +312,7 @@ namespace gridtools {
     struct intermediate : public computation< ReductionType > {
         // fix the temporaries by replacing the given storage info index with a new one
         // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
-        typedef typename fix_args< MssDescriptorArrayIn, DomainType, RepeatFunctor >::type MssDescriptorArrayFixedArgs;
-        typedef typename fix_temporary_caches< MssDescriptorArrayFixedArgs, DomainType >::type MssDescriptorArray;
+        typedef typename fix_mss_arg_indices< MssDescriptorArrayIn, DomainType, RepeatFunctor >::type MssDescriptorArray;
 
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
