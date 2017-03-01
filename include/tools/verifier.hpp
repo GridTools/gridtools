@@ -36,6 +36,7 @@
 #pragma once
 #include "common/array.hpp"
 #include "common/array_addons.hpp"
+#include "common/gt_math.hpp"
 
 namespace gridtools {
 
@@ -44,8 +45,8 @@ namespace gridtools {
 
     template < typename value_type >
     GT_FUNCTION bool compare_below_threshold(value_type expected, value_type actual, double precision) {
-        value_type M = std::max(std::fabs(expected), std::fabs(actual));
-        value_type m = std::min(std::fabs(expected), std::fabs(actual));
+        value_type M = math::max(math::fabs(expected), math::fabs(actual));
+        value_type m = math::min(math::fabs(expected), math::fabs(actual));
         value_type e = (M - m) / M;
         if ((m == M) || (e <= precision) || ((M - m) < precision)) {
             return true;
