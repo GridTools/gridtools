@@ -47,6 +47,8 @@
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/for_each.hpp>
 #include "arg.hpp"
+#include "storage/expandable_parameters.hpp"
+
 template < typename RegularStorageType >
 struct no_storage_type_yet;
 
@@ -123,9 +125,6 @@ namespace gridtools {
         };
 
     } // namespace _debug
-
-    template < typename Storage, uint_t Size >
-    struct expandable_parameters;
 
     namespace _impl {
         struct l_get_type {
@@ -227,20 +226,14 @@ namespace gridtools {
                 typedef typename boost::is_same< T1, T2 >::type type;
             };
 
-            // // specialization for base_storage
-            // template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
-            // struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< T1 > > >, Cond >,
-            //                  arg< ID, no_storage_type_yet< expandable_parameters< T2, Size > >, Cond > > {
-            //     typedef typename boost::is_same< T1, T2 >::type type;
-            // };
-
+#ifdef CXX11_ENABLED
             // specialization for storage
             template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
             struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< storage< T1 > > > >, Cond >,
                 arg< ID, no_storage_type_yet< storage< expandable_parameters< T2, Size > > >, Cond > > {
                 typedef typename boost::is_same< T1, T2 >::type type;
             };
-
+#endif
             template < typename T1, typename T2 >
             struct contains {
                 typedef typename boost::mpl::fold< T1,

@@ -35,7 +35,7 @@
 */
 #pragma once
 #include "../iterate_domain.hpp"
-#include "extent.hpp"
+#include "../extent.hpp"
 
 /** @file iterate_domain for expandable parameters*/
 
@@ -99,7 +99,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "wrong type");
             accessor< ACC_ID, Intent, LocationType, Extent, Size > tmp_(arg);
             tmp_.template set< 1 >(ID);
-            return super::operator()(tmp_);
+            return super::operator()(static_cast< const accessor< ACC_ID, Intent, LocationType, Extent, Size > >(tmp_));
         }
     };
 
