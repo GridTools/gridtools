@@ -72,16 +72,13 @@ namespace gridtools {
     struct bitmap_predicate {
         Partitioner const &m_part; // see storage/partitioner_trivial.hpp
 
-        using Partitioner::UP;
-        using Partitioner::LOW;
-
         bitmap_predicate(Partitioner const &p) : m_part{p} {}
 
         template < sign I, sign J, sign K >
         bool operator()(direction< I, J, K >) const {
-            return (m_part.at_boundary(0, ((I == minus_) ? UP : LOW))) ||
-                   (m_part.at_boundary(1, ((J == minus_) ? UP : LOW))) ||
-                   (m_part.at_boundary(2, ((K == minus_) ? UP : LOW)));
+            return (m_part.at_boundary(0, ((I == minus_) ? Partitioner::UP : Partitioner::LOW))) ||
+                   (m_part.at_boundary(1, ((J == minus_) ? Partitioner::UP : Partitioner::LOW))) ||
+                   (m_part.at_boundary(2, ((K == minus_) ? Partitioner::UP : Partitioner::LOW)));
         }
     };
 } // namespace gridtools
