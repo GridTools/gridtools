@@ -72,7 +72,8 @@ namespace gridtools {
     struct bitmap_predicate {
         Partitioner const &m_part; // see storage/partitioner_trivial.hpp
 
-        enum Flag { UP = 1, LOW = 8 };
+        using Partitioner::UP;
+        using Partitioner::LOW;
 
         bitmap_predicate(Partitioner const &p) : m_part{p} {}
 
