@@ -170,9 +170,9 @@ namespace ico_operators {
 #endif
 
 #if FLOAT_PRECISION == 4
-            verifier ver(1e-5);
+            verifier ver(9e-5);
 #else
-            verifier ver(1e-10);
+            verifier ver(9e-10);
 #endif
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
