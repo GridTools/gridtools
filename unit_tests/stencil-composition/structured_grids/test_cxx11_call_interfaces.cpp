@@ -197,11 +197,10 @@ class call_interface : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::layout_map< 0, 1, 2 > layout_t;
-    typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
-    typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
+    typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
 
-    meta_t meta_;
+    storage_info_t meta_;
 
     halo_descriptor di;
     halo_descriptor dj;
@@ -210,13 +209,13 @@ class call_interface : public testing::Test {
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
 
-    storage_type in;
-    storage_type out;
-    storage_type reference_unchanged;
-    storage_type reference_shifted;
+    data_store_t in;
+    data_store_t out;
+    data_store_t reference_unchanged;
+    data_store_t reference_shifted;
 
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
+    typedef arg< 0, data_store_t > p_in;
+    typedef arg< 1, data_store_t > p_out;
     typedef boost::mpl::vector< p_in, p_out > accessor_list;
 
     aggregator_type< accessor_list > domain;
@@ -229,17 +228,23 @@ class call_interface : public testing::Test {
 #else
           verifier_(1e-12),
 #endif
-          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}}, in(meta_, 0, "in"),
-          out(meta_, -5, "out"), reference_unchanged(meta_, -1, "reference_unchanged"),
-          reference_shifted(meta_, -1, "reference shifted"), domain(boost::fusion::make_vector(&in, &out)) {
+          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}}, in(meta_, 0),
+          out(meta_, -5), reference_unchanged(meta_, -1), reference_shifted(meta_, -1), domain(in, out) {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        in.initialize([](const uint_t &i, const uint_t &j, const uint_t &k) { return i + j * 10 + k * 100; });
-        reference_unchanged.initialize(
-            [](const uint_t &i, const uint_t &j, const uint_t &k) { return i + j * 10 + k * 100; });
-        reference_shifted.initialize(
-            [](const uint_t &i, const uint_t &j, const uint_t &k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+        auto in_v = make_host_view(in);
+        auto reference_unchanged_v = make_host_view(reference_unchanged);
+        auto reference_shifted_v = make_host_view(reference_shifted);        
+        for(int i=0; i<d1; ++i) {
+            for(int j=0; j<d2; ++j) {
+                for(int k=0; k<d3; ++k) {
+                    in_v(i,j,k) = i + j * 10 + k * 100;
+                    reference_unchanged_v(i,j,k) = i + j * 10 + k * 100;
+                    reference_shifted_v(i,j,k) = (i + 1) + (j + 1) * 10 + k * 100;
+                }
+            }
+        }
     }
 
     template < typename Computation >
@@ -247,9 +252,7 @@ class call_interface : public testing::Test {
         comp->ready();
         comp->steady();
         comp->run();
-#ifdef __CUDACC__
-        out.d2h_update();
-#endif
+        out.sync();
     }
 };
 
@@ -414,11 +417,10 @@ class call_proc_interface : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::layout_map< 0, 1, 2 > layout_t;
-    typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
-    typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
+    typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
 
-    meta_t meta_;
+    storage_info_t meta_;
 
     halo_descriptor di;
     halo_descriptor dj;
@@ -427,15 +429,15 @@ class call_proc_interface : public testing::Test {
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
 
-    storage_type in;
-    storage_type out1;
-    storage_type out2;
-    storage_type reference_unchanged;
-    storage_type reference_shifted;
+    data_store_t in;
+    data_store_t out1;
+    data_store_t out2;
+    data_store_t reference_unchanged;
+    data_store_t reference_shifted;
 
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out1;
-    typedef arg< 2, storage_type > p_out2;
+    typedef arg< 0, data_store_t > p_in;
+    typedef arg< 1, data_store_t > p_out1;
+    typedef arg< 2, data_store_t > p_out2;
     typedef boost::mpl::vector< p_in, p_out1, p_out2 > accessor_list;
 
     aggregator_type< accessor_list > domain;
@@ -448,17 +450,24 @@ class call_proc_interface : public testing::Test {
 #else
           verifier_(1e-12),
 #endif
-          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}}, in(meta_, 0, "in"),
-          out1(meta_, -5, "out1"), out2(meta_, -5, "out2"), reference_unchanged(meta_, -1, "reference_unchanged"),
-          reference_shifted(meta_, -1, "reference shifted"), domain(boost::fusion::make_vector(&in, &out1, &out2)) {
+          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}}, in(meta_, 0),
+          out1(meta_, -5), out2(meta_, -5), reference_unchanged(meta_, -1), reference_shifted(meta_, -1), 
+          domain(in, out1, out2) {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        in.initialize([](const uint_t &i, const uint_t &j, const uint_t &k) { return i + j * 10 + k * 100; });
-        reference_unchanged.initialize(
-            [](const uint_t &i, const uint_t &j, const uint_t &k) { return i + j * 10 + k * 100; });
-        reference_shifted.initialize(
-            [](const uint_t &i, const uint_t &j, const uint_t &k) { return (i + 1) + (j + 1) * 10 + k * 100; });
+        auto in_v = make_host_view(in);
+        auto reference_unchanged_v = make_host_view(reference_unchanged);
+        auto reference_shifted_v = make_host_view(reference_shifted);        
+        for(int i=0; i<d1; ++i) {
+            for(int j=0; j<d2; ++j) {
+                for(int k=0; k<d3; ++k) {
+                    in_v(i,j,k) = i + j * 10 + k * 100;
+                    reference_unchanged_v(i,j,k) = i + j * 10 + k * 100;
+                    reference_shifted_v(i,j,k) = (i + 1) + (j + 1) * 10 + k * 100;
+                }
+            }
+        }
     }
 
     template < typename Computation >
@@ -466,10 +475,8 @@ class call_proc_interface : public testing::Test {
         comp->ready();
         comp->steady();
         comp->run();
-#ifdef __CUDACC__
-        out1.d2h_update();
-        out2.d2h_update();
-#endif
+        out1.sync();
+        out2.sync();
     }
 };
 

@@ -194,7 +194,7 @@ TEST(assign_placeholders, test) {
     out_new.allocate();
     coeff_new.allocate();
 
-    domain.reassign(out_new, in_new, coeff_new);
+    domain.reassign_impl(out_new, in_new, coeff_new);
 
     //check pointers again
     assert(domain.template get_arg_storage_pair<p_flx>().ptr.get() == 0x0);
