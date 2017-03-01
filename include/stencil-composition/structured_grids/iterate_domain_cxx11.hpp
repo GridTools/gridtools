@@ -405,7 +405,7 @@ namespace gridtools {
 
                 const uint_t idx = get_accumulated_data_field_index_h<storage_t>::apply(accessor.template get< 1 >()) 
                     + accessor.template get< 0 >();
-
+                assert(idx < storage_t::size && "Out of bounds access when accessing data store field element.");
                 return data_pointer().template get< index_t::value >()[idx];
         }
 
