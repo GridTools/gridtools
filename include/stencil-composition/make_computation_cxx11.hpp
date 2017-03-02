@@ -41,6 +41,7 @@
 #include "computation_grammar.hpp"
 #include "make_computation_cxx11_impl.hpp"
 #include "make_computation_helper_cxx11.hpp"
+#include "all_args_in_aggregator.hpp"
 
 namespace gridtools {
 
@@ -74,6 +75,9 @@ namespace gridtools {
         typename _impl::reduction_helper< Mss... >::reduction_type_t,
         Positional > >
     make_computation_impl(Domain &domain, const Grid &grid, Mss... args_) {
+
+        GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< Domain, Mss... >::type::value), "Some placeholders used in the computation are not listed in the aggregator");
+
         typedef typename _impl::create_conditionals_set< Domain, Grid, Mss... >::type conditionals_set_t;
 
         conditionals_set_t conditionals_set_;

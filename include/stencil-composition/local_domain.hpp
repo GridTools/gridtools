@@ -50,6 +50,7 @@
 #include "../common/gpu_clone.hpp"
 #include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../common/generic_metafunctions/fusion_vector_check_bound.hpp"
 #include "arg.hpp"
 #include "../storage/storage_metafunctions.hpp"
 
@@ -121,6 +122,10 @@ namespace gridtools {
         struct extract_types {
             template < typename ElemType >
             struct apply {
+                GRIDTOOLS_STATIC_ASSERT(
+                    (fusion_vector_check_bound< typename ElemType::index_type, StorageList >::value),
+                    "Access out of bound. Be aware that this assert may show up before others that are more "
+                    "informative about the problem at hand. Please, check the error log for further static asserts.");
                 typedef typename boost::remove_reference< typename boost::fusion::result_of::at< StorageList,
                     typename ElemType::index_type >::type >::type type;
             };
