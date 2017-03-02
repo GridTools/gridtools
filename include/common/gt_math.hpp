@@ -61,11 +61,13 @@ namespace gridtools {
         template < typename Value >
         GT_FUNCTION constexpr Value const &max(Value const &val0) {
             assert(false);
+            return Value();
         }
 
         template < typename Value >
         GT_FUNCTION constexpr Value const &max() {
             assert(false);
+            return Value();
         }
 
         template < typename Value >
@@ -81,11 +83,13 @@ namespace gridtools {
         template < typename Value >
         GT_FUNCTION constexpr Value const &min(Value const &val0) {
             assert(false);
+            return Value();
         }
 
         template < typename Value >
         GT_FUNCTION constexpr Value const &min() {
             assert(false);
+            return Value();
         }
 
         template < typename Value >
