@@ -192,8 +192,7 @@ namespace gridtools {
          */
         template < typename IterateDomainArguments >
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 // indirection in order to avoid instantiation of both types of the eval_if
 #ifdef STRUCTURED_GRIDS
             template < typename _IterateDomainArguments >

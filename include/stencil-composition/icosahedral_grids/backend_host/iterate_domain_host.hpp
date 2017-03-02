@@ -50,8 +50,7 @@ namespace gridtools {
         : public IterateDomainBase< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > // CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 
         typedef IterateDomainBase< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > super;
 

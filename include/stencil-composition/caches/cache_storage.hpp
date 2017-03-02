@@ -109,7 +109,8 @@ namespace gridtools {
             constexpr const meta_t s_storage_info;
 
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< accessor_t >::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
 
             typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
             typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
@@ -183,8 +184,8 @@ namespace gridtools {
 
         template < uint_t Color, typename Offset >
         GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
-            GRIDTOOLS_STATIC_ASSERT(
-                                    (is_offset_tuple< typename Offset::offset_tuple_t >::value), GT_INTERNAL_ERROR_MSG("Error type is not offset tuple"));
+            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< typename Offset::offset_tuple_t >::value),
+                GT_INTERNAL_ERROR_MSG("Error type is not offset tuple"));
             assert(index< Color >(thread_pos, offset.offsets()) < storage_size_t::value);
             assert(index< Color >(thread_pos, offset.offsets()) >= 0);
 

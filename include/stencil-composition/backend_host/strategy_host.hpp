@@ -110,7 +110,8 @@ namespace gridtools {
                     kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< functor_list_t >::value == 1), GT_INTERNAL_ERROR_MSG("Wrong Size") );
+                GRIDTOOLS_STATIC_ASSERT(
+                    (boost::mpl::size< functor_list_t >::value == 1), GT_INTERNAL_ERROR_MSG("Wrong Size"));
                 kernel_functor_executor_t(local_domain, grid, reduction_data)();
             }
         };
@@ -132,9 +133,11 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, GT_INTERNAL_ERROR_MSG("wrong type for layout map"));
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
+            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #endif
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, GT_INTERNAL_ERROR);
 
@@ -153,9 +156,11 @@ namespace gridtools {
 #endif
         struct get_tmp_storage {
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
+            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #endif
             typedef storage<
 #ifdef CXX11_ENABLED
@@ -307,9 +312,11 @@ namespace gridtools {
         struct get_tmp_meta_storage {
             GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, GT_INTERNAL_ERROR_MSG("wrong type for layout map"));
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
+            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #endif
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, GT_INTERNAL_ERROR);
 
@@ -337,9 +344,11 @@ namespace gridtools {
 #endif
         struct get_tmp_storage {
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
+            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #endif
             typedef storage<
 #ifdef CXX11_ENABLED

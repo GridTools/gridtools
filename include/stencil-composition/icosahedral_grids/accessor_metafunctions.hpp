@@ -47,8 +47,8 @@ namespace gridtools {
 
     template < typename Accessor >
     struct is_accessor_readonly : boost::mpl::false_ {
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::or_< is_accessor< Accessor >, is_vector_accessor< Accessor > >::value),
-            GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::or_< is_accessor< Accessor >, is_vector_accessor< Accessor > >::value), GT_INTERNAL_ERROR);
     };
 
     template < uint_t ID, typename LocationType, typename Extent, ushort_t FieldDimensions >

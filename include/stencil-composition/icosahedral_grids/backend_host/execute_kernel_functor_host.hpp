@@ -132,8 +132,7 @@ namespace gridtools {
         */
         template < typename RunFunctorArguments >
         struct execute_kernel_functor_host {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
@@ -175,8 +174,8 @@ namespace gridtools {
                 using grid_topology_t = typename grid_t::grid_topology_t;
 
                 // in the host backend there should be only one esf per mss
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1),
-                    GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT(
+                    (boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1), GT_INTERNAL_ERROR);
                 typedef typename boost::mpl::back< typename RunFunctorArguments::extent_sizes_t >::type extent_t;
                 GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), GT_INTERNAL_ERROR);
 

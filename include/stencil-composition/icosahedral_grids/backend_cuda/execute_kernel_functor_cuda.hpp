@@ -210,8 +210,7 @@ namespace gridtools {
          */
         template < typename RunFunctorArguments >
         struct execute_kernel_functor_cuda {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 

@@ -136,8 +136,8 @@ namespace gridtools {
          */
         template < typename MssDescriptor >
         struct for_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDescriptor >::value or MssDescriptor::is_reduction_t::value),
-                GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_mss_descriptor< MssDescriptor >::value or MssDescriptor::is_reduction_t::value), GT_INTERNAL_ERROR);
 
             /**
                This is the main operation perfromed: we first need to

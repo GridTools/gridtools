@@ -119,8 +119,7 @@ namespace gridtools {
      */
     template < typename EsfSequence, typename CacheSequence >
     struct caches_used_by_esfs {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< EsfSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
 
         // remove caches which are not used by the stencil stages
