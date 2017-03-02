@@ -34,7 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include <gridtools.hpp>
-#include <storage/meta_storage.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/structured_grids/call_interfaces.hpp>
 #include <tools/verifier.hpp>
@@ -82,27 +81,24 @@ namespace multi_types_test {
 
     using namespace gridtools;
     using namespace enumtype;
-
-#ifdef CXX11_ENABLED
     using namespace expressions;
-#endif
+
 
 #ifdef CUDA_EXAMPLE
-    typedef gridtools::backend< gridtools::enumtype::Cuda, enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-        the_backend;
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-    typedef gridtools::backend< gridtools::enumtype::Host, enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-        the_backend;
+#define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
-    typedef gridtools::backend< gridtools::enumtype::Host, enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
-        the_backend;
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > region;
 
     typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
+
+    struct type4;
 
     struct type1 {
         int i, j, k;
@@ -160,6 +156,30 @@ namespace multi_types_test {
         return type4(
             a.x - static_cast< double >(b.i), a.y - static_cast< double >(b.j), a.z - static_cast< double >(b.k));
     }
+
+    GT_FUNCTION
+    type4 operator+(type1 const &a, type4 const &b) {
+        return type4(
+            a.i + static_cast< double >(b.x), a.j + static_cast< double >(b.y), a.k + static_cast< double >(b.z));
+    }
+
+    GT_FUNCTION
+    type4 operator-(type1 const &a, type4 const &b) {
+        return type4(
+            a.i - static_cast< double >(b.x), a.j - static_cast< double >(b.y), a.k - static_cast< double >(b.z));
+    }
+
+    GT_FUNCTION
+    type4 operator+(type1 const &a, type1 const &b) {
+        return type4(
+            a.i + static_cast< double >(b.i), a.j + static_cast< double >(b.j), a.k + static_cast< double >(b.k));
+    }
+
+    GT_FUNCTION
+    type4 operator-(type1 const &a, type1 const &b) {
+        return type4(
+            a.i - static_cast< double >(b.i), a.j - static_cast< double >(b.j), a.k - static_cast< double >(b.k));
+    }        
 
     struct function0 {
         typedef accessor< 0, enumtype::in > in;
@@ -248,52 +268,41 @@ namespace multi_types_test {
         uint_t d3 = z;
         uint_t halo_size = 0;
 
-#ifdef __CUDACC__
-        typedef gridtools::layout_map< 2, 1, 0 > layout_type; // stride 1 on i
-#else
-        typedef gridtools::layout_map< 0, 1, 2 > layout_type; // stride 1 on k
-#endif
-
-        typedef the_backend::storage_info< 0, layout_type > storage_info1_t;
-        typedef the_backend::storage_info< 1, layout_type > storage_info2_t;
-        typedef the_backend::storage_info< 2, layout_type > storage_info3_t;
-
-        typedef the_backend::storage_type< type1, storage_info1_t >::type storage_type1;
-        typedef the_backend::storage_type< type2, storage_info2_t >::type storage_type2;
-        typedef the_backend::storage_type< type3, storage_info3_t >::type storage_type3;
-
-        typedef the_backend::temporary_storage_type< type4, storage_info1_t >::type tmp_storage_type;
-
+        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info1_t;
+        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 1, 3 > storage_info2_t;
+        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 2, 3 > storage_info3_t;
+        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<type1, storage_info1_t> data_store1_t;
+        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<type2, storage_info2_t> data_store2_t;
+        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<type3, storage_info3_t> data_store3_t;
+        
         // TODO: Use storage_info as unnamed object - lifetime issues on GPUs
         storage_info1_t si1(x, y, z);
         storage_info2_t si2(x, y, z);
         storage_info3_t si3(x, y, z);
 
-        storage_type1 field1 = storage_type1(si1, type1(), "field1");
-        storage_type2 field2 = storage_type2(si2, type2(), "field2");
-        storage_type3 field3 = storage_type3(si3, type3(), "field3");
+        data_store1_t field1 = data_store1_t(si1, type1());
+        data_store2_t field2 = data_store2_t(si2, type2());
+        data_store3_t field3 = data_store3_t(si3, type3());
 
+        auto f1v = make_host_view(field1);
+        auto f2v = make_host_view(field2);
+        auto f3v = make_host_view(field3);
         for (int i = 0; i < x; ++i) {
             for (int j = 0; j < y; ++j) {
                 for (int k = 0; k < z; ++k) {
-                    field1(i, j, k) = type1(i, j, k);
+                    f1v(i, j, k) = type1(i, j, k);
                 }
             }
         }
 
-        typedef arg< 0, tmp_storage_type > p_temp;
-        typedef arg< 1, storage_type1 > p_field1;
-        typedef arg< 2, storage_type2 > p_field2;
-        typedef arg< 3, storage_type3 > p_field3;
+        typedef arg< 3, data_store1_t, true > p_temp;
+        typedef arg< 0, data_store1_t > p_field1;
+        typedef arg< 1, data_store2_t > p_field2;
+        typedef arg< 2, data_store3_t > p_field3;
 
-        typedef boost::mpl::vector< p_temp, p_field1, p_field2, p_field3 > accessor_list;
+        typedef boost::mpl::vector< p_field1, p_field2, p_field3, p_temp > accessor_list;
 
-#if defined(CXX11_ENABLED)
-        gridtools::aggregator_type< accessor_list > domain(
-            (p_field1() = field1), (p_field2() = field2), (p_field3() = field3));
-#else
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&field1, &field2, &field3));
-#endif
+        gridtools::aggregator_type< accessor_list > domain(field1, field2, field3);
 
         uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
@@ -302,16 +311,7 @@ namespace multi_types_test {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            test_computation = gridtools::make_computation< the_backend >(
+        auto test_computation = gridtools::make_computation< BACKEND >(
                 domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor
@@ -336,18 +336,18 @@ namespace multi_types_test {
         for (int i = 0; i < x; ++i) {
             for (int j = 0; j < y; ++j) {
                 for (int k = 0; k < z; ++k) {
-                    double xy = static_cast< double >(2 * field1(i, j, k).i + 1) +
-                                static_cast< double >(2 * field1(i, j, k).j + 1);
+                    double xy = static_cast< double >(2 * f1v(i, j, k).i + 1) +
+                                static_cast< double >(2 * f1v(i, j, k).j + 1);
                     double yz = 2;
-                    if (field2(i, j, k).xy != xy) {
+                    if (f2v(i, j, k).xy != xy) {
                         result = false;
-                        std::cout << "(" << i << ", " << j << ", " << k << ") : " << field2(i, j, k).xy << " != " << xy
-                                  << " diff = " << field2(i, j, k).xy - xy << std::endl;
+                        std::cout << "(" << i << ", " << j << ", " << k << ") : " << f2v(i, j, k).xy << " != " << xy
+                                  << " diff = " << f2v(i, j, k).xy - xy << std::endl;
                     }
-                    if (field3(i, j, k).yz != yz) {
+                    if (f3v(i, j, k).yz != yz) {
                         result = false;
-                        std::cout << "(" << i << ", " << j << ", " << k << ") : " << field3(i, j, k).yz << " != " << yz
-                                  << " diff = " << field3(i, j, k).yz - yz << std::endl;
+                        std::cout << "(" << i << ", " << j << ", " << k << ") : " << f3v(i, j, k).yz << " != " << yz
+                                  << " diff = " << f3v(i, j, k).yz - yz << std::endl;
                     }
                 }
             }
@@ -357,7 +357,7 @@ namespace multi_types_test {
             std::cout << "ERROR" << std::endl;
         }
 
-        return result; /// lapse_time.wall<5000000 &&
+        return result;
     }
 } // namespace multi_types_test
 
