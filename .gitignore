@@ -15,36 +15,31 @@
 
 *.exe
 
-.ycm_extra_conf.py
-nbproject
-/nbproject
-/Makefile
-/cmake_install.cmake
-examples/CMakeFiles/
-examples/CTestTestfile.cmake
-examples/Makefile
-examples/cmake_install.cmake
 include/workarounds/
-unit_tests/CMakeFiles/
-unit_tests/CTestTestfile.cmake
-unit_tests/Makefile
-unit_tests/cmake_install.cmake
-/build/
 
+# ignore everything in the root folder
 /*
-!LICENSE
-!test_compilation.sh
-!CmakeLists.txt
-!README.md
-!include
+
+# except
+!cmake
+!docs
 !examples
 !experimental
-!tools
-!unit_tests
-!.gitmodules
+!include
+!jenkins
 !python
 !src
-!docs
+!tools
+!unit_tests
+!.clang-format
+!.gitignore
+!CMakeLists.txt
+!Doxyfile.in
+!GridToolsConfig.cmake.in
+!GridToolsConfigVersion.cmake.in
+!index.html
+!LICENSE
 !mainpage.dox
+!README.md
 !Vagrant_bootstrap.sh
 !Vagrantfile

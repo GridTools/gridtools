@@ -10,6 +10,7 @@ TIME=$[ `date +%s` + $DURATION ]
 
 DONE="JobState=COMPLETED"
 FAIL="JobState=FAILED"
+TOUT="JobState=TIMEOUT"
 while $fatto ; do
     STR1=`scontrol show jobs $ID -o -Q|gawk '{match($0, /JobState[^ ]*/); print RSTART " " RLENGHT " " substr($0, RSTART, RLENGTH);}'`
     STR=`echo $STR1 | gawk '{print $NF}'`
@@ -19,9 +20,15 @@ while $fatto ; do
         if [ $STR == $DONE ]; then
             echo
             fatto=false;
+            error=false
         elif [ $STR == $FAIL ]; then
             echo 
             fatto=false
+            error=true
+        elif [ $STR == $TOUT ]; then
+            echo 
+            fatto=false
+            error=true
         else
             sleep 1
         fi
@@ -35,3 +42,9 @@ while $fatto ; do
         exit 2
     fi
 done
+
+if [ $error ]; then
+    exit 33;
+else
+    exit 0
+fi
