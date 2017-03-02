@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "./arg_metafunctions_fwd.hpp"
 
 namespace gridtools {
     /**

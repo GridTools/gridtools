@@ -51,6 +51,7 @@
 #include "common/generic_metafunctions/reversed_range.hpp"
 #include "common/generic_metafunctions/static_if.hpp"
 #include "stencil-composition/total_storages.hpp"
+#include "run_functor_arguments_fwd.hpp"
 #include "run_functor_arguments.hpp"
 
 /**

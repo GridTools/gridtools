@@ -189,8 +189,9 @@ namespace gridtools {
         struct get_cache_storage {
             GRIDTOOLS_STATIC_ASSERT(is_cache< Cache >::value, "wrong type");
             typedef typename LocalDomain::template get_storage_wrapper<IndexT>::type storage_wrapper_t;
-            GRIDTOOLS_STATIC_ASSERT(is_storage_wrapper<storage_wrapper_t>::value, "retrieved type is not a storage_wrapper type.");
-            typedef cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, storage_wrapper_t> type;
+            typedef typename boost::mpl::if_<is_storage_wrapper<storage_wrapper_t>,
+                cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, storage_wrapper_t>,
+                boost::mpl::void_>::type type;
         };
 
         // first we build an mpl vector of pairs
@@ -201,7 +202,12 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1,
                                      boost::mpl::pair< cache_to_index< boost::mpl::_2, LocalDomain >,
                                            get_cache_storage< boost::mpl::_2, cache_to_index< boost::mpl::_2, LocalDomain > > > >,
-                boost::mpl::identity< boost::mpl::_1 > > >::type mpl_type;
+                boost::mpl::identity< boost::mpl::_1 > > >::type mpl_t;
+        typedef typename boost::mpl::fold<mpl_t,
+            boost::mpl::vector<>,
+            boost::mpl::if_< boost::mpl::is_void_<boost::mpl::_2>,
+                boost::mpl::_1,
+                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2> > >::type filtered_mpl_t;
 
         // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair
         template < typename FusionSeq, typename Pair >
@@ -214,7 +220,7 @@ namespace gridtools {
         };
 
         // then we transform the mpl vector into a fusion vector
-        typedef typename boost::mpl::fold< mpl_type,
+        typedef typename boost::mpl::fold< filtered_mpl_t,
             boost::fusion::vector0<>,
             insert_pair_into_fusion_vector< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };

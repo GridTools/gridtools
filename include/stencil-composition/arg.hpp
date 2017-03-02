@@ -48,13 +48,10 @@
 #include "../common/defs.hpp"
 #include "../common/pointer.hpp"
 #include "arg_metafunctions.hpp"
-#include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "arg_metafunctions_fwd.hpp"
 #include "storage-facility.hpp"
 
 namespace gridtools {
-
-    template < uint_t I, typename Storage, bool Temporary = false >
-    struct arg;
 
     template < typename T >
     struct is_arg : boost::mpl::false_ {};

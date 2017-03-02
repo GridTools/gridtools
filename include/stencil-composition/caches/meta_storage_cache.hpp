@@ -28,12 +28,12 @@ namespace gridtools {
         constexpr uint_t size() const { return m_value.size(); }
 
         template < ushort_t Id >
-        GT_FUNCTION constexpr int_t const &stride() const {
+        GT_FUNCTION constexpr int_t stride() const {
             return m_value.template stride< Id >();
         }
 
         template < ushort_t Id >
-        GT_FUNCTION constexpr int_t const &dim() const {
+        GT_FUNCTION constexpr int_t dim() const {
             return m_value.template dim< Id >();
         }
 
