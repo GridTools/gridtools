@@ -59,42 +59,42 @@ namespace gridtools {
     namespace math {
 
         template < typename Value >
-        GT_FUNCTION constexpr Value max(Value const &val0) {
+        GT_FUNCTION constexpr Value const &max(Value const &val0) {
             assert(false);
         }
 
         template < typename Value >
-        GT_FUNCTION constexpr Value max() {
+        GT_FUNCTION constexpr Value const &max() {
             assert(false);
         }
 
         template < typename Value >
-        GT_FUNCTION constexpr Value max(Value const &val0, Value const &val1) {
+        GT_FUNCTION constexpr Value const &max(Value const &val0, Value const &val1) {
             return val0 > val1 ? val0 : val1;
         }
 
         template < typename ValueFirst, typename... OtherValues >
-        GT_FUNCTION constexpr ValueFirst max(ValueFirst const &val0, OtherValues const &... vals) {
+        GT_FUNCTION constexpr ValueFirst const &max(ValueFirst const &val0, OtherValues const &... vals) {
             return val0 > max(vals...) ? val0 : max(vals...);
         }
 
         template < typename Value >
-        GT_FUNCTION constexpr Value min(Value const &val0) {
+        GT_FUNCTION constexpr Value const &min(Value const &val0) {
             assert(false);
         }
 
         template < typename Value >
-        GT_FUNCTION constexpr Value min() {
+        GT_FUNCTION constexpr Value const &min() {
             assert(false);
         }
 
         template < typename Value >
-        GT_FUNCTION constexpr Value min(Value const &val0, Value const &val1) {
+        GT_FUNCTION constexpr Value const &min(Value const &val0, Value const &val1) {
             return val0 > val1 ? val1 : val0;
         }
 
         template < typename ValueFirst, typename... OtherValues >
-        GT_FUNCTION constexpr ValueFirst min(ValueFirst const &val0, OtherValues const &... vals) {
+        GT_FUNCTION constexpr ValueFirst const &min(ValueFirst const &val0, OtherValues const &... vals) {
             return val0 > min(vals...) ? min(vals...) : val0;
         }
 
