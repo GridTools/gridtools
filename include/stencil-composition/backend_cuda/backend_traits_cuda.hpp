@@ -155,7 +155,7 @@ namespace gridtools {
          */
         struct mss_fuse_esfs_strategy {
             typedef boost::mpl::bool_< true > type;
-            GRIDTOOLS_STATIC_CONSTANT(bool, value = (type::value), GT_INTERNAL_ERROR);
+            BOOST_STATIC_CONSTANT(bool, value = (type::value));
         };
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
