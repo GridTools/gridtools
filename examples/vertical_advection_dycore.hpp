@@ -206,9 +206,6 @@ namespace vertical_advection_dycore {
 
         const int halo_size = 3;
 
-        typedef gridtools::layout_map< 0, 1, 2 > layout_ijk;
-        typedef gridtools::layout_map< 0 > layout_scalar;
-
         typedef vertical_advection::repository::storage_type storage_type;
         typedef vertical_advection::repository::scalar_storage_type scalar_storage_type;
 
