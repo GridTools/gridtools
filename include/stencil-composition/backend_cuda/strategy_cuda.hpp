@@ -76,8 +76,8 @@ namespace gridtools {
         struct fused_mss_loop {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
             typedef boost::mpl::range_c< uint_t,
                 0,

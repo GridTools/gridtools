@@ -70,7 +70,7 @@ namespace gridtools {
         struct esfs_functor_return_type {
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size< EsfSequence >::value == 1), "Error: Reductions can have only one esf");
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< IntervalsMapSeq >::value == 1), "Error");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< IntervalsMapSeq >::value == 1), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::front< IntervalsMapSeq >::type intervals_map_t;
 
@@ -130,7 +130,7 @@ namespace gridtools {
                 typename boost::is_same< functor_return_t, typename ReductionData::reduction_type_t >::type,
                 boost::mpl::true_ >::type type;
 
-            GRIDTOOLS_STATIC_ASSERT((type::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((type::value), GT_INTERNAL_ERROR);
         };
 #endif
 

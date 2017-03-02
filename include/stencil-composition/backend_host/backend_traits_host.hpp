@@ -162,7 +162,7 @@ namespace gridtools {
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template < typename BackendIds >
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_host< BackendIds::s_strategy_id > type;
         };
 

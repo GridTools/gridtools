@@ -110,7 +110,7 @@ namespace gridtools {
         */
         template < uint_t Id, typename BlockSize >
         struct once_per_block {
-            GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), GT_INTERNAL_ERROR);
 
             template < typename Left, typename Right >
             GT_FUNCTION static void assign(Left &l, Right const &r) {
@@ -155,7 +155,7 @@ namespace gridtools {
          */
         struct mss_fuse_esfs_strategy {
             typedef boost::mpl::bool_< true > type;
-            BOOST_STATIC_CONSTANT(bool, value = (type::value));
+            GRIDTOOLS_STATIC_CONSTANT(bool, value = (type::value), GT_INTERNAL_ERROR);
         };
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
@@ -164,7 +164,7 @@ namespace gridtools {
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template < typename BackendIds >
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_cuda< BackendIds::s_strategy_id > type;
         };
 

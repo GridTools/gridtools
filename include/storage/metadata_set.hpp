@@ -60,7 +60,7 @@ namespace gridtools {
     struct metadata_set {
         GRIDTOOLS_STATIC_ASSERT(boost::mpl::is_sequence< Sequence >::value, GT_INTERNAL_ERROR_MSG("not a sequence"));
         GRIDTOOLS_STATIC_ASSERT(
-                                (is_sequence_of< Sequence, is_pointer >::value), GT_INTERNAL_ERROR_MSG"not a sequence of pointers"));
+            (is_sequence_of< Sequence, is_pointer >::value), GT_INTERNAL_ERROR_MSG("not a sequence of pointers"));
         typedef typename boost::fusion::result_of::as_set< Sequence >::type set_t;
 
       private:
