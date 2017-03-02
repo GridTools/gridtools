@@ -61,19 +61,16 @@ struct functor1 {
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #endif
 
-typedef layout_map< 2, 1, 0 > layout_ijk_t;
-typedef gridtools::BACKEND::storage_type< float_type, gridtools::BACKEND::storage_info< 0, layout_ijk_t > >::type
-    storage_type;
-typedef gridtools::BACKEND::temporary_storage_type< float_type,
-    gridtools::BACKEND::storage_info< 0, layout_ijk_t > >::type tmp_storage_type;
+typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
-typedef arg< 0, storage_type > p_in;
-typedef arg< 1, storage_type > p_out;
-typedef arg< 2, tmp_storage_type > p_buff;
+typedef arg< 0, storage_t > p_in;
+typedef arg< 1, storage_t > p_out;
+typedef arg< 2, storage_t, true > p_buff;
 
 TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
-    typename storage_type::storage_info_type meta_(10, 10, 10);
-    storage_type in(meta_, 1.0, "in"), out(meta_, 1.0, "out");
+    meta_data_t meta_(10, 10, 10);
+    storage_t in(meta_, 1.0), out(meta_, 1.0);
 
     typedef decltype(make_stage< functor1 >(p_in(), p_buff())) esf1_t;
     typedef decltype(make_stage< functor1 >(p_buff(), p_out())) esf2_t;

@@ -52,8 +52,6 @@ TEST(unfold_independent, test) {
 
     using namespace gridtools;
 
-    //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
-
     typedef arg< 0, fake_storage_type > p0;
     typedef arg< 1, fake_storage_type > p1;
 

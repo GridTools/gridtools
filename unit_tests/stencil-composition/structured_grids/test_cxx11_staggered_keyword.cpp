@@ -73,20 +73,25 @@ namespace test_staggered_keyword {
     uint_t functor::ok_j = 0;
 
     bool test() {
+        typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
-        typedef gridtools::layout_map< 0, 1, 2 > layout_t;
-        typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
-        typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
+        meta_data_t meta_((uint_t)30, (uint_t)20, (uint_t)1);
+        storage_t i_data(meta_);
+        storage_t j_data(meta_);
+        i_data.allocate();
+        j_data.allocate();
 
-        meta_t meta_((uint_t)30, (uint_t)20, (uint_t)1);
-        storage_type i_data(meta_);
-        storage_type j_data(meta_);
-
-        auto lam_i = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return i_; };
-        auto lam_j = [](uint_t const &i_, uint_t const &j_, uint_t const &k_) -> uint_t { return j_; };
-
-        i_data.initialize(lam_i);
-        j_data.initialize(lam_j);
+        auto iv = make_host_view(i_data);
+        auto jv = make_host_view(j_data);
+        for(unsigned i=0; i<30; ++i) {
+            for(unsigned j=0; j<20; ++j) {
+                for(unsigned k=0; k<1; ++k) {
+                    iv(i,j,k) = i;
+                    jv(i,j,k) = j;
+                }
+            }
+        }
 
         uint_t di[5] = {0, 0, 5, 30 - 1, 30};
         uint_t dj[5] = {0, 0, 5, 20 - 1, 20};
@@ -95,11 +100,11 @@ namespace test_staggered_keyword {
         grid.value_list[0] = 0;
         grid.value_list[1] = 1 - 1;
 
-        typedef arg< 0, storage_type > p_i_data;
-        typedef arg< 1, storage_type > p_j_data;
+        typedef arg< 0, storage_t > p_i_data;
+        typedef arg< 1, storage_t > p_j_data;
         typedef boost::mpl::vector< p_i_data, p_j_data > accessor_list;
 
-        aggregator_type< accessor_list > domain(boost::fusion::make_vector(&i_data, &j_data));
+        aggregator_type< accessor_list > domain(i_data, j_data);
         auto comp = gridtools::make_computation< gridtools::BACKEND >(
             domain,
             grid,
