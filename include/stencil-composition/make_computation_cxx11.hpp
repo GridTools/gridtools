@@ -51,7 +51,7 @@ namespace gridtools {
          */
         template < typename Sequence >
         struct get_mss_array {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence< Sequence >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence< Sequence >::value), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::fold< Sequence,
                 boost::mpl::vector0<>,
@@ -114,7 +114,7 @@ namespace gridtools {
     // user protections
     template < typename... Args >
     short_t make_computation(Args...) {
-        GRIDTOOLS_STATIC_ASSERT((sizeof...(Args)), "the computation is malformed");
+        GRIDTOOLS_STATIC_ASSERT((sizeof...(Args)), "The computation is malformed");
         return -1;
     }
 }
