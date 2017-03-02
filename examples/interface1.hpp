@@ -101,7 +101,7 @@ namespace horizontal_diffusion {
 
     struct fly_function {
 
-        typedef accessor< 0, enumtype::inout > out;
+        typedef accessor< 0, enumtype::in > out;
         typedef accessor< 1, enumtype::in, extent< 0, 0, 0, 1 > > in;
         typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 1 > > lap;
 

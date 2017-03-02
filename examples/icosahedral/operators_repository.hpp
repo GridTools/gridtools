@@ -158,9 +158,6 @@ namespace ico_operators {
                           "dual_area_reciprocal")) {}
 
         void init_fields() {
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::uniform_real_distribution<> dis(0, 1);
             const float_type PI = std::atan(1.) * 4.;
 
             float_type dx = 1. / (float_type)(m_idim);
