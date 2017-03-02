@@ -60,14 +60,7 @@ namespace gridtools {
 
         template < typename Value >
         GT_FUNCTION constexpr Value const &max(Value const &val0) {
-            assert(false);
-            return Value();
-        }
-
-        template < typename Value >
-        GT_FUNCTION constexpr Value const &max() {
-            assert(false);
-            return Value();
+            return val0;
         }
 
         template < typename Value >
@@ -75,21 +68,14 @@ namespace gridtools {
             return val0 > val1 ? val0 : val1;
         }
 
-        template < typename ValueFirst, typename... OtherValues >
-        GT_FUNCTION constexpr ValueFirst const &max(ValueFirst const &val0, OtherValues const &... vals) {
-            return val0 > max(vals...) ? val0 : max(vals...);
+        template < typename Value, typename... OtherValues >
+        GT_FUNCTION constexpr Value const &max(Value const &val0, Value const &val1, OtherValues const &... vals) {
+            return val0 > max(val1, vals...) ? val0 : max(val1, vals...);
         }
 
         template < typename Value >
         GT_FUNCTION constexpr Value const &min(Value const &val0) {
-            assert(false);
-            return Value();
-        }
-
-        template < typename Value >
-        GT_FUNCTION constexpr Value const &min() {
-            assert(false);
-            return Value();
+            return val0;
         }
 
         template < typename Value >
@@ -97,9 +83,9 @@ namespace gridtools {
             return val0 > val1 ? val1 : val0;
         }
 
-        template < typename ValueFirst, typename... OtherValues >
-        GT_FUNCTION constexpr ValueFirst const &min(ValueFirst const &val0, OtherValues const &... vals) {
-            return val0 > min(vals...) ? min(vals...) : val0;
+        template < typename Value, typename... OtherValues >
+        GT_FUNCTION constexpr Value const &min(Value const &val0, Value const &val1, OtherValues const &... vals) {
+            return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
         }
 
         template < typename Value >
