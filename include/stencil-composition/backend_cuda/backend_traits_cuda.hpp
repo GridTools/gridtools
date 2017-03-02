@@ -130,15 +130,15 @@ namespace gridtools {
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
             template < typename LocalDomain, typename Grid, typename ReductionData >
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const uint_t bi,
                 const uint_t bj) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef
@@ -176,7 +176,7 @@ namespace gridtools {
          */
         template < enumtype::strategy StrategyId >
         struct requires_temporary_redundant_halos {
-            GRIDTOOLS_STATIC_ASSERT((StrategyId == enumtype::Block), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((StrategyId == enumtype::Block), GT_INTERNAL_ERROR);
             typedef boost::mpl::true_ type;
         };
 
@@ -198,7 +198,7 @@ namespace gridtools {
         template < typename IterateDomainArguments >
         struct select_iterate_domain {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal Error: wrong type");
+                (is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
             // indirection in order to avoid instantiation of both types of the eval_if
             template < typename _IterateDomainArguments >
             struct select_positional_iterate_domain {

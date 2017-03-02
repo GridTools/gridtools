@@ -68,7 +68,7 @@ namespace gridtools {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_cache);
 
         GRIDTOOLS_STATIC_ASSERT(
-            (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal error: wrong type");
+            (is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
         typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
 

@@ -54,7 +54,7 @@ namespace gridtools {
          */
         template < typename RunFunctorArguments, typename Index >
         struct colorize_run_functor_arguments {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename replace_template_arguments< RunFunctorArguments,
                 typename RunFunctorArguments::color_t,
                 color_type< (uint_t)Index::value > >::type type;
@@ -62,10 +62,10 @@ namespace gridtools {
 
         template < typename RunFunctorArguments, typename IterateDomain, typename Grid, typename Extent >
         struct color_execution_functor {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
 
             typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
@@ -133,7 +133,7 @@ namespace gridtools {
         template < typename RunFunctorArguments >
         struct execute_kernel_functor_host {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+                (is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
@@ -176,9 +176,9 @@ namespace gridtools {
 
                 // in the host backend there should be only one esf per mss
                 GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1),
-                    "Internal Error: wrong size");
+                    GT_INTERNAL_ERROR);
                 typedef typename boost::mpl::back< typename RunFunctorArguments::extent_sizes_t >::type extent_t;
-                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), GT_INTERNAL_ERROR);
 
                 typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
                 typedef backend_traits_from_id< enumtype::Host > backend_traits_t;
