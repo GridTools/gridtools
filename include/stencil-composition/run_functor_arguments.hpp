@@ -33,12 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/*
- * run_functor_arguments.h
- *
- *  Created on: Mar 5, 2015
- *      Author: carlosos
- */
 
 #pragma once
 #include <boost/static_assert.hpp>
@@ -69,6 +63,7 @@ namespace gridtools {
         typename IsReduction,
         typename FunctorReturnType >
     struct iterate_domain_arguments {
+
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Iternal Error: wrong type");
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Iternal Error: wrong type");

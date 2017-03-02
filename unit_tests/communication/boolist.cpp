@@ -45,8 +45,9 @@
 #include <common/layout_map.hpp>
 #include <iostream>
 #include <stdlib.h>
+#include "gtest/gtest.h"
 
-int main() {
+TEST(Communication, boollist) {
 
     bool pass = true;
 
@@ -98,11 +99,5 @@ int main() {
             pass = false;
     }
 
-    if (pass)
-        std::cout << "PASSED\n";
-    else {
-        std::cout << "FAILED\n";
-        exit(-1);
-    }
-    return 0;
+    EXPECT_TRUE(pass);
 }

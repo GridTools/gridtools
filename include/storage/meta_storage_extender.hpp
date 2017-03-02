@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "meta_storage.hpp"
+#include "../common/layout_map_metafunctions.hpp"
 
 #ifdef CXX11_ENABLED
 namespace gridtools {
@@ -67,32 +68,20 @@ namespace gridtools {
             typename extend_aux_param< NExtraDim, TmpParam >::type... > type;
     };
 
-    template < short_t Val, short_t NExtraDim >
+    template < int_t Val, short_t NExtraDim >
     struct inc_ {
-        static const short_t value = Val + NExtraDim;
+        static const int_t value = Val == -1 ? -1 : Val + NExtraDim;
     };
 
-    template < typename Index, typename Layout, bool TmpFlag, ushort_t NExtraDim >
-    struct meta_storage_extender_impl< meta_storage_base< Index, Layout, TmpFlag >, NExtraDim > {
-        typedef meta_storage_base< Index, typename meta_storage_extender_impl< Layout, NExtraDim >::type, TmpFlag >
-            type;
-    };
-
-    template < ushort_t NExtraDim, short_t... Args >
+    template < ushort_t NExtraDim, int_t... Args >
     struct meta_storage_extender_impl< layout_map< Args... >, NExtraDim > {
+        using type = typename extend_layout_map< layout_map< Args... >, NExtraDim >::type;
+    };
 
-        template < typename T, short_t... InitialInts >
-        struct build_ext_layout;
-
-        // build an extended layout
-        template < short_t... Indices, short_t... InitialIndices >
-        struct build_ext_layout< gt_integer_sequence< short_t, Indices... >, InitialIndices... > {
-            typedef layout_map< InitialIndices..., Indices... > type;
-        };
-
-        using seq = typename make_gt_integer_sequence< short_t, NExtraDim >::type;
-
-        typedef typename build_ext_layout< seq, inc_< Args, NExtraDim >::value... >::type type;
+    template < typename Index, typename Layout, bool IsTemporary, ushort_t NExtraDim >
+    struct meta_storage_extender_impl< meta_storage_base< Index, Layout, IsTemporary >, NExtraDim > {
+        typedef meta_storage_base< Index, typename meta_storage_extender_impl< Layout, NExtraDim >::type, IsTemporary >
+            type;
     };
 
     /**
