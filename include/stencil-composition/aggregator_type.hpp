@@ -106,9 +106,23 @@ namespace gridtools {
             "storage "
             "you are probably trying to do something which is not a stencil operation, aren't you?");
         typedef typename boost::mpl::sort< Placeholders, arg_comparator >::type placeholders_t;
-
+ 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< placeholders_t, is_arg >::type::value), "wrong type:\
  the aggregator_type template argument must be an MPL vector of placeholders (arg<...>)");
+
+        typedef typename boost::mpl::fold<placeholders_t, boost::mpl::vector<>, 
+            boost::mpl::push_back< boost::mpl::_1, arg_index<boost::mpl::_2> > >::type indices_t;
+        typedef typename boost::mpl::fold< 
+            boost::mpl::range_c<int, 0, boost::mpl::size<indices_t>::value-1 >,
+            boost::mpl::true_,
+            boost::mpl::if_< boost::is_same<
+                    boost::mpl::at< indices_t, boost::mpl::next< boost::mpl::_2 > >,
+                    boost::mpl::next< boost::mpl::at<indices_t, boost::mpl::_2 > > >,
+                boost::mpl::_1,
+                boost::mpl::false_ > >::type contiguous_check_t;
+
+        GRIDTOOLS_STATIC_ASSERT((contiguous_check_t::value && (boost::mpl::at_c<indices_t, 0>::type::value == 0)), 
+            "Storage placeholders must have consecutive indices starting with 0.");
 
       private:
         BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size< placeholders_t >::type::value);
