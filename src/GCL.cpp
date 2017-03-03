@@ -92,7 +92,6 @@ namespace gridtools {
     void GCL_Init(int argc, char **argv) { _impl::GCL_Real_Init(argc, argv); }
 
     void GCL_Init() {
-        int ready;
         int arg = 1;
         _impl::GCL_Real_Init(arg, 0);
     }
