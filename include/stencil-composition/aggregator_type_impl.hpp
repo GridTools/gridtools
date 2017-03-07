@@ -132,10 +132,10 @@ namespace gridtools {
            \brief checks if a given list of placeholders are having consecutive indices
         */
         template < typename Placeholders >
-        struct continious_indices_check {
+        struct continuous_indices_check {
             // check if type of given Placeholders is correct
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::type::value), "wrong type:\
-the continious_indices_check template argument must be an MPL vector of placeholders (arg<...>)");
+the continuous_indices_check template argument must be an MPL vector of placeholders (arg<...>)");
             // extract the indices of all placeholders
             typedef typename boost::mpl::fold< Placeholders,
                 boost::mpl::vector<>,

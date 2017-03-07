@@ -47,15 +47,15 @@ TEST(AggregatorType, ContinousIndicesTest) {
     typedef arg< 2, int_t > arg2_t;
     typedef arg< 3, int_t > arg3_t;
 
-    ASSERT_TRUE((_impl::continious_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t, arg3_t > >::type::value));
-    ASSERT_TRUE((_impl::continious_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t > >::type::value));
-    ASSERT_TRUE((_impl::continious_indices_check< boost::mpl::vector< arg0_t, arg1_t > >::type::value));
-    ASSERT_TRUE((_impl::continious_indices_check< boost::mpl::vector< arg0_t > >::type::value));
+    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t, arg3_t > >::type::value));
+    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t > >::type::value));
+    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t > >::type::value));
+    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t > >::type::value));
 
     typedef typename boost::mpl::sort< boost::mpl::vector< arg3_t, arg2_t, arg0_t, arg1_t >, arg_comparator >::type
         placeholders_t;
-    ASSERT_TRUE((_impl::continious_indices_check< placeholders_t >::type::value));
-    ASSERT_FALSE((_impl::continious_indices_check< boost::mpl::vector< arg1_t, arg3_t, arg2_t > >::type::value));
-    ASSERT_FALSE((_impl::continious_indices_check< boost::mpl::vector< arg0_t, arg2_t > >::type::value));
-    ASSERT_FALSE((_impl::continious_indices_check< boost::mpl::vector< arg1_t > >::type::value));
+    ASSERT_TRUE((_impl::continuous_indices_check< placeholders_t >::type::value));
+    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg1_t, arg3_t, arg2_t > >::type::value));
+    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg2_t > >::type::value));
+    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg1_t > >::type::value));
 }
