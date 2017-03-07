@@ -64,9 +64,6 @@
 
 namespace gridtools {
 
-    template < typename ArgType, typename... Pair >
-    struct accessor_mixed;
-
     /**
        @brief the definition of accessor visible to the user
 

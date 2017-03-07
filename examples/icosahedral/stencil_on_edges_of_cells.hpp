@@ -96,7 +96,7 @@ namespace soeov {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -126,8 +126,8 @@ namespace soeov {
         weight_edges.initialize(0.0);
         ref_weights.initialize(0.0);
 
-        typedef arg< 0, cell_storage_type > p_cell_area;
-        typedef arg< 1, edges_of_cells_storage_type > p_weight_edges;
+        typedef arg< 0, cell_storage_type, enumtype::cells > p_cell_area;
+        typedef arg< 1, edges_of_cells_storage_type, enumtype::edges > p_weight_edges;
 
         typedef boost::mpl::vector< p_cell_area, p_weight_edges > accessor_list_t;
 
@@ -172,7 +172,11 @@ namespace soeov {
                 }
             }
 
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-6);
+#else
             verifier ver(1e-10);
+#endif
 
             array< array< uint_t, 2 >, 5 > halos = {
                 {{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}, {0, 0}}};

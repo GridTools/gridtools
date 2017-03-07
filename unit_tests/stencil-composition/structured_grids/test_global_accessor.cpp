@@ -52,9 +52,10 @@ typedef backend_t::storage_info< 0, layout_map< 0, 1, 2 > > meta_t;
 #endif
 typedef backend_t::storage_type< float_type, meta_t >::type storage_type;
 
+template < typename T >
 struct boundary {
 
-    int int_value;
+    T int_value;
 
     boundary(int ival) : int_value(ival) {}
 
@@ -80,16 +81,16 @@ TEST(test_global_accessor, boundary_conditions) {
 
     sol_.initialize(2.);
 
-    boundary bd(20);
+    boundary< int > bd(20);
 #ifdef CXX11_ENABLED
     auto bd_ = make_global_parameter(bd);
     typedef arg< 1, decltype(bd_) > p_bd;
     GRIDTOOLS_STATIC_ASSERT(gridtools::is_global_parameter< decltype(bd_) >::value, "is_global_parameter check failed");
 #else
-    global_parameter< boundary > bd_(bd);
-    typedef arg< 1, global_parameter< boundary > > p_bd;
-    GRIDTOOLS_STATIC_ASSERT(
-        gridtools::is_global_parameter< global_parameter< boundary > >::value, "is_global_parameter check failed");
+    global_parameter< boundary< int > > bd_(bd);
+    typedef arg< 1, global_parameter< boundary< int > > > p_bd;
+    GRIDTOOLS_STATIC_ASSERT(gridtools::is_global_parameter< global_parameter< boundary< int > > >::value,
+        "is_global_parameter check failed");
 #endif
     GRIDTOOLS_STATIC_ASSERT(!gridtools::is_global_parameter< storage_type >::value, "is_global_parameter check failed");
 

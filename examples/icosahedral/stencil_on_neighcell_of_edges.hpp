@@ -84,8 +84,8 @@ namespace soncoe {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using edge_storage_type = typename backend_t::storage_t< icosahedral_topology_t::edges, double >;
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+        using edge_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double >;
+        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -109,8 +109,8 @@ namespace soncoe {
         out_edges.initialize(0.0);
         ref_edges.initialize(0.0);
 
-        typedef arg< 0, cell_storage_type > p_in_cells;
-        typedef arg< 1, edge_storage_type > p_out_edges;
+        typedef arg< 0, cell_storage_type, enumtype::cells > p_in_cells;
+        typedef arg< 1, edge_storage_type, enumtype::edges > p_out_edges;
 
         typedef boost::mpl::vector< p_in_cells, p_out_edges > accessor_list_t;
 
@@ -156,7 +156,11 @@ namespace soncoe {
                 }
             }
 
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-6);
+#else
             verifier ver(1e-10);
+#endif
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             bool result = ver.verify(grid_, ref_edges, out_edges, halos);
