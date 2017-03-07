@@ -83,7 +83,11 @@ namespace ico_operators {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        verifier ver(1e-10);
+#if FLOAT_PRECISION == 4
+        verifier ver(1e-6);
+#else
+        verifier ver(1e-9);
+#endif
 
         array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
 
@@ -92,14 +96,14 @@ namespace ico_operators {
         auto &orientation_of_normal = repo.orientation_of_normal();
         auto &edge_length = repo.edge_length();
         auto &ref_cells = repo.div_u_ref();
-        auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
+        auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type >("out");
 
         auto div_weights =
-            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double, selector< 1, 1, 1, 1, 1 > >(
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 1, 1 > >(
                 "weights", 3);
 
         auto l_over_A =
-            icosahedral_grid.make_storage< icosahedral_topology_t::edges, double, selector< 1, 1, 1, 1, 1 > >(
+            icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type, selector< 1, 1, 1, 1, 1 > >(
                 "l_over_A", 2);
 
         out_cells.initialize(0.0);
