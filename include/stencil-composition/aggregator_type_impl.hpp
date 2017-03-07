@@ -127,6 +127,31 @@ namespace gridtools {
     } // namespace _debug
 
     namespace _impl {
+
+        /**
+           \brief checks if a given list of placeholders are having consecutive indices
+        */
+        template < typename Placeholders >
+        struct continious_indices_check {
+            // check if type of given Placeholders is correct
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::type::value), "wrong type:\
+the continious_indices_check template argument must be an MPL vector of placeholders (arg<...>)");
+            // extract the indices of all placeholders
+            typedef typename boost::mpl::fold< Placeholders,
+                boost::mpl::vector<>,
+                boost::mpl::push_back< boost::mpl::_1, arg_index< boost::mpl::_2 > > >::type indices_t;
+            // check that all inidices are consecutive
+            typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, boost::mpl::size< indices_t >::value - 1 >,
+                boost::mpl::true_,
+                boost::mpl::if_< boost::is_same< boost::mpl::at< indices_t, boost::mpl::next< boost::mpl::_2 > >,
+                                     boost::mpl::next< boost::mpl::at< indices_t, boost::mpl::_2 > > >,
+                                                   boost::mpl::_1,
+                                                   boost::mpl::false_ > >::type cont_indices_t;
+            // check that the first index is zero
+            typedef boost::mpl::bool_< cont_indices_t::value && (boost::mpl::at_c< indices_t, 0 >::type::value == 0) >
+                type;
+        };
+
         struct l_get_type {
             template < typename U, typename Dummy = void >
             struct apply {
