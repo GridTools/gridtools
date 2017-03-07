@@ -48,7 +48,7 @@ typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
 #endif
 
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+typedef gridtools::interval< level< 0, -1 >, level< 1, 2 > > axis;
 
 typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > kfull;
 
@@ -68,12 +68,12 @@ struct shift_acc_forward {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
-        eval(out()) = eval(in())+eval(in(0,0,1));
+        eval(out()) = eval(in()) + eval(in(0, 0, 1));
     }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody) {
-        eval(out()) = eval(in(0, 0, -1)) + eval(in())+eval(in(0,0,1));
+        eval(out()) = eval(in(0, 0, -1)) + eval(in()) + eval(in(0, 0, 1));
     }
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
@@ -90,16 +90,16 @@ struct shift_acc_backward {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
-        eval(out()) = eval(in()) + eval(in(0,0,-1));
+        eval(out()) = eval(in()) + eval(in(0, 0, -1));
     }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody) {
-        eval(out()) = eval(in(0, 0, 1)) + eval(in()) + eval(in(0,0,-1));
+        eval(out()) = eval(in(0, 0, 1)) + eval(in()) + eval(in(0, 0, -1));
     }
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
-        eval(out()) = eval(in()) + eval(in(0,0,1));
+        eval(out()) = eval(in()) + eval(in(0, 0, 1));
     }
 };
 
@@ -141,12 +141,11 @@ TEST(kcache, fill_forward) {
             for (uint_t k = 0; k < d3; ++k) {
                 in(i, j, k) = i + j + k;
             }
-            ref(i, j, 0) = in(i, j, 0) + in(i,j,1);
-            for (uint_t k = 1; k < d3-1; ++k) {
-                ref(i, j, k) = in(i, j, k - 1) + in(i, j, k) + in(i,j,k+1);
+            ref(i, j, 0) = in(i, j, 0) + in(i, j, 1);
+            for (uint_t k = 1; k < d3 - 1; ++k) {
+                ref(i, j, k) = in(i, j, k - 1) + in(i, j, k) + in(i, j, k + 1);
             }
-            ref(i, j, d3-1) = in(i, j, d3-1) + in(i,j,d3-2);
-
+            ref(i, j, d3 - 1) = in(i, j, d3 - 1) + in(i, j, d3 - 2);
         }
     }
 
@@ -243,10 +242,10 @@ TEST(kcache, fill_backward) {
             for (int_t k = 0; k < d3; --k) {
                 in(i, j, k) = i + j + k;
             }
- 
-            ref(i, j, d3 - 1) = in(i, j, d3 - 1) + in(i,j,d3-2);
+
+            ref(i, j, d3 - 1) = in(i, j, d3 - 1) + in(i, j, d3 - 2);
             for (int_t k = d3 - 2; k >= 1; --k) {
-                ref(i, j, k) = in(i, j, k + 1) + in(i, j, k) + in(i,j,k-1);
+                ref(i, j, k) = in(i, j, k + 1) + in(i, j, k) + in(i, j, k - 1);
             }
             ref(i, j, 0) = in(i, j, 1) + in(i, j, 0);
         }
