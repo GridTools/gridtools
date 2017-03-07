@@ -48,7 +48,7 @@ typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
 #endif
 
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+typedef gridtools::interval< level< 0, -2 >, level< 1, 2 > > axis;
 
 typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > kfull;
 
