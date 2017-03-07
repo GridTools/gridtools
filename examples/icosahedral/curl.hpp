@@ -47,7 +47,7 @@ namespace ico_operators {
         auto &out_vertices = repo.out_vertex();
 
         vertices_4d_storage_type curl_weights(
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, selector< 1, 1, 1, 1, 1 > >(
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 1, 1 > >(
                 "weights", 6));
         edges_of_vertices_storage_type &edge_orientation = repo.edge_orientation();
 
@@ -125,8 +125,11 @@ namespace ico_operators {
             out_vertices.d2h_update();
 #endif
 
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-4);
+#else
             verifier ver(1e-9);
-
+#endif
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);
 
@@ -170,9 +173,9 @@ namespace ico_operators {
 #endif
 
 #if FLOAT_PRECISION == 4
-            verifier ver(9e-5);
+            verifier ver(1e-4);
 #else
-            verifier ver(9e-10);
+            verifier ver(1e-9);
 #endif
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
