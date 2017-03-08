@@ -59,7 +59,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
 message (STATUS "Building profiled executables")
 endif()
 
-## enable cxx11 and python things ##
+## enable cxx11 and things ##
 if ( ENABLE_CXX11 )
    message (STATUS "CXX11 enabled")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
@@ -224,44 +224,3 @@ add_definitions(-DGTEST_COLOR )
 include_directories( ${GTEST_INCLUDE_DIR} )
 include_directories( ${GMOCK_INCLUDE_DIR} )
 
-## python ##
-if (ENABLE_PYTHON)
-    message (STATUS "PYTHON enabled ")
-    # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
-    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )
-    # Reading from ${CMAKE_SOURCE_DIR}/.python_major_version (composing the cmd otherwise it doesn't work)
-    set (cmd "cat" )
-    set (filepv "${CMAKE_SOURCE_DIR}/.python_major_version")
-    execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHON_VERSION_MAJOR )
-    #message( "PYTHON_VERSION_MAJOR is: " ${PYTHON_VERSION_MAJOR} )
-    # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version
-    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version)
-
-    find_package(PythonLibs)
-    find_package(PythonInterp)
-
-    #"from distutils.sysconfig import get_python_lib; print get_python_lib()"
-
-    if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
-     if(${PYTHON_VERSION_MAJOR} GREATER 2)
-        # Set here a check on the GRIDTOOLS_ROOT env var
-        if(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
-          set ( ENV{GRIDTOOLS_ROOT} ${CMAKE_SOURCE_DIR} )
-        endif(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
-
-        # Defining PYTHONLIBS_VERSION_STRING
-        # Reading from ${CMAKE_SOURCE_DIR}/.python_version (composing the cmd otherwise it doesn't work)
-        set (cmd "cat" )
-        set (filepv "${CMAKE_SOURCE_DIR}/.python_version")
-        execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHONLIBS_VERSION_STRING )
-        # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_version created by python_version.sh
-        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version)
-
-        #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
-        set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
-        set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python.log")
-        message (STATUS "Log file is " ${OUTPUT} )
-        add_subdirectory( python )
-     endif(${PYTHON_VERSION_MAJOR} GREATER 2)
-    endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
-endif(ENABLE_PYTHON)

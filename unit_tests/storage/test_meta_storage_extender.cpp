@@ -33,8 +33,27 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include <gridtools.hpp>
+#include "gtest/gtest.h"
+#include <common/defs.hpp>
+#include <storage/storage-facility.hpp>
 
-extern "C" {
-int get_backend_float_size() { return sizeof(gridtools::float_type) * 8; };
+using namespace gridtools;
+
+TEST(storage_info, test_extender) {
+
+    typedef gridtools::layout_map< 0, 1, 2, 3, 4 > layout_t;
+    typedef typename gridtools::meta_storage_base< static_int< 0 >, layout_t, false > meta_t;
+    typedef typename gridtools::meta_storage_aligned< meta_t, aligned< 1 >, halo< 0, 0, 0, 0, 0 > > aligned_meta_t;
+
+    aligned_meta_t meta_{11u, 12u, 13u, 14u, 15u};
+
+    meta_storage_extender meta_extended_;
+    // NOTE: the extended meta_storage in not a literal type
+    auto m = meta_extended_(meta_, 5);
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< decltype(m),
+            meta_storage_aligned< meta_storage_base< static_int< 0 >, layout_map< 1, 2, 3, 4, 5, 0 >, false >,
+                             aligned< 1u >,
+                             halo< 0u, 0u, 0u, 0u, 0u, 0u > > >::value),
+        "Error");
 }

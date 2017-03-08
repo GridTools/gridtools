@@ -227,22 +227,30 @@ namespace gridtools {
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator+(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator+(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator-(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator-(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator*(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator*(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 #endif
 
     template < typename T >
