@@ -2367,7 +2367,7 @@
         }
     },
     "comments": [
-        "Update numbers after -march=native. advection_pd_bot numbers still broken."
+        "Update numbers after the timers for expandable parameters got fixed."
     ],
     "stencils": {
         "horizontal_diffusion": {
