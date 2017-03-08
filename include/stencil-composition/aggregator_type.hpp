@@ -110,6 +110,9 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< placeholders_t, is_arg >::type::value), "wrong type:\
  the aggregator_type template argument must be an MPL vector of placeholders (arg<...>)");
 
+        GRIDTOOLS_STATIC_ASSERT((_impl::continuous_indices_check< placeholders_t >::type::value),
+            "Storage placeholders must have consecutive indices starting with 0.");
+
       private:
         BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size< placeholders_t >::type::value);
 
