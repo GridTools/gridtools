@@ -66,12 +66,14 @@ namespace gridtools {
      * in future version we need to support K and IJK storages. Data is allocated on the stack.
      * The size of the storage is determined by the block size and the extension to this block sizes required for
      *  halo regions (determined by a extent type)
+     * @tparam Cache a cache
      * @tparam Value value type being stored
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
      */
     template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename Storage, uint_t NColors >
     struct cache_storage< Cache, block_size< Tiles... >, extent< ExtentBounds... >, NColors, Storage > {
+        GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "Internal Error");
 
       public:
         typedef Cache cache_t;

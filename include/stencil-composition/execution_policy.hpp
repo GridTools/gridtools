@@ -95,10 +95,6 @@ namespace gridtools {
                 typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
                     run_esf_functor_t;
 
-                // TODO KCACHE bring this ifs inside metaprogram in case there are not kcaches to fill/flush
-                // and compiler does not do dead code elimination here
-                // TODO KCACHE max_extent_t is not the right extent since some fields could be defined with a smaller
-                // max extent and the memory operation of caches will out of bound
                 if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
                     super::m_domain.template begin_fill< IterationPolicy >();
                 }
