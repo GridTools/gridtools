@@ -58,6 +58,7 @@ namespace gridtools {
         }
     };
 
+    /**@brief binary operator functor that checks if two types passed fulfill the == operator*/
     struct equal {
         GT_FUNCTION
         constexpr equal() {}

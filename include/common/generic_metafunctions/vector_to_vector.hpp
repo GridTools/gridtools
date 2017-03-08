@@ -41,8 +41,10 @@
 namespace gridtools {
 
     /**
-     * @struct vector_to_map
-     * convert a vector sequence into a set sequence
+     * @struct vector_to_vector
+     * convert a forward sequence (vector like) into a vector.
+     * This is used in order to force instantiation of mpl vector from lazy sequence like
+     * mpl::filter_view
      */
     template < typename Vec >
     struct vector_to_vector {
