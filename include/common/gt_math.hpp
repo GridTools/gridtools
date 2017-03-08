@@ -36,6 +36,7 @@
 #pragma once
 #include "host_device.hpp"
 
+#include <math.h>
 namespace gridtools {
 
     /**@brief Class in substitution of std::pow, not available in CUDA*/
@@ -88,13 +89,60 @@ namespace gridtools {
             return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
         }
 
+// providing the same overload pattern as the std library
+// auto return type to ensure that we do not accidentally cast
+#ifdef __CUDACC__
+        GT_FUNCTION auto fabs(double val) -> decltype(::fabs(val)) { return ::fabs(val); }
+
+        GT_FUNCTION auto fabs(float val) -> decltype(::fabs(val)) { return ::fabs(val); }
+        //        GT_FUNCTION float fabs(float val) { return ::fabs(val); }
+
         template < typename Value >
-        GT_FUNCTION constexpr Value fabs(Value const &val) {
-            return ::fabs(val);
+        GT_FUNCTION double fabs(Value val) {
+            return ::fabs((double)val);
         }
+#ifndef __CUDA_ARCH__
+        GT_FUNCTION_HOST auto fabs(long double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
+#else
+        // long double not supported in device code
+        // TODO provide an implementation or warning (for now we fall into the cast to double overload)
+        GT_FUNCTION_DEVICE auto fabs(long double val) -> decltype(::fabs((double)val)) { return ::fabs((double)val); }
+#endif
+#else
+        // without std:: it is taking the wrong overload
+        auto fabs(double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
+
+        auto fabs(float val) -> decltype(std::fabs(val)) { return std::fabs(val); }
+
+        auto fabs(long double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
+
         template < typename Value >
-        GT_FUNCTION constexpr Value abs(Value const &val) {
-            return ::abs(val);
+        double fabs(Value val) {
+            return std::fabs(val);
+        }
+#endif
+
+// providing the same overload pattern as the std library
+// auto return type to ensure that we do not accidentally cast
+#ifdef __CUDACC__
+        GT_FUNCTION auto abs(int val) -> decltype(::abs(val)) { return ::abs(val); }
+
+        GT_FUNCTION auto abs(long val) -> decltype(::abs(val)) { return ::abs(val); }
+
+        GT_FUNCTION auto abs(long long val) -> decltype(::abs(val)) { return ::abs(val); }
+#else
+        // without std:: it is taking the wrong overload
+        GT_FUNCTION auto abs(int val) -> decltype(std::abs(val)) { return std::abs(val); }
+
+        GT_FUNCTION auto abs(long val) -> decltype(std::abs(val)) { return std::abs(val); }
+
+        GT_FUNCTION auto abs(long long val) -> decltype(std::abs(val)) { return std::abs(val); }
+#endif
+
+        // forward to fabs
+        template < typename Value >
+        GT_FUNCTION Value abs(Value val) {
+            return math::fabs(val);
         }
     } // namespace math
 

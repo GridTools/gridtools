@@ -33,34 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-/**
-@file
-@brief definition of macros for host/GPU
-*/
-#ifdef _USE_GPU_
-#include <cuda_runtime.h>
-#else
-#define __host__
-#define __device__
-#endif
+#include "test_cxx11_gt_math.cpp"
 
-#ifdef __GNUC__
-#define GT_FORCE_INLINE inline __attribute__((always_inline))
-#elif defined(_MSC_VER)
-#define GT_FORCE_INLINE inline __forceinline
-#else
-#define GT_FORCE_INLINE inline
-#endif
+#include "../cuda_test_helper.hpp"
 
-#ifdef __CUDACC__
-#define GT_FUNCTION __host__ __device__ __forceinline__
-#define GT_FUNCTION_HOST __host__ __forceinline__
-#define GT_FUNCTION_DEVICE __device__ __forceinline__
-#else
-#define GT_FUNCTION GT_FORCE_INLINE
-#define GT_FUNCTION_HOST GT_FORCE_INLINE
-#define GT_FUNCTION_DEVICE GT_FORCE_INLINE
-#endif
+TEST(math_cuda, test_fabs) {
+    ASSERT_TRUE(test_fabs::Do());
+    ASSERT_TRUE(cuda_test< test_fabs >());
+}
 
-#define GT_FUNCTION_WARNING __host__ __device__
+TEST(math_cuda, test_abs) {
+    ASSERT_TRUE(test_fabs::Do());
+    ASSERT_TRUE(cuda_test< test_fabs >());
+}
