@@ -41,7 +41,7 @@
 using namespace gridtools;
 using namespace enumtype;
 
-TEST(AggregatorType, ContinousIndicesTest) {
+TEST(AggregatorType, ContinuousIndicesTest) {
     typedef arg< 0, int_t > arg0_t;
     typedef arg< 1, int_t > arg1_t;
     typedef arg< 2, int_t > arg2_t;
