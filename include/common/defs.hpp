@@ -133,9 +133,13 @@ inline omp_int_t omp_get_max_threads() { return 1; }
 inline double omp_get_wtime() { return 0; }
 #endif
 
-#define GT_INTERNAL_ERROR "GridTools encountered an internal error. Please submit the error message produced by the compiler to the GridTools Development Team"
+#define GT_INTERNAL_ERROR                                                                                       \
+    "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
+    "GridTools Development Team"
 
-#define GT_INTERNAL_ERROR_MSG(x) "GridTools encountered an internal error. Please submit the error message produced by the compiler to the GridTools Development Team: " x
+#define GT_INTERNAL_ERROR_MSG(x)                                                                                \
+    "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
+    "GridTools Development Team: " x
 
 #include <boost/mpl/integral_c.hpp>
 // macro defining empty copy constructors and assignment operators
