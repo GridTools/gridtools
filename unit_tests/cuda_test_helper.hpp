@@ -38,6 +38,9 @@
  * @brief provides a wrapper to execute a pure function on device returning a boolean
  * The function has to be passed as a functor with a static Do() method.
  */
+
+#pragma once
+
 template < typename F, typename... Types >
 __global__ void test_kernel(bool *result, Types... types) {
     *result = F::Do(types...);
