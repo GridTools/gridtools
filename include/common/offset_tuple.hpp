@@ -126,6 +126,12 @@ namespace gridtools {
                 boost::mpl::false_,
                 boost::mpl::or_< boost::mpl::_1, boost::mpl::_2 > >::type type;
         };
+
+        template < size_t ArrayDim >
+        static constexpr int_t assign_offset(uint_t pos, array< int_t, ArrayDim > const &offsets) {
+            return (pos < ArrayDim) ? offsets[pos] : 0;
+        }
+
 #endif
     }
 
@@ -172,9 +178,19 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((I <= NDim), "Internal error");
         }
 
-        GT_FUNCTION constexpr offset_tuple(uint_t pos, array< int_t, NDim > const &offsets)
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
             : super(pos + 1, offsets), m_offset(offsets[pos]) {}
 #ifdef CXX11_ENABLED
+
+        template < size_t ArrayDim,
+            typename... Dimensions,
+            typename Dummy = typename all_dimensions< Dimensions... >::type >
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d)
+            : super(pos + 1, offsets, d...),
+              m_offset(_impl::assign_offset(pos, offsets) + initialize< super::n_dim - n_args >(d...)) {
+            static_assert(
+                (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
+        }
 
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base
@@ -185,31 +201,22 @@ namespace gridtools {
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
-        GT_FUNCTION constexpr offset_tuple(int t, GenericElements const &... x)
+        GT_FUNCTION constexpr offset_tuple(int const t, GenericElements const &... x)
             : super(x...), m_offset(t) {}
 
         /**@brief constructor taking the dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'dimension' is a
            language keyword used at the interface level.
         */
-        template < ushort_t Idx, typename... GenericElements >
+        template < ushort_t Idx,
+            typename... GenericElements,
+            typename Dummy = typename all_dimensions< dimension< Idx >, GenericElements... >::type >
         GT_FUNCTION constexpr offset_tuple(dimension< Idx > const &t, GenericElements const &... x)
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {
             GRIDTOOLS_STATIC_ASSERT(
                 (Index <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
         }
 
-        /**@brief constructor taking the dimension::Index class as argument.
-           This allows to specify the extra arguments out of order. Note that 'dimension' is a
-           language keyword used at the interface level.
-        */
-        template < ushort_t Idx, typename... GenericElements >
-        GT_FUNCTION constexpr offset_tuple(typename dimension< Idx >::Index const &t, GenericElements const &... x)
-            : super(dimension< Idx >(0), x...),
-              m_offset(initialize< super::n_dim - n_args + 1 >(dimension< Idx >(0), x...)) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (Index <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
-        }
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base
@@ -217,11 +224,11 @@ namespace gridtools {
            (in order to get assigned to the other dimensions).
            When this constructor is used all the arguments have to be specified and passed to the function call in
            order. No check is done on the order*/
-        GT_FUNCTION offset_tuple(int i, int j, int k) : super(j, k), m_offset(i) {}
+        GT_FUNCTION offset_tuple(int const i, int const j, int const k) : super(j, k), m_offset(i) {}
         GT_FUNCTION
-        offset_tuple(int i, int j) : super(j), m_offset(i) {}
+        offset_tuple(int const i, int const j) : super(j), m_offset(i) {}
         GT_FUNCTION
-        offset_tuple(int i) : m_offset(i) {}
+        offset_tuple(int const i) : m_offset(i) {}
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::dimension' is a
@@ -307,9 +314,15 @@ namespace gridtools {
     struct offset_tuple< 0, NDim > {
         static const int_t n_dim = NDim;
 
-        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets) {}
-
 #ifdef CXX11_ENABLED
+        template < size_t ArrayDim,
+            typename... Dimensions,
+            typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
+        GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d) {
+            static_assert(
+                (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
+        }
+
         template < typename... GenericElements,
             typename =
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
@@ -321,6 +334,7 @@ namespace gridtools {
         // copy ctor
         GT_FUNCTION
         constexpr offset_tuple(const offset_tuple &other) {}
+
 #else
         template < typename X, typename Y, typename Z, typename T >
         GT_FUNCTION constexpr offset_tuple(X const &x, Y const &y, Z const &z, T const &t) {}
