@@ -67,8 +67,11 @@ namespace gridtools {
             : m_shared_storage(new storage_t(info.size(), initializer)),
               m_shared_storage_info(new storage_info_t(info)) {}
 
+        template < typename T = data_t *,
+            typename boost::enable_if_c< boost::is_pointer< T >::value && boost::is_same< data_t *, T >::value,
+                int >::type = 0 >
         explicit constexpr data_store(
-            StorageInfo const &info, data_t *external_ptr, enumtype::ownership ownership = enumtype::ExternalCPU)
+            StorageInfo const &info, T external_ptr, enumtype::ownership ownership = enumtype::ExternalCPU)
             : m_shared_storage(new storage_t(info.size(), external_ptr, ownership)),
               m_shared_storage_info(new storage_info_t(info)) {}
 
