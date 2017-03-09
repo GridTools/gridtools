@@ -268,7 +268,7 @@ namespace gridtools {
          */
         virtual void finalize() {
             // sync all data stores
-            boost::fusion::for_each(m_domain_full.get_arg_storage_pairs(), _impl::sync_data_stores());
+            boost::fusion::for_each(m_domain_full.m_arg_storage_pair_list, _impl::sync_data_stores());
             m_intermediate->finalize();
             if (m_size % ExpandFactor::value)
                 m_intermediate_remainder->finalize();

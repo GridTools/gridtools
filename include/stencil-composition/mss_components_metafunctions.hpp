@@ -338,6 +338,11 @@ namespace gridtools {
         >::type type;
     };
 
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence, typename Functor >
+    struct fix_cache_sequences< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence >, Functor > {
+        typedef reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > type;
+    };
+
     template < typename ExecutionEngine, typename ESFSeq, typename CacheSeq, typename Functor >
     struct fix_cache_sequences< mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq >, Functor > {
         typedef mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq > MssDesc;
