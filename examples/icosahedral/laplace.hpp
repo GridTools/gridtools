@@ -38,6 +38,7 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
 #include "unstructured_grid.hpp"
+#include "../benchmarker.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -60,6 +61,7 @@ namespace laplace {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
+    template < uint_t Color >
     struct test_on_cells_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
@@ -98,26 +100,31 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
     auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
     auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
     auto ref_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref");
-
+    in_cells.allocate();
+    out_cells.allocate();
+    ref_cells.allocate();
+    auto inv = make_host_view(in_cells);
+    auto outv = make_host_view(out_cells);
+    auto refv = make_host_view(ref_cells);
+    
     for (int i = 1; i < d1 - 1; ++i) {
         for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
             for (int j = 1; j < d2 - 1; ++j) {
                 for (int k = 0; k < d3; ++k) {
-                    in_cells(i, c, j, k) =
-                        in_cells.meta_data().index(array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
+                    inv(i, c, j, k) = in_cells.get_storage_info_ptr()->index(i, c, j, k);
+                    outv(i, c, j, k) = 0.0;
+                    refv(i, c, j, k) = 0.0;
                 }
             }
         }
     }
-    out_cells.initialize(0.0);
-    ref_cells.initialize(0.0);
 
     typedef arg< 0, cell_storage_type > p_in_cells;
     typedef arg< 1, cell_storage_type > p_out_cells;
 
     typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
 
-    gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_cells, &out_cells));
+    gridtools::aggregator_type< accessor_list_t > domain(in_cells, out_cells);
     array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
     array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -125,16 +132,7 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
     grid_.value_list[0] = 0;
     grid_.value_list[1] = d3 - 1;
 
-#ifdef CXX11_ENABLED
-    auto
-#else
-#ifdef __CUDACC__
-    gridtools::computation *
-#else
-    boost::shared_ptr< gridtools::computation >
-#endif
-#endif
-        stencil_ = gridtools::make_computation< backend_t >(
+    auto stencil_ = gridtools::make_computation< backend_t >(
             domain,
             grid_,
             gridtools::make_multistage // mss_descriptor
@@ -145,10 +143,8 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
     stencil_->steady();
     stencil_->run();
 
-#ifdef __CUDACC__
-    out_cells.d2h_update();
-    in_cells.d2h_update();
-#endif
+    out_cells.sync();
+    in_cells.sync();
 
     unstructured_grid ugrid(d1, d2, d3);
     for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
@@ -159,7 +155,7 @@ bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps) {
                         ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
                             {i, c, j, k});
                     for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                        ref_cells(i, c, j, k) += in_cells(*iter);
+                        refv(i, c, j, k) += inv((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]);
                     }
                 }
             }
