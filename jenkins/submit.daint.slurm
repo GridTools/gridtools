@@ -7,7 +7,7 @@
 #SBATCH -C gpu
 #SBATCH --cpus-per-task=<CPUSPERTASK>
 #SBATCH --account=c01
-
+#SBATCH --partition=<QUEUE>
 
 echo $LD_LIBRARY_PATH
 
