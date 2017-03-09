@@ -49,10 +49,16 @@
 namespace gridtools {
     namespace enumtype {
         enum platform { Cuda, Host };
+    }
+}
+
+#define PLATFORM_GUARD
+
+#endif
+
+namespace gridtools {
+    namespace enumtype {
         enum access_mode { ReadWrite = 0, ReadOnly = 1 };
         enum ownership { Full = 0, ExternalGPU = 1, ExternalCPU = 2 };
     }
 }
-#define PLATFORM_GUARD
-
-#endif
