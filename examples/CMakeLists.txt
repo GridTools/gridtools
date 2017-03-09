@@ -53,15 +53,17 @@ else()
 
     add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
     target_link_libraries(shallow_water_enhanced gcl ${ADD_MPI_LIBS} ${exe_LIBS} gtest gtest_main)
-    set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+    #set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
     if( NOT GCL_MPI ) # when MPI is on this test must be executed in parallel
       gridtools_add_test( tests.shallow_water_enhanced ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced" "8 8 1 1")
     endif(NOT GCL_MPI)
 
     if( GCL_MPI )
-        add_executable(copy_stencil_parallel  copy_stencil_parallel.cpp)
-        target_link_libraries(copy_stencil_parallel ${exe_LIBS} gtest_main)
-        set_target_properties(copy_stencil_parallel PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+        set(ccflags " " )
+        set(ldflags " ")
+
+        add_custom_mpi_host_test(shallow_water_enhanced_mpi ${CMAKE_CURRENT_SOURCE_DIR}/../examples/shallow_water_enhanced.cpp ${ldflags} ${ccflags})
+        add_custom_mpi_host_test(copy_stencil_parallel ${CMAKE_CURRENT_SOURCE_DIR}/../examples/copy_stencil_parallel.cpp ${ldflags} ${ccflags})
     endif()
   endif()
 
@@ -94,9 +96,12 @@ else()
         gridtools_add_test( tests.shallow_water_enhanced_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced_cuda" "64 16 1 1")
 
         if( GCL_MPI )
-          cuda_add_executable(copy_stencil_parallel_cuda  copy_stencil_parallel.cu)
-          target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gtest_main)
-        endif()
+          set(ccflags " " )
+          set(ldflags " ")
+
+          add_custom_mpi_gpu_test(shallow_water_enhanced_cuda_mpi ${CMAKE_CURRENT_SOURCE_DIR}/../examples/shallow_water_enhanced.cu ${ldflags} ${ccflags})
+          add_custom_mpi_gpu_test(copy_stencil_parallel_cuda ${CMAKE_CURRENT_SOURCE_DIR}/../examples/copy_stencil_parallel.cu ${ldflags} ${ccflags})
+          endif()
     endif()
 
     add_subdirectory( communication )
