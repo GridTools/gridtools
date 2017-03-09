@@ -42,10 +42,9 @@
 #include "../iteration_policy_fwd.hpp"
 #include "../../common/offset_tuple.hpp"
 
-#ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"
 #include "cache_storage_metafunctions.hpp"
-#endif
+#include "cache_fwd.hpp"
 
 namespace gridtools {
     template < typename T, typename U >

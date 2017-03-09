@@ -530,7 +530,6 @@ namespace gridtools {
         struct kcache_begin_fill_indexes {
             template < typename CacheStorage >
             struct is_end_index {
-                GRIDTOOLS_STATIC_ASSERT((is_cache_storage< CacheStorage >::value), "Internal Error");
                 using cache_t = typename CacheStorage::cache_t;
                 using to_index = typename level_to_index< typename IterationPolicy::to >::type;
 
