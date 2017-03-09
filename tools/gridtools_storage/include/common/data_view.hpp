@@ -42,7 +42,7 @@
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits.hpp>
 
-#include "defs.hpp"
+#include "definitions.hpp"
 #include "storage_info_interface.hpp"
 
 namespace gridtools {
@@ -50,7 +50,7 @@ namespace gridtools {
     // data view implementation for data stores
     template < typename DataStore, bool ReadOnly = false >
     struct data_view {
-        static_assert(is_data_store<DataStore>::value, "Passed type is no data_store type");
+        static_assert(is_data_store< DataStore >::value, "Passed type is no data_store type");
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
@@ -64,10 +64,8 @@ namespace gridtools {
 
         GT_FUNCTION data_view() {}
 
-        GT_FUNCTION data_view(data_t *data_ptr,
-            storage_info_t const *info_ptr,
-            state_machine_t *state_ptr,
-            bool device_view)
+        GT_FUNCTION data_view(
+            data_t *data_ptr, storage_info_t const *info_ptr, state_machine_t *state_ptr, bool device_view)
             : m_raw_ptrs{data_ptr}, m_state_machine_ptr(state_ptr), m_storage_info(info_ptr),
               m_device_view(device_view) {
             assert(data_ptr && "Cannot create data_view with invalid data pointer");
@@ -75,9 +73,8 @@ namespace gridtools {
         }
 
         template < typename... Coords >
-        typename boost::mpl::if_c< ReadOnly, data_t const &, data_t & >::type
-            GT_FUNCTION
-            operator()(Coords... c) const {
+        typename boost::mpl::if_c< ReadOnly, data_t const &, data_t & >::type GT_FUNCTION operator()(
+            Coords... c) const {
             return m_raw_ptrs[0][m_storage_info->index(c...)];
         }
 
@@ -92,8 +89,10 @@ namespace gridtools {
             if (ReadOnly)
                 return m_device_view ? !m_state_machine_ptr->m_dnu : !m_state_machine_ptr->m_hnu;
             // check state machine ptrs
-            return m_device_view ? ((m_state_machine_ptr->m_hnu) && !(m_state_machine_ptr->m_dnu) && (m_state_machine_ptr->m_od)) : 
-                (!(m_state_machine_ptr->m_hnu) && (m_state_machine_ptr->m_dnu) && !(m_state_machine_ptr->m_od));
+            return m_device_view
+                       ? ((m_state_machine_ptr->m_hnu) && !(m_state_machine_ptr->m_dnu) && (m_state_machine_ptr->m_od))
+                       : (!(m_state_machine_ptr->m_hnu) && (m_state_machine_ptr->m_dnu) &&
+                             !(m_state_machine_ptr->m_od));
         }
     };
 

@@ -39,11 +39,10 @@
 
 #include <boost/utility.hpp>
 
-#include "defs.hpp"
+#include "definitions.hpp"
 #include "error.hpp"
 
 namespace gridtools {
-
 
     /* get a value from a variadic pack */
     template < unsigned Size >

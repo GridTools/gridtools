@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#include "defs.hpp"
+#include "definitions.hpp"
 
 namespace gridtools {
 

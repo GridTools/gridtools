@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "defs.hpp"
+#include "definitions.hpp"
 #include "nano_array.hpp"
 #include "storage_info_metafunctions.hpp"
 
@@ -51,7 +51,7 @@ namespace gridtools {
     struct is_alignment : boost::mpl::false_ {};
 
     template < unsigned N >
-    struct is_alignment< alignment<N> > : boost::mpl::true_ {};
+    struct is_alignment< alignment< N > > : boost::mpl::true_ {};
 
     /* aligned storage infos use this struct */
     template < typename Alignment, typename Layout, typename Halo >
@@ -59,7 +59,7 @@ namespace gridtools {
 
     template < unsigned M, typename Layout, typename Halo >
     struct alignment_impl< alignment< M >, Layout, Halo > {
-        static_assert((M>1), "Wrong alignment value passed.");
+        static_assert((M > 1), "Wrong alignment value passed.");
         static constexpr unsigned N = Layout::length;
         static constexpr unsigned InitialOffset = get_initial_offset< Layout, alignment< M >, Halo >::compute();
 
@@ -97,5 +97,4 @@ namespace gridtools {
             return 0;
         }
     };
-
 }

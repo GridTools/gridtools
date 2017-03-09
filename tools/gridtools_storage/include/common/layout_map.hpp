@@ -44,7 +44,7 @@
 #include <boost/mpl/push_back.hpp>
 #include <boost/mpl/vector_c.hpp>
 
-#include "defs.hpp"
+#include "definitions.hpp"
 #include "variadic_pack_metafunctions.hpp"
 
 namespace gridtools {
