@@ -59,14 +59,21 @@ namespace gridtools {
 
         template < unsigned Id, unsigned Dims, typename Halo >
         struct select_storage_info {
-            static_assert(is_halo< Halo >::value, "Given type is not a Halo type.");
+            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
             typedef typename get_layout< Dims, true >::type layout;
             typedef host_storage_info< Id, layout, Halo > type;
         };
 
+        template < unsigned Id, typename Layout, typename Halo >
+        struct select_custom_layout_storage_info {
+            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
+            static_assert(is_layout_map< Layout >::value, "Given type is not a layout map type.");
+            typedef host_storage_info< Id, Layout, Halo > type;
+        };
+
         template < unsigned Id, typename Selector, typename Halo >
         struct select_special_storage_info {
-            static_assert(is_halo< Halo >::value, "Given type is not a Halo type.");
+            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
             static_assert(is_selector< Selector >::value, "Given type is not a selector type.");
             typedef typename get_layout< Selector::size, true >::type layout;
             typedef host_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo > type;

@@ -67,6 +67,15 @@ namespace gridtools {
         static constexpr unsigned unmasked_length = boost::mpl::count_if< static_layout_vector,
             boost::mpl::greater< boost::mpl::_, boost::mpl::int_< -1 > > >::value;
 
+        typedef typename boost::mpl::fold< static_layout_vector,
+            boost::mpl::int_< 0 >,
+            boost::mpl::if_< boost::mpl::greater< boost::mpl::_2, boost::mpl::int_< -1 > >,
+                                               boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 >,
+                                               boost::mpl::_1 > >::type accumulated_arg_sum_t;
+        static_assert((accumulated_arg_sum_t::value ==
+                          ((unmasked_length - 1) * (unmasked_length - 1) + (unmasked_length - 1)) / 2),
+            "Layout map args must not contain any holes (e.g., layout_map<3,1,0>).");
+
         template < int I >
         GT_FUNCTION static constexpr int find() {
             static_assert((I >= 0) && (I < unmasked_length), "This index does not exist");
@@ -88,4 +97,10 @@ namespace gridtools {
             return dims[at< I >()];
         }
     };
+
+    template < typename T >
+    struct is_layout_map : boost::mpl::false_ {};
+
+    template < int... Args >
+    struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
 }
