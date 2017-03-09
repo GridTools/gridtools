@@ -98,7 +98,7 @@ source ${BASEPATH_SCRIPT}/env_${myhost}.sh
 if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
     test -e build
-    if [ $? -ne 0 ] ; then
+    if [ $? -eq 0 ] ; then
         echo "REMOVING ALL FILES"
         rm -rf build
     fi
