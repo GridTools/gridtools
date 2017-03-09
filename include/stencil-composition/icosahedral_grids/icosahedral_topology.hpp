@@ -59,6 +59,7 @@
 
 #include <common/array.hpp>
 #include "../../common/gt_assert.hpp"
+#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include <boost/mpl/vector.hpp>
 #include "location_type.hpp"
 #include "common/array_addons.hpp"
@@ -760,13 +761,10 @@ namespace gridtools {
         template < typename... UInt >
         GT_FUNCTION icosahedral_topology(uint_t first_, uint_t second_, UInt... dims)
             : m_dims{second_, first_},
-              m_virtual_storages(meta_storage_t< cells >(array< uint_t, meta_storage_t< cells >::space_dimensions >{
-                                     first_, cells::n_colors::value, second_, dims...}),
-                  meta_storage_t< edges >(array< uint_t, meta_storage_t< edges >::space_dimensions >{
-                      first_, edges::n_colors::value, second_, dims...}),
+              m_virtual_storages(meta_storage_t< cells >(first_, cells::n_colors::value, second_, dims...),
+                  meta_storage_t< edges >(first_, edges::n_colors::value, second_, dims...),
                   // here we assume by convention that the dual grid (vertexes) have one more grid point
-                  meta_storage_t< vertexes >(array< uint_t, meta_storage_t< vertexes >::space_dimensions >{
-                      first_, vertexes::n_colors::value, second_ + 1, dims...})) {}
+                  meta_storage_t< vertexes >(first_, vertexes::n_colors::value, second_ + 1, dims...)) {}
 
         __device__ icosahedral_topology(icosahedral_topology const &other)
             : m_dims(other.m_dims), m_virtual_storages(boost::fusion::at_c< cells::value >(other.m_virtual_storages),
@@ -780,7 +778,7 @@ namespace gridtools {
         template < typename LocationType, typename ValueType >
         GT_FUNCTION storage_t< LocationType, double > make_storage(char const *name) const {
             return storage_t< LocationType, ValueType >(
-                boost::fusion::at_c< LocationType::value >(m_virtual_storages), name);
+                boost::fusion::at_c< LocationType::value >(m_virtual_storages));
         }
 
         template < typename LocationType >

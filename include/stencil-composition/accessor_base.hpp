@@ -107,12 +107,12 @@ namespace gridtools {
         friend std::ostream &operator<<(std::ostream &s, accessor_base< II, It, R, D > const &x);
 
         typedef accessor_base< I, Intend, Extend, Dim > base_t;
-        static const ushort_t n_dim = Dim;
+        static const ushort_t n_dimensions = Dim;
 
         typedef static_uint< I > index_t;
         typedef enumtype::enum_type< enumtype::intend, Intend > intend_t;
         typedef Extend extent_t;
-        typedef offset_tuple< n_dim, n_dim > offset_tuple_t;
+        typedef offset_tuple< n_dimensions, n_dimensions > offset_tuple_t;
 
       private:
         offset_tuple_t m_offsets;
@@ -157,7 +157,7 @@ namespace gridtools {
 #if defined(CXX11_ENABLED)
         template < typename... Indices, typename Dummy = all_accessor_ctr_args< Indices... > >
         GT_FUNCTION constexpr accessor_base(Indices... x) : m_offsets(x...) {
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim,
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dimensions,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
                 "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
                 "D of the accessor (accessor<Id, extent, D>)");
@@ -170,9 +170,9 @@ namespace gridtools {
 
         GT_FUNCTION constexpr accessor_base(First f, Rest... x) : m_offsets(f, x...) {
             GRIDTOOLS_STATIC_ASSERT(
-                accumulate(logical_and(), (First::direction <= n_dim), (Rest::direction <= n_dim)...),
+                accumulate(logical_and(), (First::direction <= n_dimensions), (Rest::direction <= n_dimensions)...),
                 "trying to access a too high dimension for accessor");
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dim - 1,
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dimensions - 1,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
                 "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
                 "D of the accessor (accessor<Id, extent, D>)");
@@ -209,7 +209,7 @@ namespace gridtools {
 
         template < short_t Idx >
         GT_FUNCTION int_t constexpr get() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx < 0 || Idx <= n_dim,
+            GRIDTOOLS_STATIC_ASSERT(Idx < 0 || Idx <= n_dimensions,
                 "requested accessor index larger than the available "
                 "dimensions. Maybe you made a mistake when setting the "
                 "accessor dimensionality?");
@@ -220,7 +220,7 @@ namespace gridtools {
         GT_FUNCTION void set(uint_t offset_) {
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
             GRIDTOOLS_STATIC_ASSERT(
-                Idx < 0 || Idx <= n_dim, "requested accessor index larger than the available dimensions");
+                Idx < 0 || Idx <= n_dimensions, "requested accessor index larger than the available dimensions");
             m_offsets.template set< Idx >(offset_);
         }
 
@@ -250,10 +250,10 @@ namespace gridtools {
           // << ", " << x.k()
           << " ) > m_offset: {";
 
-        for (int i = 0; i < x.n_dim - 1; ++i) {
+        for (int i = 0; i < x.n_dimensions - 1; ++i) {
             s << x.m_offset[i] << ", ";
         }
-        s << x.m_offset[x.n_dim - 1] << "} ]";
+        s << x.m_offset[x.n_dimensions - 1] << "} ]";
         return s;
     }
 

@@ -427,14 +427,14 @@ namespace gridtools {
 
             // if the following assertion fails you have specified a dimension for the extended storage
             // which does not correspond to the size of the extended placeholder for that storage
-            GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dim,
+            GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dimensions,
                 "the dimension of the accessor exceeds the data field dimension");
 
             // for the moment the extra dimensionality of the storage is limited to max 2
-            //(3 space dim + 2 extra= 5, which gives n_dim==4)
+            //(3 space dim + 2 extra= 5, which gives n_dimensions==4)
             GRIDTOOLS_STATIC_ASSERT(
                 N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_type::storage_info_type::space_dimensions,
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_type::storage_info_type::space_dimensions,
                 "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
                 "defining the placeholder.");
 
@@ -447,12 +447,12 @@ namespace gridtools {
 
             // dimension/snapshot offsets must be non negative
             GTASSERT(accessor.template get< 0 >() >= 0);
-            GTASSERT((Accessor::n_dim <= storage_type::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
+            GTASSERT((Accessor::n_dimensions <= storage_type::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
             // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template
             // get<2>()<<" , "<<std::endl;
 
             return (data_pointer())
-                [(Accessor::n_dim <= storage_type::space_dimensions + 1 ? // static if
+                [(Accessor::n_dimensions <= storage_type::space_dimensions + 1 ? // static if
                          accessor.template get< 0 >()
                                                                         : // offset for the current dimension
                          accessor.template get< 1 >()                     // offset for the current snapshot
@@ -548,7 +548,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             GRIDTOOLS_STATIC_ASSERT(
-                (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+                (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
             return get_value(accessor, get_data_pointer(accessor));
         }
 
@@ -559,7 +559,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             GRIDTOOLS_STATIC_ASSERT(
-                (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+                (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
             return static_cast< IterateDomainImpl const * >(this)
                 ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor_);
         }
@@ -659,7 +659,7 @@ namespace gridtools {
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
         // std::cout<<"Storage Index: "<<Accessor::index_t::value<<" + "<<(boost::fusion::at<typename
-        // Accessor::index_t>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
+        // Accessor::index_t>(local_domain.local_args))->_index(arg.template n<Accessor::n_dimensions>())<<std::endl;
         GTASSERT((int_t)(m_index[metadata_index_t::value]) +
                      metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()) >=
                  0);
@@ -696,7 +696,7 @@ namespace gridtools {
 
 #ifdef PEDANTIC // storages may have less than 3 dimensions in non pedantic mode
         GRIDTOOLS_STATIC_ASSERT(
-            (Accessor::n_dim >= 4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+            (Accessor::n_dimensions >= 4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 #endif
 
         // getting information about the storage
@@ -707,11 +707,11 @@ namespace gridtools {
         typedef typename storage_t::storage_info_type metadata_t;
         // if the following assertion fails you have specified a dimension for the extended storage
         // which does not correspond to the size of the extended placeholder for that storage
-        GRIDTOOLS_STATIC_ASSERT(metadata_t::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dim,
+        GRIDTOOLS_STATIC_ASSERT(metadata_t::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dimensions,
             "the dimension of the accessor exceeds the data field dimension");
 
         // for the moment the extra dimensionality of the storage is limited to max 2
-        //(3 space dim + 2 extra= 5, which gives n_dim==4)
+        //(3 space dim + 2 extra= 5, which gives n_dimensions==4)
         GRIDTOOLS_STATIC_ASSERT(
             N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
 
@@ -728,26 +728,26 @@ namespace gridtools {
 
         // dimension/snapshot offsets must be non negative
         GTASSERT(accessor.template get< 0 >() >= 0);
-        GTASSERT((Accessor::n_dim <= metadata_t::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
+        GTASSERT((Accessor::n_dimensions <= metadata_t::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
 
         // snapshot access out of bounds
-        GTASSERT((Accessor::n_dim > metadata_t::space_dimensions + 1) ||
+        GTASSERT((Accessor::n_dimensions > metadata_t::space_dimensions + 1) ||
                  accessor.template get< 0 >() < storage_t::traits::n_width);
         // snapshot access out of bounds
-        GTASSERT((Accessor::n_dim <= metadata_t::space_dimensions + 1) ||
+        GTASSERT((Accessor::n_dimensions <= metadata_t::space_dimensions + 1) ||
                  accessor.template get< 1 >() < storage_t::traits::n_width);
         // dimension access out of bounds
-        GTASSERT((Accessor::n_dim <= metadata_t::space_dimensions + 1) ||
+        GTASSERT((Accessor::n_dimensions <= metadata_t::space_dimensions + 1) ||
                  accessor.template get< 0 >() < storage_t::traits::n_dimensions);
 
-        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions + 2,
+        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_t::space_dimensions + 2,
             "requested accessor index lower than zero. Check that when you define the accessor you specify the "
             "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has 5 "
             "dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you "
             "here.");
 
         return get_value(accessor,
-            (data_pointer())[(Accessor::n_dim <= metadata_t::space_dimensions + 1
+            (data_pointer())[(Accessor::n_dimensions <= metadata_t::space_dimensions + 1
                                      ?                              // static if
                                      accessor.template get< 0 >()   // offset for the current dimension
                                      : accessor.template get< 1 >() // offset for the current snapshot

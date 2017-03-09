@@ -194,7 +194,7 @@ namespace gridtools {
                 //        }
                 //#endif
 
-                typename iterate_domain_t::data_ptr_cached_t data_ptr_cached_t;
+                typename iterate_domain_t::data_ptr_cached_t data_pointer;
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
                 strides_t strides;
 

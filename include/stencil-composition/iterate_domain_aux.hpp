@@ -39,6 +39,17 @@
 #include <boost/typeof/typeof.hpp>
 #endif
 #include <boost/fusion/include/size.hpp>
+#include <boost/mpl/size.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/if.hpp>
+#include <boost/mpl/eval_if.hpp>
+#include <boost/mpl/deref.hpp>
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/contains.hpp>
+#include <boost/mpl/max_element.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/has_key.hpp>
+#include <boost/mpl/identity.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/modulus.hpp>
 #include <boost/range/algorithm/copy.hpp>
@@ -617,8 +628,10 @@ namespace gridtools {
         static_assert((val_t::value == Max::value) || (N < StorageInfo::layout_t::length), "invalid stride array access");
         typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == Max::value) > is_max_t;
         typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == -1) > is_masked_t;
+        typedef typename boost::mpl::if_< is_array<OffsetTuple>,
+            boost::mpl::int_< N >, boost::mpl::int_< ((OffsetTuple::n_dimensions - 1) - N) > >::type offset_t;
         return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
-                   offsets.template get< (OffsetTuple::n_dim - 1) - N >() +
+               offsets.template get< offset_t::value >() +
                apply_accessor< Max, StridesCached, OffsetTuple, StorageInfo, N + 1 >(strides, offsets);
     }
 
@@ -629,8 +642,10 @@ namespace gridtools {
         static_assert((val_t::value == Max::value) || (N < StorageInfo::layout_t::length), "invalid stride array access");
         typedef boost::mpl::bool_< (val_t::value == Max::value) > is_max_t;
         typedef boost::mpl::bool_< (val_t::value == -1) > is_masked_t;
+        typedef typename boost::mpl::if_< is_array<OffsetTuple>,
+            boost::mpl::int_< N >, boost::mpl::int_< ((OffsetTuple::n_dimensions - 1) - N) > >::type offset_t;
         return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
-               offsets.template get< (OffsetTuple::n_dim - 1) - N >();
+               offsets.template get< offset_t::value >();
     }
 
     // pointer offset computation

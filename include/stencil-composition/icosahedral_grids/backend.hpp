@@ -35,11 +35,8 @@
 */
 #pragma once
 
-#include "storage/storage.hpp"
-#include "storage/meta_storage.hpp"
 #include "location_type.hpp"
 #include "stencil-composition/backend_base.hpp"
-#include "storage/wrap_pointer.hpp"
 #include "icosahedral_grid_traits.hpp"
 
 namespace gridtools {
@@ -77,10 +74,9 @@ namespace gridtools {
 
         // TODO storage and meta_storage have to be moved to backend_traits_from_id, that has to be templated with grid
         template < typename LocationType >
-        using storage_info_t = typename base_t::template storage_info< LocationType::value,
-            typename icgrid::grid_traits_arch< base_t::s_backend_id >::layout_map_t >;
+        using storage_info_t = typename base_t::storage_traits_t::template custom_layout_storage_info_t< LocationType::value, layout_map_t >;
 
         template < typename LocationType, typename ValueType >
-        using storage_t = typename base_t::template storage_type< ValueType, storage_info_t< LocationType > >::type;
+        using storage_t = typename base_t::storage_traits_t::template data_store_t< ValueType, storage_info_t< LocationType > >;
     };
 } // namespace gridtools

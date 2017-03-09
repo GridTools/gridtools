@@ -265,15 +265,9 @@ namespace gridtools {
 
     template < typename AggregatorType, uint_t RepeatFunctor >
     struct fix_esf_sequence {
-        template < typename T >
-        struct apply;        
-        
-        template < template < typename, typename, typename > class EsfDescriptor,
-            typename ESF,
-            typename ArgArray,
-            typename Staggering >
-        struct apply< EsfDescriptor< ESF, ArgArray, Staggering > > {
-            static_assert(is_esf_descriptor< EsfDescriptor< ESF, ArgArray, Staggering > >::value, "Given type is no esf_descriptor.");
+
+        template < typename ArgArray >
+        struct impl {
             typedef typename boost::mpl::fold<
                 ArgArray,
                 boost::mpl::vector0<>,
@@ -286,8 +280,32 @@ namespace gridtools {
             typedef typename boost::mpl::transform<
                 new_arg_array_t,
                 substitute_expandable_param< RepeatFunctor >
-            >::type new_exp_arg_array_t;
-            typedef EsfDescriptor< ESF, new_exp_arg_array_t, Staggering > type;
+            >::type type;
+        };
+
+        template < typename T >
+        struct apply;        
+        
+        template < template < typename, typename, typename > class EsfDescriptor,
+            typename ESF,
+            typename ArgArray,
+            typename Staggering >
+        struct apply< EsfDescriptor< ESF, ArgArray, Staggering > > {
+            static_assert(is_esf_descriptor< EsfDescriptor< ESF, ArgArray, Staggering > >::value, 
+                "Given type is no esf_descriptor.");
+            typedef EsfDescriptor< ESF, typename impl<ArgArray>::type, Staggering > type;
+        };
+
+        template < template < template <uint_t> class, typename, typename, typename, typename > class EsfDescriptor,
+            template <uint_t> class ESF,
+            typename Topology,
+            typename LocationType,
+            typename Color,
+            typename ArgArray >
+        struct apply< EsfDescriptor< ESF, Topology, LocationType, Color, ArgArray > > {
+            static_assert(is_esf_descriptor< EsfDescriptor< ESF, Topology, LocationType, Color, ArgArray > >::value, 
+                "Given type is no esf_descriptor.");
+            typedef EsfDescriptor< ESF, Topology, LocationType, Color, typename impl<ArgArray>::type > type;
         };
 
         template < template < typename > class IndependentEsfDescriptor, typename ESFVector >

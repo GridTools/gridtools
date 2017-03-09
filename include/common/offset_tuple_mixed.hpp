@@ -38,7 +38,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT(is_offset_tuple< ArgType >::value, "wrong type");
         typedef offset_tuple_mixed< ArgType, Pair... > type;
-        static const ushort_t n_dim = ArgType::n_dim;
+        static const ushort_t n_dimensions = ArgType::n_dimensions;
 
         typedef ArgType offset_tuple_t;
 
@@ -46,7 +46,7 @@ namespace gridtools {
 
       protected:
         static const constexpr offset_tuple_t s_tuple_constexpr{get_dim< Pair >()...};
-        typedef boost::mpl::vector< static_int< n_dim - Pair::first >... > coordinates_t;
+        typedef boost::mpl::vector< static_int< n_dimensions - Pair::first >... > coordinates_t;
 
       public:
         GT_FUNCTION constexpr offset_tuple_mixed() : m_tuple_runtime() {}
@@ -90,7 +90,7 @@ namespace gridtools {
         template < short_t Idx >
         GT_FUNCTION static constexpr int_t get_constexpr() {
 #ifndef __CUDACC__
-            GRIDTOOLS_STATIC_ASSERT(Idx < s_tuple_constexpr.n_dim, "the idx must be smaller than the arg dimension");
+            GRIDTOOLS_STATIC_ASSERT(Idx < s_tuple_constexpr.n_dimensions, "the idx must be smaller than the arg dimension");
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "the idx must be larger than 0");
             GRIDTOOLS_STATIC_ASSERT(s_tuple_constexpr.template get< Idx >() >= 0,
                 "there is a negative offset. If you did this on purpose recompile with the PEDANTIC_DISABLED flag on.");

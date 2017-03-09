@@ -36,6 +36,7 @@
 #pragma once
 
 #include "../common/defs.hpp"
+#include "../common/host_device.hpp"
 #include "esf.hpp"
 #include "intermediate_impl.hpp"
 #include "make_computation.hpp"
