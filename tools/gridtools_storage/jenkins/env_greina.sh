@@ -23,9 +23,9 @@ fi
 module load slurm
 module load cuda80
 module load /users/mbianco/my_modules/cmake-3.5.1
-module load /users/mbianco/my_modules/boost-1.59
 #module load python/3.4.3
 #module load mvapich2/gcc/64/2.2-gcc-4.8.4-cuda-7.0
+export BOOST_ROOT=/users/stefanm/boost_1_63_0
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,19 @@
 
 #pragma once
 
-#include <boost/noncopyable.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/noncopyable.hpp>
 #include <boost/type_traits.hpp>
+
+#include "error.hpp"
 
 namespace gridtools {
 
     struct state_machine;
+
+    constexpr enumtype::ownership check_ownership_type(enumtype::ownership actual, enumtype::ownership expected) {
+        return (actual == expected) ? actual : error::trigger< enumtype::ownership >("Wrong ownership type passed.");
+    }
 
     template < typename Derived >
     struct storage_interface : boost::noncopyable {

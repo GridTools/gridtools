@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -53,20 +53,20 @@ namespace gridtools {
     struct array_emplacer {
         template < typename... Args,
             typename = typename boost::enable_if_c< (int)(sizeof...(Args), sizeof...(Ts) + 1 < N), void >::type >
-        static std::array< T, N > emplace(Args const &... args) {
+        static constexpr std::array< T, N > emplace(Args const &... args) {
             return array_emplacer< N, T, T, Ts... >::emplace(args...);
         }
 
         template < typename... Args,
             typename = typename boost::enable_if_c< (int)(sizeof...(Args), sizeof...(Ts) + 1 == N), void >::type,
             typename = void >
-        static std::array< T, N > emplace(Args const &... args) {
+        static constexpr std::array< T, N > emplace(Args const &... args) {
             return std::array< T, N >{T(args...), Ts(args...)...};
         }
     };
 
     template < typename T, std::size_t N, typename... Args >
-    std::array< T, N > emplace_array(Args const &... args) {
+    constexpr std::array< T, N > emplace_array(Args const &... args) {
         return array_emplacer< N, T >::emplace(args...);
     }
 
@@ -83,7 +83,7 @@ namespace gridtools {
 
         // method that can be used to do a component wise initialization of a data_field (with different storage infos)
         template < typename T, typename V, typename... Values >
-        static std::array< T, sizeof...(N) > generator(Values... v) {
+        static constexpr std::array< T, sizeof...(N) > generator(Values... v) {
             return {T(std::array< V, sizeof...(Values) >({v...})[sizeof...(Values)-1 - N])...};
         }
     };

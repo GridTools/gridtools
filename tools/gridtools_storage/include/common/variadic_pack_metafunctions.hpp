@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -40,27 +40,10 @@
 #include <boost/utility.hpp>
 
 #include "defs.hpp"
+#include "error.hpp"
 
 namespace gridtools {
 
-    struct error {
-
-        template <typename T>
-        GT_FUNCTION static T get(char const* msg) { 
-            #ifdef __CUDACC__
-            assert(false);
-            return *((T*)(0x0));
-            #else
-            throw std::runtime_error(msg);
-            assert(false);
-            #endif
-        }
-
-        template < typename T = unsigned >
-        GT_FUNCTION static constexpr T trigger(char const* msg = "Error triggered") {
-            return get<T>(msg);
-        }
-    };
 
     /* get a value from a variadic pack */
     template < unsigned Size >

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -77,11 +77,12 @@ namespace gridtools {
     }
 
     // function that can be used to check if a view is valid
-    template < typename DataStore, typename DV >
+    template < typename DataStore, typename DataView >
     typename boost::enable_if<
         boost::mpl::and_< is_cuda_storage< typename DataStore::storage_t >, is_data_store< DataStore > >,
         bool >::type
-    valid(DataStore const &d, DV const &v) {
+    valid(DataStore const &d, DataView const &v) {
+        static_assert(is_data_view<DataView>::value, "Passed type is no data_view type");
         // if the storage is not valid return false
         if (!d.valid())
             return false;
@@ -92,7 +93,7 @@ namespace gridtools {
         // check if we have a device view
         const bool device_view = (v.m_raw_ptrs[0] == d.get_storage_ptr()->get_cpu_ptr()) ? false : true;
         // read-only? if yes, take early exit
-        if (DV::read_only)
+        if (DataView::read_only)
             return device_view ? !d.get_storage_ptr()->get_state_machine_ptr()->m_dnu
                                : !d.get_storage_ptr()->get_state_machine_ptr()->m_hnu;
         // get storage state

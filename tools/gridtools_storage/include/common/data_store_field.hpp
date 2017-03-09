@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -48,6 +48,7 @@ namespace gridtools {
 
     template < typename DataStore, unsigned... N >
     struct data_store_field {
+        static_assert(is_data_store< DataStore >::value, "Passed type is no data_store type");
         using data_store_t = DataStore;
         using data_t = typename DataStore::data_t;
         using storage_t = typename DataStore::storage_t;
@@ -72,27 +73,27 @@ namespace gridtools {
 
         template < unsigned Dim, unsigned Snapshot >
         DataStore &get() {
-            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size, 
+            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size,
                 "Data store field out of bounds access");
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
 
         DataStore &get(unsigned Dim, unsigned Snapshot) {
-            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size && 
-                "Data store field out of bounds access");
+            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size &&
+                   "Data store field out of bounds access");
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
 
         template < unsigned Dim, unsigned Snapshot >
         void set(DataStore const &store) {
-            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size, 
+            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size,
                 "Data store field out of bounds access");
             m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot] = store;
         }
 
-        void set(unsigned Dim, unsigned Snapshot, DataStore const& store) {
-            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size && 
-                "Data store field out of bounds access");
+        void set(unsigned Dim, unsigned Snapshot, DataStore const &store) {
+            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size &&
+                   "Data store field out of bounds access");
             m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot] = store;
         }
 
@@ -160,14 +161,80 @@ namespace gridtools {
     struct swap {
         template < unsigned Dim_T, unsigned Snapshot_T, typename T, unsigned... N >
         static void with(data_store_field< T, N... > &data_field) {
+            static_assert(
+                is_data_store_field< data_store_field< T, N... > >::value, "Passed type is no data_store_field type.");
             typedef typename std::remove_pointer< decltype(
                 std::declval< typename data_store_field< T, N... >::data_store_t >().get_storage_ptr()) >::type::ptrs_t
                 ptrs_t;
             auto &src = data_field.template get< Dim_S, Snapshot_S >();
             auto &trg = data_field.template get< Dim_T, Snapshot_T >();
-            auto tmp_cpu = src.get_storage_ptr()->template get_ptrs< ptrs_t >();
+            auto tmp_ptrs = src.get_storage_ptr()->template get_ptrs< ptrs_t >();
             src.get_storage_ptr()->template set_ptrs< ptrs_t >(trg.get_storage_ptr()->template get_ptrs< ptrs_t >());
-            trg.get_storage_ptr()->template set_ptrs< ptrs_t >(tmp_cpu);
+            trg.get_storage_ptr()->template set_ptrs< ptrs_t >(tmp_ptrs);
+        }
+    };
+
+    /**
+     *  Implementation of a cycle function. E.g., cycle<0>(field_view)
+     *  move the last data store of component 0 to the first position
+     *  and shifting all others one position to the right.
+     *  This operation invalidates the previously created views.
+     **/
+    template < unsigned Dim >
+    struct cycle {
+        template < int F, typename T, unsigned... N >
+        static void by(data_store_field< T, N... > &data_field) {
+            static_assert(
+                is_data_store_field< data_store_field< T, N... > >::value, "Passed type is no data_store_field type.");
+            typedef typename data_store_field< T, N... >::data_store_t data_store_t;
+            typedef typename std::remove_pointer< decltype(
+                std::declval< data_store_t >().get_storage_ptr()) >::type::ptrs_t ptrs_t;
+            int size = get_value_from_pack(Dim, N...);
+            unsigned cnt = 0;
+            unsigned src = 0;
+            unsigned shift = (((F) % size) < 0) ? ((F) % size) + size : ((F) % size);
+            ptrs_t src_ptrs = data_field.get(Dim, 0).get_storage_ptr()->template get_ptrs< ptrs_t >();
+            while (cnt < size) {
+                // calculate the target position
+                unsigned trg = (src + shift) % size;
+                // get both data_stores
+                auto &trg_ds = data_field.get(Dim, trg);
+                auto &src_ds = data_field.get(Dim, src);
+                // our tmp pointers are the current source pointers
+                auto tmp_ptrs = src_ptrs;
+                // update the src pointers with the current target pointers
+                src_ptrs = trg_ds.get_storage_ptr()->template get_ptrs< ptrs_t >();
+                // replace the target pointers with the tmp_ptrs
+                trg_ds.get_storage_ptr()->template set_ptrs< ptrs_t >(tmp_ptrs);
+                // increase the count and set the new src position
+                cnt++;
+                src = trg;
+            }
+        }
+    };
+
+    /**
+     *  Implementation of a cycle all function. E.g., cycle_all::by<N>(field_view)
+     *  shifts all components by N to the right.
+     *  This operation invalidates the previously created views.
+     **/
+    struct cycle_all {
+      private:
+        template < int I, int M, typename T, unsigned... N >
+        static typename boost::enable_if_c< (I == 0), void >::type by_impl(data_store_field< T, N... > &data_field) {
+            cycle< (I) >::template by< (M) >(data_field);
+        }
+
+        template < int I, int M, typename T, unsigned... N >
+        static typename boost::enable_if_c< (I > 0), void >::type by_impl(data_store_field< T, N... > &data_field) {
+            cycle< (I) >::template by< (M) >(data_field);
+            by_impl< I - 1, M >(data_field);
+        }
+
+      public:
+        template < int M, typename T, unsigned... N >
+        static void by(data_store_field< T, N... > &data_field) {
+            by_impl< (sizeof...(N)-1), M >(data_field);
         }
     };
 }

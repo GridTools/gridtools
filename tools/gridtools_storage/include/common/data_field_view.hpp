@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 
 #include <boost/mpl/if.hpp>
 
+#include "data_store_field.hpp"
 #include "data_view.hpp"
 #include "defs.hpp"
 
@@ -45,6 +46,7 @@ namespace gridtools {
 
     template < typename DataStoreField, bool ReadOnly >
     struct data_field_view {
+        static_assert(is_data_store_field<DataStoreField>::value, "Passed type is no data_store_field type");
         typedef typename DataStoreField::data_store_t data_store_t;
         typedef typename DataStoreField::data_t data_t;
         typedef typename DataStoreField::state_machine_t state_machine_t;

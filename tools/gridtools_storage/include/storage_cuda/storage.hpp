@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,9 +41,9 @@
 
 #include <boost/mpl/bool.hpp>
 
-#include "../storage_host/storage.hpp"
-#include "../common/storage_interface.hpp"
 #include "../common/state_machine.hpp"
+#include "../common/storage_interface.hpp"
+#include "../storage_host/storage.hpp"
 
 namespace gridtools {
 
@@ -58,15 +58,33 @@ namespace gridtools {
         T *m_cpu_ptr;
         state_machine m_state;
         unsigned m_size;
+        enumtype::ownership m_ownership = enumtype::Full;
 
       public:
         cuda_storage(unsigned size) : m_cpu_ptr(new T[size]), m_size(size) {
             cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(T));
             assert((err == cudaSuccess) && "failed to allocate GPU memory.");
         }
- 
+
+        explicit cuda_storage(unsigned size, T *external_ptr, enumtype::ownership ownership)
+            : m_size(size), m_ownership(ownership) {
+            assert(((ownership == enumtype::ExternalGPU) || (ownership == enumtype::ExternalCPU)) &&
+                   "external pointer cuda_storage ownership must be either ExternalGPU or ExternalCPU.");
+            if (ownership == enumtype::ExternalGPU) {
+                m_cpu_ptr = new T[size];
+                m_gpu_ptr = external_ptr;
+                this->clone_from_device();
+            } else if (ownership == enumtype::ExternalCPU) {
+                m_cpu_ptr = external_ptr;
+                cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(T));
+                assert((err == cudaSuccess) && "failed to allocate GPU memory.");
+                this->clone_to_device();
+            }
+            assert((m_gpu_ptr && m_cpu_ptr) && "Failed to create cuda_storage.");
+        }
+
         cuda_storage(unsigned size, T initializer) : m_cpu_ptr(new T[size]), m_size(size) {
-            for(unsigned i=0; i<size; ++i) {
+            for (unsigned i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer;
             }
             cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(T));
@@ -76,9 +94,11 @@ namespace gridtools {
 
         ~cuda_storage() {
             assert(m_gpu_ptr && "This would end up in a double-free.");
-            cudaFree(m_gpu_ptr);
             assert(m_cpu_ptr && "This would end up in a double-free.");
-            delete[] m_cpu_ptr;
+            if (m_ownership == enumtype::ExternalGPU || m_ownership == enumtype::Full)
+                delete[] m_cpu_ptr;
+            if (m_ownership == enumtype::ExternalCPU || m_ownership == enumtype::Full)
+                cudaFree(m_gpu_ptr);
         }
 
         T *get_gpu_ptr() const {

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -66,6 +66,7 @@ namespace gridtools {
         boost::mpl::and_< is_host_storage< typename DataStore::storage_t >, is_data_store< DataStore > >,
         bool >::type
     valid(DataStore const &ds, DataView const &dv) {
+        static_assert(is_data_view<DataView>::value, "Passed type is no data_view type");
         return ds.valid() && (dv.m_raw_ptrs[0] == ds.get_storage_ptr()->get_cpu_ptr()) &&
                (dv.m_storage_info && ds.get_storage_info_ptr());
     }

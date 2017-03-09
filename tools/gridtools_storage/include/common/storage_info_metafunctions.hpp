@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -37,12 +37,17 @@
 
 #include <cmath>
 
+#include "alignment.hpp"
 #include "halo.hpp"
 #include "layout_map.hpp"
 #include "nano_array.hpp"
 #include "variadic_pack_metafunctions.hpp"
 
 namespace gridtools {
+
+    /* forward declaration */
+    template < typename T >
+    struct is_alignment;
 
     /* provide a constexpr version of std::ceil */
     namespace {
@@ -66,7 +71,8 @@ namespace gridtools {
     /* struct needed to calculate the aligned dimensions */
     template < typename Alignment, unsigned Length, int LayoutArg >
     constexpr unsigned align_dimensions(unsigned dimension) {
-        return (Alignment::value && (LayoutArg == Length - 1))
+        static_assert(is_alignment<Alignment>::value, "Passed type is no alignment type");
+        return ((Alignment::value>1) && (LayoutArg == Length - 1))
                    ? ceil((float)dimension / (float)Alignment::value) * Alignment::value
                    : dimension;
     }
@@ -76,8 +82,10 @@ namespace gridtools {
 
     template < int... LayoutArgs, typename Alignment, unsigned... HaloVals >
     struct get_initial_offset< layout_map< LayoutArgs... >, Alignment, halo< HaloVals... > > {
+        static_assert(is_alignment<Alignment>::value, "Passed type is no alignment type");
+
         constexpr static unsigned compute() {
-            return (Alignment::value &&
+            return ((Alignment::value>1) &&
                        get_value_from_pack(get_index_of_element_in_pack(
                                                0, (layout_map< LayoutArgs... >::unmasked_length - 1), LayoutArgs...),
                            HaloVals...))

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,7 @@ namespace gridtools {
     // data view implementation for data stores
     template < typename DataStore, bool ReadOnly = false >
     struct data_view {
+        static_assert(is_data_store<DataStore>::value, "Passed type is no data_store type");
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;

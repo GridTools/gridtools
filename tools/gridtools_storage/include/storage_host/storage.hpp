@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,8 @@
 
 #include <assert.h>
 
-#include "../common/storage_interface.hpp"
 #include "../common/state_machine.hpp"
+#include "../common/storage_interface.hpp"
 
 namespace gridtools {
 
@@ -51,19 +51,25 @@ namespace gridtools {
 
       private:
         T *m_cpu_ptr;
+        enumtype::ownership m_ownership = enumtype::Full;
 
       public:
         constexpr host_storage(unsigned size) : m_cpu_ptr(new T[size]) {}
 
+        explicit constexpr host_storage(
+            unsigned size, T *external_ptr, enumtype::ownership ownership = enumtype::ExternalCPU)
+            : m_cpu_ptr(external_ptr), m_ownership(check_ownership_type(ownership, enumtype::ExternalCPU)) {}
+
         host_storage(unsigned size, T initializer) : m_cpu_ptr(new T[size]) {
-            for(unsigned i=0; i<size; ++i) {
+            for (unsigned i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer;
             }
         }
 
         ~host_storage() {
             assert(m_cpu_ptr && "This would end up in a double-free.");
-            delete[] m_cpu_ptr;
+            if (m_ownership == enumtype::Full)
+                delete[] m_cpu_ptr;
         }
 
         T *get_cpu_ptr() const {

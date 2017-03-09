@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,9 @@
 #include <array>
 
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/accumulate.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/plus.hpp>
 
 namespace gridtools {
 
@@ -63,6 +66,11 @@ namespace gridtools {
 
     template < unsigned... Vals >
     struct zero_halo< 0, Vals... > {
+        typedef typename boost::mpl::accumulate<
+            boost::mpl::vector<boost::mpl::int_<Vals>...>, 
+            boost::mpl::int_<0>, 
+            boost::mpl::plus<boost::mpl::_1, boost::mpl::_2> >::type sum;
+        static_assert((sum::value == 0), "Failed to create a zero halo type");
         typedef halo< Vals... > type;
     };
 
