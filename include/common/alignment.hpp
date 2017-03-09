@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -59,6 +59,7 @@ namespace gridtools {
 
     template < unsigned M, typename Layout, typename Halo >
     struct alignment_impl< alignment< M >, Layout, Halo > {
+        static_assert((M>1), "Wrong alignment value passed.");
         static constexpr unsigned N = Layout::length;
         static constexpr unsigned InitialOffset = get_initial_offset< Layout, alignment< M >, Halo >::compute();
 
@@ -81,7 +82,7 @@ namespace gridtools {
 
     /* specialization for unaligned storage infos */
     template < typename Layout, typename Halo >
-    struct alignment_impl< alignment< 0 >, Layout, Halo > {
+    struct alignment_impl< alignment< 1 >, Layout, Halo > {
         static constexpr unsigned InitialOffset = 0;
         template < typename... T >
         constexpr alignment_impl(T... t) {}

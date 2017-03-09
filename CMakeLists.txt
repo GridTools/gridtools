@@ -61,7 +61,7 @@ foreach( test_source ${test_sources} )
 
     if (${test_source} MATCHES ".*.cu" AND ${USE_GPU})
         cuda_add_executable (${unit_test_trg} ${test_source})
-        target_link_libraries(${unit_test_trg} gtest gtest_main cudart pthread)
+        target_link_libraries(${unit_test_trg} gtest gtest_main pthread)
         set_target_properties(${unit_test_trg} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${DIR} OUTPUT_NAME ${unit_test})
         add_test (${FOLDER}/${unit_test} ${DIR}/${unit_test} )
         gridtools_add_test (${FOLDER}/${unit_test} ${TEST_SCRIPT} ${DIR}/${unit_test} )

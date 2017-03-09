@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -76,7 +76,7 @@ TEST(DataViewTest, Simple) {
     EXPECT_EQ(50, dv(0,0,0));
     EXPECT_EQ(dv(1,0,0), 60);
     // create a ro view
-    data_view<data_store_t, true> dvro = make_host_view<true>(ds);
+    data_view<data_store_t, true> dvro = make_host_view< enumtype::ReadOnly >(ds);
     // check if data is the same
     EXPECT_EQ(50, dvro(0,0,0));
     EXPECT_EQ(dvro(1,0,0), 60);
@@ -115,7 +115,7 @@ TEST(DataViewTest, Simple) {
     data_store_t ds_tmp(si);
     ds_tmp.allocate();
     // again create a view
-    data_view<data_store_t> dv_tmp = make_host_view(ds_tmp);
+    data_view<data_store_t> dv_tmp = make_host_view<  enumtype::ReadWrite >(ds_tmp);
     // the combination ds_tmp <--> dv/dvro is not a valid view
     EXPECT_FALSE(valid(ds,dv_tmp));
     EXPECT_FALSE(valid(ds_tmp,devv));

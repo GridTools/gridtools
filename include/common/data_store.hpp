@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,12 +41,15 @@
 
 #include <boost/mpl/bool.hpp>
 
+#include "storage_interface.hpp"
 #include "storage_info_interface.hpp"
 
 namespace gridtools {
 
     template < typename Storage, typename StorageInfo >
     struct data_store {
+        static_assert(is_storage< Storage >::value, "Passed type is no storage type");
+        static_assert(is_storage_info< StorageInfo >::value, "Passed type is no storage_info type");
         typedef typename Storage::data_t data_t;
         typedef typename Storage::state_machine_t state_machine_t;
         typedef StorageInfo storage_info_t;
@@ -62,6 +65,11 @@ namespace gridtools {
 
         constexpr data_store(StorageInfo const &info, data_t initializer)
             : m_shared_storage(new storage_t(info.size(), initializer)),
+              m_shared_storage_info(new storage_info_t(info)) {}
+
+        explicit constexpr data_store(
+            StorageInfo const &info, data_t *external_ptr, enumtype::ownership ownership = enumtype::ExternalCPU)
+            : m_shared_storage(new storage_t(info.size(), external_ptr, ownership)),
               m_shared_storage_info(new storage_info_t(info)) {}
 
         data_store(data_store &&other) = default;

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -201,4 +201,175 @@ TEST(DataStoreFieldTest, MultiStorageInfo) {
     EXPECT_EQ((hv.get<2,0>().m_storage_info->size()), 32*5*5);
     EXPECT_EQ((hv.get<2,1>().m_storage_info->size()), 32*5*5);
     EXPECT_EQ((hv.get<2,2>().m_storage_info->size()), 32*5*5); 
+}
+
+TEST(DataStoreFieldTest, Cycle) {
+    typedef cuda_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
+    storage_info_t si(3, 3, 3);
+    data_store_field< data_store< cuda_storage< double >, storage_info_t >, 5, 5, 5 > f(si);
+    f.allocate();
+    // extract ptrs
+    double* cpu_ptrs_old[] = { 
+        f.m_field[0].get_storage_ptr()->get_cpu_ptr(), f.m_field[1].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_cpu_ptr(), f.m_field[3].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_cpu_ptr() };
+    double* gpu_ptrs_old[] = { 
+        f.m_field[0].get_storage_ptr()->get_gpu_ptr(), f.m_field[1].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_gpu_ptr(), f.m_field[3].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_gpu_ptr() };
+
+    // shift by -1
+    cycle<0>::by<-1>(f);
+    // extract ptrs again
+    double* cpu_ptrs_new[] = { 
+        f.m_field[0].get_storage_ptr()->get_cpu_ptr(), f.m_field[1].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_cpu_ptr(), f.m_field[3].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_cpu_ptr() };
+    double* gpu_ptrs_new[] = { 
+        f.m_field[0].get_storage_ptr()->get_gpu_ptr(), f.m_field[1].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_gpu_ptr(), f.m_field[3].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_gpu_ptr() };        
+    // check correct shift (-1)
+    ASSERT_TRUE((cpu_ptrs_old[0] == cpu_ptrs_new[4]));
+    ASSERT_TRUE((cpu_ptrs_old[1] == cpu_ptrs_new[0]));
+    ASSERT_TRUE((cpu_ptrs_old[2] == cpu_ptrs_new[1]));
+    ASSERT_TRUE((cpu_ptrs_old[3] == cpu_ptrs_new[2]));
+    ASSERT_TRUE((cpu_ptrs_old[4] == cpu_ptrs_new[3]));
+    ASSERT_TRUE((gpu_ptrs_old[0] == gpu_ptrs_new[4]));
+    ASSERT_TRUE((gpu_ptrs_old[1] == gpu_ptrs_new[0]));
+    ASSERT_TRUE((gpu_ptrs_old[2] == gpu_ptrs_new[1]));
+    ASSERT_TRUE((gpu_ptrs_old[3] == gpu_ptrs_new[2]));
+    ASSERT_TRUE((gpu_ptrs_old[4] == gpu_ptrs_new[3]));
+
+    // shift again by -5 (no change)
+    cycle<0>::by<-5>(f);
+    ASSERT_TRUE((cpu_ptrs_old[0] == cpu_ptrs_new[4]));
+    ASSERT_TRUE((cpu_ptrs_old[1] == cpu_ptrs_new[0]));
+    ASSERT_TRUE((cpu_ptrs_old[2] == cpu_ptrs_new[1]));
+    ASSERT_TRUE((cpu_ptrs_old[3] == cpu_ptrs_new[2]));
+    ASSERT_TRUE((cpu_ptrs_old[4] == cpu_ptrs_new[3]));
+    ASSERT_TRUE((gpu_ptrs_old[0] == gpu_ptrs_new[4]));
+    ASSERT_TRUE((gpu_ptrs_old[1] == gpu_ptrs_new[0]));
+    ASSERT_TRUE((gpu_ptrs_old[2] == gpu_ptrs_new[1]));
+    ASSERT_TRUE((gpu_ptrs_old[3] == gpu_ptrs_new[2]));
+    ASSERT_TRUE((gpu_ptrs_old[4] == gpu_ptrs_new[3]));
+
+    // shift back to normal
+    cycle<0>::by<1>(f);
+    double* cpu_ptrs_new_1[] = { 
+        f.m_field[0].get_storage_ptr()->get_cpu_ptr(), f.m_field[1].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_cpu_ptr(), f.m_field[3].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_cpu_ptr() };
+    double* gpu_ptrs_new_1[] = { 
+        f.m_field[0].get_storage_ptr()->get_gpu_ptr(), f.m_field[1].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_gpu_ptr(), f.m_field[3].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_gpu_ptr() };
+    ASSERT_TRUE((cpu_ptrs_old[0] == cpu_ptrs_new_1[0]));
+    ASSERT_TRUE((cpu_ptrs_old[1] == cpu_ptrs_new_1[1]));
+    ASSERT_TRUE((cpu_ptrs_old[2] == cpu_ptrs_new_1[2]));
+    ASSERT_TRUE((cpu_ptrs_old[3] == cpu_ptrs_new_1[3]));
+    ASSERT_TRUE((cpu_ptrs_old[4] == cpu_ptrs_new_1[4]));
+    ASSERT_TRUE((gpu_ptrs_old[0] == gpu_ptrs_new_1[0]));
+    ASSERT_TRUE((gpu_ptrs_old[1] == gpu_ptrs_new_1[1]));
+    ASSERT_TRUE((gpu_ptrs_old[2] == gpu_ptrs_new_1[2]));
+    ASSERT_TRUE((gpu_ptrs_old[3] == gpu_ptrs_new_1[3]));
+    ASSERT_TRUE((gpu_ptrs_old[4] == gpu_ptrs_new_1[4]));
+
+    // shift by -6 (again like before)
+    cycle<0>::by<-6>(f);
+    double* cpu_ptrs_new_2[] = { 
+        f.m_field[0].get_storage_ptr()->get_cpu_ptr(), f.m_field[1].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_cpu_ptr(), f.m_field[3].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_cpu_ptr() };
+    double* gpu_ptrs_new_2[] = { 
+        f.m_field[0].get_storage_ptr()->get_gpu_ptr(), f.m_field[1].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_gpu_ptr(), f.m_field[3].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_gpu_ptr() };
+    // check correct shift (-6)
+    ASSERT_TRUE((cpu_ptrs_old[0] == cpu_ptrs_new_2[4]));
+    ASSERT_TRUE((cpu_ptrs_old[1] == cpu_ptrs_new_2[0]));
+    ASSERT_TRUE((cpu_ptrs_old[2] == cpu_ptrs_new_2[1]));
+    ASSERT_TRUE((cpu_ptrs_old[3] == cpu_ptrs_new_2[2]));
+    ASSERT_TRUE((cpu_ptrs_old[4] == cpu_ptrs_new_2[3]));
+    ASSERT_TRUE((gpu_ptrs_old[0] == gpu_ptrs_new_2[4]));
+    ASSERT_TRUE((gpu_ptrs_old[1] == gpu_ptrs_new_2[0]));
+    ASSERT_TRUE((gpu_ptrs_old[2] == gpu_ptrs_new_2[1]));
+    ASSERT_TRUE((gpu_ptrs_old[3] == gpu_ptrs_new_2[2]));
+    ASSERT_TRUE((gpu_ptrs_old[4] == gpu_ptrs_new_2[3]));
+
+    // shift back to normal (2*5 (no effect) + 6)
+    cycle<0>::by<16>(f);
+    double* cpu_ptrs_new_3[] = { 
+        f.m_field[0].get_storage_ptr()->get_cpu_ptr(), f.m_field[1].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_cpu_ptr(), f.m_field[3].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_cpu_ptr() };
+    double* gpu_ptrs_new_3[] = { 
+        f.m_field[0].get_storage_ptr()->get_gpu_ptr(), f.m_field[1].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_gpu_ptr(), f.m_field[3].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_gpu_ptr() };
+    ASSERT_TRUE((cpu_ptrs_old[0] == cpu_ptrs_new_3[0]));
+    ASSERT_TRUE((cpu_ptrs_old[1] == cpu_ptrs_new_3[1]));
+    ASSERT_TRUE((cpu_ptrs_old[2] == cpu_ptrs_new_3[2]));
+    ASSERT_TRUE((cpu_ptrs_old[3] == cpu_ptrs_new_3[3]));
+    ASSERT_TRUE((cpu_ptrs_old[4] == cpu_ptrs_new_3[4]));    
+    ASSERT_TRUE((gpu_ptrs_old[0] == gpu_ptrs_new_3[0]));
+    ASSERT_TRUE((gpu_ptrs_old[1] == gpu_ptrs_new_3[1]));
+    ASSERT_TRUE((gpu_ptrs_old[2] == gpu_ptrs_new_3[2]));
+    ASSERT_TRUE((gpu_ptrs_old[3] == gpu_ptrs_new_3[3]));
+    ASSERT_TRUE((gpu_ptrs_old[4] == gpu_ptrs_new_3[4]));
+}
+
+TEST(DataStoreFieldTest, CycleAll) {
+    typedef cuda_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
+    storage_info_t si(3, 3, 3);
+    data_store_field< data_store< cuda_storage< double >, storage_info_t >, 3, 3, 3 > f(si);
+    f.allocate();
+    // extract ptrs
+    double* ptrs_old[] = { 
+        f.m_field[0].get_storage_ptr()->get_cpu_ptr(), f.m_field[1].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_cpu_ptr(), f.m_field[3].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_cpu_ptr(), f.m_field[5].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[6].get_storage_ptr()->get_cpu_ptr(), f.m_field[7].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[8].get_storage_ptr()->get_cpu_ptr() };
+    double* gpu_ptrs_old[] = { 
+        f.m_field[0].get_storage_ptr()->get_gpu_ptr(), f.m_field[1].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_gpu_ptr(), f.m_field[3].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_gpu_ptr(), f.m_field[5].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[6].get_storage_ptr()->get_gpu_ptr(), f.m_field[7].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[8].get_storage_ptr()->get_gpu_ptr() };
+    cycle_all::by<-1>(f);
+    double* ptrs_new[] = { 
+        f.m_field[0].get_storage_ptr()->get_cpu_ptr(), f.m_field[1].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_cpu_ptr(), f.m_field[3].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_cpu_ptr(), f.m_field[5].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[6].get_storage_ptr()->get_cpu_ptr(), f.m_field[7].get_storage_ptr()->get_cpu_ptr(), 
+        f.m_field[8].get_storage_ptr()->get_cpu_ptr() };
+    double* gpu_ptrs_new[] = { 
+        f.m_field[0].get_storage_ptr()->get_gpu_ptr(), f.m_field[1].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[2].get_storage_ptr()->get_gpu_ptr(), f.m_field[3].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[4].get_storage_ptr()->get_gpu_ptr(), f.m_field[5].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[6].get_storage_ptr()->get_gpu_ptr(), f.m_field[7].get_storage_ptr()->get_gpu_ptr(), 
+        f.m_field[8].get_storage_ptr()->get_gpu_ptr() };
+    // check correct shift (-1)
+    // component 0
+    ASSERT_TRUE((ptrs_old[0] == ptrs_new[2]));
+    ASSERT_TRUE((ptrs_old[1] == ptrs_new[0]));
+    ASSERT_TRUE((ptrs_old[2] == ptrs_new[1]));
+    ASSERT_TRUE((gpu_ptrs_old[0] == gpu_ptrs_new[2]));
+    ASSERT_TRUE((gpu_ptrs_old[1] == gpu_ptrs_new[0]));
+    ASSERT_TRUE((gpu_ptrs_old[2] == gpu_ptrs_new[1]));
+    // component 1
+    ASSERT_TRUE((ptrs_old[3] == ptrs_new[5]));
+    ASSERT_TRUE((ptrs_old[4] == ptrs_new[3]));
+    ASSERT_TRUE((ptrs_old[5] == ptrs_new[4]));
+    ASSERT_TRUE((gpu_ptrs_old[3] == gpu_ptrs_new[5]));
+    ASSERT_TRUE((gpu_ptrs_old[4] == gpu_ptrs_new[3]));
+    ASSERT_TRUE((gpu_ptrs_old[5] == gpu_ptrs_new[4]));
+    // component 2
+    ASSERT_TRUE((ptrs_old[6] == ptrs_new[8]));
+    ASSERT_TRUE((ptrs_old[7] == ptrs_new[6]));
+    ASSERT_TRUE((ptrs_old[8] == ptrs_new[7]));
+    ASSERT_TRUE((gpu_ptrs_old[6] == gpu_ptrs_new[8]));
+    ASSERT_TRUE((gpu_ptrs_old[7] == gpu_ptrs_new[6]));
+    ASSERT_TRUE((gpu_ptrs_old[8] == gpu_ptrs_new[7]));    
 }

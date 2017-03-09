@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -45,5 +45,7 @@
 namespace gridtools {
     namespace enumtype {
         enum platform { Cuda, Host };
+        enum access_mode { ReadWrite = 0, ReadOnly = 1 };
+        enum ownership { Full = 0, ExternalGPU = 1, ExternalCPU = 2 };
     }
 }

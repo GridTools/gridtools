@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -52,7 +52,7 @@ TEST(DataViewTest, Simple) {
     ds.allocate();
     // create a rw view and fill with some data
     data_view< data_store_t > dv = make_host_view(ds);
-    EXPECT_TRUE(dv.valid());    
+    EXPECT_TRUE(dv.valid());
     static_assert(is_data_view< decltype(dv) >::value, "is_data_view check failed");
     dv(0, 0, 0) = 50;
     dv(0, 0, 1) = 60;
@@ -60,21 +60,21 @@ TEST(DataViewTest, Simple) {
     EXPECT_EQ(50, dv(0, 0, 0));
     EXPECT_EQ(dv(0, 0, 1), 60);
     // check if the user protections are working
-    static_assert(si.index(1,0,0) == 1, "constexpr index method call failed");
+    static_assert(si.index(1, 0, 0) == 1, "constexpr index method call failed");
 
     std::cout << "Execute death tests.\n";
 
 // this checks are only performed in debug mode
 #ifndef NDEBUG
-    EXPECT_THROW(si.index(0,0,3), std::runtime_error);
-    EXPECT_THROW(si.index(0,3,0), std::runtime_error);
-    EXPECT_THROW(si.index(3,0,0), std::runtime_error);
-    EXPECT_THROW(si.index(5,5,5), std::runtime_error);
+    EXPECT_THROW(si.index(0, 0, 3), std::runtime_error);
+    EXPECT_THROW(si.index(0, 3, 0), std::runtime_error);
+    EXPECT_THROW(si.index(3, 0, 0), std::runtime_error);
+    EXPECT_THROW(si.index(5, 5, 5), std::runtime_error);
 #endif
 
-    ASSERT_TRUE(si.index(1,0,1) == 10);    
+    ASSERT_TRUE(si.index(1, 0, 1) == 10);
     // create a ro view
-    data_view< data_store_t, true > dvro = make_host_view< true >(ds);
+    data_view< data_store_t, true > dvro = make_host_view< enumtype::ReadOnly >(ds);
     // check if data is the same
     EXPECT_EQ(50, dvro(0, 0, 0));
     EXPECT_EQ(dvro(0, 0, 1), 60);
@@ -86,7 +86,7 @@ TEST(DataViewTest, Simple) {
     data_store_t ds_tmp(si);
     ds_tmp.allocate();
     // again create a view
-    data_view< data_store_t > dv_tmp = make_host_view(ds_tmp);
+    data_view< data_store_t > dv_tmp = make_host_view< enumtype::ReadWrite >(ds_tmp);
     // the combination ds_tmp <--> dv/dvro is not a valid view
     EXPECT_FALSE(valid(ds, dv_tmp));
     EXPECT_FALSE(valid(ds_tmp, dv));

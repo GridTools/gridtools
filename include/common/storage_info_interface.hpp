@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -53,30 +53,75 @@ namespace gridtools {
     template < unsigned Id,
         typename Layout,
         typename Halo = typename zero_halo< Layout::length >::type,
-        typename Alignment = alignment< 0 > >
+        typename Alignment = alignment< 1 > >
     struct storage_info_interface;
 
     template < unsigned Id, int... LayoutArgs, unsigned... Halos, typename Align >
     struct storage_info_interface< Id, layout_map< LayoutArgs... >, halo< Halos... >, Align > {
-        using Layout = layout_map< LayoutArgs... >;
-        using Halo = halo< Halos... >;
-        using Alignment = Align;
-        static_assert(sizeof...(Halos) == Layout::length, "Halo size does not match number of dimensions");
+        using layout_t = layout_map< LayoutArgs... >;
+        using halo_t = halo< Halos... >;
+        using alignment_t = Align;
+        static_assert(sizeof...(Halos) == layout_t::length, "Halo size does not match number of dimensions");
         static_assert(is_alignment<Align>::value, "Given type is not an alignment type");
+
+      private:
+        nano_array< unsigned, layout_t::length > m_dims;
+        nano_array< unsigned, layout_t::length > m_strides;
+        alignment_impl< alignment_t, layout_t, halo_t > m_alignment;
+        constexpr storage_info_interface() {}
+
+        template < unsigned N, typename... Ints >
+        GT_FUNCTION constexpr typename boost::enable_if_c<(N<=layout_t::length-1), bool>::type 
+        check_bounds(Ints... idx) const {
+            // check for out of bounds access; each index is checked if it does not exceed the unaligned dimension.
+            // masked dimensions are skipped and a recursive call is performed until all indices are checked.
+            return ((layout_t::template at<N>() == -1) || (get_value_from_pack(N, idx...) < unaligned_dim<N>())) && check_bounds<N+1>(idx...);
+        }
+
+        template < unsigned N, typename... Ints >
+        GT_FUNCTION constexpr typename boost::enable_if_c<(N==layout_t::length), bool>::type 
+        check_bounds(Ints... idx) const {
+            // base case out of bounds check
+            return true;
+        }
+
+        template < unsigned N, typename... Ints >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (N < layout_t::length), int >::type index_part(
+            int first, Ints... ints) const {
+            return first * m_strides[N] + index_part< N + 1 >(ints..., first);
+        }
+
+        template < unsigned N, typename... Ints >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (N == layout_t::length), int >::type index_part(
+            int first, Ints... ints) const {
+            return 0;
+        }
+
+        template < unsigned From = layout_t::length - 1 >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From > 0), unsigned >::type size_part() const {
+            return m_dims[From] * size_part< From - 1 >();
+        }
+
+        template < unsigned From = layout_t::length - 1 >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From == 0), unsigned >::type size_part() const {
+            return m_dims[0];
+        }
+
+      public:
 
         const static int id = Id;
 
         template < typename... Dims >
         constexpr storage_info_interface(Dims... dims_)
-            : m_dims{align_dimensions< Alignment, sizeof...(LayoutArgs), LayoutArgs >(
+            : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                   extend_by_halo< Halos, LayoutArgs >::extend(dims_))...},
-              m_strides(get_strides< Layout >::get_stride_array(
-                  align_dimensions< Alignment, sizeof...(LayoutArgs), LayoutArgs >(
+              m_strides(get_strides< layout_t >::get_stride_array(
+                  align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                       extend_by_halo< Halos, LayoutArgs >::extend(dims_))...)),
               m_alignment(nano_array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(
                               dims_)...},
-                  get_strides< Layout >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
-            static_assert((sizeof...(Dims) == Layout::length), "Number of passed dimensions do not match the layout map length.");
+                  get_strides< layout_t >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
+            static_assert((sizeof...(Dims) == layout_t::length), "Number of passed dimensions do not match the layout map length.");
         }
 
         constexpr storage_info_interface(storage_info_interface const &other) = default;
@@ -85,33 +130,33 @@ namespace gridtools {
 
         template < int Coord >
         GT_FUNCTION constexpr int dim() const {
-            static_assert((Coord<Layout::length), "Out of bounds access in storage info dimension call.");
+            static_assert((Coord<layout_t::length), "Out of bounds access in storage info dimension call.");
             return m_dims[Coord];
         }
 
         template < int Coord >
         GT_FUNCTION constexpr int stride() const {
-            static_assert((Coord<Layout::length), "Out of bounds access in storage info stride call.");
+            static_assert((Coord<layout_t::length), "Out of bounds access in storage info stride call.");
             return m_strides[Coord];
         }
 
         template < int Coord >
         GT_FUNCTION constexpr int unaligned_dim() const {
-            static_assert((Coord<Layout::length), "Out of bounds access in storage info unaligned dimension call.");
+            static_assert((Coord<layout_t::length), "Out of bounds access in storage info unaligned dimension call.");
             return m_alignment.template unaligned_dim< Coord >() ? m_alignment.template unaligned_dim< Coord >()
                                                                  : dim< Coord >();
         }
 
         template < int Coord >
         GT_FUNCTION constexpr int unaligned_stride() const {
-            static_assert((Coord<Layout::length), "Out of bounds access in storage info unaligned stride call.");
+            static_assert((Coord<layout_t::length), "Out of bounds access in storage info unaligned stride call.");
             return m_alignment.template unaligned_stride< Coord >() ? m_alignment.template unaligned_stride< Coord >()
                                                                     : stride< Coord >();
         }
 
         template < typename... Ints >
         GT_FUNCTION constexpr int index(Ints... idx) const {
-            static_assert(sizeof...(Ints) == Layout::length, "Index function called with wrong number of arguments.");
+            static_assert(sizeof...(Ints) == layout_t::length, "Index function called with wrong number of arguments.");
             #ifdef NDEBUG
             return index_part< 0 >(idx...) + get_initial_offset();
             #else
@@ -120,56 +165,14 @@ namespace gridtools {
         }
 
         GT_FUNCTION static constexpr unsigned get_initial_offset() {
-            return alignment_impl< Alignment, Layout, Halo >::InitialOffset;
+            return alignment_impl< alignment_t, layout_t, halo_t >::InitialOffset;
         }
 
-      private:
-        nano_array< unsigned, Layout::length > m_dims;
-        nano_array< unsigned, Layout::length > m_strides;
-        alignment_impl< Alignment, Layout, Halo > m_alignment;
-        constexpr storage_info_interface() {}
-
-        template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c<(N<=Layout::length-1), bool>::type 
-        check_bounds(Ints... idx) const {
-            // check for out of bounds access; each index is checked if it does not exceed the unaligned dimension.
-            // masked dimensions are skipped and a recursive call is performed until all indices are checked.
-            return ((Layout::template at<N>() == -1) || (get_value_from_pack(N, idx...) < unaligned_dim<N>())) && check_bounds<N+1>(idx...);
-        }
-
-        template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c<(N==Layout::length), bool>::type 
-        check_bounds(Ints... idx) const {
-            // base case out of bounds check
-            return true;
-        }
-
-        template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (N < Layout::length), int >::type index_part(
-            int first, Ints... ints) const {
-            return first * m_strides[N] + index_part< N + 1 >(ints..., first);
-        }
-
-        template < unsigned N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (N == Layout::length), int >::type index_part(
-            int first, Ints... ints) const {
-            return 0;
-        }
-
-        template < unsigned From = Layout::length - 1 >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From > 0), unsigned >::type size_part() const {
-            return m_dims[From] * size_part< From - 1 >();
-        }
-
-        template < unsigned From = Layout::length - 1 >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From == 0), unsigned >::type size_part() const {
-            return m_dims[0];
-        }
     };
 
     template < typename T >
     struct is_storage_info
         : boost::is_base_of<
-              storage_info_interface< T::id, typename T::Layout, typename T::Halo, typename T::Alignment >,
+              storage_info_interface< T::id, typename T::layout_t, typename T::halo_t, typename T::alignment_t >,
               T > {};
 }

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@ namespace gridtools {
     template < unsigned Id,
         typename Layout,
         typename Halo = typename zero_halo< Layout::length >::type,
-        typename Alignment = alignment< 0 > >
+        typename Alignment = alignment< 1 > >
     struct host_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
         template < typename... Dims >
         constexpr host_storage_info(Dims... dims_)

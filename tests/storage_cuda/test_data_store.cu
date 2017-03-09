@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -236,3 +236,55 @@ TEST(DataStoreTest, Initializer) {
             for(unsigned k=0; k<80; ++k)
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 1.0);
 }
+
+TEST(DataStoreTest, ExternalPointer) {
+    // test with an external CPU pointer
+    storage_info_t si(10, 10, 10);
+    double* external_ptr = new double[si.size()];
+    // create a data_store with externally managed storage
+    data_store< cuda_storage< double >, storage_info_t > ds(si, external_ptr, enumtype::ExternalCPU);
+    // create a copy (double free checks)
+    data_store< cuda_storage< double >, storage_info_t > ds_cpy = ds;
+    // check values
+    for(unsigned i=0; i<10; ++i) 
+        for(unsigned j=0; j<10; ++j) 
+            for(unsigned k=0; k<10; ++k) { 
+                external_ptr[si.index(i,j,k)] = 3.1415;
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
+                EXPECT_EQ((ds_cpy.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
+            }
+    // delete the ptr
+    delete [] external_ptr;
+}
+
+TEST(DataStoreTest, ExternalGPUPointer) {
+    // test with an external GPU pointer
+    storage_info_t si(10, 10, 10);
+    double* external_gpu_ptr;
+    double* external_cpu_ptr = new double[si.size()];
+    // initialize CPU ptr
+    for(unsigned i=0; i<si.size(); ++i) {
+        external_cpu_ptr[i] = 3.1415;
+    }
+    // create a GPU ptr
+    cudaError_t err = cudaMalloc(&external_gpu_ptr, si.size() * sizeof(double));
+    ASSERT_TRUE((err == cudaSuccess));
+    // initialize the GPU ptr 
+    err = cudaMemcpy((void *)external_gpu_ptr, (void *)external_cpu_ptr, si.size() * sizeof(double), cudaMemcpyHostToDevice);
+    ASSERT_TRUE((err == cudaSuccess));
+    // create a data_store with externally managed storage
+    data_store< cuda_storage< double >, storage_info_t > ds(si, external_gpu_ptr, enumtype::ExternalGPU);
+    // create a copy (double free checks)
+    data_store< cuda_storage< double >, storage_info_t > ds_cpy = ds;
+    // check values
+    for(unsigned i=0; i<10; ++i) 
+        for(unsigned j=0; j<10; ++j) 
+            for(unsigned k=0; k<10; ++k) { 
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
+                EXPECT_EQ((ds_cpy.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
+            }
+    // delete the ptr
+    delete [] external_cpu_ptr;
+    cudaFree(external_gpu_ptr);
+}
+

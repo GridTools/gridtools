@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -148,13 +148,37 @@ TEST(DataStoreTest, Simple) {
 TEST(DataStoreTest, Initializer) {
     storage_info_t si(128, 128, 80);
     data_store< host_storage< double >, storage_info_t > ds(si, 3.1415);
-    for(unsigned i=0; i<128; ++i) 
-        for(unsigned j=0; j<128; ++j) 
-            for(unsigned k=0; k<80; ++k) 
-                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
+    for (unsigned i = 0; i < 128; ++i)
+        for (unsigned j = 0; j < 128; ++j)
+            for (unsigned k = 0; k < 80; ++k)
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
 }
 
 TEST(DataStoreTest, InvalidSize) {
     EXPECT_THROW(storage_info_t(128, 128, 0), std::runtime_error);
     EXPECT_THROW(storage_info_t(-128, 128, 80), std::runtime_error);
+}
+
+TEST(DataStoreTest, ExternalPointer) {
+    double *external_ptr = new double[10 * 10 * 10];
+    storage_info_t si(10, 10, 10);
+    // create a data_store with externally managed storage
+    data_store< host_storage< double >, storage_info_t > ds(si, external_ptr);
+    // check that external gpu pointer is not possible when using host_storage
+    EXPECT_THROW((data_store< host_storage< double >, storage_info_t >(si, external_ptr, enumtype::ExternalGPU)),
+        std::runtime_error);
+    // create a copy (double free checks)
+    data_store< host_storage< double >, storage_info_t > ds_cpy = ds;
+    // check values
+    int z = 0;
+    for (unsigned i = 0; i < 10; ++i)
+        for (unsigned j = 0; j < 10; ++j)
+            for (unsigned k = 0; k < 10; ++k) {
+                external_ptr[z] = 3.1415;
+                z++;
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
+                EXPECT_EQ((ds_cpy.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
+            }
+    // delete the ptr
+    delete[] external_ptr;
 }
