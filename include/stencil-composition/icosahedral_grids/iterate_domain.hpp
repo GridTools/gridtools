@@ -309,9 +309,9 @@ namespace gridtools {
         GT_FUNCTION typename accessor_return_type< accessor< ID, intend, LocationType, Extent, FieldDimensions > >::type
         operator()(accessor< ID, intend, LocationType, Extent, FieldDimensions > const &accessor_) const {
             typedef accessor< ID, intend, LocationType, Extent, FieldDimensions > accessor_t;
-            typedef typename accessor_t::index_t index_t;
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< accessor_t >::value), "Using EVAL is only allowed for an accessor type");
+            typedef typename accessor_t::index_t index_t;
             return get_value(accessor_, data_pointer().template get< index_t::value >()[0]);
         }
 
@@ -643,6 +643,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((LocationType::value == location_type_t::value), "error");
 
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< accessor_t >::value), "Using EVAL is only allowed for an accessor type");
 
             // getting information about the storage
             typedef typename accessor_t::index_t index_t;
@@ -686,17 +688,16 @@ namespace gridtools {
         GT_FUNCTION typename std::remove_reference<
             typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
         _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >, const uint_t offset) const {
-                assert(false);
-
-/*
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< accessor_t >::value), "Using EVAL is only allowed for an accessor type");
+
+            using index_t = typename accessor_t::index_t;
             using location_type_t = typename accessor_t::location_type;
 
             return get_raw_value(accessor_t(),
-                (data_pointer())[current_storage< (accessor_t::index_t::value == 0),
-                    local_domain_t,
-                    typename accessor_t::type >::value],
-                offset);*/
+                data_pointer().template get< index_t::value >()[0],
+                offset);
         }
 
         template < typename MapF, typename LT, typename Arg0, typename IndexArray >

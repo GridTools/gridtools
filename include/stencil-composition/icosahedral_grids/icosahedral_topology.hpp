@@ -57,7 +57,7 @@
 #include <boost/fusion/sequence/io.hpp>
 #include <boost/fusion/include/io.hpp>
 
-#include <common/array.hpp>
+#include <../../common/array.hpp>
 #include "../../common/gt_assert.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include <boost/mpl/vector.hpp>
@@ -161,6 +161,18 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Error");
         GRIDTOOLS_STATIC_ASSERT((is_location_type< DestLocation >::value), "Error");
 
+        template < typename StorageInfo, typename SeqT, size_t D, typename... Args >
+        static constexpr typename boost::enable_if_c<(sizeof...(Args) == D), int_t>::type 
+        apply_unrolled(StorageInfo f, gridtools::array<SeqT, D> s, Args... elems) {
+            return f.index(elems...);
+        }
+
+        template < typename StorageInfo, typename SeqT, size_t D, typename... Args >
+        static constexpr typename boost::enable_if_c<(sizeof...(Args) < D), int_t>::type 
+        apply_unrolled(StorageInfo f, gridtools::array<SeqT, D> s, Args... elems) {
+            return apply_unrolled(f, s, elems..., s[sizeof...(Args)]);
+        }
+
         template < int Idx >
         struct get_element {
             GT_FUNCTION
@@ -169,8 +181,8 @@ namespace gridtools {
             template < typename Offsets >
             GT_FUNCTION static uint_t apply(
                 GridTopology const &grid_topology, array< uint_t, 3 > const &i, Offsets offsets) {
-                return boost::fusion::at_c< DestLocation::value >(grid_topology.virtual_storages())
-                    .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i, offsets));
+                return apply_unrolled(boost::fusion::at_c< DestLocation::value >(grid_topology.virtual_storages()), 
+                    get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i, offsets));
             }
         };
     };
@@ -795,7 +807,7 @@ namespace gridtools {
 
         template < typename LocationType >
         GT_FUNCTION int_t ll_offset(array< uint_t, 4 > const &i, LocationType) const {
-            return boost::fusion::at_c< LocationType::value >(m_virtual_storages).index(i);
+            return boost::fusion::at_c< LocationType::value >(m_virtual_storages).index(i[0], i[1], i[2], i[3]);
         }
 
         /**
