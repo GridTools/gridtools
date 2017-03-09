@@ -151,8 +151,7 @@ fi
 # measuring time
 export START_TIME=$SECONDS
 
-# echo "Printing ENV"
-# env
+echo "Building on `hostname`"
 
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
