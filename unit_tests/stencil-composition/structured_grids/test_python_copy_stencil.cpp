@@ -101,27 +101,26 @@ namespace copystencil_python {
         //
         // C-like memory layout
         //
-        typedef gridtools::layout_map< 0, 1, 2 > layout_t;
-        typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
+        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info_t;
 
         //
         // define the storage unit used by the backend
         //
-        typedef gridtools::BACKEND::storage_type< float_type, meta_t >::type storage_type;
+        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
 
-        meta_t meta_((uint_t)3, (uint_t)2, (uint_t)1);
+        storage_info_t meta_((uint_t)3, (uint_t)2, (uint_t)1);
         //
         // parameter data fields use the memory buffers received from NumPy arrays
         //
-        storage_type in_data(meta_, (float_type *)in_data_buff, "in_data");
-        storage_type out_data(meta_, (float_type *)out_data_buff, "out_data");
+        data_store_t in_data(meta_, (float_type *)in_data_buff, enumtype::ExternalCPU);
+        data_store_t out_data(meta_, (float_type *)out_data_buff, enumtype::ExternalCPU);
 
         //
         // place-holder definition: their order matches the stencil parameters,
         // especially the non-temporary ones, during the construction of the domain
         //
-        typedef arg< 0, storage_type > p_in_data;
-        typedef arg< 1, storage_type > p_out_data;
+        typedef arg< 0, data_store_t > p_in_data;
+        typedef arg< 1, data_store_t > p_out_data;
         //
         // an array of placeholders to be passed to the domain
         //
@@ -136,7 +135,7 @@ namespace copystencil_python {
         // order in which they appear scanning the placeholders in order.
         // (I don't particularly like this)
         //
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in_data, &out_data));
+        gridtools::aggregator_type< accessor_list > domain(in_data, out_data);
 
         //
         // definition of the physical dimensions of the problem.
@@ -153,20 +152,7 @@ namespace copystencil_python {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-//
-// Here we do a lot of stuff
-//
-// 1) we pass to the intermediate representation ::run function the
-// description of the stencil, which is a multi-stage stencil (mss);
-// 2) the logical physical domain with the fields to use;
-// 3) the actual domain dimensions
-//
-#ifdef CXX11_ENABLED
-        auto
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-            comp_copystencil = gridtools::make_computation< gridtools::BACKEND >(
+        auto comp_copystencil = gridtools::make_computation< gridtools::BACKEND >(
                 domain,
                 grid,
                 gridtools::make_multistage(
@@ -222,6 +208,9 @@ bool test_copystencil_python() {
 #ifdef VERBOSE
     std::cout << "Copied " << d1 * d2 * d3 << " values ... ok!" << std::endl;
 #endif
+
+    free(in_dat);
+    free(out_dat);
 
     return EXIT_SUCCESS;
 }

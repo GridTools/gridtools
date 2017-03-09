@@ -158,12 +158,12 @@ namespace gridtools {
         template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo>
         GT_FUNCTION static typename boost::enable_if_c<Tmp, int>::type 
         fields_offset(StorageInfo const* sinfo) {
-            constexpr int block_size_i = 2*StorageInfo::Halo::template at<0>() + PEBlockSize::i_size_t::value;
-            constexpr int block_size_j = 2*StorageInfo::Halo::template at<1>() + PEBlockSize::j_size_t::value;
+            constexpr int block_size_i = 2*StorageInfo::halo_t::template at<0>() + PEBlockSize::i_size_t::value;
+            constexpr int block_size_j = 2*StorageInfo::halo_t::template at<1>() + PEBlockSize::j_size_t::value;
             // protect against div. by 0
-            constexpr int diff_between_blocks = (StorageInfo::Alignment::value) ? 
-                _impl::static_ceil(static_cast<float>(block_size_i)/StorageInfo::Alignment::value) * 
-                StorageInfo::Alignment::value : PEBlockSize::i_size_t::value;
+            constexpr int diff_between_blocks = (StorageInfo::alignment_t::value) ? 
+                _impl::static_ceil(static_cast<float>(block_size_i)/StorageInfo::alignment_t::value) * 
+                StorageInfo::alignment_t::value : PEBlockSize::i_size_t::value;
             // compute position in i and j
             const uint_t i = processing_element_i() * diff_between_blocks;
             const uint_t j = diff_between_blocks * gridDim.x * processing_element_j() * block_size_j;

@@ -94,7 +94,7 @@ namespace gridtools {
         template < typename T, typename Backend, typename StorageWrapper, typename Grid >
         static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block && Backend::s_backend_id == enumtype::Host), T >::type
         instantiate_storage_info(Grid const &grid) {
-            typedef boost::mpl::int_<T::Halo::template at<0>()> halo_i;
+            typedef boost::mpl::int_<T::halo_t::template at<0>()> halo_i;
 
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.value_at_top() + 1);
@@ -111,8 +111,8 @@ namespace gridtools {
         template < typename T, typename Backend, typename StorageWrapper, typename Grid >
         static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block && Backend::s_backend_id == enumtype::Cuda), T >::type
         instantiate_storage_info(Grid const &grid) {
-            typedef boost::mpl::int_<T::Halo::template at<0>()> halo_i;
-            typedef boost::mpl::int_<T::Halo::template at<1>()> halo_j;
+            typedef boost::mpl::int_<T::halo_t::template at<0>()> halo_i;
+            typedef boost::mpl::int_<T::halo_t::template at<1>()> halo_j;
             
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.value_at_top() + 1);
@@ -120,8 +120,8 @@ namespace gridtools {
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
 
             constexpr int full_block_size = StorageWrapper::tileI_t::s_tile + 2*halo_i::value;
-            constexpr int diff_between_blocks = (T::Alignment::value) ? 
-                _impl::static_ceil(static_cast<float>(full_block_size)/T::Alignment::value) * T::Alignment::value : full_block_size;
+            constexpr int diff_between_blocks = (T::alignment_t::value) ? 
+                _impl::static_ceil(static_cast<float>(full_block_size)/T::alignment_t::value) * T::alignment_t::value : full_block_size;
             constexpr int padding_between_blocks = diff_between_blocks - full_block_size;
             const int inner_domain_size = threads_i * StorageWrapper::tileI_t::s_tile + 
                 (threads_i - 1) * (padding_between_blocks + 2*halo_i::value);

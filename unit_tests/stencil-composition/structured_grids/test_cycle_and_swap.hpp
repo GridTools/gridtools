@@ -247,8 +247,9 @@ namespace test_cycle_and_swap {
         iv.get_value< 2, 3 >(0, 0, 0) = 23;
 #endif
 
-        uint_t di[5] = {0, 0, 0, 0, 1};
-        uint_t dj[5] = {0, 0, 0, 0, 1};
+        const uint_t halo_size = 0;
+        uint_t di[5] = {halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
+        uint_t dj[5] = {halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
 
         gridtools::grid< axis > grid(di, dj);
         grid.value_list[0] = 0;
@@ -267,22 +268,24 @@ namespace test_cycle_and_swap {
         comp->steady();
         comp->run();
         i_data.sync();
-        cycle< 1 >::apply(i_data);
-        cycle_all::apply(i_data);
+        cycle<0>::by<1>(i_data);
+        cycle_all::by<1>(i_data);
         i_data.sync();
         comp->run();
         comp->finalize();
 
+        // renew the view, because it is not valid anymore
+        iv = make_field_host_view(i_data);
         return (iv.get_value< 0, 0 >(0, 0, 0) == 2 && iv.get_value< 0, 1 >(0, 0, 0) == 2 && iv.get_value< 0, 2 >(0, 0, 0) == 0 &&
-                iv.get_value< 1, 0 >(0, 0, 0) == 12 && iv.get_value< 1, 1 >(0, 0, 0) == 10 &&
-                iv.get_value< 1, 2 >(0, 0, 0) == 11 && iv.get_value< 2, 0 >(0, 0, 0) == 21 &&
-                iv.get_value< 2, 1 >(0, 0, 0) == 22
+                iv.get_value< 1, 0 >(0, 0, 0) == 12 && iv.get_value< 1, 1 >(0, 0, 0) == 10 && iv.get_value< 1, 2 >(0, 0, 0) == 11 && 
 #ifdef CUDA8
+                iv.get_value< 2, 0 >(0, 0, 0) == 23 && iv.get_value< 2, 1 >(0, 0, 0) == 20
                 &&
-                iv.get_value< 2, 2 >(0, 0, 0) == 23 && iv.get_value< 2, 3 >(0, 0, 0) == 20
+                iv.get_value< 2, 2 >(0, 0, 0) == 21 && iv.get_value< 2, 3 >(0, 0, 0) == 22
 #else
+                iv.get_value< 2, 0 >(0, 0, 0) == 22 && iv.get_value< 2, 1 >(0, 0, 0) == 20
                 &&
-                iv.get_value< 2, 2 >(0, 0, 0) == 20
+                iv.get_value< 2, 2 >(0, 0, 0) == 21
 #endif
             );
     }

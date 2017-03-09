@@ -97,10 +97,10 @@ TEST(assign_placeholders, test) {
 
     gridtools::aggregator_type< accessor_list > domain(coeff, in, out);
 
-    using dst1_tmp = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> > >;
-    using dst1 = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> > >;
-    using dst2_tmp = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> > >;
-    using dst2 = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> > >;
+    using dst1_tmp = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<1u> > >;
+    using dst1 = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<1u> > >;
+    using dst2_tmp = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<1u> > >;
+    using dst2 = gridtools::data_store<gridtools::host_storage<double>, gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<1u> > >;
 
     // Check data store type correctness
     typedef typename boost::is_same<
@@ -122,22 +122,22 @@ TEST(assign_placeholders, test) {
             boost::mpl::v_item<
                 // temporary with halo size 1
                 gridtools::pointer<
-                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> > 
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<1u> > 
                 >, 
             boost::mpl::v_item<
                 // temporary with halo size 2
                 gridtools::pointer<
-                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> > 
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<1u> > 
                 >, 
             boost::mpl::v_item<
                 // non-temporary with halo size 1            
                 gridtools::pointer<
-                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> > 
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<1u> > 
                 >, 
             boost::mpl::v_item<
                 // non-temporary with halo size 2            
                 gridtools::pointer<
-                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> > 
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<1u> > 
             >, 
             boost::mpl::vector0<mpl_::na>, 0>, 0>, 0>, 0> 
         >,
@@ -157,29 +157,29 @@ TEST(assign_placeholders, test) {
     // Temporary storage info ptrs are not present yet
     assert(!(domain.get_metadata_set().template present<
                 gridtools::pointer<
-                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> >
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<1u> >
                 > >()));
     assert(!(domain.get_metadata_set().template present<
                 gridtools::pointer<
-                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> >
+                    const gridtools::host_storage_info<1u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<1u> >
                 > >()));
 
     // Non-temporary storage info ptrs are present
     assert((domain.get_metadata_set().template present<
                 gridtools::pointer<
-                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> >
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<1u> >
                 > >()));
     assert((domain.get_metadata_set().template present<
                 gridtools::pointer<
-                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> >
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<1u> >
                 > >()));
     assert((domain.get_metadata_set().template get<
                 gridtools::pointer<
-                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<0u> >
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<1u, 1u, 1u>, gridtools::alignment<1u> >
                 > >().get() == in.get_storage_info_ptr()));
     assert((domain.get_metadata_set().template get<
                 gridtools::pointer<
-                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<0u> >
+                    const gridtools::host_storage_info<0u, gridtools::layout_map<0, 1, 2>, gridtools::halo<2u, 2u, 2u>, gridtools::alignment<1u> >
                 > >().get() == out.get_storage_info_ptr()));
 
     // lets do a reassign

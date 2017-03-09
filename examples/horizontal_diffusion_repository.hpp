@@ -153,9 +153,9 @@ namespace horizontal_diffusion {
 
         template < typename TStorage_type, typename TValue_type >
         void init_field_to_value(TStorage_type &field, TValue_type value) {
-            const uint_t dim0 = (TStorage_type::storage_info_t::Layout::template at< 0 >() == -1) ? 1 : idim_;
-            const uint_t dim1 = (TStorage_type::storage_info_t::Layout::template at< 1 >() == -1) ? 1 : jdim_;
-            const uint_t dim2 = (TStorage_type::storage_info_t::Layout::template at< 2 >() == -1) ? 1 : kdim_;
+            const uint_t dim0 = (TStorage_type::storage_info_t::layout_t::template at< 0 >() == -1) ? 1 : idim_;
+            const uint_t dim1 = (TStorage_type::storage_info_t::layout_t::template at< 1 >() == -1) ? 1 : jdim_;
+            const uint_t dim2 = (TStorage_type::storage_info_t::layout_t::template at< 2 >() == -1) ? 1 : kdim_;
  
             auto v = make_host_view(field);
             for (uint_t k = 0; k < dim2; ++k) {
