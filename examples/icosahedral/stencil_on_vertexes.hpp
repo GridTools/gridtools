@@ -94,26 +94,31 @@ namespace sov {
         auto in_vertexes = icosahedral_grid.make_storage< icosahedral_topology_t::vertexes, double >("in");
         auto out_vertexes = icosahedral_grid.make_storage< icosahedral_topology_t::vertexes, double >("out");
         auto ref_vertexes = icosahedral_grid.make_storage< icosahedral_topology_t::vertexes, double >("ref");
+        in_vertexes.allocate();
+        out_vertexes.allocate();
+        ref_vertexes.allocate();
+        auto inv = make_host_view(in_vertexes);
+        auto outv = make_host_view(out_vertexes);
+        auto refv = make_host_view(ref_vertexes);
 
         for (int i = 0; i < d1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::vertexes::n_colors::value; ++c) {
                 for (int j = 0; j < d2; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        in_vertexes(i, c, j, k) = (uint_t)in_vertexes.meta_data().index(
-                            array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
+                        inv(i, c, j, k) = (uint_t)in_vertexes.get_storage_info_ptr()->index(i, c, j, k);
+                        outv(i, c, j, k) = 0.0;
+                        refv(i, c, j, k) = 0.0;
                     }
                 }
             }
         }
-        out_vertexes.initialize(0.0);
-        ref_vertexes.initialize(0.0);
 
         typedef arg< 0, cell_storage_type > p_in_vertexes;
         typedef arg< 1, cell_storage_type > p_out_vertexes;
 
         typedef boost::mpl::vector< p_in_vertexes, p_out_vertexes > accessor_list_t;
 
-        gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_vertexes, &out_vertexes));
+        gridtools::aggregator_type< accessor_list_t > domain(in_vertexes, out_vertexes);
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -133,10 +138,8 @@ namespace sov {
         stencil_->steady();
         stencil_->run();
 
-#ifdef __CUDACC__
-        out_vertexes.d2h_update();
-        in_vertexes.d2h_update();
-#endif
+        out_vertexes.sync();
+        in_vertexes.sync();
 
         bool result = true;
         if (verify) {
@@ -148,7 +151,7 @@ namespace sov {
                             auto neighbours = ugrid.neighbours_of< icosahedral_topology_t::vertexes,
                                 icosahedral_topology_t::vertexes >({i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                                ref_vertexes(i, c, j, k) += in_vertexes(*iter);
+                                refv(i, c, j, k) += inv((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]);
                             }
                         }
                     }
