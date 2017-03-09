@@ -36,15 +36,28 @@
 
 #pragma once
 
+#ifndef DEFS_GUARD
+
+#ifndef GT_FUNCTION
 #ifdef __CUDACC__
 #define GT_FUNCTION __host__ __device__
 #else
 #define GT_FUNCTION
 #endif
+#endif
 
 namespace gridtools {
     namespace enumtype {
         enum platform { Cuda, Host };
+    }
+}
+
+#define PLATFORM_GUARD
+
+#endif
+
+namespace gridtools {
+    namespace enumtype {
         enum access_mode { ReadWrite = 0, ReadOnly = 1 };
         enum ownership { Full = 0, ExternalGPU = 1, ExternalCPU = 2 };
     }
