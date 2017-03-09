@@ -64,6 +64,13 @@ namespace gridtools {
             typedef cuda_storage_info< Id, layout, Halo > type;
         };
 
+        template < unsigned Id, typename Layout, typename Halo >
+        struct select_custom_layout_storage_info {
+            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
+            static_assert(is_layout_map< Layout >::value, "Given type is not a layout map type.");
+            typedef cuda_storage_info< Id, Layout, Halo > type;
+        };
+
         template < unsigned Id, typename Selector, typename Halo >
         struct select_special_storage_info {
             static_assert(is_halo< Halo >::value, "Given type is not a Halo type.");

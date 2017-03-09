@@ -174,27 +174,27 @@ TEST(StorageFacility, LayoutTests) {
     typedef typename storage_traits< BACKEND >::storage_info_t< 0, 4 >::layout_t layout4_t;
     typedef typename storage_traits< BACKEND >::storage_info_t< 0, 5 >::layout_t layout5_t;
 
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 1, 1 > >::layout_t layout_s5_t;
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 1, 1 > >::layout_t layout_s51_t;
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 1, 1, 1 > >::layout_t layout_s52_t;
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 1, 1 > >::layout_t layout_s53_t;
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 0, 1 > >::layout_t layout_s54_t;
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 1, 0 > >::layout_t layout_s55_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 1, 1 > >::layout_t
+        layout_s5_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 1, 1 > >::layout_t
+        layout_s51_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 1, 1, 1 > >::layout_t
+        layout_s52_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 1, 1 > >::layout_t
+        layout_s53_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 0, 1 > >::layout_t
+        layout_s54_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 1, 0 > >::layout_t
+        layout_s55_t;
 
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 1, 1, 1 > >::layout_t layout_s56_t;
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 0, 1, 1 > >::layout_t layout_s57_t;
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 0, 1 > >::layout_t layout_s58_t;
-    typedef
-        typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 0, 0 > >::layout_t layout_s59_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 1, 1, 1 > >::layout_t
+        layout_s56_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 0, 1, 1 > >::layout_t
+        layout_s57_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 0, 1 > >::layout_t
+        layout_s58_t;
+    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 0, 0 > >::layout_t
+        layout_s59_t;
 
     typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 0, 1, 1 > >::layout_t
         layout_s510_t;
@@ -311,4 +311,18 @@ TEST(StorageFacility, LayoutTests) {
     static_assert((boost::is_same< layout_s524_t, layout_map< -1, -1, -1, 0, -1 > >::value), "layout type is wrong");
     static_assert((boost::is_same< layout_s525_t, layout_map< -1, -1, -1, -1, 0 > >::value), "layout type is wrong");
 #endif
+}
+
+TEST(StorageFacility, CustomLayoutTests) {
+    typedef typename storage_traits< BACKEND >::custom_layout_storage_info_t< 0, layout_map< 2, 1, 0 > >::layout_t
+        layout3_t;
+    typedef
+        typename storage_traits< BACKEND >::custom_layout_storage_info_t< 0, layout_map< 1, 0 > >::layout_t layout2_t;
+    typedef typename storage_traits< BACKEND >::custom_layout_storage_info_t< 0, layout_map< 0 > >::layout_t layout1_t;
+    typedef typename storage_traits< BACKEND >::custom_layout_storage_info_t< 0, layout_map< 2, -1, 1, 0 > >::layout_t
+        layout4_t;
+    static_assert((boost::is_same< layout3_t, layout_map< 2, 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout2_t, layout_map< 1, 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout1_t, layout_map< 0 > >::value), "layout type is wrong");
+    static_assert((boost::is_same< layout4_t, layout_map< 2, -1, 1, 0 > >::value), "layout type is wrong");
 }
