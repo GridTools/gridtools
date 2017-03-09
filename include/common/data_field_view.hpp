@@ -40,13 +40,13 @@
 
 #include "data_store_field.hpp"
 #include "data_view.hpp"
-#include "defs.hpp"
+#include "definitions.hpp"
 
 namespace gridtools {
 
     template < typename DataStoreField, bool ReadOnly >
     struct data_field_view {
-        static_assert(is_data_store_field<DataStoreField>::value, "Passed type is no data_store_field type");
+        static_assert(is_data_store_field< DataStoreField >::value, "Passed type is no data_store_field type");
         typedef typename DataStoreField::data_store_t data_store_t;
         typedef typename DataStoreField::data_t data_t;
         typedef typename DataStoreField::state_machine_t state_machine_t;
@@ -87,8 +87,7 @@ namespace gridtools {
                 m_device_view);
         }
 
-        GT_FUNCTION data_view< data_store_t, ReadOnly > get(
-            unsigned Dim, unsigned Snapshot) const {
+        GT_FUNCTION data_view< data_store_t, ReadOnly > get(unsigned Dim, unsigned Snapshot) const {
             return data_view< data_store_t, ReadOnly >(m_raw_ptrs[m_offsets[Dim] + Snapshot],
                 m_storage_infos[Dim],
                 m_state_machines[m_offsets[Dim] + Snapshot],
@@ -96,8 +95,7 @@ namespace gridtools {
         }
 
         template < unsigned Dim, unsigned Snapshot, typename... Coords >
-        typename boost::mpl::if_c< ReadOnly, data_t const &, data_t & >::type GT_FUNCTION get_value(
-            Coords... c) const {
+        typename boost::mpl::if_c< ReadOnly, data_t const &, data_t & >::type GT_FUNCTION get_value(Coords... c) const {
             return get< Dim, Snapshot >()(c...);
         }
 

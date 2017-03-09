@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "common/defs.hpp"
+#include "common/definitions.hpp"
 #include "common/layout_map.hpp"
 #include "common/data_store.hpp"
 #include "common/data_store_field.hpp"

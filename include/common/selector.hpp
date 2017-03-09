@@ -37,7 +37,7 @@
 
 #include <boost/mpl/bool.hpp>
 
-#include "defs.hpp"
+#include "definitions.hpp"
 
 namespace gridtools {
 
@@ -50,6 +50,5 @@ namespace gridtools {
     struct is_selector : boost::mpl::false_ {};
 
     template < bool... Bitmask >
-    struct is_selector< selector<Bitmask...> > : boost::mpl::true_ {};
-
+    struct is_selector< selector< Bitmask... > > : boost::mpl::true_ {};
 }
