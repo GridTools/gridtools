@@ -98,7 +98,7 @@ struct shallow_water_reference {
     static float_type dt() { return .02; }
     static float_type g() { return 9.81; }
 
-    static const float_type height = 2.;
+    static constexpr float_type height = 2.;
 
     static float_type droplet(uint_t const &i, uint_t const &j) {
 #ifndef __CUDACC__
