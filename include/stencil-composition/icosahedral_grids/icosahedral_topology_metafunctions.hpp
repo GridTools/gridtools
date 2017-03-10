@@ -86,7 +86,7 @@ namespace gridtools {
          */
         template < typename UInt, typename LocationType >
         struct array_elem_initializer {
-            static_assert((is_location_type< LocationType >::value), "Error: expected a location type");
+            GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: expected a location type");
 
             template < int Idx >
             struct init_elem {
@@ -94,7 +94,7 @@ namespace gridtools {
                 constexpr init_elem() {}
 
                 GT_FUNCTION constexpr static UInt apply(const array< uint_t, 3 > space_dims) {
-                    static_assert((Idx < 4), "Error");
+                    GRIDTOOLS_STATIC_ASSERT((Idx < 4), GT_INTERNAL_ERROR);
                     // cast to size_t to suppress a warning
                     return ((Idx == 0) ? space_dims[0]
                                        : ((Idx == 1) ? LocationType::n_colors::value : space_dims[(size_t)(Idx - 1)]));
@@ -126,7 +126,7 @@ namespace gridtools {
 
         template < typename UInt, size_t ArraySize, typename LocationType, int_t... Ints >
         struct array_dim_initializers< UInt, ArraySize, LocationType, selector< Ints... > > {
-            static_assert((is_location_type< LocationType >::value), "Error: expected a location type");
+            GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: expected a location type");
 
             template < typename... ExtraInts >
             GT_FUNCTION static constexpr array< UInt, ArraySize > apply(

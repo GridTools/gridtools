@@ -175,22 +175,22 @@ namespace gridtools {
 
     template < typename Extent >
     struct extent_get_iminus {
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
         static const int_t value = Extent::iminus::value;
     };
     template < typename Extent >
     struct extent_get_iplus {
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
         static const int_t value = Extent::iplus::value;
     };
     template < typename Extent >
     struct extent_get_jminus {
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
         static const int_t value = Extent::jminus::value;
     };
     template < typename Extent >
     struct extent_get_jplus {
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
         static const int_t value = Extent::jplus::value;
     };
 

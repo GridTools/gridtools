@@ -9,6 +9,7 @@ function exit_if_error {
 }
 
 module unload CMake
+module load daint-gpu
 module load /users/vogtha/modules/CMake/3.7.2
 module load cudatoolkit
 module rm   PrgEnv-cray
