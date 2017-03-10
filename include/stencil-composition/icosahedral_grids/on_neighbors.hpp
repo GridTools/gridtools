@@ -99,7 +99,7 @@ namespace gridtools {
      */
     template < typename ValueType, typename DstLocationType, typename ReductionFunction, typename... MapFunction >
     struct on_neighbors {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), GT_INTERNAL_ERROR);
 
         using maps_t = tuple< MapFunction... >;
         using reduction_function = ReductionFunction;
@@ -146,7 +146,7 @@ namespace gridtools {
         typename ReductionFunction,
         typename... MapFunction >
     class on_neighbors_impl {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), GT_INTERNAL_ERROR);
 
         using maps_t = tuple< MapFunction... >;
         using reduction_function = ReductionFunction;
@@ -202,7 +202,7 @@ namespace gridtools {
 
     template < typename Map >
     struct map_get_location_type {
-        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), GT_INTERNAL_ERROR);
         typedef typename Map::location_type type;
     };
 
@@ -211,7 +211,7 @@ namespace gridtools {
 
     template < typename Map >
     struct maps_get_location_type< Map > {
-        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), GT_INTERNAL_ERROR);
         typedef typename map_get_location_type< Map >::type type;
     };
 
@@ -220,7 +220,7 @@ namespace gridtools {
         template < typename Loc, typename Map >
         struct unique_element {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Loc, typename map_get_location_type< Map >::type >::value),
-                "Internal Error: predicate does not yield the same type");
+                GT_INTERNAL_ERROR_MSG("redicate does not yield the same type"));
             typedef Loc type;
         };
 

@@ -273,6 +273,14 @@ namespace gridtools {
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) BOOST_STATIC_ASSERT(Condition)
 #endif
 
+#define GT_INTERNAL_ERROR                                                                                       \
+    "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
+    "GridTools Development Team"
+
+#define GT_INTERNAL_ERROR_MSG(x)                                                                                \
+    "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
+    "GridTools Development Team. \nMessage\n\n" x
+
 //################ Type aliases for GridTools ################
 
 /**

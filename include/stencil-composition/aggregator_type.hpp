@@ -313,7 +313,7 @@ namespace gridtools {
          */
         template < typename Sequence >
         struct assign_metadata_set {
-            GRIDTOOLS_STATIC_ASSERT(is_metadata_set< Sequence >::value, "Internal error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_metadata_set< Sequence >::value, GT_INTERNAL_ERROR);
 
           private:
             Sequence &m_sequence;
