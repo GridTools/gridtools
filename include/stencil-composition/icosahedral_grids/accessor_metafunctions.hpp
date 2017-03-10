@@ -36,6 +36,7 @@
 #pragma once
 
 #include "../icosahedral_grids/accessor.hpp"
+#include "../expandable_parameters/expandable_fwd.hpp"
 
 namespace gridtools {
 
