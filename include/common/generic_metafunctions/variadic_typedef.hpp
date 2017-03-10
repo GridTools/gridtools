@@ -101,7 +101,7 @@ namespace gridtools {
         // metafunction that returns a type of a variadic pack by index
         template < ushort_t Idx >
         struct get_elem {
-            static_assert((Idx >= 0), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((Idx >= 0), GT_INTERNAL_ERROR);
         };
 
         template < typename Elem >
