@@ -110,14 +110,14 @@ namespace gridtools {
 #endif
 #else
         // without std:: it is taking the wrong overload
-        auto fabs(double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
+        GT_FUNCTION auto fabs(double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
 
-        auto fabs(float val) -> decltype(std::fabs(val)) { return std::fabs(val); }
+        GT_FUNCTION auto fabs(float val) -> decltype(std::fabs(val)) { return std::fabs(val); }
 
-        auto fabs(long double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
+        GT_FUNCTION auto fabs(long double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
 
         template < typename Value >
-        double fabs(Value val) {
+        GT_FUNCTION double fabs(Value val) {
             return std::fabs(val);
         }
 #endif
