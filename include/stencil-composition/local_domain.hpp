@@ -67,8 +67,8 @@ namespace gridtools {
             return N;
         }
 
-        template < typename T, unsigned N >
-        GT_FUNCTION typename boost::enable_if_c< (N == 0), void >::type copy_ptrs(T &t, T const &other) {
+        template < typename T, typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
+        GT_FUNCTION typename boost::enable_if_c< (N == 0), void >::type copy_ptrs(T &t, V &other) {
             auto &left = boost::fusion::at_c< N >(t).second;
             auto &right = boost::fusion::at_c< N >(other).second;
             for (unsigned i = 0; i < get_size(left); ++i) {
@@ -76,14 +76,14 @@ namespace gridtools {
             }
         }
 
-        template < typename T, unsigned N = (boost::mpl::size< T >::value - 1) >
-        GT_FUNCTION typename boost::enable_if_c< (N > 0), void >::type copy_ptrs(T &t, T const &other) {
+        template < typename T,  typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
+        GT_FUNCTION typename boost::enable_if_c< (N > 0), void >::type copy_ptrs(T &t, V &other) {
             auto &left = boost::fusion::at_c< N >(t).second;
             auto &right = boost::fusion::at_c< N >(other).second;
             for (unsigned i = 0; i < get_size(left); ++i) {
                 left[i] = right[i];
             }
-            copy_ptrs< T, N - 1 >(t, other);
+            copy_ptrs< T, V, N - 1 >(t, other);
         }
     }
 
