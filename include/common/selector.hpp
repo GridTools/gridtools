@@ -61,14 +61,15 @@ namespace gridtools {
      */
     template < int_t... Int >
     struct selector {
-        static_assert((is_variadic_pack_of(impl::is_one< Int >::value...)), "ERROR");
+        GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(impl::is_one< Int >::value...)), GT_INTERNAL_ERROR);
         typedef variadic_typedef_c< int_t, Int... > indices;
         static constexpr ushort_t length = indices::length;
 
         static constexpr ushort_t existingdim_length = impl::compute_existing_dim(Int...);
         template < ushort_t Idx >
         struct get_elem {
-            GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Int)), "Out of bound access in variadic pack");
+            GRIDTOOLS_STATIC_ASSERT(
+                (Idx <= sizeof...(Int)), GT_INTERNAL_ERROR_MSG("Out of bound access in variadic pack"));
             typedef typename indices::template get_elem< Idx >::type type;
             static constexpr const int_t value = type::value;
         };
