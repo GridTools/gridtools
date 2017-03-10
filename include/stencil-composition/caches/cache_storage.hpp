@@ -44,7 +44,7 @@
 
 #include "meta_storage_cache.hpp"
 #include "cache_storage_metafunctions.hpp"
-#include "cache_fwd.hpp"
+#include "cache_traits.hpp"
 
 namespace gridtools {
     template < typename T, typename U >
@@ -153,7 +153,9 @@ namespace gridtools {
         }
 
         template < typename Accessor >
-        GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_) {
+        GT_FUNCTION value_type const &RESTRICT check_kcache_access(Accessor const &accessor_,
+            typename boost::enable_if_c< is_k_cache< cache_t >::value, int >::type = 0) const {
+
             constexpr const meta_t s_storage_info;
 
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
@@ -168,27 +170,24 @@ namespace gridtools {
 
             assert(s_storage_info.index(accessor_) - kminus_t::value < size());
             assert(s_storage_info.index(accessor_) - kminus_t::value >= 0);
+        }
+
+        template < typename Accessor >
+        GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_) {
+            check_kcache_access(accessor_);
+
+            constexpr const meta_t s_storage_info;
 
             return m_values[s_storage_info.index(accessor_) - kminus_t::value];
         }
 
         template < typename Accessor >
-        GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_) const {
-            // TODO KCACHE check accessor values are within extent
+        GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_,
+            typename boost::enable_if_c< is_k_cache< cache_t >::value, int >::type = 0) const {
+            check_kcache_access(accessor_);
+
             constexpr const meta_t s_storage_info;
 
-            using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
-
-#ifdef CUDA8
-            typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
-            typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
-#else
-            assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
-#endif
-
-            assert(s_storage_info.index(accessor_) - kminus_t::value < size());
-            assert(s_storage_info.index(accessor_) - kminus_t::value >= 0);
             return m_values[s_storage_info.index(accessor_) - kminus_t::value];
         }
 
