@@ -187,7 +187,7 @@ namespace gridtools {
            The halo descriptors are computed in the setup phase using the partitioner
         */
         template < ushort_t dimension >
-        halo_descriptor const &get_halo_descriptor() const {
+        GT_FUNCTION halo_descriptor const &get_halo_descriptor() const {
             GRIDTOOLS_STATIC_ASSERT(dimension < metadata_t::space_dimensions,
                 "only positive integers smaller than the number of dimensions are accepted as template arguments of "
                 "get_halo_descriptor");
