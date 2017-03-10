@@ -354,7 +354,7 @@ namespace gridtools {
             \tparam FieldDim the index of the storage list (there is one storage_list per field dimension)
          */
         template < short_t Snapshot = 0, short_t FieldDim = 0 >
-        GT_FUNCTION pointer_type &get() {
+        pointer_type &get() {
             GRIDTOOLS_STATIC_ASSERT(
                 is_data_field< super >::value, "the get_value API is available only for data field storages.");
             return (*m_storage)
@@ -369,7 +369,7 @@ namespace gridtools {
             \tparam F can be several thongs, e.g. a pointer to a storage, an initialization value value, or a lambda
          */
         template < short_t Snapshot = 0, short_t FieldDim = 0, typename F >
-        GT_FUNCTION void set(F f) {
+        void set(F f) {
             GRIDTOOLS_STATIC_ASSERT(
                 is_data_field< super >::value, "the get_value API is available only for data field storages.");
             // F is protected inside data_field
