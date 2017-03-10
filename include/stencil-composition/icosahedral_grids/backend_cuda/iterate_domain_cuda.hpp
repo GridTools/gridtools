@@ -66,9 +66,9 @@ namespace gridtools {
         typedef typename super::grid_topology_t grid_topology_t;
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
+        typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
 
       private:
-        typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
         typedef typename super::readonly_args_indices_t readonly_args_indices_t;
 
         typedef shared_iterate_domain< data_pointer_array_t,
