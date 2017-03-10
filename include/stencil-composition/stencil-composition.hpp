@@ -51,6 +51,7 @@
 #include "grid.hpp"
 #include "grid_traits.hpp"
 #include "stencil.hpp"
+#include "storage_info_extender.hpp"
 
 #ifndef STRUCTURED_GRIDS
 #include "icosahedral_grids/grid.hpp"
