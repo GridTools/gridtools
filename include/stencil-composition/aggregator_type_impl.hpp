@@ -47,6 +47,8 @@
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/for_each.hpp>
 #include "arg.hpp"
+#include "storage/expandable_parameters.hpp"
+
 template < typename RegularStorageType >
 struct no_storage_type_yet;
 
@@ -124,10 +126,32 @@ namespace gridtools {
 
     } // namespace _debug
 
-    template < typename Storage, uint_t Size >
-    struct expandable_parameters;
-
     namespace _impl {
+
+        /**
+           \brief checks if a given list of placeholders are having consecutive indices
+        */
+        template < typename Placeholders >
+        struct continuous_indices_check {
+            // check if type of given Placeholders is correct
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::type::value), "wrong type:\
+the continuous_indices_check template argument must be an MPL vector of placeholders (arg<...>)");
+            // extract the indices of all placeholders
+            typedef typename boost::mpl::fold< Placeholders,
+                boost::mpl::vector<>,
+                boost::mpl::push_back< boost::mpl::_1, arg_index< boost::mpl::_2 > > >::type indices_t;
+            // check that all inidices are consecutive
+            typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, boost::mpl::size< indices_t >::value - 1 >,
+                boost::mpl::true_,
+                boost::mpl::if_< boost::is_same< boost::mpl::at< indices_t, boost::mpl::next< boost::mpl::_2 > >,
+                                     boost::mpl::next< boost::mpl::at< indices_t, boost::mpl::_2 > > >,
+                                                   boost::mpl::_1,
+                                                   boost::mpl::false_ > >::type cont_indices_t;
+            // check that the first index is zero
+            typedef boost::mpl::bool_< cont_indices_t::value && (boost::mpl::at_c< indices_t, 0 >::type::value == 0) >
+                type;
+        };
+
         struct l_get_type {
             template < typename U, typename Dummy = void >
             struct apply {
@@ -227,20 +251,14 @@ namespace gridtools {
                 typedef typename boost::is_same< T1, T2 >::type type;
             };
 
-            // // specialization for base_storage
-            // template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
-            // struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< T1 > > >, Cond >,
-            //                  arg< ID, no_storage_type_yet< expandable_parameters< T2, Size > >, Cond > > {
-            //     typedef typename boost::is_same< T1, T2 >::type type;
-            // };
-
+#ifdef CXX11_ENABLED
             // specialization for storage
             template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
             struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< storage< T1 > > > >, Cond >,
                 arg< ID, no_storage_type_yet< storage< expandable_parameters< T2, Size > > >, Cond > > {
                 typedef typename boost::is_same< T1, T2 >::type type;
             };
-
+#endif
             template < typename T1, typename T2 >
             struct contains {
                 typedef typename boost::mpl::fold< T1,

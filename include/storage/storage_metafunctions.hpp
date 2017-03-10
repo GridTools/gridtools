@@ -102,8 +102,7 @@ namespace gridtools {
         : public is_actual_storage< pointer< typename BaseType::basic_type > > {};
 
     template < typename BaseType >
-    struct is_actual_storage< pointer< global_parameter< BaseType > > >
-        : public is_actual_storage< pointer< BaseType > > {};
+    struct is_actual_storage< pointer< global_parameter< BaseType > > > : public boost::mpl::false_ {};
 
 #ifdef CXX11_ENABLED
     // Decorator is e.g. a data_field
@@ -196,7 +195,6 @@ namespace gridtools {
 
         template < typename T >
         typename get_user_storage_ptrs_t< T >::type operator()(T &st) const {
-            typedef typename get_user_storage_ptrs_t< T >::type ty;
             return st->get_storage_pointer();
         }
     };
