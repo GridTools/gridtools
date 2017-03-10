@@ -336,15 +336,25 @@ namespace gridtools {
             }
         };
 
+        /**
+         * @struct endpoint_io_cache_functor
+         * functor that performs the final flush or begin fill operation between main memory and a kcache, that is
+         * executed
+         * at the end of the vertical iteration(flush) or at the beginning the of iteration of the vertical interval
+         * (fill),
+         * @tparam IterateDomain is the iterate domain
+         * @tparam IterationPolicy: forward, backward
+         * @tparam CacheIOPolicy cache io policy: fill or flush
+         */
         template < typename IterateDomain, typename IterationPolicy, cache_io_policy CacheIOPolicy >
         struct endpoint_io_cache_functor {
 
             GT_FUNCTION
-            endpoint_io_cache_functor(IterateDomain const &it_domain, k_caches_tuple_t /*const*/ &kcaches)
+            endpoint_io_cache_functor(IterateDomain const &it_domain, k_caches_tuple_t &kcaches)
                 : m_it_domain(it_domain), m_kcaches(kcaches) {}
 
             IterateDomain const &m_it_domain;
-            k_caches_tuple_t /*TODO KCACHE const for flush? */ &m_kcaches;
+            k_caches_tuple_t &m_kcaches;
 
             template < typename Idx >
             GT_FUNCTION void operator()(Idx const &) const {

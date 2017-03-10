@@ -115,7 +115,6 @@ namespace gridtools {
             insert_extent_for_cache< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
 
-    // TODO KCACHE add protection somewhere that any cache is defined at least in one esf
     /**
      * @struct extract_k_extents_for_caches
      * metafunction that extracts the extents associated to each cache of the sequence of caches provided by the user.

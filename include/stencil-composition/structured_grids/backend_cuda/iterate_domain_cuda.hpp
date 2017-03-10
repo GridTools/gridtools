@@ -298,8 +298,7 @@ namespace gridtools {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
 
-            // TODO KCACHE PROTECT no IJ accesses here
-
+            // TODO ICO_STORAGE
             // retrieve the k cache from the fusion tuple and access the element required give the current thread
             // position within
             // the block and the offsets of the accessor
@@ -343,7 +342,6 @@ namespace gridtools {
 
         template < typename IterationPolicy, typename Grid >
         GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
-            // TODO KCACHE do not execute if no flush caches and/or not in iteration policy
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
 
@@ -352,7 +350,6 @@ namespace gridtools {
 
         template < typename IterationPolicy, typename Grid >
         GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
-            // TODO KCACHE do not execute if no flush caches and/or not in iteration policy
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
 
@@ -361,14 +358,12 @@ namespace gridtools {
 
         template < typename IterationPolicy >
         GT_FUNCTION void final_flush() {
-            // TODO KCACHE do not execute if no flush caches and/or not in iteration policy
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             m_iterate_domain_cache.template final_flush< IterationPolicy >(*this);
         }
 
         template < typename IterationPolicy >
         GT_FUNCTION void begin_fill() {
-            // TODO KCACHE do not execute if no flush caches and/or not in iteration policy
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             m_iterate_domain_cache.template begin_fill< IterationPolicy >(*this);
         }
