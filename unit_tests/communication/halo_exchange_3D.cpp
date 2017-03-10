@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include <mpi.h>
+#include "gtest/gtest.h"
 #include <iostream>
 #include <communication/low-level/proc_grids_3D.hpp>
 #include <communication/low-level/Halo_Exchange_3D.hpp>
@@ -61,8 +62,8 @@ struct pgrid< T3 > {
         MPI_Dims_create(nprocs, 3, dims);
         int period[3] = {1, 1, 1};
 
-        std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2]
-                  << "\n";
+        // std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2]
+        //           << "\n";
 
         MPI_Cart_create(gridtools::GCL_WORLD, 3, dims, period, false, &CartComm);
 
@@ -85,8 +86,8 @@ struct pgrid< T4 > {
         MPI_Dims_create(nprocs, 3, dims);
         int period[3] = {0, 0, 0};
 
-        std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2]
-                  << "\n";
+        // std::cout << "@" << gridtools::PID << "@ MPI GRID SIZE " << dims[0] << " - " << dims[1] << " - " << dims[2]
+        //           << "\n";
 
         MPI_Cart_create(gridtools::GCL_WORLD, 3, dims, period, false, &CartComm);
 
@@ -94,10 +95,7 @@ struct pgrid< T4 > {
     }
 };
 
-int main(int argc, char **argv) {
-
-    MPI_Init(&argc, &argv);
-    gridtools::GCL_Init(argc, argv);
+TEST(Communication, Halo_Exchange_3D) {
 
     // 6
     int iminus;
@@ -166,21 +164,23 @@ int main(int argc, char **argv) {
 
     gridtools::Halo_Exchange_3D< test_type::grid_type > he(pg);
 
-    std::cout << "@" << gridtools::PID << "@ SEND " << &iminus << " - " << &iplus << " - " << &jminus << " - " << &jplus
-              << " - " << &kminus << " - " << &kplus << " - " << &iminusjminus << " - " << &iplusjminus << " - "
-              << &iminusjplus << " - " << &iplusjplus << " - " << &iminuskminus << " - " << &ipluskminus << " - "
-              << &iminuskplus << " - " << &ipluskplus << " - " << &jminuskminus << " - " << &jpluskminus << " - "
-              << &jminuskplus << " - " << &jpluskplus << " - " << &iminusjminuskminus << " - " << &iplusjminuskminus
-              << " - " << &iminusjpluskminus << " - " << &iplusjpluskminus << " - " << &iminusjminuskplus << " - "
-              << &iplusjminuskplus << " - " << &iminusjpluskplus << " - " << &iplusjpluskplus << std::endl;
-    std::cout << "@" << gridtools::PID << "@ RECV " << &iminus_r << " - " << &iplus_r << " - " << &jminus_r << " - "
-              << &jplus_r << " - " << &kminus_r << " - " << &kplus_r << " - " << &iminusjminus_r << " - "
-              << &iplusjminus_r << " - " << &iminusjplus_r << " - " << &iplusjplus_r << " - " << &iminuskminus_r
-              << " - " << &ipluskminus_r << " - " << &iminuskplus_r << " - " << &ipluskplus_r << " - "
-              << &jminuskminus_r << " - " << &jpluskminus_r << " - " << &jminuskplus_r << " - " << &jpluskplus_r
-              << " - " << &iminusjminuskminus_r << " - " << &iplusjminuskminus_r << " - " << &iminusjpluskminus_r
-              << " - " << &iplusjpluskminus_r << " - " << &iminusjminuskplus_r << " - " << &iplusjminuskplus_r << " - "
-              << &iminusjpluskplus_r << " - " << &iplusjpluskplus_r << std::endl;
+    // std::cout << "@" << gridtools::PID << "@ SEND " << &iminus << " - " << &iplus << " - " << &jminus << " - " <<
+    // &jplus
+    //           << " - " << &kminus << " - " << &kplus << " - " << &iminusjminus << " - " << &iplusjminus << " - "
+    //           << &iminusjplus << " - " << &iplusjplus << " - " << &iminuskminus << " - " << &ipluskminus << " - "
+    //           << &iminuskplus << " - " << &ipluskplus << " - " << &jminuskminus << " - " << &jpluskminus << " - "
+    //           << &jminuskplus << " - " << &jpluskplus << " - " << &iminusjminuskminus << " - " << &iplusjminuskminus
+    //           << " - " << &iminusjpluskminus << " - " << &iplusjpluskminus << " - " << &iminusjminuskplus << " - "
+    //           << &iplusjminuskplus << " - " << &iminusjpluskplus << " - " << &iplusjpluskplus << std::endl;
+    // std::cout << "@" << gridtools::PID << "@ RECV " << &iminus_r << " - " << &iplus_r << " - " << &jminus_r << " - "
+    //           << &jplus_r << " - " << &kminus_r << " - " << &kplus_r << " - " << &iminusjminus_r << " - "
+    //           << &iplusjminus_r << " - " << &iminusjplus_r << " - " << &iplusjplus_r << " - " << &iminuskminus_r
+    //           << " - " << &ipluskminus_r << " - " << &iminuskplus_r << " - " << &ipluskplus_r << " - "
+    //           << &jminuskminus_r << " - " << &jpluskminus_r << " - " << &jminuskplus_r << " - " << &jpluskplus_r
+    //           << " - " << &iminusjminuskminus_r << " - " << &iplusjminuskminus_r << " - " << &iminusjpluskminus_r
+    //           << " - " << &iplusjpluskminus_r << " - " << &iminusjminuskplus_r << " - " << &iplusjminuskplus_r << " -
+    //           "
+    //           << &iminusjpluskplus_r << " - " << &iplusjpluskplus_r << std::endl;
 
     he.register_send_to_buffer< -1, -1, -1 >(&iminusjminuskminus, sizeof(int));
     he.register_send_to_buffer< -1, 1, -1 >(&iminusjpluskminus, sizeof(int));
@@ -271,109 +271,109 @@ int main(int argc, char **argv) {
     iminusjpluskplus = gridtools::PID;
     iplusjpluskplus = gridtools::PID;
 
-    printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
-           "----------------\n\n",
-        gridtools::PID,
-        gridtools::PID,
-        iminusjminuskminus,
-        jminuskminus,
-        iplusjminuskminus,
-        gridtools::PID,
-        iminuskminus,
-        kminus,
-        ipluskminus,
-        gridtools::PID,
-        iminusjpluskminus,
-        jpluskminus,
-        iplusjpluskminus,
-        gridtools::PID);
+    // printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
+    //        "----------------\n\n",
+    //     gridtools::PID,
+    //     gridtools::PID,
+    //     iminusjminuskminus,
+    //     jminuskminus,
+    //     iplusjminuskminus,
+    //     gridtools::PID,
+    //     iminuskminus,
+    //     kminus,
+    //     ipluskminus,
+    //     gridtools::PID,
+    //     iminusjpluskminus,
+    //     jpluskminus,
+    //     iplusjpluskminus,
+    //     gridtools::PID);
 
-    printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
-           "----------------\n\n",
-        gridtools::PID,
-        gridtools::PID,
-        iminusjminus,
-        jminus,
-        iplusjminus,
-        gridtools::PID,
-        iminus,
-        gridtools::PID,
-        iplus,
-        gridtools::PID,
-        iminusjplus,
-        jplus,
-        iplusjplus,
-        gridtools::PID);
+    // printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
+    //        "----------------\n\n",
+    //     gridtools::PID,
+    //     gridtools::PID,
+    //     iminusjminus,
+    //     jminus,
+    //     iplusjminus,
+    //     gridtools::PID,
+    //     iminus,
+    //     gridtools::PID,
+    //     iplus,
+    //     gridtools::PID,
+    //     iminusjplus,
+    //     jplus,
+    //     iplusjplus,
+    //     gridtools::PID);
 
-    printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
-           "----------------\n\n",
-        gridtools::PID,
-        gridtools::PID,
-        iminusjminuskplus,
-        jminuskplus,
-        iplusjminuskplus,
-        gridtools::PID,
-        iminuskplus,
-        kplus,
-        ipluskplus,
-        gridtools::PID,
-        iminusjpluskplus,
-        jpluskplus,
-        iplusjpluskplus,
-        gridtools::PID);
+    // printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
+    //        "----------------\n\n",
+    //     gridtools::PID,
+    //     gridtools::PID,
+    //     iminusjminuskplus,
+    //     jminuskplus,
+    //     iplusjminuskplus,
+    //     gridtools::PID,
+    //     iminuskplus,
+    //     kplus,
+    //     ipluskplus,
+    //     gridtools::PID,
+    //     iminusjpluskplus,
+    //     jpluskplus,
+    //     iplusjpluskplus,
+    //     gridtools::PID);
 
     he.exchange();
 
-    printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
-           "----------------\n\n",
-        gridtools::PID,
-        gridtools::PID,
-        iminusjminuskminus_r,
-        jminuskminus_r,
-        iplusjminuskminus_r,
-        gridtools::PID,
-        iminuskminus_r,
-        kminus_r,
-        ipluskminus_r,
-        gridtools::PID,
-        iminusjpluskminus_r,
-        jpluskminus_r,
-        iplusjpluskminus_r,
-        gridtools::PID);
+    // printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
+    //        "----------------\n\n",
+    //     gridtools::PID,
+    //     gridtools::PID,
+    //     iminusjminuskminus_r,
+    //     jminuskminus_r,
+    //     iplusjminuskminus_r,
+    //     gridtools::PID,
+    //     iminuskminus_r,
+    //     kminus_r,
+    //     ipluskminus_r,
+    //     gridtools::PID,
+    //     iminusjpluskminus_r,
+    //     jpluskminus_r,
+    //     iplusjpluskminus_r,
+    //     gridtools::PID);
 
-    printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
-           "----------------\n\n",
-        gridtools::PID,
-        gridtools::PID,
-        iminusjminus_r,
-        jminus_r,
-        iplusjminus_r,
-        gridtools::PID,
-        iminus_r,
-        gridtools::PID,
-        iplus_r,
-        gridtools::PID,
-        iminusjplus_r,
-        jplus_r,
-        iplusjplus_r,
-        gridtools::PID);
+    // printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
+    //        "----------------\n\n",
+    //     gridtools::PID,
+    //     gridtools::PID,
+    //     iminusjminus_r,
+    //     jminus_r,
+    //     iplusjminus_r,
+    //     gridtools::PID,
+    //     iminus_r,
+    //     gridtools::PID,
+    //     iplus_r,
+    //     gridtools::PID,
+    //     iminusjplus_r,
+    //     jplus_r,
+    //     iplusjplus_r,
+    //     gridtools::PID);
 
-    printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
-           "----------------\n\n",
-        gridtools::PID,
-        gridtools::PID,
-        iminusjminuskplus_r,
-        jminuskplus_r,
-        iplusjminuskplus_r,
-        gridtools::PID,
-        iminuskplus_r,
-        kplus_r,
-        ipluskplus_r,
-        gridtools::PID,
-        iminusjpluskplus_r,
-        jpluskplus_r,
-        iplusjpluskplus_r,
-        gridtools::PID);
+    // printf("@%3d@ ----------------\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ |%3d |%3d |%3d |\n@%3d@ "
+    //        "----------------\n\n",
+    //     gridtools::PID,
+    //     gridtools::PID,
+    //     iminusjminuskplus_r,
+    //     jminuskplus_r,
+    //     iplusjminuskplus_r,
+    //     gridtools::PID,
+    //     iminuskplus_r,
+    //     kplus_r,
+    //     ipluskplus_r,
+    //     gridtools::PID,
+    //     iminusjpluskplus_r,
+    //     jpluskplus_r,
+    //     iplusjpluskplus_r,
+    //     gridtools::PID);
 
     int res = 1;
 
@@ -409,17 +409,16 @@ int main(int argc, char **argv) {
     res &= (pg.proc(1, 1, 1) == iplusjpluskplus_r);
     res &= (pg.proc(-1, -1, 1) == iminusjminuskplus_r);
 
-    int final;
-    MPI_Reduce(&res, &final, 1, MPI_INT, MPI_LAND, 0, gridtools::GCL_WORLD);
-
-    if (gridtools::PID == 0) {
-        if (!final) {
-            std::cout << "@" << gridtools::PID << "@ FAILED!\n";
-        } else
-            std::cout << "@" << gridtools::PID << "@ PASSED!\n";
-    }
-
     MPI_Barrier(gridtools::GCL_WORLD);
-    MPI_Finalize();
-    return !final;
+    int final = 1;
+    //    MPI_Allreduce(&res, &final, 1, MPI_INT, MPI_LAND, 0, gridtools::GCL_WORLD);
+
+    // if (gridtools::PID == 0) {
+    //     if (!final) {
+    //         std::cout << "@" << gridtools::PID << "@ FAILED!\n";
+    //     } else
+    //         std::cout << "@" << gridtools::PID << "@ PASSED!\n";
+    // }
+
+    EXPECT_TRUE(final);
 }

@@ -57,12 +57,11 @@ namespace gridtools {
      */
     template < typename MssArray >
     struct split_mss_into_independent_esfs {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssArray, is_computation_token >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssArray, is_computation_token >::value), GT_INTERNAL_ERROR);
 
         template < typename MssDescriptor >
         struct mss_split_esfs {
-            GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), GT_INTERNAL_ERROR);
 
             typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;
 
@@ -101,11 +100,11 @@ namespace gridtools {
     template < enumtype::platform BackendId, typename MssDescriptorArray, typename ExtentSizes, typename RepeatFunctor >
     struct build_mss_components_array {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename MssDescriptorArray::elements >::value ==
                                     boost::mpl::size< ExtentSizes >::value),
-            "Internal Error: wrong size");
+            GT_INTERNAL_ERROR);
 
         template < typename _ExtentSizes_ >
         struct unroll_extent_sizes {
@@ -131,7 +130,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename mss_array_t::elements >::value ==
                                     boost::mpl::size< extent_sizes_unrolled_t >::value),
-            "wrong size of the arg_type vector defined inside at least one of the user functions");
+            "Wrong size of the arg_list vector defined inside at least one of the user functions");
 
         typedef meta_array< typename boost::mpl::fold<
                                 boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
@@ -184,7 +183,7 @@ namespace gridtools {
      */
     template < typename MssComponents, typename Grid >
     struct mss_functor_do_methods {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
 
         /**
          *  compute the functor do methods - This is the most computationally intensive part
@@ -204,8 +203,8 @@ namespace gridtools {
      */
     template < typename MssComponents, typename Grid >
     struct mss_loop_intervals {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
         /**
          *  compute the functor do methods - This is the most computationally intensive part
@@ -221,7 +220,7 @@ namespace gridtools {
 
     template < typename MssComponents, typename Grid >
     struct mss_functor_do_method_lookup_maps {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
         typedef typename mss_functor_do_methods< MssComponents, Grid >::type functor_do_methods;
 
         typedef typename mss_loop_intervals< MssComponents, Grid >::type loop_intervals;

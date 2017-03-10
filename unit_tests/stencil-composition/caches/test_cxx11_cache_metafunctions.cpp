@@ -165,9 +165,9 @@ TEST(cache_metafunctions, get_cache_storage_tuple) {
             cache_storage_tuple_t,
             boost::fusion::map<
                 boost::fusion::pair< p_in::index_type,
-                    cache_storage< block_size< 32, 4, 1 >, extent< -1, 2, -2, 1 >, pointer< storage_type > > >,
+                    cache_storage< block_size< 32, 4, 1 >, extent< -1, 2, -2, 1 >, 1, pointer< storage_type > > >,
                 boost::fusion::pair< p_buff::index_type,
-                    cache_storage< block_size< 32, 4, 1 >, extent< -2, 2, -3, 2 >, pointer< storage_type > > > > >::
+                    cache_storage< block_size< 32, 4, 1 >, extent< -2, 2, -3, 2 >, 1, pointer< storage_type > > > > >::
                 value),
         "ERROR");
 }

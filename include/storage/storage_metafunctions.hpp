@@ -102,8 +102,7 @@ namespace gridtools {
         : public is_actual_storage< pointer< typename BaseType::basic_type > > {};
 
     template < typename BaseType >
-    struct is_actual_storage< pointer< global_parameter< BaseType > > >
-        : public is_actual_storage< pointer< BaseType > > {};
+    struct is_actual_storage< pointer< global_parameter< BaseType > > > : public boost::mpl::false_ {};
 
 #ifdef CXX11_ENABLED
     // Decorator is e.g. a data_field
@@ -154,10 +153,11 @@ namespace gridtools {
     /* @brief metafunction that takes a pointer<storage<base>> type and returns a pointer<base> type */
     template < typename T >
     struct get_user_storage_base_t {
-        GRIDTOOLS_STATIC_ASSERT((is_pointer< T >::value), "the passed type is not a pointer type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_pointer< T >::value), GT_INTERNAL_ERROR_MSG("the passed type is not a pointer type"));
         GRIDTOOLS_STATIC_ASSERT(
             (is_any_storage< typename T::value_type >::value || is_global_parameter< typename T::value_type >::value),
-            "the passed pointer type does not contain a storage type");
+            GT_INTERNAL_ERROR_MSG("the passed pointer type does not contain a storage type"));
         typedef pointer< typename T::value_type::super > type;
     };
 
@@ -166,14 +166,15 @@ namespace gridtools {
     template < typename T >
     struct get_user_storage_ptrs_t {
         typedef typename boost::remove_reference< T >::type ty;
-        GRIDTOOLS_STATIC_ASSERT((is_pointer< ty >::value), "the passed type is not a pointer type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_pointer< ty >::value), GT_INTERNAL_ERROR_MSG("the passed type is not a pointer type"));
         typedef typename ty::value_type storage_ty;
         GRIDTOOLS_STATIC_ASSERT((is_any_storage< storage_ty >::value || is_global_parameter< storage_ty >::value),
             "the passed pointer type does neither contain a storage- nor a global_parameter-type");
         typedef typename storage_ty::storage_ptr_t storage_ptr_ty;
         GRIDTOOLS_STATIC_ASSERT(
             (is_hybrid_pointer< storage_ptr_ty >::value || is_wrap_pointer< storage_ptr_ty >::value),
-            "the contained storage pointer type is neither a wrap nor a hybrid pointer type");
+            GT_INTERNAL_ERROR_MSG("the contained storage pointer type is neither a wrap nor a hybrid pointer type"));
         typedef pointer< storage_ptr_ty > type;
     };
 
@@ -196,7 +197,6 @@ namespace gridtools {
 
         template < typename T >
         typename get_user_storage_ptrs_t< T >::type operator()(T &st) const {
-            typedef typename get_user_storage_ptrs_t< T >::type ty;
             return st->get_storage_pointer();
         }
     };
@@ -206,7 +206,8 @@ namespace gridtools {
     template < typename U >
     struct get_storage_metadata_ptrs {
         U &metadata_set;
-        GRIDTOOLS_STATIC_ASSERT(is_metadata_set< U >::value, "passed type is not a metadata_set");
+        GRIDTOOLS_STATIC_ASSERT(
+            is_metadata_set< U >::value, GT_INTERNAL_ERROR_MSG("passed type is not a metadata_set"));
         get_storage_metadata_ptrs(U &ms) : metadata_set(ms) {}
 
         /** @brief overload for the case that the "storage" is a global_parameter. Skip the element in this case.
@@ -214,8 +215,10 @@ namespace gridtools {
         template < typename T >
         void operator()(
             T &st, typename boost::disable_if< is_global_parameter< typename T::value_type > >::type *a = 0) const {
-            GRIDTOOLS_STATIC_ASSERT(is_any_storage< typename T::value_type >::value,
-                "passed object is neither a pointer<storage<T>> nor a pointer<global_parameter<T>>");
+            GRIDTOOLS_STATIC_ASSERT(
+                is_any_storage< typename T::value_type >::value,
+                GT_INTERNAL_ERROR_MSG(
+                    "passed object is neither a pointer<storage<T>> nor a pointer<global_parameter<T>>"));
             metadata_set.insert(st->get_meta_data_pointer());
         }
 
@@ -233,7 +236,8 @@ namespace gridtools {
 
     template < typename Storage >
     static Storage const &extract_meta_data(Storage &st_) {
-        GRIDTOOLS_STATIC_ASSERT(!sizeof(Storage), "Internal error, missing the proper overload for extract_meta_data");
+        GRIDTOOLS_STATIC_ASSERT(
+            !sizeof(Storage), GT_INTERNAL_ERROR_MSG("missing the proper overload for extract_meta_data"));
     }
 
     template < typename Storage >

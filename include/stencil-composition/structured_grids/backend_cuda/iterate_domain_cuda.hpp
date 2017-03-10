@@ -44,9 +44,6 @@
 
 namespace gridtools {
 
-    template < typename T >
-    struct accessor_return_type;
-
     /**
      * @brief iterate domain class for the CUDA backend
      */
@@ -55,25 +52,23 @@ namespace gridtools {
         : public IterateDomainBase< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > > // CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_cuda);
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 
         typedef IterateDomainBase< iterate_domain_cuda< IterateDomainBase, IterateDomainArguments > > super;
         typedef typename IterateDomainArguments::local_domain_t local_domain_t;
         typedef typename local_domain_t::esf_args local_domain_args_t;
 
       public:
-        template < typename Accessor >
-        struct accessor_return_type {
-            typedef typename super::template accessor_return_type< Accessor >::type type;
-        };
-
         /**
          * metafunction that computes the return type of all operator() of an accessor.
          *
          * If the temaplate argument is not an accessor ::type is mpl::void_
          *
          */
+        template < typename Accessor >
+        struct accessor_return_type {
+            typedef typename super::template accessor_return_type< Accessor >::type type;
+        };
 
         typedef typename super::data_pointer_array_t data_pointer_array_t;
         typedef typename super::strides_cached_t strides_cached_t;
@@ -207,7 +202,7 @@ namespace gridtools {
         template < typename Accessor >
         struct accessor_points_to_readonly_arg {
 
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::at< local_domain_args_t,
                 boost::mpl::integral_c< int, Accessor::index_type::value > >::type arg_t;
@@ -221,7 +216,7 @@ namespace gridtools {
         */
         template < typename Accessor >
         struct accessor_read_from_texture {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::and_<
                 typename boost::mpl::and_< typename accessor_points_to_readonly_arg< Accessor >::type,
                     typename boost::mpl::not_< typename boost::mpl::has_key< bypass_caches_set_t,
@@ -248,13 +243,13 @@ namespace gridtools {
 #endif
                     accessor_) const {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
 
             //        assert(m_pshared_iterate_domain);
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within
             // the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_type::value > >().at(
+            return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_type::value > >().at< 0 >(
                 m_thread_pos, accessor_);
         }
 
@@ -273,7 +268,7 @@ namespace gridtools {
             const &
 #endif
                     accessor_) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
             return super::template get_value< Accessor, void * RESTRICT >(
                 accessor_, super::template get_data_pointer< Accessor >(accessor_));
         }
@@ -285,7 +280,7 @@ namespace gridtools {
         template < typename ReturnType, typename Accessor, typename StoragePointer >
         GT_FUNCTION typename boost::enable_if< typename accessor_read_from_texture< Accessor >::type, ReturnType >::type
         get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
 #if __CUDA_ARCH__ >= 350
             // on Kepler use ldg to read directly via read only cache
             return __ldg(storage_pointer + pointer_offset);
@@ -301,7 +296,7 @@ namespace gridtools {
         GT_FUNCTION
             typename boost::disable_if< typename accessor_read_from_texture< Accessor >::type, ReturnType >::type
             get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
         }
 

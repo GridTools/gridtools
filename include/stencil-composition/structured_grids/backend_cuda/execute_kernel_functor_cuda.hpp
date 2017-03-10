@@ -48,7 +48,7 @@ namespace gridtools {
         template < int VBoundary >
         struct padded_boundary
             : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
-            BOOST_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8);
+            GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
         template < typename RunFunctorArguments, typename LocalDomain >
@@ -206,8 +206,7 @@ namespace gridtools {
          */
         template < typename RunFunctorArguments >
         struct execute_kernel_functor_cuda {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
