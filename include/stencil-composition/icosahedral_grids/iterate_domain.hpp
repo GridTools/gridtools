@@ -280,7 +280,8 @@ namespace gridtools {
                 array_index_t >(
                 boost::fusion::as_vector(m_local_domain.m_local_metadata), Steps::value, m_index, strides()));
             static_cast< IterateDomainImpl * >(this)->template increment_impl< Coordinate, Steps >();
-            m_grid_position[Coordinate] += Steps::value;
+            m_grid_position[Coordinate] =
+                (uint_t)((int_t)m_grid_position[Coordinate] + Steps::value); // suppress warning
         }
 
         /**@brief method for incrementing the index when moving forward along the given direction
