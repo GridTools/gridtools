@@ -11,8 +11,6 @@ import distutils.dir_util as dutil
 
 def build_path(host, jplan, target, prec, std):
     path="/scratch/jenkins/workspace/"+jplan+"/build_type/release/compiler/gcc/label/"+host+"/mpi/MPI/"
-    if jplan == "GridTools":
-        path=path+"/python/python_off"
     
     path=path+"/real_type/"+prec+"/std/"+std+"/target/"+target+"/build/"   
 
