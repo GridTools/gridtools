@@ -166,7 +166,7 @@ namespace gridtools {
         template < ushort_t SnapshotTo, ushort_t DimTo = 0 >
         struct with {
             template < typename Storage >
-            GT_FUNCTION static void apply(Storage &storage_) {
+            static void apply(Storage &storage_) {
                 GRIDTOOLS_STATIC_ASSERT(is_data_field< Storage >::value,
                     "\"swap\" can only be called with instances of type \"data_field\" ");
                 typename Storage::pointer_type tmp = storage_.template get< SnapshotFrom, DimFrom >();
