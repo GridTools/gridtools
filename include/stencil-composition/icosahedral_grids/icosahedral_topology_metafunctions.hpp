@@ -95,8 +95,9 @@ namespace gridtools {
 
                 GT_FUNCTION constexpr static UInt apply(const array< uint_t, 3 > space_dims) {
                     static_assert((Idx < 4), "Error");
+                    // cast to size_t to suppress a warning
                     return ((Idx == 0) ? space_dims[0]
-                                       : ((Idx == 1) ? LocationType::n_colors::value : space_dims[Idx - 1]));
+                                       : ((Idx == 1) ? LocationType::n_colors::value : space_dims[(size_t)(Idx - 1)]));
                 }
 
                 template < typename... ExtraInts >
