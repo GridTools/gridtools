@@ -65,7 +65,7 @@ namespace gridtools {
     template < uint_t Tag, typename T >
     class switch_variable {
 #ifdef CXX11_ENABLED
-        std::function< T() > m_value;
+        NVstd::function< T() > m_value;
 #else
         T (*m_value)();
 #endif
