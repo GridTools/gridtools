@@ -147,7 +147,6 @@ namespace gridtools {
             }
         };
 
-        /**
         /** In the context of stencil_functions, this type represents
            the aggregator/domain/evaluator to be passed to a stencil
            function, called within a stencil operator or another
