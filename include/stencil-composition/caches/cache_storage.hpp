@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/utility/enable_if.hpp>
 #include "../../common/gt_assert.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/array.hpp"
@@ -112,6 +113,9 @@ namespace gridtools {
 #endif
             >::type >::type layout_t;
 
+        template<typename Accessor>
+        struct is_acc_k_cache : is_k_cache<cache_t>{};
+
         GT_FUNCTION
         explicit constexpr cache_storage() {}
 
@@ -154,7 +158,7 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION value_type const &RESTRICT check_kcache_access(Accessor const &accessor_,
-            typename boost::enable_if_c< is_k_cache< cache_t >::value, int >::type = 0) const {
+            typename boost::enable_if_c< is_acc_k_cache<Accessor >::value, int >::type = 0) const {
 
             constexpr const meta_t s_storage_info;
 
@@ -183,7 +187,7 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_,
-            typename boost::enable_if_c< is_k_cache< cache_t >::value, int >::type = 0) const {
+            typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
             check_kcache_access(accessor_);
 
             constexpr const meta_t s_storage_info;
