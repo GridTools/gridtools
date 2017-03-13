@@ -61,7 +61,7 @@ namespace test_staggered_keyword {
         typedef accessor< 1 > p_j;
         typedef boost::mpl::vector< p_i, p_j > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             // std::cout<<"i: "<< eval(p_i(-5,-5,0)) <<", j: "<<eval(p_j(-5,-5,0))<< std::endl;
             if (eval(p_i(-5, -5, 0)) == 5)
                 ok_i++;

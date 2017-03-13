@@ -87,7 +87,7 @@ namespace copystencil_python {
         // the operation of this functor
         //
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out_data()) = eval(in_data());
         }
     };

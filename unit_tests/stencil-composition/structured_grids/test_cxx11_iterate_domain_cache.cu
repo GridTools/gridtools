@@ -73,11 +73,11 @@ struct functor1 {
     typedef boost::mpl::vector< in1, in3, in4, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, kminimum) {}
+    GT_FUNCTION static void Do(Evaluation &eval, kminimum) {}
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, krange1) {}
+    GT_FUNCTION static void Do(Evaluation &eval, krange1) {}
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, krange2) {}
+    GT_FUNCTION static void Do(Evaluation &eval, krange2) {}
 };
 
 struct functor2 {
@@ -89,9 +89,9 @@ struct functor2 {
     typedef boost::mpl::vector< in1, in2, in4, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, kmaximum) {}
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {}
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, krange2) {}
+    GT_FUNCTION static void Do(Evaluation &eval, krange2) {}
 };
 
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > kmin_and_range1;

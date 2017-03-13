@@ -48,7 +48,7 @@ struct functor {
     typedef boost::mpl::vector2< a0, a1 > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 #define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
