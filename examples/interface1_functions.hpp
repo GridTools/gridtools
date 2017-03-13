@@ -97,7 +97,6 @@ namespace horizontal_diffusion_functions {
         template < typename Evaluator >
         GT_FUNCTION static void Do(Evaluator const &eval, x_flx) {
 #ifdef FUNCTIONS_MONOLITHIC
-#pragma message "monolithic version"
             gridtools::float_type _x_ =
                 (gridtools::float_type)4.0 * eval(in()) -
                 (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
