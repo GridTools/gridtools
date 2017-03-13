@@ -119,13 +119,6 @@
 #endif
 #endif
 
-// redirect to nvstd namespace if CUDA compiler
-#ifdef __CUDACC__
-#define GT_NV nv
-#else
-#define GT_NV
-#endif
-
 // max limit of indices for metastorages, beyond indices are reserved for library
 #ifndef META_STORAGE_INDEX_LIMIT
 #define META_STORAGE_INDEX_LIMIT 1000
