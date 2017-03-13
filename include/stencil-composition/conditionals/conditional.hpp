@@ -44,14 +44,29 @@
    use the \ref gridtools::if_ statement from whithin the make_computation.
 */
 #ifdef CXX11_ENABLED
-#if (GCC_53_BUG)
+
+// HACK: the following is just to remove a warning (it is always pure host)
+#if defined(__CUDACC__) && (CUDA_VERSION > 75)
+#include <nvfunctional>
+namespace gridtools {
+    template < typename F >
+    using function_wrapper = nvstd::function< F >;
+}
+#else
 #include <functional>
 namespace gridtools {
+    template < typename F >
+    using function_wrapper = std::function< F >;
+}
+#endif
+
+#if (GCC_53_BUG)
+namespace gridtools {
     struct condition_functor {
-        std::function< short_t() > m_1;
+        function_wrapper< short_t() > m_1;
         short_t m_2;
-        condition_functor(std::function< int() > t1_, short_t t2_) : m_1(t1_), m_2(t2_) {}
-        condition_functor(std::function< bool() > t1_) : m_1([t1_]() -> short_t { return t1_() ? 0 : 1; }), m_2(0) {}
+        condition_functor(function_wrapper< int() > t1_, short_t t2_) : m_1(t1_), m_2(t2_) {}
+        condition_functor(function_wrapper< bool() > t1_) : m_1([t1_]() -> short_t { return t1_() ? 0 : 1; }), m_2(0) {}
 
         condition_functor() : m_1([]() { return 0; }), m_2(0) {}
 
@@ -60,7 +75,7 @@ namespace gridtools {
 }
 #define BOOL_FUNC(val) condition_functor val
 #else
-#define BOOL_FUNC(val) std::function< bool() > val
+#define BOOL_FUNC(val) function_wrapper< bool() > val
 #endif
 #else
 #define BOOL_FUNC(val) bool (*val)()
@@ -106,7 +121,7 @@ namespace gridtools {
         /**
            @brief constructor from a std::function
          */
-        conditional(std::function< bool() > c) : m_value(c) {}
+        conditional(function_wrapper< bool() > c) : m_value(c) {}
 #endif
 #endif // GCC_53_BUG
 
