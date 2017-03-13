@@ -84,6 +84,7 @@ namespace gridtools {
             typename iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+        typedef typename iterate_domain_cache_t::k_caches_map_t k_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
         typedef typename super::reduction_type_t reduction_type_t;
 
@@ -227,21 +228,38 @@ namespace gridtools {
                 >::type type;
         };
 
+        /**
+        * @brief metafunction that determines if an accessor is accessed via shared memory
+        */
+        template < typename Accessor >
+        struct accessor_from_shared_mem {
+            typedef typename boost::remove_reference< Accessor >::type acc_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+            typedef static_uint< acc_t::index_type::value > index_t;
+            typedef typename boost::mpl::has_key< ij_caches_map_t, index_t >::type type;
+            static const bool value = type::value;
+        };
+
+        /**
+        * @brief metafunction that determines if an accessor is accessed via kcache register set
+        */
+        template < typename Accessor >
+        struct accessor_from_kcache_reg {
+            typedef typename boost::remove_reference< Accessor >::type acc_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+            typedef static_uint< acc_t::index_type::value > index_t;
+            typedef typename boost::mpl::has_key< k_caches_map_t, index_t >::type type;
+            static const bool value = type::value;
+        };
+
         /** @brief return a value that was cached
-        * specialization where cache is not explicitly disabled by user
+        * specialization where cache goes via shared memory
         */
         template < typename ReturnType, typename Accessor >
-        GT_FUNCTION typename boost::disable_if<
-            boost::mpl::has_key< bypass_caches_set_t,
-                static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
-            ReturnType >::type
-        get_cache_value_impl(Accessor
-#ifdef CXX11_ENABLED
-                &&
-#else
-            const &
-#endif
-                    accessor_) const {
+        GT_FUNCTION typename boost::enable_if< accessor_from_shared_mem< Accessor >, ReturnType >::type
+        get_cache_value_impl(Accessor const &accessor_) const {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
 
@@ -261,13 +279,20 @@ namespace gridtools {
             boost::mpl::has_key< bypass_caches_set_t,
                 static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
             ReturnType >::type
-        get_cache_value_impl(Accessor
-#ifdef CXX11_ENABLED
-                &&
-#else
-            const &
-#endif
-                    accessor_) const {
+        get_cache_value_impl(Accessor const &accessor_) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
+            return super::template get_value< Accessor, void * RESTRICT >(
+                accessor_, super::template get_data_pointer< Accessor >(accessor_));
+        }
+
+        /** @brief return a value that was cached
+        * specialization where cache goes via kcache register set
+        *
+        */
+        template < typename ReturnType, typename Accessor >
+        GT_FUNCTION typename boost::enable_if< accessor_from_kcache_reg< Accessor >, ReturnType >::type
+        get_cache_value_impl(Accessor const &accessor_) const {
+            // Actual Kcache needs to be implemented
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
             return super::template get_value< Accessor, void * RESTRICT >(
                 accessor_, super::template get_data_pointer< Accessor >(accessor_));

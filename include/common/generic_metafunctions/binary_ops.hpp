@@ -34,17 +34,37 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "accumulate.hpp"
-#include "binary_ops.hpp"
+#include "../host_device.hpp"
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
-    /**@brief specialization to stop the recursion*/
-    template < typename... Args >
-    GT_FUNCTION static constexpr bool is_variadic_pack_of(Args... args) {
-        return accumulate(logical_and(), args...);
-    }
+    /**@brief operation to be used inside the accumulator*/
+    struct logical_and {
+        GT_FUNCTION
+        constexpr logical_and() {}
+        template < typename T >
+        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
+            return x && y;
+        }
+    };
 
-#endif
-} // namespace gridtools
+    /**@brief operation to be used inside the accumulator*/
+    struct logical_or {
+        GT_FUNCTION
+        constexpr logical_or() {}
+        template < typename T >
+        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
+            return x || y;
+        }
+    };
+
+    struct equal {
+        GT_FUNCTION
+        constexpr equal() {}
+
+        template < typename T >
+        GT_FUNCTION constexpr bool operator()(const T &x, const T &y) const {
+            return x == y;
+        }
+    };
+}

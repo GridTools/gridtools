@@ -76,7 +76,8 @@ namespace gridtools {
         Positional > >
     make_computation_impl(Domain &domain, const Grid &grid, Mss... args_) {
 
-        GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< Domain, Mss... >::type::value), "Some placeholders used in the computation are not listed in the aggregator");
+        GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< Domain, Mss... >::type::value),
+            "Some placeholders used in the computation are not listed in the aggregator");
 
         typedef typename _impl::create_conditionals_set< Domain, Grid, Mss... >::type conditionals_set_t;
 

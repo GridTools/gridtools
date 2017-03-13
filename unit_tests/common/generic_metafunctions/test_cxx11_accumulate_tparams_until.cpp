@@ -33,28 +33,23 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "../host_device.hpp"
+#include "gtest/gtest.h"
+#include <common/defs.hpp>
+#include <common/generic_metafunctions/accumulate_tparams_until.hpp>
+#include <common/generic_metafunctions/binary_ops.hpp>
+
+using namespace gridtools;
 
 namespace gridtools {
 
-    /**@brief operation to be used inside the accumulator*/
-    struct logical_and {
-        GT_FUNCTION
-        constexpr logical_and() {}
-        template < typename T >
-        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
-            return x && y;
-        }
-    };
+    template < int_t... Vals >
+    struct test_container {};
+}
 
-    /**@brief operation to be used inside the accumulator*/
-    struct logical_or {
-        GT_FUNCTION
-        constexpr logical_or() {}
-        template < typename T >
-        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
-            return x || y;
-        }
-    };
+TEST(accumulate_tparams_until, first_few_vals) {
+    using ref = test_container< 1, -2, 3, -3, 4, 5 >;
+    using test = test_container< 1, -2, 3, -2, 4, 5 >;
+
+    static_assert(accumulate_tparams_until< int_t, equal, logical_and, ref, test, 3 >::value, "ERROR");
+    static_assert(!accumulate_tparams_until< int_t, equal, logical_and, ref, test, 4 >::value, "ERROR");
 }
