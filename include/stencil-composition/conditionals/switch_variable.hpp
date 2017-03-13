@@ -41,7 +41,6 @@
 #include <boost/scoped_ptr.hpp>
 #endif
 #include "condition.hpp"
-#include "../../common/nv_functional_wrapper.hpp"
 
 /**@file*/
 
@@ -66,7 +65,7 @@ namespace gridtools {
     template < uint_t Tag, typename T >
     class switch_variable {
 #ifdef CXX11_ENABLED
-        function_wrapper< T() > m_value;
+        NVstd::function< T() > m_value;
 #else
         T (*m_value)();
 #endif
@@ -94,7 +93,7 @@ namespace gridtools {
          */
         constexpr switch_variable(
 #ifdef CXX11_ENABLED
-            function_wrapper< T() > c
+            std::function< T() > c
 #else
             T (*c)()
 #endif
@@ -119,7 +118,7 @@ namespace gridtools {
 
 #ifdef CXX11_ENABLED
         /**@brief returns the value of the switch_variable*/
-        constexpr function_wrapper< T() > value() const { return m_value; }
+        constexpr std::function< T() > value() const { return m_value; }
 #endif
     };
 

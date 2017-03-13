@@ -44,14 +44,14 @@
    use the \ref gridtools::if_ statement from within the make_computation.
 */
 #ifdef CXX11_ENABLED
-#include "../../common/nv_functional_wrapper.hpp"
 #if (GCC_53_BUG)
+#include <NVfunctional>
 namespace gridtools {
     struct condition_functor {
-        function_wrapper< short_t() > m_1;
+        NVstd::function< short_t() > m_1;
         short_t m_2;
-        condition_functor(function_wrapper< int() > t1_, short_t t2_) : m_1(t1_), m_2(t2_) {}
-        condition_functor(function_wrapper< bool() > t1_) : m_1([t1_]() -> short_t { return t1_() ? 0 : 1; }), m_2(0) {}
+        condition_functor(NVstd::function< int() > t1_, short_t t2_) : m_1(t1_), m_2(t2_) {}
+        condition_functor(NVstd::function< bool() > t1_) : m_1([t1_]() -> short_t { return t1_() ? 0 : 1; }), m_2(0) {}
 
         condition_functor() : m_1([]() { return 0; }), m_2(0) {}
 
@@ -60,7 +60,7 @@ namespace gridtools {
 }
 #define BOOL_FUNC(val) condition_functor val
 #else
-#define BOOL_FUNC(val) function_wrapper< bool() > val
+#define BOOL_FUNC(val) NVstd::function< bool() > val
 #endif
 #else
 #define BOOL_FUNC(val) bool (*val)()
@@ -106,7 +106,7 @@ namespace gridtools {
         /**
            @brief constructor from a std::function
          */
-        conditional(function_wrapper< bool() > c) : m_value(c) {}
+        conditional(NVstd::function< bool() > c) : m_value(c) {}
 #endif
 #endif // GCC_53_BUG
 
