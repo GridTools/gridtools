@@ -64,6 +64,7 @@ namespace gridtools {
             : m_partitioner(other.m_partitioner), m_direction_i(other.m_direction_i),
               m_direction_j(other.m_direction_j) {
             value_list = other.value_list;
+            assert_valid_grid();
         }
 
         GT_FUNCTION
@@ -81,6 +82,7 @@ namespace gridtools {
               m_direction_i(direction_i), m_direction_j(direction_j) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            assert_valid_grid();
         }
 
         template < typename ParallelStorage >
@@ -91,6 +93,7 @@ namespace gridtools {
         {
             GRIDTOOLS_STATIC_ASSERT(!is_partitioner_dummy< Partitioner >::value,
                 "you have to add the partitioner to the grid template parameters");
+            assert_valid_grid();
         }
 
         GT_FUNCTION
@@ -109,6 +112,7 @@ namespace gridtools {
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "You have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            assert_valid_grid();
         }
 
         GT_FUNCTION
@@ -167,6 +171,13 @@ namespace gridtools {
         Partitioner const &m_partitioner;
         halo_descriptor m_direction_i;
         halo_descriptor m_direction_j;
+
+        void assert_valid_grid() {
+#ifndef __CUDA_ARCH__
+            assert(m_direction_i.valid() && m_direction_j.valid() &&
+                   "The grid is invalid: verify that your domain is not empty.");
+#endif
+        }
     };
 
 } // namespace gridtools
