@@ -113,8 +113,8 @@ namespace gridtools {
 #endif
             >::type >::type layout_t;
 
-        template<typename Accessor>
-        struct is_acc_k_cache : is_k_cache<cache_t>{};
+        template < typename Accessor >
+        struct is_acc_k_cache : is_k_cache< cache_t > {};
 
         GT_FUNCTION
         explicit constexpr cache_storage() {}
@@ -158,7 +158,7 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION value_type const &RESTRICT check_kcache_access(Accessor const &accessor_,
-            typename boost::enable_if_c< is_acc_k_cache<Accessor >::value, int >::type = 0) const {
+            typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
 
             constexpr const meta_t s_storage_info;
 
@@ -169,7 +169,7 @@ namespace gridtools {
             typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
             typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
 #else
-            assert((_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value == size()));
+            assert((_impl::compute_size< NColors, minus_t, plus_t, tiles_t, storage_t >::value == size()));
 #endif
 
             assert(s_storage_info.index(accessor_) - kminus_t::value < size());

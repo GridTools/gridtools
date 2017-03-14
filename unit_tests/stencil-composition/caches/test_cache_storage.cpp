@@ -45,8 +45,11 @@ TEST(cache_storage, multidimensional_caches) {
     typedef pointer< base_storage< wrap_pointer< double >, meta_storage_base< static_int< 0 >, layout_t, false >, 4 > >
         storage_t;
     typedef detail::cache_impl< IJ, arg< 0, storage_t >, local, boost::mpl::void_ > cache_t;
-    typedef cache_storage< cache_t, block_size< 8, 3, 4, 5, 6 >, extent< -1, 1, -2, 2, 0, 0, 0, 0, -1, 0 >, 1, storage_t >
-        cache_storage_t;
+    typedef cache_storage< cache_t,
+        block_size< 8, 3, 4, 5, 6 >,
+        extent< -1, 1, -2, 2, 0, 0, 0, 0, -1, 0 >,
+        1,
+        storage_t > cache_storage_t;
     typedef accessor< 0, enumtype::in, extent<>, 7 > acc_t;
 
     static constexpr cache_storage_t::meta_t m_;
@@ -117,9 +120,9 @@ TEST(cache_storage, kcaches) {
     GRIDTOOLS_STATIC_ASSERT(m_.value().dim(1) == 1, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.value().dim(2) == 6, "error");
 
-    GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, -3)) == -3, "error");
-    GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, -2)) == -2, "error");
-    GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, -1)) == -1, "error");
+    GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, -3)) == (int_t)-3, "error");
+    GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, -2)) == (int_t)-2, "error");
+    GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, -1)) == (int_t)-1, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 0)) == 0, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 1)) == 1, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 2)) == 2, "error");
