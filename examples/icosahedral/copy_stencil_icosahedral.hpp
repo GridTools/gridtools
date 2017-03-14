@@ -63,7 +63,7 @@ namespace test_copy_stencil_icosahedral {
 
         typedef accessor< 0, enumtype::inout, icosahedral_topology_t::cells > out;
         typedef accessor< 1, enumtype::in, icosahedral_topology_t::cells > in;
-        typedef boost::mpl::vector< out, in > arg_list;
+        //        typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {

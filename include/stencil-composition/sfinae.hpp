@@ -51,14 +51,13 @@ namespace gridtools {
     template <>
     struct SFINAE< int > {};
 
-#ifdef CXX11_ENABLED
 #define HAS_TYPE_SFINAE(name, has_name, get_name)                             \
-    template < typename TFunctor >                                            \
+    template < typename TFunctorInternal >                                    \
     struct has_name {                                                         \
         struct MixIn {                                                        \
             using name = int;                                                 \
         };                                                                    \
-        struct derived : public TFunctor, public MixIn {};                    \
+        struct derived : public TFunctorInternal, public MixIn {};            \
                                                                               \
         template < typename TDerived >                                        \
         static boost::mpl::false_ test(SFINAE< typename TDerived::name > *x); \
@@ -66,36 +65,13 @@ namespace gridtools {
         static boost::mpl::true_ test(...);                                   \
                                                                               \
         typedef decltype(test< derived >(0)) type;                            \
-        typedef TFunctor functor_t;                                           \
+        typedef TFunctorInternal functor_t;                                   \
     };                                                                        \
                                                                               \
-    template < typename Functor >                                             \
+    template < typename FunctorInternal >                                     \
     struct get_name {                                                         \
-        typedef typename Functor::name type;                                  \
+        typedef typename FunctorInternal::name type;                          \
     };
-#else
-#define HAS_TYPE_SFINAE(name, has_name, get_name)                             \
-    template < typename TFunctor >                                            \
-    struct has_name {                                                         \
-        struct MixIn {                                                        \
-            typedef int name;                                                 \
-        };                                                                    \
-        struct derived : public TFunctor, public MixIn {};                    \
-                                                                              \
-        template < typename TDerived >                                        \
-        static boost::mpl::false_ test(SFINAE< typename TDerived::name > *x); \
-        template < typename TDerived >                                        \
-        static boost::mpl::true_ test(...);                                   \
-                                                                              \
-        typedef BOOST_TYPEOF(test< derived >(0)) type;                        \
-        typedef TFunctor functor_t;                                           \
-    };                                                                        \
-                                                                              \
-    template < typename Functor >                                             \
-    struct get_name {                                                         \
-        typedef typename Functor::name type;                                  \
-    };
-#endif
 
 /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
 #define HAS_STATIC_METHOD_SFINAE(name)       \
