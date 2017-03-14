@@ -42,6 +42,9 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
+#include <boost/mpl/at.hpp>
+
+#include <boost/fusion/sequence.hpp>
 #include "common/defs.hpp"
 #include "stencil-composition/empty_extent.hpp"
 #include "stencil-composition/backend.hpp"
@@ -221,7 +224,7 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
                                                                              pointer< storage_type > > > > >::value),
         "ERROR");
 }
-template<typename T> struct printz{BOOST_MPL_ASSERT_MSG((false), ZZZZZZZZZZZZZZZZZZ, (T));};
+
 TEST(cache_metafunctions, get_k_cache_storage_tuple) {
     typedef metadata_set< boost::mpl::vector1< pointer< storage_type::storage_info_type > > > metadata_vector_t;
     typedef boost::mpl::vector4< pointer< storage_type >,
@@ -258,17 +261,17 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
     // fusion::result_of::at_key<cache_storage_tuple_t, p_in::index_type> does not compile,
     // therefore we convert into an mpl map and do all the metaprogramming operations on that map
     typedef fusion_map_to_mpl_map< cache_storage_tuple_t >::type cache_storage_mpl_map_t;
-printz<cache_storage_tuple_t> oo;
+
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< cache_storage_tuple_t,
                                 boost::fusion::map< boost::fusion::pair< boost::mpl::integral_c< uint_t, 3 >,
                                                         cache_storage< cache3_t,
-                                                                             block_size< 0, 0, 0 >,
+                                                                             block_size< 1, 1, 1 >,
                                                                              extent< 0, 0, 0, 0, 0, 1 >,
                                                                              1,
                                                                              pointer< storage_type > > >,
                                                     boost::fusion::pair< boost::mpl::integral_c< uint_t, 2 >,
                                                         cache_storage< cache4_t,
-                                                                             block_size< 0, 0, 0 >,
+                                                                             block_size< 1, 1, 1 >,
                                                                              extent< 0, 0, 0, 0, -1, 1 >,
                                                                              1,
                                                                              pointer< storage_type > > > > >::value),
