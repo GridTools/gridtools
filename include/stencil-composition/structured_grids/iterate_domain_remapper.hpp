@@ -89,7 +89,7 @@ namespace gridtools {
             typedef typename _impl::iterate_domain_remapper_base_esf_args_map< IterateDomainEvaluatorImpl >::type
                 esf_args_map_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< iterate_domain_t >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< iterate_domain_t >::value), GT_INTERNAL_ERROR);
             typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
 #ifdef CXX11_ENABLED
@@ -149,7 +149,7 @@ namespace gridtools {
             */
             template < ushort_t Coordinate, typename Accessor >
             GT_FUNCTION uint_t get_storage_dim(Accessor acc_) const {
-                GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "wrong type");
+                GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
                 return m_iterate_domain.get_storage_dim< Coordinate >(remap_accessor_t(acc_));
             }
@@ -169,7 +169,7 @@ namespace gridtools {
             DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper);
 
           public:
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
             typedef iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap > > super;
 
             GT_FUNCTION
@@ -190,7 +190,7 @@ namespace gridtools {
             DISALLOW_COPY_AND_ASSIGN(positional_iterate_domain_remapper);
 
           public:
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
             typedef iterate_domain_remapper_base< positional_iterate_domain_remapper< IterateDomain, EsfArgsMap > >
                 super;
 
@@ -237,7 +237,7 @@ namespace gridtools {
      */
     template < typename IterateDomain, typename EsfArgsMap >
     struct get_iterate_domain_remapper {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
         template < typename _IterateDomain, typename _EsfArgsMap >
         struct select_basic_iterate_domain_remapper {
             typedef strgrid::iterate_domain_remapper< _IterateDomain, _EsfArgsMap > type;

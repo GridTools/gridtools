@@ -310,9 +310,7 @@ namespace vertical_advection_dycore {
                         p_dcol()) // esf_descriptor
                     ),
                 gridtools::make_multistage(execute< backward >(),
-#ifdef CXX11_ENABLED
                     define_caches(cache< K, flush, kfull >(p_data_col())),
-#endif
                     gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
                                                p_u_pos(),
                                                p_dtr_stage(),

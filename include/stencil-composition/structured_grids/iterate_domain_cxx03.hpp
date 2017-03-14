@@ -113,7 +113,7 @@ namespace gridtools {
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), GT_INTERNAL_ERROR);
 
         /**
          * metafunction that determines if a given accessor is associated with an placeholder holding a data field
@@ -281,7 +281,7 @@ namespace gridtools {
          */
         template < typename BackendType, typename Strides >
         GT_FUNCTION void assign_stride_pointers() {
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error type");
+            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), GT_INTERNAL_ERROR);
             boost::mpl::for_each< metadata_map_t >(assign_strides_functor< BackendType,
                 Strides,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
@@ -505,7 +505,7 @@ namespace gridtools {
         template < ushort_t Coordinate, typename Accessor >
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
 
-            GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
             typedef typename Accessor::index_type index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
             // getting information about the metadata
@@ -689,7 +689,6 @@ namespace gridtools {
                     typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
                     Accessor,
                     storage_pointer_t >(real_storage_pointer, pointer_offset);
-
         }
     }
 
