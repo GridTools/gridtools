@@ -226,7 +226,7 @@ namespace gridtools {
         GT_FUNCTION uint_t begin() const { return m_begin; }
         GT_FUNCTION uint_t end() const { return m_end; }
         GT_FUNCTION uint_t total_length() const { return m_total_length; }
-        GT_FUNCTION bool valid() const { return ((int_t)m_end - (int_t)m_begin >= 0) ? true : false; }
+        GT_FUNCTION bool valid() const { return m_begin <= m_end; }
 
         GT_FUNCTION void set_minus(uint_t value) { m_minus = value; }
         GT_FUNCTION void set_plus(uint_t value) { m_plus = value; }
