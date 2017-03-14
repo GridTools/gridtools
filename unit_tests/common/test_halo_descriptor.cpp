@@ -40,7 +40,7 @@
 using namespace gridtools;
 
 TEST(test_grid, is_not_valid) {
-    uint_t d = 5;
+    uint_t d = 6;
     uint_t halo_size = 3;
 
     halo_descriptor hi{halo_size, halo_size, halo_size, d - halo_size - 1, d};
