@@ -264,7 +264,7 @@ namespace gridtools {
         }
 
         array< bool, ndims > periodic() const {
-            GRIDTOOLS_STATIC_ASSERT(period_type::m_size == ndims, "Internal error: dimensions not matching");
+            GRIDTOOLS_STATIC_ASSERT(period_type::m_size == ndims, "Dimensions not matching");
             return m_cyclic.value();
         }
 

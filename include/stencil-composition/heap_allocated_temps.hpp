@@ -104,9 +104,20 @@ namespace gridtools {
 
                     typedef typename ElemType::storage_info_type meta_t;
 
-                    // ElemType::info_string.c_str();
-                    // calls the constructor of the storage
+// ElemType::info_string.c_str();
+// calls the constructor of the storage
+// TODO ICO_STORAGE
+#ifdef STRUCTURED_GRIDS
                     meta_t meta_data(m_tile_i, m_tile_j, m_tile_k);
+#else
+                    meta_t meta_data(m_tile_i,
+                        // TODO ICO_STORAGE What to do with the 3 below? which is the maximum number of colors?
+                        3,
+                        // the metafunction below does not work for temporaries
+                        // get_location_by_metastorage_index< meta_t::index_type::value>::type::value,
+                        m_tile_j,
+                        m_tile_k);
+#endif
                     e = new ElemType(meta_data, "default tmp storage", true /*do_allocate*/);
 
                     // insert new type in the map only if not present already
@@ -130,7 +141,7 @@ namespace gridtools {
                     instantiate_tmps(metadata_,
                                             grid.direction_i().total_length(),
                                             grid.direction_j().total_length(),
-                                            grid.value_at_top() + 1));
+                                            grid.k_total_length()));
             }
         };
 
@@ -208,7 +219,7 @@ namespace gridtools {
                     instantiate_tmps(metadata_,
                                             grid.i_low_bound(),
                                             grid.j_low_bound(),
-                                            grid.value_at_top() + 1,
+                                            grid.k_total_length(),
                                             backend_type::n_i_pes()(grid.i_high_bound() - grid.i_low_bound()),
                                             backend_type::n_j_pes()(grid.j_high_bound() - grid.j_low_bound())));
             }

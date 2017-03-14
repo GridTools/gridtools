@@ -63,13 +63,13 @@ namespace gridtools {
         struct call_repeated {
           public:
             GT_FUNCTION
-            static void Do(IterateDomain &it_domain_) {
+            static void call_do_method(IterateDomain &it_domain_) {
 
                 Functor::f_type::Do(
                     *static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
                     Interval());
 
-                call_repeated< ID - 1, Functor, IterateDomain, Interval >::Do(it_domain_);
+                call_repeated< ID - 1, Functor, IterateDomain, Interval >::call_do_method(it_domain_);
             }
         };
 
@@ -77,7 +77,7 @@ namespace gridtools {
         struct call_repeated< 0, Functor, IterateDomain, Interval > {
           public:
             GT_FUNCTION
-            static void Do(IterateDomain &it_domain_) {}
+            static void call_do_method(IterateDomain &it_domain_) {}
         };
     }
 
@@ -92,8 +92,7 @@ namespace gridtools {
             typename _impl::run_esf_functor_run_functor_arguments< RunEsfFunctorImpl >::type run_functor_arguments_t;
         typedef typename _impl::run_esf_functor_interval< RunEsfFunctorImpl >::type interval_t;
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_run_functor_arguments< run_functor_arguments_t >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< run_functor_arguments_t >::value), GT_INTERNAL_ERROR);
         typedef typename run_functor_arguments_t::iterate_domain_t iterate_domain_t;
         typedef typename run_functor_arguments_t::functor_list_t run_functor_list_t;
 
@@ -128,8 +127,7 @@ namespace gridtools {
                     (boost::mpl::size< esf_args_map_t >::value ==
                         boost::mpl::size<
                             typename boost::mpl::at< run_functor_list_t, Index >::type::f_type::arg_list >::value),
-                    "GRIDTOOLS ERROR:\n\
-	            check that the number of placeholders passed to the elementary stencil function\n \
+                    "check that the number of placeholders passed to the elementary stencil function\n \
 	            (constructed during the computation) is the same as the number of arguments referenced\n \
 	            in the functor definition (in the high level interface). This means that we cannot\n \
 	            (although in theory we could) pass placeholders to the computation which are not\n \

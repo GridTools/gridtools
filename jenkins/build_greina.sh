@@ -16,7 +16,6 @@ function help {
    echo "-f      floating point precision [float|double]"
    echo "-c      cxx standard             [cxx11|cxx03]"
    echo "-l      compiler                 [gcc|clang]  "
-   echo "-p      activate python                       "
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "
    echo "-z      force build                           "
@@ -32,9 +31,9 @@ INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
-VERSION="4.9"
+VERSION_="5.3"
 
-while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
+while getopts "h:b:t:f:c:l:zmsidvq:x:" opt; do
     case "$opt" in
     h|\?)
         help
@@ -42,13 +41,11 @@ while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
         ;;
     b) BUILD_TYPE=$OPTARG
         ;;
-    t) TARGET=$OPTARG
+    t) TARGET_=$OPTARG
         ;;
     f) FLOAT_TYPE=$OPTARG
         ;;
     c) CXX_STD=$OPTARG
-        ;;
-    p) PYTHON="ON"
         ;;
     m) MPI="ON"
         ;;
@@ -66,23 +63,25 @@ while getopts "h:b:t:f:c:l:pzmsidvq:x:" opt; do
         ;;
     q) QUEUE=$OPTARG
         ;;
-    x) VERSION=$OPTARG
+    x) VERSION_=$OPTARG
         ;;
     esac
 done
 
-if [[ "$VERSION"  != "4.9" ]] && [[ "$VERSION" != "5.3" ]]; then
-    echo "VERSION $VERSION not supported"
+if [[ "$VERSION_"  != "4.9" ]] && [[ "$VERSION_" != "5.3" ]]; then
+    echo "VERSION $VERSION_ not supported"
     help
 fi
+export VERSION=${VERSION_}
 
 if [[ "$BUILD_TYPE" != "debug" ]] && [[ "$BUILD_TYPE" != "release" ]]; then
    help
 fi
 
-if [[ "$TARGET" != "gpu" ]] && [[ "$TARGET" != "cpu" ]]; then
+if [[ "$TARGET_" != "gpu" ]] && [[ "$TARGET_" != "cpu" ]]; then
    help
 fi
+export TARGET=${TARGET_}
 
 if [[ "$FLOAT_TYPE" != "float" ]] && [[ "$FLOAT_TYPE" != "double" ]]; then
    help
@@ -90,11 +89,6 @@ fi
 
 if [[ "$CXX_STD" != "cxx11" ]] && [[ "$CXX_STD" != "cxx03" ]]; then
    help
-fi
-
-if [[ "$TARGET"  == "gpu" ]] && [[ "$VERSION" != "4.9" ]]; then
-    echo "VERSION $VERSION not supported for gpu"
-    help
 fi
 
 echo $@
@@ -105,18 +99,13 @@ if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
     test -e build
     if [ $? -ne 0 ] ; then
+        echo "REMOVING ALL FILES"
         rm -rf build
     fi
 fi
 
 mkdir -p build;
 cd build;
-
-#
-# full path to the virtual environment where the Python tests run
-#
-VENV_PATH=${HOME}/venv_gridtools4py
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:${VENV_PATH}/lib/python3.4/site-packages/PySide-1.2.2-py3.4-linux-x86_64.egg/PySide
 
 if [ "x$TARGET" == "xgpu" ]; then
     USE_GPU=ON
@@ -146,13 +135,6 @@ else
 fi
 echo "MPI = $USE_MPI"
 
-if [[ "$PYTHON" == "ON" ]]; then
-    USE_PYTHON=ON
-else
-    USE_PYTHON=OFF
-fi
-echo "PYTHON = $PYTHON_ON"
-
 RUN_MPI_TESTS=$USE_MPI ##$SINGLE_PRECISION
 
 pwd
@@ -165,10 +147,6 @@ if [[ ${COMPILER} == "gcc" ]] ; then
 elif [[ ${COMPILER} == "clang" ]] ; then
     HOST_COMPILER=`which clang++`
     ADDITIONAL_FLAGS="-ftemplate-depth=1024"
-    if [[ ${USE_GPU} == "ON" ]]; then
-       echo "Clang not supported with nvcc"
-       exit_if_error 334
-    fi
 else
     echo "COMPILER ${COMPILER} not supported"
     exit_if_error 333
@@ -185,6 +163,7 @@ export START_TIME=$SECONDS
 
 # echo "Printing ENV"
 # env
+
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
 -DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
@@ -199,11 +178,9 @@ cmake \
 -DCMAKE_CXX_FLAGS:STRING="-I${MPI_HOME}/include ${ADDITIONAL_FLAGS}" \
 -DCUDA_HOST_COMPILER:STRING="${HOST_COMPILER}" \
 -DUSE_MPI:BOOL=$USE_MPI \
--DUSE_MPI_COMPILER:BOOL=$USE_MPI  \
+-DUSE_MPI_COMPILER:BOOL=$USE_MPI_COMPILER  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
 -DENABLE_CXX11:BOOL=$CXX_11 \
--DENABLE_PYTHON:BOOL=$USE_PYTHON \
--DPYTHON_INSTALL_PREFIX:STRING="${VENV_PATH}" \
 -DENABLE_PERFORMANCE_METERS:BOOL=ON \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
@@ -218,7 +195,7 @@ exit_if_error $?
 num_make_rep=2
 
 error_code=0
-log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${PYTHON}_${MPI}_${RANDOM}.log"
+log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${MPI}_${RANDOM}.log"
 if [[ "$SILENT_BUILD" == "ON" ]]; then
     echo "Log file ${log_file}"
     for i in `seq 1 $num_make_rep`;
@@ -258,7 +235,11 @@ if [[ ${QUEUE} ]] ; then
 fi
 
 
-bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
+if [[ "$RUN_MPI_TESTS" == "ON" ]]; then
+    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $USE_GPU
+else
+    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
+fi
 
 exit_if_error $?
 

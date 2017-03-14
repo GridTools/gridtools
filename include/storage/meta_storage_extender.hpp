@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "meta_storage.hpp"
+#include "../common/layout_map_metafunctions.hpp"
 
 #ifdef CXX11_ENABLED
 namespace gridtools {
@@ -67,39 +68,20 @@ namespace gridtools {
             typename extend_aux_param< NExtraDim, TmpParam >::type... > type;
     };
 
-    template < short_t Val, short_t NExtraDim >
+    template < int_t Val, short_t NExtraDim >
     struct inc_ {
-        static const short_t value = Val + NExtraDim;
+        static const int_t value = Val == -1 ? -1 : Val + NExtraDim;
     };
 
-    template < typename Index, typename Layout, bool TmpFlag, ushort_t NExtraDim >
-    struct meta_storage_extender_impl< meta_storage_base< Index, Layout, TmpFlag >, NExtraDim > {
-        typedef meta_storage_base< Index, typename meta_storage_extender_impl< Layout, NExtraDim >::type, TmpFlag >
-            type;
-    };
-
-    template < ushort_t NExtraDim, short_t... Args >
+    template < ushort_t NExtraDim, int_t... Args >
     struct meta_storage_extender_impl< layout_map< Args... >, NExtraDim > {
-
-        template < typename T, short_t... InitialInts >
-        struct build_ext_layout;
-
-        // build an extended layout
-        template < short_t... Indices, short_t... InitialIndices >
-        struct build_ext_layout< gt_integer_sequence< short_t, Indices... >, InitialIndices... > {
-            typedef layout_map< InitialIndices..., Indices... > type;
-        };
-
-        using seq = typename make_gt_integer_sequence< short_t, NExtraDim >::type;
-
-        typedef typename build_ext_layout< seq, inc_< Args, NExtraDim >::value... >::type type;
+        using type = typename extend_layout_map< layout_map< Args... >, NExtraDim >::type;
     };
 
-    template < ushort_t Index, typename Layout, bool IsTemporary, ushort_t NExtraDim >
-    struct meta_storage_extender_impl< meta_storage_base< static_int< Index >, Layout, IsTemporary >, NExtraDim > {
-        typedef meta_storage_base< static_int< Index >,
-            typename meta_storage_extender_impl< Layout, NExtraDim >::type,
-            IsTemporary > type;
+    template < typename Index, typename Layout, bool IsTemporary, ushort_t NExtraDim >
+    struct meta_storage_extender_impl< meta_storage_base< Index, Layout, IsTemporary >, NExtraDim > {
+        typedef meta_storage_base< Index, typename meta_storage_extender_impl< Layout, NExtraDim >::type, IsTemporary >
+            type;
     };
 
     /**
@@ -107,17 +89,18 @@ namespace gridtools {
      * helper that extends a metastorage by certain number of dimensions. Lengths of the extra dimensions are passed by
      * arguments. Values of halos of extra dims are set to null, and the layout of the new meta storage is such that the
      * newly added dimensions have the largest stride.
+
+     NOTE: the extended meta_storage in not a literal type, while the storage_info is
      */
     struct meta_storage_extender {
+
         template < typename MetaStorage >
         typename meta_storage_extender_impl< MetaStorage, 1 >::type operator()(
-            const MetaStorage other, uint_t extradim_length) {
+            const MetaStorage other, uint_t extradim_length) const {
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaStorage >::value), "Use with a MetaStorage type only");
             typedef typename meta_storage_extender_impl< MetaStorage, 1 >::type type;
 
-            const array< uint_t, MetaStorage::space_dimensions > dims = other.unaligned_dims();
-            auto ext_dim = dims.append_dim(extradim_length);
-            return type(ext_dim);
+            return type{other.unaligned_dims().append_dim(extradim_length)};
         }
     };
 }

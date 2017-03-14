@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include <iostream>
 #include <boost/type_traits/integral_constant.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/for_each.hpp>
@@ -49,7 +50,7 @@
 
 #include "../common/offset_tuple_mixed.hpp"
 #include "extent.hpp"
-
+#include "arg_fwd.hpp"
 #include "dimension_fwd.hpp"
 
 namespace gridtools {
@@ -57,9 +58,6 @@ namespace gridtools {
     // forward declaration
     template < int_t Index, int_t NDim >
     struct offset_tuple;
-
-    template < uint_t I, typename T, typename Cond >
-    struct arg;
 
 #ifdef CXX11_ENABLED
     // metafunction that determines if a type is a valid accessor ctr argument
@@ -126,8 +124,13 @@ namespace gridtools {
         GT_FUNCTION
         constexpr explicit accessor_base() : m_offsets() {}
 
-        GT_FUNCTION
-        constexpr explicit accessor_base(array< int_t, Dim > const &offsets) : m_offsets(0, offsets) {}
+#ifdef CXX11_ENABLED
+        template < size_t ArrayDim,
+            typename... Dimensions,
+            typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
+        GT_FUNCTION constexpr explicit accessor_base(array< int_t, ArrayDim > const &offsets, Dimensions... d)
+            : m_offsets(0, offsets, d...) {}
+#endif
 
 #if defined(CXX11_ENABLED) && !defined(__CUDACC__)
         // move ctor
@@ -147,9 +150,6 @@ namespace gridtools {
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
             : m_offsets(other.offsets()) {}
-
-        GT_FUNCTION
-        constexpr accessor_base(const int_t &x) : m_offsets(x) {}
 
 /**@brief constructor taking the dimension class as argument.
    This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -258,8 +258,8 @@ namespace gridtools {
     /**
      * Struct to test if an argument is a placeholder - Specialization yielding true
      */
-    template < uint_t I, typename T, typename C >
-    struct is_plchldr< arg< I, T, C > > : boost::true_type {};
+    template < uint_t I, typename T, typename L, typename C >
+    struct is_plchldr< arg< I, T, L, C > > : boost::true_type {};
 
     /**
      * Struct to test if an argument (placeholder) is a temporary
@@ -267,15 +267,15 @@ namespace gridtools {
     template < typename T >
     struct is_plchldr_to_temp : boost::mpl::false_ {};
 
-    template < uint_t ID, typename T, typename Condition >
-    struct is_plchldr_to_temp< arg< ID, T, Condition > > : public is_temporary_storage< T > {};
+    template < uint_t ID, typename T, typename L, typename Condition >
+    struct is_plchldr_to_temp< arg< ID, T, L, Condition > > : public is_temporary_storage< T > {};
 
     template < typename T >
     struct global_parameter;
 
-    template < uint_t I, typename BaseType, typename C >
-    struct is_plchldr_to_temp< arg< I, global_parameter< BaseType >, C > >
-        : is_plchldr_to_temp< arg< I, typename global_parameter< BaseType >::wrapped_type, C > > {};
+    template < uint_t I, typename BaseType, typename L, typename C >
+    struct is_plchldr_to_temp< arg< I, global_parameter< BaseType >, L, C > >
+        : is_plchldr_to_temp< arg< I, typename global_parameter< BaseType >::wrapped_type, L, C > > {};
 
     /**
      * Printing type information for debug purposes
@@ -304,8 +304,8 @@ namespace gridtools {
      * @param n/a Type selector for offset_tuple
      * @return ostream
      */
-    template < uint_t I, typename R, typename C >
-    std::ostream &operator<<(std::ostream &s, arg< I, no_storage_type_yet< R >, C > const &) {
+    template < uint_t I, typename R, typename L, typename C >
+    std::ostream &operator<<(std::ostream &s, arg< I, no_storage_type_yet< R >, L, C > const &) {
         return s << "[ arg< " << I << ", temporary<something>"
                  << " > ]";
     }
@@ -316,8 +316,8 @@ namespace gridtools {
      * @param n/a Type selector for arg to a NON temp
      * @return ostream
      */
-    template < uint_t I, typename R, typename C >
-    std::ostream &operator<<(std::ostream &s, arg< I, R, C > const &) {
+    template < uint_t I, typename R, typename L, typename C >
+    std::ostream &operator<<(std::ostream &s, arg< I, R, L, C > const &) {
         return s << "[ arg< " << I << ", NON TEMP"
                  << " > ]";
     }

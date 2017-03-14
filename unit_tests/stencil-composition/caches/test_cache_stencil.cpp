@@ -114,7 +114,7 @@ class cache_stencil : public ::testing::Test {
     const uint_t m_halo_size;
     const uint_t m_d1, m_d2, m_d3;
 
-    array< uint_t, 5 > m_di, m_dj;
+    halo_descriptor m_di, m_dj;
 
     gridtools::grid< axis > m_grid;
     typename storage_type::storage_info_type m_meta;
@@ -135,8 +135,8 @@ class cache_stencil : public ::testing::Test {
     }
 
     virtual void SetUp() {
-        for (int i = m_di[2]; i < m_di[3]; ++i) {
-            for (int j = m_dj[2]; j < m_dj[3]; ++j) {
+        for (int i = m_di.begin(); i < m_di.end(); ++i) {
+            for (int j = m_dj.begin(); j < m_dj.end(); ++j) {
                 for (int k = 0; k < m_d3; ++k) {
                     m_in(i, j, k) = i + j * 100 + k * 10000;
                 }
