@@ -129,7 +129,7 @@ namespace gridtools {
 
         // forward to fabs
         template < typename Value >
-        GT_FUNCTION Value abs(Value val) {
+        GT_FUNCTION auto abs(Value val) -> decltype(math::fabs(val)) {
             return math::fabs(val);
         }
 #else

@@ -71,8 +71,10 @@ struct test_abs {
         // float overloads
         GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::abs(4.0f)), float >::value), "Should return float.");
         GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::abs(4.0)), double >::value), "Should return double.");
+#ifndef __CUDA_ARCH__
         GRIDTOOLS_STATIC_ASSERT(
             (std::is_same< decltype(math::abs((long double)4)), long double >::value), "Should return long double.");
+#endif
 
         // int overloads
         GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::abs((int)4)), int >::value), "Should return int.");
@@ -83,6 +85,8 @@ struct test_abs {
         if (math::abs(5.6) != 5.6)
             return false;
         else if (math::abs(-5.6) != 5.6)
+            return false;
+        else if (math::abs(-5.6f) != 5.6f)
             return false;
         else if (math::abs(-5) != 5)
             return false;
