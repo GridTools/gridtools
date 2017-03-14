@@ -63,7 +63,7 @@ echo "replacing in ${slurm_script} command by ${cmd}"
 /bin/sed -i 's|<OUTPUTFILE>|'"$testfile"'|g' ${slurm_script}
 /bin/sed -i 's|<JOB_ENV>|'"$JOB_ENV"'|g' ${slurm_script}
 
-bash ${JENKINSPATH}/monitorjobid `sbatch -d singleton ${slurm_script} | gawk '{print $4}'` $maxsleep
+bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
 test -e ${testfile}
 if [ $? -ne 0 ] ; then
@@ -110,7 +110,7 @@ if [[ "$DO_MPI" == "ON" ]]; then
     /bin/sed -i 's|<OUTPUTFILE>|'"$testfile"'|g' ${slurm_script}
     /bin/sed -i 's|<JOB_ENV>|'"$MPI_HOST_JOB_ENV"'|g' ${slurm_script}
 
-    bash ${JENKINSPATH}/monitorjobid `sbatch -d singleton ${slurm_script} | gawk '{print $4}'` $maxsleep
+    bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
     test -e ${testfile}
     if [ $? -ne 0 ] ; then
@@ -158,7 +158,7 @@ if [[ $DO_MPI == "ON" && $DO_GPU == "ON" ]]; then
     /bin/sed -i 's|<OUTPUTFILE>|'"$testfile"'|g' ${slurm_script}
     /bin/sed -i 's|<JOB_ENV>|'"$MPI_CUDA_JOB_ENV"'|g' ${slurm_script}
 
-    bash ${JENKINSPATH}/monitorjobid `sbatch -d singleton ${slurm_script} | gawk '{print $4}'` $maxsleep
+    bash ${JENKINSPATH}/monitorjobid `sbatch ${slurm_script} | gawk '{print $4}'` $maxsleep
 
     test -e ${testfile}
     if [ $? -ne 0 ] ; then
