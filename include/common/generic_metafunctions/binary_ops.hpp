@@ -33,38 +33,38 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "laplace.hpp"
-#include "../Options.hpp"
+#pragma once
+#include "../host_device.hpp"
 
-int main(int argc, char **argv) {
+namespace gridtools {
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+    /**@brief operation to be used inside the accumulator*/
+    struct logical_and {
+        GT_FUNCTION
+        constexpr logical_and() {}
+        template < typename T >
+        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
+            return x && y;
+        }
+    };
 
-    if (argc < 4) {
-        printf("Usage: copy_stencil_<whatever> dimx dimy dimz\n where args are integer sizes of the data fields\n");
-        return 1;
-    }
+    /**@brief operation to be used inside the accumulator*/
+    struct logical_or {
+        GT_FUNCTION
+        constexpr logical_or() {}
+        template < typename T >
+        GT_FUNCTION constexpr T operator()(const T &x, const T &y) const {
+            return x || y;
+        }
+    };
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
+    struct equal {
+        GT_FUNCTION
+        constexpr equal() {}
 
-    if (argc == 5) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
-    }
-
-    return RUN_ALL_TESTS();
-}
-
-TEST(Laplace, Test) {
-    uint_t x = Options::getInstance().m_size[0];
-    uint_t y = Options::getInstance().m_size[1];
-    uint_t z = Options::getInstance().m_size[2];
-    uint_t t = Options::getInstance().m_size[3];
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(test(x, y, z, t));
+        template < typename T >
+        GT_FUNCTION constexpr bool operator()(const T &x, const T &y) const {
+            return x == y;
+        }
+    };
 }
