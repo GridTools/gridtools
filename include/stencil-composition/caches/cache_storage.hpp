@@ -56,20 +56,41 @@ namespace gridtools {
     struct cache_storage;
 
     namespace impl_{
+
+        template < typename T >
+        struct get_storage_offset {
+            template < typename Acc >
+            GT_FUNCTION
+            static constexpr uint_t get(Acc const& a) {
+                return 0;
+            }
+        };
+
+        template < typename T, unsigned... N >
+        struct get_storage_offset< data_store_field<T, N...> > {
+            template < typename Acc >
+            GT_FUNCTION
+            static constexpr uint_t get(Acc const& a) {
+                return get_accumulated_data_field_index(a.template get<1>(), N...) + a.template get<0>();
+            }
+        };
+
         /** helper function computing sum(offset*stride ...)*/
-        template < unsigned N = 0, typename StorageInfo, typename Accessor, typename... Ints >
+        template <unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
         GT_FUNCTION
-        constexpr typename boost::enable_if_c<(N==StorageInfo::layout_t::length), uint_t>::type 
-        compute_offsets(StorageInfo si_, Accessor acc_, Ints... strides) {
-            return compute_offset<typename StorageInfo::meta_storage_t>(array<int_t, N>{strides...}, acc_);
+        constexpr typename boost::enable_if_c<(From==To), int_t>::type 
+        get_offset(Accessor acc) {
+            return 0;
         }
 
-        template < unsigned N = 0, typename StorageInfo, typename Accessor, typename... Ints >
+        template <unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
         GT_FUNCTION
-        constexpr typename boost::enable_if_c<(N<StorageInfo::layout_t::length), uint_t>::type 
-        compute_offsets(StorageInfo si_, Accessor acc_, Ints... strides) {
-            return compute_offsets<N+1, StorageInfo>(si_, acc_, si_.template stride<N>(), strides...);
+        constexpr typename boost::enable_if_c<(From<To), int_t>::type 
+        get_offset(Accessor acc) {
+            return StorageInfo::template stride<From>() * acc.template get<Accessor::n_dimensions-1-From>()
+                + get_offset<From+1,To,StorageInfo,Accessor>(acc);
         }
+
     }
 
 #ifdef CXX11_ENABLED
@@ -99,7 +120,7 @@ namespace gridtools {
         typedef typename StorageWrapper::data_t value_type;
 
         typedef
-            typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t, sizeof...(Tiles) + 2 /*FD*/
+            typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t, sizeof...(Tiles)
                 >::type >::type layout_t;
 
         GT_FUNCTION
@@ -112,7 +133,6 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Accessor const &accessor_) {
-            constexpr const meta_t m_value;
 
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
@@ -121,27 +141,26 @@ namespace gridtools {
             typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
 
 #ifdef CUDA8
-            typedef static_int< m_value.template stride< 0 >() > check_constexpr_1;
-            typedef static_int< m_value.template stride< 1 >() > check_constexpr_2;
+            typedef static_int< meta_t::template stride< 0 >() > check_constexpr_1;
+            typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
 #else
             assert((_impl::compute_size< minus_t, plus_t, tiles_t, StorageWrapper >::value == size()));
 #endif
-
             // manually aligning the storage
-            const uint_t extra_ = (thread_pos[0] - iminus::value) * m_value.template stride< 0 >() +
-                                  (thread_pos[1] - jminus::value) * m_value.template stride< 1 >() +
-                                  impl_::compute_offsets<0, meta_t>(m_value, accessor_.offsets());
-            assert((extra_) < size());
-            assert((extra_) >= 0);
+            const int_t extra_ = (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
+                                  (thread_pos[1] - jminus::value) * meta_t::template stride< 1 >() +
+                                  size()*impl_::get_storage_offset<typename StorageWrapper::storage_t>::get(accessor_.offsets()) +
+                                  impl_::get_offset<0, meta_t::layout_t::length, meta_t>(accessor_.offsets());
 
+            assert((extra_) < (size()*StorageWrapper::storage_size));
+            assert((extra_) >= 0);
             return m_values[extra_];
         }
 
       private:
 #if defined(CUDA8)
-        value_type m_values[size()];
+        value_type m_values[size()*StorageWrapper::storage_size];
 #else
-
         value_type m_values[_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value];
 #endif
     };

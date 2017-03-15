@@ -249,7 +249,7 @@ namespace gridtools {
                     next_thing;
 
             typedef typename boost::mpl::fold<
-                boost::mpl::range_c< int, 0, boost::mpl::size< next_thing >::value >,
+                boost::mpl::range_c< int, 0, boost::mpl::size< next_thing >::value+1 >,
                 boost::mpl::map<>,
                 boost::mpl::if_<
                     condition_for_async< boost::mpl::_1, boost::mpl::_2, sequence_of_is_independent_t, next_thing >,
@@ -257,13 +257,7 @@ namespace gridtools {
                         boost::mpl::pair< boost::mpl::at< functors_list_t, boost::mpl::_2 >, boost::mpl::true_ > >,
                     boost::mpl::insert< boost::mpl::_1,
                         boost::mpl::pair< boost::mpl::at< functors_list_t, boost::mpl::_2 >,
-                                            boost::mpl::false_ > > > >::type async_esf_map_tmp_t;
-
-            // insert true for the last esf
-            typedef typename boost::mpl::insert< async_esf_map_tmp_t,
-                boost::mpl::pair< typename boost::mpl::at_c< functors_list_t,
-                                      boost::mpl::size< next_thing >::value >::type,
-                                                     boost::mpl::true_ > >::type async_esf_map_t;
+                                            boost::mpl::false_ > > > >::type async_esf_map_t;
 
             // perform some checks concerning the reduction types
             typedef run_functor_arguments< BackendIds,

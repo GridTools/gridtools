@@ -41,9 +41,7 @@ namespace gridtools {
             typedef meta_storage_cache< Layout,
                 P1::value - M1::value + T1::value,
                 P2::value - M2::value + T2::value, // first 2 dimensions are special (the block)
-                ((Plus::value - Minus::value) > 0 ? (Tiles::value - Minus::value + Plus::value) : 1)...,
-                StorageWrapper::storage_size,
-                1 > type;
+                ((Plus::value - Minus::value) > 0 ? (Tiles::value - Minus::value + Plus::value) : 1)...> type;
         };
 
         template < typename T >

@@ -120,7 +120,7 @@ class cache_stencil : public ::testing::Test {
     storage_t m_in, m_out;
 
     cache_stencil()
-        : m_d1(32), m_d2(32), m_d3(6),
+        : m_d1(128), m_d2(128), m_d3(30),
 #ifdef CXX11_ENABLED
           m_di{halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1},
           m_dj{halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2},
@@ -137,9 +137,9 @@ class cache_stencil : public ::testing::Test {
         m_in = storage_t(m_meta, 0.); 
         m_out = storage_t(m_meta, 0.);
         auto m_inv = make_host_view(m_in);
-        for (int i = m_di[2]; i < m_di[3]; ++i) {
-            for (int j = m_dj[2]; j < m_dj[3]; ++j) {
-                for (int k = 0; k < m_d3; ++k) {
+        for (int k = 0; k < m_d3; ++k) {
+            for (int i = m_di[2]; i < m_di[3]; ++i) {
+                for (int j = m_dj[2]; j < m_dj[3]; ++j) {
                     m_inv(i, j, k) = i + j * 100 + k * 10000;
                 }
             }
