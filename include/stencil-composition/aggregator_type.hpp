@@ -58,13 +58,13 @@
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
-#include "../common/generic_metafunctions/arg_comparator.hpp"
 #include "../common/gpu_clone.hpp"
 
 #include "../storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
 #include "../storage/metadata_set.hpp"
 
+#include "arg_comparator.hpp"
 #include "aggregator_type_impl.hpp"
 #include "arg_metafunctions.hpp"
 #include "arg.hpp"

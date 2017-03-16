@@ -33,18 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "accumulate.hpp"
-#include "binary_ops.hpp"
+#include "test_cxx11_gt_math.cpp"
 
-namespace gridtools {
+#include "../cuda_test_helper.hpp"
 
-#ifdef CXX11_ENABLED
-    /**@brief specialization to stop the recursion*/
-    template < typename... Args >
-    GT_FUNCTION static constexpr bool is_variadic_pack_of(Args... args) {
-        return accumulate(logical_and(), args...);
-    }
+TEST(math_cuda, test_fabs) {
+    ASSERT_TRUE(test_fabs::Do());
+    ASSERT_TRUE(cuda_test< test_fabs >());
+}
 
-#endif
-} // namespace gridtools
+TEST(math_cuda, test_abs) {
+    ASSERT_TRUE(test_fabs::Do());
+    ASSERT_TRUE(cuda_test< test_fabs >());
+}
