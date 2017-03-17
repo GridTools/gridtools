@@ -93,7 +93,10 @@ namespace gridtools {
         void clone_to_device() { assert(false); }
         void set_on_device() { assert(false); }
         void d2h_update() { assert(false); }
-        GT_FUNCTION_WARNING pointer< const storage_ptr_t > get_storage_pointer() const { assert(false); }
+        GT_FUNCTION_WARNING pointer< const storage_ptr_t > get_storage_pointer() const {
+            assert(false);
+            return {};
+        }
         void info(std::ostream &out_s) const {
             out_s << "No sorage type yet for storage type " << RegularStorageType() << "\n";
         }
