@@ -115,15 +115,18 @@ TEST(cache_storage, kcaches) {
     typedef accessor< 0, enumtype::in, extent<>, 7 > acc_t;
 
     static constexpr cache_storage_t::meta_t m_;
-
+#ifdef CUDA8
     GRIDTOOLS_STATIC_ASSERT(m_.value().dim(0) == 1, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.value().dim(1) == 1, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.value().dim(2) == 6, "error");
 
+#ifndef __CUDACC__ // compiler internal catastrophic error until CUDA8
     GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, -3)) == (int_t)-3, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, -2)) == (int_t)-2, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, -1)) == (int_t)-1, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 0)) == 0, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 1)) == 1, "error");
     GRIDTOOLS_STATIC_ASSERT(m_.index(acc_t(0, 0, 2)) == 2, "error");
+#endif
+#endif
 }
