@@ -14,5 +14,13 @@ $(cat LICENSE)
 */
 $(cat $file)" > $file
         fi
+        else # if the license matches the string above
+        if [ "$1" == "update" ]; then
+            sed -i '0,/\*\//d' $file
+            echo "/*
+$(cat LICENSE)
+*/
+$(cat $file)" > $file
+        fi
     fi
 done
