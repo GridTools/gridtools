@@ -44,17 +44,6 @@
 namespace gridtools {
 
     /**
-       @brief MPL pair wrapper with more meaningful type names for the specific use case.
-    */
-    template < typename T1, typename T2, typename Repeat, typename Axis >
-    struct functor_id_pair {
-        typedef Repeat repeat_t;
-        typedef T1 id;
-        typedef functor_decorator< T2, Axis > f_type;
-        typedef typename T2::arg_list arg_list;
-    };
-
-    /**
      * @brief the mss components contains meta data associated to a mss descriptor.
      * All derived metadata is computed in this class
      * @tparam MssDescriptor the mss descriptor
@@ -104,7 +93,7 @@ namespace gridtools {
             typename boost::mpl::fold< boost::mpl::range_c< ushort_t, 0, boost::mpl::size< functors_seq_t >::value >,
                 boost::mpl::vector0<>,
                 boost::mpl::push_back< boost::mpl::_1,
-                                           functor_id_pair< boost::mpl::_2,
+                                           functor_decorator< boost::mpl::_2,
                                                boost::mpl::at< functors_seq_t, boost::mpl::_2 >,
                                                RepeatFunctor,
                                                Axis > > >::type functors_list_t;
