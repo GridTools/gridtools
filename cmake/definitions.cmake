@@ -79,9 +79,9 @@ if( USE_GPU )
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
   if( ${CUDA_VERSION} VERSION_GREATER "60")
       if (NOT ENABLE_CXX11 )
-          set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -DCXX11_DISABLE")
+          set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_ -DCXX11_DISABLE")
       else()
-         set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ ")
+         set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
       endif()
   else()
       error(STATUS "CUDA 6.0 or lower does not supported")
@@ -90,7 +90,7 @@ if( USE_GPU )
 
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
   set(exe_LIBS  ${exe_LIBS} ${CUDA_CUDART_LIBRARY} )
   set (CUDA_LIBRARIES "")
   # adding the additional nvcc flags
@@ -168,13 +168,6 @@ else()
   message(STATUS "Computations in double precision")
 endif()
 
-## gcl ##
-if( "${GCL_GPU}" STREQUAL "ON" )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_GPU_")
-else()
-  set (CUDA_LIBRARIES "")
-endif()
-
 ## mpi ##
 if( USE_MPI )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_MPI_")
@@ -223,4 +216,3 @@ endif()
 add_definitions(-DGTEST_COLOR )
 include_directories( ${GTEST_INCLUDE_DIR} )
 include_directories( ${GMOCK_INCLUDE_DIR} )
-
