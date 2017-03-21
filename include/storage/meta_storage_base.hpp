@@ -107,6 +107,9 @@ namespace gridtools {
         int
 #endif
         > {
+
+        GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), GT_INTERNAL_ERROR);
+
         typedef meta_storage_base< Index,
             Layout,
             IsTemporary
@@ -236,7 +239,7 @@ namespace gridtools {
            NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
            at compile-time (e.g. in template metafunctions)
          */
-        template < typename... IntTypes, typename Dummy = all_static_integers< IntTypes... > >
+        template < typename... IntTypes, typename Dummy = is_pack_of< is_static_integral, IntTypes... > >
         constexpr meta_storage_base(IntTypes... dims_)
             : m_dims{IntTypes::value...},
               m_strides(_impl::assign_all_strides< (short_t)(space_dimensions - 1), layout >::apply(IntTypes()...)) {
@@ -468,12 +471,15 @@ namespace gridtools {
             return _impl::compute_offset< space_dimensions, layout >::apply(strides_, offset);
         }
 
-        template < typename StridesVector, typename LayoutT >
+#ifndef STRUCTURED_GRIDS
+
+        template < typename LayoutT, typename StridesVector >
         GT_FUNCTION static constexpr int_t _index(
             StridesVector const &RESTRICT strides_, array< int_t, space_dimensions > const &offsets) {
+            GRIDTOOLS_STATIC_ASSERT((is_layout_map< LayoutT >::value), "wrong type");
             return _impl::compute_offset< space_dimensions, LayoutT >::apply(strides_, offsets);
         }
-
+#endif
         template < typename OffsetTuple >
         GT_FUNCTION constexpr int_t _index(OffsetTuple const &tuple) const {
             GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< OffsetTuple >::value), "wrong type");

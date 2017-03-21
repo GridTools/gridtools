@@ -21,7 +21,9 @@ endif()
 
 ## enable cxx11 ##
 if(ENABLE_CXX11)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE")
+    add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
+else()
+    set(USE_MPI OFF)
 endif()
 
 ## get boost ##
@@ -38,14 +40,11 @@ if(Boost_FOUND)
     set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -mtune=native")
+if(NOT USE_GPU)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
+endif(NOT USE_GPU)
 
-#default for clang is 256
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=500")
-endif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-
-set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -lpthread")
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ")
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
@@ -60,7 +59,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
 message (STATUS "Building profiled executables")
 endif()
 
-## enable cxx11 and python things ##
+## enable cxx11 and things ##
 if ( ENABLE_CXX11 )
    message (STATUS "CXX11 enabled")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
@@ -80,33 +79,42 @@ if( USE_GPU )
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
   if( ${CUDA_VERSION} VERSION_GREATER "60")
       if (NOT ENABLE_CXX11 )
-          set(CUDA_NVCC_FLAGS "-DCXX11_DISABLE" "${CUDA_NVCC_FLAGS}")
+          set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -DCXX11_DISABLE")
       else()
-          if( ${CMAKE_VERSION} VERSION_LESS "3.3")
-              set(CUDA_NVCC_FLAGS "--std=c++11" "${CUDA_NVCC_FLAGS}")
-          endif()
+         set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ ")
       endif()
   else()
-      message(STATUS "CUDA 6.0 or lower does not support C++11 (disabling)")
-      set(CUDA_NVCC_FLAGS "-DCXX11_DISABLE" "${CUDA_NVCC_FLAGS}")
-      set(ENABLE_CXX11 "OFF" )
+      error(STATUS "CUDA 6.0 or lower does not supported")
   endif()
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
-  set(exe_LIBS "${CUDA_CUDART_LIBRARY}" "${exe_LIBS}" )
+  set(exe_LIBS  ${exe_LIBS} ${CUDA_CUDART_LIBRARY} )
+  set (CUDA_LIBRARIES "")
   # adding the additional nvcc flags
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-arch=${CUDA_ARCH}" "-Xcudafe" "--diag_suppress=dupl_calling_convention")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "-Xcudafe" "--diag_suppress=code_is_unreachable" "-Xcudafe")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--diag_suppress=implicit_return_from_non_void_function" "-Xcudafe")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--diag_suppress=calling_convention_not_allowed" "-Xcudafe")
   set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS}" "--diag_suppress=conflicting_calling_conventions")
+
+  if ("${CUDA_HOST_COMPILER}" MATCHES "(C|c?)lang")
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
+  endif()
+
 else()
   set (CUDA_LIBRARIES "")
-  set( CUDA_CXX11 " ")
 endif()
+
+## clang ##
+if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
+endif()
+
+Find_Package( OpenMP )
+
 
 ## openmp ##
 if(OPENMP_FOUND)
@@ -124,7 +132,6 @@ endif(ENABLE_PERFORMANCE_METERS)
 # always use fopenmp and lpthread as cc/ld flags
 # be careful! deleting this flags impacts performance
 # (even on single core and without pragmas).
-set ( exe_LIBS ${exe_LIBS} ${Boost_LIBRARIES} )
 set ( exe_LIBS -lpthread ${exe_LIBS} )
 
 ## papi wrapper ##
@@ -173,8 +180,8 @@ if( USE_MPI )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_MPI_")
   if( USE_MPI_COMPILER )
     find_package(MPI REQUIRED)
-    include(CMakeForceCompiler)
-    cmake_force_cxx_compiler(mpicxx "MPI C++ Compiler")
+    include_directories( "${MPI_CXX_INCLUDE_PATH}" )
+    set( exe_LIBS  ${MPI_CXX_LIBRARIES} ${exe_LIBS} )
   endif()
 endif()
 
@@ -195,49 +202,25 @@ function(gridtools_add_test test_name test_script test_exec)
   file(APPEND ${test_script} "res=$((res || $? ))\n")
 endfunction(gridtools_add_test)
 
+## test script generator for MPI tests ##
+file(WRITE ${TEST_MPI_SCRIPT} "res=0\n")
+function(gridtools_add_mpi_test test_name test_exec)
+  file(APPEND ${TEST_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
+  file(APPEND ${TEST_MPI_SCRIPT} "res=$((res || $? ))\n")
+endfunction(gridtools_add_mpi_test)
+
+file(WRITE ${TEST_CUDA_MPI_SCRIPT} "res=0\n")
+function(gridtools_add_cuda_mpi_test test_name test_exec)
+  file(APPEND ${TEST_CUDA_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
+  file(APPEND ${TEST_CUDA_MPI_SCRIPT} "res=$((res || $? ))\n")
+endfunction(gridtools_add_cuda_mpi_test)
+
 ## caching ##
 if( NOT ENABLE_CACHING )
     add_definitions( -D__DISABLE_CACHING__ )
 endif()
 
-## python ##
-if (ENABLE_PYTHON)
-    message (STATUS "PYTHON enabled ")
-    # Retrieving the python major version (major version is written in tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version, full version is in tmp-file ${CMAKE_SOURCE_DIR}/.python_version)
-    execute_process(COMMAND ${CMAKE_SOURCE_DIR}/python/python_version.sh ${CMAKE_SOURCE_DIR} )
-    # Reading from ${CMAKE_SOURCE_DIR}/.python_major_version (composing the cmd otherwise it doesn't work)
-    set (cmd "cat" )
-    set (filepv "${CMAKE_SOURCE_DIR}/.python_major_version")
-    execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHON_VERSION_MAJOR )
-    #message( "PYTHON_VERSION_MAJOR is: " ${PYTHON_VERSION_MAJOR} )
-    # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_major_version
-    execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_major_version)
+add_definitions(-DGTEST_COLOR )
+include_directories( ${GTEST_INCLUDE_DIR} )
+include_directories( ${GMOCK_INCLUDE_DIR} )
 
-    find_package(PythonLibs)
-    find_package(PythonInterp)
-
-    #"from distutils.sysconfig import get_python_lib; print get_python_lib()"
-
-    if(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
-     if(${PYTHON_VERSION_MAJOR} GREATER 2)
-        # Set here a check on the GRIDTOOLS_ROOT env var
-        if(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
-          set ( ENV{GRIDTOOLS_ROOT} ${CMAKE_SOURCE_DIR} )
-        endif(NOT EXISTS "$ENV{GRIDTOOLS_ROOT}")
-
-        # Defining PYTHONLIBS_VERSION_STRING
-        # Reading from ${CMAKE_SOURCE_DIR}/.python_version (composing the cmd otherwise it doesn't work)
-        set (cmd "cat" )
-        set (filepv "${CMAKE_SOURCE_DIR}/.python_version")
-        execute_process ( COMMAND ${cmd} ${filepv} OUTPUT_VARIABLE PYTHONLIBS_VERSION_STRING )
-        # Removing tmp-file ${CMAKE_SOURCE_DIR}/.python_version created by python_version.sh
-        execute_process( COMMAND rm -f ${CMAKE_SOURCE_DIR}/.python_version)
-
-        #set( PYTHON_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/python/" CACHE PATH "Set the installation directory for gridtools4py" )
-        set( PYTHON_INSTALL_PREFIX " " CACHE PATH "Set the installation directory for gridtools4py" )
-        set(OUTPUT      "${CMAKE_CURRENT_BINARY_DIR}/python.log")
-        message (STATUS "Log file is " ${OUTPUT} )
-        add_subdirectory( python )
-     endif(${PYTHON_VERSION_MAJOR} GREATER 2)
-    endif(PYTHONLIBS_FOUND AND PYTHONINTERP_FOUND)
-endif(ENABLE_PYTHON)

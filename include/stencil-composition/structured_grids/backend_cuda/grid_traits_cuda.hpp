@@ -45,7 +45,7 @@ namespace gridtools {
         struct grid_traits_arch< enumtype::Cuda > {
             template < typename RunFunctorArguments >
             struct kernel_functor_executor {
-                GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
+                GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
                 typedef execute_kernel_functor_cuda< RunFunctorArguments > type;
             };
         };

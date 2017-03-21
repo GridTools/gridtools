@@ -54,18 +54,18 @@ namespace gridtools {
         argument_types m_arguments;
 
         GT_FUNCTION
-        map_function(function_type f, Arguments... args) : m_function(f), m_arguments(args...) {}
+        constexpr map_function(function_type f, Arguments... args) : m_function(f), m_arguments(args...) {}
 
         template < uint_t I >
-        GT_FUNCTION typename std::tuple_element< I, argument_types >::type const &argument() const {
+        constexpr GT_FUNCTION typename std::tuple_element< I, argument_types >::type const &argument() const {
             return std::get< I >(m_arguments);
         }
 
         GT_FUNCTION
-        location_type location() const { return location_type(); }
+        constexpr location_type location() const { return location_type(); }
 
         GT_FUNCTION
-        function_type function() const { return m_function; }
+        constexpr function_type function() const { return m_function; }
     };
 
     template < typename T >
@@ -99,7 +99,7 @@ namespace gridtools {
      */
     template < typename ValueType, typename DstLocationType, typename ReductionFunction, typename... MapFunction >
     struct on_neighbors {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), GT_INTERNAL_ERROR);
 
         using maps_t = tuple< MapFunction... >;
         using reduction_function = ReductionFunction;
@@ -119,6 +119,23 @@ namespace gridtools {
             : m_reduction(other.m_reduction), m_value(other.m_value), m_maps(other.m_maps) {}
     };
 
+    // TODO ICO_STORAGE double check the need of this
+    namespace impl {
+        template < typename TupleDest >
+        struct transform_tuple_elem {
+
+            template < typename... Accessors >
+            GT_FUNCTION static constexpr TupleDest apply(Accessors... args) {
+                return TupleDest(args...);
+            }
+        };
+
+        template < typename TupleOrig, typename TupleDest >
+        GT_FUNCTION constexpr TupleDest transform_tuple(const TupleOrig tuple) {
+            return explode< TupleDest, transform_tuple_elem< TupleDest > >(tuple);
+        }
+    }
+
     /**
        This struct is the one holding the function to apply when iterating
        on neighbors
@@ -129,7 +146,7 @@ namespace gridtools {
         typename ReductionFunction,
         typename... MapFunction >
     class on_neighbors_impl {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< DstLocationType >::value), GT_INTERNAL_ERROR);
 
         using maps_t = tuple< MapFunction... >;
         using reduction_function = ReductionFunction;
@@ -145,6 +162,14 @@ namespace gridtools {
         GT_FUNCTION
         constexpr on_neighbors_impl(const reduction_function l, value_type v, MapFunction... a)
             : m_reduction(l), m_value(v), m_maps(a...) {}
+
+        template < typename... MapFunctionOther >
+        GT_FUNCTION constexpr on_neighbors_impl(
+            on_neighbors< ValueType, DstLocationType, ReductionFunction, MapFunctionOther... > const &on_neighbors)
+            : m_reduction(on_neighbors.m_reduction), m_value(on_neighbors.m_value),
+              m_maps(
+                  impl::transform_tuple< tuple< MapFunctionOther... >, tuple< MapFunction... > >(on_neighbors.m_maps)) {
+        }
 
         GT_FUNCTION
         constexpr on_neighbors_impl(
@@ -165,11 +190,11 @@ namespace gridtools {
         GT_FUNCTION constexpr maps_t maps() const { return m_maps; }
 
         GT_FUNCTION
-        on_neighbors_impl(on_neighbors_impl const &other)
+        constexpr on_neighbors_impl(on_neighbors_impl const &other)
             : m_reduction(other.m_reduction), m_value(other.m_value), m_maps(other.m_maps) {}
 
         GT_FUNCTION
-        dst_location_type location() const { return dst_location_type(); }
+        constexpr dst_location_type location() const { return dst_location_type(); }
     };
 
     template < typename T >
@@ -177,7 +202,7 @@ namespace gridtools {
 
     template < typename Map >
     struct map_get_location_type {
-        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), GT_INTERNAL_ERROR);
         typedef typename Map::location_type type;
     };
 
@@ -186,7 +211,7 @@ namespace gridtools {
 
     template < typename Map >
     struct maps_get_location_type< Map > {
-        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_map_argument< Map >::value), GT_INTERNAL_ERROR);
         typedef typename map_get_location_type< Map >::type type;
     };
 
@@ -195,7 +220,7 @@ namespace gridtools {
         template < typename Loc, typename Map >
         struct unique_element {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Loc, typename map_get_location_type< Map >::type >::value),
-                "Internal Error: predicate does not yield the same type");
+                GT_INTERNAL_ERROR_MSG("redicate does not yield the same type"));
             typedef Loc type;
         };
 
@@ -205,8 +230,10 @@ namespace gridtools {
     };
 
     template < typename Reduction, typename ValueType, typename... Maps >
-    GT_FUNCTION on_neighbors< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >
-    reduce_on_something(Reduction function, ValueType initial, Maps... mapf) {
+    GT_FUNCTION on_neighbors< ValueType,
+        typename maps_get_location_type< Maps... >::type,
+        Reduction,
+        Maps... > constexpr reduce_on_something(Reduction function, ValueType initial, Maps... mapf) {
 
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
             "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
@@ -216,8 +243,10 @@ namespace gridtools {
     }
 
     template < typename Reduction, typename ValueType, typename... Maps >
-    GT_FUNCTION on_neighbors< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >
-    on_edges(Reduction function, ValueType initial, Maps... mapf) {
+    GT_FUNCTION on_neighbors< ValueType,
+        typename maps_get_location_type< Maps... >::type,
+        Reduction,
+        Maps... > constexpr on_edges(Reduction function, ValueType initial, Maps... mapf) {
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
             "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
 
@@ -227,8 +256,10 @@ namespace gridtools {
     }
 
     template < typename Reduction, typename ValueType, typename... Maps >
-    GT_FUNCTION on_neighbors< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >
-    on_cells(Reduction function, ValueType initial, Maps... mapf) {
+    GT_FUNCTION on_neighbors< ValueType,
+        typename maps_get_location_type< Maps... >::type,
+        Reduction,
+        Maps... > constexpr on_cells(Reduction function, ValueType initial, Maps... mapf) {
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
             "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
 
@@ -238,39 +269,15 @@ namespace gridtools {
     }
 
     template < typename Reduction, typename ValueType, typename... Maps >
-    GT_FUNCTION on_neighbors< ValueType, typename maps_get_location_type< Maps... >::type, Reduction, Maps... >
-    on_vertexes(Reduction function, ValueType initial, Maps... mapf) {
+    GT_FUNCTION on_neighbors< ValueType,
+        typename maps_get_location_type< Maps... >::type,
+        Reduction,
+        Maps... > constexpr on_vertices(Reduction function, ValueType initial, Maps... mapf) {
         GRIDTOOLS_STATIC_ASSERT((is_variadic_pack_of(is_map_argument< Maps >::type::value...)),
             "Error, on_xxx syntax can only accept accessor or other on_xxx constructs");
 
         GRIDTOOLS_STATIC_ASSERT(maps_get_location_type< Maps... >::type::value == 2,
-            "The map function (for a nested call) provided to 'on_vertexes' is not on edges");
+            "The map function (for a nested call) provided to 'on_vertices' is not on edges");
         return reduce_on_something(function, initial, mapf...);
     }
-
-    template < typename OnNeighbors, typename RemapAccessor >
-    struct remap_on_neighbors;
-
-    template < typename ValueType,
-        typename SrcColor,
-        typename DstLocationType,
-        typename ReductionFunction,
-        uint_t Index,
-        enumtype::intend Intend,
-        typename LocationType,
-        int_t R,
-        uint_t OtherIndex >
-    struct remap_on_neighbors< on_neighbors_impl< ValueType,
-                                   SrcColor,
-                                   DstLocationType,
-                                   ReductionFunction,
-                                   accessor< Index, Intend, LocationType, extent< R > > >,
-        accessor< OtherIndex, Intend, LocationType, extent< R > > > {
-        typedef on_neighbors_impl< ValueType,
-            SrcColor,
-            DstLocationType,
-            ReductionFunction,
-            accessor< OtherIndex, Intend, LocationType, extent< R > > > type;
-    };
-
 } // namespace gridtools

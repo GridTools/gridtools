@@ -36,6 +36,7 @@
 #pragma once
 
 #include "../../run_esf_functor.hpp"
+#include "../../functor_decorator.hpp"
 
 namespace gridtools {
 
@@ -48,7 +49,7 @@ namespace gridtools {
     struct run_esf_functor_host
         : public run_esf_functor< run_esf_functor_host< RunFunctorArguments, Interval > > // CRTP
     {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
         typedef run_esf_functor< run_esf_functor_host< RunFunctorArguments, Interval > > super;
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
@@ -64,12 +65,13 @@ namespace gridtools {
         template < typename IntervalType, typename EsfArguments >
         GT_FUNCTION void do_impl(
             typename boost::disable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
             typedef typename EsfArguments::functor_t functor_t;
 
-            // GRIDTOOLS_STATIC_ASSERT(functor_t::repeat_t::value>0, "internal error");
-            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::Do(
-                this->m_iterate_domain);
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, GT_INTERNAL_ERROR);
+
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::
+                call_do_method(this->m_iterate_domain);
         }
 
         /*
@@ -82,7 +84,7 @@ namespace gridtools {
         GT_FUNCTION void do_impl(
             typename boost::enable_if< typename EsfArguments::is_reduction_t, int >::type = 0) const {
             typedef typename EsfArguments::reduction_data_t::bin_op_t bin_op_t;
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
             typedef typename EsfArguments::functor_t functor_t;
             this->m_iterate_domain.set_reduction_value(bin_op_t()(this->m_iterate_domain.reduction_value(),
                 functor_t::f_type::type::Do(this->m_iterate_domain, IntervalType())));

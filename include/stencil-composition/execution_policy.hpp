@@ -68,8 +68,7 @@ namespace gridtools {
             : public run_f_on_interval_base<
                   run_f_on_interval< enumtype::execute< IterationType >, RunFunctorArguments > > // CRTP
         {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
 
             typedef
                 typename backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >::run_esf_functor_h_t
@@ -110,8 +109,7 @@ namespace gridtools {
         struct run_f_on_interval< typename enumtype::execute< enumtype::parallel >, RunFunctorArguments >
             : public run_f_on_interval_base<
                   run_f_on_interval< enumtype::execute< enumtype::parallel >, RunFunctorArguments > > {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             //*TODO implement me
         };
     } // namespace _impl

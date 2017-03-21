@@ -57,7 +57,6 @@
 #include "./mss_metafunctions.hpp"
 #include "./mss_local_domain.hpp"
 #include "./mss.hpp"
-#include "./axis.hpp"
 #include "../common/meta_array.hpp"
 #include "./tile.hpp"
 #include "../storage/storage-facility.hpp"
@@ -91,9 +90,10 @@ namespace gridtools {
                 typedef typename boost::mpl::second< MapElem >::type extent_t;
                 typedef typename boost::mpl::first< MapElem >::type temporary;
 
-                typedef pair_type< typename StrategyTraits::template get_tmp_storage< typename temporary::storage_type,
-                                       tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
-                                       tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > >::type,
+                typedef pair_type<
+                    typename StrategyTraits::template get_tmp_storage< typename temporary::storage_type,
+                        tile< BI, -extent_get_iminus< extent_t >::value, extent_get_iplus< extent_t >::value >,
+                        tile< BJ, -extent_get_jminus< extent_t >::value, extent_get_jplus< extent_t >::value > >::type,
                     typename temporary::index_type > type;
             };
         };
@@ -264,8 +264,8 @@ namespace gridtools {
          */
         template < typename Domain, typename MssComponents >
         struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
             typedef typename MssComponents::extent_sizes_t ExtendSizes;
 
             typedef typename _impl::extract_temporaries< typename Domain::placeholders >::type list_of_temporaries;
@@ -313,8 +313,8 @@ namespace gridtools {
         template < typename Domain, typename MssComponentsArray >
         struct obtain_map_extents_temporaries_mss_array {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), GT_INTERNAL_ERROR);
 
             typedef
                 typename boost::mpl::fold< typename MssComponentsArray::elements,
@@ -326,7 +326,7 @@ namespace gridtools {
 
         template < typename Domain, typename MssArray1, typename MssArray2, typename Cond >
         struct obtain_map_extents_temporaries_mss_array< Domain, condition< MssArray1, MssArray2, Cond > > {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), GT_INTERNAL_ERROR);
 
             typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray1 >::type type1;
             typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray2 >::type type2;
@@ -347,8 +347,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_condition< MssComponentsArray >::value ||
                                         is_meta_array_of< MssComponentsArray, is_mss_components >::value),
-                "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
+                GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), GT_INTERNAL_ERROR);
 
             typedef typename backend_traits_t::template get_block_size< StrategyId >::type block_size_t;
 
@@ -392,10 +392,10 @@ namespace gridtools {
             ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             GRIDTOOLS_STATIC_ASSERT(
-                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
 
             strategy_traits_t::template fused_mss_loop< MssComponentsArray, backend_ids_t, ReductionData >::run(
                 mss_local_domain_list, grid, reduction_data);

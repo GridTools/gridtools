@@ -1,6 +1,41 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2016, GridTools Consortium
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #include "../iterate_domain.hpp"
-#include "extent.hpp"
+#include "../extent.hpp"
 
 /** @file iterate_domain for expandable parameters*/
 
@@ -54,25 +89,17 @@ namespace gridtools {
 
        \param arg the vector accessor
      */
-        // rvalue
         template < uint_t ACC_ID, enumtype::intend Intent, typename LocationType, typename Extent, uint_t Size >
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor< ACC_ID, Intent, LocationType, Extent, Size > >::type
         operator()(vector_accessor< ACC_ID, Intent, LocationType, Extent, Size > const &arg) const {
             typedef typename super::template accessor_return_type<
                 accessor< ACC_ID, Intent, LocationType, Extent, Size > >::type return_t;
-            // check that if the storage is written the accessor is inout
 
-            // #ifdef CUDA8
-            //             GRIDTOOLS_STATIC_ASSERT(is_extent< Extent >::value, "wrong type");
-            //             const typename alias< accessor< ACC_ID, Intent, LocationType, Extent, Size >, dimension< Size
-            //             - 1 > >::template set< ID >
-            //                 tmp_(arg.offsets());
-            // #else
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "wrong type");
             accessor< ACC_ID, Intent, LocationType, Extent, Size > tmp_(arg);
             tmp_.template set< 1 >(ID);
-            // #endif
-            return super::operator()(tmp_);
+            return super::operator()(static_cast< const accessor< ACC_ID, Intent, LocationType, Extent, Size > >(tmp_));
         }
     };
 

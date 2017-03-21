@@ -101,16 +101,11 @@ namespace gridtools {
         operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) const {
             typedef typename super::template accessor_return_type< accessor< ACC_ID, Intent, Extent, Size > >::type
                 return_t;
-// check that if the storage is written the accessor is inout
+            // check that if the storage is written the accessor is inout
 
-#ifdef CUDA8
-            GRIDTOOLS_STATIC_ASSERT(is_extent< Extent >::value, "wrong type");
-            const typename alias< accessor< ACC_ID, Intent, Extent, Size >, dimension< Size - 1 > >::template set< ID >
-                tmp_(arg.offsets());
-#else
             accessor< ACC_ID, Intent, Extent, Size > tmp_(arg);
             tmp_.template set< 1 >(ID);
-#endif
+
             return super::operator()(tmp_);
         }
     };
