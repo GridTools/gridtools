@@ -50,12 +50,10 @@
 #include "hasdo.hpp"
 #include "level.hpp"
 #include "interval.hpp"
+#include "functor_decorator.hpp"
 
 namespace gridtools {
-    // implementation of the do method overload search
 
-    template < typename T >
-    struct is_functor_decorator;
     /**
      * @struct find_do_method_starting_at
      * Meta function searching for the do method starting at a given from index

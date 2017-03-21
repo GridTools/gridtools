@@ -47,7 +47,6 @@ namespace simple_function_call {
     typedef gridtools::interval< level< 1, -1 >, level< 2, -1 > > upper;
     typedef gridtools::interval< level< 0, -1 >, level< 2, -1 > > full_domain;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 2, -1 > > my_default_interval;
     typedef gridtools::interval< level< 0, -1 >, level< 2, 1 > > axis;
 
     struct delta {
@@ -69,12 +68,12 @@ namespace simple_function_call {
         // call average on the lower
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, lower) {
-            eval(out()) = call< delta, my_default_interval >::with(eval, in()); // TODO get rid of the full_domain
+            eval(out()) = call< delta >::with(eval, in());
         }
         // call average on the upper do something additional
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, upper) {
-            eval(out()) = 2. * call< delta, my_default_interval >::with(eval, in()); // TODO get rid of the full_domain
+            eval(out()) = 2. * call< delta >::with_offsets(eval, in(0, 1, 0));
         }
     };
 
