@@ -189,7 +189,8 @@ namespace gridtools {
             boost::mpl::for_each< expandable_params_t >(_impl::check_length< DomainType >(domain, m_size));
 
             m_domain_chunk.reset(new aggregator_type< expand_arg_list >(expand_vec));
-            m_intermediate.reset(new intermediate_t(*m_domain_chunk, grid, conditionals_));
+            if (m_size >= ExpandFactor::value)
+                m_intermediate.reset(new intermediate_t(*m_domain_chunk, grid, conditionals_));
             if (m_size % ExpandFactor::value) {
                 boost::mpl::for_each< typename DomainType::placeholders_t >(
                     _impl::initialize_storage< DomainType, vec_remainder_t >(domain, vec_remainder));
@@ -208,8 +209,10 @@ namespace gridtools {
          */
         template < typename... Args, typename... Storage >
         void reassign(arg_storage_pair< Args, Storage >... args) {
-            m_intermediate->reassign(args...);
-            m_intermediate_remainder->reassign(args...);
+            if (m_size >= ExpandFactor::value)
+                m_intermediate->reassign(args...);
+            if (m_size % ExpandFactor::value)
+                m_intermediate_remainder->reassign(args...);
         }
         /**
            @brief run the execution
@@ -223,9 +226,7 @@ namespace gridtools {
         virtual auto run() -> decltype(m_intermediate_remainder->run()) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< decltype(m_intermediate_remainder->run()), notype >::value),
                 "Reduction is not allowed with expandable parameters");
-            // the expand factor must be smaller than the total size of the expandable parameters list
-            assert(m_size >= ExpandFactor::value);
-
+            // the expand factor might be smaller than the total size of the expandable parameters list
             for (uint_t i = 0; i < m_size - m_size % ExpandFactor::value; i += ExpandFactor::value) {
 
                 boost::mpl::for_each< expandable_params_t >(
@@ -258,7 +259,8 @@ namespace gridtools {
          */
         virtual void reset_meter() {
             m_meter.reset();
-            m_intermediate->reset_meter();
+            if (m_size >= ExpandFactor::value)
+                m_intermediate->reset_meter();
             if (m_size % ExpandFactor::value)
                 m_intermediate_remainder->reset_meter();
         }
@@ -270,7 +272,8 @@ namespace gridtools {
          */
         virtual void ready() {
 
-            m_intermediate->ready();
+            if (m_size >= ExpandFactor::value)
+                m_intermediate->ready();
             if (m_size % ExpandFactor::value)
                 m_intermediate_remainder->ready();
         }
@@ -309,7 +312,8 @@ namespace gridtools {
                 _impl::finalize_expandable_params< Backend, DomainType >(m_domain_full));
 
             // free the space for temporaries and storage_info
-            m_intermediate->finalize();
+            if (m_size >= ExpandFactor::value)
+                m_intermediate->finalize();
 
             // free the space for temporaries and storage_info
             if (m_size % ExpandFactor::value)

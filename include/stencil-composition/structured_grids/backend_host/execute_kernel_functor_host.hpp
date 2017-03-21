@@ -86,8 +86,7 @@ namespace gridtools {
                 }
             };
 
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
@@ -151,10 +150,10 @@ namespace gridtools {
                 typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
                 // in the host backend there should be only one esf per mss
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1),
-                    "Internal Error: wrong size");
+                GRIDTOOLS_STATIC_ASSERT(
+                    (boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1), GT_INTERNAL_ERROR);
                 typedef typename boost::mpl::back< typename RunFunctorArguments::extent_sizes_t >::type extent_t;
-                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), GT_INTERNAL_ERROR);
 
                 typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
                 typedef backend_traits_from_id< enumtype::Host > backend_traits_t;

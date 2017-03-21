@@ -48,6 +48,10 @@ namespace gridtools {
         fill_and_flush, /**< Read values from the cached field and write the result back */
         fill,           /**< Read values form the cached field but do not write back */
         flush,          /**< Write values back the the cached field but do not read in */
+        epflush,        /**< End point cache flush: indicates a flush only at the end point
+                              of the interval being cached */
+        bpfill,         /**< End point cache fill: indicates a fill only at the begin point
+                              of the interval being cached */
         local           /**< Local only cache, neither read nor write the the cached field */
     };
 

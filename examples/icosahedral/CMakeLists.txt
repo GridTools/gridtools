@@ -1,4 +1,4 @@
-list( APPEND SRCFILES #laplace 
+list( APPEND SRCFILES  
       copy_stencil_icosahedral expandable_parameters_icosahedral stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_fused stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertices stencil_on_edges_multiplefields curl div lap)
 
 file(GLOB_RECURSE INC_ALL_ "[a-z]*.hpp")

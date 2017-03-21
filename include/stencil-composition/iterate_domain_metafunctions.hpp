@@ -64,7 +64,7 @@ namespace gridtools {
     struct iterate_domain_local_domain< IterateDomainImpl< IterateDomainBase, IterateDomainArguments > > {
         GRIDTOOLS_STATIC_ASSERT(
             (is_iterate_domain< IterateDomainImpl< IterateDomainBase, IterateDomainArguments > >::value),
-            "Internal Error: wrong type");
+            GT_INTERNAL_ERROR);
         typedef typename IterateDomainArguments::local_domain_t type;
     };
 }
