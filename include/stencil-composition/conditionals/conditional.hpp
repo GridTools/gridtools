@@ -94,21 +94,16 @@ namespace gridtools {
                   ) {
         }
 
+        conditional(conditional const&) = default;
+        conditional(conditional &&) = default;
+        conditional& operator=(conditional const&) = default;
+
         /**
            @brief constructor for switch variables (for GCC53 bug)
 
            This constructor should not be needed
         */
         conditional(BOOL_FUNC(c)) : m_value(c) {}
-
-#if (GCC_53_BUG)
-#ifdef CXX11_ENABLED
-        /**
-           @brief constructor from a std::function
-         */
-        conditional(std::function< bool() > c) : m_value(c) {}
-#endif
-#endif // GCC_53_BUG
 
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }
