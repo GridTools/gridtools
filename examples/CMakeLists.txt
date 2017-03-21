@@ -94,6 +94,9 @@ else()
         endif()
     endif()
 
+    cuda_add_executable( linking_issue linking_issue.cu linking_issue.cpp )
+    target_link_libraries(linking_issue ${exe_LIBS} gtest_main)
+
     add_subdirectory( communication )
   endif()
 endif(NOT STRUCTURED_GRIDS)
