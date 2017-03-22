@@ -120,7 +120,7 @@ namespace gridtools {
     }
 
     template < typename T >
-    __host__ __device__ clonable_to_gpu< T >::derived_type *clonable_to_gpu< T >::device_pointer() const {
+    clonable_to_gpu< T >::derived_type *clonable_to_gpu< T >::device_pointer() const {
         return gpu_object_ptr;
     }
     /** Member function to update the object to the gpu calling the copy constructor of the
