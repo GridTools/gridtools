@@ -716,7 +716,7 @@ namespace gridtools {
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::
-                function_aggregator_procedure< Evaluator, 0, 0, 0, typename _impl::package_args< Args... >::type >
+                function_aggregator_procedure< Evaluator, Offi, Offj, 0, typename _impl::package_args< Args... >::type >
                     f_aggregator_t;
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
