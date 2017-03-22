@@ -45,7 +45,6 @@ namespace simple_function_call {
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > lower;
     typedef gridtools::interval< level< 1, -1 >, level< 2, -1 > > upper;
-    typedef gridtools::interval< level< 0, -1 >, level< 2, -1 > > full_domain;
 
     typedef gridtools::interval< level< 0, -1 >, level< 2, 1 > > axis;
 
@@ -145,7 +144,6 @@ namespace simple_function_call {
   2) The logical physical domain with the fields to use
   3) The actual domain dimensions
 */
-
 #ifdef CXX11_ENABLED
         auto
 #else

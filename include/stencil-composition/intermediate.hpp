@@ -555,7 +555,7 @@ namespace gridtools {
             MssDescriptorArray,
             extent_sizes_t,
             static_int< RepeatFunctor >,
-            typename Grid::axis_type /*repeat_fuctor*/ >::type mss_components_array_t;
+            typename Grid::axis_type >::type mss_components_array_t;
 
         typedef typename create_actual_arg_list< Backend, DomainType, mss_components_array_t, float_type >::type
             actual_arg_list_type;

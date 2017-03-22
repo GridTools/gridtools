@@ -70,7 +70,8 @@ namespace gridtools {
                 boost::mpl::_1 > >::type DoMethods;
 
 #ifdef CXX11_ENABLED
-        GRIDTOOLS_STATIC_ASSERT(sfinae::has_two_args< TFunctor >::type::value, "error");
+        GRIDTOOLS_STATIC_ASSERT(sfinae::has_two_args< TFunctor >::type::value,
+            "A functor's Do method is found to have only one argument, when it is supposed to have two");
 #endif
 
         // check that:
