@@ -53,6 +53,7 @@ namespace gridtools {
         // perform a check if all elements in the merged vector are cache types
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< cache_sequence_t, is_cache >::value),
             "Error: did not provide a sequence of caches to define_caches syntax");
+
         return cache_sequence_t();
     }
 

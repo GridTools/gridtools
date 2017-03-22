@@ -83,9 +83,10 @@ int main() {
     int d2 = 128;
     int d3 = 80;
 
-    typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_ty; // storage info type
+    typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_ty;                   // storage info type
     typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_ty > data_store_t; // data store type
-    typedef storage_traits< BACKEND_V >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 > data_store_field_t; // data store field type with 3 components with size 1, 2, 3
+    typedef storage_traits< BACKEND_V >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 >
+        data_store_field_t; // data store field type with 3 components with size 1, 2, 3
 
     storage_info_ty si(d1, d2, d3);
     data_store_field_t dsf_in(si);
@@ -102,25 +103,25 @@ int main() {
     for (int i = 0; i < d1; ++i)
         for (int j = 0; j < d2; ++j)
             for (int k = 0; k < d3; ++k) {
-                hv_in.template get<0,0>()(i, j, k) = 1;
-                hv_in.template get<1,0>()(i, j, k) = 2;
-                hv_in.template get<1,1>()(i, j, k) = 3;
-                hv_in.template get<2,0>()(i, j, k) = 4;
-                hv_in.template get<2,1>()(i, j, k) = 5;
-                hv_in.template get<2,2>()(i, j, k) = 6;
+                hv_in.template get< 0, 0 >()(i, j, k) = 1;
+                hv_in.template get< 1, 0 >()(i, j, k) = 2;
+                hv_in.template get< 1, 1 >()(i, j, k) = 3;
+                hv_in.template get< 2, 0 >()(i, j, k) = 4;
+                hv_in.template get< 2, 1 >()(i, j, k) = 5;
+                hv_in.template get< 2, 2 >()(i, j, k) = 6;
 
-                hv_out.template get<0,0>()(i, j, k) = 123;
-                hv_out.template get<1,0>()(i, j, k) = 123;
-                hv_out.template get<1,1>()(i, j, k) = 123;
-                hv_out.template get<2,0>()(i, j, k) = 123;
-                hv_out.template get<2,1>()(i, j, k) = 123;
-                hv_out.template get<2,2>()(i, j, k) = 123;
+                hv_out.template get< 0, 0 >()(i, j, k) = 123;
+                hv_out.template get< 1, 0 >()(i, j, k) = 123;
+                hv_out.template get< 1, 1 >()(i, j, k) = 123;
+                hv_out.template get< 2, 0 >()(i, j, k) = 123;
+                hv_out.template get< 2, 1 >()(i, j, k) = 123;
+                hv_out.template get< 2, 2 >()(i, j, k) = 123;
             }
 
     // create some gridtools stuff
     typedef arg< 0, data_store_field_t > p_in;
     typedef arg< 1, data_store_field_t > p_out;
-    typedef arg< 2, data_store_field_t, true > p_tmp;
+    typedef arg< 2, data_store_field_t, enumtype::default_location_type, true > p_tmp;
 
     typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
     aggregator_type< accessor_list > domain(dsf_in, dsf_out);
@@ -134,15 +135,12 @@ int main() {
     gr.value_list[0] = 0;
     gr.value_list[1] = d3 - 1;
 
-    auto z = make_computation< be >(
-        domain,
+    auto z = make_computation< be >(domain,
         gr,
-        make_multistage(
-            execute< forward >() ,
-            define_caches(cache< IJ, local >(p_tmp())),
-            make_stage< A >(p_in(), p_tmp()),
-            make_stage< A >(p_tmp(), p_out())
-        ));
+        make_multistage(execute< forward >(),
+                                        define_caches(cache< IJ, local >(p_tmp())),
+                                        make_stage< A >(p_in(), p_tmp()),
+                                        make_stage< A >(p_tmp(), p_out())));
 
     z->ready();
     z->steady();
@@ -154,14 +152,14 @@ int main() {
     for (int i = halo_size; i < d1 - halo_size; ++i) {
         for (int j = halo_size; j < d2 - halo_size; ++j) {
             for (int k = 0; k < d3; ++k) {
-                valid &= (hv_out.template get<0,0>()(i, j, k) == 1);
+                valid &= (hv_out.template get< 0, 0 >()(i, j, k) == 1);
 
-                valid &= (hv_out.template get<1,0>()(i, j, k) == 2);
-                valid &= (hv_out.template get<1,1>()(i, j, k) == 3);
+                valid &= (hv_out.template get< 1, 0 >()(i, j, k) == 2);
+                valid &= (hv_out.template get< 1, 1 >()(i, j, k) == 3);
 
-                valid &= (hv_out.template get<2,0>()(i, j, k) == 4);
-                valid &= (hv_out.template get<2,1>()(i, j, k) == 5);
-                valid &= (hv_out.template get<2,2>()(i, j, k) == 6);
+                valid &= (hv_out.template get< 2, 0 >()(i, j, k) == 4);
+                valid &= (hv_out.template get< 2, 1 >()(i, j, k) == 5);
+                valid &= (hv_out.template get< 2, 2 >()(i, j, k) == 6);
 
                 if (!valid) {
                     std::cout << "ERROR IN: " << i << " " << j << " " << k << std::endl;

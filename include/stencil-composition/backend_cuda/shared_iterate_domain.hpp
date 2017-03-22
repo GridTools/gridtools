@@ -57,7 +57,7 @@ namespace gridtools {
      */
     template < typename DataPointerArray, typename StridesType, typename MaxExtent, typename IJCachesTuple >
     class shared_iterate_domain {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesType >::value), GT_INTERNAL_ERROR);
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
         // TODO: protect IJCachesTuple
 
@@ -65,8 +65,8 @@ namespace gridtools {
         DataPointerArray m_data_pointer;
         StridesType m_strides;
         // TODO: This trick is used to prevent a race condition reported in cuda-memcheck. Should be investigated.
-        typename boost::mpl::if_<boost::mpl::empty<IJCachesTuple>,
-            boost::mpl::void_, IJCachesTuple>::type m_ij_caches_tuple;
+        typename boost::mpl::if_< boost::mpl::empty< IJCachesTuple >, boost::mpl::void_, IJCachesTuple >::type
+            m_ij_caches_tuple;
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
         // constructed with the result_of::as_map from a fusion vector.

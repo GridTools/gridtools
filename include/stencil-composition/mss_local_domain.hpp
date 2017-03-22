@@ -63,7 +63,7 @@ namespace gridtools {
         struct get_local_domain {
             template < typename Esf >
             struct apply {
-                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Internal Error: invalid type");
+                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
                 // filter out the view wrappers that are used by the esf
                 typedef
                     typename boost::mpl::fold< typename Esf::args_t,
@@ -85,7 +85,7 @@ namespace gridtools {
         typename ExtentMap,
         bool IsStateful >
     struct mss_local_domain {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
 
         /**
          * Create a fusion::vector of domains for each functor
@@ -120,13 +120,13 @@ namespace gridtools {
 
     template < typename T >
     struct mss_local_domain_list {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< T >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< T >::value), GT_INTERNAL_ERROR);
         typedef typename T::fused_local_domain_sequence_t type;
     };
 
     template < typename T >
     struct mss_local_domain_esf_args_map {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< T >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< T >::value), GT_INTERNAL_ERROR);
         typedef typename T::fused_local_domain_args_map type;
     };
 

@@ -34,9 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "accumulate.hpp"
+#include "binary_ops.hpp"
 
 #include "../defs.hpp"
-#include "logical_ops.hpp"
 
 namespace gridtools {
 

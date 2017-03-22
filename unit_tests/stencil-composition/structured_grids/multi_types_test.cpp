@@ -83,7 +83,6 @@ namespace multi_types_test {
     using namespace enumtype;
     using namespace expressions;
 
-
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
@@ -179,7 +178,7 @@ namespace multi_types_test {
     type4 operator-(type1 const &a, type1 const &b) {
         return type4(
             a.i - static_cast< double >(b.i), a.j - static_cast< double >(b.j), a.k - static_cast< double >(b.k));
-    }        
+    }
 
     struct function0 {
         typedef accessor< 0, enumtype::in > in;
@@ -268,13 +267,16 @@ namespace multi_types_test {
         uint_t d3 = z;
         uint_t halo_size = 0;
 
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info1_t;
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 1, 3 > storage_info2_t;
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 2, 3 > storage_info3_t;
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<type1, storage_info1_t> data_store1_t;
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<type2, storage_info2_t> data_store2_t;
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<type3, storage_info3_t> data_store3_t;
-        
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info1_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 1, 3 > storage_info2_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 2, 3 > storage_info3_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< type1, storage_info1_t >
+            data_store1_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< type2, storage_info2_t >
+            data_store2_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< type3, storage_info3_t >
+            data_store3_t;
+
         // TODO: Use storage_info as unnamed object - lifetime issues on GPUs
         storage_info1_t si1(x, y, z);
         storage_info2_t si2(x, y, z);
@@ -295,7 +297,7 @@ namespace multi_types_test {
             }
         }
 
-        typedef arg< 3, data_store1_t, true > p_temp;
+        typedef arg< 3, data_store1_t, enumtype::default_location_type, true > p_temp;
         typedef arg< 0, data_store1_t > p_field1;
         typedef arg< 1, data_store2_t > p_field2;
         typedef arg< 2, data_store3_t > p_field3;
@@ -312,16 +314,16 @@ namespace multi_types_test {
         grid.value_list[1] = d3 - 1;
 
         auto test_computation = gridtools::make_computation< BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< function1 >(p_temp(), p_field1()),
-                    gridtools::make_stage< function2 >(p_field2(), p_field1(), p_temp())),
-                gridtools::make_multistage // mss_descriptor
-                (execute< backward >(),
-                    gridtools::make_stage< function1 >(p_temp(), p_field1()),
-                    gridtools::make_stage< function3 >(p_field3(), p_temp(), p_field1())));
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_stage< function1 >(p_temp(), p_field1()),
+                gridtools::make_stage< function2 >(p_field2(), p_field1(), p_temp())),
+            gridtools::make_multistage // mss_descriptor
+            (execute< backward >(),
+                gridtools::make_stage< function1 >(p_temp(), p_field1()),
+                gridtools::make_stage< function3 >(p_field3(), p_temp(), p_field1())));
 
         test_computation->ready();
 
@@ -336,8 +338,8 @@ namespace multi_types_test {
         for (int i = 0; i < x; ++i) {
             for (int j = 0; j < y; ++j) {
                 for (int k = 0; k < z; ++k) {
-                    double xy = static_cast< double >(2 * f1v(i, j, k).i + 1) +
-                                static_cast< double >(2 * f1v(i, j, k).j + 1);
+                    double xy =
+                        static_cast< double >(2 * f1v(i, j, k).i + 1) + static_cast< double >(2 * f1v(i, j, k).j + 1);
                     double yz = 2;
                     if (f2v(i, j, k).xy != xy) {
                         result = false;

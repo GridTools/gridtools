@@ -91,7 +91,7 @@ namespace soem {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using edge_storage_type = typename backend_t::storage_t< icosahedral_topology_t::edges, double >;
+        using edge_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -109,14 +109,15 @@ namespace soem {
         auto inv1 = make_host_view(in_edges1);
         auto inv2 = make_host_view(in_edges2);
         auto outv = make_host_view(out_edges);
-        auto refv = make_host_view(ref_edges);        
+        auto refv = make_host_view(ref_edges);
 
         for (int i = 0; i < d1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                 for (int j = 0; j < d2; ++j) {
                     for (int k = 0; k < d3; ++k) {
                         inv1(i, c, j, k) = (uint_t)in_edges1.get_storage_info_ptr()->index(i, c, j, k);
-                        inv2(i, c, j, k) = (uint_t)in_edges2.get_storage_info_ptr()->index((uint_t)i/2, c, (uint_t)j/2, (uint_t)k/2);
+                        inv2(i, c, j, k) = (uint_t)in_edges2.get_storage_info_ptr()->index(
+                            (uint_t)i / 2, c, (uint_t)j / 2, (uint_t)k / 2);
                         outv(i, c, j, k) = 0.0;
                         refv(i, c, j, k) = 0.0;
                     }
@@ -124,14 +125,13 @@ namespace soem {
             }
         }
 
-        typedef arg< 0, edge_storage_type > p_in_edges1;
-        typedef arg< 1, edge_storage_type > p_in_edges2;
-        typedef arg< 2, edge_storage_type > p_out_edges;
+        typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges1;
+        typedef arg< 1, edge_storage_type, enumtype::edges > p_in_edges2;
+        typedef arg< 2, edge_storage_type, enumtype::edges > p_out_edges;
 
         typedef boost::mpl::vector< p_in_edges1, p_in_edges2, p_out_edges > accessor_list_t;
 
-        gridtools::aggregator_type< accessor_list_t > domain(
-            in_edges1, in_edges2, out_edges);
+        gridtools::aggregator_type< accessor_list_t > domain(in_edges1, in_edges2, out_edges);
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -165,15 +165,19 @@ namespace soem {
                                 ugrid.neighbours_of< icosahedral_topology_t::edges, icosahedral_topology_t::edges >(
                                     {i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                                refv(i, c, j, k) += inv1((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]) + 
-                                    inv2((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]) * 0.1;
+                                refv(i, c, j, k) += inv1((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]) +
+                                                    inv2((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]) * 0.1;
                             }
                         }
                     }
                 }
             }
 
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-6);
+#else
             verifier ver(1e-10);
+#endif
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = ver.verify(grid_, ref_edges, out_edges, halos);

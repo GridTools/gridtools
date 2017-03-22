@@ -35,12 +35,9 @@
 */
 #pragma once
 
-#include "./expandable_parameters/specializations.hpp"
+#include "arg_fwd.hpp"
 
 namespace gridtools {
-
-    template < uint_t I, typename Storage, bool Temporary = false >
-    struct arg;
 
     template < typename T >
     struct is_arg;

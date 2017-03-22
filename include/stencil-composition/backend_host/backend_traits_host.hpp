@@ -154,15 +154,27 @@ namespace gridtools {
         /**
            Static method in order to calculate the field offset.
         */
-        template < typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo >
+        template < typename LocalDomain,
+            typename PEBlockSize,
+            bool Tmp,
+            typename CurrentExtent,
+            typename GridTraits,
+            typename StorageInfo >
         static typename boost::enable_if_c< Tmp, int >::type fields_offset(StorageInfo const *sinfo) {
+            typedef GridTraits grid_traits_t;
             const uint_t i = processing_element_i();
-            constexpr int halo_i = StorageInfo::halo_t::template at< 0 >();
+            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
-            return StorageInfo::get_initial_offset() + sinfo->template stride<0>() * i * blocksize;
+            return StorageInfo::get_initial_offset() +
+                   sinfo->template stride< grid_traits_t::dim_i_t::value >() * i * blocksize;
         }
 
-        template < typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo >
+        template < typename LocalDomain,
+            typename PEBlockSize,
+            bool Tmp,
+            typename CurrentExtent,
+            typename GridTraits,
+            typename StorageInfo >
         static typename boost::enable_if_c< !Tmp, int >::type fields_offset(StorageInfo const *sinfo) {
             return StorageInfo::get_initial_offset();
         }
@@ -176,16 +188,16 @@ namespace gridtools {
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
             template < typename LocalDomain, typename Grid, typename ReductionData >
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const uint_t bi,
                 const uint_t bj) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
                 // each strategy executes a different high level loop for a mss
                 strategy_from_id_host< backend_ids_t::s_strategy_id >::template mss_loop<
@@ -207,7 +219,7 @@ namespace gridtools {
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template < typename BackendIds >
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_host< BackendIds::s_strategy_id > type;
         };
 
@@ -224,8 +236,7 @@ namespace gridtools {
          */
         template < typename IterateDomainArguments >
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 // indirection in order to avoid instantiation of both types of the eval_if
 #ifdef STRUCTURED_GRIDS
             template < typename _IterateDomainArguments >

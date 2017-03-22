@@ -52,6 +52,7 @@
 #include "../common/gpu_clone.hpp"
 #include "../common/host_device.hpp"
 #include "../common/is_temporary_storage.hpp"
+#include "../common/generic_metafunctions/fusion_vector_check_bound.hpp"
 #include "arg.hpp"
 #include "esf.hpp"
 #include "storage_wrapper.hpp"
@@ -63,7 +64,7 @@ namespace gridtools {
 
     namespace {
         template < class T, size_t N >
-        constexpr size_t get_size(T (&)[N]) {
+        constexpr size_t get_size(T(&)[N]) {
             return N;
         }
 
@@ -76,7 +77,7 @@ namespace gridtools {
             }
         }
 
-        template < typename T,  typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
+        template < typename T, typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
         GT_FUNCTION typename boost::enable_if_c< (N > 0), void >::type copy_ptrs(T &t, V &other) {
             auto &left = boost::fusion::at_c< N >(t).second;
             auto &right = boost::fusion::at_c< N >(other).second;
@@ -158,8 +159,8 @@ namespace gridtools {
         struct get_storage_wrapper {
             typedef typename boost::mpl::at< StorageWrapperList, IndexType >::type storage_wrapper_t;
             typedef storage_wrapper_t type;
-            static_assert(
-                !boost::is_same< boost::mpl::false_, type >::value, "Cannot find storage wrapper type in local_domain.");
+            static_assert(!boost::is_same< boost::mpl::false_, type >::value,
+                "Cannot find storage wrapper type in local_domain.");
         };
 
         // get a storage from the list of storages
@@ -263,8 +264,7 @@ namespace gridtools {
     struct is_local_domain : boost::mpl::false_ {};
 
     template < typename StorageWrapperList, typename EsfArgs, typename ExtentMap, bool IsStateful >
-    struct is_local_domain< local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > > : boost::mpl::true_ {
-    };
+    struct is_local_domain< local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > > : boost::mpl::true_ {};
 
     template < typename T >
     struct local_domain_is_stateful;

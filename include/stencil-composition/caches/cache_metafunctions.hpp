@@ -78,8 +78,8 @@ namespace gridtools {
     template < typename T >
     struct is_cache : boost::mpl::false_ {};
 
-    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
-    struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy > > : boost::mpl::true_ {};
+    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
+    struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy, Interval > > : boost::mpl::true_ {};
 
     /**
      * @struct cache_parameter
@@ -88,8 +88,8 @@ namespace gridtools {
     template < typename T >
     struct cache_parameter;
 
-    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
-    struct cache_parameter< detail::cache_impl< cacheType, Arg, cacheIOPolicy > > {
+    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
+    struct cache_parameter< detail::cache_impl< cacheType, Arg, cacheIOPolicy, Interval > > {
         typedef Arg type;
     };
 
@@ -104,8 +104,8 @@ namespace gridtools {
      */
     template < typename Cache, typename LocalDomain >
     struct cache_to_index {
-        GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::find< typename LocalDomain::esf_args,
             typename cache_parameter< Cache >::type >::type arg_pos_t;
@@ -120,9 +120,8 @@ namespace gridtools {
      */
     template < typename EsfSequence, typename CacheSequence >
     struct caches_used_by_esfs {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
 
         // remove caches which are not used by the stencil stages
         typedef typename boost::mpl::copy_if< CacheSequence,
@@ -139,7 +138,7 @@ namespace gridtools {
     struct cache_is_type {
         template < typename Cache >
         struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
             typedef typename boost::is_same< enumtype::enum_type< cache_type, cacheType >,
                 typename Cache::cache_type_t >::type type;
             BOOST_STATIC_CONSTANT(bool, value = (type::value));
@@ -165,17 +164,17 @@ namespace gridtools {
         typename BlockSize,
         typename LocalDomain >
     struct get_cache_storage_tuple {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Internal Error: Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: Wrong Type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
 
         /** metafunction extracting the storage type corresponding to an index from the local_domain*/
         template < typename LocDom, typename Index >
         struct get_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocDom >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocDom >::value, GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename LocDom::storage_wrapper_list_t >::value > Index::value),
                 "accessing a storage which is not in the list");
-            typedef typename LocDom::template get_storage<Index>::type type;
+            typedef typename LocDom::template get_storage< Index >::type type;
         };
 
         // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
@@ -187,11 +186,11 @@ namespace gridtools {
 
         template < typename Cache, typename IndexT >
         struct get_cache_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_cache< Cache >::value, "wrong type");
-            typedef typename LocalDomain::template get_storage_wrapper<IndexT>::type storage_wrapper_t;
-            typedef typename boost::mpl::if_<is_storage_wrapper<storage_wrapper_t>,
-                cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, storage_wrapper_t>,
-                boost::mpl::void_>::type type;
+            GRIDTOOLS_STATIC_ASSERT(is_cache< Cache >::value, GT_INTERNAL_ERROR);
+            typedef typename LocalDomain::template get_storage_wrapper< IndexT >::type storage_wrapper_t;
+            typedef typename boost::mpl::if_< is_storage_wrapper< storage_wrapper_t >,
+                cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, storage_wrapper_t >,
+                boost::mpl::void_ >::type type;
         };
 
         // first we build an mpl vector of pairs
@@ -201,13 +200,15 @@ namespace gridtools {
             boost::mpl::eval_if< typename cache_is_type< cacheType >::template apply< boost::mpl::_2 >,
                 boost::mpl::push_back< boost::mpl::_1,
                                      boost::mpl::pair< cache_to_index< boost::mpl::_2, LocalDomain >,
-                                           get_cache_storage< boost::mpl::_2, cache_to_index< boost::mpl::_2, LocalDomain > > > >,
+                                           get_cache_storage< boost::mpl::_2,
+                                                           cache_to_index< boost::mpl::_2, LocalDomain > > > >,
                 boost::mpl::identity< boost::mpl::_1 > > >::type mpl_t;
-        typedef typename boost::mpl::fold<mpl_t,
+        typedef typename boost::mpl::fold< mpl_t,
             boost::mpl::vector<>,
-            boost::mpl::if_< boost::mpl::is_void_<boost::mpl::_2>,
-                boost::mpl::_1,
-                boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2> > >::type filtered_mpl_t;
+            boost::mpl::if_< boost::mpl::is_void_< boost::mpl::_2 >,
+                                               boost::mpl::_1,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type
+            filtered_mpl_t;
 
         // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair
         template < typename FusionSeq, typename Pair >
@@ -235,8 +236,8 @@ namespace gridtools {
      */
     template < cache_type cacheType, typename CacheSequence, typename LocalDomain >
     struct get_cache_set_for_type {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: Wrong Type");
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: Wrong Type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::fold<
             CacheSequence,
@@ -255,7 +256,7 @@ namespace gridtools {
     template < typename CacheSequence, typename LocalDomain >
     struct get_cache_set {
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Internal Error: Wrong Type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocalDomain >::value, "wrong type");
 
         typedef typename boost::mpl::fold< CacheSequence,

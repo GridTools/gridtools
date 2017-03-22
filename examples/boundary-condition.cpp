@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include <iostream>
 #include <gridtools.hpp>
 #include <common/halo_descriptor.hpp>
 
@@ -129,8 +130,8 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo<1,1,1> > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;        
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo< 1, 1, 1 > > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
     meta_data_t meta_(d1, d2, d3);
@@ -172,14 +173,13 @@ int main(int argc, char **argv) {
     in_s.sync();
     out_s.sync();
 
-    //TODO: perform checks
+    // TODO: perform checks
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                //std::cout << in(i, j, k) << "\n";
-                //std::cout << out(i, j, k) << "\n";
+                // std::cout << in(i, j, k) << "\n";
+                // std::cout << out(i, j, k) << "\n";
             }
         }
     }
-
 }

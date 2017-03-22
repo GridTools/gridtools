@@ -703,6 +703,84 @@ bool usingzero_2() {
     return result;
 }
 
+bool usingzero_3_empty_halos() {
+
+    uint_t d1 = 5;
+    uint_t d2 = 5;
+    uint_t d3 = 5;
+
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+
+    // Definition of the actual data fields that are used for input/output
+
+    meta_data_t meta_(d1, d2, d3);
+    storage_t in(meta_, -1);
+    storage_t out(meta_, -1);
+    auto inv = make_host_view(in);
+    auto outv = make_host_view(out);
+
+    gridtools::array< gridtools::halo_descriptor, 3 > halos;
+    halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
+    halos[1] = gridtools::halo_descriptor(0, 0, 0, d2 - 1, d2);
+    halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
+
+    in.sync();
+    out.sync();
+#ifdef __CUDACC__
+    auto indv = make_device_view(in);
+    auto outdv = make_device_view(out);
+    gridtools::boundary_apply_gpu< gridtools::zero_boundary >(halos).apply(indv, outdv);
+#else
+    gridtools::boundary_apply< gridtools::zero_boundary >(halos).apply(inv, outv);
+#endif
+    in.sync();
+    out.sync();
+
+    bool result = true;
+
+    for (uint_t i = 0; i < 1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
+                if (inv(i, j, k) != 0) {
+                    result = false;
+                }
+                if (outv(i, j, k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (uint_t i = d1 - 1; i < d1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
+                if (inv(i, j, k) != 0) {
+                    result = false;
+                }
+                if (outv(i, j, k) != 0) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    for (uint_t i = 1; i < d1 - 1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
+                if (inv(i, j, k) != -1) {
+                    result = false;
+                }
+                if (outv(i, j, k) != -1) {
+                    result = false;
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
 bool usingvalue_2() {
 
     uint_t d1 = 5;
@@ -850,7 +928,7 @@ bool usingcopy_3() {
     storage_t src(meta_, -1);
     storage_t one(meta_, -1);
     storage_t two(meta_, 0);
-    
+
     auto srcv = make_host_view(src);
     auto onev = make_host_view(one);
     auto twov = make_host_view(two);
@@ -986,6 +1064,8 @@ TEST(boundaryconditions, twosurfaces) { EXPECT_EQ(twosurfaces(), true); }
 TEST(boundaryconditions, usingzero_1) { EXPECT_EQ(usingzero_1(), true); }
 
 TEST(boundaryconditions, usingzero_2) { EXPECT_EQ(usingzero_2(), true); }
+
+TEST(boundaryconditions, usingzero_3_empty_halos) { EXPECT_EQ(usingzero_3_empty_halos(), true); }
 
 TEST(boundaryconditions, basic) { EXPECT_EQ(basic(), true); }
 

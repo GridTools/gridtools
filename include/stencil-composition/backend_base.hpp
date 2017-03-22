@@ -53,7 +53,6 @@
 #include "../common/pair.hpp"
 #include "./accessor.hpp"
 #include "./aggregator_type.hpp"
-#include "./axis.hpp"
 #include "./conditionals/condition.hpp"
 #include "./intermediate_impl.hpp"
 #include "./mss.hpp"
@@ -131,7 +130,6 @@ namespace gridtools {
         static const enumtype::platform s_backend_id = BackendId;
         static const enumtype::grid_type s_grid_type_id = GridId;
 
-
         /** types of the functions used to compute the thread grid information
             for allocating the temporary storages and such
         */
@@ -142,10 +140,11 @@ namespace gridtools {
             Method to retrieve a global parameter
          */
         template < typename T >
-        static typename storage_traits_t::template data_store_t<T, typename storage_traits_t::template special_storage_info_t<0, selector<0u> > > 
-        make_global_parameter(T const& t) {
-            typename storage_traits_t::template special_storage_info_t<0, selector<0u> > si(1);
-            typename storage_traits_t::template data_store_t<T, decltype(si)> ds(si);
+        static typename storage_traits_t::template data_store_t< T,
+            typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > >
+        make_global_parameter(T const &t) {
+            typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > si(1);
+            typename storage_traits_t::template data_store_t< T, decltype(si) > ds(si);
             ds.allocate();
             make_host_view(ds)(0) = t;
             return ds;
@@ -155,7 +154,7 @@ namespace gridtools {
             Method to update a global parameter
          */
         template < typename T, typename V >
-        static void update_global_parameter(T& gp, V const& new_val) {
+        static void update_global_parameter(T &gp, V const &new_val) {
             gp.sync();
             auto view = make_host_view(gp);
             assert(valid(gp, view) && "Cannot create a valid view to a global parameter. Properly synced?");
@@ -201,8 +200,8 @@ namespace gridtools {
          */
         template < typename AggregatorType, typename MssComponents >
         struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
             typedef typename MssComponents::extent_sizes_t ExtendSizes;
 
             // filter all the temporary args
@@ -255,8 +254,8 @@ namespace gridtools {
         template < typename AggregatorType, typename MssComponentsArray >
         struct obtain_map_extents_temporaries_mss_array {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), "Internal Error: wrong type");
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::fold<
                 typename MssComponentsArray::elements,
@@ -267,7 +266,7 @@ namespace gridtools {
 
         template < typename AggregatorType, typename MssArray1, typename MssArray2, typename Cond >
         struct obtain_map_extents_temporaries_mss_array< AggregatorType, condition< MssArray1, MssArray2, Cond > > {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray1 >::type type1;
             typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray2 >::type type2;
@@ -286,8 +285,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_condition< MssComponentsArray >::value ||
                                         is_meta_array_of< MssComponentsArray, is_mss_components >::value),
-                "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), "Internal Error: wrong type");
+                GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             typedef typename backend_traits_t::template get_block_size< StrategyId >::type block_size_t;
 
@@ -323,10 +322,10 @@ namespace gridtools {
             ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             GRIDTOOLS_STATIC_ASSERT(
-                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
 
             strategy_traits_t::template fused_mss_loop< MssComponentsArray, backend_ids_t, ReductionData >::run(
                 mss_local_domain_list, grid, reduction_data);

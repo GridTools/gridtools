@@ -75,9 +75,7 @@ using namespace cs_test;
 
 TEST(test_copy_stencil, run) {
 
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t;
-
-    using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+    using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 2;
@@ -93,7 +91,7 @@ TEST(test_copy_stencil, run) {
     out_cells.allocate();
 
     auto inv = make_host_view(in_cells);
-    auto outv = make_host_view(out_cells); 
+    auto outv = make_host_view(out_cells);
 
     for (int i = 0; i < d1; ++i) {
         for (int c = 0; c < 2; ++c) {
@@ -120,12 +118,12 @@ TEST(test_copy_stencil, run) {
     grid_.value_list[1] = d3 - 1 - halo_k;
 
     auto copy = gridtools::make_computation< backend_t >(
-            domain,
-            grid_,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< test_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
-                    p_in_cells(), p_out_cells())));
+        domain,
+        grid_,
+        gridtools::make_multistage // mss_descriptor
+        (execute< forward >(),
+            gridtools::make_stage< test_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                p_in_cells(), p_out_cells())));
     copy->ready();
     copy->steady();
     copy->run();
@@ -134,6 +132,6 @@ TEST(test_copy_stencil, run) {
     out_cells.sync();
 
     verifier ver(1e-10);
-    array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
+    array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
     EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
 }

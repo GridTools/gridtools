@@ -37,6 +37,7 @@
 
 #include "common/array.hpp"
 #include "common/array_addons.hpp"
+#include "common/gt_math.hpp"
 
 namespace gridtools {
 
@@ -45,27 +46,26 @@ namespace gridtools {
 
     template < typename value_type >
     GT_FUNCTION bool compare_below_threshold(value_type expected, value_type actual, double precision) {
-        if (std::fabs(expected) < 1e-3 && std::fabs(actual) < 1e-3) {
-            if (std::fabs(expected - actual) < precision)
-                return true;
-        } else {
-            if (std::fabs((expected - actual) / (precision * expected)) < 1.0)
-                return true;
+        value_type M = math::max(math::fabs(expected), math::fabs(actual));
+        value_type m = math::min(math::fabs(expected), math::fabs(actual));
+        value_type e = (M - m) / M;
+        if ((m == M) || (e <= precision) || ((M - m) < precision)) {
+            return true;
         }
         return false;
     }
 
 #ifdef CXX11_ENABLED
 
-    template <typename Array, typename StorageInfo, typename... T >
-    typename boost::enable_if_c<(Array::n_dimensions==sizeof...(T)), const int>::type 
-    get_index(Array const& pos, StorageInfo storage_info, T... t) {
+    template < typename Array, typename StorageInfo, typename... T >
+    typename boost::enable_if_c< (Array::n_dimensions == sizeof...(T)), const int >::type get_index(
+        Array const &pos, StorageInfo storage_info, T... t) {
         return storage_info.index(t...);
     }
 
-    template <typename Array, typename StorageInfo, typename... T >
-    typename boost::enable_if_c<(Array::n_dimensions > sizeof...(T)), const int>::type 
-    get_index(Array const& pos, StorageInfo storage_info, T... t) {
+    template < typename Array, typename StorageInfo, typename... T >
+    typename boost::enable_if_c< (Array::n_dimensions > sizeof...(T)), const int >::type get_index(
+        Array const &pos, StorageInfo storage_info, T... t) {
         return get_index(pos, storage_info, t..., pos[sizeof...(T)]);
     }
 
@@ -120,11 +120,13 @@ namespace gridtools {
         template < typename Grid >
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
             bool verified = true;
-            if (pos[2] < grid_.value_at_top()) {
+            if (pos[2] < grid_.k_max()) {
                 typename StorageType::storage_info_t const &meta = *(m_exp_field.get_storage_info_ptr());
 
-                typename StorageType::data_t expected = m_exp_field.get_storage_ptr()->get_cpu_ptr()[get_index(pos,meta)];
-                typename StorageType::data_t actual = m_actual_field.get_storage_ptr()->get_cpu_ptr()[get_index(pos,meta)];
+                typename StorageType::data_t expected =
+                    m_exp_field.get_storage_ptr()->get_cpu_ptr()[get_index(pos, meta)];
+                typename StorageType::data_t actual =
+                    m_actual_field.get_storage_ptr()->get_cpu_ptr()[get_index(pos, meta)];
                 if (!compare_below_threshold(expected, actual, m_precision)) {
 
                     std::cout << "Error in field dimension " << m_field_id << " and position " << pos
@@ -185,8 +187,8 @@ namespace gridtools {
             bool verified = true;
 
             for (gridtools::uint_t f = 0; f < 1; ++f) {
-                verified =
-                    verify_functor< StorageType::storage_info_t::layout_t::length >(grid_, field1, field2, f, halos, m_precision);
+                verified = verify_functor< StorageType::storage_info_t::layout_t::length >(
+                    grid_, field1, field2, f, halos, m_precision);
             }
             return verified;
         }
@@ -204,23 +206,23 @@ namespace gridtools {
 
             bool verified = true;
 
-                for (gridtools::uint_t i = halos[0][0]; i < idim - halos[0][1]; ++i) {
-                    for (gridtools::uint_t j = halos[1][0]; j < jdim - halos[1][1]; ++j) {
-                        for (gridtools::uint_t k = 0; k < grid_.value_at_top(); ++k) {
-                            if (metadata_.mine(i, j, k)) {
-                                typename StorageType::data_t expected = field2.get_value(i, j, k);
-                                typename StorageType::data_t actual = field1[metadata_.get_local_index(i, j, k)];
+            for (gridtools::uint_t i = halos[0][0]; i < idim - halos[0][1]; ++i) {
+                for (gridtools::uint_t j = halos[1][0]; j < jdim - halos[1][1]; ++j) {
+                    for (gridtools::uint_t k = 0; k < grid_.k_max(); ++k) {
+                        if (metadata_.mine(i, j, k)) {
+                            typename StorageType::data_t expected = field2.get_value(i, j, k);
+                            typename StorageType::data_t actual = field1[metadata_.get_local_index(i, j, k)];
 
-                                if (!compare_below_threshold(expected, actual, m_precision)) {
-                                    std::cout << "Error in position " << i << " " << j << " " << k
-                                              << " ; expected : " << expected << " ; actual : " << actual << "  "
-                                              << std::fabs((expected - actual) / (expected)) << std::endl;
-                                    verified = false;
-                                }
+                            if (!compare_below_threshold(expected, actual, m_precision)) {
+                                std::cout << "Error in position " << i << " " << j << " " << k
+                                          << " ; expected : " << expected << " ; actual : " << actual << "  "
+                                          << std::fabs((expected - actual) / (expected)) << std::endl;
+                                verified = false;
                             }
                         }
                     }
                 }
+            }
 
             return verified;
         }
@@ -250,7 +252,7 @@ namespace gridtools {
             for (gridtools::uint_t f = 0; f < storage_type::field_dimensions; ++f)
                 for (gridtools::uint_t i = m_halo_size; i < idim - m_halo_size; ++i) {
                     for (gridtools::uint_t j = m_halo_size; j < jdim - m_halo_size; ++j) {
-                        for (gridtools::uint_t k = 0; k < grid_.value_at_top(); ++k) {
+                        for (gridtools::uint_t k = 0; k < grid_.k_max(); ++k) {
                             typename storage_type::data_t expected = field1.fields()[f][meta->index(i, j, k)];
                             typename storage_type::data_t actual = field2.fields()[f][meta->index(i, j, k)];
 
@@ -282,7 +284,7 @@ namespace gridtools {
             for (gridtools::uint_t f = 0; f < StorageType::field_dimensions; ++f)
                 for (gridtools::uint_t i = m_halo_size; i < idim - m_halo_size; ++i) {
                     for (gridtools::uint_t j = m_halo_size; j < jdim - m_halo_size; ++j) {
-                        for (gridtools::uint_t k = 0; k < grid_.value_at_top(); ++k) {
+                        for (gridtools::uint_t k = 0; k < grid_.k_max(); ++k) {
                             if (metadata_.mine(i, j, k)) {
                                 typename StorageType::data_t expected = field2.get_value(i, j, k);
                                 typename StorageType::data_t actual = field1[metadata_.get_local_index(i, j, k)];

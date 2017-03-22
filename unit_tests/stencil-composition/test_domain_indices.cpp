@@ -74,7 +74,6 @@ struct print_plchld {
 
 bool test_domain_indices() {
 
-
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
@@ -85,8 +84,8 @@ bool test_domain_indices() {
 #endif
 #endif
 
-    typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t<0, 3> storage_info_t;
-    typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
     uint_t d1 = 10;
     uint_t d2 = 10;
@@ -97,9 +96,9 @@ bool test_domain_indices() {
     data_store_t out(meta_, -7.3);
     data_store_t coeff(meta_, 8.);
 
-    typedef arg< 2, data_store_t, true > p_lap;
-    typedef arg< 1, data_store_t, true > p_flx;
-    typedef arg< 5, data_store_t, true > p_fly;
+    typedef arg< 2, data_store_t, default_location_type, true > p_lap;
+    typedef arg< 1, data_store_t, default_location_type, true > p_flx;
+    typedef arg< 5, data_store_t, default_location_type, true > p_fly;
     typedef arg< 0, data_store_t > p_coeff;
     typedef arg< 3, data_store_t > p_in;
     typedef arg< 4, data_store_t > p_out;

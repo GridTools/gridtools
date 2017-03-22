@@ -47,7 +47,6 @@
 #else
 #include "make_computation.hpp"
 #endif
-#include "axis.hpp"
 #include "grid.hpp"
 #include "grid_traits.hpp"
 #include "stencil.hpp"

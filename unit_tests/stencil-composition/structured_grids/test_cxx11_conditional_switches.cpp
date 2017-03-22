@@ -95,13 +95,14 @@ namespace test_conditional_switches {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = 1;
 
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >
+            data_store_t;
 
         storage_info_t meta_data_(8, 8, 8);
         data_store_t dummy(meta_data_, 0.);
         typedef arg< 0, data_store_t > p_dummy;
-        typedef arg< 1, data_store_t, true > p_dummy_tmp;
+        typedef arg< 1, data_store_t, enumtype::default_location_type, true > p_dummy_tmp;
 
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
         aggregator_type< arg_list > domain_(dummy);
@@ -155,7 +156,7 @@ namespace test_conditional_switches {
 
         p = false;
         comp_->run();
-        
+
         comp_->finalize();
         result = result && (make_host_view(dummy)(0, 0, 0) == 5662);
 

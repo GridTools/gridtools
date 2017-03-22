@@ -67,8 +67,7 @@ namespace gridtools {
     class iterate_domain_cache {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_cache);
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
         typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
 
@@ -102,11 +101,24 @@ namespace gridtools {
             typename IterateDomainArguments::physical_domain_block_size_t,
             typename IterateDomainArguments::local_domain_t >::type ij_caches_vector_t;
 
+        // compute the fusion vector of pair<index_t, cache_storage>
+        typedef typename get_cache_storage_tuple< K,
+            caches_t,
+            cache_extents_map_t,
+            typename IterateDomainArguments::physical_domain_block_size_t,
+            typename IterateDomainArguments::local_domain_t >::type k_caches_vector_t;
+
         // extract a fusion map from the fusion vector of pairs
         typedef typename boost::fusion::result_of::as_map< ij_caches_vector_t >::type ij_caches_tuple_t;
 
+        // extract a fusion map from the fusion vector of pairs
+        typedef typename boost::fusion::result_of::as_map< k_caches_vector_t >::type k_caches_tuple_t;
+
         // compute an mpl from the previous fusion vector, to be used for compile time meta operations
         typedef typename fusion_map_to_mpl_map< ij_caches_tuple_t >::type ij_caches_map_t;
+
+        // compute an mpl from the previous fusion vector, to be used for compile time meta operations
+        typedef typename fusion_map_to_mpl_map< k_caches_tuple_t >::type k_caches_map_t;
 
         typedef
             typename get_cache_set_for_type< bypass, caches_t, typename IterateDomainArguments::local_domain_t >::type

@@ -113,7 +113,7 @@ namespace gridtools {
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), GT_INTERNAL_ERROR);
 
         /**
          * metafunction that determines if a given accessor is associated with an placeholder holding a data field
@@ -147,8 +147,7 @@ namespace gridtools {
                 typename boost::mpl::and_<
                     typename boost::mpl::not_< typename accessor_is_cached< Accessor, CachesMap >::type >::type,
                     typename boost::mpl::not_< typename accessor_holds_data_field< Accessor >::type >::type >::type,
-                typename is_accessor< Accessor >::type >
-                type;
+                typename is_accessor< Accessor >::type > type;
         };
 
         /**
@@ -282,7 +281,7 @@ namespace gridtools {
          */
         template < typename BackendType, typename Strides >
         GT_FUNCTION void assign_stride_pointers() {
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error type");
+            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), GT_INTERNAL_ERROR);
             boost::mpl::for_each< metadata_map_t >(assign_strides_functor< BackendType,
                 Strides,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
@@ -427,7 +426,8 @@ namespace gridtools {
 
             // if the following assertion fails you have specified a dimension for the extended storage
             // which does not correspond to the size of the extended placeholder for that storage
-            GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dimensions,
+            GRIDTOOLS_STATIC_ASSERT(
+                storage_type::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dimensions,
                 "the dimension of the accessor exceeds the data field dimension");
 
             // for the moment the extra dimensionality of the storage is limited to max 2
@@ -447,15 +447,16 @@ namespace gridtools {
 
             // dimension/snapshot offsets must be non negative
             GTASSERT(accessor.template get< 0 >() >= 0);
-            GTASSERT((Accessor::n_dimensions <= storage_type::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
+            GTASSERT(
+                (Accessor::n_dimensions <= storage_type::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
             // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template
             // get<2>()<<" , "<<std::endl;
 
             return (data_pointer())
                 [(Accessor::n_dimensions <= storage_type::space_dimensions + 1 ? // static if
                          accessor.template get< 0 >()
-                                                                        : // offset for the current dimension
-                         accessor.template get< 1 >()                     // offset for the current snapshot
+                                                                               : // offset for the current dimension
+                         accessor.template get< 1 >()                            // offset for the current snapshot
                              // limitation to "rectangular" vector fields for non-static fields dimensions
                              +
                              accessor.template get< 0 >() // select the dimension
@@ -506,7 +507,7 @@ namespace gridtools {
         template < ushort_t Coordinate, typename Accessor >
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
 
-            GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
             // getting information about the metadata
@@ -690,7 +691,8 @@ namespace gridtools {
         typename iterate_domain< IterateDomainImpl >::template mem_access_with_data_field_accessor< Accessor,
             typename iterate_domain< IterateDomainImpl >::all_caches_t >::type,
         typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type >::type
-    iterate_domain< IterateDomainImpl >::operator()(Accessor const &accessor) const {
+        iterate_domain< IterateDomainImpl >::
+        operator()(Accessor const &accessor) const {
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 

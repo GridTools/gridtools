@@ -1,3 +1,38 @@
+/*
+GridTools Libraries
+
+Copyright (c) 2016, GridTools Consortium
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #define FUSION_MAX_VECTOR_SIZE 40
 #define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
@@ -131,14 +166,14 @@ namespace test_expandable_parameters {
         typedef arg< 14, storage_t > p_6_in;
         typedef arg< 15, storage_t > p_7_in;
 
-        typedef arg< 16, storage_t, true > p_0_tmp;
-        typedef arg< 17, storage_t, true > p_1_tmp;
-        typedef arg< 18, storage_t, true > p_2_tmp;
-        typedef arg< 19, storage_t, true > p_3_tmp;
-        typedef arg< 20, storage_t, true > p_4_tmp;
-        typedef arg< 21, storage_t, true > p_5_tmp;
-        typedef arg< 22, storage_t, true > p_6_tmp;
-        typedef arg< 23, storage_t, true > p_7_tmp;
+        typedef arg< 16, storage_t, enumtype::default_location_type, true > p_0_tmp;
+        typedef arg< 17, storage_t, enumtype::default_location_type, true > p_1_tmp;
+        typedef arg< 18, storage_t, enumtype::default_location_type, true > p_2_tmp;
+        typedef arg< 19, storage_t, enumtype::default_location_type, true > p_3_tmp;
+        typedef arg< 20, storage_t, enumtype::default_location_type, true > p_4_tmp;
+        typedef arg< 21, storage_t, enumtype::default_location_type, true > p_5_tmp;
+        typedef arg< 22, storage_t, enumtype::default_location_type, true > p_6_tmp;
+        typedef arg< 23, storage_t, enumtype::default_location_type, true > p_7_tmp;
 
         typedef boost::mpl::vector< p_0_out,
             p_1_out,
@@ -234,8 +269,7 @@ namespace test_expandable_parameters {
                     for (uint_t k = 0; k < d3; ++k) {
                         if (inv(i, j, k) != outv(i, j, k)) {
                             std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                      << "in = " << inv(i, j, k) << ", out = " << outv(i, j, k)
-                                      << std::endl;
+                                      << "in = " << inv(i, j, k) << ", out = " << outv(i, j, k) << std::endl;
                             success = false;
                         }
                     }

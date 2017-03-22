@@ -47,14 +47,14 @@ namespace gridtools {
         template < typename T >
         struct is_expandable_arg : boost::mpl::false_ {};
 
-        template < ushort_t N, typename Storage, bool Temporary >
-        struct is_expandable_arg< arg< N, Storage, Temporary > > : is_vector< Storage > {};
+        template < ushort_t N, typename Storage, typename Location, bool Temporary >
+        struct is_expandable_arg< arg< N, Storage, Location, Temporary > > : is_vector< Storage > {};
 
         struct create_arg {
             template < typename T, typename ExpandFactor >
             struct apply {
-                typedef data_store_field< typename get_storage_from_arg<T>::type, ExpandFactor::value > exp_param_t;
-                typedef arg< arg_index< T >::value, exp_param_t, T::is_temporary > type;
+                typedef data_store_field< typename get_storage_from_arg< T >::type, ExpandFactor::value > exp_param_t;
+                typedef arg< arg_index< T >::value, exp_param_t, typename T::location_t, T::is_temporary > type;
             };
         };
 

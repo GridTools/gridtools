@@ -83,7 +83,7 @@ namespace gridtools {
             template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
             typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(T &t) const {
                 // make a view
-                if(get_arg_storage_pair< T >().ptr.get())
+                if (get_arg_storage_pair< T >().ptr.get())
                     t = make_device_view(*(get_arg_storage_pair< T >().ptr));
             }
 
@@ -91,7 +91,7 @@ namespace gridtools {
             typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
                 T &t) const {
                 // make a view
-                if(get_arg_storage_pair< T >().ptr.get())
+                if (get_arg_storage_pair< T >().ptr.get())
                     t = make_field_device_view(*(get_arg_storage_pair< T >().ptr));
             }
         };
@@ -140,7 +140,7 @@ namespace gridtools {
         */
         template < uint_t Id, typename BlockSize >
         struct once_per_block {
-            GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), GT_INTERNAL_ERROR);
 
             template < typename Left, typename Right >
             GT_FUNCTION static void assign(Left &l, Right const &r) {
@@ -155,15 +155,24 @@ namespace gridtools {
         /**
            Static method in order to calculate the field offset.
         */
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo>
-        GT_FUNCTION static typename boost::enable_if_c<Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo) {
-            constexpr int block_size_i = 2*StorageInfo::halo_t::template at<0>() + PEBlockSize::i_size_t::value;
-            constexpr int block_size_j = 2*StorageInfo::halo_t::template at<1>() + PEBlockSize::j_size_t::value;
+        template < typename LocalDomain,
+            typename PEBlockSize,
+            bool Tmp,
+            typename CurrentExtent,
+            typename GridTraits,
+            typename StorageInfo >
+        GT_FUNCTION static typename boost::enable_if_c< Tmp, int >::type fields_offset(StorageInfo const *sinfo) {
+            typedef GridTraits grid_traits_t;
+            constexpr int block_size_i =
+                2 * StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >() + PEBlockSize::i_size_t::value;
+            constexpr int block_size_j =
+                2 * StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >() + PEBlockSize::j_size_t::value;
             // protect against div. by 0
-            constexpr int diff_between_blocks = (StorageInfo::alignment_t::value) ? 
-                _impl::static_ceil(static_cast<float>(block_size_i)/StorageInfo::alignment_t::value) * 
-                StorageInfo::alignment_t::value : PEBlockSize::i_size_t::value;
+            constexpr int diff_between_blocks =
+                (StorageInfo::alignment_t::value)
+                    ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
+                          StorageInfo::alignment_t::value
+                    : PEBlockSize::i_size_t::value;
             // compute position in i and j
             const uint_t i = processing_element_i() * diff_between_blocks;
             const uint_t j = diff_between_blocks * gridDim.x * processing_element_j() * block_size_j;
@@ -173,9 +182,13 @@ namespace gridtools {
             return StorageInfo::get_initial_offset() + CurrentExtent::iminus::value + i + j;
         }
 
-        template <typename LocalDomain, typename PEBlockSize, bool Tmp, typename CurrentExtent, typename StorageInfo>
-        GT_FUNCTION static typename boost::enable_if_c<!Tmp, int>::type 
-        fields_offset(StorageInfo const* sinfo) {
+        template < typename LocalDomain,
+            typename PEBlockSize,
+            bool Tmp,
+            typename CurrentExtent,
+            typename GridTraits,
+            typename StorageInfo >
+        GT_FUNCTION static typename boost::enable_if_c< !Tmp, int >::type fields_offset(StorageInfo const *sinfo) {
             return StorageInfo::get_initial_offset();
         }
 
@@ -187,15 +200,15 @@ namespace gridtools {
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
             template < typename LocalDomain, typename Grid, typename ReductionData >
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const uint_t bi,
                 const uint_t bj) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef
@@ -221,7 +234,7 @@ namespace gridtools {
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template < typename BackendIds >
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_cuda< BackendIds::s_strategy_id > type;
         };
 
@@ -242,8 +255,7 @@ namespace gridtools {
          */
         template < typename IterateDomainArguments >
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
             // indirection in order to avoid instantiation of both types of the eval_if
             template < typename _IterateDomainArguments >
             struct select_positional_iterate_domain {

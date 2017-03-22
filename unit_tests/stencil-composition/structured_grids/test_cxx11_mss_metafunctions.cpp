@@ -66,7 +66,7 @@ typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > stora
 
 typedef arg< 0, storage_t > p_in;
 typedef arg< 1, storage_t > p_out;
-typedef arg< 2, storage_t, true > p_buff;
+typedef arg< 2, storage_t, enumtype::default_location_type, true > p_buff;
 
 TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
     meta_data_t meta_(10, 10, 10);
@@ -85,9 +85,10 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
         (boost::mpl::equal< mss_t::esf_sequence_t, boost::mpl::vector2< esf1_t, esf2_t > >::value), "ERROR");
 
 #ifndef __DISABLE_CACHING__
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< mss_t::cache_sequence_t,
-                                boost::mpl::vector2< detail::cache_impl< IJ, p_buff, local >,
-                                                    detail::cache_impl< IJ, p_out, local > > >::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::equal< mss_t::cache_sequence_t,
+            boost::mpl::vector2< detail::cache_impl< IJ, p_buff, local, boost::mpl::void_ >,
+                                detail::cache_impl< IJ, p_out, local, boost::mpl::void_ > > >::value),
         "ERROR\nLists do not match");
 #else
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::empty< mss_t::cache_sequence_t >::value), "ERROR\nList not empty");

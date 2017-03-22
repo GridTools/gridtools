@@ -47,7 +47,6 @@
 #include "gt_assert.hpp"
 #include "host_device.hpp"
 #include "generic_metafunctions/accumulate.hpp"
-//#include "common/generic_metafunctions/gt_integer_sequence.hpp"
 
 namespace gridtools {
 
@@ -65,8 +64,6 @@ namespace gridtools {
 
         typedef T value_type;
         static const size_t n_dimensions = D;
-
-#ifdef CXX11_ENABLED
 
         // TODO provide a constexpr version
         T operator*(type &other) {
@@ -96,74 +93,6 @@ namespace gridtools {
             return ret;
         }
 
-#else
-        GT_FUNCTION
-        array() {}
-
-        // TODO provide a BOOST PP implementation for this
-        GT_FUNCTION
-        array(T const &i) : _array() {
-            GRIDTOOLS_STATIC_ASSERT((!is_array< T >::value), "internal error");
-            const_cast< typename boost::remove_const< T >::type * >(_array)[0] = i;
-        }
-        GT_FUNCTION
-        array(T const &i, T const &j) : _array() {
-            const_cast< typename boost::remove_const< T >::type * >(_array)[0] = i;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[1] = j;
-        }
-        GT_FUNCTION
-        array(T const &i, T const &j, T const &k) : _array() {
-            const_cast< typename boost::remove_const< T >::type * >(_array)[0] = i;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[1] = j;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[2] = k;
-        }
-        GT_FUNCTION
-        array(T const &i, T const &j, T const &k, T const &l) : _array() {
-            const_cast< typename boost::remove_const< T >::type * >(_array)[0] = i;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[1] = j;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[2] = k;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[3] = l;
-        }
-        GT_FUNCTION
-        array(T const &i, T const &j, T const &k, T const &l, T const &p) : _array() {
-            const_cast< typename boost::remove_const< T >::type * >(_array)[0] = i;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[1] = j;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[2] = k;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[3] = l;
-            const_cast< typename boost::remove_const< T >::type * >(_array)[4] = p;
-        }
-
-        // TODO provide a BOOST PP implementation for this (so ugly :-()
-        GT_FUNCTION
-        array(array< T, 1 > const &other) : _array() { _array[0] = other[0]; }
-        GT_FUNCTION
-        array(array< T, 2 > const &other) : _array() {
-            _array[0] = other[0];
-            _array[1] = other[1];
-        }
-        GT_FUNCTION
-        array(array< T, 3 > const &other) : _array() {
-            _array[0] = other[0];
-            _array[1] = other[1];
-            _array[2] = other[2];
-        }
-        GT_FUNCTION
-        array(array< T, 4 > const &other) : _array() {
-            _array[0] = other[0];
-            _array[1] = other[1];
-            _array[2] = other[2];
-            _array[3] = other[3];
-        }
-        GT_FUNCTION
-        array(array< T, 5 > const &other) : _array() {
-            _array[0] = other[0];
-            _array[1] = other[1];
-            _array[2] = other[2];
-            _array[3] = other[3];
-            _array[4] = other[4];
-        }
-#endif
-
         GT_FUNCTION
         T const *begin() const { return &_array[0]; }
 
@@ -186,8 +115,7 @@ namespace gridtools {
         }
 
         template < size_t I >
-        GT_FUNCTION
-        constexpr T const &get() const {
+        GT_FUNCTION constexpr T const &get() const {
             static_assert((I < n_dimensions), "Array out of bounds access.");
             return _array[I];
         }

@@ -65,6 +65,7 @@ namespace gridtools {
         typedef static_int< JPlus > jplus;
         typedef static_int< KMinus > kminus;
         typedef static_int< KPlus > kplus;
+        typedef boost::mpl::vector6< iminus, iplus, jminus, jplus, kminus, kplus > extent_vec_t;
     };
 
     template < typename In >
@@ -170,6 +171,27 @@ namespace gridtools {
             boost::mpl::plus< typename Extent1::jplus, typename Extent2::jplus >::type::value,
             boost::mpl::plus< typename Extent1::kminus, typename Extent2::kminus >::type::value,
             boost::mpl::plus< typename Extent1::kplus, typename Extent2::kplus >::type::value > type;
+    };
+
+    template < typename Extent >
+    struct extent_get_iminus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
+        static const int_t value = Extent::iminus::value;
+    };
+    template < typename Extent >
+    struct extent_get_iplus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
+        static const int_t value = Extent::iplus::value;
+    };
+    template < typename Extent >
+    struct extent_get_jminus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
+        static const int_t value = Extent::jminus::value;
+    };
+    template < typename Extent >
+    struct extent_get_jplus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
+        static const int_t value = Extent::jplus::value;
     };
 
 } // namespace gridtools

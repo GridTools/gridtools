@@ -54,51 +54,82 @@ namespace test_multidimensional_caches {
 
     int test() {
 #ifdef CUDA8
-        typedef BACKEND::storage_traits_t::storage_info_t<0, 6 > storage_info_t;
-        typedef BACKEND::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
-        typedef storage_wrapper<arg<0, storage_t>, data_view<storage_t>, gridtools::tile<0,0,0>, gridtools::tile<0,0,0> > sw1_t;
+        typedef BACKEND::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
+        typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+        typedef storage_wrapper< arg< 0, storage_t >,
+            data_view< storage_t >,
+            gridtools::tile< 0, 0, 0 >,
+            gridtools::tile< 0, 0, 0 > > sw1_t;
         typedef cache_storage< block_size< 8, 3, 4, 5, 6 >, extent< -1, 1, -2, 2, 0, 2, 0, 0, -1, 0 >, sw1_t >
             cache_storage_t;
         typedef accessor< 0, enumtype::in, extent<>, 6 > acc_t;
 
         typedef typename cache_storage_t::meta_t m_t;
 
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<0>() == 10, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<1>() == 7, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<2>() == 6, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<3>() == 1, "error");
-        GRIDTOOLS_STATIC_ASSERT(m_t::template dim<4>() == 7, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 0 >() == 10, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 1 >() == 7, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 2 >() == 6, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 3 >() == 1, "error");
+        GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 4 >() == 7, "error");
 
 #ifndef __CUDACC__ // compiler internal catastrophic error until CUDA8
         // for the layout_map::find_val (bug report)
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(1, 0, 0, 0, 0, 0).offsets()) == 1), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(2, 0, 0, 0, 0, 0).offsets()) == 2), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(3, 0, 0, 0, 0, 0).offsets()) == 3), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(4, 0, 0, 0, 0, 0).offsets()) == 4), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(5, 0, 0, 0, 0, 0).offsets()) == 5), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(6, 0, 0, 0, 0, 0).offsets()) == 6), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(7, 0, 0, 0, 0, 0).offsets()) == 7), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(8, 0, 0, 0, 0, 0).offsets()) == 8), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(9, 0, 0, 0, 0, 0).offsets()) == 9), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 0, 0).offsets()) == 0), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 1, 0, 0, 0, 0).offsets()) == 10), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 2, 0, 0, 0, 0).offsets()) == 20), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 3, 0, 0, 0, 0).offsets()) == 30), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 4, 0, 0, 0, 0).offsets()) == 40), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 5, 0, 0, 0, 0).offsets()) == 50), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 6, 0, 0, 0, 0).offsets()) == 60), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 1, 0, 0, 0).offsets()) == 70), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 2, 0, 0, 0).offsets()) == 140), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 3, 0, 0, 0).offsets()) == 210), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 4, 0, 0, 0).offsets()) == 280), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 5, 0, 0, 0).offsets()) == 350), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 1, 0, 0).offsets()) == 420), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 1, 0).offsets()) == 420), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 2, 0).offsets()) == 420 * 2), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 3, 0).offsets()) == 420 * 3), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 4, 0).offsets()) == 420 * 4), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 5, 0).offsets()) == 420 * 5), "error");
-        GRIDTOOLS_STATIC_ASSERT((impl_::get_offset<0, 5, typename cache_storage_t::meta_t>(acc_t(0, 0, 0, 0, 6, 0).offsets()) == 420 * 6), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(1, 0, 0, 0, 0, 0)) == 1), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(2, 0, 0, 0, 0, 0)) == 2), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(3, 0, 0, 0, 0, 0)) == 3), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(4, 0, 0, 0, 0, 0)) == 4), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(5, 0, 0, 0, 0, 0)) == 5), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(6, 0, 0, 0, 0, 0)) == 6), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(7, 0, 0, 0, 0, 0)) == 7), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(8, 0, 0, 0, 0, 0)) == 8), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(9, 0, 0, 0, 0, 0)) == 9), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 0, 0)) == 0), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 1, 0, 0, 0, 0)) == 10), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 2, 0, 0, 0, 0)) == 20), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 3, 0, 0, 0, 0)) == 30), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 4, 0, 0, 0, 0)) == 40), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 5, 0, 0, 0, 0)) == 50), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 6, 0, 0, 0, 0)) == 60), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 1, 0, 0, 0)) == 70), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 2, 0, 0, 0)) == 140), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 3, 0, 0, 0)) == 210), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 4, 0, 0, 0)) == 280), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 5, 0, 0, 0)) == 350), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 1, 0, 0)) == 420), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 1, 0)) == 420), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 2, 0)) == 420 * 2), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 3, 0)) == 420 * 3), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 4, 0)) == 420 * 4), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 5, 0)) == 420 * 5), "error");
+        GRIDTOOLS_STATIC_ASSERT(
+            (impl_::get_offset< 0, 5, typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 6, 0)) == 420 * 6), "error");
 #endif
 #endif
         return 0;

@@ -94,15 +94,14 @@ namespace test_cache_stencil {
 #define BACKEND backend< Host, structured, Block >
 #endif
 
-
-    typedef BACKEND::storage_traits_t::storage_info_t<0, 3, halo<halo_size,halo_size,0> > storage_info_t;
-    typedef BACKEND::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo< halo_size, halo_size, 0 > > storage_info_t;
+    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
-    typedef arg< 2, storage_t, true > p_buff;
-    typedef arg< 3, storage_t, true > p_buff_2;
-    typedef arg< 4, storage_t, true > p_buff_3;
+    typedef arg< 2, storage_t, enumtype::default_location_type, true > p_buff;
+    typedef arg< 3, storage_t, enumtype::default_location_type, true > p_buff_2;
+    typedef arg< 4, storage_t, enumtype::default_location_type, true > p_buff_3;
 }
 
 using namespace gridtools;
@@ -113,7 +112,7 @@ class cache_stencil : public ::testing::Test {
   protected:
     const uint_t m_d1, m_d2, m_d3;
 
-    array< uint_t, 5 > m_di, m_dj;
+    halo_descriptor m_di, m_dj;
 
     gridtools::grid< axis > m_grid;
     storage_info_t m_meta;
@@ -134,12 +133,12 @@ class cache_stencil : public ::testing::Test {
     }
 
     virtual void SetUp() {
-        m_in = storage_t(m_meta, 0.); 
+        m_in = storage_t(m_meta, 0.);
         m_out = storage_t(m_meta, 0.);
         auto m_inv = make_host_view(m_in);
-        for (int k = 0; k < m_d3; ++k) {
-            for (int i = m_di[2]; i < m_di[3]; ++i) {
-                for (int j = m_dj[2]; j < m_dj[3]; ++j) {
+        for (int i = m_di.begin(); i < m_di.end(); ++i) {
+            for (int j = m_dj.begin(); j < m_dj.end(); ++j) {
+                for (int k = 0; k < m_d3; ++k) {
                     m_inv(i, j, k) = i + j * 100 + k * 10000;
                 }
             }
@@ -153,12 +152,12 @@ TEST_F(cache_stencil, ij_cache) {
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
     auto pstencil = make_computation< gridtools::BACKEND >(domain,
-            m_grid,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-              define_caches(cache< IJ, local >(p_buff())),
-              make_stage< functor1 >(p_in(), p_buff()),
-              make_stage< functor1 >(p_buff(), p_out())));
+        m_grid,
+        make_multistage // mss_descriptor
+        (execute< forward >(),
+                                                               define_caches(cache< IJ, local >(p_buff())),
+                                                               make_stage< functor1 >(p_in(), p_buff()),
+                                                               make_stage< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -174,8 +173,7 @@ TEST_F(cache_stencil, ij_cache) {
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{
-        {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, m_in, m_out, halos));
 #else
 #if FLOAT_PRECISION == 4
@@ -196,8 +194,8 @@ TEST_F(cache_stencil, ij_cache_offset) {
     for (int i = halo_size; i < m_d1 - halo_size; ++i) {
         for (int j = halo_size; j < m_d2 - halo_size; ++j) {
             for (int k = 0; k < m_d3; ++k) {
-                refv(i, j, k) =
-                    (m_inv(i - 1, j, k) + m_inv(i + 1, j, k) + m_inv(i, j - 1, k) + m_inv(i, j + 1, k)) / (float_type)4.0;
+                refv(i, j, k) = (m_inv(i - 1, j, k) + m_inv(i + 1, j, k) + m_inv(i, j - 1, k) + m_inv(i, j + 1, k)) /
+                                (float_type)4.0;
             }
         }
     }
@@ -206,14 +204,14 @@ TEST_F(cache_stencil, ij_cache_offset) {
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
     auto pstencil =
-            make_computation< gridtools::BACKEND >(domain,
-                m_grid,
-                make_multistage // mss_descriptor
-                (execute< forward >(),
-                 define_caches(cache< IJ, local >(p_buff())),
-                 make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
-                 make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
-    ));
+        make_computation< gridtools::BACKEND >(domain,
+            m_grid,
+            make_multistage // mss_descriptor
+            (execute< forward >(),
+                                                   define_caches(cache< IJ, local >(p_buff())),
+                                                   make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
+                                                   make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
+                                                   ));
 
     pstencil->ready();
 
@@ -229,8 +227,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{
-        {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
 #else
 #if FLOAT_PRECISION == 4
@@ -261,19 +258,19 @@ TEST_F(cache_stencil, multi_cache) {
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
     auto stencil = make_computation< gridtools::BACKEND >(
-            domain,
-            m_grid,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                // test if define_caches works properly with multiple vectors of caches.
-                // in this toy example two vectors are passed (IJ cache vector for p_buff
-                // and p_buff_2, IJ cache vector for p_buff_3)
-                define_caches(cache< IJ, local >(p_buff(), p_buff_2()), cache< IJ, local >(p_buff_3())),
-                make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
-                make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
-                make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
-                make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
-                ));
+        domain,
+        m_grid,
+        make_multistage // mss_descriptor
+        (execute< forward >(),
+            // test if define_caches works properly with multiple vectors of caches.
+            // in this toy example two vectors are passed (IJ cache vector for p_buff
+            // and p_buff_2, IJ cache vector for p_buff_3)
+            define_caches(cache< IJ, local >(p_buff(), p_buff_2()), cache< IJ, local >(p_buff_3())),
+            make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
+            make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
+            make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
+            make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
+            ));
     stencil->ready();
 
     stencil->steady();
@@ -284,8 +281,7 @@ TEST_F(cache_stencil, multi_cache) {
 
 #ifdef CXX11_ENABLED
     verifier verif(1e-13);
-    array< array< uint_t, 2 >, 3 > halos{
-        {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
 #else
     verifier verif(1e-13, halo_size);

@@ -34,7 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "host_device.hpp"
 
+#include <math.h>
 namespace gridtools {
 
     /**@brief Class in substitution of std::pow, not available in CUDA*/
@@ -54,4 +56,90 @@ namespace gridtools {
             return 1.;
         }
     };
+
+    namespace math {
+
+        template < typename Value >
+        GT_FUNCTION constexpr Value const &max(Value const &val0) {
+            return val0;
+        }
+
+        template < typename Value >
+        GT_FUNCTION constexpr Value const &max(Value const &val0, Value const &val1) {
+            return val0 > val1 ? val0 : val1;
+        }
+
+        template < typename Value, typename... OtherValues >
+        GT_FUNCTION constexpr Value const &max(Value const &val0, Value const &val1, OtherValues const &... vals) {
+            return val0 > max(val1, vals...) ? val0 : max(val1, vals...);
+        }
+
+        template < typename Value >
+        GT_FUNCTION constexpr Value const &min(Value const &val0) {
+            return val0;
+        }
+
+        template < typename Value >
+        GT_FUNCTION constexpr Value const &min(Value const &val0, Value const &val1) {
+            return val0 > val1 ? val1 : val0;
+        }
+
+        template < typename Value, typename... OtherValues >
+        GT_FUNCTION constexpr Value const &min(Value const &val0, Value const &val1, OtherValues const &... vals) {
+            return val0 > min(val1, vals...) ? min(val1, vals...) : val0;
+        }
+
+#ifdef __CUDACC__
+        // providing the same overload pattern as the std library
+        // auto return type to ensure that we do not accidentally cast
+        GT_FUNCTION auto fabs(double val) -> decltype(::fabs(val)) { return ::fabs(val); }
+
+        GT_FUNCTION auto fabs(float val) -> decltype(::fabs(val)) { return ::fabs(val); }
+
+        template < typename Value >
+        GT_FUNCTION auto fabs(Value val) -> decltype(::fabs((double)val)) {
+            return ::fabs((double)val);
+        }
+#ifndef __CUDA_ARCH__
+        GT_FUNCTION_HOST auto fabs(long double val) -> decltype(std::fabs(val)) { return std::fabs(val); }
+#else
+        // long double not supported in device code
+        template < typename ErrorTrigger = double >
+        GT_FUNCTION_DEVICE double fabs(long double val) {
+            GRIDTOOLS_STATIC_ASSERT((sizeof(ErrorTrigger) == 0), "long double is not supported in device code");
+            return 0.;
+        }
+#endif
+#else
+        // forward to std::fabs
+        template < typename Value >
+        GT_FUNCTION auto fabs(Value val) -> decltype(std::fabs(val)) {
+            return std::fabs(val);
+        }
+#endif
+
+#ifdef __CUDACC__
+        // providing the same overload pattern as the std library
+        // auto return type to ensure that we do not accidentally cast
+        GT_FUNCTION auto abs(int val) -> decltype(::abs(val)) { return ::abs(val); }
+
+        GT_FUNCTION auto abs(long val) -> decltype(::abs(val)) { return ::abs(val); }
+
+        GT_FUNCTION auto abs(long long val) -> decltype(::abs(val)) { return ::abs(val); }
+
+        // forward to fabs
+        template < typename Value >
+        GT_FUNCTION auto abs(Value val) -> decltype(math::fabs(val)) {
+            return math::fabs(val);
+        }
+#else
+        // forward to std::abs
+        template < typename Value >
+        GT_FUNCTION auto abs(Value val) -> decltype(std::abs(val)) {
+            return std::abs(val);
+        }
+#endif
+
+    } // namespace math
+
 } // namespace gridtools

@@ -96,7 +96,7 @@ namespace soeov {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -119,14 +119,14 @@ namespace soeov {
             for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                 for (int j = 0; j < d2; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        cv(i, c, j, k) = (uint_t)cell_area.get_storage_info_ptr()->index(i,c,j,k);
+                        cv(i, c, j, k) = (uint_t)cell_area.get_storage_info_ptr()->index(i, c, j, k);
                     }
                 }
             }
         }
 
-        typedef arg< 0, cell_storage_type > p_cell_area;
-        typedef arg< 1, edges_of_cells_storage_type > p_weight_edges;
+        typedef arg< 0, cell_storage_type, enumtype::cells > p_cell_area;
+        typedef arg< 1, edges_of_cells_storage_type, enumtype::edges > p_weight_edges;
 
         typedef boost::mpl::vector< p_cell_area, p_weight_edges > accessor_list_t;
 
@@ -162,15 +162,18 @@ namespace soeov {
                     for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
                         for (uint_t k = 0; k < d3; ++k) {
                             for (uint_t e = 0; e < 3; ++e) {
-                                rv(i, c, j, k, e) =
-                                    cv(i, c, j, k) * (1 + (float_type)1.0 / (float_type)(e + 1));
+                                rv(i, c, j, k, e) = cv(i, c, j, k) * (1 + (float_type)1.0 / (float_type)(e + 1));
                             }
                         }
                     }
                 }
             }
 
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-6);
+#else
             verifier ver(1e-10);
+#endif
 
             array< array< uint_t, 2 >, 5 > halos = {
                 {{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}, {0, 0}}};

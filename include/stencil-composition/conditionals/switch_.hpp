@@ -40,7 +40,6 @@
 */
 
 namespace gridtools {
-
     /**@brief API for a runtime switch between several multi stage stencils
 
        Its implementation is recursive. It creates as many boolean conditionals as
@@ -106,16 +105,14 @@ computation->finalize();
         auto lam = [&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); };
         cond_.push_back_condition(lam);
 
-        return if_(conditional_t(lam),
-            first_.mss(),
-        recursive_switch(0u, cond_, cases_...));
+        return if_(conditional_t(lam), first_.mss(), recursive_switch(0u, cond_, cases_...));
     }
 
     template < typename Condition, typename First, typename... Cases >
     auto recursive_switch(uint_t recursion_depth_, Condition &cond_, First const &first_, Cases const &... cases_)
         -> decltype(if_(conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value >(),
             first_.mss(),
-            recursive_switch(recursion_depth_+1, cond_, cases_...))) {
+            recursive_switch(recursion_depth_ + 1, cond_, cases_...))) {
         GRIDTOOLS_STATIC_ASSERT(
             (is_case_type< First >::value), "the entries in a switch_ statement must be case_ statements");
 
@@ -131,9 +128,7 @@ computation->finalize();
         auto lam = [&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); };
         cond_.push_back_condition(lam);
 
-        return if_(conditional_t(lam),
-            first_.mss(),
-            recursive_switch(recursion_depth_+1, cond_, cases_...));
+        return if_(conditional_t(lam), first_.mss(), recursive_switch(recursion_depth_ + 1, cond_, cases_...));
     }
 
     /**@brief recursion anchor*/

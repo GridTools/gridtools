@@ -63,7 +63,7 @@ namespace soc {
 
     template < uint_t Color >
     struct test_on_cells_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
+        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< -1, 1, -1, 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
@@ -84,7 +84,7 @@ namespace soc {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -101,13 +101,12 @@ namespace soc {
         auto icv = make_host_view(in_cells);
         auto ocv = make_host_view(out_cells);
         auto rcv = make_host_view(ref_on_cells);
-        
 
         for (int i = 1; i < d1 - 1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                 for (int j = 1; j < d2 - 1; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        icv(i, c, j, k) = in_cells.get_storage_info_ptr()->index(i,c,j,k);
+                        icv(i, c, j, k) = in_cells.get_storage_info_ptr()->index(i, c, j, k);
                         ocv(i, c, j, k) = 0.0;
                         rcv(i, c, j, k) = 0.0;
                     }
@@ -154,14 +153,18 @@ namespace soc {
                                 ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
                                     {i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                                rcv(i, c, j, k) += icv((*iter)[0],(*iter)[1],(*iter)[2],(*iter)[3]);
+                                rcv(i, c, j, k) += icv((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]);
                             }
                         }
                     }
                 }
             }
 
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-6);
+#else
             verifier ver(1e-10);
+#endif
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = ver.verify(grid_, ref_on_cells, out_cells, halos);

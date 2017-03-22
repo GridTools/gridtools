@@ -59,7 +59,7 @@ namespace nested_test {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
-    template < uint_t Color >    
+    template < uint_t Color >
     struct nested_stencil {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 2 > > in_cells;
         typedef in_accessor< 1, icosahedral_topology_t::edges, extent< 1 > > in_edges;
@@ -94,9 +94,8 @@ namespace nested_test {
             //            auto x = eval(on_edges(reduction, 0.0,
             //                map(gg, in_edges(), on_cells(ff, 0.0, map(identity<double>(), in_cells())))));
             eval(on_edges(reduction, 0.0, map(gg, in_edges(), on_cells(ff, 0.0, in_cells()))));
-            //auto y = eval(on_edges(reduction, 0.0, map(gg, in_edges(), on_cells(ff, 0.0, in_cells()))));
+            // auto y = eval(on_edges(reduction, 0.0, map(gg, in_edges(), on_cells(ff, 0.0, in_cells()))));
             // eval(out()) = eval(reduce_on_edges(reduction, 0.0, edges0::reduce_on_cells(gg, in()), edges1()));
-
         }
     };
 }
@@ -134,7 +133,7 @@ TEST(test_stencil_nested_on, run) {
     c_edges.allocate();
     k_edges.allocate();
     ref_edges.allocate();
-    
+
     auto incv = make_host_view(in_cells);
     auto inev = make_host_view(in_edges);
     auto iv = make_host_view(i_edges);
@@ -148,11 +147,9 @@ TEST(test_stencil_nested_on, run) {
             for (int j = 0; j < d2; ++j) {
                 for (int k = 0; k < d3; ++k) {
                     if (c < icosahedral_topology_t::cells::n_colors::value) {
-                        incv(i, c, j, k) =
-                            in_cells.get_storage_info_ptr()->index(i,c,j,k);
+                        incv(i, c, j, k) = in_cells.get_storage_info_ptr()->index(i, c, j, k);
                     }
-                    inev(i, c, j, k) =
-                        in_edges.get_storage_info_ptr()->index(i,c,j,k);
+                    inev(i, c, j, k) = in_edges.get_storage_info_ptr()->index(i, c, j, k);
 
                     iv(i, c, j, k) = i;
                     cv(i, c, j, k) = c;
@@ -201,8 +198,8 @@ TEST(test_stencil_nested_on, run) {
         for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
             for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
                 for (uint_t k = 0; k < d3; ++k) {
-                    std::cout << "REFFOR i,c,j,k " << iv(i, c, j, k) << " " << cv(i, c, j, k) << " "
-                              << jv(i, c, j, k) << " " << kv(i, c, j, k) << std::endl;
+                    std::cout << "REFFOR i,c,j,k " << iv(i, c, j, k) << " " << cv(i, c, j, k) << " " << jv(i, c, j, k)
+                              << " " << kv(i, c, j, k) << std::endl;
 
                     double acc = 0.0;
                     auto neighbours =
@@ -214,17 +211,25 @@ TEST(test_stencil_nested_on, run) {
                                 *edge_iter);
                         for (auto cell_iter = innercell_neighbours.begin(); cell_iter != innercell_neighbours.end();
                              ++cell_iter) {
-                            std::cout << "REF INNER FF " << incv((*cell_iter)[0], (*cell_iter)[1], (*cell_iter)[2], (*cell_iter)[3])  << " " << acc << " "
-                                      << acc + incv((*cell_iter)[0], (*cell_iter)[1], (*cell_iter)[2], (*cell_iter)[3]) + 1 << std::endl;
+                            std::cout << "REF INNER FF "
+                                      << incv((*cell_iter)[0], (*cell_iter)[1], (*cell_iter)[2], (*cell_iter)[3]) << " "
+                                      << acc << " "
+                                      << acc +
+                                             incv((*cell_iter)[0], (*cell_iter)[1], (*cell_iter)[2], (*cell_iter)[3]) +
+                                             1
+                                      << std::endl;
 
                             acc += incv((*cell_iter)[0], (*cell_iter)[1], (*cell_iter)[2], (*cell_iter)[3]) + 1;
                         }
-                        std::cout << "MAP ON EDGES " << acc << " " << inev((*edge_iter)[0], (*edge_iter)[1], (*edge_iter)[2], (*edge_iter)[3])  << " "
-                                  << (acc + inev((*edge_iter)[0], (*edge_iter)[1], (*edge_iter)[2], (*edge_iter)[3]) + 2) << std::endl;
+                        std::cout << "MAP ON EDGES " << acc << " "
+                                  << inev((*edge_iter)[0], (*edge_iter)[1], (*edge_iter)[2], (*edge_iter)[3]) << " "
+                                  << (acc + inev((*edge_iter)[0], (*edge_iter)[1], (*edge_iter)[2], (*edge_iter)[3]) +
+                                         2)
+                                  << std::endl;
                     }
 
-                    std::cout << "RED ON EDGES " << (acc + inev(i, c, j, k) + 2) << " " << rv(i, c, j, k)
-                              << " " << (acc + inev(i, c, j, k) + 2) + 3 << std::endl;
+                    std::cout << "RED ON EDGES " << (acc + inev(i, c, j, k) + 2) << " " << rv(i, c, j, k) << " "
+                              << (acc + inev(i, c, j, k) + 2) + 3 << std::endl;
 
                     rv(i, c, j, k) += (acc + inev(i, c, j, k) + 2) + 3;
                 }
@@ -232,7 +237,11 @@ TEST(test_stencil_nested_on, run) {
         }
     }
 
-    verifier ver(1e-10);
+#if FLOAT_PRECISION == 4
+    verifier ver(1e-6);
+#else
+    verifier ver(1e-12);
+#endif
 
     array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
     EXPECT_TRUE(ver.verify(grid_, ref_edges, out_edges, halos));

@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#include "../common/numerics.hpp"
+#include "../../common/numerics.hpp"
 #include "../compute_extents_metafunctions.hpp"
 #include "../storage_wrapper.hpp"
 #include "../tile.hpp"
@@ -58,6 +58,10 @@ namespace gridtools {
 
     template <>
     struct grid_traits_from_id< enumtype::structured > {
+        // index positions of the different dimensions in the layout map (convention)
+        typedef static_uint< 0 > dim_i_t;
+        typedef static_uint< 1 > dim_j_t;
+        typedef static_uint< 2 > dim_k_t;
 
         struct select_mss_compute_extent_sizes {
             template < typename PlaceholdersMap, typename Mss, uint_t RepeatFunctor >
@@ -86,53 +90,57 @@ namespace gridtools {
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t i_size = grid.direction_i().total_length();
             const uint_t j_size = grid.direction_j().total_length();
-            const uint_t k_size = (grid.value_at_top() + 1);
+            const uint_t k_size = (grid.k_max() + 1);
             return T(i_size, j_size, k_size);
         }
 
         // get a temporary storage for Host Block
         template < typename T, typename Backend, typename StorageWrapper, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block && Backend::s_backend_id == enumtype::Host), T >::type
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block &&
+                                                Backend::s_backend_id == enumtype::Host),
+            T >::type
         instantiate_storage_info(Grid const &grid) {
-            typedef boost::mpl::int_<T::halo_t::template at<0>()> halo_i;
+            typedef boost::mpl::int_< T::halo_t::template at< dim_i_t::value >() > halo_i;
 
             // get all the params (size in i,j,k and number of threads in i,j)
-            const uint_t k_size = (grid.value_at_top() + 1);
+            const uint_t k_size = (grid.k_max() + 1);
             const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
 
             // create and return the storage info instance
-            return T((StorageWrapper::tileI_t::s_tile + 2*halo_i::value) * threads_i - 2*halo_i::value,
-                     (StorageWrapper::tileJ_t::s_tile) * threads_j,
-                      k_size);
+            return T((StorageWrapper::tileI_t::s_tile + 2 * halo_i::value) * threads_i - 2 * halo_i::value,
+                (StorageWrapper::tileJ_t::s_tile)*threads_j,
+                k_size);
         }
 
         // get a temporary storage for Cuda
         template < typename T, typename Backend, typename StorageWrapper, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block && Backend::s_backend_id == enumtype::Cuda), T >::type
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block &&
+                                                Backend::s_backend_id == enumtype::Cuda),
+            T >::type
         instantiate_storage_info(Grid const &grid) {
-            typedef boost::mpl::int_<T::halo_t::template at<0>()> halo_i;
-            typedef boost::mpl::int_<T::halo_t::template at<1>()> halo_j;
-            
+            typedef boost::mpl::int_< T::halo_t::template at< dim_i_t::value >() > halo_i;
+            typedef boost::mpl::int_< T::halo_t::template at< dim_j_t::value >() > halo_j;
+
             // get all the params (size in i,j,k and number of threads in i,j)
-            const uint_t k_size = (grid.value_at_top() + 1);
+            const uint_t k_size = (grid.k_max() + 1);
             const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
 
-            constexpr int full_block_size = StorageWrapper::tileI_t::s_tile + 2*halo_i::value;
-            constexpr int diff_between_blocks = (T::alignment_t::value) ? 
-                _impl::static_ceil(static_cast<float>(full_block_size)/T::alignment_t::value) * T::alignment_t::value : full_block_size;
+            constexpr int full_block_size = StorageWrapper::tileI_t::s_tile + 2 * halo_i::value;
+            constexpr int diff_between_blocks =
+                (T::alignment_t::value)
+                    ? _impl::static_ceil(static_cast< float >(full_block_size) / T::alignment_t::value) *
+                          T::alignment_t::value
+                    : full_block_size;
             constexpr int padding_between_blocks = diff_between_blocks - full_block_size;
-            const int inner_domain_size = threads_i * StorageWrapper::tileI_t::s_tile + 
-                (threads_i - 1) * (padding_between_blocks + 2*halo_i::value);
+            const int inner_domain_size = threads_i * StorageWrapper::tileI_t::s_tile +
+                                          (threads_i - 1) * (padding_between_blocks + 2 * halo_i::value);
 
             // create and return the storage info instance
-            return T(inner_domain_size, (StorageWrapper::tileJ_t::s_tile + 2*halo_j::value) * threads_j - 2*halo_j::value, k_size);
+            return T(inner_domain_size,
+                (StorageWrapper::tileJ_t::s_tile + 2 * halo_j::value) * threads_j - 2 * halo_j::value,
+                k_size);
         }
-
-        // index positions of the different dimensions in the layout map (convention)
-        typedef static_uint< 0 > dim_i_t;
-        typedef static_uint< 1 > dim_j_t;
-        typedef static_uint< 2 > dim_k_t;
     };
 }

@@ -93,4 +93,3 @@ TEST(integer_sequence, apply_lambda) {
 
     ASSERT_TRUE(true);
 }
-

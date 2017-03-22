@@ -41,16 +41,18 @@
 namespace gridtools {
     namespace _impl {
 
-        template <typename R, typename Vec, typename... T>
-        typename boost::enable_if_c<sizeof...(T) == boost::mpl::size<Vec>::value, R*>::type 
-        constexpr get_aggregator(Vec& v, T&... t) {
+        template < typename R, typename Vec, typename... T >
+        typename boost::enable_if_c< sizeof...(T) == boost::mpl::size< Vec >::value,
+            R * >::type constexpr get_aggregator(Vec &v, T &... t) {
             return new R(t...);
         }
 
-        template <typename R, typename Vec, typename... T>
-        typename boost::enable_if_c<sizeof...(T) < boost::mpl::size<Vec>::value, R*>::type 
-        constexpr get_aggregator(Vec& v, T&... t) {
-            return get_aggregator<R>(v, t..., *(boost::fusion::deref(boost::fusion::advance_c<sizeof...(T)>(boost::fusion::begin(v))).ptr));
+        template < typename R, typename Vec, typename... T >
+        typename boost::enable_if_c< sizeof...(T) < boost::mpl::size< Vec >::value,
+            R * >::type constexpr get_aggregator(Vec &v, T &... t) {
+            return get_aggregator< R >(v,
+                t...,
+                *(boost::fusion::deref(boost::fusion::advance_c< sizeof...(T) >(boost::fusion::begin(v))).ptr));
         }
 
         /**
@@ -63,49 +65,51 @@ namespace gridtools {
             DomainFull const &m_dom_full;
             Vec &m_vec_to;
             bool m_called;
-            ushort_t& m_size;
+            ushort_t &m_size;
 
           public:
-            initialize_storage(DomainFull const &dom_full_, Vec &vec_to_, ushort_t& size)
-             : m_dom_full(dom_full_), m_vec_to(vec_to_), m_called(false), m_size(size) {}
+            initialize_storage(DomainFull const &dom_full_, Vec &vec_to_, ushort_t &size)
+                : m_dom_full(dom_full_), m_vec_to(vec_to_), m_called(false), m_size(size) {}
 
             /**
                @brief initialize the storage vector, specialization for the expandable args
              */
-            template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< T >, false >) {
-                typedef arg< ID, std::vector< T >, false > placeholder_t;
-                typedef typename boost::mpl::at_c<Vec, ID>::type arg_storage_pair_t;
+            template < ushort_t ID, typename T, typename L >
+            void operator()(arg< ID, std::vector< T >, L, false >) {
+                typedef arg< ID, std::vector< T >, L, false > placeholder_t;
+                typedef typename boost::mpl::at_c< Vec, ID >::type arg_storage_pair_t;
                 typedef typename arg_storage_pair_t::storage_t data_store_field_t;
-                const auto expandable_param = (*(m_dom_full.template get_arg_storage_pair<placeholder_t,placeholder_t>()).ptr);
-                data_store_field_t* ptr = new data_store_field_t(*(expandable_param[0].get_storage_info_ptr()));
+                const auto expandable_param =
+                    (*(m_dom_full.template get_arg_storage_pair< placeholder_t, placeholder_t >()).ptr);
+                data_store_field_t *ptr = new data_store_field_t(*(expandable_param[0].get_storage_info_ptr()));
                 // fill in the first bunch of ptrs
-                for(unsigned i=0; i<data_store_field_t::size; ++i) {
+                for (unsigned i = 0; i < data_store_field_t::size; ++i) {
                     ptr->set(0, i, expandable_param[i]);
                 }
-                boost::fusion::at< static_ushort< ID > >(m_vec_to) = arg_storage_pair_t(static_cast<data_store_field_t*>(ptr));
+                boost::fusion::at< static_ushort< ID > >(m_vec_to) =
+                    arg_storage_pair_t(static_cast< data_store_field_t * >(ptr));
                 // the lines below are checking if the expandable params are all of the same size
-                if(m_called) {
-                    assert(m_size == expandable_param.size() && "Non-tmp expandable parameters must have the same size");
+                if (m_called) {
+                    assert(
+                        m_size == expandable_param.size() && "Non-tmp expandable parameters must have the same size");
                 }
                 m_called = true;
                 m_size = expandable_param.size();
             }
 
-            template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< T >, true >) {}
+            template < ushort_t ID, typename T, typename L >
+            void operator()(arg< ID, std::vector< T >, L, true >) {}
 
             /**
-               @brief initialize the storage vector, specisalization for the normal args
+               @brief initialize the storage vector, specialization for the normal args
              */
-            template < ushort_t ID, typename Storage, bool Temporary >
-            void operator()(arg< ID, Storage, Temporary >) {
+            template < ushort_t ID, typename Storage, typename Location, bool Temporary >
+            void operator()(arg< ID, Storage, Location, Temporary >) {
                 // copy the gridtools pointer
                 boost::fusion::at< static_ushort< ID > >(m_vec_to) =
-                    m_dom_full.template get_arg_storage_pair< arg< ID, Storage, Temporary > >();
+                    m_dom_full.template get_arg_storage_pair< arg< ID, Storage, Location, Temporary > >();
             }
         };
-
 
         /**
            @brief functor used to delete the storages containing the chunk of pointers
@@ -122,13 +126,13 @@ namespace gridtools {
             /**
                @brief delete the non temporary data store fields
              */
-            template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< T >, false >) {
+            template < ushort_t ID, typename T, typename L >
+            void operator()(arg< ID, std::vector< T >, L, false >) {
                 delete (boost::fusion::at< static_ushort< ID > >(m_vec_to).ptr.get());
             }
 
-            template < ushort_t ID, typename Storage, bool Temporary >
-            void operator()(arg< ID, Storage, Temporary >) {}
+            template < ushort_t ID, typename Storage, typename Location, bool Temporary >
+            void operator()(arg< ID, Storage, Location, Temporary >) {}
         };
 
         /**
@@ -146,26 +150,25 @@ namespace gridtools {
             assign_expandable_params(DomainFull const &dom_full_, DomainChunk &dom_chunk_, uint_t const &i_)
                 : m_dom_full(dom_full_), m_dom_chunk(dom_chunk_), m_idx(i_) {}
 
-            template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< T >, true >) { }
+            template < ushort_t ID, typename T, typename L >
+            void operator()(arg< ID, std::vector< T >, L, true >) {}
 
-            template < ushort_t ID, typename T >
-            void operator()(arg< ID, std::vector< T >, false >) {
+            template < ushort_t ID, typename T, typename L >
+            void operator()(arg< ID, std::vector< T >, L, false >) {
                 // the vector of pointers
-                typedef arg< ID, std::vector< T >, false > placeholder_t;
-                pointer< std::vector< T > > const& ptr_full_ =
+                typedef arg< ID, std::vector< T >, L, false > placeholder_t;
+                pointer< std::vector< T > > const &ptr_full_ =
                     m_dom_full.template get_arg_storage_pair< placeholder_t, placeholder_t >().ptr;
 
                 auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_arg_storage_pair_list);
-
 #ifndef NDEBUG
                 if (!ptr_chunk_.ptr.get() || !ptr_full_.get()) {
                     printf("The storage pointer is already null. Did you call finalize too early?");
                     assert(false);
                 }
 #endif
-                for(unsigned i=0; i<ExpandFactor::value; ++i) {
-                    (*(ptr_chunk_.ptr)).set(0, i, (*ptr_full_)[m_idx+i]);
+                for (unsigned i = 0; i < ExpandFactor::value; ++i) {
+                    (*(ptr_chunk_.ptr)).set(0, i, (*ptr_full_)[m_idx + i]);
                 }
             }
         };

@@ -237,8 +237,8 @@ namespace horizontal_diffusion_functions {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, storage_type, true > p_flx;
-        typedef arg< 1, storage_type, true > p_fly;
+        typedef arg< 0, storage_type, enumtype::default_location_type, true > p_flx;
+        typedef arg< 1, storage_type, enumtype::default_location_type, true > p_fly;
         typedef arg< 2, storage_type > p_coeff;
         typedef arg< 3, storage_type > p_in;
         typedef arg< 4, storage_type > p_out;
@@ -247,10 +247,12 @@ namespace horizontal_diffusion_functions {
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_flx, p_fly, p_coeff, p_in, p_out > accessor_list;
 
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
+        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
+        // that are
         // used, temporary and not
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
+        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
+        // order. (I
         // don't particularly like this)
         gridtools::aggregator_type< accessor_list > domain_(coeff, in, out);
 
@@ -266,16 +268,16 @@ namespace horizontal_diffusion_functions {
         grid_.value_list[1] = d3 - 1;
 
         auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
-                domain_,
-                grid_,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    define_caches(cache< IJ, local >(p_flx(), p_fly())),
-                    // gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
-                    gridtools::make_independent // independent_esf
-                    (gridtools::make_stage< flx_function >(p_flx(), p_in()),
-                        gridtools::make_stage< fly_function >(p_fly(), p_in())),
-                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+            domain_,
+            grid_,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                define_caches(cache< IJ, local >(p_flx(), p_fly())),
+                // gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
+                gridtools::make_independent // independent_esf
+                (gridtools::make_stage< flx_function >(p_flx(), p_in()),
+                    gridtools::make_stage< fly_function >(p_fly(), p_in())),
+                gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         horizontal_diffusion->ready();
 

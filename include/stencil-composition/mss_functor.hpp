@@ -46,7 +46,6 @@
 #include "mss_metafunctions.hpp"
 #include "mss_local_domain.hpp"
 #include "mss.hpp"
-#include "axis.hpp"
 #include "mss_components_metafunctions.hpp"
 #include "run_functor_arguments.hpp"
 
@@ -71,7 +70,7 @@ namespace gridtools {
         struct esfs_functor_return_type {
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size< EsfSequence >::value == 1), "Error: Reductions can have only one esf");
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< IntervalsMapSeq >::value == 1), "Error");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< IntervalsMapSeq >::value == 1), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::front< IntervalsMapSeq >::type intervals_map_t;
 
@@ -105,18 +104,16 @@ namespace gridtools {
         typename BackendIds,
         typename ReductionData >
     struct mss_functor {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-        GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
 #ifdef CXX11_ENABLED
         template < typename MssComponents, typename FunctorsMap >
         struct check_reduction_types {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
             // extract the type derived from the return type of the user functors of the reduction
             typedef typename mss_components_functors_return_type< MssComponents, FunctorsMap >::type reduction_t;
 
@@ -133,7 +130,7 @@ namespace gridtools {
                 typename boost::is_same< functor_return_t, typename ReductionData::reduction_type_t >::type,
                 boost::mpl::true_ >::type type;
 
-            GRIDTOOLS_STATIC_ASSERT((type::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((type::value), GT_INTERNAL_ERROR);
         };
 #endif
 
@@ -166,16 +163,15 @@ namespace gridtools {
         template < typename Index >
         void operator()(Index const &) const {
             typedef typename boost::fusion::result_of::value_at< MssLocalDomainArray, Index >::type mss_local_domain_t;
-            GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< mss_local_domain_t >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< mss_local_domain_t >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT(
-                (Index::value < boost::mpl::size< typename MssComponentsArray::elements >::value), "Internal Error");
+                (Index::value < boost::mpl::size< typename MssComponentsArray::elements >::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::at< typename MssComponentsArray::elements, Index >::type mss_components_t;
 
             typedef typename mss_local_domain_list< mss_local_domain_t >::type local_domain_list_t;
             typedef typename mss_local_domain_esf_args_map< mss_local_domain_t >::type local_domain_esf_args_map_t;
 
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::size< local_domain_list_t >::value == 1), "Internal Error: wrong size");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< local_domain_list_t >::value == 1), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::back< local_domain_list_t >::type local_domain_t;
             local_domain_list_t &local_domain_list =
                 (local_domain_list_t &)boost::fusion::at< Index >(m_local_domain_lists).local_domain_list;
@@ -249,7 +245,7 @@ namespace gridtools {
                     next_thing;
 
             typedef typename boost::mpl::fold<
-                boost::mpl::range_c< int, 0, boost::mpl::size< next_thing >::value+1 >,
+                boost::mpl::range_c< int, 0, boost::mpl::size< next_thing >::value + 1 >,
                 boost::mpl::map<>,
                 boost::mpl::if_<
                     condition_for_async< boost::mpl::_1, boost::mpl::_2, sequence_of_is_independent_t, next_thing >,

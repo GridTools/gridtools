@@ -40,6 +40,7 @@
 #endif
 #include <utility>
 
+#include <boost/shared_ptr.hpp>
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/include/copy.hpp>
@@ -57,10 +58,13 @@
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits/remove_const.hpp>
-
+#include <boost/mpl/min_element.hpp>
+#include <boost/mpl/max_element.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/include/copy.hpp>
+#include <boost/type_traits/remove_const.hpp>
 #include "../common/meta_array.hpp"
 #include "./amss_descriptor.hpp"
-#include "./axis.hpp"
 #include "./backend_base.hpp"
 #include "./backend_metafunctions.hpp"
 #include "./backend_traits_fwd.hpp"
@@ -99,8 +103,9 @@ namespace gridtools {
 
         template < typename AggregatorType, typename Grid >
         static uint_t apply(AggregatorType &aggregator, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT(is_aggregator_type< AggregatorType >::value, "wrong domain type");
-            GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, "wrong grid type");
+            GRIDTOOLS_STATIC_ASSERT(
+                is_aggregator_type< AggregatorType >::value, GT_INTERNAL_ERROR_MSG("wrong domain type"));
+            GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
                                         is_arg_storage_pair >::type::value),
                 "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
@@ -133,8 +138,7 @@ namespace gridtools {
         bool IsStateful >
     struct create_mss_local_domains {
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
 
         struct get_the_mss_local_domain {
             template < typename T >
@@ -297,6 +301,38 @@ namespace gridtools {
         typedef typename extract_mss_domains< Vec1 >::type type;
     };
 
+    // function that checks if the given extents (I+- and J+-)
+    // are within the halo that was defined when creating the grid.
+    template < typename ExtentsVec, typename Grid >
+    void check_grid_against_extents(Grid const &grid) {
+        typedef ExtentsVec all_extents_vecs_t;
+        // get smallest i_minus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 0 > > >::type >::type >::type >::
+            type IM_t;
+        // get smallest j_minus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 2 > > >::type >::type >::type >::
+            type JM_t;
+        // get largest i_plus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 1 > > >::type >::type >::type >::
+            type IP_t;
+        // get largest j_plus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 3 > > >::type >::type >::type >::
+            type JP_t;
+        const bool check = (IM_t::value >= -static_cast< int >(grid.direction_i().minus())) &&
+                           (IP_t::value <= static_cast< int >(grid.direction_i().plus())) &&
+                           (JM_t::value >= -static_cast< int >(grid.direction_j().minus())) &&
+                           (JP_t::value <= static_cast< int >(grid.direction_j().plus()));
+        assert(check && "One of the stencil accessor extents is exceeding the halo region.");
+    }
+
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -312,14 +348,15 @@ namespace gridtools {
     struct intermediate : public computation< ReductionType > {
         // fix the temporaries by replacing the given storage info index with a new one
         // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
-        typedef typename fix_mss_arg_indices< MssDescriptorArrayIn, DomainType, RepeatFunctor >::type MssDescriptorArray;
+        typedef
+            typename fix_mss_arg_indices< MssDescriptorArrayIn, DomainType, RepeatFunctor >::type MssDescriptorArray;
 
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
-        // GRIDTOOLS_STATIC_ASSERT((is_conditionals_set<ConditionalsSet>::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        // GRIDTOOLS_STATIC_ASSERT((is_conditionals_set<ConditionalsSet>::value), GT_INTERNAL_ERROR);
 
         typedef ConditionalsSet conditionals_set_t;
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
@@ -434,8 +471,8 @@ namespace gridtools {
             // sync the data stores that should be synced
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
 
-            auto& all_arg_storage_pairs = m_domain.get_arg_storage_pairs();
-            boost::fusion::filter_view< typename DomainType::arg_storage_pair_fusion_list_t, 
+            auto &all_arg_storage_pairs = m_domain.get_arg_storage_pairs();
+            boost::fusion::filter_view< typename DomainType::arg_storage_pair_fusion_list_t,
                 is_arg_storage_pair_to_tmp< boost::mpl::_ > > filter(all_arg_storage_pairs);
             boost::fusion::for_each(filter, _impl::delete_tmp_data_store());
         }
@@ -469,10 +506,11 @@ namespace gridtools {
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
         template < typename... DataStores >
-        void reassign(DataStores &... stores) { m_domain.reassign_impl(stores...); }
+        void reassign(DataStores &... stores) {
+            m_domain.reassign_impl(stores...);
+        }
 
-        void reassign_aggregator(DomainType& new_domain) { m_domain = new_domain; }
-
+        void reassign_aggregator(DomainType &new_domain) { m_domain = new_domain; }
     };
 
 } // namespace gridtools

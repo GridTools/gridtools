@@ -57,7 +57,6 @@
 #include <boost/mpl/sort.hpp>
 #include <boost/mpl/transform.hpp>
 
-#include "../common/generic_metafunctions/arg_comparator.hpp"
 #include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
@@ -67,6 +66,7 @@
 #include "../common/metadata_set.hpp"
 #include <storage-facility.hpp>
 
+#include "arg_comparator.hpp"
 #include "aggregator_type_impl.hpp"
 #include "arg.hpp"
 #include "arg_metafunctions.hpp"
@@ -99,14 +99,20 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< sorted_placeholders_t, is_arg >::type::value),
             "wrong type: the aggregator_type template argument must be an MPL vector of placeholders (arg<...>)");
 
+        GRIDTOOLS_STATIC_ASSERT((_impl::continuous_indices_check< sorted_placeholders_t >::type::value),
+            "Storage placeholders must have consecutive indices starting with 0.");
+
         const static uint_t len = boost::mpl::size< sorted_placeholders_t >::type::value;
 
         // create a unique id that will be used as temporary storage info id
-        typedef typename boost::mpl::fold<Placeholders, boost::mpl::vector<>,
-            boost::mpl::if_< is_tmp_arg<boost::mpl::_2>, boost::mpl::_1, boost::mpl::push_back<boost::mpl::_1, boost::mpl::_2> > >::type
+        typedef typename boost::mpl::fold< Placeholders,
+            boost::mpl::vector<>,
+            boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
+                                               boost::mpl::_1,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type
             non_tmp_placeholders_t;
-        typedef typename boost::mpl::next<
-            typename boost::mpl::deref< typename boost::mpl::max_element< typename boost::mpl::transform< non_tmp_placeholders_t,
+        typedef typename boost::mpl::next< typename boost::mpl::deref<
+            typename boost::mpl::max_element< typename boost::mpl::transform< non_tmp_placeholders_t,
                 _impl::extract_storage_info_id_from_arg >::type >::type >::type >::type tmp_storage_info_id_t;
 
         // replace the storage_info_t of all temporary args with the new index type
@@ -174,7 +180,8 @@ namespace gridtools {
         metadata_set_t m_metadata_set;
 
         template < typename... DataStores >
-        aggregator_type(DataStores &... ds) : m_arg_storage_pair_list(), m_metadata_set() {
+        aggregator_type(DataStores &... ds)
+            : m_arg_storage_pair_list(), m_metadata_set() {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
                 "Computations with no data_stores are not supported. "
@@ -296,8 +303,7 @@ namespace gridtools {
     template < uint_t... Indices, typename... Storages >
     aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > > instantiate_aggregator_type(
         gt_integer_sequence< uint_t, Indices... > seq_, Storages &... storages_) {
-        return aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(
-            storages_...);
+        return aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(storages_...);
     }
 
     template < typename... Storage >

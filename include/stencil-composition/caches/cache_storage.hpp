@@ -55,45 +55,37 @@ namespace gridtools {
     template < typename BlockSize, typename Extent, typename StorageWrapper >
     struct cache_storage;
 
-    namespace impl_{
+    namespace impl_ {
 
         template < typename T >
         struct get_storage_offset {
             template < typename Acc >
-            GT_FUNCTION
-            static constexpr uint_t get(Acc const& a) {
+            GT_FUNCTION static constexpr uint_t get(Acc const &a) {
                 return 0;
             }
         };
 
         template < typename T, unsigned... N >
-        struct get_storage_offset< data_store_field<T, N...> > {
+        struct get_storage_offset< data_store_field< T, N... > > {
             template < typename Acc >
-            GT_FUNCTION
-            static constexpr uint_t get(Acc const& a) {
-                return get_accumulated_data_field_index(a.template get<1>(), N...) + a.template get<0>();
+            GT_FUNCTION static constexpr uint_t get(Acc const &a) {
+                return get_accumulated_data_field_index(a.template get< 1 >(), N...) + a.template get< 0 >();
             }
         };
 
         /** helper function computing sum(offset*stride ...)*/
-        template <unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION
-        constexpr typename boost::enable_if_c<(From==To), int_t>::type 
-        get_offset(Accessor acc) {
+        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From == To), int_t >::type get_offset(Accessor acc) {
             return 0;
         }
 
-        template <unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION
-        constexpr typename boost::enable_if_c<(From<To), int_t>::type 
-        get_offset(Accessor acc) {
-            return StorageInfo::template stride<From>() * acc.template get<Accessor::n_dimensions-1-From>()
-                + get_offset<From+1,To,StorageInfo,Accessor>(acc);
+        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From < To), int_t >::type get_offset(Accessor acc) {
+            return StorageInfo::template stride< From >() * acc.template get< Accessor::n_dimensions - 1 - From >() +
+                   get_offset< From + 1, To, StorageInfo, Accessor >(acc);
         }
-
     }
 
-#ifdef CXX11_ENABLED
     /**
      * @struct cache_storage
      * simple storage class for storing caches. Current version is multidimensional, but allows the user only to cache
@@ -108,6 +100,8 @@ namespace gridtools {
      * @tparam Value value type being stored
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
+     * @tparam NColors number of colors of the location type of the storage
+     * @tparam Storage type of the storage
      */
     template < uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper >
     struct cache_storage< block_size< Tiles... >, extent< ExtentBounds... >, StorageWrapper > {
@@ -119,9 +113,10 @@ namespace gridtools {
 
         typedef typename StorageWrapper::data_t value_type;
 
-        typedef
-            typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t, sizeof...(Tiles)
-                >::type >::type layout_t;
+        typedef typename boost::is_same< enumtype::default_location_type,
+            typename StorageWrapper::arg_t::location_t >::type is_default_location_t;
+        typedef typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t,
+            sizeof...(Tiles) + (!is_default_location_t::value) >::type >::type layout_t;
 
         GT_FUNCTION
         explicit constexpr cache_storage() {}
@@ -129,95 +124,35 @@ namespace gridtools {
         typedef typename _impl::compute_meta_storage< layout_t, plus_t, minus_t, tiles_t, StorageWrapper >::type meta_t;
 
         GT_FUNCTION
-        static constexpr uint_t size() { return meta_t{}.size(); }
+        static constexpr uint_t size() { return meta_t::size(); }
 
-        template < typename Accessor >
+        template < uint_t Color, typename Accessor >
         GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Accessor const &accessor_) {
 
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< accessor_t >::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
 
             typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
             typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
 
-#ifdef CUDA8
             typedef static_int< meta_t::template stride< 0 >() > check_constexpr_1;
             typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
-#else
-            assert((_impl::compute_size< minus_t, plus_t, tiles_t, StorageWrapper >::value == size()));
-#endif
-            // manually aligning the storage
-            const int_t extra_ = (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
-                                  (thread_pos[1] - jminus::value) * meta_t::template stride< 1 >() +
-                                  size()*impl_::get_storage_offset<typename StorageWrapper::storage_t>::get(accessor_.offsets()) +
-                                  impl_::get_offset<0, meta_t::layout_t::length, meta_t>(accessor_.offsets());
 
-            assert((extra_) < (size()*StorageWrapper::storage_size));
+            // manually aligning the storage
+            const uint_t extra_ =
+                (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
+                (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (!is_default_location_t::value) >() +
+                (!is_default_location_t::value) * Color * meta_t::template stride< 1 >() +
+                size() * impl_::get_storage_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
             assert((extra_) >= 0);
+            assert((extra_) < (size() * StorageWrapper::storage_size));
             return m_values[extra_];
         }
 
       private:
-#if defined(CUDA8)
-        value_type m_values[size()*StorageWrapper::storage_size];
-#else
-        value_type m_values[_impl::compute_size< minus_t, plus_t, tiles_t, storage_t >::value];
-#endif
+        value_type m_values[size() * StorageWrapper::storage_size];
     };
-
-#else  // CXX11_ENABLED
-
-    /**
-     * @struct cache_storage
-     * simple storage class for storing caches. Current version assumes only 2D (i,j), but it will be extented
-     * in future version to support K and IJK storages. Data is allocated on the stack.
-     * The size of the storage is determined by the block size and the extension to this block sizes required for
-     *  halo regions (determined by a extent type)
-     * @tparam Value value type being stored
-     * @tparam BlockSize physical domain block size
-     * @tparam Extend extent
-     */
-    template < typename BlockSize, typename Extend, typename Storage >
-    struct cache_storage {
-
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), "Internal Error: wrong type");
-
-        typedef typename BlockSize::i_size_t tile_i;
-        typedef typename BlockSize::j_size_t tile_j;
-        typedef typename Extend::iminus iminus;
-        typedef typename Extend::jminus jminus;
-        typedef typename Extend::iplus iplus;
-        typedef typename Extend::jplus jplus;
-
-        typedef static_uint< tile_i::value - iminus::value + iplus::value > j_stride_t;
-        typedef static_uint< 1 > i_stride_t;
-        typedef static_uint< (tile_i::value - iminus::value + iplus::value) *
-                             (tile_j::value - jminus::value + jplus::value) > storage_size_t;
-        typedef typename Storage::value_type::basic_type storage_t;
-        typedef typename storage_t::value_type value_type;
-
-        explicit cache_storage() {}
-
-        template < typename Offset >
-        GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_offset_tuple< typename Offset::offset_tuple_t >::value), "Error type is not offset tuple");
-            assert(index(thread_pos, offset.offsets()) < storage_size_t::value);
-            assert(index(thread_pos, offset.offsets()) >= 0);
-
-            return m_values[index(thread_pos, offset.offsets())];
-        }
-
-      private:
-        template < typename Offset >
-        GT_FUNCTION int_t index(array< int, 2 > const &thread_pos, Offset const &offset) {
-            return (thread_pos[0] + offset.template get< Offset::n_args - 1 >() - iminus::value) * i_stride_t::value +
-                   (thread_pos[1] + offset.template get< Offset::n_args - 2 >() - jminus::value) * j_stride_t::value;
-        }
-
-        value_type m_values[storage_size_t::value];
-    };
-#endif // CXX11_ENABLED
 
 } // namespace gridtools

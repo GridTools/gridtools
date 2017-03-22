@@ -60,7 +60,7 @@ typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_lap;
 /*!
   @brief This is the definition of the whole vertical axis
 */
-typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
+typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
 // [intervals]
 // [functor]
@@ -120,7 +120,7 @@ TEST(Laplace, test) {
     using namespace enumtype;
 // [start_main]
 
-    // [backend]
+// [backend]
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
 #else
@@ -191,41 +191,42 @@ TEST(Laplace, test) {
     gridtools::grid< axis > grid(di, dj);
     grid.value_list[0] = 0;
     grid.value_list[1] = d3 - 1;
-// [grid]
+    // [grid]
 
-// [computation]
-/*!
-  - Here we do lot of stuff:
+    // [computation]
+    /*!
+      - Here we do lot of stuff:
 
-  1) We pass to the intermediate representation ::run function the description
-  of the stencil, which is a multi-stage stencil (mss)
-  The mss includes (in order of execution) a laplacian, two fluxes which are independent
-  and a final step that is the out_function
+      1) We pass to the intermediate representation ::run function the description
+      of the stencil, which is a multi-stage stencil (mss)
+      The mss includes (in order of execution) a laplacian, two fluxes which are independent
+      and a final step that is the out_function
 
-  2) The logical physical domain with the fields to use
+      2) The logical physical domain with the fields to use
 
-  3) The actual domain dimensions
+      3) The actual domain dimensions
 
-  \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and grid), it only
-  calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the
-  \ref gridtools::intermediate "intermediate" class.
-  \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
-*/
-        auto laplace = make_computation< gridtools::BACKEND >(
-            domain,
-            grid,
-            make_multistage        //! \todo all the arguments in the call to make_multistage are actually dummy.
-            (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                make_stage< lap_function >(
-                    p_out(), p_in()) //!  \todo elementary stencil function, also here the arguments are dummy.
-                ));
+      \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and grid), it
+      only
+      calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in
+      the
+      \ref gridtools::intermediate "intermediate" class.
+      \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a
+      typedef).
+    */
+    auto laplace = make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        make_multistage        //! \todo all the arguments in the call to make_multistage are actually dummy.
+        (execute< forward >(), //!\todo parameter used only for overloading purpose?
+            make_stage< lap_function >(
+                p_out(), p_in()) //!  \todo elementary stencil function, also here the arguments are dummy.
+            ));
     // [computation]
 
     // [ready_steady_run_finalize]
     /**
-       @brief This method allocates on the heap the temporary variables
-       this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of extents
-       defined in the temporary placeholders (none).
+       @brief This method allocates space for temporary variables.
      */
     laplace->ready();
 

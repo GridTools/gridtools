@@ -73,7 +73,7 @@ namespace vertical_advection_dycore {
         typedef accessor< 5 > dtr_stage;
         typedef accessor< 6, enumtype::inout > acol;
         typedef accessor< 7, enumtype::inout > bcol;
-        typedef accessor< 8, enumtype::inout > ccol;
+        typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, 0, -1 > > ccol;
         typedef accessor< 9, enumtype::inout > dcol;
 
         typedef boost::mpl::vector< utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol >
@@ -222,11 +222,11 @@ namespace vertical_advection_dycore {
         typedef arg< 3, storage_type > p_u_pos;
         typedef arg< 4, storage_type > p_utens;
         typedef arg< 5, scalar_storage_type > p_dtr_stage;
-        typedef arg< 6, storage_type, true > p_acol;
-        typedef arg< 7, storage_type, true > p_bcol;
-        typedef arg< 8, storage_type, true > p_ccol;
-        typedef arg< 9, storage_type, true > p_dcol;
-        typedef arg< 10, storage_type, true > p_data_col;
+        typedef arg< 6, storage_type, enumtype::default_location_type, true > p_acol;
+        typedef arg< 7, storage_type, enumtype::default_location_type, true > p_bcol;
+        typedef arg< 8, storage_type, enumtype::default_location_type, true > p_ccol;
+        typedef arg< 9, storage_type, enumtype::default_location_type, true > p_dcol;
+        typedef arg< 10, storage_type, enumtype::default_location_type, true > p_data_col;
 
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
@@ -240,8 +240,7 @@ namespace vertical_advection_dycore {
             p_bcol,
             p_ccol,
             p_dcol,
-            p_data_col >
-            accessor_list;
+            p_data_col > accessor_list;
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
         // that are
@@ -283,6 +282,7 @@ namespace vertical_advection_dycore {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
+                    define_caches(cache< K, flush, kbody >(p_ccol())),
                     gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),

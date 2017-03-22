@@ -1,3 +1,38 @@
+/*
+GridTools Libraries
+
+Copyright (c) 2016, GridTools Consortium
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 #define FUSION_MAX_VECTOR_SIZE 40
 #define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
@@ -80,8 +115,8 @@ namespace test_expandable_parameters {
             for (uint_t i = 0; i < d1; ++i)
                 for (uint_t j = 0; j < d2; ++j)
                     for (uint_t k = 0; k < d3; ++k) {
-                        assert(inv(i, j, k) == -1.0*(l+1));
-                        assert(outv(i, j, k) == 1.0*(l+1));
+                        assert(inv(i, j, k) == -1.0 * (l + 1));
+                        assert(outv(i, j, k) == 1.0 * (l + 1));
                     }
         }
 
@@ -94,7 +129,7 @@ namespace test_expandable_parameters {
 
         typedef arg< 0, std::vector< storage_t > > p_list_out;
         typedef arg< 1, std::vector< storage_t > > p_list_in;
-        typedef arg< 2, std::vector< storage_t >, true > p_list_tmp;
+        typedef arg< 2, std::vector< storage_t >, enumtype::default_location_type, true > p_list_tmp;
 
         typedef boost::mpl::vector< p_list_out, p_list_in, p_list_tmp > args_t;
 
@@ -122,8 +157,7 @@ namespace test_expandable_parameters {
                     for (uint_t k = 0; k < d3; ++k) {
                         if (inv(i, j, k) != outv(i, j, k)) {
                             std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                      << "in = " << inv(i, j, k) << ", out = " << outv(i, j, k)
-                                      << std::endl;
+                                      << "in = " << inv(i, j, k) << ", out = " << outv(i, j, k) << std::endl;
                             success = false;
                         }
                     }

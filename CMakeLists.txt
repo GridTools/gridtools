@@ -3,6 +3,11 @@ project(GridTools VERSION "0.1")
 cmake_minimum_required(VERSION 3.0)
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+if(POLICY CMP0060)
+  # Policy to avoid cmake to substitute libraries with paths and extensions with -l<libname>
+  cmake_policy(SET CMP0060 NEW)
+endif()
+
 # ===============
 # Load some cmake modules.
 # 1) define what flags should be available,
@@ -11,8 +16,8 @@ set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 # 4) build configurator (include path, compiler flags, etc.
 # ===============
 include (flags)
-include (testing)
 include (definitions)
+include (testing)
 
 # ===============
 # library header files
@@ -29,6 +34,7 @@ add_library( gcl src/GCL.cpp include/communication/GCL.hpp include/communication
 set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}")
 set(exe_LIBS ${exe_LIBS} gcl)
 
+
 # ===============
 # add all cpp files in src:
 # ===============
@@ -41,15 +47,15 @@ foreach( src_file ${sources} )
 endforeach(src_file)
 
 # ===============
-# add all cpp files in examples:
-# ===============
-add_subdirectory(examples)
-
-# ===============
 # tests
 # ===============
 include (fix_test_case_name)
 add_subdirectory(unit_tests)
+
+# ===============
+# add all cpp files in examples:
+# ===============
+add_subdirectory(examples)
 
 # Add all targets to the build-tree export set
 export(TARGETS gcl
@@ -75,3 +81,8 @@ install(TARGETS "gcl" DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" EXPORT GridTools
 install(EXPORT GridTools DESTINATION
     "${PROJECT_BINARY_DIR}/cmake" COMPONENT dev)
 message("compile definitions: ${COMPILE_DEFINITIONS}")
+
+# ===========
+# Apply final actions
+# ===========
+include (post_config_actions)
