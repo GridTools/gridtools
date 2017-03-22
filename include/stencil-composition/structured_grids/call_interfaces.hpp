@@ -693,8 +693,17 @@ namespace gridtools {
        The main restriction is that the compile-time offsets template parameters must be 0
        NOTE: There is some code replication with the primary template class
      */
-    template < typename Functor >
-    struct call_proc< Functor, void, 0, 0, 0 > {
+    template < typename Functor, int Offi, int Offj >
+    struct call_proc< Functor, void, Offi, Offj, 0 > {
+
+        /** This alias is used to move the computation at a certain offset
+         */
+        template < int I, int J, int K >
+        struct at : call< Functor, void, I, J, 0 > {
+            GRIDTOOLS_STATIC_ASSERT((K == 0),
+                "Cannot specify a nonzero vertical offset (with the call::at API) in a "
+                "stencil function call with default interval: would go out of bounds");
+        };
 
         /** With this interface a stencil function can be invoked and
             the offsets specified in the passed accessors are ignored.
@@ -728,8 +737,8 @@ namespace gridtools {
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::function_aggregator_procedure_offsets< Evaluator,
-                0,
-                0,
+                Offi,
+                Offj,
                 0,
                 typename _impl::package_args< Args... >::type > f_aggregator_t;
 
