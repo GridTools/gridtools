@@ -699,7 +699,7 @@ namespace gridtools {
         /** This alias is used to move the computation at a certain offset
          */
         template < int I, int J, int K >
-        struct at : call< Functor, void, I, J, 0 > {
+        struct at : call_proc< Functor, void, I, J, 0 > {
             GRIDTOOLS_STATIC_ASSERT((K == 0),
                 "Cannot specify a nonzero vertical offset (with the call::at API) in a "
                 "stencil function call with default interval: would go out of bounds");
