@@ -40,13 +40,13 @@ For information: http://eth-cscs.github.io/gridtools/
 
 using gridtools::halo_descriptor;
 
-gridtools::grid< axis > my_grid(halo_descriptor(1, 2, 3, 4, 5), halo_descriptor(6, 7, 8, 9, 10));
+grid_type my_grid(halo_descriptor(1, 2, 3, 4, 5), halo_descriptor(6, 7, 8, 9, 10));
 
 int size_cu;
 int v1_cu;
 int v2_cu;
 
-linking_issue::linking_issue(const gridtools::grid< axis > &my_grid) : my_grid(my_grid), my_var1(1), my_var2(2) {}
+linking_issue::linking_issue(grid_type const &my_grid) : my_grid(my_grid), my_var1(1), my_var2(2) {}
 
 void linking_issue::member_foo() {
     // std::cout << "in .cu:" << std::endl;

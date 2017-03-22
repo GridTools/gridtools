@@ -36,6 +36,13 @@ For information: http://eth-cscs.github.io/gridtools/
 
 #pragma once
 
+#ifndef _USE_GPU_
+#error This example requires GPUs
+#endif
+#ifndef STRUCTURED_GRIDS
+#error This example only works on structured grids for now
+#endif
+
 #include <iostream>
 #include "stencil-composition/interval.hpp"
 #include "stencil-composition/level.hpp"
@@ -49,14 +56,16 @@ extern int v2_cu;
 using gridtools::level;
 typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
-extern gridtools::grid< axis > my_grid;
+using grid_type = gridtools::grid< axis >;
+
+extern grid_type my_grid;
 
 struct linking_issue {
-    gridtools::grid< axis > const &
+    grid_type const &
         my_grid; // we would need a copy constructor for gpu_clonable object, this copy would lead to double destruction
     int my_var1;
     int my_var2;
 
-    linking_issue(const gridtools::grid< axis > &my_grid);
+    linking_issue(const grid_type &my_grid);
     void member_foo();
 };

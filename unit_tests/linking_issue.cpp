@@ -43,7 +43,6 @@ For information: http://eth-cscs.github.io/gridtools/
 
 int size_cpp;
 
-using gridtools::halo_descriptor;
 TEST(linking_issue, test) {
     my_grid.value_list[0] = 1;
     my_grid.value_list[1] = 2;
