@@ -356,8 +356,17 @@ namespace gridtools {
        The main restriction is that the compile-time offsets template parameters must be 0
        NOTE: There is some code replication with the primary template class
      */
-    template < typename Functor >
-    struct call< Functor, void, 0, 0, 0 > {
+    template < typename Functor, int Offi, int Offj >
+    struct call< Functor, void, Offi, Offj, 0 > {
+
+        /** This alias is used to move the computation at a certain offset
+         */
+        template < int I, int J, int K >
+        struct at : call< Functor, void, I, J, 0 > {
+            GRIDTOOLS_STATIC_ASSERT((K == 0),
+                "Cannot specify a nonzero vertical offset (with the call::at API) in a "
+                "stencil function call with default interval: would go out of bounds");
+        };
 
       private:
         /**
@@ -392,8 +401,8 @@ namespace gridtools {
 
             typedef typename get_result_type< Evaluator, Functor >::type result_type;
             typedef _impl::function_aggregator_offsets< Evaluator,
-                0,
-                0,
+                Offi,
+                Offj,
                 0,
                 typename gridtools::variadic_to_vector< Args... >::type,
                 result_type,
@@ -424,8 +433,8 @@ namespace gridtools {
 
             result_type result;
             typedef _impl::function_aggregator< Evaluator,
-                0,
-                0,
+                Offi,
+                Offj,
                 0,
                 typename gridtools::variadic_to_vector< Args... >::type,
                 result_type,
