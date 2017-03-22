@@ -38,23 +38,23 @@ else(GCL_ONLY)
       if(NOT MSVC)
         cuda_add_executable( cuda_test_halo_exchange_3D_all ../../examples/communication/test_halo_exchange_3D_all.cu OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_all gcl )
-        target_link_libraries( cuda_test_halo_exchange_3D_all   ${exe_LIBS_GPU} )
+        target_link_libraries( cuda_test_halo_exchange_3D_all   ${exe_LIBS} )
 
         cuda_add_executable( cuda_test_halo_exchange_3D_all_2 ../../examples/communication/test_halo_exchange_3D_all_2.cu  OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_all_2 gcl )
-        target_link_libraries( cuda_test_halo_exchange_3D_all_2   ${exe_LIBS_GPU} )
+        target_link_libraries( cuda_test_halo_exchange_3D_all_2   ${exe_LIBS} )
 
         cuda_add_executable( cuda_test_halo_exchange_3D_all_3 ../../examples/communication/test_halo_exchange_3D_all_3.cu  OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_all_3 gcl )
-        target_link_libraries( cuda_test_halo_exchange_3D_all_3   ${exe_LIBS_GPU} )
+        target_link_libraries( cuda_test_halo_exchange_3D_all_3   ${exe_LIBS} )
 
         cuda_add_executable( cuda_test_halo_exchange_3D_generic ../../examples/communication/test_halo_exchange_3D_generic.cu  OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_generic gcl )
-        target_link_libraries( cuda_test_halo_exchange_3D_generic  ${exe_LIBS_GPU} )
+        target_link_libraries( cuda_test_halo_exchange_3D_generic  ${exe_LIBS} )
 
         cuda_add_executable( cuda_test_halo_exchange_3D_generic_full ../../examples/communication/test_halo_exchange_3D_generic_full.cu  OPTIONS -DSTANDALONE ${GPU_SPECIFIC_FLAGS})
         add_dependencies( cuda_test_halo_exchange_3D_generic_full gcl )
-        target_link_libraries( cuda_test_halo_exchange_3D_generic_full  ${exe_LIBS_GPU} )
+        target_link_libraries( cuda_test_halo_exchange_3D_generic_full  ${exe_LIBS} )
 
       endif()
     endif()

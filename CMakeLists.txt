@@ -30,15 +30,9 @@ include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/communication/high-le
 # compile gcl:
 # ===============
 add_library( gcl src/GCL.cpp include/communication/GCL.hpp include/communication/high-level/stats_collector.hpp )
-set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}")
-
-if ( USE_GPU )
-    add_library( gcl_gpu src/GCL.cpp include/communication/GCL.hpp include/communication/high-level/stats_collector.hpp )
-    set_target_properties(gcl_gpu PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
-endif()
+set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
 
 set(exe_LIBS ${exe_LIBS} gcl)
-set(exe_LIBS_GPU ${exe_LIBS} gcl_gpu)
 
 
 # ===============
