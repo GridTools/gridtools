@@ -130,7 +130,14 @@ namespace gridtools {
          */
         template < uint_t... Id >
         struct generate_layout_map< gt_integer_sequence< uint_t, Id... > > {
-            typedef layout_map< (sizeof...(Id)-Id - 1)... > type;
+            static constexpr int_t s = sizeof...(Id) - 1;
+
+            template < uint_t... D >
+            struct get_layout {
+                typedef layout_map< D... > type;
+            };
+
+            typedef typename get_layout< (s - Id)... >::type type;
         };
 
     } // namespace _impl

@@ -52,8 +52,8 @@
 #include "stencil-composition/local_domain.hpp"
 #include "stencil-composition/run_functor_arguments.hpp"
 
-#ifdef CUDA8
-#include "iterate_domain_cxx11.hpp"
-#else
+#ifndef CXX11_ENABLED
 #include "iterate_domain_cxx03.hpp"
+#else
+#include "iterate_domain_cxx11.hpp"
 #endif

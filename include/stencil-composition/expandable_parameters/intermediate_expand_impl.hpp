@@ -43,13 +43,13 @@ namespace gridtools {
 
         template < typename R, typename Vec, typename... T >
         typename boost::enable_if_c< sizeof...(T) == boost::mpl::size< Vec >::value,
-            R * >::type constexpr get_aggregator(Vec &v, T &... t) {
+            R * >::type get_aggregator(Vec &v, T &... t) {
             return new R(t...);
         }
 
         template < typename R, typename Vec, typename... T >
         typename boost::enable_if_c< sizeof...(T) < boost::mpl::size< Vec >::value,
-            R * >::type constexpr get_aggregator(Vec &v, T &... t) {
+            R * >::type get_aggregator(Vec &v, T &... t) {
             return get_aggregator< R >(v,
                 t...,
                 *(boost::fusion::deref(boost::fusion::advance_c< sizeof...(T) >(boost::fusion::begin(v))).ptr));
