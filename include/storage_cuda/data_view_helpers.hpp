@@ -37,6 +37,7 @@
 #pragma once
 
 #include <assert.h>
+#include <type_traits>
 
 #include <boost/mpl/bool.hpp>
 #include <boost/mpl/if.hpp>
@@ -50,39 +51,46 @@
 namespace gridtools {
 
     // functions used to create views to host data stores (read-write/read-only)
-    template < bool ReadOnly = false, typename CudaDataStore >
-    typename boost::enable_if< is_cuda_storage< typename CudaDataStore::storage_t >,
-        data_view< CudaDataStore, ReadOnly > >::type
+    template < bool ReadOnly = false,
+        typename CudaDataStore,
+        typename DecayedCDS = typename std::decay< CudaDataStore >::type >
+    typename boost::enable_if< is_cuda_storage< typename DecayedCDS::storage_t >,
+        data_view< DecayedCDS, ReadOnly > >::type
     make_host_view(CudaDataStore &ds) {
         assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
         if (!ReadOnly)
             ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu = true;
-        return data_view< CudaDataStore, ReadOnly >(ds.get_storage_ptr()->get_cpu_ptr(),
+        return data_view< DecayedCDS, ReadOnly >(ds.get_storage_ptr()->get_cpu_ptr(),
             ds.get_storage_info_ptr(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             false);
     }
 
-    template < bool ReadOnly = false, typename CudaDataStore >
-    typename boost::enable_if< is_cuda_storage< typename CudaDataStore::storage_t >,
-        data_view< CudaDataStore, ReadOnly > >::type
+    template < bool ReadOnly = false,
+        typename CudaDataStore,
+        typename DecayedCDS = typename std::decay< CudaDataStore >::type >
+    typename boost::enable_if< is_cuda_storage< typename DecayedCDS::storage_t >,
+        data_view< DecayedCDS, ReadOnly > >::type
     make_device_view(CudaDataStore &ds) {
         assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
         if (!ReadOnly)
             ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu = true;
-        return data_view< CudaDataStore, ReadOnly >(ds.get_storage_ptr()->get_gpu_ptr(),
+        return data_view< DecayedCDS, ReadOnly >(ds.get_storage_ptr()->get_gpu_ptr(),
             ds.get_storage_info_ptr()->get_gpu_ptr(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             true);
     }
 
     // function that can be used to check if a view is valid
-    template < typename DataStore, typename DataView >
+    template < typename DataStore,
+        typename DataView,
+        typename DecayedDS = typename std::decay< DataStore >::type,
+        typename DecayedDV = typename std::decay< DataView >::type >
     typename boost::enable_if<
-        boost::mpl::and_< is_cuda_storage< typename DataStore::storage_t >, is_data_store< DataStore > >,
+        boost::mpl::and_< is_cuda_storage< typename DecayedDS::storage_t >, is_data_store< DecayedDS > >,
         bool >::type
     valid(DataStore const &d, DataView const &v) {
-        static_assert(is_data_view<DataView>::value, "Passed type is no data_view type");
+        static_assert(is_data_view< DecayedDV >::value, "Passed type is no data_view type");
         // if the storage is not valid return false
         if (!d.valid())
             return false;
@@ -93,15 +101,15 @@ namespace gridtools {
         // check if we have a device view
         const bool device_view = (v.m_raw_ptrs[0] == d.get_storage_ptr()->get_cpu_ptr()) ? false : true;
         // read-only? if yes, take early exit
-        if (DataView::read_only)
+        if (DecayedDV::read_only)
             return device_view ? !d.get_storage_ptr()->get_state_machine_ptr()->m_dnu
                                : !d.get_storage_ptr()->get_state_machine_ptr()->m_hnu;
         // get storage state
-        return device_view ? ((d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) && 
-                !(d.get_storage_ptr()->get_state_machine_ptr()->m_dnu) && 
-                (d.get_storage_ptr()->get_state_machine_ptr()->m_od)) : 
-            (!(d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) && 
-                (d.get_storage_ptr()->get_state_machine_ptr()->m_dnu) && 
-                !(d.get_storage_ptr()->get_state_machine_ptr()->m_od));
+        return device_view ? ((d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
+                                 !(d.get_storage_ptr()->get_state_machine_ptr()->m_dnu) &&
+                                 (d.get_storage_ptr()->get_state_machine_ptr()->m_od))
+                           : (!(d.get_storage_ptr()->get_state_machine_ptr()->m_hnu) &&
+                                 (d.get_storage_ptr()->get_state_machine_ptr()->m_dnu) &&
+                                 !(d.get_storage_ptr()->get_state_machine_ptr()->m_od));
     }
 }
