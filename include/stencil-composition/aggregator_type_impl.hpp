@@ -139,7 +139,9 @@ namespace gridtools {
         template < typename NewId, unsigned Id, typename Storage, typename StorageInfo, typename L, bool B >
         struct replace_arg_storage_info< NewId, arg< Id, data_store< Storage, StorageInfo >, L, B > > {
             // replace the index
-            typedef typename replace_storage_info_index< StorageInfo, NewId >::type new_storage_info_t;
+            typedef typename L::n_colors location_info_t;
+            typedef static_int< NewId::value + location_info_t::value > new_id_t;
+            typedef typename replace_storage_info_index< StorageInfo, new_id_t >::type new_storage_info_t;
             // rebuild new arg type
             typedef arg< Id, data_store< Storage, new_storage_info_t >, L, B > type;
         };
