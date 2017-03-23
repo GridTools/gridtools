@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <assert.h>
+
 #include "definitions.hpp"
 
 namespace gridtools {

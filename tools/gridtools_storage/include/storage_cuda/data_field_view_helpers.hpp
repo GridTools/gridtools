@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include <boost/utility.hpp>
 #include <boost/mpl/and.hpp>
 
@@ -47,68 +49,75 @@
 namespace gridtools {
 
     // functions used to create views to host data field stores (read-write/read-only)
-    template < bool ReadOnly = false, typename DataStoreField >
+    template < bool ReadOnly = false,
+        typename DataStoreField,
+        typename DecayedDSF = typename std::decay< DataStoreField >::type >
     typename boost::enable_if<
-        boost::mpl::and_< is_cuda_storage< typename DataStoreField::storage_t >, is_data_store_field< DataStoreField > >,
-        data_field_view< DataStoreField, ReadOnly > >::type
+        boost::mpl::and_< is_cuda_storage< typename DecayedDSF::storage_t >, is_data_store_field< DecayedDSF > >,
+        data_field_view< DecayedDSF, ReadOnly > >::type
     make_field_host_view(DataStoreField &ds) {
-        typename DataStoreField::data_t *ptrs[DataStoreField::size];
-        typename DataStoreField::state_machine_t *state_ptrs[DataStoreField::size];
-        typename DataStoreField::storage_info_t const *info_ptrs[DataStoreField::dims];
-        unsigned offsets[DataStoreField::dims] = {
+        typename DecayedDSF::data_t *ptrs[DecayedDSF::size];
+        typename DecayedDSF::state_machine_t *state_ptrs[DecayedDSF::size];
+        typename DecayedDSF::storage_info_t const *info_ptrs[DecayedDSF::dims];
+        unsigned offsets[DecayedDSF::dims] = {
             0,
         };
-        for (unsigned i = 1; i < DataStoreField::dims; ++i) {
+        for (unsigned i = 1; i < DecayedDSF::dims; ++i) {
             offsets[i] = offsets[i - 1] + ds.get_dim_sizes()[i - 1];
         }
-        for (unsigned i = 0; i < DataStoreField::dims; ++i) {
+        for (unsigned i = 0; i < DecayedDSF::dims; ++i) {
             info_ptrs[i] = ds.get_field()[offsets[i]].get_storage_info_ptr();
         }
-        for (unsigned i = 0; i < DataStoreField::size; ++i) {
+        for (unsigned i = 0; i < DecayedDSF::size; ++i) {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_cpu_ptr();
             state_ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr();
             if (!ReadOnly)
                 ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr()->m_dnu = true;
         }
-        return data_field_view< DataStoreField, ReadOnly >(ptrs, info_ptrs, state_ptrs, offsets, false);
+        return data_field_view< DecayedDSF, ReadOnly >(ptrs, info_ptrs, state_ptrs, offsets, false);
     }
 
-    template < bool ReadOnly = false, typename DataStoreField >
+    template < bool ReadOnly = false,
+        typename DataStoreField,
+        typename DecayedDSF = typename std::decay< DataStoreField >::type >
     typename boost::enable_if<
-        boost::mpl::and_< is_cuda_storage< typename DataStoreField::storage_t >, is_data_store_field< DataStoreField > >,
-        data_field_view< DataStoreField, ReadOnly > >::type
+        boost::mpl::and_< is_cuda_storage< typename DecayedDSF::storage_t >, is_data_store_field< DecayedDSF > >,
+        data_field_view< DecayedDSF, ReadOnly > >::type
     make_field_device_view(DataStoreField &ds) {
-        typename DataStoreField::data_t *ptrs[DataStoreField::size];
-        typename DataStoreField::state_machine_t *state_ptrs[DataStoreField::size];
-        typename DataStoreField::storage_info_t const *info_ptrs[DataStoreField::dims];
-        unsigned offsets[DataStoreField::dims] = {
+        typename DecayedDSF::data_t *ptrs[DecayedDSF::size];
+        typename DecayedDSF::state_machine_t *state_ptrs[DecayedDSF::size];
+        typename DecayedDSF::storage_info_t const *info_ptrs[DecayedDSF::dims];
+        unsigned offsets[DecayedDSF::dims] = {
             0,
         };
-        for (unsigned i = 1; i < DataStoreField::dims; ++i) {
+        for (unsigned i = 1; i < DecayedDSF::dims; ++i) {
             offsets[i] = offsets[i - 1] + ds.get_dim_sizes()[i - 1];
         }
-        for (unsigned i = 0; i < DataStoreField::dims; ++i) {
+        for (unsigned i = 0; i < DecayedDSF::dims; ++i) {
             info_ptrs[i] = ds.get_field()[offsets[i]].get_storage_info_ptr()->get_gpu_ptr();
         }
-        for (unsigned i = 0; i < DataStoreField::size; ++i) {
+        for (unsigned i = 0; i < DecayedDSF::size; ++i) {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_gpu_ptr();
             state_ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr();
             if (!ReadOnly)
                 ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr()->m_hnu = true;
         }
-        return data_field_view< DataStoreField, ReadOnly >(ptrs, info_ptrs, state_ptrs, offsets, true);
+        return data_field_view< DecayedDSF, ReadOnly >(ptrs, info_ptrs, state_ptrs, offsets, true);
     }
 
     // function that can be used to check if a view is valid
-    template < typename DataStoreField, typename DataFieldView >
+    template < typename DataStoreField,
+        typename DataFieldView,
+        typename DecayedDSF = typename std::decay< DataStoreField >::type,
+        typename DecayedDFV = typename std::decay< DataFieldView >::type >
     typename boost::enable_if<
-        boost::mpl::and_< is_cuda_storage< typename DataStoreField::storage_t >, is_data_store_field< DataStoreField > >,
+        boost::mpl::and_< is_cuda_storage< typename DecayedDSF::storage_t >, is_data_store_field< DecayedDSF > >,
         bool >::type
     valid(DataStoreField const &ds, DataFieldView const &dv) {
-        static_assert(is_data_field_view<DataFieldView>::value, "Passed type is no data_field_view type");
+        static_assert(is_data_field_view< DecayedDFV >::value, "Passed type is no data_field_view type");
         bool res = true;
         unsigned i = 0;
-        for (unsigned dim = 0; dim < DataStoreField::dims; ++dim) {
+        for (unsigned dim = 0; dim < DecayedDSF::dims; ++dim) {
             for (unsigned pos = 0; pos < ds.get_dim_sizes()[dim]; ++pos) {
                 res &= valid(ds.get_field()[i], dv.get(dim, pos));
                 i++;

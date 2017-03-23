@@ -37,6 +37,7 @@
 #pragma once
 
 #include <assert.h>
+#include <type_traits>
 
 #include <boost/utility.hpp>
 
@@ -48,25 +49,28 @@
 namespace gridtools {
 
     // functions used to create views to host data stores (read-write/read-only)
-    template < bool ReadOnly = false, typename DataStore >
+    template < bool ReadOnly = false, typename DataStore, typename DecayedDS = typename std::decay< DataStore >::type >
     typename boost::enable_if<
-        boost::mpl::and_< is_host_storage< typename DataStore::storage_t >, is_data_store< DataStore > >,
+        boost::mpl::and_< is_host_storage< typename DecayedDS::storage_t >, is_data_store< DecayedDS > >,
         data_view< DataStore, ReadOnly > >::type
     make_host_view(DataStore &ds) {
         assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
-        return data_view< DataStore, ReadOnly >(ds.get_storage_ptr()->get_cpu_ptr(),
+        return data_view< DecayedDS, ReadOnly >(ds.get_storage_ptr()->get_cpu_ptr(),
             ds.get_storage_info_ptr(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             false);
     }
 
     // function that can be used to check if a view is valid
-    template < typename DataStore, typename DataView >
+    template < typename DataStore,
+        typename DataView,
+        typename DecayedDS = typename std::decay< DataStore >::type,
+        typename DecayedDV = typename std::decay< DataView >::type >
     typename boost::enable_if<
-        boost::mpl::and_< is_host_storage< typename DataStore::storage_t >, is_data_store< DataStore > >,
+        boost::mpl::and_< is_host_storage< typename DecayedDS::storage_t >, is_data_store< DecayedDS > >,
         bool >::type
     valid(DataStore const &ds, DataView const &dv) {
-        static_assert(is_data_view<DataView>::value, "Passed type is no data_view type");
+        static_assert(is_data_view< DecayedDV >::value, "Passed type is no data_view type");
         return ds.valid() && (dv.m_raw_ptrs[0] == ds.get_storage_ptr()->get_cpu_ptr()) &&
                (dv.m_storage_info && ds.get_storage_info_ptr());
     }
