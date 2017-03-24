@@ -519,7 +519,7 @@ namespace gridtools {
             Overload of the operator() for expressions.
         */
         template < typename... Arguments, template < typename... Args > class Expression >
-        GT_FUNCTION auto operator()(Expression< Arguments... > &arg)
+        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg)
             -> decltype(expressions::evaluation::value(*this, arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
@@ -533,7 +533,7 @@ namespace gridtools {
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
            expression)*/
         template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
-        GT_FUNCTION auto operator()(Expression< Argument, exponent > &arg)
+        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg)
             -> decltype(expressions::evaluation::value((*this), arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
