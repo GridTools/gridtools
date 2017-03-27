@@ -450,7 +450,7 @@ namespace gridtools {
 
             const int offset = BackendTraits::template fields_offset< LocalDomain,
                 PEBlockSize,
-                storage_wrapper_t::is_temporary,
+                typename storage_wrapper_t::arg_t,
                 max_extent_t,
                 GridTraits >(boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
             for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i) {

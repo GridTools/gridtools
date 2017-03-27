@@ -156,11 +156,11 @@ namespace gridtools {
         */
         template < typename LocalDomain,
             typename PEBlockSize,
-            bool Tmp,
+            typename Arg,
             typename CurrentExtent,
             typename GridTraits,
             typename StorageInfo >
-        static typename boost::enable_if_c< Tmp, int >::type fields_offset(StorageInfo const *sinfo) {
+        static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
             const uint_t i = processing_element_i();
             constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
@@ -171,11 +171,11 @@ namespace gridtools {
 
         template < typename LocalDomain,
             typename PEBlockSize,
-            bool Tmp,
+            typename Arg,
             typename CurrentExtent,
             typename GridTraits,
             typename StorageInfo >
-        static typename boost::enable_if_c< !Tmp, int >::type fields_offset(StorageInfo const *sinfo) {
+        static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
             return StorageInfo::get_initial_offset();
         }
 
