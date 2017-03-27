@@ -53,7 +53,7 @@ namespace gridtools {
      */
     template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
     struct mss_components {
-        GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size< ExtentSizes >::type::value == 0 || is_sequence_of< ExtentSizes, is_extent >::value),
             "There seems to be a stage in the computation which does not contain any output field. Check that at least "

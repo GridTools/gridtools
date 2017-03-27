@@ -35,7 +35,8 @@
 */
 #pragma once
 #include <boost/mpl/at.hpp>
-#include "logical_ops.hpp"
+#include "../defs.hpp"
+#include "binary_ops.hpp"
 
 /**@file @brief implementation of a compile-time accumulator and max
 

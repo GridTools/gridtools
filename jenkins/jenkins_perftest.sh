@@ -6,7 +6,7 @@ source ${JENKINSPATH}/env_perftest_${myhost}.sh
 source ${JENKINSPATH}/tools.sh
 echo ${JENKINSPATH}
 
-TEMP=`getopt -o h --long target:,std:,prec:,jplan:,python:,outfile:,json:,gtype: \
+TEMP=`getopt -o h --long target:,std:,prec:,jplan:,outfile:,json:,gtype: \
              -n 'jenkins_perftest' -- "$@"`
 
 eval set -- "$TEMP"
@@ -17,7 +17,6 @@ while true; do
         --std) STD=$2; shift 2;;
         --prec) PREC=$2; shift 2;;
         --jplan) JPLAN=$2; shift 2;;
-        --python) PYTHON_OPT=$2; shift 2;;
         --outfile) OUTFILE=$2; shift 2;;
         --json) JSON_FILE=$2; shift 2;;
         --gtype) GTYPE=$2; shift 2;;
@@ -48,15 +47,17 @@ if [[ -z ${GTYPE} ]]; then
 fi
 maxsleep=7200
 
-if [[ -n "${PYTHON_OPT}" ]]; then
-    PYTHON_STR="--python ${PYTHON_OPT}"
-fi
-
 slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test.${RANDOM}"
 cp ${JENKINSPATH}/submit.${myhost}.slurm ${slurm_script}
-cmd="srun --exclusive --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC ${PYTHON_STR} --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
+cmd="srun --exclusive --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 /bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
+/bin/sed -i 's|<MPI_NODES>|'"1"'|g' ${slurm_script}
+/bin/sed -i 's|<MPI_TASKS>|'"1"'|g' ${slurm_script}
+/bin/sed -i 's|<MPI_PPN>|'"1"'|g' ${slurm_script}
+/bin/sed -i 's|<CPUSPERTASK>|'"1"'|g' ${slurm_script}
+/bin/sed -i 's|<OUTPUTFILE>|'"test.out"'|g' ${slurm_script}
+/bin/sed -i 's|<JOB_ENV>|'"$JOB_ENV"'|g' ${slurm_script}
 
 if [[ ${TARGET} == "cpu" ]]; then
     if [[ -z ${CPUS_PER_SOCKET} ]]; then

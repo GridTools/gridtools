@@ -48,9 +48,9 @@ namespace gridtools {
     struct condition {
 
         GRIDTOOLS_STATIC_ASSERT(!(is_reduction_descriptor< Mss1 >::value || is_reduction_descriptor< Mss2 >::value),
-            "reduction mss must be outside conditional branches");
+            "Reduction multistage must be outside conditional branches");
         // TODO add a way to check Mss1 and Mss2
-        GRIDTOOLS_STATIC_ASSERT(is_conditional< Tag >::value, "internal error");
+        GRIDTOOLS_STATIC_ASSERT(is_conditional< Tag >::value, GT_INTERNAL_ERROR);
         typedef Mss1 first_t;
         typedef Mss2 second_t;
         typedef Tag index_t;

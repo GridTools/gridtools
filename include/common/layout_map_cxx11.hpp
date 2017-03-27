@@ -52,10 +52,6 @@
 */
 namespace gridtools {
 
-    // fwd decl
-    template < typename T >
-    struct is_vector_accessor;
-
     template < typename T >
     struct is_layout_map;
 
@@ -94,7 +90,9 @@ namespace gridtools {
         static const constexpr short_t layout_vector[sizeof...(Args)] = {Args...};
         typedef boost::mpl::vector_c< short_t, Args... > layout_vector_t;
 
-        constexpr layout_map(){};
+        // ctr
+        GT_FUNCTION
+        constexpr layout_map() {}
 
         GT_FUNCTION constexpr short_t operator[](ushort_t id_) const { return layout_vector[id_]; }
 
