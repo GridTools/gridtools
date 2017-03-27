@@ -118,7 +118,7 @@ computation->finalize();
     auto recursive_switch(uint_t recursion_depth_, Condition &cond_, First const &first_, Cases const &... cases_)
         -> decltype(if_(conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value >(),
             first_.mss(),
-            recursive_switch(recursion_depth_, cond_, cases_...))) {
+            recursive_switch(recursion_depth_ + 1, cond_, cases_...))) {
         GRIDTOOLS_STATIC_ASSERT(
             (is_case_type< First >::value), "the entries in a switch_ statement must be case_ statements");
 
