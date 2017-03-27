@@ -96,15 +96,19 @@ namespace ico_operators {
         auto &orientation_of_normal = repo.orientation_of_normal();
         auto &edge_length = repo.edge_length();
         auto &ref_cells = repo.div_u_ref();
-        auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type >("out");
+        auto out_cells =
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type, typename repository::halo_t >(
+                "out");
 
-        auto div_weights =
-            icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "weights", 3);
+        auto div_weights = icosahedral_grid.make_storage< icosahedral_topology_t::cells,
+            float_type,
+            typename repository::halo_5d_t,
+            selector< 1, 1, 1, 1, 1 > >("weights", 3);
 
-        auto l_over_A =
-            icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "l_over_A", 2);
+        auto l_over_A = icosahedral_grid.make_storage< icosahedral_topology_t::edges,
+            float_type,
+            typename repository::halo_5d_t,
+            selector< 1, 1, 1, 1, 1 > >("l_over_A", 2);
 
         out_cells = decltype(out_cells)(*out_cells.get_storage_info_ptr(), 0.0);
         div_weights = decltype(div_weights)(*div_weights.get_storage_info_ptr(), 0.0);

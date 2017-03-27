@@ -100,19 +100,25 @@ namespace sf {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
-        using edge_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double >;
+        using cell_storage_type =
+            typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double, halo< 2, 0, 2, 0 > >;
+        using edge_storage_type =
+            typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double, halo< 2, 0, 2, 0 > >;
 
         const uint_t halo_nc = 2;
         const uint_t halo_mc = 2;
         const uint_t halo_k = 0;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in_edge");
-        auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
-        auto ref_on_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells");
+        auto in_edges =
+            icosahedral_grid.make_storage< icosahedral_topology_t::edges, double, halo< 2, 0, 2, 0 > >("in_edge");
+        auto out_cells =
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double, halo< 2, 0, 2, 0 > >("out");
+        auto ref_on_cells =
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double, halo< 2, 0, 2, 0 > >("ref_on_cells");
         auto ref_on_cells_tmp =
-            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells_tmp");
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double /* , halo<2,0,2,0> */ >(
+                "ref_on_cells_tmp");
         in_edges.allocate();
         out_cells.allocate();
         ref_on_cells.allocate();

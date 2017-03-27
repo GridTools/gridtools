@@ -46,9 +46,10 @@ namespace ico_operators {
         auto &ref_vertices = repo.curl_u_ref();
         auto &out_vertices = repo.out_vertex();
 
-        vertices_4d_storage_type curl_weights(
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "weights", 6));
+        vertices_4d_storage_type curl_weights(icosahedral_grid.make_storage< icosahedral_topology_t::vertices,
+                                              float_type,
+                                              typename repository::halo_5d_t,
+                                              selector< 1, 1, 1, 1, 1 > >("weights", 6));
         edges_of_vertices_storage_type &edge_orientation = repo.edge_orientation();
 
         curl_weights = decltype(curl_weights)(*curl_weights.get_storage_info_ptr(), 0.0);

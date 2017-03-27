@@ -68,9 +68,9 @@ namespace gridtools {
                 boost::mpl::identity< filtered_layout > >::type;
         };
 
-        template < unsigned Index, typename LayoutMap = layout_map_t >
+        template < unsigned Index, typename LayoutMap = layout_map_t, typename Halo = halo< 0, 0, 0, 0 > >
         using storage_info_t =
-            typename base_t::storage_traits_t::template custom_layout_storage_info_t< Index, LayoutMap >;
+            typename base_t::storage_traits_t::template custom_layout_storage_info_t< Index, LayoutMap, Halo >;
 
         template < typename ValueType, typename StorageInfo >
         using storage_t = typename base_t::storage_traits_t::template data_store_t< ValueType, StorageInfo >;

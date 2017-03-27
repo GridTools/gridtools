@@ -49,29 +49,36 @@ namespace ico_operators {
 
     class repository {
       public:
-        using cell_storage_type = icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, float_type >;
-        using edge_storage_type = icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, float_type >;
-        using vertex_storage_type = icosahedral_topology_t::storage_t< icosahedral_topology_t::vertices, float_type >;
+        static constexpr uint_t halo_nc = 2;
+        static constexpr uint_t halo_mc = 2;
+        static constexpr uint_t halo_k = 0;
 
-        using cell_2d_storage_type =
-            icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 0 > >;
-        using edge_2d_storage_type =
-            icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, float_type, selector< 1, 1, 1, 0 > >;
-        using vertex_2d_storage_type =
-            icosahedral_topology_t::storage_t< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 0 > >;
+        using halo_t = halo< 2, 0, 2, 0 >;
+        using halo_5d_t = halo< 2, 0, 2, 0, 0 >;
+        using cell_storage_type =
+            icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, float_type, halo_t >;
+        using edge_storage_type =
+            icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, float_type, halo_t >;
+        using vertex_storage_type =
+            icosahedral_topology_t::storage_t< icosahedral_topology_t::vertices, float_type, halo_t >;
 
-        using vertices_4d_storage_type = icosahedral_topology_t::storage_t< icosahedral_topology_t::vertices,
-            float_type,
-            selector< 1, 1, 1, 1, 1 > >;
-        using cells_4d_storage_type =
-            icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 1, 1 > >;
-        using edges_4d_storage_type =
-            icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, float_type, selector< 1, 1, 1, 1, 1 > >;
-        using edges_of_cells_storage_type =
-            icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 0, 1 > >;
-        using edges_of_vertices_storage_type = icosahedral_topology_t::storage_t< icosahedral_topology_t::vertices,
-            float_type,
-            selector< 1, 1, 1, 0, 1 > >;
+        using cell_2d_storage_type = icosahedral_topology_t::
+            storage_t< icosahedral_topology_t::cells, float_type, halo_t, selector< 1, 1, 1, 0 > >;
+        using edge_2d_storage_type = icosahedral_topology_t::
+            storage_t< icosahedral_topology_t::edges, float_type, halo_t, selector< 1, 1, 1, 0 > >;
+        using vertex_2d_storage_type = icosahedral_topology_t::
+            storage_t< icosahedral_topology_t::vertices, float_type, halo_t, selector< 1, 1, 1, 0 > >;
+
+        using vertices_4d_storage_type = icosahedral_topology_t::
+            storage_t< icosahedral_topology_t::vertices, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >;
+        using cells_4d_storage_type = icosahedral_topology_t::
+            storage_t< icosahedral_topology_t::cells, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >;
+        using edges_4d_storage_type = icosahedral_topology_t::
+            storage_t< icosahedral_topology_t::edges, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >;
+        using edges_of_cells_storage_type = icosahedral_topology_t::
+            storage_t< icosahedral_topology_t::cells, float_type, halo_5d_t, selector< 1, 1, 1, 0, 1 > >;
+        using edges_of_vertices_storage_type = icosahedral_topology_t::
+            storage_t< icosahedral_topology_t::vertices, float_type, halo_5d_t, selector< 1, 1, 1, 0, 1 > >;
 
       private:
         icosahedral_topology_t icosahedral_grid_;
@@ -105,49 +112,59 @@ namespace ico_operators {
 
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim)
             : icosahedral_grid_(idim, jdim, kdim), m_idim(idim), m_jdim(jdim), m_kdim(kdim), m_ugrid(idim, jdim, kdim),
-              m_u(icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type >("u")),
+              m_u(icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type, halo_t >("u")),
               m_out_vertex(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::vertices, float_type >("out_vertex")),
+                  icosahedral_grid_.make_storage< icosahedral_topology_t::vertices, float_type, halo_t >("out_vertex")),
               m_curl_u_ref(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::vertices, float_type >("curl_u_ref")),
-              m_grad_n_ref(icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type >("grad_n_ref")),
-              m_div_u_ref(icosahedral_grid_.make_storage< icosahedral_topology_t::cells, float_type >("div_u_ref")),
-              m_lap_ref(icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type >("lap_ref")),
-              m_dual_area(icosahedral_grid_
-                              .make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 0 > >(
-                                  "dual_area")),
-              m_cell_area(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 0 > >(
-                      "cell_area")),
-              m_cell_area_reciprocal(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 0 > >(
-                      "cell_area_reciprocal")),
-              m_edge_length(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type, selector< 1, 1, 1, 0 > >(
-                      "edge_length")),
-              m_edge_length_reciprocal(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type, selector< 1, 1, 1, 0 > >(
-                      "edge_length_reciprocal")),
-              m_dual_edge_length(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type, selector< 1, 1, 1, 0 > >(
-                      "dual_edge_length")),
-              m_dual_edge_length_reciprocal(
-                  icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type, selector< 1, 1, 1, 0 > >(
-                      "dual_edge_length_reciprocal")),
-              m_edge_orientation(
+                  icosahedral_grid_.make_storage< icosahedral_topology_t::vertices, float_type, halo_t >("curl_u_ref")),
+              m_grad_n_ref(
+                  icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type, halo_t >("grad_n_ref")),
+              m_div_u_ref(
+                  icosahedral_grid_.make_storage< icosahedral_topology_t::cells, float_type, halo_t >("div_u_ref")),
+              m_lap_ref(icosahedral_grid_.make_storage< icosahedral_topology_t::edges, float_type, halo_t >("lap_ref")),
+              m_dual_area(
                   icosahedral_grid_
-                      .make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 0, 1 > >(
-                          "edge_orientation", 6)),
+                      .make_storage< icosahedral_topology_t::vertices, float_type, halo_t, selector< 1, 1, 1, 0 > >(
+                          "dual_area")),
+              m_cell_area(
+                  icosahedral_grid_
+                      .make_storage< icosahedral_topology_t::cells, float_type, halo_t, selector< 1, 1, 1, 0 > >(
+                          "cell_area")),
+              m_cell_area_reciprocal(
+                  icosahedral_grid_
+                      .make_storage< icosahedral_topology_t::cells, float_type, halo_t, selector< 1, 1, 1, 0 > >(
+                          "cell_area_reciprocal")),
+              m_edge_length(
+                  icosahedral_grid_
+                      .make_storage< icosahedral_topology_t::edges, float_type, halo_t, selector< 1, 1, 1, 0 > >(
+                          "edge_length")),
+              m_edge_length_reciprocal(
+                  icosahedral_grid_
+                      .make_storage< icosahedral_topology_t::edges, float_type, halo_t, selector< 1, 1, 1, 0 > >(
+                          "edge_length_reciprocal")),
+              m_dual_edge_length(
+                  icosahedral_grid_
+                      .make_storage< icosahedral_topology_t::edges, float_type, halo_t, selector< 1, 1, 1, 0 > >(
+                          "dual_edge_length")),
+              m_dual_edge_length_reciprocal(
+                  icosahedral_grid_
+                      .make_storage< icosahedral_topology_t::edges, float_type, halo_t, selector< 1, 1, 1, 0 > >(
+                          "dual_edge_length_reciprocal")),
+              m_edge_orientation(icosahedral_grid_.make_storage< icosahedral_topology_t::vertices,
+                                 float_type,
+                                 halo_5d_t,
+                                 selector< 1, 1, 1, 0, 1 > >("edge_orientation", 6)),
               m_orientation_of_normal(
                   icosahedral_grid_
-                      .make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 0, 1 > >(
+                      .make_storage< icosahedral_topology_t::cells, float_type, halo_5d_t, selector< 1, 1, 1, 0, 1 > >(
                           "orientation_of_normal", 3)),
-              m_div_weights(icosahedral_grid_
-                                .make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 1, 1 > >(
-                                    "div_weights", 3)),
+              m_div_weights(
+                  icosahedral_grid_
+                      .make_storage< icosahedral_topology_t::cells, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >(
+                          "div_weights", 3)),
               m_dual_area_reciprocal(
                   icosahedral_grid_
-                      .make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 0 > >(
+                      .make_storage< icosahedral_topology_t::vertices, float_type, halo_t, selector< 1, 1, 1, 0 > >(
                           "dual_area_reciprocal")) {
             m_u.allocate();
             m_out_vertex.allocate();
@@ -161,12 +178,6 @@ namespace ico_operators {
             m_edge_orientation.allocate();
             m_orientation_of_normal.allocate();
             m_dual_area_reciprocal.allocate();
-            // reinitialize some fields to 0.0
-            m_curl_u_ref = decltype(m_curl_u_ref)(*m_curl_u_ref.get_storage_info_ptr(), 0.0);
-            m_div_u_ref = decltype(m_div_u_ref)(*m_div_u_ref.get_storage_info_ptr(), 0.0);
-            m_lap_ref = decltype(m_lap_ref)(*m_lap_ref.get_storage_info_ptr(), 0.0);
-            m_div_weights = decltype(m_div_weights)(*m_div_weights.get_storage_info_ptr(), 0.0);
-            m_grad_n_ref = decltype(m_grad_n_ref)(*m_grad_n_ref.get_storage_info_ptr(), 0.0);
         }
 
         void init_fields() {
@@ -282,6 +293,12 @@ namespace ico_operators {
                     }
                 }
             }
+            // reinitialize some fields to 0.0
+            m_curl_u_ref = decltype(m_curl_u_ref)(*m_curl_u_ref.get_storage_info_ptr(), 0.0);
+            m_div_u_ref = decltype(m_div_u_ref)(*m_div_u_ref.get_storage_info_ptr(), 0.0);
+            m_lap_ref = decltype(m_lap_ref)(*m_lap_ref.get_storage_info_ptr(), 0.0);
+            m_div_weights = decltype(m_div_weights)(*m_div_weights.get_storage_info_ptr(), 0.0);
+            m_grad_n_ref = decltype(m_grad_n_ref)(*m_grad_n_ref.get_storage_info_ptr(), 0.0);
         }
 
         inline void generate_div_ref() {
@@ -335,7 +352,7 @@ namespace ico_operators {
                                 m_curl_u_ref_v(i, c, j, k) +=
                                     m_edge_orientation_v(i, c, j, 0, e) *
                                     m_u_v((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]) *
-                                    m_edge_length_v((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]);
+                                    m_dual_edge_length_v((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]);
                                 ++e;
                             }
                             m_curl_u_ref_v(i, c, j, k) /= m_dual_area_v(i, c, j, 0);
@@ -425,8 +442,5 @@ namespace ico_operators {
 
       public:
         const uint_t m_idim, m_jdim, m_kdim;
-        const uint_t halo_nc = 2;
-        const uint_t halo_mc = 2;
-        const uint_t halo_k = 0;
     };
 }

@@ -77,10 +77,13 @@ TEST(icosahedral_topology, layout) {
 TEST(icosahedral_topology, make_storage) {
 
     icosahedral_topology_t grid(4, 6, 7);
-    icosahedral_topology_t::meta_storage_t< icosahedral_topology_t::edges, selector< 1, 1, 1, 1 > > x(1, 2, 3, 4);
+    icosahedral_topology_t::meta_storage_t< icosahedral_topology_t::edges, halo< 0, 0, 0, 0 >, selector< 1, 1, 1, 1 > >
+        x(1, 2, 3, 4);
     {
-        auto astorage =
-            grid.template make_storage< icosahedral_topology_t::edges, double, selector< 1, 1, 1, 1 > >("turu");
+        auto astorage = grid.template make_storage< icosahedral_topology_t::edges,
+            double,
+            halo< 0, 0, 0, 0 >,
+            selector< 1, 1, 1, 1 > >("turu");
         auto ameta = *astorage.get_storage_info_ptr();
 
         ASSERT_TRUE((ameta.dim< 0 >() == 4));
@@ -89,9 +92,10 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_TRUE((ameta.dim< 3 >() == 7));
     }
     {
-        auto astorage =
-            grid.template make_storage< icosahedral_topology_t::edges, double, selector< 1, 1, 1, 1, 1, 1 > >(
-                "turu", 8, 9);
+        auto astorage = grid.template make_storage< icosahedral_topology_t::edges,
+            double,
+            halo< 0, 0, 0, 0, 0, 0 >,
+            selector< 1, 1, 1, 1, 1, 1 > >("turu", 8, 9);
         auto ameta = *astorage.get_storage_info_ptr();
 
         ASSERT_TRUE((ameta.dim< 0 >() == 4));

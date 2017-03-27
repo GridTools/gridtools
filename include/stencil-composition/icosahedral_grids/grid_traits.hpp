@@ -93,7 +93,6 @@ namespace gridtools {
             constexpr uint_t colors = StorageWrapper::arg_t::location_t::n_colors::value;
             const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
-
             // create and return the storage info instance
             return T((StorageWrapper::tileI_t::s_tile + 2 * halo_i::value) * threads_i - 2 * halo_i::value,
                 colors,

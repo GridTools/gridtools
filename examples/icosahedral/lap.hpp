@@ -80,9 +80,9 @@ namespace ico_operators {
         repository.generate_lap_ref();
 
         icosahedral_topology_t &icosahedral_grid = repository.icosahedral_grid();
-        uint_t d1 = repository.idim();
-        uint_t d2 = repository.jdim();
-        uint_t d3 = repository.kdim();
+        uint_t d1 = x;
+        uint_t d2 = y;
+        uint_t d3 = z;
 
         const uint_t halo_nc = repository.halo_nc;
         const uint_t halo_mc = repository.halo_mc;
@@ -116,25 +116,29 @@ namespace ico_operators {
         auto &edge_length = repository.edge_length();
         // for div weights
         auto &orientation_of_normal = repository.orientation_of_normal();
-        auto div_weights =
-            icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "weights", 3);
+        auto div_weights = icosahedral_grid.make_storage< icosahedral_topology_t::cells,
+            float_type,
+            typename repository::halo_5d_t,
+            selector< 1, 1, 1, 1, 1 > >("weights", 3);
         div_weights.allocate();
         // for curl
         auto &dual_area_reciprocal = repository.dual_area_reciprocal();
         auto &dual_edge_length = repository.dual_edge_length();
         // for curl weights
         auto &edge_orientation = repository.edge_orientation();
-        vertices_4d_storage_type curl_weights(
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "curl_weights", 6));
+        vertices_4d_storage_type curl_weights(icosahedral_grid.make_storage< icosahedral_topology_t::vertices,
+                                              float_type,
+                                              typename repository::halo_5d_t,
+                                              selector< 1, 1, 1, 1, 1 > >("curl_weights", 6));
         curl_weights.allocate();
         // for lap
         auto &dual_edge_length_reciprocal = repository.dual_edge_length_reciprocal();
         auto &edge_length_reciprocal = repository.edge_length_reciprocal();
 
         auto &in_edges = repository.u();
-        auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type >("out");
+        auto out_edges =
+            icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type, typename repository::halo_t >(
+                "out");
         out_edges.allocate();
         auto &ref_edges = repository.lap_ref();
 

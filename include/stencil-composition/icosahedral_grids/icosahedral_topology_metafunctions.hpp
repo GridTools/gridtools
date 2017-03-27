@@ -138,19 +138,5 @@ namespace gridtools {
                     array_elem_initializer< UInt, LocationType >::template init_elem >(space_dims, extra_dims...);
             }
         };
-
-        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
-        constexpr typename boost::enable_if_c< (N == 0), StorageInfo >::type get_storage_info_from_array(
-            Array arr, Rest... r) {
-            static_assert(is_array< Array >::value, "Passed type is not an array type.");
-            return StorageInfo(r...);
-        }
-
-        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
-        constexpr typename boost::enable_if_c< (N > 0), StorageInfo >::type get_storage_info_from_array(
-            Array arr, Rest... r) {
-            static_assert(is_array< Array >::value, "Passed type is not an array type.");
-            return get_storage_info_from_array< StorageInfo, Array, N - 1 >(arr, arr[N - 1], r...);
-        }
     }
 }

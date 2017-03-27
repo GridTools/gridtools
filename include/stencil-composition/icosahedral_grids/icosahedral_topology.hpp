@@ -79,6 +79,24 @@ namespace gridtools {
         using vertices = location_type< 2, 1 >;
     }
 
+    namespace impl {
+        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
+        constexpr typename boost::enable_if_c< (N == 0), StorageInfo >::type get_storage_info_from_array(
+            Array arr, Rest... r) {
+            static_assert(is_array< Array >::value, "Passed type is not an array type.");
+            return StorageInfo(r...);
+        }
+
+        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
+        constexpr typename boost::enable_if_c< (N > 0), StorageInfo >::type get_storage_info_from_array(
+            Array arr, Rest... r) {
+            static_assert(is_array< Array >::value, "Passed type is not an array type.");
+            typedef typename StorageInfo::halo_t halo_t;
+            return get_storage_info_from_array< StorageInfo, Array, N - 1 >(
+                arr, arr[N - 1] - 2 * halo_t::template at< N - 1 >(), r...);
+        }
+    }
+
     template < typename T, typename ValueType >
     struct return_type {
         typedef array< ValueType, 0 > type;
@@ -726,13 +744,20 @@ namespace gridtools {
         template < typename Selector >
         using layout_t = typename Backend::template select_layout< Selector >::type;
 
-        template < typename LocationType, typename Selector = selector< 1, 1, 1, 1 > >
+        template < typename LocationType,
+            typename Halo = halo< 0, 0, 0, 0 >,
+            typename Selector = selector< 1, 1, 1, 1 > >
         using meta_storage_t =
             typename Backend::template storage_info_t< impl::compute_uuid< LocationType::value, Selector >::value,
-                layout_t< Selector > >;
+                layout_t< Selector >,
+                Halo >;
 
-        template < typename LocationType, typename ValueType, typename Selector = selector< 1, 1, 1, 1 > >
-        using storage_t = typename Backend::template storage_t< ValueType, meta_storage_t< LocationType, Selector > >;
+        template < typename LocationType,
+            typename ValueType,
+            typename Halo = halo< 0, 0, 0, 0 >,
+            typename Selector = selector< 1, 1, 1, 1 > >
+        using storage_t =
+            typename Backend::template storage_t< ValueType, meta_storage_t< LocationType, Halo, Selector > >;
 
         const array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
@@ -749,6 +774,7 @@ namespace gridtools {
 
         template < typename LocationType,
             typename ValueType,
+            typename Halo = halo< 0, 0, 0, 0 >,
             typename Selector = selector< 1, 1, 1, 1 >,
             typename... IntTypes
 #if defined(CUDA8) || !defined(__CUDACC__)
@@ -756,14 +782,15 @@ namespace gridtools {
             typename Dummy = all_integers< IntTypes... >
 #endif
             >
-        storage_t< LocationType, ValueType, Selector > make_storage(char const *name, IntTypes... extra_dims) const {
+        storage_t< LocationType, ValueType, Halo, Selector > make_storage(
+            char const *name, IntTypes... extra_dims) const {
             GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
             GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
 
             GRIDTOOLS_STATIC_ASSERT(
                 (Selector::size == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
 
-            using meta_storage_type = meta_storage_t< LocationType, Selector >;
+            using meta_storage_type = meta_storage_t< LocationType, Halo, Selector >;
             GRIDTOOLS_STATIC_ASSERT((Selector::size == meta_storage_type::layout_t::length),
                 "ERROR: Mismatch between Selector and space dimensions");
 
@@ -771,7 +798,7 @@ namespace gridtools {
                 impl::array_dim_initializers< uint_t, meta_storage_type::layout_t::length, LocationType, Selector >::
                     apply(m_dims, extra_dims...);
             auto ameta = impl::get_storage_info_from_array< meta_storage_type >(metastorage_sizes);
-            return storage_t< LocationType, ValueType, Selector >(ameta);
+            return storage_t< LocationType, ValueType, Halo, Selector >(ameta);
         }
 
         template < typename LocationType >
