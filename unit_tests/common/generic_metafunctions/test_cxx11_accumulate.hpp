@@ -36,7 +36,7 @@
 #include "gtest/gtest.h"
 #include "common/defs.hpp"
 #include "common/generic_metafunctions/accumulate.hpp"
-#include "common/generic_metafunctions/logical_ops.hpp"
+#include "common/generic_metafunctions/binary_ops.hpp"
 #include "common/array.hpp"
 
 using namespace gridtools;

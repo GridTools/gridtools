@@ -35,7 +35,7 @@
 */
 #pragma once
 #include "accumulate.hpp"
-#include "logical_ops.hpp"
+#include "binary_ops.hpp"
 
 namespace gridtools {
 
