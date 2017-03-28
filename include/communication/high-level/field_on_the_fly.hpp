@@ -95,7 +95,7 @@ namespace gridtools {
             //        layoutmap() << std::endl;
 
             for (int i = 0; i < DIMS; ++i) {
-                base_type::add_halo(inner_layoutmap()[i],
+                base_type::add_halo(inner_layoutmap::at(i),
                     halos[i].minus(),
                     halos[i].plus(),
                     halos[i].begin(),
@@ -117,7 +117,7 @@ namespace gridtools {
         void create(DataType *p, array< halo_descriptor, DIMS > const &halos) {
             ptr = p;
             for (int i = 0; i < DIMS; ++i) {
-                base_type::add_halo(inner_layoutmap()[i],
+                base_type::add_halo(inner_layoutmap::at(i),
                     halos[i].minus(),
                     halos[i].plus(),
                     halos[i].begin(),

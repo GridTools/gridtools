@@ -57,6 +57,5 @@
 #include "common/defs.hpp"
 #include "common/host_device.hpp"
 #include "common/array.hpp"
-#include "common/layout_map.hpp"
 #include "common/pointer.hpp"
 #include "common/pointer_metafunctions.hpp"

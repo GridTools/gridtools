@@ -36,8 +36,8 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
-#include <storage/partitioner_trivial.hpp>
-#include <storage/parallel_storage.hpp>
+#include <common/partitioner_trivial.hpp>
+#include <common/parallel_storage_info.hpp>
 #include <stencil-composition/interval.hpp>
 #include <stencil-composition/make_computation.hpp>
 #include <communication/low-level/proc_grids_3D.hpp>
@@ -56,9 +56,11 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
+#define BACKEND_V Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
+#define BACKEND_V Host
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
@@ -92,11 +94,11 @@ namespace copy_stencil {
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
         typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_t > data_store_t;
+        typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_t > storage_t;
 
-        typedef gridtools::halo_exchange_dynamic_ut< layout_t,
+        typedef gridtools::halo_exchange_dynamic_ut< typename storage_info_t::layout_t,
             gridtools::layout_map< 0, 1, 2 >,
-            flaot_type,
+            float_type,
             MPI_3D_process_grid_t< 3 >,
 #ifdef CUDA_EXAMPLE
             gridtools::gcl_gpu,
