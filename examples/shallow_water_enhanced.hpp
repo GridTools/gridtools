@@ -525,8 +525,17 @@ namespace shallow_water {
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
+            auto view = make_field_host_view(sol);
             myfile << "INITIALIZED VALUES" << std::endl;
-            sol.print(myfile);
+            for(int i=0; i<ds0.get_storage_info_ptr()->template dim<0>(); ++i) {
+                for(int j=0; j<ds0.get_storage_info_ptr()->template dim<1>(); ++j) {
+                    for(int k=0; k<ds0.get_storage_info_ptr()->template dim<2>(); ++k) {
+                        myfile << view.get_value<0,0>(i,j,k) << std::endl;
+                        myfile << view.get_value<1,0>(i,j,k) << std::endl;
+                        myfile << view.get_value<2,0>(i,j,k) << std::endl;
+                    }
+                }
+            }
             myfile << "#####################################################" << std::endl;
 #endif
 #endif
@@ -549,7 +558,16 @@ namespace shallow_water {
 #ifndef NDEBUG
 #ifndef __CUDACC__
         myfile << "############## SOLUTION ################" << std::endl;
-        sol.print(myfile);
+        auto view = make_field_host_view(sol);
+        for(int i=0; i<ds0.get_storage_info_ptr()->template dim<0>(); ++i) {
+            for(int j=0; j<ds0.get_storage_info_ptr()->template dim<1>(); ++j) {
+                for(int k=0; k<ds0.get_storage_info_ptr()->template dim<2>(); ++k) {
+                    myfile << view.get_value<0,0>(i,j,k) << std::endl;
+                    myfile << view.get_value<1,0>(i,j,k) << std::endl;
+                    myfile << view.get_value<2,0>(i,j,k) << std::endl;
+                }
+            }
+        }
 #endif
 
         verifier check_result(1e-8);
@@ -559,11 +577,22 @@ namespace shallow_water {
         for (uint_t t = 0; t < total_time; ++t) {
             reference.iterate();
         }
-        retval = check_result.verify_parallel(grid, meta_, sol, reference.solution, halos);
+        for(int i=0; i<sol_type::size; ++i) {
+            retval &= check_result.verify(grid, sol.get_field()[i], reference.solution.get_field()[i], halos);
+        }
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;
-        reference.solution.print(myfile);
+        view = make_field_host_view(reference.solution);
+        for(int i=0; i<ds0.get_storage_info_ptr()->template dim<0>(); ++i) {
+            for(int j=0; j<ds0.get_storage_info_ptr()->template dim<1>(); ++j) {
+                for(int k=0; k<ds0.get_storage_info_ptr()->template dim<2>(); ++k) {
+                    myfile << view.get_value<0,0>(i,j,k) << std::endl;
+                    myfile << view.get_value<1,0>(i,j,k) << std::endl;
+                    myfile << view.get_value<2,0>(i,j,k) << std::endl;
+                }
+            }
+        }
         myfile.close();
 #endif
 #endif

@@ -103,18 +103,20 @@ struct shallow_water_reference {
 #endif
     }
 
-    shallow_water_reference() : solution_meta(DimI, DimJ, static_cast< uint_t >(1)), solution(solution_meta) {}
+    shallow_water_reference() : solution_meta(DimI, DimJ, static_cast< uint_t >(1)), solution(solution_meta),
+        u(solution_meta, u_array, enumtype::ExternalCPU),
+        v(solution_meta, v_array, enumtype::ExternalCPU),
+        h(solution_meta, h_array, enumtype::ExternalCPU),
+        ux(solution_meta, ux_array, enumtype::ExternalCPU),
+        vx(solution_meta, vx_array, enumtype::ExternalCPU),
+        hx(solution_meta, hx_array, enumtype::ExternalCPU),
+        uy(solution_meta, uy_array, enumtype::ExternalCPU),
+        vy(solution_meta, vy_array, enumtype::ExternalCPU),
+        hy(solution_meta, hy_array, enumtype::ExternalCPU) { 
+            solution.allocate();
+        }
 
     void setup() {
-        u = data_store_t(solution_meta, u_array, enumtype::ExternalCPU);
-        v = data_store_t(solution_meta, v_array, enumtype::ExternalCPU);
-        h = data_store_t(solution_meta, h_array, enumtype::ExternalCPU);
-        ux = data_store_t(solution_meta, ux_array, enumtype::ExternalCPU);
-        vx = data_store_t(solution_meta, vx_array, enumtype::ExternalCPU);
-        hx = data_store_t(solution_meta, hx_array, enumtype::ExternalCPU);
-        uy = data_store_t(solution_meta, uy_array, enumtype::ExternalCPU);
-        vy = data_store_t(solution_meta, vy_array, enumtype::ExternalCPU);
-        hy = data_store_t(solution_meta, hy_array, enumtype::ExternalCPU);        
         for (uint_t i = 0; i < DimI; ++i)
             for (uint_t j = 0; j < DimJ; ++j) {
                 uint_t id = i * strides[0] + j * strides[1];
@@ -151,7 +153,7 @@ struct shallow_water_reference {
                 hxp[id] =
                     (hp[id + ip1 + jp1] + hp[id + jp1]) / 2. - (up[id + ip1 + jp1] - up[id + jp1]) * (dt() / (2 * dx()));
 
-                uxp[id] = (u[id + ip1 + jp1] + u[id + jp1]) / 2. -
+                uxp[id] = (up[id + ip1 + jp1] + up[id + jp1]) / 2. -
                          (((pow< 2 >(up[id + ip1 + jp1])) / hp[id + ip1 + jp1] + pow< 2 >(hp[id + ip1 + jp1]) * g() / 2.) -
                              (pow< 2 >(up[id + jp1]) / hp[id + jp1] + pow< 2 >(hp[id + jp1]) * (g() / 2.))) *
                              (dt() / (2. * dx()));

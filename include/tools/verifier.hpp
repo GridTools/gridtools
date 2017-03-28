@@ -193,40 +193,6 @@ namespace gridtools {
             return verified;
         }
 
-        template < typename Grid, typename Partitioner, typename MetaStorageType, typename StorageType >
-        bool verify_parallel(Grid const &grid_,
-            gridtools::parallel_storage_info< MetaStorageType, Partitioner > const &metadata_,
-            StorageType const &field1,
-            StorageType const &field2,
-            const array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::length > halos) {
-
-            const gridtools::uint_t idim = metadata_.get_metadata().template unaligned_dim< 0 >();
-            const gridtools::uint_t jdim = metadata_.get_metadata().template unaligned_dim< 1 >();
-            const gridtools::uint_t kdim = metadata_.get_metadata().template unaligned_dim< 2 >();
-
-            bool verified = true;
-
-            for (gridtools::uint_t i = halos[0][0]; i < idim - halos[0][1]; ++i) {
-                for (gridtools::uint_t j = halos[1][0]; j < jdim - halos[1][1]; ++j) {
-                    for (gridtools::uint_t k = 0; k < grid_.k_max(); ++k) {
-                        if (metadata_.mine(i, j, k)) {
-                            typename StorageType::data_t expected = field2.get_value(i, j, k);
-                            typename StorageType::data_t actual = field1[metadata_.get_local_index(i, j, k)];
-
-                            if (!compare_below_threshold(expected, actual, m_precision)) {
-                                std::cout << "Error in position " << i << " " << j << " " << k
-                                          << " ; expected : " << expected << " ; actual : " << actual << "  "
-                                          << std::fabs((expected - actual) / (expected)) << std::endl;
-                                verified = false;
-                            }
-                        }
-                    }
-                }
-            }
-
-            return verified;
-        }
-
       private:
         double m_precision;
     };
