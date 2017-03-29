@@ -34,19 +34,38 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <boost/fusion/container/vector.hpp>
+#include "gtest/gtest.h"
+#include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/structured_grids/call_interfaces.hpp>
 
-namespace gridtools {
+using namespace gridtools;
+struct func {
+    using p1 = accessor< 0, enumtype::in >;
+    using p2 = accessor< 1, enumtype::inout >;
+    using arg_list = boost::mpl::vector2< p1, p2 >;
 
-    /**
-       Metafunction that checks that an index is not out of bounds for a fusion vector
+    template < typename Eval >
+    void Do(Eval const &eval) {}
+};
 
-       \tparam IndexType Index type (need ::value to access the value)
-       \tparam FusionVector the fusion vector
-     */
-    template < typename IndexType, typename FusionVector >
-    struct fusion_vector_check_bound {
-        static const bool value =
-            IndexType::value >= 0 && IndexType::value < boost::fusion::result_of::size< FusionVector >::type::value;
-    };
-} // namespace gridtools
+struct func_call {
+    using p1 = accessor< 0, enumtype::in >;
+    using p2 = accessor< 1, enumtype::inout >;
+    using arg_list = boost::mpl::vector2< p1, p2 >;
+
+    template < typename Eval >
+    void Do(Eval const &eval) {
+        call< func >::with(eval);
+    }
+};
+
+struct storage_stub {
+    using iterator = void;
+    using value_type = void;
+};
+
+TEST(default_interval, test) {
+
+    auto s1 = make_stage< func >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
+    auto s2 = make_stage< func_call >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
+}
