@@ -50,7 +50,7 @@ namespace gridtools {
 
     template < typename Axis, typename Partitioner = partitioner_dummy >
     struct grid_base {
-        GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), GT_INTERNAL_ERROR);
         typedef Axis axis_type;
         typedef Partitioner partitioner_t;
 
@@ -108,7 +108,7 @@ namespace gridtools {
               m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
-                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+                "You have to construct the grid with a valid partitioner, or with no partitioner at all.");
         }
 
         GT_FUNCTION
@@ -125,7 +125,7 @@ namespace gridtools {
 
         template < typename Level >
         GT_FUNCTION uint_t value_at() const {
-            GRIDTOOLS_STATIC_ASSERT((is_level< Level >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_level< Level >::value), GT_INTERNAL_ERROR);
             int_t offs = Level::Offset::value;
             if (offs < 0)
                 offs += 1;
