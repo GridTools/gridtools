@@ -64,8 +64,10 @@ namespace gridtools {
                 typedef static_uint< Halo + Padding > offset;
 
                 // the stride is one when the value in the layout vector is the highest
-                return (Alignment && ((dimension + offset::value) % Alignment) && has_stride_one< Coordinate >::value)
-                           ? dimension + offset::value + Alignment - ((dimension + offset::value) % Alignment)
+                return Alignment
+                           ? (((dimension + offset::value) % Alignment) && has_stride_one< Coordinate >::value)
+                                 ? dimension + offset::value + Alignment - ((dimension + offset::value) % Alignment)
+                                 : dimension + offset::value
                            : dimension + offset::value;
             }
         };

@@ -166,7 +166,7 @@ namespace gridtools {
         template < ushort_t SnapshotTo, ushort_t DimTo = 0 >
         struct with {
             template < typename Storage >
-            GT_FUNCTION static void apply(Storage &storage_) {
+            static void apply(Storage &storage_) {
                 GRIDTOOLS_STATIC_ASSERT(is_data_field< Storage >::value,
                     "\"swap\" can only be called with instances of type \"data_field\" ");
                 typename Storage::pointer_type tmp = storage_.template get< SnapshotFrom, DimFrom >();
@@ -198,7 +198,7 @@ namespace gridtools {
             Storage &m_storage;
 
           public:
-            shift(Storage &storage_) : m_storage(storage_) {}
+            GT_FUNCTION_WARNING shift(Storage &storage_) : m_storage(storage_) {}
 
             template < typename Id >
             void operator()(Id) {
@@ -207,7 +207,7 @@ namespace gridtools {
         };
 
         template < typename Storage >
-        static void apply(Storage &storage_) {
+        GT_FUNCTION_WARNING static void apply(Storage &storage_) {
             GRIDTOOLS_STATIC_ASSERT(is_data_field< typename Storage::super >::value,
                 "\"advance\" can only be called with instanced of type \"data_field\" ");
 
@@ -403,7 +403,7 @@ namespace gridtools {
            @param k index in the vertical direction
         */
         template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
-        typename super::value_type &get_value(Int... args) {
+        GT_FUNCTION typename super::value_type &get_value(Int... args) {
 
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");
@@ -417,7 +417,7 @@ namespace gridtools {
            same as the previous one, but returning a constant reference
         */
         template < short_t snapshot = 0, short_t field_dim = 0, typename... Int >
-        typename super::value_type const &get_value(Int... args) const {
+        GT_FUNCTION typename super::value_type const &get_value(Int... args) const {
 
             GRIDTOOLS_STATIC_ASSERT((snapshot < _impl::access< n_width - (field_dim)-1, traits >::type::n_width),
                 "trying to get a snapshot out of bound");

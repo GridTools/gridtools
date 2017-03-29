@@ -90,21 +90,18 @@ namespace gridtools {
             return const_cast< this_type * >(m_storage.get_pointer_to_use());
         } // TODO change this?
 
-        GT_FUNCTION
         void clone_to_device() {
 #ifdef _USE_GPU_
             m_storage.update_gpu();
 #endif
         }
 
-        GT_FUNCTION
         void clone_from_device() {
 #ifdef _USE_GPU_
             m_storage.update_cpu();
 #endif
         }
 
-        GT_FUNCTION
         void update_data() {
             storage_ptr_t old_storage = m_storage;          // contains gpu and cpu ptr
             *(static_cast< T * >(this)) = this_type(m_ref); // self update
@@ -115,10 +112,8 @@ namespace gridtools {
             this->m_storage = old_storage;
         }
 
-        GT_FUNCTION
         void d2h_update() { clone_from_device(); }
 
-        GT_FUNCTION
         void h2d_update() {
             update_data();
             clone_to_device();
@@ -129,7 +124,7 @@ namespace gridtools {
     */
     struct update_global_param_data {
         template < typename Elem >
-        GT_FUNCTION void operator()(Elem &elem) const {
+        void operator()(Elem &elem) const {
             elem->update_data();
         }
     };

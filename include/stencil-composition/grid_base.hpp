@@ -68,16 +68,7 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            :
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdangling-field"
-#endif
-              m_partitioner(partitioner_dummy())
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-              ,
+            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
               m_direction_i(direction_i), m_direction_j(direction_j) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
@@ -85,9 +76,8 @@ namespace gridtools {
 
         template < typename ParallelStorage >
         GT_FUNCTION explicit grid_base(const Partitioner &part_, ParallelStorage const &storage_)
-            : m_partitioner(part_), m_direction_i(storage_.template get_halo_descriptor< 0 >()) // copy
-              ,
-              m_direction_j(storage_.template get_halo_descriptor< 1 >()) // copy
+            : m_partitioner(part_), m_direction_i(storage_.template get_halo_descriptor< 0 >()), // copy
+              m_direction_j(storage_.template get_halo_descriptor< 1 >())                        // copy
         {
             GRIDTOOLS_STATIC_ASSERT(!is_partitioner_dummy< Partitioner >::value,
                 "you have to add the partitioner to the grid template parameters");
@@ -95,16 +85,7 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/)
-            :
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdangling-field"
-#endif
-              m_partitioner(partitioner_dummy())
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-              ,
+            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
               m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
@@ -149,17 +130,17 @@ namespace gridtools {
             return k_max() - k_min() + 1;
         }
 
-        halo_descriptor const &direction_i() const { return m_direction_i; }
+        GT_FUNCTION halo_descriptor const &direction_i() const { return m_direction_i; }
 
-        halo_descriptor const &direction_j() const { return m_direction_j; }
+        GT_FUNCTION halo_descriptor const &direction_j() const { return m_direction_j; }
 
-        const Partitioner &partitioner() const {
+        GT_FUNCTION const Partitioner &partitioner() const {
             // the partitioner must be set
             return m_partitioner;
         }
 
         template < typename Flag >
-        bool at_boundary(ushort_t const &coordinate_, Flag const &flag_) const {
+        GT_FUNCTION bool at_boundary(ushort_t const &coordinate_, Flag const &flag_) const {
             return m_partitioner.at_boundary(coordinate_, flag_);
         }
 

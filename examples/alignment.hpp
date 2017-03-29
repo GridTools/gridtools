@@ -88,7 +88,7 @@ namespace aligned_copy_stencil {
             bool result_ = true;
             if (threadIdx.x == 0) {
                 for (ushort_t i = 0; i < ItDomain::iterate_domain_t::N_DATA_POINTERS; ++i) {
-                    result_ = (bool)(result_ && (bool)(((size_t)(it_domain.get().data_pointer()[i] +
+                    result_ = (bool)(result_ && (bool)(((size_t)((size_t)it_domain.get().data_pointer()[i] +
                                                                  it_domain.get().index()[storage_id]) &
                                                            (boundary - 1)) == 0));
                     if (!result_) {

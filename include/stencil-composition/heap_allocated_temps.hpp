@@ -227,7 +227,7 @@ namespace gridtools {
 
         struct delete_tmps {
             template < typename Elem >
-            GT_FUNCTION void operator()(Elem &elem) const {
+            void operator()(Elem &elem) const {
                 delete_pointer d;
                 d(elem);
             }

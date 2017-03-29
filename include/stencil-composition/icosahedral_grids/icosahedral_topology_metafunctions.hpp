@@ -95,15 +95,17 @@ namespace gridtools {
 
                 GT_FUNCTION constexpr static UInt apply(const array< uint_t, 3 > space_dims) {
                     GRIDTOOLS_STATIC_ASSERT((Idx < 4), GT_INTERNAL_ERROR);
+                    // cast to size_t to suppress a warning
                     return ((Idx == 0) ? space_dims[0]
-                                       : ((Idx == 1) ? LocationType::n_colors::value : space_dims[Idx - 1]));
+                                       : ((Idx == 1) ? LocationType::n_colors::value : space_dims[(size_t)(Idx - 1)]));
                 }
 
                 template < typename... ExtraInts >
                 GT_FUNCTION constexpr static UInt apply(const array< uint_t, 3 > space_dims, ExtraInts... extra_dims) {
+                    // cast to size_t to suppress a warning
                     return ((Idx == 0) ? space_dims[0]
                                        : ((Idx == 1) ? LocationType::n_colors::value
-                                                     : (Idx < 4 ? space_dims[Idx - 1]
+                                                     : (Idx < 4 ? space_dims[(size_t)(Idx - 1)]
                                                                 : pack_get_elem< Idx - 4 >::apply(extra_dims...))));
                 }
             };

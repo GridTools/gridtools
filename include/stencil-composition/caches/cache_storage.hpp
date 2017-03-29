@@ -133,7 +133,6 @@ namespace gridtools {
 #endif
                                   s_storage_info.index(accessor_);
             assert((extra_) < size());
-            assert((extra_) >= 0);
 
             return m_values[extra_];
         }

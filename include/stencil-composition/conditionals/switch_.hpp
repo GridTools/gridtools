@@ -102,23 +102,28 @@ computation->finalize();
         // ID is unique
         typedef conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value > conditional_t;
 
-        uint_t rec_depth_ = 0;
+        //        uint_t rec_depth_ = 0;
 
-#if (GCC_53_BUG)
-        cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
-#else
-        cond_.push_back_condition([&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); });
-#endif
-        return if_(conditional_t((*cond_.m_conditions)[rec_depth_]),
-            first_.mss(),
-            recursive_switch(rec_depth_, cond_, cases_...));
+        //#if (GCC_53_BUG)
+        //        cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
+        //#else
+        //        cond_.push_back_condition([&cond_, &first_]() { return (short_t)cond_.value()() ==
+        //        (short_t)first_.value(); });
+        //#endif
+        //        return if_(conditional_t((*cond_.m_conditions)[rec_depth_]),
+        //            first_.mss(),
+        //            recursive_switch(rec_depth_, cond_, cases_...));
+        //
+        volatile auto lam = [&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); };
+        cond_.push_back_condition(lam);
+        return if_(conditional_t(lam), first_.mss(), recursive_switch(0u, cond_, cases_...));
     }
 
     template < typename Condition, typename First, typename... Cases >
     auto recursive_switch(uint_t recursion_depth_, Condition &cond_, First const &first_, Cases const &... cases_)
         -> decltype(if_(conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value >(),
             first_.mss(),
-            recursive_switch(recursion_depth_, cond_, cases_...))) {
+            recursive_switch(recursion_depth_ + 1, cond_, cases_...))) {
         GRIDTOOLS_STATIC_ASSERT(
             (is_case_type< First >::value), "the entries in a switch_ statement must be case_ statements");
 
@@ -132,15 +137,20 @@ computation->finalize();
         typedef conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value > conditional_t;
         recursion_depth_++;
 
-#if (GCC_53_BUG)
-        cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
-#else
-        cond_.push_back_condition([&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); });
-#endif
+        //#if (GCC_53_BUG)
+        //        cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
+        //#else
+        //        cond_.push_back_condition([&cond_, &first_]() { return (short_t)cond_.value()() ==
+        //        (short_t)first_.value(); });
+        //#endif
+        //
+        //        return if_(conditional_t((*cond_.m_conditions)[recursion_depth_]),
+        //            first_.mss(),
+        //            recursive_switch(recursion_depth_, cond_, cases_...));
 
-        return if_(conditional_t((*cond_.m_conditions)[recursion_depth_]),
-            first_.mss(),
-            recursive_switch(recursion_depth_, cond_, cases_...));
+        volatile auto lam = [&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); };
+        cond_.push_back_condition(lam);
+        return if_(conditional_t(lam), first_.mss(), recursive_switch(recursion_depth_ + 1, cond_, cases_...));
     }
 
     /**@brief recursion anchor*/

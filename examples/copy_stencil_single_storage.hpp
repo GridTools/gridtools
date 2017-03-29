@@ -110,7 +110,7 @@ namespace copy_stencil {
         for (uint_t i = 0; i < d1; ++i) {
             for (uint_t j = 0; j < d2; ++j) {
                 for (uint_t k = 0; k < d3; ++k) {
-                    in.template get_value< 1, 0 >(i, j, k) = i + j + k;
+                    in.get_value< 1, 0 >(i, j, k) = i + j + k;
                 }
             }
         }

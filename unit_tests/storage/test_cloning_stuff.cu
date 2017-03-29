@@ -55,7 +55,7 @@ namespace cloningstuff_test {
         uint_t size;
         uint_t &ref;
 
-        B(uint_t size) : size(size), ref(size), pointer_to_use(size) {}
+        B(uint_t size) : size(size), ref(this->size), pointer_to_use(size) {}
 
         __host__ __device__ B(B const &other) : pointer_to_use(other.pointer_to_use), size(other.size), ref(size) {}
 
@@ -73,7 +73,7 @@ namespace cloningstuff_test {
         uint_t &b;
         B p;
 
-        A(uint_t a, uint_t size) : a(a), b(a), p(size) {}
+        A(uint_t a, uint_t size) : a(a), b(this->a), p(size) {}
 
         __host__ __device__ A(A const &other) : a(other.a), b(a), p(other.p) {}
     };

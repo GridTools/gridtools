@@ -128,7 +128,7 @@ namespace gridtools {
         };
 
         template < size_t ArrayDim >
-        static constexpr int_t assign_offset(uint_t pos, array< int_t, ArrayDim > const &offsets) {
+        GT_FUNCTION static constexpr int_t assign_offset(uint_t pos, array< int_t, ArrayDim > const &offsets) {
             return (pos < ArrayDim) ? offsets[pos] : 0;
         }
 

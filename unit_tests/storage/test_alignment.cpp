@@ -94,9 +94,9 @@ TEST(storage_alignment, test_aligned) {
     tmp_meta_gpu3_t m_block3(0, 0, 15, 1, 1);
 
     // check that the dimension with stride 1 is aligned
-    ASSERT_TRUE((m_block1.template dim< 0 >() == 96)); // 2 blocks wide
-    ASSERT_TRUE((m_block2.template dim< 1 >() == 96)); // 2 blocks wide
-    ASSERT_TRUE((m_block3.template dim< 2 >() == 64)); // 1 block wide
+    ASSERT_TRUE((m_block1.dim< 0 >() == 96)); // 2 blocks wide
+    ASSERT_TRUE((m_block2.dim< 1 >() == 96)); // 2 blocks wide
+    ASSERT_TRUE((m_block3.dim< 2 >() == 64)); // 1 block wide
 
     // check the parenthesis operator
     ASSERT_TRUE((m1.index(0, 0, 0) == 31)); // 2 blocks wide

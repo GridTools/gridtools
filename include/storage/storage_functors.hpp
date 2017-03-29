@@ -125,7 +125,7 @@ namespace gridtools {
     struct update_pointer {
 
         template < typename StorageType >
-        GT_FUNCTION_WARNING void operator()(pointer< StorageType > &s) const {
+        void operator()(pointer< StorageType > &s) const {
 
 #ifdef PEDANTIC
             GRIDTOOLS_STATIC_ASSERT(is_storage< StorageType >::value, "wrong type");
@@ -166,7 +166,7 @@ namespace gridtools {
             typename boost::enable_if_c< is_storage< StorageType >::value >::type * = 0) const {}
 
         template < typename StorageType >
-        GT_FUNCTION_WARNING void copy_data_impl(pointer< StorageType > &s,
+        void copy_data_impl(pointer< StorageType > &s,
             typename boost::disable_if_c< is_temporary_storage< StorageType >::value >::type * = 0,
             typename boost::enable_if_c< is_storage< StorageType >::value >::type * = 0) const {
             s->h2d_update();

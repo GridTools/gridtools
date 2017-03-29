@@ -55,26 +55,26 @@ namespace gridtools {
         GT_FUNCTION constexpr dimension(IntType val)
             : value
 #if ((!defined(CXX11_ENABLED)))
-              ((uint_t)val)
+              ((int_t)val)
 #else
         {
-            (uint_t) val
+            (int_t) val
         }
 #endif
         {
             GRIDTOOLS_STATIC_ASSERT(Coordinate != 0, "The coordinate values passed to the accessor start from 1");
             GRIDTOOLS_STATIC_ASSERT(
-                Coordinate > 0, "The coordinate values passed to the accessor must be positive integerts");
+                Coordinate > 0, "The coordinate values passed to the accessor must be positive integers");
         }
 
         /**@brief Constructor*/
         GT_FUNCTION
-        constexpr dimension(dimension const &other) : value((uint_t)other.value) {}
+        constexpr dimension(dimension const &other) : value(other.value) {}
 
         // TODO can I rename direction by index?
         static const ushort_t direction = Coordinate;
         static const ushort_t index = Coordinate;
-        uint_t value;
+        int_t value;
 
         /**@brief syntactic sugar for user interface
 

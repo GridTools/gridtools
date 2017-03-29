@@ -62,7 +62,7 @@ namespace gridtools {
         constexpr uint_t size() const { return m_value.size(); }
 
         template < ushort_t Id >
-        GT_FUNCTION constexpr int_t const &strides() const {
+        GT_FUNCTION constexpr int_t strides() const {
             return m_value.template strides< Id >();
         }
 

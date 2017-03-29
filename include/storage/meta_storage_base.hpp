@@ -387,10 +387,11 @@ namespace gridtools {
         GT_FUNCTION static constexpr int_t get_stride_helper(Container const &cont, uint_t offset = 0) {
             typedef typename boost::mpl::deref<
                 typename boost::mpl::max_element< typename T::layout_vector_t >::type >::type max_type;
-            return (
-                (max_type::value < 0) ? 0 : ((Layout::template at_< Coordinate >::value == max_type::value)
-                                                    ? 1
-                                                    : ((cont[Layout::template at_< Coordinate >::value + offset]))));
+            return ((max_type::value < 0)
+                        ? 0
+                        : ((Layout::template at_< Coordinate >::value == max_type::value)
+                                  ? 1
+                                  : ((cont[(size_t)Layout::template at_< Coordinate >::value + offset]))));
         }
 
         /**@brief return the stride for a specific coordinate, given the vector of strides

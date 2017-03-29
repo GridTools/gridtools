@@ -34,6 +34,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 For information: http://eth-cscs.github.io/gridtools/
 */
 #define CUDA_EXAMPLE
-#pragma message( \
-    ">> WARNING: Compiling this file will turn asserts off!\>> Not all debug features of gridtools are available")
 #include "positional_copy_stencil.cpp"

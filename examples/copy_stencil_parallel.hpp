@@ -136,8 +136,8 @@ namespace copy_stencil {
         storage_type in(metadata_, 0.);
         storage_type out(metadata_, 0.);
 
-        he.add_halo< 0 >(meta_.template get_halo_gcl< 0 >());
-        he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
+        he.add_halo< 0 >(meta_.get_halo_gcl< 0 >());
+        he.add_halo< 1 >(meta_.get_halo_gcl< 1 >());
         // he.add_halo<0>(1,1,1,d1,d1+2);
         // he.add_halo<1>(1,1,1,d2,d2+2);
 
@@ -149,9 +149,9 @@ namespace copy_stencil {
         printf("halo set up\n");
 #endif
 
-        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
-            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
-                for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
+        for (uint_t i = 0; i < metadata_.dim< 0 >(); ++i)
+            for (uint_t j = 0; j < metadata_.dim< 1 >(); ++j)
+                for (uint_t k = 0; k < metadata_.dim< 2 >(); ++k) {
                     in(i, j, k) = (i + j + k) * (gridtools::PID + 1);
                 }
 

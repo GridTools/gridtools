@@ -36,12 +36,12 @@
 #pragma once
 
 /**@file
-   @brief contains the API of the caonditionals type, to be used for specifying the control flow
+   @brief contains the API of the conditionals type, to be used for specifying the control flow
    in the computation tree.
 
    The user wanting to select a multi-stage stencil at runtime, based on a boolean condition, must instantiate
    this class with a unique ID as template argument, construct it using the boolean condition, and then
-   use the \ref gridtools::if_ statement from whithin the make_computation.
+   use the \ref gridtools::if_ statement from within the make_computation.
 */
 #ifdef CXX11_ENABLED
 #if (GCC_53_BUG)
@@ -81,18 +81,22 @@ namespace gridtools {
         /**
            @brief default constructor
          */
-        conditional() // try to avoid this?
-            : m_value(
-#ifdef CXX11_ENABLED
-#if (!GCC_53_BUG)
-                  []() {
-                      assert(false);
-                      return false;
-                  }
-#endif
-#endif
-                  ) {
+        conditional() { // try to avoid this?
+                        //            : m_value(
+                        //#ifdef CXX11_ENABLED
+                        //#if (!GCC_53_BUG)
+                        //                  []() {
+                        //                      assert(false);
+                        //                      return false;
+                        //                  }
+                        //#endif
+                        //#endif
+                        //                  ) {
         }
+
+        conditional(conditional const &) = default;
+        conditional(conditional &&) = default;
+        conditional &operator=(conditional const &) = default;
 
         /**
            @brief constructor for switch variables (for GCC53 bug)

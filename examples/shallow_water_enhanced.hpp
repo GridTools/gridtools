@@ -466,17 +466,17 @@ namespace shallow_water {
 
 //! [initialization_h]
 #ifdef __CUDACC__
-        sol.template set< 0, 0 >(&bc_periodic< 0, 0 >::droplet); // h
+        sol.set< 0, 0 >(&bc_periodic< 0, 0 >::droplet); // h
 #else
         if (PID == 1)
-            sol.template set< 0, 0 >(&bc_periodic< 0, 0 >::droplet); // h
+            sol.set< 0, 0 >(&bc_periodic< 0, 0 >::droplet); // h
         else
-            sol.template set< 0, 0 >(1.); // h
+            sol.set< 0, 0 >(1.); // h
 #endif
         //! [initialization_h]
         //! [initialization]
-        sol.template set< 0, 1 >(0.); // u
-        sol.template set< 0, 2 >(0.); // v
+        sol.set< 0, 1 >(0.); // u
+        sol.set< 0, 2 >(0.); // v
 //! [initialization]
 
 #ifndef NDEBUG

@@ -134,7 +134,7 @@ namespace test_cycle_and_swap {
 
         typedef gridtools::layout_map< 0, 1, 2 > layout_t;
         typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
-        typedef gridtools::BACKEND::storage_type< uint_t, meta_t >::type storage_type;
+        typedef gridtools::BACKEND::storage_type< int_t, meta_t >::type storage_type;
         typedef typename field< storage_type, 2 >::type field_t;
 
         meta_t meta_(d1, d2, d3);
