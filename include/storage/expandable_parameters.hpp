@@ -40,6 +40,7 @@
 
 namespace gridtools {
 
+#ifdef CXX11_ENABLED
     /**
        @brief the storage objects containing expandable parameters
 
@@ -146,5 +147,6 @@ namespace gridtools {
 
     template < typename Storage, uint_t Size >
     struct is_expandable_parameters< expandable_parameters< Storage, Size > > : boost::mpl::true_ {};
+#endif
 
 } // namespace gridtools

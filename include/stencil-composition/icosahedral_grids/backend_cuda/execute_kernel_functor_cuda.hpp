@@ -48,7 +48,7 @@ namespace gridtools {
         template < int VBoundary >
         struct padded_boundary
             : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
-            BOOST_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8);
+            GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
         template < typename RunFunctorArguments, typename LocalDomain >
@@ -120,17 +120,12 @@ namespace gridtools {
              */
             // jboundary_limit determines the number of warps required to execute (b,d,f)
             // TODO FUSING
-            //        const int jboundary_limit = block_size_t::j_size_t::value - max_extent_t::jminus::value
-            //            + max_extent_t::jplus::value;
-            //        //iminus_limit adds to jboundary_limit an additional warp for regions (a,h,e)
-            //        const int iminus_limit = jboundary_limit + (max_extent_t::iminus::value<0 ? 1 : 0);
-            //        //iminus_limit adds to iminus_limit an additional warp for regions (c,i,g)
-            //        const int iplus_limit = iminus_limit + (max_extent_t::iplus::value>0 ? 1 : 0);
-            const int jboundary_limit = block_size_t::j_size_t::value;
+            const int jboundary_limit =
+                block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value;
             // iminus_limit adds to jboundary_limit an additional warp for regions (a,h,e)
-            const int iminus_limit = jboundary_limit;
+            const int iminus_limit = jboundary_limit + (max_extent_t::iminus::value < 0 ? 1 : 0);
             // iminus_limit adds to iminus_limit an additional warp for regions (c,i,g)
-            const int iplus_limit = iminus_limit;
+            const int iplus_limit = iminus_limit + (max_extent_t::iplus::value > 0 ? 1 : 0);
 
             // The kernel allocate enough warps to execute all halos of all ESFs.
             // The max_extent_t is the enclosing extent of all the ESFs
@@ -141,56 +136,40 @@ namespace gridtools {
             // the block
             //   get negative values
 
-            // TODO FUSING
-            //            int i = max_extent_t::iminus::value - 1;
-            //            int j = max_extent_t::jminus::value - 1;
-            //            int iblock = max_extent_t::iminus::value - 1;
-            //            int jblock = max_extent_t::jminus::value - 1;
-            //        if(threadIdx.y < jboundary_limit)
-            //        {
-            //            i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-            //            j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y + max_extent_t::jminus::value;
-            //            iblock = threadIdx.x;
-            //            jblock = threadIdx.y + max_extent_t::jminus::value;
-            //        }
-            //        else if(threadIdx.y < iminus_limit)
-            //        {
-            //            const int padded_boundary_ = padded_boundary<-max_extent_t::iminus::value>::value;
-            //            //we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
-            //            assert( (block_size_t::j_size_t::value - max_extent_t::jminus::value +
-            //            max_extent_t::jplus::value)*padded_boundary_ <= enumtype::vector_width);
-
-            //            i = blockIdx.x * block_size_t::i_size_t::value -padded_boundary_ + threadIdx.x %
-            //            padded_boundary_;
-            //            j = blockIdx.y* block_size_t::j_size_t::value +  threadIdx.x / padded_boundary_ +
-            //            max_extent_t::jminus::value;
-            //            iblock = -padded_boundary_ + threadIdx.x % padded_boundary_;
-            //            jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
-            //        }
-            //        else if(threadIdx.y < iplus_limit)
-            //        {
-            //            const int padded_boundary_ = padded_boundary<max_extent_t::iplus::value>::value;
-            //            //we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
-            //            assert( (block_size_t::j_size_t::value - max_extent_t::jminus::value +
-            //            max_extent_t::jplus::value)*padded_boundary_ <= enumtype::vector_width);
-
-            //            i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x % padded_boundary_ +
-            //            block_size_t::i_size_t::value;
-            //            j = blockIdx.y* block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
-            //            max_extent_t::jminus::value;
-            //            iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
-            //            jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
-            //        }
-
-            int i = -1;
-            int j = -1;
-            int iblock = -1;
-            int jblock = -1;
+            int i = max_extent_t::iminus::value - 1;
+            int j = max_extent_t::jminus::value - 1;
+            int iblock = max_extent_t::iminus::value - 1;
+            int jblock = max_extent_t::jminus::value - 1;
             if (threadIdx.y < jboundary_limit) {
                 i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y;
+                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y + max_extent_t::jminus::value;
                 iblock = threadIdx.x;
-                jblock = threadIdx.y;
+                jblock = threadIdx.y + max_extent_t::jminus::value;
+            } else if (threadIdx.y < iminus_limit) {
+                const int padded_boundary_ = padded_boundary< -max_extent_t::iminus::value >::value;
+                // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
+                assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
+                           padded_boundary_ <=
+                       enumtype::vector_width);
+
+                i = blockIdx.x * block_size_t::i_size_t::value - padded_boundary_ + threadIdx.x % padded_boundary_;
+                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
+                    max_extent_t::jminus::value;
+                iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
+                jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+            } else if (threadIdx.y < iplus_limit) {
+                const int padded_boundary_ = padded_boundary< max_extent_t::iplus::value >::value;
+                // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
+                assert((block_size_t::j_size_t::value - max_extent_t::jminus::value + max_extent_t::jplus::value) *
+                           padded_boundary_ <=
+                       enumtype::vector_width);
+
+                i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x % padded_boundary_ +
+                    block_size_t::i_size_t::value;
+                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
+                    max_extent_t::jminus::value;
+                iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
+                jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
 
             it_domain.set_index(0);
@@ -231,8 +210,7 @@ namespace gridtools {
          */
         template < typename RunFunctorArguments >
         struct execute_kernel_functor_cuda {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
@@ -290,20 +268,13 @@ namespace gridtools {
                 // *  Otherwise each CUDA thread executes only one grid point.
                 // Based on the previous we compute the size of the CUDA block required.
                 typedef typename boost::mpl::fold< typename RunFunctorArguments::extent_sizes_t,
-                    extent< 0 >,
+                    extent< 0, 0, 0, 0, 0, 0 >,
                     enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type maximum_extent_t;
 
-                //        typedef block_size<
-                //            block_size_t::i_size_t::value,
-                //            (block_size_t::j_size_t::value - maximum_extent_t::jminus::value +
-                //            maximum_extent_t::jplus::value +
-                //                    (maximum_extent_t::iminus::value != 0 ? 1 : 0) + (maximum_extent_t::iplus::value
-                //                    != 0 ? 1 : 0)
-                //            )
-                //        > cuda_block_size_t;
-
-                // TODO FUSING used max extent when fusing esfs
-                typedef block_size< block_size_t::i_size_t::value, (block_size_t::j_size_t::value) > cuda_block_size_t;
+                typedef block_size< block_size_t::i_size_t::value,
+                    (block_size_t::j_size_t::value - maximum_extent_t::jminus::value + maximum_extent_t::jplus::value +
+                                        (maximum_extent_t::iminus::value != 0 ? 1 : 0) +
+                                        (maximum_extent_t::iplus::value != 0 ? 1 : 0)) > cuda_block_size_t;
 
                 // number of grid points that a cuda block covers
                 const uint_t ntx = block_size_t::i_size_t::value;
@@ -353,6 +324,15 @@ namespace gridtools {
                 _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t,
                     local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
+
+#ifndef NDEBUG
+                cudaDeviceSynchronize();
+                cudaError_t error = cudaGetLastError();
+                if (error != cudaSuccess) {
+                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+                    exit(-1);
+                }
+#endif
 
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
                 cudaDeviceSynchronize();

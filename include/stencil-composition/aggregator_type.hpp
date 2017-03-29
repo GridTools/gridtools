@@ -58,13 +58,13 @@
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../common/generic_metafunctions/is_variadic_pack_of.hpp"
-#include "../common/generic_metafunctions/arg_comparator.hpp"
 #include "../common/gpu_clone.hpp"
 
 #include "../storage/storage.hpp"
 #include "../storage/storage_functors.hpp"
 #include "../storage/metadata_set.hpp"
 
+#include "arg_comparator.hpp"
 #include "aggregator_type_impl.hpp"
 #include "arg_metafunctions.hpp"
 #include "arg.hpp"
@@ -109,6 +109,9 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< placeholders_t, is_arg >::type::value), "wrong type:\
  the aggregator_type template argument must be an MPL vector of placeholders (arg<...>)");
+
+        GRIDTOOLS_STATIC_ASSERT((_impl::continuous_indices_check< placeholders_t >::type::value),
+            "Storage placeholders must have consecutive indices starting with 0.");
 
       private:
         BOOST_STATIC_CONSTANT(uint_t, len = boost::mpl::size< placeholders_t >::type::value);
@@ -310,7 +313,7 @@ namespace gridtools {
          */
         template < typename Sequence >
         struct assign_metadata_set {
-            GRIDTOOLS_STATIC_ASSERT(is_metadata_set< Sequence >::value, "Internal error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_metadata_set< Sequence >::value, GT_INTERNAL_ERROR);
 
           private:
             Sequence &m_sequence;

@@ -79,10 +79,10 @@ typedef decltype(gridtools::make_stage< functor1 >(p_buff(), p_out())) esf2_t;
 
 typedef boost::mpl::vector2< esf1_t, esf2_t > esf_sequence_t;
 
-typedef detail::cache_impl< IJ, p_in, fill > cache1_t;
-typedef detail::cache_impl< IJ, p_buff, fill > cache2_t;
-typedef detail::cache_impl< K, p_out, local > cache3_t;
-typedef detail::cache_impl< K, p_notin, local > cache4_t;
+typedef detail::cache_impl< IJ, p_in, fill, boost::mpl::void_ > cache1_t;
+typedef detail::cache_impl< IJ, p_buff, fill, boost::mpl::void_ > cache2_t;
+typedef detail::cache_impl< K, p_out, local, x_interval > cache3_t;
+typedef detail::cache_impl< K, p_notin, local, x_interval > cache4_t;
 typedef boost::mpl::vector4< cache1_t, cache2_t, cache3_t, cache4_t > caches_t;
 
 TEST(cache_metafunctions, cache_used_by_esfs) {
@@ -165,9 +165,9 @@ TEST(cache_metafunctions, get_cache_storage_tuple) {
             cache_storage_tuple_t,
             boost::fusion::map<
                 boost::fusion::pair< p_in::index_type,
-                    cache_storage< block_size< 32, 4, 1 >, extent< -1, 2, -2, 1 >, pointer< storage_type > > >,
+                    cache_storage< block_size< 32, 4, 1 >, extent< -1, 2, -2, 1 >, 1, pointer< storage_type > > >,
                 boost::fusion::pair< p_buff::index_type,
-                    cache_storage< block_size< 32, 4, 1 >, extent< -2, 2, -3, 2 >, pointer< storage_type > > > > >::
+                    cache_storage< block_size< 32, 4, 1 >, extent< -2, 2, -3, 2 >, 1, pointer< storage_type > > > > >::
                 value),
         "ERROR");
 }

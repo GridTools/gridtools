@@ -98,7 +98,7 @@ namespace gridtools {
         struct instantiate_local_domain {
 
             // TODO check the type of ArgPtrList
-            GRIDTOOLS_STATIC_ASSERT(is_metadata_set< MetaStorages >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_metadata_set< MetaStorages >::value, GT_INTERNAL_ERROR);
 
             GT_FUNCTION
             instantiate_local_domain(ArgPtrList const &arg_ptr_list, MetaStorages const &meta_storages_)
@@ -107,7 +107,7 @@ namespace gridtools {
             /**Elem is a local_domain*/
             template < typename Elem >
             GT_FUNCTION void operator()(Elem &elem) const {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< Elem >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain< Elem >::value), GT_INTERNAL_ERROR);
 
                 elem.init(m_arg_ptr_list, m_meta_storages.sequence_view(), 0, 0, 0);
                 elem.clone_to_device();
@@ -133,7 +133,7 @@ namespace gridtools {
             /**Elem is a local_domain*/
             template < typename Elem >
             GT_FUNCTION void operator()(Elem &mss_local_domain_list_) const {
-                GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< Elem >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< Elem >::value), GT_INTERNAL_ERROR);
                 boost::fusion::for_each(mss_local_domain_list_.local_domain_list,
                     _impl::instantiate_local_domain< ArgPtrList, MetaStorages, IsStateful >(
                                             m_arg_ptr_list, m_meta_storages));
@@ -252,7 +252,8 @@ namespace gridtools {
         static uint_t apply(ArgListType &storage_pointers, MetaData &meta_data_, DomainType &domain) {
 
             // TODO check the type of ArgListType and MetaData
-            GRIDTOOLS_STATIC_ASSERT(is_aggregator_type< DomainType >::value, "wrong domain type");
+            GRIDTOOLS_STATIC_ASSERT(
+                is_aggregator_type< DomainType >::value, GT_INTERNAL_ERROR_MSG("wrong domain type"));
 
             // copy pointers into the domain original pointers, except for the temporaries.
             boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< ArgListType >::value > >(
@@ -292,11 +293,10 @@ namespace gridtools {
         bool IsStateful >
     struct create_mss_local_domains {
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
 
-        GRIDTOOLS_STATIC_ASSERT((is_metadata_set< ActualMetadataListType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_metadata_set< ActualMetadataListType >::value), GT_INTERNAL_ERROR);
 
         struct get_the_mss_local_domain {
             template < typename T >
@@ -354,7 +354,7 @@ namespace gridtools {
     struct create_actual_arg_list {
         // GRIDTOOLS_STATIC_ASSERT((is_meta_array_of<MssComponentsArray, is_mss_components>::value), "Internal Error:
         // wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
 
         /**
          * Takes the domain list of storage pointer types and transform
@@ -501,11 +501,11 @@ namespace gridtools {
     struct intermediate : public computation< ReductionType > {
 
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
-        // GRIDTOOLS_STATIC_ASSERT((is_conditionals_set<ConditionalsSet>::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        // GRIDTOOLS_STATIC_ASSERT((is_conditionals_set<ConditionalsSet>::value), GT_INTERNAL_ERROR);
 
         typedef ConditionalsSet conditionals_set_t;
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
@@ -554,7 +554,8 @@ namespace gridtools {
         typedef typename build_mss_components_array< backend_id< Backend >::value,
             MssDescriptorArray,
             extent_sizes_t,
-            static_int< RepeatFunctor > /*repeat_fuctor*/ >::type mss_components_array_t;
+            static_int< RepeatFunctor >,
+            typename Grid::axis_type >::type mss_components_array_t;
 
         typedef typename create_actual_arg_list< Backend, DomainType, mss_components_array_t, float_type >::type
             actual_arg_list_type;
@@ -702,7 +703,7 @@ namespace gridtools {
             // GRIDTOOLS_STATIC_ASSERT(
             //     (boost::mpl::size<typename mss_components_array_t::first>::value == boost::mpl::size<typename
             //     mss_local_domains_t::first>::value),
-            //     "Internal Error");
+            //     GT_INTERNAL_ERROR);
 
             // typedef allowing compile-time dispatch: we separate the path when the first
             // multi stage stencil is a conditional

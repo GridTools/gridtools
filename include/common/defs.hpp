@@ -117,6 +117,11 @@
 #endif
 #endif
 
+// max limit of indices for metastorages, beyond indices are reserved for library
+#ifndef META_STORAGE_INDEX_LIMIT
+#define META_STORAGE_INDEX_LIMIT 1000
+#endif
+
 #if defined(_OPENMP)
 #include <omp.h>
 #else
@@ -192,6 +197,7 @@ namespace gridtools {
 #else
         static const unsigned int vector_width = 4;
 #endif
+        static const unsigned int metastorage_library_indices_limit = META_STORAGE_INDEX_LIMIT;
 
     } // namespace enumtype
 
@@ -221,22 +227,30 @@ namespace gridtools {
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator+(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator+(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator-(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator-(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator*(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator*(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 #endif
 
     template < typename T >
@@ -256,6 +270,14 @@ namespace gridtools {
 #else
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) BOOST_STATIC_ASSERT(Condition)
 #endif
+
+#define GT_INTERNAL_ERROR                                                                                       \
+    "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
+    "GridTools Development Team"
+
+#define GT_INTERNAL_ERROR_MSG(x)                                                                                \
+    "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
+    "GridTools Development Team. \nMessage\n\n" x
 
 //################ Type aliases for GridTools ################
 

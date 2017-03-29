@@ -74,7 +74,7 @@ namespace test_copy_stencil_icosahedral {
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
         using backend_t = BACKEND;
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
@@ -109,8 +109,8 @@ namespace test_copy_stencil_icosahedral {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        using p_out = arg< 0, decltype(storage1) >;
-        using p_in = arg< 1, decltype(storage10) >;
+        using p_out = arg< 0, decltype(storage1), enumtype::cells >;
+        using p_in = arg< 1, decltype(storage10), enumtype::cells >;
 
         typedef boost::mpl::vector< p_out, p_in > args_t;
 
@@ -127,7 +127,11 @@ namespace test_copy_stencil_icosahedral {
         comp_->run();
         comp_->finalize();
 
+#if FLOAT_PRECISION == 4
+        verifier ver(1e-6);
+#else
         verifier ver(1e-10);
+#endif
 
         array< array< uint_t, 2 >, 4 > halos = {{{0, 0}, {0, 0}, {0, 0}, {0, 0}}};
         bool result = ver.verify(grid_, storage1, storage10, halos);

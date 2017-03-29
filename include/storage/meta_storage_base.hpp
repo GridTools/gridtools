@@ -107,6 +107,9 @@ namespace gridtools {
         int
 #endif
         > {
+
+        GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), GT_INTERNAL_ERROR);
+
         typedef meta_storage_base< Index,
             Layout,
             IsTemporary
@@ -236,7 +239,7 @@ namespace gridtools {
            NOTE: this contructor is constexpr, i.e. the storage metadata information could be used
            at compile-time (e.g. in template metafunctions)
          */
-        template < typename... IntTypes, typename Dummy = all_static_integers< IntTypes... > >
+        template < typename... IntTypes, typename Dummy = is_pack_of< is_static_integral, IntTypes... > >
         constexpr meta_storage_base(IntTypes... dims_)
             : m_dims{IntTypes::value...},
               m_strides(_impl::assign_all_strides< (short_t)(space_dimensions - 1), layout >::apply(IntTypes()...)) {
@@ -352,11 +355,6 @@ namespace gridtools {
                 return me.index(args...);
             }
         };
-
-        template < typename... UInt, typename Dummy = all_static_integers< UInt... > >
-        constexpr GT_FUNCTION uint_t index(uint_t first, UInt... args_) const {
-            return _index(strides(), first, args_...);
-        }
 
         template < size_t S >
         GT_FUNCTION int_t index(array< uint_t, S > const &a) const {
