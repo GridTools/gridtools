@@ -81,17 +81,17 @@ namespace gridtools {
         /**
            @brief default constructor
          */
-        conditional() // try to avoid this?
-            : m_value(
-#ifdef CXX11_ENABLED
-#if (!GCC_53_BUG)
-                  []() {
-                      assert(false);
-                      return false;
-                  }
-#endif
-#endif
-                  ) {
+        conditional() { // try to avoid this?
+                        //            : m_value(
+                        //#ifdef CXX11_ENABLED
+                        //#if (!GCC_53_BUG)
+                        //                  []() {
+                        //                      assert(false);
+                        //                      return false;
+                        //                  }
+                        //#endif
+                        //#endif
+                        //                  ) {
         }
 
         conditional(conditional const &) = default;
