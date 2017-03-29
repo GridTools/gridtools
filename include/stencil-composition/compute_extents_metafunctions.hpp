@@ -280,12 +280,13 @@ namespace gridtools {
                 // substitute the types for expandable parameters arg
                 typedef typename remove_global_accessors< outputs_with_globals >::type outputs;
 
+#ifndef __CUDACC__
 #ifndef ALLOW_EMPTY_EXTENTS
                 GRIDTOOLS_STATIC_ASSERT((check_all_extents_are_same_upto< outputs, extent<>, 4 >::type::value),
                     "Horizontal extents of the outputs of ESFs are not all empty. "
                     "All outputs must have empty (horizontal) extents");
 #endif
-
+#endif
                 GRIDTOOLS_STATIC_ASSERT((is_sequence_of< outputs, pair_arg_extent >::value), GT_INTERNAL_ERROR);
 
                 // We need to check the map here: if the outputs of a
