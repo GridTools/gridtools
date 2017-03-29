@@ -50,9 +50,9 @@ struct array {
     int n, m, l;
 
     array(T *_p, int _n, int _m, int _l)
-        : ptr(_p), n(gridtools::pack_get_elem<lmap::template find<0>()>::apply(n,m,l)), 
-          m(gridtools::pack_get_elem<lmap::template find<1>()>::apply(n,m,l)),
-          l(gridtools::pack_get_elem<lmap::template find<2>()>::apply(n,m,l)) {}
+        : ptr(_p), n(gridtools::pack_get_elem<lmap::template find<0>()>::apply(_n,_m,_l)), 
+          m(gridtools::pack_get_elem<lmap::template find<1>()>::apply(_n,_m,_l)),
+          l(gridtools::pack_get_elem<lmap::template find<2>()>::apply(_n,_m,_l)) {}
 
     T &operator()(int i, int j, int k) {
         // a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj]
