@@ -72,7 +72,7 @@ namespace positional_copy_stencil {
         typedef boost::mpl::vector< one, two > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(one()) = static_cast< float_type >(V) * (eval.i() + eval.j() + eval.k());
             eval(two()) = -1.1;
         }
@@ -88,7 +88,7 @@ namespace positional_copy_stencil {
         /* static const auto expression=in(1,0,0)-out(); */
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };

@@ -79,7 +79,7 @@ namespace soeov {
         typedef boost::mpl::vector< cell_area, weight_edges > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim edge;
 

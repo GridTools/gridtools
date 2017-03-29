@@ -93,7 +93,7 @@ namespace tridiagonal {
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
 
         template < typename Domain >
-        GT_FUNCTION static void shared_kernel(Domain const &dom) {
+        GT_FUNCTION static void shared_kernel(Domain &dom) {
 #if (defined(CXX11_ENABLED))
             dom(sup{}) = dom(sup{} / (diag{} - sup{z{-1}} * inf{}));
             dom(rhs{}) = dom((rhs{} - inf{} * rhs{z(-1)}) / (diag{} - sup{z(-1)} * inf{}));
@@ -104,17 +104,17 @@ namespace tridiagonal {
         }
 
         template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_internal) {
+        GT_FUNCTION static void Do(Domain &dom, x_internal) {
             shared_kernel(dom);
         }
 
         template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_last) {
+        GT_FUNCTION static void Do(Domain &dom, x_last) {
             shared_kernel(dom);
         }
 
         template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_first) {
+        GT_FUNCTION static void Do(Domain &dom, x_first) {
             dom(sup()) = dom(sup()) / dom(diag());
             dom(rhs()) = dom(rhs()) / dom(diag());
         }
@@ -138,17 +138,17 @@ namespace tridiagonal {
         }
 
         template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_internal) {
+        GT_FUNCTION static void Do(Domain &dom, x_internal) {
             shared_kernel(dom);
         }
 
         template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_first) {
+        GT_FUNCTION static void Do(Domain &dom, x_first) {
             shared_kernel(dom);
         }
 
         template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_last) {
+        GT_FUNCTION static void Do(Domain &dom, x_last) {
             dom(out()) = dom(rhs());
         }
     };

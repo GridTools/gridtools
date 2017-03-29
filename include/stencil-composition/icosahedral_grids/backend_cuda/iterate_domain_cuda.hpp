@@ -301,6 +301,30 @@ namespace gridtools {
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
         }
 
+        // kcaches not yet implemented
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+        }
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+        }
+        template < typename IterationPolicy >
+        GT_FUNCTION void final_flush() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+        template < typename IterationPolicy >
+        GT_FUNCTION void begin_fill() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+
       private:
         // array storing the (i,j) position of the current thread within the block
         array< int, 2 > m_thread_pos;

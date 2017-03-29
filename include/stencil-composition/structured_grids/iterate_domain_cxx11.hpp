@@ -325,7 +325,7 @@ namespace gridtools {
            \param arg placeholder containing the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
         */
-        template < typename Accessor, typename StoragePointer >
+        template < typename Accessor, typename StoragePointer, bool DirectGMemAccess = false >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
@@ -419,7 +419,7 @@ namespace gridtools {
         */
         template < uint_t I, enumtype::intend Intend >
         GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
-            global_accessor< I, Intend > const &accessor) const {
+            global_accessor< I, Intend > const &accessor) {
 
             // getting information about the storage
             typedef typename global_accessor< I, Intend >::index_type index_t;
@@ -475,7 +475,7 @@ namespace gridtools {
         template < typename Accessor >
         GT_FUNCTION
             typename boost::enable_if< cached< Accessor >, typename accessor_return_type< Accessor >::type >::type
-            operator()(Accessor const &accessor_) const {
+            operator()(Accessor const &accessor_) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
@@ -484,10 +484,20 @@ namespace gridtools {
         }
 
         template < typename Accessor >
+        GT_FUNCTION typename accessor_return_type< Accessor >::type gmem_access(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+
+            return get_value< Accessor, void *, true >(accessor, get_data_pointer(accessor));
+        }
+
+        template < typename Accessor >
         GT_FUNCTION typename boost::disable_if<
             boost::mpl::or_< cached< Accessor >, boost::mpl::not_< is_accessor< Accessor > > >,
             typename accessor_return_type< Accessor >::type >::type
-        operator()(Accessor const &accessor) const {
+        operator()(Accessor const &accessor) {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             GRIDTOOLS_STATIC_ASSERT(
@@ -498,7 +508,7 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION typename accessor_return_type< Accessor >::type operator()(
-            expr_direct_access< Accessor > const &accessor) const {
+            expr_direct_access< Accessor > const &accessor) {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return get_value(accessor, get_data_pointer(accessor));
@@ -509,7 +519,7 @@ namespace gridtools {
             Overload of the operator() for expressions.
         */
         template < typename... Arguments, template < typename... Args > class Expression >
-        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
+        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg)
             -> decltype(expressions::evaluation::value(*this, arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
@@ -523,7 +533,7 @@ namespace gridtools {
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
            expression)*/
         template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
-        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg) const
+        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg)
             -> decltype(expressions::evaluation::value((*this), arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
@@ -538,11 +548,11 @@ namespace gridtools {
        \param storage_pointer pointer to the first element of the specific data field used
     */
     template < typename IterateDomainImpl >
-    template < typename Accessor, typename StoragePointer >
+    template < typename Accessor, typename StoragePointer, bool DirectGMemAccess >
     GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
     iterate_domain< IterateDomainImpl >::get_value(
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
-
+        typedef typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type return_t;
         // getting information about the storage
         typedef typename Accessor::index_type index_t;
 
@@ -592,11 +602,15 @@ namespace gridtools {
             (m_index[metadata_index_t::value]) +
             metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets());
 
-        return static_cast< const IterateDomainImpl * >(this)
-            ->template get_value_impl<
-                typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
-                Accessor,
-                storage_pointer_t >(real_storage_pointer, pointer_offset);
+        if (DirectGMemAccess) {
+            return get_gmem_value< return_t >(real_storage_pointer, pointer_offset);
+        } else {
+            return static_cast< const IterateDomainImpl * >(this)
+                ->template get_value_impl<
+                    typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+                    Accessor,
+                    storage_pointer_t >(real_storage_pointer, pointer_offset);
+        }
     }
 
     /** @brief method called in the Do methods of the functors.

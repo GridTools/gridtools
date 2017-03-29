@@ -78,7 +78,7 @@ namespace shorizontal_diffusion {
         typedef boost::mpl::vector< out, in, crlato, crlatu > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_lap) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_lap) {
             eval(out()) = eval(in(1, 0, 0)) + eval(in(-1, 0, 0)) - (gridtools::float_type)2 * eval(in()) +
                           eval(crlato()) * (eval(in(0, 1, 0)) - eval(in())) +
                           eval(crlatu()) * (eval(in(0, -1, 0)) - eval(in()));
@@ -96,7 +96,7 @@ namespace shorizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap, crlato, coeff > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_flx) {
             gridtools::float_type fluxx = eval(lap(1, 0, 0)) - eval(lap());
             gridtools::float_type fluxx_m = eval(lap(0, 0, 0)) - eval(lap(-1, 0, 0));
 

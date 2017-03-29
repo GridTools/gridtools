@@ -71,7 +71,7 @@ namespace nested_test {
         typedef boost::mpl::vector< in_cells, in_edges, ipos, cpos, jpos, kpos, out_edges > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](const double _in, const double _res) -> double {
                 std::cout << "INNER FF " << _in << " " << _res << " " << _in + _res + 1 << std::endl;
 

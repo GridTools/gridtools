@@ -56,6 +56,7 @@ using namespace enumtype;
 
 namespace vertical_advection_dycore {
     // This is the definition of the special regions in the "vertical" direction
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > kfull;
     typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
     typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kbody_low;
     typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
@@ -66,21 +67,21 @@ namespace vertical_advection_dycore {
     template < typename T >
     struct u_forward_function {
         typedef accessor< 0 > utens_stage;
-        typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0 > > wcon;
-        typedef accessor< 2 > u_stage;
+        typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0, 0, 1 > > wcon;
+        typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 0, -1, 1 > > u_stage;
         typedef accessor< 3 > u_pos;
         typedef accessor< 4 > utens;
         typedef accessor< 5 > dtr_stage;
         typedef accessor< 6, enumtype::inout > acol;
         typedef accessor< 7, enumtype::inout > bcol;
-        typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, 0, -1 > > ccol;
-        typedef accessor< 9, enumtype::inout > dcol;
+        typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > ccol;
+        typedef accessor< 9, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > dcol;
 
         typedef boost::mpl::vector< utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol >
             arg_list;
 
         template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kbody interval) {
+        GT_FUNCTION static void Do(Eval &eval, kbody interval) {
             // TODO use Average function here
             T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
             T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
@@ -100,7 +101,7 @@ namespace vertical_advection_dycore {
         }
 
         template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kmaximum interval) {
+        GT_FUNCTION static void Do(Eval &eval, kmaximum interval) {
             T gav = -(T)0.25 * (eval(wcon(1, 0, 0)) + eval(wcon()));
             T as = gav * BET_M;
 
@@ -115,7 +116,7 @@ namespace vertical_advection_dycore {
         }
 
         template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kminimum interval) {
+        GT_FUNCTION static void Do(Eval &eval, kminimum interval) {
             T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
             T cs = gcv * BET_M;
 
@@ -130,25 +131,25 @@ namespace vertical_advection_dycore {
 
       private:
         template < typename Eval >
-        GT_FUNCTION static void computeDColumn(Eval const &eval, const T correctionTerm) {
+        GT_FUNCTION static void computeDColumn(Eval &eval, const T correctionTerm) {
             eval(dcol()) = eval(dtr_stage()) * eval(u_pos()) + eval(utens()) + eval(utens_stage()) + correctionTerm;
         }
 
         template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kbody) {
+        GT_FUNCTION static void thomas_forward(Eval &eval, kbody) {
             T divided = (T)1.0 / (eval(bcol()) - (eval(ccol(0, 0, -1)) * eval(acol())));
             eval(ccol()) = eval(ccol()) * divided;
             eval(dcol()) = (eval(dcol()) - (eval(dcol(0, 0, -1)) * eval(acol()))) * divided;
         }
 
         template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kmaximum) {
+        GT_FUNCTION static void thomas_forward(Eval &eval, kmaximum) {
             T divided = (T)1.0 / (eval(bcol()) - eval(ccol(0, 0, -1)) * eval(acol()));
             eval(dcol()) = (eval(dcol()) - eval(dcol(0, 0, -1)) * eval(acol())) * divided;
         }
 
         template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kminimum) {
+        GT_FUNCTION static void thomas_forward(Eval &eval, kminimum) {
             T divided = (T)1.0 / eval(bcol());
             eval(ccol()) = eval(ccol()) * divided;
             eval(dcol()) = eval(dcol()) * divided;
@@ -162,30 +163,30 @@ namespace vertical_advection_dycore {
         typedef accessor< 2 > dtr_stage;
         typedef accessor< 3 > ccol;
         typedef accessor< 4 > dcol;
-        typedef accessor< 5, enumtype::inout > data_col;
+        typedef accessor< 5, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 > > data_col;
 
         typedef boost::mpl::vector< utens_stage, u_pos, dtr_stage, ccol, dcol, data_col > arg_list;
 
         template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kbody_low interval) {
+        GT_FUNCTION static void Do(Eval &eval, kbody_low interval) {
             eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
         }
 
         template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kmaximum interval) {
+        GT_FUNCTION static void Do(Eval &eval, kmaximum interval) {
             eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
         }
 
       private:
         template < typename Eval >
-        GT_FUNCTION static T thomas_backward(Eval const &eval, kbody_low) {
+        GT_FUNCTION static T thomas_backward(Eval &eval, kbody_low) {
             T datacol = eval(dcol()) - eval(ccol()) * eval(data_col(0, 0, 1));
             eval(data_col()) = datacol;
             return datacol;
         }
 
         template < typename Eval >
-        GT_FUNCTION static T thomas_backward(Eval const &eval, kmaximum) {
+        GT_FUNCTION static T thomas_backward(Eval &eval, kmaximum) {
             T datacol = eval(dcol());
             eval(data_col()) = datacol;
             return datacol;
@@ -294,7 +295,9 @@ namespace vertical_advection_dycore {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< K, flush, kbody >(p_ccol())),
+                    define_caches(cache< K, flush, kfull >(p_ccol()),
+                        cache< K, flush, kfull >(p_dcol()),
+                        cache< K, fill, kfull >(p_u_stage())),
                     gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
@@ -306,10 +309,14 @@ namespace vertical_advection_dycore {
                         p_ccol(),
                         p_dcol()) // esf_descriptor
                     ),
-                gridtools::make_multistage(
-                    execute< backward >(),
-                    gridtools::make_stage< u_backward_function< double > >(
-                        p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
+                gridtools::make_multistage(execute< backward >(),
+                    define_caches(cache< K, flush, kfull >(p_data_col())),
+                    gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
+                                               p_u_pos(),
+                                               p_dtr_stage(),
+                                               p_ccol(),
+                                               p_dcol(),
+                                               p_data_col())));
 
         vertical_advection->ready();
 
@@ -328,7 +335,7 @@ namespace vertical_advection_dycore {
 #if FLOAT_PRECISION == 4
             verifier verif(1e-6);
 #else
-            verifier verif(1e-12);
+            verifier verif(1e-11);
 #endif
             array< array< uint_t, 2 >, 3 > halos{
                 {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
@@ -337,7 +344,7 @@ namespace vertical_advection_dycore {
 #if FLOAT_PRECISION == 4
             verifier verif(1e-6, halo_size);
 #else
-            verifier verif(1e-12, halo_size);
+            verifier verif(1e-11, halo_size);
 #endif
             result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
 #endif

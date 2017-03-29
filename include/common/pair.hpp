@@ -46,6 +46,15 @@ namespace gridtools {
     };
 
     /**
+       @brief simple wrapper for a pair of integral types
+     */
+    template < typename Value, Value T, Value U >
+    struct ipair_type {
+        static constexpr Value first = T;
+        static constexpr Value second = U;
+    };
+
+    /**
        @brief simple pair with constexpr constructor
 
        NOTE: can be replaced by std::pair

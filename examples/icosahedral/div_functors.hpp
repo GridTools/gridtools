@@ -57,7 +57,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< edge_length, cell_area_reciprocal, orientation_of_normal, weights > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim edge;
 
@@ -80,7 +80,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< edge_length, cell_area_reciprocal, l_over_A > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             using cell_of_edge_dim = dimension< 5 >;
@@ -99,7 +99,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_edges, weights, out_cells > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             using edge_of_cells_dim = dimension< 5 >;
             edge_of_cells_dim edge;
 
@@ -121,7 +121,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_edges, weights, out_cells > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             using edge_of_cells_dim = dimension< 5 >;
             edge_of_cells_dim edge;
 
@@ -145,7 +145,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_edges, edge_length, cell_area_reciprocal, out_cells > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](
                 const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
 
@@ -165,7 +165,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_edges, edge_length, cell_area_reciprocal, out_cells > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](
                 const double _in1, const double _in2, const double _res) -> double { return _in1 * _in2 + _res; };
 
@@ -196,7 +196,7 @@ namespace ico_operators {
         GT_FUNCTION
 #endif
             static void
-            Do(Evaluation const &eval, x_interval) {
+            Do(Evaluation &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             double t{eval(in_edges()) * eval(edge_length())};
@@ -224,7 +224,7 @@ namespace ico_operators {
 
         typedef boost::mpl::vector< cell_area_reciprocal, out_cells > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             eval(out_cells()) *= eval(cell_area_reciprocal());
@@ -255,7 +255,7 @@ namespace ico_operators {
         GT_FUNCTION
 #endif
             static void
-            Do(Evaluation const &eval, x_interval) {
+            Do(Evaluation &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             using cell_of_edge_dim = dimension< 5 >;

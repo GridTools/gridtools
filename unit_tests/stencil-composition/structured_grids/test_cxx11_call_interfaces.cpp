@@ -55,7 +55,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -65,7 +65,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< copy_functor, x_interval >::with(eval, in(), out());
         }
     };
@@ -75,7 +75,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< copy_functor, x_interval >::at< 1, 1, 0 >::with(eval, in(), out());
         }
     };
@@ -85,7 +85,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< copy_functor, x_interval >::with_offsets(eval, in(1, 1, 0), out());
         }
     };
@@ -95,7 +95,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< copy_functor, x_interval >::at< -1, -1, 0 >::with_offsets(eval, in(1, 1, 0), out());
         }
     };
@@ -105,7 +105,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< call_copy_functor, x_interval >::with(eval, in(), out());
         }
     };
@@ -115,7 +115,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< call_at_copy_functor, x_interval >::with(eval, in(), out());
         }
     };
@@ -125,7 +125,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< call_with_offsets_copy_functor, x_interval >::with(eval, in(), out());
         }
     };
@@ -135,7 +135,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< call_copy_functor, x_interval >::at< 1, 1, 0 >::with(eval, in(), out());
         }
     };
@@ -145,7 +145,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< call_at_copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in(), out());
         }
     };
@@ -155,7 +155,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< call_at_copy_functor, x_interval >::with_offsets(eval, in(-1, -1, 0), out());
         }
     };
@@ -165,7 +165,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< call_with_offsets_copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in(), out());
         }
     };
@@ -175,7 +175,7 @@ namespace call_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< call_with_offsets_copy_functor, x_interval >::with_offsets(eval, in(-1, -1, 0), out());
         }
     };
@@ -482,7 +482,7 @@ namespace call_proc_interface_functors {
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -493,7 +493,7 @@ namespace call_proc_interface_functors {
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out1()) = eval(in());
             eval(out2()) = eval(in());
         }
@@ -505,7 +505,7 @@ namespace call_proc_interface_functors {
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             call_proc< copy_twice_functor, x_interval >::with(eval, in(), out1(), out2());
         }
     };
@@ -516,7 +516,7 @@ namespace call_proc_interface_functors {
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             call_proc< copy_twice_functor, x_interval >::with_offsets(eval, in(1, 1, 0), out1(), out2());
         }
     };
@@ -527,7 +527,7 @@ namespace call_proc_interface_functors {
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             call_proc< copy_twice_functor, x_interval >::at< 1, 1, 0 >::with_offsets(
                 eval, in(), out1(-1, -1, 0), out2(-1, -1, 0)); // outs are at the original position
         }
@@ -539,7 +539,7 @@ namespace call_proc_interface_functors {
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             call_proc< call_copy_twice_functor, x_interval >::with(eval, in(), out1(), out2());
         }
     };
@@ -550,7 +550,7 @@ namespace call_proc_interface_functors {
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             call_proc< call_copy_twice_functor, x_interval >::with_offsets(eval, in(1, 1, 0), out1(), out2());
         }
     };
@@ -561,7 +561,7 @@ namespace call_proc_interface_functors {
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             call_proc< call_with_offsets_copy_twice_functor, x_interval >::with_offsets(
                 eval, in(-1, -1, 0), out1(), out2());
         }
@@ -573,7 +573,7 @@ namespace call_proc_interface_functors {
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             double local_in = 1;
             double local_out = -1;
 

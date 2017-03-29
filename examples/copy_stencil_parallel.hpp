@@ -69,7 +69,7 @@ namespace copy_stencil {
         /* static const auto expression=in(1,0,0)-out(); */
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };

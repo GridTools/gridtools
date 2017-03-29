@@ -117,11 +117,33 @@ namespace gridtools {
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
         }
 
-        //    template <typename MetaDataSequence, typename ArgStoragePair0, typename... OtherArgs>
-        //    typename boost::enable_if_c< is_any_storage<typename ArgStoragePair0::storage_type>::type::value
-        //                                , void>::type assign_pointers
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+        }
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+        }
+        template < typename IterationPolicy >
+        GT_FUNCTION void final_flush() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+        template < typename IterationPolicy >
+        GT_FUNCTION void begin_fill() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
 
-        //    typename boost::enable_if<MultipleGridPointsPerWarp, int >::type=0
+        template < typename Extent >
+        GT_FUNCTION bool is_thread_in_domain() const {
+            true;
+        }
 
       private:
         data_pointer_array_t *RESTRICT m_data_pointer;
