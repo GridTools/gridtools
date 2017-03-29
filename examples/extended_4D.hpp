@@ -55,12 +55,13 @@ using namespace expressions;
 
 //                      dims  x y z  qp
 //                   strides  1 x xy xyz
+typedef gridtools::layout_map< -1, -1, -1, 3, 2, 1, 0 > layoutphi_t;
 typedef gridtools::layout_map< 3, 2, 1, 0 > layout4_t;
 typedef gridtools::layout_map< 2, 1, 0, 3, 4, 5 > layout_t;
 
 typedef BACKEND::storage_info< __COUNTER__, layout_t > metadata_t;
 typedef BACKEND::storage_info< __COUNTER__, layout4_t > metadata_global_quad_t;
-typedef BACKEND::storage_info< __COUNTER__, layout4_t > metadata_local_quad_t;
+typedef BACKEND::storage_info< __COUNTER__, layoutphi_t > metadata_local_quad_t;
 typedef BACKEND::storage_type< float_type, metadata_t >::type storage_type;
 typedef BACKEND::storage_type< float_type, metadata_global_quad_t >::type storage_global_quad_t;
 typedef BACKEND::storage_type< float_type, metadata_local_quad_t >::type storage_local_quad_t;
@@ -104,8 +105,8 @@ namespace assembly {
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct integration {
-        typedef in_accessor< 0, extent<>, 4 > phi;
-        typedef in_accessor< 1, extent<>, 4 > psi; // how to detect when index is wrong??
+        typedef in_accessor< 0, extent<>, 7 > phi;
+        typedef in_accessor< 1, extent<>, 7 > psi; // how to detect when index is wrong??
         typedef in_accessor< 2, extent<>, 4 > jac;
         typedef in_accessor< 3, extent<>, 6 > f;
         typedef inout_accessor< 4, extent<>, 6 > result;
@@ -132,19 +133,19 @@ namespace assembly {
                             eval(result{di + I, dj + J, dk + K, qp}) +=
                                 eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i, j, k, qp + q} * jac{i, j, k, qp + q} *
                                          f{i, j, k, di, dj, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k, qp + q} *
+                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di + 1, dj, dk, qp + q} *
                                          jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, j, k, qp + q} *
+                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{dj + 1, dj, dk, qp + q} *
                                          jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, j, k, qp + q} *
+                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{dk + 1, dj, dk, qp + q} *
                                          jac{i, j, k, qp + q} * f{i, k, k, di, dj, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k, qp + q} *
+                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di + 1, dj + 1, dk, qp + q} *
                                          jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k + 1, qp + q} *
+                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di + 1, dj, dk + 1, qp + q} *
                                          jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i, j + 1, k + 1, qp + q} *
+                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di, dj + 1, dk + 1, qp + q} *
                                          jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k + 1, qp + q} *
+                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di + 1, dj + 1, dk + 1, qp + q} *
                                          jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk + 1}) /
                                 8;
                         }
@@ -169,7 +170,7 @@ namespace assembly {
         uint_t b2 = 2;
         uint_t b3 = 2;
         // basis functions available in a 2x2x2 cell, because of P1 FE
-        metadata_local_quad_t local_metadata(b1, b2, b3, nbQuadPt);
+        metadata_local_quad_t local_metadata(1, 1, 1, b1, b2, b3, nbQuadPt);
 
         storage_local_quad_t phi(local_metadata, 0., "phi");
         storage_local_quad_t psi(local_metadata, 0., "psi");
@@ -189,8 +190,8 @@ namespace assembly {
             for (uint_t j = 0; j < b2; ++j)
                 for (uint_t k = 0; k < b3; ++k)
                     for (uint_t q = 0; q < nbQuadPt; ++q) {
-                        phi(i, j, k, q) = 10.;
-                        psi(i, j, k, q) = 11.;
+                        phi(1, 1, 1, i, j, k, q) = 10.;
+                        psi(1, 1, 1, i, j, k, q) = 11.;
                     }
 
         metadata_t meta_(d1, d2, d3, b1, b2, b3);

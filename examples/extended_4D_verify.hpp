@@ -51,7 +51,7 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
     uint_t b2 = 2;
     uint_t b3 = 2;
 
-    typename storage_local_quad_t::storage_info_type meta_local_(b1, b2, b3, nbQuadPt);
+    typename storage_local_quad_t::storage_info_type meta_local_(1, 1, 1, b1, b2, b3, nbQuadPt);
     storage_local_quad_t phi(meta_local_, 0., "phi");
     storage_local_quad_t psi(meta_local_, 0., "psi");
 
@@ -70,8 +70,8 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
         for (uint_t j = 0; j < b2; ++j)
             for (uint_t k = 0; k < b3; ++k)
                 for (uint_t q = 0; q < nbQuadPt; ++q) {
-                    phi(i, j, k, q) = 10.;
-                    psi(i, j, k, q) = 11.;
+                    phi(1, 1, 1, i, j, k, q) = 10.;
+                    psi(1, 1, 1, i, j, k, q) = 11.;
                 }
 
     typename storage_t::storage_info_type meta_(d1, d2, d3, b1, b2, b3);
@@ -88,16 +88,23 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
                             // check the initialization to 0
                             assert(reference(i, j, k, I, J, K) == 0.);
                             for (short_t q = 0; q < 2; ++q) {
-                                reference(i, j, k, I, J, K) +=
-                                    (phi(I, J, K, q) * psi(0, 0, 0, q) * jac(i, j, k, q) * f(i, j, k, 0, 0, 0) +
-                                        phi(I, J, K, q) * psi(1, 0, 0, q) * jac(i, j, k, q) * f(i, j, k, 1, 0, 0) +
-                                        phi(I, J, K, q) * psi(0, 1, 0, q) * jac(i, j, k, q) * f(i, j, k, 0, 1, 0) +
-                                        phi(I, J, K, q) * psi(0, 0, 1, q) * jac(i, j, k, q) * f(i, j, k, 0, 0, 1) +
-                                        phi(I, J, K, q) * psi(1, 1, 0, q) * jac(i, j, k, q) * f(i, j, k, 1, 1, 0) +
-                                        phi(I, J, K, q) * psi(1, 1, 0, q) * jac(i, j, k, q) * f(i, j, k, 1, 0, 1) +
-                                        phi(I, J, K, q) * psi(0, 1, 1, q) * jac(i, j, k, q) * f(i, j, k, 0, 1, 1) +
-                                        phi(I, J, K, q) * psi(1, 1, 1, q) * jac(i, j, k, q) * f(i, j, k, 1, 1, 1)) /
-                                    8;
+                                reference(i, j, k, I, J, K) += (phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 0, 0, q) *
+                                                                       jac(i, j, k, q) * f(i, j, k, 0, 0, 0) +
+                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 0, 0, q) *
+                                                                       jac(i, j, k, q) * f(i, j, k, 1, 0, 0) +
+                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 1, 0, q) *
+                                                                       jac(i, j, k, q) * f(i, j, k, 0, 1, 0) +
+                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 0, 1, q) *
+                                                                       jac(i, j, k, q) * f(i, j, k, 0, 0, 1) +
+                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 1, 0, q) *
+                                                                       jac(i, j, k, q) * f(i, j, k, 1, 1, 0) +
+                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 1, 0, q) *
+                                                                       jac(i, j, k, q) * f(i, j, k, 1, 0, 1) +
+                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 1, 1, q) *
+                                                                       jac(i, j, k, q) * f(i, j, k, 0, 1, 1) +
+                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 1, 1, q) *
+                                                                       jac(i, j, k, q) * f(i, j, k, 1, 1, 1)) /
+                                                               8;
                             }
                         }
 

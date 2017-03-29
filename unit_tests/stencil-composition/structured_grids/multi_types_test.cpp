@@ -102,7 +102,7 @@ namespace multi_types_test {
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > region;
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct type1 {
         int i, j, k;
@@ -361,4 +361,4 @@ namespace multi_types_test {
     }
 } // namespace multi_types_test
 
-TEST(multitypes, FTESTNAME(x)) { EXPECT_TRUE(multi_types_test::test(4, 4, 4)); }
+TEST(multitypes, FTESTNAME(x)) { EXPECT_TRUE(multi_types_test::test(4, 5, 6)); }

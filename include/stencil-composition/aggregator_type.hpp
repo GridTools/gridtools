@@ -515,6 +515,11 @@ namespace gridtools {
         metadata_set_t &metadata_set_view() { return m_metadata_set; }
 
         /**
+           @brief returning by non-const reference the metadata set
+        */
+        metadata_set_t const &metadata_set_view() const { return m_metadata_set; }
+
+        /**
            @brief returning by non-const reference the storage pointers
         */
         arg_list &storage_pointers_view() { return m_storage_pointers; }

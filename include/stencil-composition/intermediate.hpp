@@ -57,6 +57,7 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
+#include <boost/fusion/include/any.hpp>
 #include "./esf.hpp"
 #include "./level.hpp"
 #include "./loopintervals.hpp"
@@ -486,6 +487,77 @@ namespace gridtools {
         assert(check && "One of the stencil accessor extents is exceeding the halo region.");
     }
 
+    namespace _impl {
+        /**
+           This is a functor used to iterate with boost::fusion::any
+           to check that grid size is small enough to not make the
+           stencil go out of bound on data fields.
+
+           \tparam Grid The Grid
+         */
+        template < typename Grid >
+        struct check_with {
+            Grid const &grid;
+
+            check_with(Grid const &grid) : grid(grid) {}
+
+            /**
+               The element of the metadata set that describe the sizes
+               of the storages. boost::fusion::any is stopping
+               iteration when a `true` is returned, so the iteration
+               returns `false` when the check passes.
+
+               \tparam The type element of a metadata_set which is a gridtools::pointer to a metadata
+
+               \param mde The element of a metadata_set which is a gridtools::pointer to a metadata
+             */
+            template < typename MetaDataElem >
+            bool operator()(MetaDataElem const &mde) const {
+                bool result = true;
+
+                // Here we need to use the at_ interface instead of
+                // the at, since at_ does not assert out-of-bound
+                // queries, but actually returns -1.
+                if (MetaDataElem::value_type::layout::template at_< 2 >::value >= 0) {
+                    result = result && (grid.k_max() + 1 <= mde->dim(2));
+                }
+
+                if (MetaDataElem::value_type::layout::template at_< 1 >::value >= 0) {
+                    result = result && (grid.j_high_bound() + 1 <= mde->dim(1));
+                }
+
+                if (MetaDataElem::value_type::layout::template at_< 0 >::value >= 0) {
+                    result = result && (grid.i_high_bound() + 1 <= mde->dim(0));
+                }
+
+                return !result;
+            }
+        };
+    } // namespace _impl
+
+    /**
+       Given the Grid and the Aggregator this function checks that the
+       iteration space of the grid would not caouse out of bound
+       accesses from the stencil execution. This function is
+       automatically called when constructing a computation.
+
+       \tparam Grid The grid
+       \tparam Aggregator The aggregator
+
+       \param grid The grid
+       \param aggrs The aggregator
+     */
+    template < typename Grid, typename Aggregator >
+    void check_grid_against_fields(Grid const &grid, Aggregator const &aggr) {
+        auto metadata_view = aggr.metadata_set_view().sequence_view();
+        bool is_wrong = boost::fusion::any(metadata_view, _impl::check_with< Grid >(grid));
+        if (is_wrong) {
+            throw std::runtime_error("Iteration space size is bigger than some storages sizes, this would likely "
+                                     "result in access violation. Please check storage sizes against grid sizes, "
+                                     "including the axis levels.");
+        }
+    }
+
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -626,6 +698,7 @@ namespace gridtools {
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
             check_grid_against_extents< all_extents_vecs_t >(grid);
+            check_grid_against_fields(grid, domain);
             copy_domain_storage_pointers();
             copy_domain_metadata_pointers();
         }

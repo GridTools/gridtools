@@ -89,7 +89,7 @@ TEST(test_make_computation, positional_when_debug) {
 
     typedef layout_map< 2, 1, 0 > layout_t;
     typedef BACKEND::storage_type< int, BACKEND::storage_info< 0, layout_t > >::type storage_type;
-    BACKEND::storage_info< 0, layout_t > sinfo(3, 3, 3);
+    BACKEND::storage_info< 0, layout_t > sinfo(10, 10, 10);
     storage_type a_storage(sinfo, 0, "test");
 
     typedef arg< 0, storage_type > p_in;
@@ -98,6 +98,10 @@ TEST(test_make_computation, positional_when_debug) {
     /* canot use the assignment since with a single placeholder the wrong constructor is picked.
        This is a TODO in aggregator_type.hpp */
     aggregator_type< accessor_list_t > dm(boost::fusion::make_vector(&a_storage));
+    positional_when_debug_test::grid_t grid({0, 0, 0, 0, 0}, {0, 0, 0, 0, 0});
+    grid.value_list[0] = 0;
+    grid.value_list[1] = 3;
+
 #ifdef CXX11_ENABLED
     auto
 #else
@@ -108,7 +112,7 @@ TEST(test_make_computation, positional_when_debug) {
 #endif
 #endif
         test_computation = make_computation< BACKEND >(dm,
-            positional_when_debug_test::grid_t({0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}),
+            grid,
             make_multistage // mss_descriptor
             (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
 
