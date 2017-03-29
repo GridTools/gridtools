@@ -775,48 +775,6 @@ namespace gridtools {
                              current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value]);
     }
 
-    /** @brief method called in the Do methods of the functors.
-
-        specialization for the expr_direct_access<Accessor> placeholders (high level syntax: '@plch').
-        Allows direct access to the storage by only using the offsets
-    */
-    template < typename IterateDomainImpl >
-    template < typename Accessor, typename StoragePointer >
-    GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
-    iterate_domain< IterateDomainImpl >::get_value(
-        expr_direct_access< Accessor > const &expr, StoragePointer const &RESTRICT storage_pointer) const {
-        GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-
-        // getting information about the storage
-        typedef typename Accessor::index_type index_t;
-
-        typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
-
-        // getting information about the metadata
-        typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
-
-        pointer< const typename storage_t::storage_info_type > const metadata_ =
-            boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
-
-        // error checks
-        GTASSERT(metadata_->size() >
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
-
-        GTASSERT(
-            metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()) >= 0);
-
-        GRIDTOOLS_STATIC_ASSERT((Accessor::n_dim <= storage_t::storage_info_type::space_dimensions),
-            "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
-            "defining the placeholder.");
-
-        // casting the storage pointer from void* to the sotrage value_type
-        typename storage_t::value_type *RESTRICT real_storage_pointer =
-            static_cast< typename storage_t::value_type * >(storage_pointer);
-
-        // returning the value without adding the m_index
-        return *(real_storage_pointer +
-                 metadata_->_index(strides().template get< metadata_index_t::value >(), expr.first_operand.offsets()));
-    }
 #endif // defined (CXX11_ENABLED)
 
 } // namespace gridtools

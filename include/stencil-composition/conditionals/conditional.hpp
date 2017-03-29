@@ -88,11 +88,6 @@ namespace gridtools {
         */
         conditional(BOOL_FUNC(c)) : m_value(c) {}
 
-        /**
-           @brief constructor from a std::function
-         */
-        conditional(std::function< bool() > c) : m_value(c) {}
-
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }
     };

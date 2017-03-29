@@ -152,7 +152,7 @@ namespace gridtools {
         }
 
         // copy ctor
-        __device__ constexpr meta_storage_tmp(meta_storage_tmp const &other)
+        constexpr meta_storage_tmp(meta_storage_tmp const &other)
             : super(other), m_initial_offsets(other.m_initial_offsets) {}
 
         constexpr meta_storage_tmp() : super() {}
