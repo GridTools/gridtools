@@ -148,7 +148,7 @@ computation->finalize();
         //            first_.mss(),
         //            recursive_switch(recursion_depth_, cond_, cases_...));
 
-        auto lam = [&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); };
+        volatile auto lam = [&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); };
         cond_.push_back_condition(lam);
         return if_(conditional_t(lam), first_.mss(), recursive_switch(recursion_depth_ + 1, cond_, cases_...));
     }
