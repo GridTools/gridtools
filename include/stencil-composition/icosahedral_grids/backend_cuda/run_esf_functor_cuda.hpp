@@ -95,7 +95,8 @@ namespace gridtools {
             typedef typename esf_t::template esf_function< Index::value > colored_functor_t;
             typedef functor_decorator< typename original_functor_t::id,
                 colored_functor_t,
-                typename original_functor_t::repeat_t > functor_t;
+                typename original_functor_t::repeat_t,
+                IntervalType > functor_t;
 
             GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, GT_INTERNAL_ERROR);
 
