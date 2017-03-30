@@ -14,6 +14,8 @@ TOUT="JobState=TIMEOUT"
 while $fatto ; do
     STR1=`scontrol show jobs $ID -o -Q|gawk '{match($0, /JobState[^ ]*/); print RSTART " " RLENGHT " " substr($0, RSTART, RLENGTH);}'`
     STR=`echo $STR1 | gawk '{print $NF}'`
+    echo "STR1:$STR1";
+    echo "STR:$STR";
     if [ -n "$STR" ]; then
         printf "%s          \r" $STR ;
 
@@ -22,7 +24,7 @@ while $fatto ; do
             fatto=false;
             error=false
         elif [ $STR == $FAIL ]; then
-            echo 
+            echo
             fatto=false
             error=true
         elif [ $STR == $TOUT ]; then
@@ -40,6 +42,17 @@ while $fatto ; do
     if [ $TIME -lt `date +%s` ]; then
         echo Timeout while monitoring job
         exit 2
+    fi
+    JOB_IDS=`scontrol show jobs -o -Q|sed 's/JobId=\([0-9]*[0-9]\).*/\1/'`
+    JOB_PRESENT=`for match_id in $JOB_IDS; do if [ "$match_id" -eq "$ID" ]; then echo "$ID" ; fi ; done`
+    echo "x$JOB_PRESENT != x$ID"
+    if [ "x$JOB_PRESENT" != "x$ID" ] ; then # check that the job ID is still there, otherwise exit
+        echo "no job with ID $ID"
+        fatto=false;
+    fi
+    if [ "x$STR" == "x" ] ; then # check that STR contains some value
+        echo "wierd error"
+        fatto=false;
     fi
 done
 
