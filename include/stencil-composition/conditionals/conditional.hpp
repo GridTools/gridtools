@@ -75,11 +75,11 @@ namespace gridtools {
         /**
            @brief default constructor
          */
-        conditional() // try to avoid this?
-            : m_value([]() {
-                assert(false);
-                return false;
-            }) {}
+        conditional() {
+#ifndef __CUDACC__
+            assert(false); // Not sure about the intent of the previous code, please comment.
+#endif
+        }
 
         conditional(conditional const &) = default;
         conditional(conditional &&) = default;
