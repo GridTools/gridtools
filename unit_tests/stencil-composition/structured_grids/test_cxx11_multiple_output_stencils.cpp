@@ -150,8 +150,8 @@ TEST(multiple_outputs, compute_extents) {
 
     aggregator_type< arg_list > domain(boost::fusion::make_vector(&dummy, &dummy, &dummy, &dummy));
 
-    uint_t di[5] = {2, 2, 0, 7, 10};
-    uint_t dj[5] = {2, 2, 0, 7, 10};
+    halo_descriptor di{2, 2, 2, 7, 10};
+    halo_descriptor dj{2, 2, 2, 7, 10};
     grid< axis > grid_(di, dj);
 
     grid_.value_list[0] = 0;

@@ -108,7 +108,7 @@ TEST(test_make_computation, positional_when_debug) {
 #endif
 #endif
         test_computation = make_computation< BACKEND >(dm,
-            positional_when_debug_test::grid_t({0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}),
+            positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}),
             make_multistage // mss_descriptor
             (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
 

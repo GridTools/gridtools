@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "host_device.hpp"
+#include <stdexcept>
 
 #ifndef NDEBUG
 #include <stdio.h>
@@ -76,4 +77,16 @@ namespace gridtools {
     void gt_assert(bool cond) { assert(cond); }
 }
 
+#endif
+
+#ifdef __CUDA_ARCH__
+#ifdef CUDA8
+#define ASSERT_OR_THROW(cond, msg) assert(cond &&msg)
+#else
+#define ASSERT_OR_THROW(cond, msg)
+#endif
+#else
+#define ASSERT_OR_THROW(cond, msg) \
+    if (!cond)                     \
+    throw std::runtime_error(msg)
 #endif
