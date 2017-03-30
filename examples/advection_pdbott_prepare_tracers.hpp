@@ -87,7 +87,7 @@ namespace adv_prepare_tracers {
         typedef BACKEND::storage_traits_t::storage_info_t< 23, 3 > meta_data_t;
         typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
-        constexpr uint_t vec_size = 5;
+        constexpr uint_t vec_size = 20;
 
         meta_data_t meta_data_(d1, d2, d3);
 
@@ -115,7 +115,7 @@ namespace adv_prepare_tracers {
 
         aggregator_type< args_t > domain_(list_out_, list_in_, rho);
         auto comp_ =
-            make_computation< BACKEND >(expand_factor< 3 >(),
+            make_computation< BACKEND >(expand_factor< 20 >(),
                 domain_,
                 grid_,
                 make_multistage(enumtype::execute< enumtype::forward >(),
