@@ -43,9 +43,8 @@
    this class with a unique ID as template argument, construct it using the boolean condition, and then
    use the \ref gridtools::if_ statement from within the make_computation.
 */
-#ifdef CXX11_ENABLED
-#if (GCC_53_BUG)
 #include <functional>
+
 namespace gridtools {
     struct condition_functor {
         std::function< short_t() > m_1;
@@ -58,13 +57,8 @@ namespace gridtools {
         bool operator()() const { return m_1() == m_2; }
     };
 }
-#define BOOL_FUNC(val) condition_functor val
-#else
+
 #define BOOL_FUNC(val) std::function< bool() > val
-#endif
-#else
-#define BOOL_FUNC(val) bool (*val)()
-#endif
 
 namespace gridtools {
 
@@ -82,17 +76,10 @@ namespace gridtools {
            @brief default constructor
          */
         conditional() // try to avoid this?
-            : m_value(
-#ifdef CXX11_ENABLED
-#if (!GCC_53_BUG)
-                  []() {
-                      assert(false);
-                      return false;
-                  }
-#endif
-#endif
-                  ) {
-        }
+            : m_value([]() {
+                assert(false);
+                return false;
+            }) {}
 
         conditional(conditional const &) = default;
         conditional(conditional &&) = default;
@@ -104,15 +91,6 @@ namespace gridtools {
            This constructor should not be needed
         */
         conditional(BOOL_FUNC(c)) : m_value(c) {}
-
-#if (GCC_53_BUG)
-#ifdef CXX11_ENABLED
-        /**
-           @brief constructor from a std::function
-         */
-        conditional(std::function< bool() > c) : m_value(c) {}
-#endif
-#endif // GCC_53_BUG
 
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }
