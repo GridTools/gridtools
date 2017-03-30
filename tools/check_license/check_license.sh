@@ -6,7 +6,7 @@ if [ ! -f $PWD/LICENSE ] ; then
 fi
 
 for file in `find . -regextype posix-egrep -regex ".*\.(hpp|cpp|cu)$" `; do
-    if ! grep -q "Copyright (c) 2017, GridTools Consortium" $file ; then
+    if ! grep -q "Copyright (c) " $file ; then
         echo $file
         if [ "$1" == "fix" ]; then
             echo "/*
