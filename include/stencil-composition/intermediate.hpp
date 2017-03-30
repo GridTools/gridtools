@@ -530,6 +530,28 @@ namespace gridtools {
                     result = result && (grid.i_high_bound() + 1 <= mde->dim(0));
                 }
 
+                // std::cout << ""
+                //           << " if ( MetaDataElem::value_type::layout::template at_<2>::value >= 0 ) {\n"
+                //           << " if ( " << MetaDataElem::value_type::layout::template at_<2>::value << " >= 0) {\n"
+                //           << "     result = result && (grid.k_max()+1 <= mde->dim(2)); "
+                //           << "     result = " << std::boolalpha << result << " && (" << grid.k_max()+1 << " <= " <<
+                //           mde->dim(2) << ");\n"
+                //           << "}\n\n"
+
+                //           << " if ( MetaDataElem::value_type::layout::template at_<1>::value >= 0 ) {\n"
+                //           << " if ( " << MetaDataElem::value_type::layout::template at_<1>::value << ">= 0 ) {\n"
+                //           << "     result = result &&  (grid.j_high_bound()+1 <= mde->dim(1));\n"
+                //           << "     result = " << std::boolalpha << result << " && " << grid.j_high_bound()+1 << " <=
+                //           " << mde->dim(1) << ";\n"
+                //           << "}\n\n"
+
+                //           << " if ( MetaDataElem::value_type::layout::template at_<0>::value >= 0 ) {\n"
+                //           << " if ( " << MetaDataElem::value_type::layout::template at_<0>::value << ">= 0 ) {\n"
+                //           << "     result = result &&  (grid.i_high_bound()+1 <= mde->dim(0));\n"
+                //           << "     result = " << std::boolalpha << result << " && " << grid.i_high_bound()+1 << " <=
+                //           " << mde->dim(0) << ";\n"
+                //           << "}\n\n";
+
                 return !result;
             }
         };
