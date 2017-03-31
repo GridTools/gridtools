@@ -35,8 +35,6 @@
 */
 #pragma once
 
-#define GCC_53_BUG __GNUC__ == 5 && __GNUC_MINOR__ == 3
-
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
