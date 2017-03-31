@@ -50,9 +50,9 @@
 #include "hasdo.hpp"
 #include "level.hpp"
 #include "interval.hpp"
+#include "functor_decorator.hpp"
 
 namespace gridtools {
-    // implementation of the do method overload search
 
     /**
      * @struct find_do_method_starting_at
@@ -68,6 +68,11 @@ namespace gridtools {
             boost::mpl::if_< has_do< TFunctor, make_interval< TFromIndex, boost::mpl::_2 > >,
                 boost::mpl::push_back< boost::mpl::_1, boost::mpl::pair< TFromIndex, boost::mpl::_2 > >,
                 boost::mpl::_1 > >::type DoMethods;
+
+#ifdef CXX11_ENABLED
+        GRIDTOOLS_STATIC_ASSERT(sfinae::has_two_args< TFunctor >::type::value,
+            "A functor's Do method is found to have only one argument, when it is supposed to have two");
+#endif
 
         // check that:
         // * the k intervals you specified are consistent (i.e. the domain axis used to build
