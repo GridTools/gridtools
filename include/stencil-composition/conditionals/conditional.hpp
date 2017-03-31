@@ -75,12 +75,7 @@ namespace gridtools {
         /**
            @brief default constructor
          */
-        conditional() {
-#ifndef __CUDACC__
-            assert(false); // Not sure about the intent of the previous code, please comment.
-#endif
-        }
-
+        conditional() = default; // TODO: Not sure about the intent of the previous code, please comment.
         conditional(conditional const &) = default;
         conditional(conditional &&) = default;
         conditional &operator=(conditional const &) = default;
