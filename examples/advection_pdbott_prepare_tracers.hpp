@@ -82,7 +82,7 @@ namespace adv_prepare_tracers {
                 }
     }
 
-    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps) {
+    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps, bool verify) {
 
         typedef BACKEND::storage_traits_t::storage_info_t< 23, 3 > meta_data_t;
         typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
@@ -115,7 +115,7 @@ namespace adv_prepare_tracers {
 
         aggregator_type< args_t > domain_(list_out_, list_in_, rho);
         auto comp_ =
-            make_computation< BACKEND >(expand_factor< 20 >(),
+            make_computation< BACKEND >(expand_factor< 2 >(),
                 domain_,
                 grid_,
                 make_multistage(enumtype::execute< enumtype::forward >(),

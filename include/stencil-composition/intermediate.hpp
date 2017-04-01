@@ -397,7 +397,8 @@ namespace gridtools {
         typedef typename build_mss_components_array< backend_id< Backend >::value,
             MssDescriptorArray,
             extent_sizes_t,
-            static_int< RepeatFunctor > >::type mss_components_array_t;
+            static_int< RepeatFunctor >,
+            typename Grid::axis_type >::type mss_components_array_t;
 
         // creates a fusion sequence of views
         typedef typename create_view_fusion_map< DomainType >::type view_list_fusion_t;

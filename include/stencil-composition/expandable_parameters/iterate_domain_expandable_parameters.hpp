@@ -36,6 +36,7 @@
 
 #pragma once
 #include "../iterate_domain.hpp"
+#include "../sfinae.hpp"
 
 /** @file iterate_domain for expandable parameters*/
 
