@@ -57,7 +57,6 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
-#include <boost/fusion/include/any.hpp>
 #include "./esf.hpp"
 #include "./level.hpp"
 #include "./loopintervals.hpp"
@@ -493,9 +492,10 @@ namespace gridtools {
            to check that grid size is small enough to not make the
            stencil go out of bound on data fields.
 
+           \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
            \tparam Grid The Grid
-         */
-        template < typename Grid >
+        */
+        template < typename GridTraits, typename Grid >
         struct check_with {
             Grid const &grid;
 
@@ -518,38 +518,48 @@ namespace gridtools {
                 // Here we need to use the at_ interface instead of
                 // the at, since at_ does not assert out-of-bound
                 // queries, but actually returns -1.
-                if (MetaDataElem::value_type::layout::template at_< 2 >::value >= 0) {
-                    result = result && (grid.k_max() + 1 <= mde->dim(2));
+                if (MetaDataElem::value_type::layout::template at_< GridTraits::dim_k_t::value >::value >= 0) {
+                    result = result && (grid.k_max() + 1 <= mde->dim(GridTraits::dim_k_t::value));
                 }
 
-                if (MetaDataElem::value_type::layout::template at_< 1 >::value >= 0) {
-                    result = result && (grid.j_high_bound() + 1 <= mde->dim(1));
+                if (MetaDataElem::value_type::layout::template at_< GridTraits::dim_j_t::value >::value >= 0) {
+                    result = result && (grid.j_high_bound() + 1 <= mde->dim(GridTraits::dim_j_t::value));
                 }
 
-                if (MetaDataElem::value_type::layout::template at_< 0 >::value >= 0) {
-                    result = result && (grid.i_high_bound() + 1 <= mde->dim(0));
+                if (MetaDataElem::value_type::layout::template at_< GridTraits::dim_i_t::value >::value >= 0) {
+                    result = result && (grid.i_high_bound() + 1 <= mde->dim(GridTraits::dim_i_t::value));
                 }
 
-                // std::cout << ""
-                //           << " if ( MetaDataElem::value_type::layout::template at_<2>::value >= 0 ) {\n"
-                //           << " if ( " << MetaDataElem::value_type::layout::template at_<2>::value << " >= 0) {\n"
-                //           << "     result = result && (grid.k_max()+1 <= mde->dim(2)); "
-                //           << "     result = " << std::boolalpha << result << " && (" << grid.k_max()+1 << " <= " <<
-                //           mde->dim(2) << ");\n"
+                // std::cout << " if ( MetaDataElem::value_type::layout::template at_<GridTraits::dim_k_t::value>::value
+                // >= 0 ) {\n"
+                //           << " if ( " << MetaDataElem::value_type::layout::template at_< GridTraits::dim_k_t::value
+                //           >::value
+                //           << " >= 0) {\n"
+                //           << "     result = result && (grid.k_max()+1 <= mde->dim(GridTraits::dim_k_t::value)); "
+                //           << "     result = " << std::boolalpha << result << " && (" << grid.k_max() + 1
+                //           << " <= " << mde->dim(GridTraits::dim_k_t::value) << ");\n"
                 //           << "}\n\n"
 
-                //           << " if ( MetaDataElem::value_type::layout::template at_<1>::value >= 0 ) {\n"
-                //           << " if ( " << MetaDataElem::value_type::layout::template at_<1>::value << ">= 0 ) {\n"
-                //           << "     result = result &&  (grid.j_high_bound()+1 <= mde->dim(1));\n"
-                //           << "     result = " << std::boolalpha << result << " && " << grid.j_high_bound()+1 << " <=
-                //           " << mde->dim(1) << ";\n"
+                //           << " if ( MetaDataElem::value_type::layout::template at_<GridTraits::dim_j_t::value>::value
+                //           >= 0 ) {\n"
+                //           << " if ( " << MetaDataElem::value_type::layout::template at_< GridTraits::dim_j_t::value
+                //           >::value
+                //           << ">= 0 ) {\n"
+                //           << "     result = result &&  (grid.j_high_bound()+1 <=
+                //           mde->dim(GridTraits::dim_j_t::value));\n"
+                //           << "     result = " << std::boolalpha << result << " && " << grid.j_high_bound() + 1
+                //           << " <= " << mde->dim(GridTraits::dim_j_t::value) << ";\n"
                 //           << "}\n\n"
 
-                //           << " if ( MetaDataElem::value_type::layout::template at_<0>::value >= 0 ) {\n"
-                //           << " if ( " << MetaDataElem::value_type::layout::template at_<0>::value << ">= 0 ) {\n"
-                //           << "     result = result &&  (grid.i_high_bound()+1 <= mde->dim(0));\n"
-                //           << "     result = " << std::boolalpha << result << " && " << grid.i_high_bound()+1 << " <=
-                //           " << mde->dim(0) << ";\n"
+                //           << " if ( MetaDataElem::value_type::layout::template at_<GridTraits::dim_i_t::value>::value
+                //           >= 0 ) {\n"
+                //           << " if ( " << MetaDataElem::value_type::layout::template at_< GridTraits::dim_i_t::value
+                //           >::value
+                //           << ">= 0 ) {\n"
+                //           << "     result = result &&  (grid.i_high_bound()+1 <=
+                //           mde->dim(GridTraits::dim_i_t::value));\n"
+                //           << "     result = " << std::boolalpha << result << " && " << grid.i_high_bound() + 1
+                //           << " <= " << mde->dim(GridTraits::dim_i_t::value) << ";\n"
                 //           << "}\n\n";
 
                 return !result;
@@ -558,25 +568,27 @@ namespace gridtools {
     } // namespace _impl
 
     /**
-       Given the Grid and the Aggregator this function checks that the
+       Given the Aggregator this function checks that the
        iteration space of the grid would not caouse out of bound
        accesses from the stencil execution. This function is
        automatically called when constructing a computation.
 
-       \tparam Grid The grid
-       \tparam Aggregator The aggregator
+       \tparam GridTraits The traits in the grid in question to get the indices of the relevant coordinates
+       \tparam Grid The type of the grid (normally deduced by the argument)
+       \tparam Aggregator The aggregator (normally deduced by the argument)
 
-       \param grid The grid
+       \param grid The grid to check
        \param aggrs The aggregator
-     */
-    template < typename Grid, typename Aggregator >
-    void check_grid_against_fields(Grid const &grid, Aggregator const &aggr) {
+    */
+    template < typename GridTraits, typename Grid, typename Aggregator >
+    void check_fields(Grid const &grid, Aggregator const &aggr) {
         auto metadata_view = aggr.metadata_set_view().sequence_view();
-        bool is_wrong = boost::fusion::any(metadata_view, _impl::check_with< Grid >(grid));
+        bool is_wrong = boost::fusion::any(metadata_view, _impl::check_with< GridTraits, Grid >(grid));
         if (is_wrong) {
-            throw std::runtime_error("Iteration space size is bigger than some storages sizes, this would likely "
-                                     "result in access violation. Please check storage sizes against grid sizes, "
-                                     "including the axis levels.");
+            throw std::runtime_error(
+                "Error: Iteration space size is bigger than some storages sizes, this would likely "
+                "result in access violation. Please check storage sizes against grid sizes, "
+                "including the axis levels.");
         }
     }
 
@@ -721,7 +733,7 @@ namespace gridtools {
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
             check_grid_against_extents< all_extents_vecs_t >(grid);
-            check_grid_against_fields(grid, domain);
+            check_fields< grid_traits_t >(grid, domain);
             copy_domain_storage_pointers();
             copy_domain_metadata_pointers();
         }

@@ -125,7 +125,7 @@ namespace check_grid_bounds {
         mdlist_t mdlist(si1, si2, si3);
 
         try {
-            check_grid_against_fields(grid, domain);
+            gridtools::check_fields< gridtools::grid_traits_from_id< gridtools::enumtype::structured > >(grid, domain);
         } catch (std::runtime_error const &err) {
             expected = !expected;
         }
