@@ -35,15 +35,15 @@
 */
 #pragma once
 #include "../../common/defs.hpp"
-#include "common/generic_metafunctions/is_sequence_of.hpp"
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../arg.hpp"
 #include "../esf_fwd.hpp"
-#include "../icosahedral_grids/grid.hpp"
 #include "../extent.hpp"
-#include "vector_accessor.hpp"
 #include "../esf_aux.hpp"
-#include "color.hpp"
 #include "../sfinae.hpp"
+#include "grid.hpp"
+#include "vector_accessor.hpp"
+#include "color.hpp"
 
 namespace gridtools {
 
