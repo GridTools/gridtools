@@ -33,30 +33,39 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "functor_default_interval.hpp"
 
-namespace gridtools {
-    /**
-       @brief type list containing the user function type together with some meta information
+#include "gtest/gtest.h"
+#include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/structured_grids/call_interfaces.hpp>
 
-       \tparam T1 an identifier for the user function
-       \tparam Functor the type of the user function
-       \tparam Repeat a type specifying how many times to repeat the functor call
-       (used for expandable parameters)
-    */
-    template < typename T1, typename Functor, typename Repeat, typename Axis >
-    struct functor_decorator {
-        typedef Repeat repeat_t;
-        typedef T1 id;
-        typedef Functor f_type;
-        typedef functor_default_interval< Functor, Axis > f_with_default_interval;
-        typedef typename Functor::arg_list arg_list;
-    };
+using namespace gridtools;
+struct func {
+    using p1 = accessor< 0, enumtype::in >;
+    using p2 = accessor< 1, enumtype::inout >;
+    using arg_list = boost::mpl::vector2< p1, p2 >;
 
-    template < typename T >
-    struct is_functor_decorator : boost::mpl::false_ {};
+    template < typename Eval >
+    void Do(Eval const &eval) {}
+};
 
-    template < typename T1, typename Functor, typename Repeat, typename Axis >
-    struct is_functor_decorator< functor_decorator< T1, Functor, Repeat, Axis > > : boost::mpl::true_ {};
-} // namespace gridtools
+struct func_call {
+    using p1 = accessor< 0, enumtype::in >;
+    using p2 = accessor< 1, enumtype::inout >;
+    using arg_list = boost::mpl::vector2< p1, p2 >;
+
+    template < typename Eval >
+    void Do(Eval const &eval) {
+        call< func >::with(eval);
+    }
+};
+
+struct storage_stub {
+    using iterator = void;
+    using value_type = void;
+};
+
+TEST(default_interval, test) {
+
+    auto s1 = make_stage< func >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
+    auto s2 = make_stage< func_call >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
+}
