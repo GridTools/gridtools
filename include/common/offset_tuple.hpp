@@ -39,7 +39,7 @@
 #include <boost/mpl/find.hpp>
 #include "defs.hpp"
 #include "dimension.hpp"
-#include "generic_metafunctions/logical_ops.hpp"
+#include "generic_metafunctions/binary_ops.hpp"
 #include "generic_metafunctions/variadic_to_vector.hpp"
 #include "generic_metafunctions/accumulate.hpp"
 #include "generic_metafunctions/is_variadic_pack_of.hpp"
@@ -214,9 +214,8 @@ namespace gridtools {
         GT_FUNCTION constexpr offset_tuple(dimension< Idx > const &t, GenericElements const &... x)
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {
             GRIDTOOLS_STATIC_ASSERT(
-                (Index <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
+                (Idx <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
         }
-
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base

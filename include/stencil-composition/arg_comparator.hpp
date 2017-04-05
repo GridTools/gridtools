@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../gridtools.hpp"
+#include "../gridtools.hpp"
 namespace gridtools {
 
     /**

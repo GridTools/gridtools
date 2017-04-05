@@ -33,18 +33,39 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "accumulate.hpp"
-#include "binary_ops.hpp"
 
-namespace gridtools {
+#include "gtest/gtest.h"
+#include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/structured_grids/call_interfaces.hpp>
 
-#ifdef CXX11_ENABLED
-    /**@brief specialization to stop the recursion*/
-    template < typename... Args >
-    GT_FUNCTION static constexpr bool is_variadic_pack_of(Args... args) {
-        return accumulate(logical_and(), args...);
+using namespace gridtools;
+struct func {
+    using p1 = accessor< 0, enumtype::in >;
+    using p2 = accessor< 1, enumtype::inout >;
+    using arg_list = boost::mpl::vector2< p1, p2 >;
+
+    template < typename Eval >
+    void Do(Eval const &eval) {}
+};
+
+struct func_call {
+    using p1 = accessor< 0, enumtype::in >;
+    using p2 = accessor< 1, enumtype::inout >;
+    using arg_list = boost::mpl::vector2< p1, p2 >;
+
+    template < typename Eval >
+    void Do(Eval const &eval) {
+        call< func >::with(eval);
     }
+};
 
-#endif
-} // namespace gridtools
+struct storage_stub {
+    using iterator = void;
+    using value_type = void;
+};
+
+TEST(default_interval, test) {
+
+    auto s1 = make_stage< func >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
+    auto s2 = make_stage< func_call >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
+}
