@@ -95,7 +95,7 @@ namespace gridtools {
             typedef typename EsfArguments::functor_t functor_t;
             typedef typename EsfArguments::extent_t extent_t;
 
-            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, GT_INTERNAL_ERROR);
 
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size

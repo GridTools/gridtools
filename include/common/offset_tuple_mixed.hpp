@@ -91,7 +91,7 @@ namespace gridtools {
         GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple_mixed< offset_tuple< I, N > > const &other_)
             : m_tuple_runtime(other_.m_tuple_runtime) {}
 
-        template < typename OffsetTuple, int_t I, int_t N >
+        template < int_t I, int_t N >
         GT_FUNCTION constexpr offset_tuple_mixed(offset_tuple< I, N > const &arg_)
             : m_tuple_runtime(arg_) {}
 

@@ -134,7 +134,7 @@ namespace test_expandable_parameters {
 
         aggregator_type< args_t > domain_(boost::fusion::make_vector(&list_out_, &list_in_));
 
-        auto comp_ = make_computation< BACKEND >(expand_factor< 3 >(),
+        auto comp_ = make_computation< BACKEND >(expand_factor< 8 >(),
             domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),

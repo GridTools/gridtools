@@ -51,7 +51,7 @@ namespace gridtools {
      * @tparam RepeatFunctor the length of the chunks for expandable parameters, see @ref
      * gridtools::expandable_parameters
      */
-    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis >
     struct mss_components {
         GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(
@@ -95,7 +95,8 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1,
                                            functor_decorator< boost::mpl::_2,
                                                boost::mpl::at< functors_seq_t, boost::mpl::_2 >,
-                                               RepeatFunctor > > >::type functors_list_t;
+                                               RepeatFunctor,
+                                               Axis > > >::type functors_list_t;
 
         typedef ExtentSizes extent_sizes_t;
         typedef typename MssDescriptor::cache_sequence_t cache_sequence_t;
@@ -104,7 +105,8 @@ namespace gridtools {
     template < typename T >
     struct is_mss_components : boost::mpl::false_ {};
 
-    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
-    struct is_mss_components< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor > > : boost::mpl::true_ {};
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis >
+    struct is_mss_components< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor, Axis > > : boost::mpl::true_ {
+    };
 
 } // namespace gridtools
