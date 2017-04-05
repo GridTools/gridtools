@@ -356,11 +356,6 @@ namespace gridtools {
             }
         };
 
-        template < typename... UInt, typename Dummy = all_static_integers< UInt... > >
-        constexpr GT_FUNCTION uint_t index(uint_t first, UInt... args_) const {
-            return _index(strides(), first, args_...);
-        }
-
         template < size_t S >
         GT_FUNCTION int_t index(array< uint_t, S > const &a) const {
             return (int_t)explode< int_t, _impl_index >(a, *this);

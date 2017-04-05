@@ -33,20 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "test_cxx11_gt_math.cpp"
 
-#include <boost/fusion/container/vector.hpp>
+#include "../cuda_test_helper.hpp"
 
-namespace gridtools {
+TEST(math_cuda, test_fabs) {
+    ASSERT_TRUE(test_fabs::Do());
+    ASSERT_TRUE(cuda_test< test_fabs >());
+}
 
-    /**
-       Metafunction that checks that an index is not out of bounds for a fusion vector
-
-       \tparam IndexType Index type (need ::value to access the value)
-       \tparam FusionVector the fusion vector
-     */
-    template < typename IndexType, typename FusionVector >
-    struct fusion_vector_check_bound {
-        static const bool value =
-            IndexType::value >= 0 && IndexType::value < boost::fusion::result_of::size< FusionVector >::type::value;
-    };
-} // namespace gridtools
+TEST(math_cuda, test_abs) {
+    ASSERT_TRUE(test_fabs::Do());
+    ASSERT_TRUE(cuda_test< test_fabs >());
+}
