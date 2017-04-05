@@ -44,7 +44,6 @@
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../esf_fwd.hpp"
 #include "../esf_aux.hpp"
-#include "../sfinae.hpp"
 
 /**
    @file
@@ -97,15 +96,7 @@ namespace gridtools {
         typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////
-
-        /**@brief Macro defining a sfinae metafunction
-
-           defines a metafunction has_extent_type, which returns true if its template argument
-           defines a type called arg_list. It also defines a get_arg_list metafunction, which
-           can be used to return the arg_list only when it is present, without giving compilation
-           errors in case it is not defined.
-        */
-        HAS_TYPE_SFINAE(arg_list, has_arg_list, get_arg_list)
+        BOOST_MPL_HAS_XXX_TRAIT_DEF(arg_list)
         GRIDTOOLS_STATIC_ASSERT(has_arg_list< esf_function >::type::value,
             "The type arg_list was not found in a user functor definition. All user functors must have a type alias "
             "called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor "

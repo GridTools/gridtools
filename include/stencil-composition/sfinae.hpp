@@ -38,51 +38,14 @@
 #include <boost/typeof/typeof.hpp>
 
 namespace gridtools {
-    /**
-       @brief Sobstitution Failure is Not An Error
 
-       design pattern used to detect at compile-time whether a class contains a member or not (introspection)
-    */
-    // define an SFINAE structure
-    template < typename T >
-    struct SFINAE;
-
-    template <>
-    struct SFINAE< int > {};
-
-#define HAS_TYPE_SFINAE(name, has_name, get_name)                             \
-    template < typename TFunctorInternal >                                    \
-    struct has_name {                                                         \
-        struct MixIn {                                                        \
-            using name = int;                                                 \
-        };                                                                    \
-        struct derived : public TFunctorInternal, public MixIn {};            \
-                                                                              \
-        template < typename TDerived >                                        \
-        static boost::mpl::false_ test(SFINAE< typename TDerived::name > *x); \
-        template < typename TDerived >                                        \
-        static boost::mpl::true_ test(...);                                   \
-                                                                              \
-        typedef decltype(test< derived >(0)) type;                            \
-        typedef TFunctorInternal functor_t;                                   \
-    };                                                                        \
-                                                                              \
-    template < typename FunctorInternal >                                     \
-    struct get_name {                                                         \
-        typedef typename FunctorInternal::name type;                          \
-    };
-
-/** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
-#define HAS_STATIC_METHOD_SFINAE(name)       \
-    template < int >                         \
-    struct sfinae_true : std::true_type {};  \
-    template < class T >                     \
-    sfinae_true< (T::name(), 0) > test(int); \
-    template < class >                       \
-    std::false_type test(...);               \
-                                             \
-    template < class T >                     \
-    struct has_constexpr_name : decltype(test< T >(0)) {};
+/*
+ * HAS_TYPE_SFINAE was removed, please use the boost macro with the same functionality:
+ * BOOST_MPL_HAS_XXX_TRAIT_DEF(name)
+ *
+ * HAS_STATIC_METHOD_SFINAE was removed as it was not used. Consider using
+ * BOOST_TTI_HAS_STATIC_MEMBER_FUNCTION_GEN(name) if needed at some point.
+ */
 
 /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
 #define HAS_CONSTEXPR_CONSTRUCTOR(name)       \
@@ -121,7 +84,6 @@ namespace gridtools {
             struct dummy_type {}; // used for SFINAE
         }
 
-#ifdef CXX11_ENABLED
         /**
            @brief SFINAE metafunction to detect when a static Do functor in a struct has
            2 arguments
@@ -146,6 +108,5 @@ namespace gridtools {
             typedef decltype(test< Functor >(0)) type;
             static const bool value = type::value;
         };
-#endif
     } // namespace sfinae
 } // namespace gridtools

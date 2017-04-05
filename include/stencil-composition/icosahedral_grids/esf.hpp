@@ -40,7 +40,6 @@
 #include "../esf_fwd.hpp"
 #include "../extent.hpp"
 #include "../esf_aux.hpp"
-#include "../sfinae.hpp"
 #include "grid.hpp"
 #include "vector_accessor.hpp"
 #include "color.hpp"
@@ -66,7 +65,7 @@ namespace gridtools {
         using args_t = ArgSequence;
         using color_t = Color;
 
-        HAS_TYPE_SFINAE(arg_list, has_arg_list, get_arg_list)
+        BOOST_MPL_HAS_XXX_TRAIT_DEF(arg_list)
         GRIDTOOLS_STATIC_ASSERT(has_arg_list< esf_function< 0 > >::type::value,
             "The type arg_list was not found in a user functor definition. All user functors must have a type alias "
             "called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor "
