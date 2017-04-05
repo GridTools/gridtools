@@ -46,7 +46,7 @@
 
 #include "../common/array.hpp"
 #include "../common/boollist.hpp"
-#include "halo_descriptor.hpp"
+#include "../../common/halo_descriptor.hpp"
 
 namespace gridtools {
 

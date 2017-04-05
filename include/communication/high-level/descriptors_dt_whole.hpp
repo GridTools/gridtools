@@ -45,7 +45,7 @@
 #include "../../common/ndloops.hpp"
 #include "../low-level/data_types_mapping.hpp"
 #include "gcl_parameters.hpp"
-#include "halo_descriptor.hpp"
+#include "../../common/halo_descriptor.hpp"
 #include "../../common/layout_map.hpp"
 
 #include <boost/preprocessor/arithmetic/inc.hpp>
