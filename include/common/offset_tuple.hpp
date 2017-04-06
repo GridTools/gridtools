@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -214,9 +214,8 @@ namespace gridtools {
         GT_FUNCTION constexpr offset_tuple(dimension< Idx > const &t, GenericElements const &... x)
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {
             GRIDTOOLS_STATIC_ASSERT(
-                (Index <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
+                (Idx <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
         }
-
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base

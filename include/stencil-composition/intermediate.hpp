@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -554,7 +554,8 @@ namespace gridtools {
         typedef typename build_mss_components_array< backend_id< Backend >::value,
             MssDescriptorArray,
             extent_sizes_t,
-            static_int< RepeatFunctor > /*repeat_fuctor*/ >::type mss_components_array_t;
+            static_int< RepeatFunctor >,
+            typename Grid::axis_type >::type mss_components_array_t;
 
         typedef typename create_actual_arg_list< Backend, DomainType, mss_components_array_t, float_type >::type
             actual_arg_list_type;
