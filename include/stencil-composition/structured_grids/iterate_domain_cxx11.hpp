@@ -389,8 +389,7 @@ namespace gridtools {
                 "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and "
                 "snapshot)");
 
-            const uint_t idx = get_accumulated_data_field_index_h< storage_t >::apply(accessor.template get< 1 >()) +
-                               accessor.template get< 0 >();
+            const int_t idx = get_datafield_offset< storage_t >::get(accessor);
 #ifdef CUDA8
             assert(idx < storage_t::size && "Out of bounds access when accessing data store field element.");
 #endif

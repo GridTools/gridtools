@@ -87,7 +87,7 @@ namespace adv_prepare_tracers {
         typedef BACKEND::storage_traits_t::storage_info_t< 23, 3 > meta_data_t;
         typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
-        constexpr uint_t vec_size = 20;
+        constexpr uint_t vec_size = 11;
 
         meta_data_t meta_data_(d1, d2, d3);
 

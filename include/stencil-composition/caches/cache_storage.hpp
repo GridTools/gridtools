@@ -57,22 +57,6 @@ namespace gridtools {
 
     namespace impl_ {
 
-        template < typename T >
-        struct get_storage_offset {
-            template < typename Acc >
-            GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-                return 0;
-            }
-        };
-
-        template < typename T, unsigned... N >
-        struct get_storage_offset< data_store_field< T, N... > > {
-            template < typename Acc >
-            GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-                return get_accumulated_data_field_index(a.template get< 1 >(), N...) + a.template get< 0 >();
-            }
-        };
-
         /** helper function computing sum(offset*stride ...)*/
         template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
         GT_FUNCTION constexpr typename boost::enable_if_c< (From == To), int_t >::type get_offset(Accessor acc) {
@@ -144,7 +128,7 @@ namespace gridtools {
                 (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
                 (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (!is_default_location_t::value) >() +
                 (!is_default_location_t::value) * Color * meta_t::template stride< 1 >() +
-                size() * impl_::get_storage_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                 impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
             assert((extra_) >= 0);
             assert((extra_) < (size() * StorageWrapper::storage_size));

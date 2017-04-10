@@ -583,12 +583,20 @@ namespace gridtools {
         typedef T type;
     };
 
-    template < typename DSF >
-    struct get_accumulated_data_field_index_h;
+    template < typename T >
+    struct get_datafield_offset {
+        template < typename Acc >
+        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
+            return 0;
+        }
+    };
 
-    template < typename DS, unsigned... N >
-    struct get_accumulated_data_field_index_h< data_store_field< DS, N... > > {
-        GT_FUNCTION static constexpr unsigned apply(unsigned M) { return get_accumulated_data_field_index(M, N...); }
+    template < typename T, unsigned... N >
+    struct get_datafield_offset< data_store_field< T, N... > > {
+        template < typename Acc >
+        GT_FUNCTION static constexpr uint_t get(Acc const &a) {
+            return get_accumulated_data_field_index(a.template get< 1 >(), N...) + a.template get< 0 >();
+        }
     };
 
     /**
