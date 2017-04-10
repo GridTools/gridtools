@@ -213,8 +213,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< decltype(m_intermediate_remainder->run()), notype >::value),
                 "Reduction is not allowed with expandable parameters");
             // the expand factor must be smaller than the total size of the expandable parameters list
-            assert(m_size >= ExpandFactor::value);
-
             for (uint_t i = 0; i < m_size - m_size % ExpandFactor::value; i += ExpandFactor::value) {
                 boost::mpl::for_each< expandable_params_t >(_impl::assign_expandable_params< ExpandFactor,
                     Backend,

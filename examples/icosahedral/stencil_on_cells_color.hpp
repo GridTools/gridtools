@@ -104,7 +104,7 @@ namespace socc {
         auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
         auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
         auto ref_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref");
-        in_cells.allocate();
+        in_cells = decltype(in_cells)(*in_cells.get_storage_info_ptr(), 0.0);
         out_cells.allocate();
         ref_cells.allocate();
         auto inv = make_host_view(in_cells);
