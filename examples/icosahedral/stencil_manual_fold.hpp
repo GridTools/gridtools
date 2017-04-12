@@ -80,7 +80,7 @@ namespace smf {
     template < uint_t Color >
     struct test_on_edges_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > cell_area;
-        typedef inout_accessor< 1, icosahedral_topology_t::cells, 5 > weight_edges;
+        typedef inout_accessor< 1, icosahedral_topology_t::edges, 5 > weight_edges;
         typedef boost::mpl::vector< cell_area, weight_edges > arg_list;
 
         template < typename Evaluation >

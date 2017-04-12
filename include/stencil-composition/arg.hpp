@@ -102,7 +102,8 @@ namespace gridtools {
         typename LocationType = enumtype::default_location_type,
         typename is_temporary_storage = void >
     struct arg {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value),
+            "The third template argument of a placeholder must be a location_type");
         typedef Storage storage_type;
         typedef typename Storage::iterator iterator;
         typedef typename Storage::value_type value_type;

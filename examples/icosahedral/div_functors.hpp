@@ -49,7 +49,7 @@ namespace ico_operators {
     struct div_prep_functor {
         typedef in_accessor< 0, icosahedral_topology_t::edges, extent< 0, 1, 0, 1 > > edge_length;
         typedef in_accessor< 1, icosahedral_topology_t::cells > cell_area_reciprocal;
-        typedef in_accessor< 2, icosahedral_topology_t::cells, extent< 0 >, 5 > orientation_of_normal;
+        typedef in_accessor< 2, icosahedral_topology_t::edges, extent< 0 >, 5 > orientation_of_normal;
         typedef inout_accessor< 3, icosahedral_topology_t::cells, 5 > weights;
 
         typedef boost::mpl::vector< edge_length, cell_area_reciprocal, orientation_of_normal, weights > arg_list;

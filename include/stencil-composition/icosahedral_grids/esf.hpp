@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/mpl/equal.hpp>
 #include "common/generic_metafunctions/is_sequence_of.hpp"
 #include "../arg.hpp"
 #include "../esf_fwd.hpp"
@@ -44,6 +45,20 @@
 #include "color.hpp"
 
 namespace gridtools {
+
+    template < typename Placeholders, typename Accessors >
+    struct are_location_types_compatible {
+
+        template < typename Plc, typename Acc >
+        struct same_location_type {
+            using type = typename boost::is_same< typename Plc::location_type_t, typename Acc::location_type >::type;
+            static constexpr bool value = type::value;
+        };
+
+        static constexpr bool value = boost::mpl::equal< Placeholders,
+            Accessors,
+            same_location_type< boost::mpl::_1, boost::mpl::_2 > >::type::value;
+    };
 
     template < template < uint_t > class Functor,
         typename Grid,
@@ -63,6 +78,9 @@ namespace gridtools {
         using location_type = LocationType;
         using args_t = ArgSequence;
         using color_t = Color;
+
+        GRIDTOOLS_STATIC_ASSERT((are_location_types_compatible< args_t, typename Functor< 0 >::arg_list >::value),
+            "Location types of placeholders and accessors must match");
 
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
         typedef typename impl::make_arg_with_extent_map< args_t, typename esf_function< 0 >::arg_list >::type
