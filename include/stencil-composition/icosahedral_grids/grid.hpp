@@ -37,7 +37,6 @@
 #include "stencil-composition/grid_base.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
 #include "../../common/gpu_clone.hpp"
-#include <boost/fusion/include/any.hpp>
 
 namespace gridtools {
 

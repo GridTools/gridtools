@@ -72,7 +72,7 @@ namespace aligned_copy_stencil {
 #endif
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
@@ -146,9 +146,9 @@ namespace aligned_copy_stencil {
         typedef storage_t storage_type;
         storage_type in(meta_data_, "in");
         storage_type out(meta_data_, (float_type)-1.);
-        for (uint_t i = halo_t::get< 0 >(); i < d1 + halo_t::get< 0 >(); ++i)
-            for (uint_t j = halo_t::get< 1 >(); j < d2 + halo_t::get< 1 >(); ++j)
-                for (uint_t k = halo_t::get< 2 >(); k < d3 + halo_t::get< 2 >(); ++k) {
+        for (uint_t i = halo_t::get< 0 >(); i < d1; ++i)
+            for (uint_t j = halo_t::get< 1 >(); j < d2; ++j)
+                for (uint_t k = halo_t::get< 2 >(); k < d3; ++k) {
                     in(i, j, k) = i + j + k;
                 }
 
@@ -167,15 +167,13 @@ namespace aligned_copy_stencil {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {
-            halo_t::get< 0 >(), 0, halo_t::get< 0 >(), d1 + halo_t::get< 0 >() - 1, d1 + halo_t::get< 0 >()};
-        uint_t dj[5] = {
-            halo_t::get< 1 >(), 0, halo_t::get< 1 >(), d2 + halo_t::get< 1 >() - 1, d2 + halo_t::get< 1 >()};
+        uint_t di[5] = {halo_t::get< 0 >(), 0, halo_t::get< 0 >(), d1 - 1, d1 + halo_t::get< 0 >()};
+        uint_t dj[5] = {halo_t::get< 1 >(), 0, halo_t::get< 1 >(), d2 - 1, d2 + halo_t::get< 1 >()};
 
         gridtools::grid< axis > grid(di, dj);
 
         grid.value_list[0] = halo_t::get< 2 >();
-        grid.value_list[1] = d3 + halo_t::get< 2 >() - 1;
+        grid.value_list[1] = d3 - 1;
 
 /*
   Here we do lot of stuff
@@ -219,9 +217,9 @@ namespace aligned_copy_stencil {
 #endif
 
         bool success = true;
-        for (uint_t i = halo_t::get< 0 >(); i < d1 + halo_t::get< 0 >(); ++i)
-            for (uint_t j = halo_t::get< 1 >(); j < d2 + halo_t::get< 1 >(); ++j)
-                for (uint_t k = halo_t::get< 2 >(); k < d3 + halo_t::get< 2 >(); ++k) {
+        for (uint_t i = halo_t::get< 0 >(); i < d1; ++i)
+            for (uint_t j = halo_t::get< 1 >(); j < d2; ++j)
+                for (uint_t k = halo_t::get< 2 >(); k < d3; ++k) {
                     if (in(i, j, k) != out(i, j, k) || out(i, j, k) != i + j + k) {
                         std::cout << "error in " << i << ", " << j << ", " << k << ": "
                                   << "in = " << in(i, j, k) << ", out = " << out(i, j, k) << std::endl;

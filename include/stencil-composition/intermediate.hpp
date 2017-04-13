@@ -57,6 +57,7 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
+#include <boost/fusion/include/any.hpp>
 #include "./esf.hpp"
 #include "./level.hpp"
 #include "./loopintervals.hpp"
@@ -519,48 +520,16 @@ namespace gridtools {
                 // the at, since at_ does not assert out-of-bound
                 // queries, but actually returns -1.
                 if (MetaDataElem::value_type::layout::template at_< GridTraits::dim_k_t::value >::value >= 0) {
-                    result = result && (grid.k_max() + 1 <= mde->dim(GridTraits::dim_k_t::value));
+                    result = result && (grid.k_max() + 1 <= mde->unaligned_dim(GridTraits::dim_k_t::value));
                 }
 
                 if (MetaDataElem::value_type::layout::template at_< GridTraits::dim_j_t::value >::value >= 0) {
-                    result = result && (grid.j_high_bound() + 1 <= mde->dim(GridTraits::dim_j_t::value));
+                    result = result && (grid.j_high_bound() + 1 <= mde->unaligned_dim(GridTraits::dim_j_t::value));
                 }
 
                 if (MetaDataElem::value_type::layout::template at_< GridTraits::dim_i_t::value >::value >= 0) {
-                    result = result && (grid.i_high_bound() + 1 <= mde->dim(GridTraits::dim_i_t::value));
+                    result = result && (grid.i_high_bound() + 1 <= mde->unaligned_dim(GridTraits::dim_i_t::value));
                 }
-
-                // std::cout << " if ( MetaDataElem::value_type::layout::template at_<GridTraits::dim_k_t::value>::value
-                // >= 0 ) {\n"
-                //           << " if ( " << MetaDataElem::value_type::layout::template at_< GridTraits::dim_k_t::value
-                //           >::value
-                //           << " >= 0) {\n"
-                //           << "     result = result && (grid.k_max()+1 <= mde->dim(GridTraits::dim_k_t::value)); "
-                //           << "     result = " << std::boolalpha << result << " && (" << grid.k_max() + 1
-                //           << " <= " << mde->dim(GridTraits::dim_k_t::value) << ");\n"
-                //           << "}\n\n"
-
-                //           << " if ( MetaDataElem::value_type::layout::template at_<GridTraits::dim_j_t::value>::value
-                //           >= 0 ) {\n"
-                //           << " if ( " << MetaDataElem::value_type::layout::template at_< GridTraits::dim_j_t::value
-                //           >::value
-                //           << ">= 0 ) {\n"
-                //           << "     result = result &&  (grid.j_high_bound()+1 <=
-                //           mde->dim(GridTraits::dim_j_t::value));\n"
-                //           << "     result = " << std::boolalpha << result << " && " << grid.j_high_bound() + 1
-                //           << " <= " << mde->dim(GridTraits::dim_j_t::value) << ";\n"
-                //           << "}\n\n"
-
-                //           << " if ( MetaDataElem::value_type::layout::template at_<GridTraits::dim_i_t::value>::value
-                //           >= 0 ) {\n"
-                //           << " if ( " << MetaDataElem::value_type::layout::template at_< GridTraits::dim_i_t::value
-                //           >::value
-                //           << ">= 0 ) {\n"
-                //           << "     result = result &&  (grid.i_high_bound()+1 <=
-                //           mde->dim(GridTraits::dim_i_t::value));\n"
-                //           << "     result = " << std::boolalpha << result << " && " << grid.i_high_bound() + 1
-                //           << " <= " << mde->dim(GridTraits::dim_i_t::value) << ";\n"
-                //           << "}\n\n";
 
                 return !result;
             }
@@ -569,7 +538,7 @@ namespace gridtools {
 
     /**
        Given the Aggregator this function checks that the
-       iteration space of the grid would not caouse out of bound
+       iteration space of the grid would not cause out of bound
        accesses from the stencil execution. This function is
        automatically called when constructing a computation.
 
@@ -581,7 +550,7 @@ namespace gridtools {
        \param aggrs The aggregator
     */
     template < typename GridTraits, typename Grid, typename Aggregator >
-    void check_fields(Grid const &grid, Aggregator const &aggr) {
+    void check_fields_sizes(Grid const &grid, Aggregator const &aggr) {
         auto metadata_view = aggr.metadata_set_view().sequence_view();
         bool is_wrong = boost::fusion::any(metadata_view, _impl::check_with< GridTraits, Grid >(grid));
         if (is_wrong) {
@@ -733,7 +702,7 @@ namespace gridtools {
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
             check_grid_against_extents< all_extents_vecs_t >(grid);
-            check_fields< grid_traits_t >(grid, domain);
+            check_fields_sizes< grid_traits_t >(grid, domain);
             copy_domain_storage_pointers();
             copy_domain_metadata_pointers();
         }

@@ -36,7 +36,6 @@
 #pragma once
 #include "../grid_base.hpp"
 #include "../../common/gpu_clone.hpp"
-#include <boost/fusion/include/any.hpp>
 
 namespace gridtools {
 

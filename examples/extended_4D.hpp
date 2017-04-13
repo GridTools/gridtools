@@ -190,8 +190,8 @@ namespace assembly {
             for (uint_t j = 0; j < b2; ++j)
                 for (uint_t k = 0; k < b3; ++k)
                     for (uint_t q = 0; q < nbQuadPt; ++q) {
-                        phi(1, 1, 1, i, j, k, q) = 10.;
-                        psi(1, 1, 1, i, j, k, q) = 11.;
+                        phi(0, 0, 0, i, j, k, q) = 10.;
+                        psi(0, 0, 0, i, j, k, q) = 11.;
                     }
 
         metadata_t meta_(d1, d2, d3, b1, b2, b3);

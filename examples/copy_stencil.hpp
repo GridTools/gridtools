@@ -62,7 +62,8 @@ namespace copy_stencil {
 #endif
 
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
@@ -72,7 +73,7 @@ namespace copy_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval) {
+        GT_FUNCTION static void Do(Evaluation const &eval) { //, x_interval) {
             eval(out()) = eval(in());
         }
     };
