@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -273,6 +273,11 @@ namespace gridtools {
 
                 // First determine which are the outputs
                 typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs_original;
+                GRIDTOOLS_STATIC_ASSERT(
+                    (MssDescriptor::is_reduction_t::value || boost::mpl::size< outputs_original >::value),
+                    "there seems to be a functor without output fields "
+                    "check that each stage has at least one accessor "
+                    "defined as \'inout\'");
                 // substitute the types for expandable parameters arg
                 typedef
                     typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs_with_globals;
