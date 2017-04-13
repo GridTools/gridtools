@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -125,7 +125,8 @@ namespace check_grid_bounds {
         mdlist_t mdlist(si1, si2, si3);
 
         try {
-            gridtools::check_fields< gridtools::grid_traits_from_id< gridtools::enumtype::structured > >(grid, domain);
+            gridtools::check_fields_sizes< gridtools::grid_traits_from_id< gridtools::enumtype::structured > >(
+                grid, domain);
         } catch (std::runtime_error const &err) {
             expected = !expected;
         }
