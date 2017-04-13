@@ -82,4 +82,10 @@ namespace gridtools {
     template < typename Global, typename... Args >
     struct is_global_accessor< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
 
+    template < typename T >
+    struct is_global_accessor_with_arguments : boost::false_type {};
+
+    template < typename Global, typename... Args >
+    struct is_global_accessor_with_arguments< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
+
 } // namespace gridtools

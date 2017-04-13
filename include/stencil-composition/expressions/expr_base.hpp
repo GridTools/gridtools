@@ -151,9 +151,10 @@ namespace gridtools {
         using no_accessor_types =
             typename boost::mpl::bool_< accumulate(logical_and(), !is_accessor< Args >::value...) >::type;
 
+        /**\note: we accept global accessors with arguments in the expressions*/
         template < typename... Args >
-        using no_global_accessor_types =
-            typename boost::mpl::bool_< accumulate(logical_and(), !is_global_accessor< Args >::value...) >::type;
+        using no_global_accessor_types = typename boost::mpl::bool_< accumulate(logical_and(),
+            (!is_global_accessor< Args >::value || is_global_accessor_with_arguments< Args >::value)...) >::type;
 
         template < typename... Args >
         using no_expr_nor_accessor_types = boost::mpl::bool_< accumulate(logical_and(),
