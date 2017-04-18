@@ -1,0 +1,8 @@
+title: Gridtools
+description: Design project for a C++ library for applications on regular or block regular grids, like PDE solvers.
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-architect
+
+gems:
+  - jekyll-mentions
