@@ -179,7 +179,8 @@ namespace gridtools {
          */
         metadata_set_t m_metadata_set;
 
-        template < typename... DataStores >
+        template < typename... DataStores, 
+            typename boost::enable_if<typename _impl::domain_arg_check<DataStores...>::type, int>::type = 0 >
         aggregator_type(DataStores &... ds)
             : m_arg_storage_pair_list(), m_metadata_set() {
 

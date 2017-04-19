@@ -106,6 +106,24 @@ namespace gridtools {
 
     namespace _impl {
 
+        // metafunction that checks if argument is a suitable domain element
+        template < typename... Args >
+        struct domain_arg_check;
+
+        template < typename T, typename... Rest >
+        struct domain_arg_check<T, Rest...> {
+            typedef typename is_data_store<T>::type c1;
+            typedef typename is_data_store_field<T>::type c2;
+            typedef typename is_vector<T>::type c3;
+            typedef typename boost::mpl::or_<c1, c2, c3>::type is_suitable;
+            typedef typename boost::mpl::and_< is_suitable, typename domain_arg_check<Rest...>::type > type;
+        };
+
+        template <>
+        struct domain_arg_check<> {
+            typedef boost::mpl::true_ type;
+        };
+
         // metafunction that replaces the ID of a storage_info type
         template < typename T, typename NewId >
         struct replace_storage_info_index;
