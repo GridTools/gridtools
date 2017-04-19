@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -104,11 +104,7 @@ computation->finalize();
 
         uint_t rec_depth_ = 0;
 
-#if (GCC_53_BUG)
         cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
-#else
-        cond_.push_back_condition([&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); });
-#endif
         return if_(conditional_t((*cond_.m_conditions)[rec_depth_]),
             first_.mss(),
             recursive_switch(rec_depth_, cond_, cases_...));
@@ -132,11 +128,7 @@ computation->finalize();
         typedef conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value > conditional_t;
         recursion_depth_++;
 
-#if (GCC_53_BUG)
         cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
-#else
-        cond_.push_back_condition([&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); });
-#endif
 
         return if_(conditional_t((*cond_.m_conditions)[recursion_depth_]),
             first_.mss(),
