@@ -40,6 +40,18 @@
 
 namespace gridtools {
 
+    /** @brief internal struct to simplify the API when we pass arguments to the global_accessor ```operator()```
+
+        \tparam GlobalAccessor the associated global_accessor
+        \tparam Args the type of the arguments passed to the ```operator()``` of the global_accessor
+
+        The purpose of this struct is to add a "state" to the global accessor, storing the arguments
+        passed to it inside a tuple. The global_accessor_with_arguments is not explicitly instantiated by the user, it
+       gets generated
+        when calling the ```operator()``` on a global_accessor. Afterwards it is treated as an expression by
+        the iterate_domain which contains an overload of ```operator()``` specialised for
+       global_accessor_with_arguments.
+     */
     template < typename GlobalAccessor, typename... Args >
     struct global_accessor_with_arguments {
       private:
@@ -55,6 +67,16 @@ namespace gridtools {
         boost::fusion::vector< Args... > const &get_arguments() const { return m_arguments; };
     };
 
+    /**
+       @brief object to be accessed regardless the current iteration point
+
+       \tparam I unique accessor identifier
+       \tparam Intend the global accessors must me read-only
+
+       This accessor allows the user to call a user function contained in a user-defined object.
+       Calling the parenthesis operator on the global_accessor generates an instance of
+       ```global_accessor_with_arguments```.
+     */
     template < uint_t I, enumtype::intend Intend = enumtype::in >
     struct global_accessor {
 
@@ -67,6 +89,7 @@ namespace gridtools {
 
         typedef empty_extent extent_t;
 
+        /** @brief generates a global_accessor_with_arguments and returns it by value */
         template < typename... Args >
         GT_FUNCTION global_accessor_with_arguments< global_accessor, Args... > operator()(Args &&... args_) {
             return global_accessor_with_arguments< global_accessor, Args... >(std::forward< Args >(args_)...);
