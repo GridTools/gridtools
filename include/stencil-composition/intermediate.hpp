@@ -413,6 +413,9 @@ namespace gridtools {
         typedef
             typename boost::fusion::result_of::as_vector< storage_wrapper_list_t >::type storage_wrapper_fusion_list_t;
 
+        // get the maximum extent (used to retrieve the size of the temporaries)
+        typedef typename get_max_i_extent<storage_wrapper_fusion_list_t>::type max_i_extent_t;
+
         // creates an mpl sequence of local domains
         typedef typename create_mss_local_domains< backend_id< Backend >::value,
             mss_components_array_t,
@@ -427,7 +430,7 @@ namespace gridtools {
         // member fields
         mss_local_domain_list_t m_mss_local_domain_list;
 
-        DomainType &m_domain;
+        DomainType m_domain;
         const Grid &m_grid;
 
         bool is_storage_ready;
@@ -449,7 +452,7 @@ namespace gridtools {
         virtual void ready() {
             // instantiate all the temporaries
             boost::mpl::for_each< storage_wrapper_fusion_list_t >(
-                _impl::instantiate_tmps< DomainType, Grid, Backend >(m_domain, m_grid));
+                _impl::instantiate_tmps< max_i_extent_t, DomainType, Grid, Backend >(m_domain, m_grid));
         }
 
         virtual void steady() {

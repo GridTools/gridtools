@@ -184,11 +184,12 @@ namespace gridtools {
             Method to extract get a storage_info for a temporary storage (could either be a icosahedral or a standard
            storage info)
          */
-        template < typename T, typename StorageWrapper, typename Grid >
-        static T instantiate_storage_info(Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_storage_info< T >::value), "Internal Error: wrong type");
+        template < typename MaxExtent, typename StorageWrapper, typename Grid >
+        static typename StorageWrapper::storage_info_t instantiate_storage_info(Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_storage_info< typename StorageWrapper::storage_info_t >::value), 
+                "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_storage_wrapper< StorageWrapper >::value), "Internal Error: wrong type");
-            return grid_traits_t::template instantiate_storage_info< T, this_type, StorageWrapper >(grid);
+            return grid_traits_t::template instantiate_storage_info< MaxExtent, this_type, StorageWrapper >(grid);
         }
 
         /**

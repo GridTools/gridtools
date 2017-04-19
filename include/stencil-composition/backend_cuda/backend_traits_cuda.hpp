@@ -163,24 +163,23 @@ namespace gridtools {
             typename StorageInfo >
         GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
-            constexpr int block_size_i =
-                2 * StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >() + PEBlockSize::i_size_t::value;
-            constexpr int block_size_j =
-                2 * StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >() + PEBlockSize::j_size_t::value;
+            typedef typename LocalDomain::max_i_extent_t max_i_t;
+
+            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
+            constexpr int block_size_i = 2*max_i_t::value + PEBlockSize::i_size_t::value;
+            constexpr int block_size_j = 2*StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >() 
+                + PEBlockSize::j_size_t::value;
+
             // protect against div. by 0
-            constexpr int diff_between_blocks =
-                ((StorageInfo::alignment_t::value)
+            constexpr int diff_between_blocks = 
+                ((StorageInfo::alignment_t::value > 1)
                     ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
-                          StorageInfo::alignment_t::value
-                    : PEBlockSize::i_size_t::value);
+                          StorageInfo::alignment_t::value : block_size_i);
             // compute position in i and j
             const uint_t i = processing_element_i() * diff_between_blocks;
-            const uint_t j = Arg::location_t::n_colors::value * diff_between_blocks * 
-                gridDim.x * processing_element_j() * block_size_j;
-            // get_initial_offset will deliver (alignment<N> - max. iminus halo). But in order to be
-            // aligned we have to add a value to this offset if we have an extent in iminus that is
-            // smaller than the maximum extent in iminus.
-            return StorageInfo::get_initial_offset() + CurrentExtent::iminus::value + i + j;
+            const uint_t j = Arg::location_t::n_colors::value * 
+                (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
+            return StorageInfo::get_initial_offset() - CurrentExtent::iminus::value + i + j;
         }
 
         template < typename LocalDomain,

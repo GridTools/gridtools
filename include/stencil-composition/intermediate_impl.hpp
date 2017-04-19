@@ -263,7 +263,7 @@ namespace gridtools {
         };
 
         /** @brief Functor used to instantiate and allocate all temporary storages */
-        template < typename AggregatorType, typename Grid, typename Backend >
+        template < typename MaxExtent, typename AggregatorType, typename Grid, typename Backend >
         struct instantiate_tmps {
             AggregatorType &m_agg;
             Grid const &m_grid;
@@ -274,10 +274,8 @@ namespace gridtools {
             void operator()(T const &) const {
                 assert(!m_agg.template get_arg_storage_pair< typename T::arg_t >().ptr.get() && 
                     "temporary storage already initialized (maybe ready() was called multiple times). reinitialization would produce a memory leak. ");
-                // some typedefs
-                typedef typename T::storage_info_t storage_info_t;
                 // instantiate the right storage info (according to grid and used strategy)
-                auto storage_info = Backend::template instantiate_storage_info< storage_info_t, T >(m_grid);
+                auto storage_info = Backend::template instantiate_storage_info< MaxExtent, T >(m_grid);
                 // create a storage and fill the aggregator
                 auto ptr = gridtools::pointer< typename T::storage_t >(new typename T::storage_t(storage_info));
                 ptr.get()->allocate();
