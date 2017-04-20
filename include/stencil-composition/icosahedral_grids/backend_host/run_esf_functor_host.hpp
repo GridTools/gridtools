@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -100,9 +100,11 @@ namespace gridtools {
             typedef typename EsfArguments::esf_t esf_t;
             typedef typename esf_t::template esf_function< run_functor_arguments_t::color_t::color_t::value >
                 colored_functor_t;
+
             typedef functor_decorator< typename original_functor_t::id,
                 colored_functor_t,
-                typename original_functor_t::repeat_t > functor_t;
+                typename original_functor_t::repeat_t,
+                IntervalType > functor_t;
 
             GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, GT_INTERNAL_ERROR);
 

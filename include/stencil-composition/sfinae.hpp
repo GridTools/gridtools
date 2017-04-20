@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,75 +39,13 @@
 
 namespace gridtools {
 
-    /**
-       @brief Sobstitution Failure is Not An Error
-
-       design pattern used to detect at compile-time whether a class contains a member or not (introspection)
-    */
-    // define an SFINAE structure
-    template < typename T >
-    struct SFINAE;
-
-    template <>
-    struct SFINAE< int > {};
-
-#ifdef CXX11_ENABLED
-#define HAS_TYPE_SFINAE(name, has_name, get_name)                             \
-    template < typename TFunctor >                                            \
-    struct has_name {                                                         \
-        struct MixIn {                                                        \
-            using name = int;                                                 \
-        };                                                                    \
-        struct derived : public TFunctor, public MixIn {};                    \
-                                                                              \
-        template < typename TDerived >                                        \
-        static boost::mpl::false_ test(SFINAE< typename TDerived::name > *x); \
-        template < typename TDerived >                                        \
-        static boost::mpl::true_ test(...);                                   \
-                                                                              \
-        typedef decltype(test< derived >(0)) type;                            \
-        typedef TFunctor functor_t;                                           \
-    };                                                                        \
-                                                                              \
-    template < typename Functor >                                             \
-    struct get_name {                                                         \
-        typedef typename Functor::name type;                                  \
-    };
-#else
-#define HAS_TYPE_SFINAE(name, has_name, get_name)                             \
-    template < typename TFunctor >                                            \
-    struct has_name {                                                         \
-        struct MixIn {                                                        \
-            typedef int name;                                                 \
-        };                                                                    \
-        struct derived : public TFunctor, public MixIn {};                    \
-                                                                              \
-        template < typename TDerived >                                        \
-        static boost::mpl::false_ test(SFINAE< typename TDerived::name > *x); \
-        template < typename TDerived >                                        \
-        static boost::mpl::true_ test(...);                                   \
-                                                                              \
-        typedef BOOST_TYPEOF(test< derived >(0)) type;                        \
-        typedef TFunctor functor_t;                                           \
-    };                                                                        \
-                                                                              \
-    template < typename Functor >                                             \
-    struct get_name {                                                         \
-        typedef typename Functor::name type;                                  \
-    };
-#endif
-
-/** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
-#define HAS_STATIC_METHOD_SFINAE(name)       \
-    template < int >                         \
-    struct sfinae_true : std::true_type {};  \
-    template < class T >                     \
-    sfinae_true< (T::name(), 0) > test(int); \
-    template < class >                       \
-    std::false_type test(...);               \
-                                             \
-    template < class T >                     \
-    struct has_constexpr_name : decltype(test< T >(0)) {};
+/*
+ * HAS_TYPE_SFINAE was removed, please use the boost macro with the same functionality:
+ * BOOST_MPL_HAS_XXX_TRAIT_DEF(name)
+ *
+ * HAS_STATIC_METHOD_SFINAE was removed as it was not used. Consider using
+ * BOOST_TTI_HAS_STATIC_MEMBER_FUNCTION_GEN(name) if needed at some point.
+ */
 
 /** SFINAE method to check if a class has a method named "name" which is constexpr and returns an int*/
 #define HAS_CONSTEXPR_CONSTRUCTOR(name)       \
@@ -133,12 +71,42 @@ namespace gridtools {
     template < class T >                            \
     struct has_constexpr_name : decltype(test< T >(0)) {};
 
-    /** @brief Implementation of introspection
+    namespace sfinae {
 
-        To use this define a constexpr "check" method in a class C returning and int.
-        Then
-        has_constexpr_check<C>
-        will be either true or false wether the class has or not a default constexpr constructor.
-     */
-    // HAS_CONSTEXPR_CONSTRUCTOR(check)
-}
+        /**@brief overload of the comma operator in order to use void function (the Do method)
+         as arguments*/
+        template < typename T >
+        int operator, (T const &, int) {
+            return 0;
+        };
+
+        namespace _impl {
+            struct dummy_type {}; // used for SFINAE
+        }
+
+        /**
+           @brief SFINAE metafunction to detect when a static Do functor in a struct has
+           2 arguments
+
+           Used in order to make the second argument optional in the Do method of the user
+           functors
+        */
+        template < typename Functor >
+        struct has_two_args {
+
+            static constexpr _impl::dummy_type c_ = _impl::dummy_type{};
+
+            template < typename Derived >
+            static std::false_type test(decltype(Derived::Do(c_), 0)) {}
+
+            template < typename Derived >
+            static std::true_type test(decltype(Derived::Do(c_, _impl::dummy_type{}), 0)) {}
+
+            template < typename Derived >
+            static std::true_type test(...) {}
+
+            typedef decltype(test< Functor >(0)) type;
+            static const bool value = type::value;
+        };
+    } // namespace sfinae
+} // namespace gridtools

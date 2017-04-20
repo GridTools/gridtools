@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -65,11 +65,8 @@ using namespace enumtype;
 
 namespace horizontal_diffusion_functions {
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_lap;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_flx;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_out;
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
@@ -79,7 +76,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval, x_lap) {
+        GT_FUNCTION static void Do(Evaluator const &eval) {
             auto x = (gridtools::float_type)4.0 * eval(in()) -
                      (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
             eval(out()) = x;
@@ -95,7 +92,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluator const &eval) {
 #ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version"
             gridtools::float_type _x_ =
@@ -107,22 +104,22 @@ namespace horizontal_diffusion_functions {
 #else
 #ifdef FUNCTIONS_PROCEDURES
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function, x_flx >::at< 0, 0, 0 >::with(eval, _x_, in());
+            gridtools::call_proc< lap_function >::at< 0, 0, 0 >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function, x_flx >::at< 1, 0, 0 >::with(eval, _y_, in());
+            gridtools::call_proc< lap_function >::at< 1, 0, 0 >::with(eval, _y_, in());
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function, x_flx >::with_offsets(eval, _x_, in());
+            gridtools::call_proc< lap_function >::with_offsets(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function, x_flx >::with_offsets(eval, _y_, in(1, 0, 0));
+            gridtools::call_proc< lap_function >::with_offsets(eval, _y_, in(1, 0, 0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-            gridtools::float_type _x_ = gridtools::call< lap_function, x_flx >::with_offsets(eval, in(0, 0, 0));
-            gridtools::float_type _y_ = gridtools::call< lap_function, x_flx >::with_offsets(eval, in(1, 0, 0));
+            gridtools::float_type _x_ = gridtools::call< lap_function >::with_offsets(eval, in(0, 0, 0));
+            gridtools::float_type _y_ = gridtools::call< lap_function >::with_offsets(eval, in(1, 0, 0));
 #else
-            gridtools::float_type _x_ = gridtools::call< lap_function, x_flx >::at< 0, 0, 0 >::with(eval, in());
-            gridtools::float_type _y_ = gridtools::call< lap_function, x_flx >::at< 1, 0, 0 >::with(eval, in());
+            gridtools::float_type _x_ = gridtools::call< lap_function >::at< 0, 0, 0 >::with(eval, in());
+            gridtools::float_type _y_ = gridtools::call< lap_function >::at< 1, 0, 0 >::with(eval, in());
 #endif
 #endif
 #endif
@@ -141,7 +138,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluator const &eval) {
 
 #ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version"
@@ -154,22 +151,22 @@ namespace horizontal_diffusion_functions {
 #else
 #ifdef FUNCTIONS_PROCEDURES
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function, x_flx >::at< 0, 0, 0 >::with(eval, _x_, in());
+            gridtools::call_proc< lap_function >::at< 0, 0, 0 >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function, x_flx >::at< 0, 1, 0 >::with(eval, _y_, in());
+            gridtools::call_proc< lap_function >::at< 0, 1, 0 >::with(eval, _y_, in());
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function, x_flx >::with_offsets(eval, _x_, in());
+            gridtools::call_proc< lap_function >::with_offsets(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function, x_flx >::with_offsets(eval, _y_, in(0, 1, 0));
+            gridtools::call_proc< lap_function >::with_offsets(eval, _y_, in(0, 1, 0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-            gridtools::float_type _x_ = gridtools::call< lap_function, x_flx >::with_offsets(eval, in(0, 0, 0));
-            gridtools::float_type _y_ = gridtools::call< lap_function, x_flx >::with_offsets(eval, in(0, 1, 0));
+            gridtools::float_type _x_ = gridtools::call< lap_function >::with_offsets(eval, in(0, 0, 0));
+            gridtools::float_type _y_ = gridtools::call< lap_function >::with_offsets(eval, in(0, 1, 0));
 #else
-            gridtools::float_type _x_ = gridtools::call< lap_function, x_flx >::at< 0, 0, 0 >::with(eval, in());
-            gridtools::float_type _y_ = gridtools::call< lap_function, x_flx >::at< 0, 1, 0 >::with(eval, in());
+            gridtools::float_type _x_ = gridtools::call< lap_function >::at< 0, 0, 0 >::with(eval, in());
+            gridtools::float_type _y_ = gridtools::call< lap_function >::at< 0, 1, 0 >::with(eval, in());
 #endif
 #endif
 #endif
@@ -190,7 +187,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
         template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval, x_out) {
+        GT_FUNCTION static void Do(Evaluator const &eval) {
             eval(out()) =
                 eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
         }
