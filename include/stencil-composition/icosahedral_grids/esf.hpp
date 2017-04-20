@@ -34,14 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "common/generic_metafunctions/is_sequence_of.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
+#include "vector_accessor.hpp"
+#include "grid.hpp"
+#include "color.hpp"
 #include "../arg.hpp"
 #include "../esf_fwd.hpp"
-#include "../icosahedral_grids/grid.hpp"
 #include "../extent.hpp"
-#include "vector_accessor.hpp"
 #include "../esf_aux.hpp"
-#include "color.hpp"
 
 namespace gridtools {
 
@@ -63,6 +64,14 @@ namespace gridtools {
         using location_type = LocationType;
         using args_t = ArgSequence;
         using color_t = Color;
+
+        BOOST_MPL_HAS_XXX_TRAIT_DEF(arg_list)
+        GRIDTOOLS_STATIC_ASSERT(has_arg_list< esf_function< 0 > >::type::value,
+            "The type arg_list was not found in a user functor definition. All user functors must have a type alias "
+            "called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor "
+            "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
+            "using v2=global_accessor<1, enumtype::in>; \n using v3=accessor<2>; \n using "
+            "arg_list=boost::mpl::vector<v1, v3>;");
 
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
         typedef typename impl::make_arg_with_extent_map< args_t, typename esf_function< 0 >::arg_list >::type
