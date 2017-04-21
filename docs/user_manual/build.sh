@@ -4,7 +4,7 @@ if [ ! -d pandoc-bootstrap-adaptive-template ]; then
     git clone https://github.com/diversen/pandoc-bootstrap-adaptive-template
 fi
 
-list_md_files="defines.md Installation.md Quick_Start_Guide.md GT_doc_structure.md accessor.md"
+list_md_files="defines.md Installation.md Quick_Start_Guide.md GT_doc_structure.md accessor.md expandable_parameters.md conditional_switches.md"
 
 ## How to generate html
 #pandoc -s ${list_md_files} -o index.html --template pandoc-bootstrap-adaptive-template/standalone.html --css pandoc-bootstrap-adaptive-template/template.css --toc --toc-depth=2 --highlight-style pygments

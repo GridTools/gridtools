@@ -83,6 +83,12 @@ The line above sets at compile-time the fourth offset to the value 2, so that we
 w() == vec(0,0,0,2)
 ```
 which may contribute to considerably lighten the notation in complicated expressions.
+Note that you can still access the other dimensions with an offset, by using the alias. So that
+```
+dimension<1> i;
+dimension<4> q;
+w(i+1) == vel(i+1, q+2)
+```
 
 ##### Expressions
 
