@@ -298,7 +298,6 @@ If you are not using generic accessors then you are using an unsupported storage
         GT_FUNCTION void operator()(Pair const &) const {
 
             typedef typename boost::mpl::second< Pair >::type ID;
-            typedef typename boost::mpl::first< Pair >::type metadata_t;
 
             GRIDTOOLS_STATIC_ASSERT((ID::value < boost::fusion::result_of::size< MetaStorageSequence >::value),
                 GT_INTERNAL_ERROR_MSG("Accessing an index out of bound in fusion tuple"));
