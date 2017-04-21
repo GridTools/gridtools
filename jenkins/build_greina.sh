@@ -98,7 +98,7 @@ source ${BASEPATH_SCRIPT}/env_${myhost}.sh
 if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
     test -e build
-    if [ $? -ne 0 ] ; then
+    if [ $? -eq 0 ] ; then
         echo "REMOVING ALL FILES"
         rm -rf build
     fi
@@ -142,16 +142,6 @@ WHERE_=`pwd`
 
 export JENKINS_COMMUNICATION_TESTS=1
 
-if [[ ${COMPILER} == "gcc" ]] ; then
-    HOST_COMPILER=`which g++`
-elif [[ ${COMPILER} == "clang" ]] ; then
-    HOST_COMPILER=`which clang++`
-    ADDITIONAL_FLAGS="-ftemplate-depth=1024"
-else
-    echo "COMPILER ${COMPILER} not supported"
-    exit_if_error 333
-fi
-
 if [[ -z ${ICOSAHEDRAL_GRID} ]]; then
     STRUCTURED_GRIDS="ON"
 else
@@ -161,8 +151,7 @@ fi
 # measuring time
 export START_TIME=$SECONDS
 
-# echo "Printing ENV"
-# env
+echo "Building on `hostname`"
 
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \

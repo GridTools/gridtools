@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size< ExtentSizes >::type::value == 0 || is_sequence_of< ExtentSizes, is_extent >::value),
-            GT_INTERNAL_ERROR);
+            "There seems to be a stage in the computation which does not contain any output field. Check that at least "
+            "one accessor in each stage is defined as \'inout\'");
         typedef MssDescriptor mss_descriptor_t;
 
         typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;
