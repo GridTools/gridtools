@@ -51,7 +51,7 @@ namespace gridtools {
 
         template < uint_t N, int... Ints >
         struct get_extended_layout_type< N, layout_map<Ints...> > 
-            : get_extended_layout_type< (N-1), layout_map<Ints..., layout_map<Ints...>::unmasked_length > > {};
+            : get_extended_layout_type< (N-1), layout_map< layout_map<Ints...>::unmasked_length, Ints... > > {};
 
         template < int... Ints >
         struct get_extended_layout_type< 0, layout_map<Ints...> > {
