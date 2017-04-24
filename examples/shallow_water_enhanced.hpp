@@ -290,16 +290,16 @@ namespace shallow_water {
             dimension< 1 > i;
             dimension< 2 > j;
 
-            eval(sol()) = eval(sol() - (tmpx(comp(1) , i + 1) - tmpx(comp(1))) * (dt() / dx()) -
-                               (tmpy(comp(2) , j + 1) - tmpy(comp(2))) * (dt() / dy()));
+            eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
+                               (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));
 
             eval(sol(comp(1))) =
                 eval(sol(comp(1)) -
                      (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / tl)) -
-                         (pow< 2 >(tmpx(comp(1))) / tmpx() + pow< 2 >(tmpx()) * ((g() / tl)))) *
+                         (pow< 2 >(tmpx(comp(1))) / tmpx(i - 0) + pow< 2 >(tmpx(i - 0)) * ((g() / tl)))) *
                          ((dt() / dx())) -
                      (tmpy(comp(2), j + 1) * tmpy(comp(1), j + 1) / tmpy(j + 1) -
-                         tmpy(comp(2)) * tmpy(comp(1)) / tmpy()) *
+                         tmpy(comp(2)) * tmpy(comp(1)) / tmpy(i - 0)) *
                          (dt() / dy()));
 
             eval(sol(comp(2))) =
