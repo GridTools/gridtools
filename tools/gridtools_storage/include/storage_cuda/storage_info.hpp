@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -58,8 +58,8 @@ namespace gridtools {
         // no cudaFree here, this will lead to double-frees
         ~cuda_storage_info() = default;
 
-        cuda_storage_info< Id, Layout, Halo, Alignment > *get_gpu_ptr() const { 
-            if(!m_gpu_ptr) {
+        cuda_storage_info< Id, Layout, Halo, Alignment > *get_gpu_ptr() const {
+            if (!m_gpu_ptr) {
                 cudaError_t err = cudaMalloc(&m_gpu_ptr, sizeof(cuda_storage_info< Id, Layout, Halo, Alignment >));
                 assert((err == cudaSuccess) && "failed to allocate GPU memory.");
                 err = cudaMemcpy((void *)m_gpu_ptr,
@@ -68,7 +68,7 @@ namespace gridtools {
                     cudaMemcpyHostToDevice);
                 assert((err == cudaSuccess) && "failed to clone storage_info to the device.");
             }
-            return m_gpu_ptr; 
+            return m_gpu_ptr;
         }
     };
 }

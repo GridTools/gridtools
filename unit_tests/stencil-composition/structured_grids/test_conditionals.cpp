@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -91,8 +91,9 @@ namespace test_conditionals {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = 2;
 
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >
+            data_store_t;
         storage_info_t meta_data_(3, 3, 3);
         data_store_t dummy(meta_data_, 0.);
         typedef arg< 0, data_store_t > p_dummy;
@@ -101,15 +102,13 @@ namespace test_conditionals {
         aggregator_type< arg_list > domain_(dummy);
 
         auto comp_ = make_computation< BACKEND >(
-                domain_,
-                grid_,
-                if_(cond,
-                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
-                    if_(cond2,
-                        make_multistage(
-                            enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
-                        make_multistage(
-                            enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
+            domain_,
+            grid_,
+            if_(cond,
+                make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
+                if_(cond2,
+                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
+                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
 
         bool result = true;
         comp_->ready();

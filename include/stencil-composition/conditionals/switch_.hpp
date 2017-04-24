@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -103,9 +103,7 @@ computation->finalize();
         typedef conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value > conditional_t;
 
         cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
-        return if_(conditional_t((*cond_.m_conditions)[0]),
-            first_.mss(),
-            recursive_switch(0, cond_, cases_...));
+        return if_(conditional_t((*cond_.m_conditions)[0]), first_.mss(), recursive_switch(0, cond_, cases_...));
     }
 
     template < typename Condition, typename First, typename... Cases >

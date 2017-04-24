@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -114,7 +114,7 @@ namespace copy_stencil {
             for (uint_t j = 0; j < d2; ++j)
                 for (uint_t k = 0; k < d3; ++k) {
                     in_v(i, j, k) = i + j + k;
-                    out_v(i,j,k) = -1.0;
+                    out_v(i, j, k) = -1.0;
                 }
 
         typedef arg< 0, data_store_t > p_in;
@@ -149,13 +149,10 @@ namespace copy_stencil {
         3) The actual domain dimensions
         */
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< copy_functor >(p_in(),p_out())
-                ));
+        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
         copy->ready();
         copy->steady();
@@ -186,4 +183,3 @@ namespace copy_stencil {
         return success;
     }
 } // namespace copy_stencil
-

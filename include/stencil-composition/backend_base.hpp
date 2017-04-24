@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -186,8 +186,8 @@ namespace gridtools {
          */
         template < typename MaxExtent, typename StorageWrapper, typename Grid >
         static typename StorageWrapper::storage_info_t instantiate_storage_info(Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_storage_info< typename StorageWrapper::storage_info_t >::value), 
-                "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename StorageWrapper::storage_info_t >::value), "Internal Error: wrong type");
             GRIDTOOLS_STATIC_ASSERT((is_storage_wrapper< StorageWrapper >::value), "Internal Error: wrong type");
             return grid_traits_t::template instantiate_storage_info< MaxExtent, this_type, StorageWrapper >(grid);
         }

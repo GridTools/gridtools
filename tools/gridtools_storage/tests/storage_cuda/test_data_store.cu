@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -43,35 +43,33 @@
 
 using namespace gridtools;
 
-typedef cuda_storage_info<0, layout_map<2,1,0> > storage_info_t;
+typedef cuda_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
 
 void invalid_copy() {
-    storage_info_t si(3,3,3);
-    data_store<cuda_storage<double>, storage_info_t> ds1(si);
-    data_store<cuda_storage<double>, storage_info_t> ds2 = ds1;
+    storage_info_t si(3, 3, 3);
+    data_store< cuda_storage< double >, storage_info_t > ds1(si);
+    data_store< cuda_storage< double >, storage_info_t > ds2 = ds1;
 }
 
 void invalid_copy_assign() {
-    storage_info_t si(3,3,3);
-    data_store<cuda_storage<double>, storage_info_t> ds1(si);
-    data_store<cuda_storage<double>, storage_info_t> ds2(si);
+    storage_info_t si(3, 3, 3);
+    data_store< cuda_storage< double >, storage_info_t > ds1(si);
+    data_store< cuda_storage< double >, storage_info_t > ds2(si);
     ds2 = ds1;
 }
 
-__global__
-void mul2(double* s) {
+__global__ void mul2(double *s) {
     s[0] *= 2.0;
     s[1] *= 2.0;
 }
 
-template <typename StorageInfo>
-__global__
-void check_vals(double* s, StorageInfo const* si) {
-    for(unsigned i=0; i<128; ++i) 
-        for(unsigned j=0; j<128; ++j) 
-            for(unsigned k=0; k<80; ++k) {
-                int x = si->index(i,j,k);
-                if(s[x] > 3.141499 && s[x] < 3.141501) {
+template < typename StorageInfo >
+__global__ void check_vals(double *s, StorageInfo const *si) {
+    for (unsigned i = 0; i < 128; ++i)
+        for (unsigned j = 0; j < 128; ++j)
+            for (unsigned k = 0; k < 80; ++k) {
+                int x = si->index(i, j, k);
+                if (s[x] > 3.141499 && s[x] < 3.141501) {
                     s[x] = 1.0;
                 } else {
                     s[x] = 0.0;
@@ -80,52 +78,52 @@ void check_vals(double* s, StorageInfo const* si) {
 }
 
 TEST(DataStoreTest, Simple) {
-    using data_store_t = data_store< cuda_storage<double>, storage_info_t >;
-    storage_info_t si(3,3,3);
-    constexpr storage_info_interface<0, layout_map<2,1,0> > csi(3,3,3);
-    constexpr storage_info_interface<1, layout_map<2,1,0>, halo<2,1,0> > csih(3,3,3);
-    constexpr storage_info_interface<2, layout_map<2,1,0>, halo<2,1,0>, alignment<16> > csiha(3,3,3);
+    using data_store_t = data_store< cuda_storage< double >, storage_info_t >;
+    storage_info_t si(3, 3, 3);
+    constexpr storage_info_interface< 0, layout_map< 2, 1, 0 > > csi(3, 3, 3);
+    constexpr storage_info_interface< 1, layout_map< 2, 1, 0 >, halo< 2, 1, 0 > > csih(3, 3, 3);
+    constexpr storage_info_interface< 2, layout_map< 2, 1, 0 >, halo< 2, 1, 0 >, alignment< 16 > > csiha(3, 3, 3);
     // check sizes, strides, and alignment
-    static_assert(csi.dim<0>() == 3, "dimension check failed.");
-    static_assert(csi.dim<1>() == 3, "dimension check failed.");
-    static_assert(csi.dim<2>() == 3, "dimension check failed.");
-    static_assert(csi.unaligned_dim<0>() == 3, "dimension check failed.");
-    static_assert(csi.unaligned_dim<1>() == 3, "dimension check failed.");
-    static_assert(csi.unaligned_dim<2>() == 3, "dimension check failed.");
-    static_assert(csi.stride<0>() == 1, "stride check failed.");
-    static_assert(csi.stride<1>() == 3, "stride check failed.");
-    static_assert(csi.stride<2>() == 9, "stride check failed.");
-    static_assert(csi.unaligned_stride<0>() == 1, "stride check failed.");
-    static_assert(csi.unaligned_stride<1>() == 3, "stride check failed.");
-    static_assert(csi.unaligned_stride<2>() == 9, "stride check failed.");
+    static_assert(csi.dim< 0 >() == 3, "dimension check failed.");
+    static_assert(csi.dim< 1 >() == 3, "dimension check failed.");
+    static_assert(csi.dim< 2 >() == 3, "dimension check failed.");
+    static_assert(csi.unaligned_dim< 0 >() == 3, "dimension check failed.");
+    static_assert(csi.unaligned_dim< 1 >() == 3, "dimension check failed.");
+    static_assert(csi.unaligned_dim< 2 >() == 3, "dimension check failed.");
+    static_assert(csi.stride< 0 >() == 1, "stride check failed.");
+    static_assert(csi.stride< 1 >() == 3, "stride check failed.");
+    static_assert(csi.stride< 2 >() == 9, "stride check failed.");
+    static_assert(csi.unaligned_stride< 0 >() == 1, "stride check failed.");
+    static_assert(csi.unaligned_stride< 1 >() == 3, "stride check failed.");
+    static_assert(csi.unaligned_stride< 2 >() == 9, "stride check failed.");
     static_assert(csi.get_initial_offset() == 0, "init. offset check failed");
 
-    static_assert(csih.dim<0>() == 7, "dimension check failed.");
-    static_assert(csih.dim<1>() == 5, "dimension check failed.");
-    static_assert(csih.dim<2>() == 3, "dimension check failed.");
-    static_assert(csih.unaligned_dim<0>() == 7, "dimension check failed.");
-    static_assert(csih.unaligned_dim<1>() == 5, "dimension check failed.");
-    static_assert(csih.unaligned_dim<2>() == 3, "dimension check failed.");
-    static_assert(csih.stride<0>() == 1, "stride check failed.");
-    static_assert(csih.stride<1>() == 7, "stride check failed.");
-    static_assert(csih.stride<2>() == 35, "stride check failed.");
-    static_assert(csih.unaligned_stride<0>() == 1, "stride check failed.");
-    static_assert(csih.unaligned_stride<1>() == 7, "stride check failed.");
-    static_assert(csih.unaligned_stride<2>() == 35, "stride check failed.");
+    static_assert(csih.dim< 0 >() == 7, "dimension check failed.");
+    static_assert(csih.dim< 1 >() == 5, "dimension check failed.");
+    static_assert(csih.dim< 2 >() == 3, "dimension check failed.");
+    static_assert(csih.unaligned_dim< 0 >() == 7, "dimension check failed.");
+    static_assert(csih.unaligned_dim< 1 >() == 5, "dimension check failed.");
+    static_assert(csih.unaligned_dim< 2 >() == 3, "dimension check failed.");
+    static_assert(csih.stride< 0 >() == 1, "stride check failed.");
+    static_assert(csih.stride< 1 >() == 7, "stride check failed.");
+    static_assert(csih.stride< 2 >() == 35, "stride check failed.");
+    static_assert(csih.unaligned_stride< 0 >() == 1, "stride check failed.");
+    static_assert(csih.unaligned_stride< 1 >() == 7, "stride check failed.");
+    static_assert(csih.unaligned_stride< 2 >() == 35, "stride check failed.");
     static_assert(csih.get_initial_offset() == 0, "init. offset check failed");
-    
-    EXPECT_EQ(csiha.dim<0>(), 16); 
-    EXPECT_EQ(csiha.dim<1>(), 5); 
-    EXPECT_EQ(csiha.dim<2>(), 3); 
-    static_assert(csiha.unaligned_dim<0>() == 7, "dimension check failed.");
-    static_assert(csiha.unaligned_dim<1>() == 5, "dimension check failed.");
-    static_assert(csiha.unaligned_dim<2>() == 3, "dimension check failed.");
-    EXPECT_EQ(csiha.stride<0>(), 1);
-    EXPECT_EQ(csiha.stride<1>(), 16);
-    EXPECT_EQ(csiha.stride<2>(), 80);
-    static_assert(csiha.unaligned_stride<0>() == 1, "stride check failed.");
-    static_assert(csiha.unaligned_stride<1>() == 7, "stride check failed.");
-    static_assert(csiha.unaligned_stride<2>() == 35, "stride check failed.");
+
+    EXPECT_EQ(csiha.dim< 0 >(), 16);
+    EXPECT_EQ(csiha.dim< 1 >(), 5);
+    EXPECT_EQ(csiha.dim< 2 >(), 3);
+    static_assert(csiha.unaligned_dim< 0 >() == 7, "dimension check failed.");
+    static_assert(csiha.unaligned_dim< 1 >() == 5, "dimension check failed.");
+    static_assert(csiha.unaligned_dim< 2 >() == 3, "dimension check failed.");
+    EXPECT_EQ(csiha.stride< 0 >(), 1);
+    EXPECT_EQ(csiha.stride< 1 >(), 16);
+    EXPECT_EQ(csiha.stride< 2 >(), 80);
+    static_assert(csiha.unaligned_stride< 0 >() == 1, "stride check failed.");
+    static_assert(csiha.unaligned_stride< 1 >() == 7, "stride check failed.");
+    static_assert(csiha.unaligned_stride< 2 >() == 35, "stride check failed.");
     static_assert(csiha.get_initial_offset() == 14, "init. offset check failed");
 
     // create unallocated data_store
@@ -139,10 +137,10 @@ TEST(DataStoreTest, Simple) {
     ASSERT_DEATH(invalid_copy_assign(), "Cannot copy a non-initialized data_store.");
 #endif
     // allocate space
-    ds.allocate(); 
+    ds.allocate();
     data_store_t ds_tmp_1(si);
     data_store_t ds_tmp_2 = ds; // copy construct
-    ds_tmp_1 = ds; // copy assign
+    ds_tmp_1 = ds;              // copy assign
     data_store_t ds1(si);
     ds1.allocate();
     ds1.free(); // destroy the data_store
@@ -154,7 +152,7 @@ TEST(DataStoreTest, Simple) {
     // create a copy of a data_store and check equivalence
     data_store_t datast(si);
     datast.allocate();
-    data_store_t datast_cpy(datast); 
+    data_store_t datast_cpy(datast);
     EXPECT_EQ(datast.get_storage_info_ptr(), datast_cpy.get_storage_info_ptr());
     EXPECT_EQ(datast.get_storage_ptr(), datast_cpy.get_storage_ptr());
 
@@ -165,12 +163,12 @@ TEST(DataStoreTest, Simple) {
     EXPECT_EQ((datast.get_storage_ptr()->get_cpu_ptr()[1]), 200);
     EXPECT_EQ((datast_cpy.get_storage_ptr()->get_cpu_ptr()[0]), 100);
     EXPECT_EQ((datast_cpy.get_storage_ptr()->get_cpu_ptr()[1]), 200);
-    
+
     // clone to device
     datast.clone_to_device();
-    mul2<<<1,1>>>(datast.get_storage_ptr()->get_gpu_ptr());
-    
-    // check again    
+    mul2<<< 1, 1 >>>(datast.get_storage_ptr()->get_gpu_ptr());
+
+    // check again
     datast.get_storage_ptr()->get_cpu_ptr()[0] = 200;
     datast.get_storage_ptr()->get_cpu_ptr()[1] = 400;
     EXPECT_EQ((datast.get_storage_ptr()->get_cpu_ptr()[0]), 200);
@@ -180,19 +178,19 @@ TEST(DataStoreTest, Simple) {
 }
 
 TEST(DataStoreTest, States) {
-    using data_store_t = data_store< cuda_storage<double>, storage_info_t >;
-    storage_info_t si(3,3,3);
+    using data_store_t = data_store< cuda_storage< double >, storage_info_t >;
+    storage_info_t si(3, 3, 3);
     // create and allocate data_store
     data_store_t ds(si);
     ds.allocate();
 
-    // intial state should be 
+    // intial state should be
     EXPECT_FALSE(ds.get_storage_ptr()->get_state_machine_ptr()->m_od);
     EXPECT_FALSE(ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu);
     EXPECT_FALSE(ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu);
     EXPECT_TRUE(ds.is_on_host());
     EXPECT_FALSE(ds.is_on_device());
-    
+
     // host write views should be valid, this means the device needs an update
     ds.reactivate_host_write_views();
     EXPECT_TRUE(ds.is_on_host());
@@ -229,62 +227,62 @@ TEST(DataStoreTest, States) {
 TEST(DataStoreTest, Initializer) {
     storage_info_t si(128, 128, 80);
     data_store< cuda_storage< double >, storage_info_t > ds(si, 3.1415);
-    check_vals<<<1,1>>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
+    check_vals<<< 1, 1 >>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
     ds.clone_from_device();
-    for(unsigned i=0; i<128; ++i) 
-        for(unsigned j=0; j<128; ++j) 
-            for(unsigned k=0; k<80; ++k)
-                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 1.0);
+    for (unsigned i = 0; i < 128; ++i)
+        for (unsigned j = 0; j < 128; ++j)
+            for (unsigned k = 0; k < 80; ++k)
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 1.0);
 }
 
 TEST(DataStoreTest, ExternalPointer) {
     // test with an external CPU pointer
     storage_info_t si(10, 10, 10);
-    double* external_ptr = new double[si.size()];
+    double *external_ptr = new double[si.size()];
     // create a data_store with externally managed storage
     data_store< cuda_storage< double >, storage_info_t > ds(si, external_ptr, enumtype::ExternalCPU);
     // create a copy (double free checks)
     data_store< cuda_storage< double >, storage_info_t > ds_cpy = ds;
     // check values
-    for(unsigned i=0; i<10; ++i) 
-        for(unsigned j=0; j<10; ++j) 
-            for(unsigned k=0; k<10; ++k) { 
-                external_ptr[si.index(i,j,k)] = 3.1415;
-                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
-                EXPECT_EQ((ds_cpy.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
+    for (unsigned i = 0; i < 10; ++i)
+        for (unsigned j = 0; j < 10; ++j)
+            for (unsigned k = 0; k < 10; ++k) {
+                external_ptr[si.index(i, j, k)] = 3.1415;
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
+                EXPECT_EQ((ds_cpy.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
             }
     // delete the ptr
-    delete [] external_ptr;
+    delete[] external_ptr;
 }
 
 TEST(DataStoreTest, ExternalGPUPointer) {
     // test with an external GPU pointer
     storage_info_t si(10, 10, 10);
-    double* external_gpu_ptr;
-    double* external_cpu_ptr = new double[si.size()];
+    double *external_gpu_ptr;
+    double *external_cpu_ptr = new double[si.size()];
     // initialize CPU ptr
-    for(unsigned i=0; i<si.size(); ++i) {
+    for (unsigned i = 0; i < si.size(); ++i) {
         external_cpu_ptr[i] = 3.1415;
     }
     // create a GPU ptr
     cudaError_t err = cudaMalloc(&external_gpu_ptr, si.size() * sizeof(double));
     ASSERT_TRUE((err == cudaSuccess));
-    // initialize the GPU ptr 
-    err = cudaMemcpy((void *)external_gpu_ptr, (void *)external_cpu_ptr, si.size() * sizeof(double), cudaMemcpyHostToDevice);
+    // initialize the GPU ptr
+    err = cudaMemcpy(
+        (void *)external_gpu_ptr, (void *)external_cpu_ptr, si.size() * sizeof(double), cudaMemcpyHostToDevice);
     ASSERT_TRUE((err == cudaSuccess));
     // create a data_store with externally managed storage
     data_store< cuda_storage< double >, storage_info_t > ds(si, external_gpu_ptr, enumtype::ExternalGPU);
     // create a copy (double free checks)
     data_store< cuda_storage< double >, storage_info_t > ds_cpy = ds;
     // check values
-    for(unsigned i=0; i<10; ++i) 
-        for(unsigned j=0; j<10; ++j) 
-            for(unsigned k=0; k<10; ++k) { 
-                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
-                EXPECT_EQ((ds_cpy.get_storage_ptr()->get_cpu_ptr()[si.index(i,j,k)]), 3.1415);
+    for (unsigned i = 0; i < 10; ++i)
+        for (unsigned j = 0; j < 10; ++j)
+            for (unsigned k = 0; k < 10; ++k) {
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
+                EXPECT_EQ((ds_cpy.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
             }
     // delete the ptr
-    delete [] external_cpu_ptr;
+    delete[] external_cpu_ptr;
     cudaFree(external_gpu_ptr);
 }
-

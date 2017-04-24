@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -63,16 +63,16 @@ namespace gridtools {
     struct extend_by_halo {
         template < typename Dim >
         static constexpr unsigned extend(Dim d) {
-            return (d<=0) ? error::trigger("Tried to instantiate storage info with zero or negative dimensions") : 
-                ((LayoutArg == -1) ? 1 : d + 2 * HaloVal);
+            return (d <= 0) ? error::trigger("Tried to instantiate storage info with zero or negative dimensions")
+                            : ((LayoutArg == -1) ? 1 : d + 2 * HaloVal);
         }
     };
 
     /* struct needed to calculate the aligned dimensions */
     template < typename Alignment, unsigned Length, int LayoutArg >
     constexpr unsigned align_dimensions(unsigned dimension) {
-        static_assert(is_alignment<Alignment>::value, "Passed type is no alignment type");
-        return ((Alignment::value>1) && (LayoutArg == Length - 1))
+        static_assert(is_alignment< Alignment >::value, "Passed type is no alignment type");
+        return ((Alignment::value > 1) && (LayoutArg == Length - 1))
                    ? ceil((float)dimension / (float)Alignment::value) * Alignment::value
                    : dimension;
     }
@@ -82,10 +82,10 @@ namespace gridtools {
 
     template < int... LayoutArgs, typename Alignment, unsigned... HaloVals >
     struct get_initial_offset< layout_map< LayoutArgs... >, Alignment, halo< HaloVals... > > {
-        static_assert(is_alignment<Alignment>::value, "Passed type is no alignment type");
+        static_assert(is_alignment< Alignment >::value, "Passed type is no alignment type");
 
         constexpr static unsigned compute() {
-            return ((Alignment::value>1) &&
+            return ((Alignment::value > 1) &&
                        get_value_from_pack(get_index_of_element_in_pack(
                                                0, (layout_map< LayoutArgs... >::unmasked_length - 1), LayoutArgs...),
                            HaloVals...))

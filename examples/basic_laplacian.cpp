@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -53,10 +53,10 @@ int main_naive(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     uint_t d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-    #define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
     typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
     typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
-    
+
     std::ofstream file_i("basic_naive_in");
     std::ofstream file_o("basic_naive_out");
 
@@ -66,10 +66,10 @@ int main_naive(int argc, char **argv) {
     auto out = make_host_view(out_s);
     auto in = make_host_view(in_s);
 
-    for(unsigned i=0; i<d1; ++i) {
-        for(unsigned j=0; j<d2; ++j) {
-            for(unsigned k=0; k<d3; ++k) {
-                file_i << in(i,j,k) << ",";
+    for (unsigned i = 0; i < d1; ++i) {
+        for (unsigned j = 0; j < d2; ++j) {
+            for (unsigned k = 0; k < d3; ++k) {
+                file_i << in(i, j, k) << ",";
             }
         }
     }
@@ -86,10 +86,10 @@ int main_naive(int argc, char **argv) {
     }
     boost::timer::cpu_times lapse_time = time.elapsed();
 
-    for(unsigned i=0; i<d1; ++i) {
-        for(unsigned j=0; j<d2; ++j) {
-            for(unsigned k=0; k<d3; ++k) {
-                file_o << out(i,j,k) << ",";
+    for (unsigned i = 0; i < d1; ++i) {
+        for (unsigned j = 0; j < d2; ++j) {
+            for (unsigned k = 0; k < d3; ++k) {
+                file_o << out(i, j, k) << ",";
             }
         }
     }
@@ -116,8 +116,7 @@ int main_block(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]); /** d2 cells in the y direction (horizontal)*/
     uint_t d3 = atoi(argv[3]); /** d3 cells in the z direction (vertical)*/
 
-
-    #define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
     typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
     typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
@@ -130,10 +129,10 @@ int main_block(int argc, char **argv) {
     auto out = make_host_view(out_s);
     auto in = make_host_view(in_s);
 
-    for(unsigned i=0; i<d1; ++i) {
-        for(unsigned j=0; j<d2; ++j) {
-            for(unsigned k=0; k<d3; ++k) {
-                file_i << in(i,j,k) << ",";
+    for (unsigned i = 0; i < d1; ++i) {
+        for (unsigned j = 0; j < d2; ++j) {
+            for (unsigned k = 0; k < d3; ++k) {
+                file_i << in(i, j, k) << ",";
             }
         }
     }
@@ -228,10 +227,10 @@ int main_block(int argc, char **argv) {
 
     boost::timer::cpu_times lapse_time = time.elapsed();
 
-    for(unsigned i=0; i<d1; ++i) {
-        for(unsigned j=0; j<d2; ++j) {
-            for(unsigned k=0; k<d3; ++k) {
-                file_o << out(i,j,k) << ",";
+    for (unsigned i = 0; i < d1; ++i) {
+        for (unsigned j = 0; j < d2; ++j) {
+            for (unsigned k = 0; k < d3; ++k) {
+                file_o << out(i, j, k) << ",";
             }
         }
     }

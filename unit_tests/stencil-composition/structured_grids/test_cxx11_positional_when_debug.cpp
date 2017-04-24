@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -99,9 +99,9 @@ TEST(test_make_computation, positional_when_debug) {
        This is a TODO in aggregator_type.hpp */
     aggregator_type< accessor_list_t > dm(a_storage);
     auto test_computation = make_computation< BACKEND >(dm,
-            positional_when_debug_test::grid_t({0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}),
-            make_multistage // mss_descriptor
-            (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
+        positional_when_debug_test::grid_t({0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}),
+        make_multistage // mss_descriptor
+        (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
 
     EXPECT_TRUE(true);
 }

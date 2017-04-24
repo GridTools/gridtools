@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -93,8 +93,9 @@ namespace domain_reassign {
 #endif
 #endif
 
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t< float_type, storage_info_t > storage_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >
+            storage_t;
 
         storage_info_t meta_data_(d1, d2, d3);
 
@@ -128,12 +129,10 @@ namespace domain_reassign {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(
-            domain,
+        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
             grid,
             gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< test_functor >(p_in(), p_out())));
+            (execute< forward >(), gridtools::make_stage< test_functor >(p_in(), p_out())));
 
         copy->ready();
         copy->steady();

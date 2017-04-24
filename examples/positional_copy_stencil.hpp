@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -158,12 +158,12 @@ namespace positional_copy_stencil {
         grid.value_list[1] = d3 - 1;
 
         auto init = gridtools::make_positional_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
-                        )));
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_stage< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
+                    )));
 
         init->ready();
         init->steady();
@@ -171,13 +171,13 @@ namespace positional_copy_stencil {
         init->finalize();
 
         auto copy = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
-                        ,
-                        p_out())));
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
+                    ,
+                    p_out())));
         copy->ready();
         copy->steady();
         copy->run();

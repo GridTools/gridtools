@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -114,7 +114,7 @@ namespace gridtools {
 
         typedef ExtentMap extents_map_t;
 
-        typedef typename get_max_i_extent<storage_wrapper_list_t>::type max_i_extent_t;
+        typedef typename get_max_i_extent< storage_wrapper_list_t >::type max_i_extent_t;
 
         typedef typename boost::mpl::fold< StorageWrapperList,
             boost::mpl::vector0<>,

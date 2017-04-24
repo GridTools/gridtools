@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -179,8 +179,8 @@ namespace gridtools {
          */
         metadata_set_t m_metadata_set;
 
-        template < typename... DataStores, 
-            typename boost::enable_if<typename _impl::domain_arg_check<DataStores...>::type, int>::type = 0 >
+        template < typename... DataStores,
+            typename boost::enable_if< typename _impl::domain_arg_check< DataStores... >::type, int >::type = 0 >
         aggregator_type(DataStores &... ds)
             : m_arg_storage_pair_list(), m_metadata_set() {
 

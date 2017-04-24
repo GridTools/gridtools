@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -45,22 +45,22 @@ using namespace expressions;
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-template <unsigned Id, typename Layout>
-using special_metadata_t = gridtools::cuda_storage_info<Id, Layout>;
-typedef special_metadata_t< 0, gridtools::layout_map<5, 4, 3, 2, 1, 0> > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map<3, 2, 1, 0> > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map<3, 2, 1, 0> > metadata_local_quad_t;
+template < unsigned Id, typename Layout >
+using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
+typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
+typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< 3, 2, 1, 0 > > metadata_local_quad_t;
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 #else
 #define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
-template <unsigned Id, typename Layout>
-using special_metadata_t = gridtools::host_storage_info<Id, Layout>;
-typedef special_metadata_t< 0, gridtools::layout_map<3, 4, 5, 0, 1, 2> > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map<1, 2, 3, 0> > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map<1, 2, 3, 0> > metadata_local_quad_t;
+template < unsigned Id, typename Layout >
+using special_metadata_t = gridtools::host_storage_info< Id, Layout >;
+typedef special_metadata_t< 0, gridtools::layout_map< 3, 4, 5, 0, 1, 2 > > metadata_t;
+typedef special_metadata_t< 1, gridtools::layout_map< 1, 2, 3, 0 > > metadata_global_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< 1, 2, 3, 0 > > metadata_local_quad_t;
 #endif
 
 typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_t > storage_t;
@@ -215,11 +215,11 @@ namespace assembly {
         grid.value_list[1] = d3 - 2;
 
         auto fe_comp = make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
-                (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                    make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+            domain,
+            grid,
+            make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
+            (execute< forward >(), //!\todo parameter used only for overloading purpose?
+                make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp->ready();
         fe_comp->steady();

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -305,8 +305,7 @@ namespace gridtools {
                 Offk,
                 typename gridtools::variadic_to_vector< Args... >::type,
                 result_type,
-                _impl::_get_index_of_first_non_const< Functor >::value >
-                f_aggregator_t;
+                _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
             result_type result;
 
@@ -338,8 +337,7 @@ namespace gridtools {
                 Offk,
                 typename gridtools::variadic_to_vector< Args... >::type,
                 result_type,
-                _impl::_get_index_of_first_non_const< Functor >::value >
-                f_aggregator_t;
+                _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
             Functor::Do(f_aggregator_t(eval, result), Region());
 
@@ -651,8 +649,7 @@ namespace gridtools {
                 Offi,
                 Offj,
                 Offk,
-                typename _impl::package_args< Args... >::type >
-                f_aggregator_t;
+                typename _impl::package_args< Args... >::type > f_aggregator_t;
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
@@ -675,8 +672,7 @@ namespace gridtools {
                 Offi,
                 Offj,
                 Offk,
-                typename _impl::package_args< Args... >::type >
-                f_aggregator_t;
+                typename _impl::package_args< Args... >::type > f_aggregator_t;
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 

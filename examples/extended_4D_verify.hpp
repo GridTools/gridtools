@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
     auto jacv = make_host_view(jac);
     auto phiv = make_host_view(phi);
     auto psiv = make_host_view(psi);
-    
+
     for (uint_t i = 0; i < d1; ++i)
         for (uint_t j = 0; j < d2; ++j)
             for (uint_t k = 0; k < d3; ++k)

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -129,7 +129,7 @@ namespace copy_stencil {
             pattern_type::grid_type > partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage_info< storage_info_t, partitioner_t > meta_(part, d1, d2, d3);
-        auto& metadata_ = meta_.get_metadata();
+        auto &metadata_ = meta_.get_metadata();
 
         storage_t in(metadata_, 0.);
         storage_t out(metadata_, 0.);
@@ -165,12 +165,10 @@ namespace copy_stencil {
         // order. (I don't particularly like this)
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< copy_functor >(p_in(), p_out())));
+        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 #ifdef VERBOSE
         printf("computation instantiated\n");
 #endif
@@ -201,8 +199,8 @@ namespace copy_stencil {
 
         auto outv = make_host_view(out);
         std::vector< float_type * > vec(2);
-        vec[0] = &inv(0,0,0);
-        vec[1] = &outv(0,0,0);
+        vec[0] = &inv(0, 0, 0);
+        vec[1] = &outv(0, 0, 0);
 
         he.pack(vec);
 

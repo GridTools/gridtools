@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -84,11 +84,11 @@ namespace test_staggered_keyword {
 
         auto iv = make_host_view(i_data);
         auto jv = make_host_view(j_data);
-        for(unsigned i=0; i<30; ++i) {
-            for(unsigned j=0; j<20; ++j) {
-                for(unsigned k=0; k<1; ++k) {
-                    iv(i,j,k) = i;
-                    jv(i,j,k) = j;
+        for (unsigned i = 0; i < 30; ++i) {
+            for (unsigned j = 0; j < 20; ++j) {
+                for (unsigned k = 0; k < 1; ++k) {
+                    iv(i, j, k) = i;
+                    jv(i, j, k) = j;
                 }
             }
         }

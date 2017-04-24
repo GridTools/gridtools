@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -258,24 +258,24 @@ namespace halo_exchange_3D_generic_full {
         cudaError_t status;
         status = cudaMalloc(&gpu_a,
             (DIM1 + H1m1 + H1p1) * (DIM2 + H2m1 + H2p1) * (DIM3 + H3m1 + H3p1) *
-                sizeof(triple_t< USE_DOUBLE >::data_type));
+                sizeof(triple_t< USE_DOUBLE, T1 >::data_type));
         if (!checkCudaStatus(status))
             return false;
         status = cudaMalloc(&gpu_b,
             (DIM1 + H1m2 + H1p2) * (DIM2 + H2m2 + H2p2) * (DIM3 + H3m2 + H3p2) *
-                sizeof(triple_t< USE_DOUBLE >::data_type));
+                sizeof(triple_t< USE_DOUBLE, T2 >::data_type));
         if (!checkCudaStatus(status))
             return false;
         status = cudaMalloc(&gpu_c,
             (DIM1 + H1m3 + H1p3) * (DIM2 + H2m3 + H2p3) * (DIM3 + H3m3 + H3p3) *
-                sizeof(triple_t< USE_DOUBLE >::data_type));
+                sizeof(triple_t< USE_DOUBLE, T3 >::data_type));
         if (!checkCudaStatus(status))
             return false;
 
         status = cudaMemcpy(gpu_a,
             a.ptr,
             (DIM1 + H1m1 + H1p1) * (DIM2 + H2m1 + H2p1) * (DIM3 + H3m1 + H3p1) *
-                sizeof(triple_t< USE_DOUBLE >::data_type),
+                sizeof(triple_t< USE_DOUBLE, T1 >::data_type),
             cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
@@ -283,7 +283,7 @@ namespace halo_exchange_3D_generic_full {
         status = cudaMemcpy(gpu_b,
             b.ptr,
             (DIM1 + H1m2 + H1p2) * (DIM2 + H2m2 + H2p2) * (DIM3 + H3m2 + H3p2) *
-                sizeof(triple_t< USE_DOUBLE >::data_type),
+                sizeof(triple_t< USE_DOUBLE, T2 >::data_type),
             cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;
@@ -291,7 +291,7 @@ namespace halo_exchange_3D_generic_full {
         status = cudaMemcpy(gpu_c,
             c.ptr,
             (DIM1 + H1m3 + H1p3) * (DIM2 + H2m3 + H2p3) * (DIM3 + H3m3 + H3p3) *
-                sizeof(triple_t< USE_DOUBLE >::data_type),
+                sizeof(triple_t< USE_DOUBLE, T3 >::data_type),
             cudaMemcpyHostToDevice);
         if (!checkCudaStatus(status))
             return false;

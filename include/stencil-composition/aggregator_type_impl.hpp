@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -111,12 +111,12 @@ namespace gridtools {
         struct domain_arg_check;
 
         template < typename T, typename... Rest >
-        struct domain_arg_check<T, Rest...> {
-            typedef typename is_data_store<T>::type c1;
-            typedef typename is_data_store_field<T>::type c2;
-            typedef typename is_vector<T>::type c3;
-            typedef typename boost::mpl::or_<c1, c2, c3>::type is_suitable;
-            typedef typename boost::mpl::and_< is_suitable, typename domain_arg_check<Rest...>::type > type;
+        struct domain_arg_check< T, Rest... > {
+            typedef typename is_data_store< T >::type c1;
+            typedef typename is_data_store_field< T >::type c2;
+            typedef typename is_vector< T >::type c3;
+            typedef typename boost::mpl::or_< c1, c2, c3 >::type is_suitable;
+            typedef typename boost::mpl::and_< is_suitable, typename domain_arg_check< Rest... >::type > type;
         };
 
         template <>

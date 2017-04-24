@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -217,9 +217,9 @@ namespace gridtools {
                             if (halo.mpdt_inside(eta).second) {
                                 typedef translate_t< 3, proc_layout > translate_P;
                                 typedef typename translate_P::map_type map_type;
-                                const int i_P = pack_get_elem<map_type::template at<0>()>::apply(i, j, k);
-                                const int j_P = pack_get_elem<map_type::template at<1>()>::apply(i, j, k);
-                                const int k_P = pack_get_elem<map_type::template at<2>()>::apply(i, j, k);
+                                const int i_P = pack_get_elem< map_type::template at< 0 >() >::apply(i, j, k);
+                                const int j_P = pack_get_elem< map_type::template at< 1 >() >::apply(i, j, k);
+                                const int k_P = pack_get_elem< map_type::template at< 2 >() >::apply(i, j, k);
 
                                 base_type::m_haloexch.register_send_to_buffer(
                                     fields[0], MPDT_INSIDE[_impl::neigh_idx(eta)], 1, i_P, j_P, k_P);
@@ -227,9 +227,9 @@ namespace gridtools {
                             } else {
                                 typedef translate_t< 3, proc_layout > translate_P;
                                 typedef typename translate_P::map_type map_type;
-                                const int i_P = pack_get_elem<map_type::template at<0>()>::apply(i, j, k);
-                                const int j_P = pack_get_elem<map_type::template at<1>()>::apply(i, j, k);
-                                const int k_P = pack_get_elem<map_type::template at<2>()>::apply(i, j, k);
+                                const int i_P = pack_get_elem< map_type::template at< 0 >() >::apply(i, j, k);
+                                const int j_P = pack_get_elem< map_type::template at< 1 >() >::apply(i, j, k);
+                                const int k_P = pack_get_elem< map_type::template at< 2 >() >::apply(i, j, k);
 
                                 base_type::m_haloexch.register_send_to_buffer(NULL, MPI_INT, 0, i_P, j_P, k_P);
                             }
@@ -237,18 +237,18 @@ namespace gridtools {
                             if (halo.mpdt_outside(eta).second) {
                                 typedef translate_t< 3, proc_layout > translate_P;
                                 typedef typename translate_P::map_type map_type;
-                                const int i_P = pack_get_elem<map_type::template at<0>()>::apply(i, j, k);
-                                const int j_P = pack_get_elem<map_type::template at<1>()>::apply(i, j, k);
-                                const int k_P = pack_get_elem<map_type::template at<2>()>::apply(i, j, k);
+                                const int i_P = pack_get_elem< map_type::template at< 0 >() >::apply(i, j, k);
+                                const int j_P = pack_get_elem< map_type::template at< 1 >() >::apply(i, j, k);
+                                const int k_P = pack_get_elem< map_type::template at< 2 >() >::apply(i, j, k);
 
                                 base_type::m_haloexch.register_receive_from_buffer(
                                     fields[0], MPDT_OUTSIDE[_impl::neigh_idx(eta)], 1, i_P, j_P, k_P);
                             } else {
                                 typedef translate_t< 3, proc_layout > translate_P;
                                 typedef typename translate_P::map_type map_type;
-                                const int i_P = pack_get_elem<map_type::template at<0>()>::apply(i, j, k);
-                                const int j_P = pack_get_elem<map_type::template at<1>()>::apply(i, j, k);
-                                const int k_P = pack_get_elem<map_type::template at<2>()>::apply(i, j, k);
+                                const int i_P = pack_get_elem< map_type::template at< 0 >() >::apply(i, j, k);
+                                const int j_P = pack_get_elem< map_type::template at< 1 >() >::apply(i, j, k);
+                                const int k_P = pack_get_elem< map_type::template at< 2 >() >::apply(i, j, k);
 
                                 base_type::m_haloexch.register_receive_from_buffer(NULL, MPI_INT, 0, i_P, j_P, k_P);
                             }

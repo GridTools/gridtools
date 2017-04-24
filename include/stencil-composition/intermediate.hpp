@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -414,7 +414,7 @@ namespace gridtools {
             typename boost::fusion::result_of::as_vector< storage_wrapper_list_t >::type storage_wrapper_fusion_list_t;
 
         // get the maximum extent (used to retrieve the size of the temporaries)
-        typedef typename get_max_i_extent<storage_wrapper_fusion_list_t>::type max_i_extent_t;
+        typedef typename get_max_i_extent< storage_wrapper_fusion_list_t >::type max_i_extent_t;
 
         // creates an mpl sequence of local domains
         typedef typename create_mss_local_domains< backend_id< Backend >::value,

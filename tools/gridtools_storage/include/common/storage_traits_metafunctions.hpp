@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -139,9 +139,9 @@ namespace gridtools {
     struct fix_values< ValueVec, layout_map< D... > > {
         typedef layout_map< boost::mpl::if_< boost::is_same< boost::mpl::int_< -1 >, boost::mpl::int_< D > >,
             boost::mpl::int_< -1 >,
-            boost::mpl::int_< (int)(D - (int)boost::mpl::count_if< ValueVec,
-                                            boost::mpl::less< boost::mpl::_, boost::mpl::int_< D > > >::type::
-                                            value) > >::type::value... >
+            boost::mpl::int_< (int)(
+                D - (int)boost::mpl::count_if< ValueVec,
+                        boost::mpl::less< boost::mpl::_, boost::mpl::int_< D > > >::type::value) > >::type::value... >
             type;
     };
 

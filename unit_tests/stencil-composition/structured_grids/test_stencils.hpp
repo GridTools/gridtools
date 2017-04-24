@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -104,16 +104,16 @@ namespace copy_stencils_3D_2D_1D_0D {
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
-typedef gridtools::cuda_storage_info< 0, DstLayout > meta_dst_t;
-typedef gridtools::cuda_storage_info< 0, SrcLayout > meta_src_t;
+        typedef gridtools::cuda_storage_info< 0, DstLayout > meta_dst_t;
+        typedef gridtools::cuda_storage_info< 0, SrcLayout > meta_src_t;
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
-typedef gridtools::host_storage_info< 0, DstLayout > meta_dst_t;
-typedef gridtools::host_storage_info< 0, SrcLayout > meta_src_t;
+        typedef gridtools::host_storage_info< 0, DstLayout > meta_dst_t;
+        typedef gridtools::host_storage_info< 0, SrcLayout > meta_src_t;
 #endif
 
         typedef BACKEND::storage_traits_t::data_store_t< T, meta_dst_t > storage_t;
@@ -195,10 +195,10 @@ typedef gridtools::host_storage_info< 0, SrcLayout > meta_src_t;
 #endif
 
         auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
-                grid_,
-                gridtools::make_multistage                                                    // mss_descriptor
-                (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out()) // esf_descriptor
-                                                                         ));
+            grid_,
+            gridtools::make_multistage                                                    // mss_descriptor
+            (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out()) // esf_descriptor
+                                                                          ));
 
         copy->ready();
         copy->steady();

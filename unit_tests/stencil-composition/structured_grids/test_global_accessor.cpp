@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -51,8 +51,8 @@ typedef storage_traits< Cuda > storage_traits_t;
 typedef backend< Host, structured, Naive > backend_t;
 typedef storage_traits< Host > storage_traits_t;
 #endif
-typedef storage_traits_t::storage_info_t<0, 3> storage_info_t;
-typedef storage_traits_t::data_store_t<float_type, storage_info_t> data_store_t;
+typedef storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
+typedef storage_traits_t::data_store_t< float_type, storage_info_t > data_store_t;
 
 struct boundary {
 
@@ -83,17 +83,17 @@ TEST(test_global_accessor, boundary_conditions) {
     sol_.allocate();
 
     auto solv = make_host_view(sol_);
-    for(unsigned i=0; i<10; ++i) {
-        for(unsigned j=0; j<10; ++j) {
-            for(unsigned k=0; k<10; ++k) {
-                solv(i,j,k) = 2.;
+    for (unsigned i = 0; i < 10; ++i) {
+        for (unsigned j = 0; j < 10; ++j) {
+            for (unsigned k = 0; k < 10; ++k) {
+                solv(i, j, k) = 2.;
             }
         }
     }
 
     boundary bd(20);
 
-    auto bd_ = backend_t::make_global_parameter(bd);    
+    auto bd_ = backend_t::make_global_parameter(bd);
     typedef arg< 1, decltype(bd_) > p_bd;
 
     halo_descriptor di = halo_descriptor(0, 1, 1, 9, 10);
@@ -106,9 +106,9 @@ TEST(test_global_accessor, boundary_conditions) {
 
     aggregator_type< boost::mpl::vector< p_sol, p_bd > > domain(sol_, bd_);
 
-/*****RUN 1 WITH bd int_value set to 20****/
+    /*****RUN 1 WITH bd int_value set to 20****/
     auto bc_eval = make_computation< backend_t >(
-            domain, coords_bc, make_multistage(execute< forward >(), make_stage< functor >(p_sol(), p_bd())));
+        domain, coords_bc, make_multistage(execute< forward >(), make_stage< functor >(p_sol(), p_bd())));
 
     bc_eval->ready();
     bc_eval->steady();
@@ -133,17 +133,17 @@ TEST(test_global_accessor, boundary_conditions) {
     // get the configuration object from the gpu
     // modify configuration object (boundary)
     bd.int_value = 30;
-    backend_t::update_global_parameter(bd_, bd);    
+    backend_t::update_global_parameter(bd_, bd);
 
     // get the storage object from the gpu
     // modify storage object
-    for(unsigned i=0; i<10; ++i) {
-        for(unsigned j=0; j<10; ++j) {
-            for(unsigned k=0; k<10; ++k) {
-                solv(i,j,k) = 2.;
+    for (unsigned i = 0; i < 10; ++i) {
+        for (unsigned j = 0; j < 10; ++j) {
+            for (unsigned k = 0; k < 10; ++k) {
+                solv(i, j, k) = 2.;
             }
         }
-    }    
+    }
 
     sol_.sync();
     sol_.reactivate_host_write_views();

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -50,12 +50,12 @@ namespace gridtools {
         struct get_extended_layout_type;
 
         template < uint_t N, int... Ints >
-        struct get_extended_layout_type< N, layout_map<Ints...> > 
-            : get_extended_layout_type< (N-1), layout_map< layout_map<Ints...>::unmasked_length, Ints... > > {};
+        struct get_extended_layout_type< N, layout_map< Ints... > >
+            : get_extended_layout_type< (N - 1), layout_map< layout_map< Ints... >::unmasked_length, Ints... > > {};
 
         template < int... Ints >
-        struct get_extended_layout_type< 0, layout_map<Ints...> > {
-            typedef layout_map<Ints...> type;
+        struct get_extended_layout_type< 0, layout_map< Ints... > > {
+            typedef layout_map< Ints... > type;
         };
 
         // halo extender
@@ -63,69 +63,71 @@ namespace gridtools {
         struct get_extended_halo_type;
 
         template < uint_t N, unsigned... M >
-        struct get_extended_halo_type< N, halo<M...> > 
-            : get_extended_halo_type< (N-1), halo<M..., 0> > { };
+        struct get_extended_halo_type< N, halo< M... > > : get_extended_halo_type< (N - 1), halo< M..., 0 > > {};
 
         template < unsigned... M >
-        struct get_extended_halo_type< 0, halo<M...> > { 
-            typedef halo<M...> type;
+        struct get_extended_halo_type< 0, halo< M... > > {
+            typedef halo< M... > type;
         };
 
         // storage info extender
         template < uint_t N, typename StorageInfo >
         struct get_extended_storage_info_type;
 
-        template < uint_t N, template <unsigned, typename, typename, typename> class StorageInfo, 
-            unsigned Index, 
-            typename Layout, 
-            typename Halo, 
+        template < uint_t N,
+            template < unsigned, typename, typename, typename > class StorageInfo,
+            unsigned Index,
+            typename Layout,
+            typename Halo,
             typename Alignment >
         struct get_extended_storage_info_type< N, StorageInfo< Index, Layout, Halo, Alignment > > {
-            GRIDTOOLS_STATIC_ASSERT((is_storage_info< StorageInfo< Index, Layout, Halo, Alignment > >::value), 
+            GRIDTOOLS_STATIC_ASSERT((is_storage_info< StorageInfo< Index, Layout, Halo, Alignment > >::value),
                 "Use with a StorageInfo type only");
-            typedef typename get_extended_layout_type<N, Layout>::type ext_layout_t;
-            typedef typename get_extended_halo_type<N, Halo>::type ext_halo_t;
+            typedef typename get_extended_layout_type< N, Layout >::type ext_layout_t;
+            typedef typename get_extended_halo_type< N, Halo >::type ext_halo_t;
             typedef StorageInfo< Index, ext_layout_t, ext_halo_t, Alignment > type;
         };
 
         // new storage info instantiation mechanism
-        template < uint_t N, uint_t M, typename StorageInfo, typename OldStorageInfo, typename... Args>
-        static constexpr typename boost::enable_if_c<(N>0 && M>0), StorageInfo>::type 
-        get_storage_info_instance(OldStorageInfo const& os, int extradim_length, Args... args) {
-            return get_storage_info_instance<N, M-1, StorageInfo>(os, extradim_length, args..., os.template dim<OldStorageInfo::layout_t::length-M>());
-        } 
+        template < uint_t N, uint_t M, typename StorageInfo, typename OldStorageInfo, typename... Args >
+        static constexpr typename boost::enable_if_c< (N > 0 && M > 0), StorageInfo >::type get_storage_info_instance(
+            OldStorageInfo const &os, int extradim_length, Args... args) {
+            return get_storage_info_instance< N, M - 1, StorageInfo >(
+                os, extradim_length, args..., os.template dim< OldStorageInfo::layout_t::length - M >());
+        }
 
-        template < uint_t N, uint_t M, typename StorageInfo, typename OldStorageInfo, typename... Args>
-        static constexpr typename boost::enable_if_c<(N>0 && M==0), StorageInfo>::type 
-        get_storage_info_instance(OldStorageInfo const& os, int extradim_length, Args... args) {
-            return get_storage_info_instance<N-1, 0, StorageInfo>(os, extradim_length, args..., extradim_length);
-        } 
+        template < uint_t N, uint_t M, typename StorageInfo, typename OldStorageInfo, typename... Args >
+        static constexpr typename boost::enable_if_c< (N > 0 && M == 0), StorageInfo >::type get_storage_info_instance(
+            OldStorageInfo const &os, int extradim_length, Args... args) {
+            return get_storage_info_instance< N - 1, 0, StorageInfo >(os, extradim_length, args..., extradim_length);
+        }
 
-        template < uint_t N, uint_t M, typename StorageInfo, typename OldStorageInfo, typename... Args>
-        static constexpr typename boost::enable_if_c<(N==0 && M==0), StorageInfo>::type 
-        get_storage_info_instance(OldStorageInfo const& os, int extradim_length, Args... args) {
+        template < uint_t N, uint_t M, typename StorageInfo, typename OldStorageInfo, typename... Args >
+        static constexpr typename boost::enable_if_c< (N == 0 && M == 0), StorageInfo >::type get_storage_info_instance(
+            OldStorageInfo const &os, int extradim_length, Args... args) {
             return StorageInfo(args...);
-        } 
+        }
 
         // retrieve functions
-        template < uint_t N, typename StorageInfo, typename R = typename get_extended_storage_info_type<N, StorageInfo>::type >
-        static constexpr R by(StorageInfo const& other, int extradim_length) {
-            return get_storage_info_instance<N, StorageInfo::layout_t::length, R>(other, extradim_length);
+        template < uint_t N,
+            typename StorageInfo,
+            typename R = typename get_extended_storage_info_type< N, StorageInfo >::type >
+        static constexpr R by(StorageInfo const &other, int extradim_length) {
+            return get_storage_info_instance< N, StorageInfo::layout_t::length, R >(other, extradim_length);
         }
 
         template < typename StorageInfo >
-        constexpr typename get_extended_storage_info_type<1, StorageInfo>::type 
-        operator()(StorageInfo const& other, int extradim_length) const {
+        constexpr typename get_extended_storage_info_type< 1, StorageInfo >::type operator()(
+            StorageInfo const &other, int extradim_length) const {
             GRIDTOOLS_STATIC_ASSERT((is_storage_info< StorageInfo >::value), "Use with a StorageInfo type only");
-            return by<1>(other, extradim_length);
+            return by< 1 >(other, extradim_length);
         }
 
         template < typename StorageInfo >
-        constexpr typename get_extended_storage_info_type<1, StorageInfo>::type 
-        operator()(StorageInfo const* other, int extradim_length) const {
+        constexpr typename get_extended_storage_info_type< 1, StorageInfo >::type operator()(
+            StorageInfo const *other, int extradim_length) const {
             GRIDTOOLS_STATIC_ASSERT((is_storage_info< StorageInfo >::value), "Use with a StorageInfo type only");
-            return by<1>(*other, extradim_length);
+            return by< 1 >(*other, extradim_length);
         }
     };
-
 }

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -161,24 +161,26 @@ namespace gridtools {
             typename CurrentExtent,
             typename GridTraits,
             typename StorageInfo >
-        GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+        GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(
+            StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
             typedef typename LocalDomain::max_i_extent_t max_i_t;
 
             constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
-            constexpr int block_size_i = 2*max_i_t::value + PEBlockSize::i_size_t::value;
-            constexpr int block_size_j = 2*StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >() 
-                + PEBlockSize::j_size_t::value;
+            constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
+            constexpr int block_size_j =
+                2 * StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >() + PEBlockSize::j_size_t::value;
 
             // protect against div. by 0
-            constexpr int diff_between_blocks = 
+            constexpr int diff_between_blocks =
                 ((StorageInfo::alignment_t::value > 1)
-                    ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
-                          StorageInfo::alignment_t::value : block_size_i);
+                        ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
+                              StorageInfo::alignment_t::value
+                        : block_size_i);
             // compute position in i and j
             const uint_t i = processing_element_i() * diff_between_blocks;
-            const uint_t j = Arg::location_t::n_colors::value * 
-                (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
+            const uint_t j = Arg::location_t::n_colors::value *
+                             (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
             return StorageInfo::get_initial_offset() - CurrentExtent::iminus::value + i + j;
         }
 
@@ -188,7 +190,8 @@ namespace gridtools {
             typename CurrentExtent,
             typename GridTraits,
             typename StorageInfo >
-        GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+        GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
+            StorageInfo const *sinfo) {
             return StorageInfo::get_initial_offset();
         }
 

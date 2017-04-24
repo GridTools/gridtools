@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -150,9 +150,9 @@ namespace reduction {
         grid.value_list[1] = d3 - 1;
 
         auto sum_red_ = make_computation< gridtools::BACKEND >(domain,
-                grid,
-                make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
-                make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
+            grid,
+            make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
+            make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
 
         sum_red_->ready();
         sum_red_->steady();

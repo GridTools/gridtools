@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -153,15 +153,17 @@ namespace gridtools {
 
     template < typename StorageWrapperList >
     struct get_max_i_extent {
-        typedef typename boost::mpl::transform< StorageWrapperList, get_tile_from_storage_wrapper<1> >::type 
+        typedef typename boost::mpl::transform< StorageWrapperList, get_tile_from_storage_wrapper< 1 > >::type
             all_i_tiles_t;
         typedef typename boost::mpl::transform< all_i_tiles_t, get_minus_t_from_tile< boost::mpl::_ > >::type
             all_i_minus_tiles_t;
         typedef typename boost::mpl::transform< all_i_tiles_t, get_plus_t_from_tile< boost::mpl::_ > >::type
             all_i_plus_tiles_t;
-        typedef typename boost::mpl::deref<typename boost::mpl::max_element< all_i_minus_tiles_t >::type >::type min_i_minus_t;
-        typedef typename boost::mpl::deref<typename boost::mpl::max_element< all_i_plus_tiles_t >::type >::type max_i_plus_t;
-        typedef typename boost::mpl::deref<typename boost::mpl::max_element< boost::mpl::vector<max_i_plus_t, min_i_minus_t> >::type >::type type;
+        typedef typename boost::mpl::deref< typename boost::mpl::max_element< all_i_minus_tiles_t >::type >::type
+            min_i_minus_t;
+        typedef typename boost::mpl::deref< typename boost::mpl::max_element< all_i_plus_tiles_t >::type >::type
+            max_i_plus_t;
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::max_element< boost::mpl::vector< max_i_plus_t, min_i_minus_t > >::type >::type type;
     };
-
 }

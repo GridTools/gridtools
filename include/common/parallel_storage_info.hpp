@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -117,10 +117,10 @@ namespace gridtools {
 
         template < typename... UInt >
         explicit parallel_storage_info(partitioner_t const &part, UInt const &... dims_)
-            : m_partitioner(&part), m_coordinates(), m_coordinates_gcl(), m_low_bound(), m_up_bound(), 
+            : m_partitioner(&part), m_coordinates(), m_coordinates_gcl(), m_low_bound(), m_up_bound(),
               m_metadata(part.compute_bounds(0, m_coordinates, m_coordinates, m_low_bound, m_up_bound, dims_...),
-                part.compute_bounds(1, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_...),
-                part.compute_bounds(2, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_...)) { }
+                  part.compute_bounds(1, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_...),
+                  part.compute_bounds(2, m_coordinates, m_coordinates_gcl, m_low_bound, m_up_bound, dims_...)) {}
 
 #endif
 

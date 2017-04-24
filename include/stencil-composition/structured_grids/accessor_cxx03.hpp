@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -108,19 +108,23 @@ namespace gridtools {
 
         /** @brief constructor forwarding all the arguments*/
         template < typename X, typename Y, typename Z, typename T >
-        GT_FUNCTION constexpr accessor(X x, Y y, Z z, T t) : super(x, y, z, t) {}
+        GT_FUNCTION constexpr accessor(X x, Y y, Z z, T t)
+            : super(x, y, z, t) {}
 
         /** @brief constructor forwarding all the arguments*/
         template < typename X, typename Y, typename Z >
-        GT_FUNCTION constexpr accessor(X x, Y y, Z z) : super(x, y, z) {}
+        GT_FUNCTION constexpr accessor(X x, Y y, Z z)
+            : super(x, y, z) {}
 
         /** @brief constructor forwarding all the arguments*/
         template < typename X >
-        GT_FUNCTION constexpr accessor(X x) : super(x) {}
+        GT_FUNCTION constexpr accessor(X x)
+            : super(x) {}
 
         /** @brief constructor forwarding all the arguments*/
         template < typename X, typename Y >
-        GT_FUNCTION constexpr accessor(X x, Y y) : super(x, y) {}
+        GT_FUNCTION constexpr accessor(X x, Y y)
+            : super(x, y) {}
 
 #endif
     };

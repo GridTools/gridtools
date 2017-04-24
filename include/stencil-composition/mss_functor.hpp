@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -258,8 +258,8 @@ namespace gridtools {
             // insert true for the last esf
             typedef typename boost::mpl::insert< async_esf_map_tmp_t,
                 boost::mpl::pair< typename boost::mpl::at_c< functors_list_t,
-                    boost::mpl::size< next_thing >::value >::type,
-                    boost::mpl::true_ > >::type async_esf_map_t;
+                                      boost::mpl::size< next_thing >::value >::type,
+                                                     boost::mpl::true_ > >::type async_esf_map_t;
 
             // perform some checks concerning the reduction types
             typedef run_functor_arguments< BackendIds,

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ namespace gridtools {
 
         template < unsigned V >
         static constexpr unsigned at() {
-            static_assert((V<sizeof...(N)), "Out of bounds access in halo type discovered.");
+            static_assert((V < sizeof...(N)), "Out of bounds access in halo type discovered.");
             return value[V];
         }
 
@@ -66,10 +66,9 @@ namespace gridtools {
 
     template < unsigned... Vals >
     struct zero_halo< 0, Vals... > {
-        typedef typename boost::mpl::accumulate<
-            boost::mpl::vector<boost::mpl::int_<Vals>...>, 
-            boost::mpl::int_<0>, 
-            boost::mpl::plus<boost::mpl::_1, boost::mpl::_2> >::type sum;
+        typedef typename boost::mpl::accumulate< boost::mpl::vector< boost::mpl::int_< Vals >... >,
+            boost::mpl::int_< 0 >,
+            boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 > >::type sum;
         static_assert((sum::value == 0), "Failed to create a zero halo type");
         typedef halo< Vals... > type;
     };
@@ -79,6 +78,5 @@ namespace gridtools {
     struct is_halo : boost::mpl::false_ {};
 
     template < unsigned... N >
-    struct is_halo< halo<N...> > : boost::mpl::true_ {};
-
+    struct is_halo< halo< N... > > : boost::mpl::true_ {};
 }

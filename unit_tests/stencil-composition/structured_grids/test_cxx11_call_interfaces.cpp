@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -18,9 +18,6 @@
   3. Neither the name of the copyright holder nor the names of its
   contributors may be used to endorse or promote products derived from
   this software without specific prior written permission.
-
-
-
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -197,8 +194,8 @@ class call_interface : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
     storage_info_t meta_;
 
@@ -235,13 +232,13 @@ class call_interface : public testing::Test {
 
         auto in_v = make_host_view(in);
         auto reference_unchanged_v = make_host_view(reference_unchanged);
-        auto reference_shifted_v = make_host_view(reference_shifted);        
-        for(int i=0; i<d1; ++i) {
-            for(int j=0; j<d2; ++j) {
-                for(int k=0; k<d3; ++k) {
-                    in_v(i,j,k) = i + j * 10 + k * 100;
-                    reference_unchanged_v(i,j,k) = i + j * 10 + k * 100;
-                    reference_shifted_v(i,j,k) = (i + 1) + (j + 1) * 10 + k * 100;
+        auto reference_shifted_v = make_host_view(reference_shifted);
+        for (int i = 0; i < d1; ++i) {
+            for (int j = 0; j < d2; ++j) {
+                for (int k = 0; k < d3; ++k) {
+                    in_v(i, j, k) = i + j * 10 + k * 100;
+                    reference_unchanged_v(i, j, k) = i + j * 10 + k * 100;
+                    reference_shifted_v(i, j, k) = (i + 1) + (j + 1) * 10 + k * 100;
                 }
             }
         }
@@ -417,8 +414,8 @@ class call_proc_interface : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t<float_type, storage_info_t> data_store_t;
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
     storage_info_t meta_;
 
@@ -451,20 +448,20 @@ class call_proc_interface : public testing::Test {
           verifier_(1e-12),
 #endif
           verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}}, in(meta_, 0),
-          out1(meta_, -5), out2(meta_, -5), reference_unchanged(meta_, -1), reference_shifted(meta_, -1), 
+          out1(meta_, -5), out2(meta_, -5), reference_unchanged(meta_, -1), reference_shifted(meta_, -1),
           domain(in, out1, out2) {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
         auto in_v = make_host_view(in);
         auto reference_unchanged_v = make_host_view(reference_unchanged);
-        auto reference_shifted_v = make_host_view(reference_shifted);        
-        for(int i=0; i<d1; ++i) {
-            for(int j=0; j<d2; ++j) {
-                for(int k=0; k<d3; ++k) {
-                    in_v(i,j,k) = i + j * 10 + k * 100;
-                    reference_unchanged_v(i,j,k) = i + j * 10 + k * 100;
-                    reference_shifted_v(i,j,k) = (i + 1) + (j + 1) * 10 + k * 100;
+        auto reference_shifted_v = make_host_view(reference_shifted);
+        for (int i = 0; i < d1; ++i) {
+            for (int j = 0; j < d2; ++j) {
+                for (int k = 0; k < d3; ++k) {
+                    in_v(i, j, k) = i + j * 10 + k * 100;
+                    reference_unchanged_v(i, j, k) = i + j * 10 + k * 100;
+                    reference_shifted_v(i, j, k) = (i + 1) + (j + 1) * 10 + k * 100;
                 }
             }
         }

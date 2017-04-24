@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -140,8 +140,8 @@ std::ostream &operator<<(std::ostream &s, functor5) { return s << "functor5"; }
 std::ostream &operator<<(std::ostream &s, functor6) { return s << "functor6"; }
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 
-typedef gridtools::storage_traits<BACKEND::s_backend_id>::storage_info_t< 0, 3 > storage_info_t;
-typedef gridtools::storage_traits<BACKEND::s_backend_id>::data_store_t< float_type, storage_info_t > storage_t;
+typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > storage_t;
 
 typedef arg< 0, storage_t > o0;
 typedef arg< 1, storage_t > o1;

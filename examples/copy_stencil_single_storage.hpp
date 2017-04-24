@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -95,7 +95,7 @@ namespace copy_stencil {
 
         typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_t;
         typedef storage_traits< BACKEND_V >::data_store_field_t< float_type, storage_info_t, 2 > data_store_field_t;
-        storage_info_t meta_data_(x,y,z);
+        storage_info_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
         data_store_field_t in(meta_data_);
@@ -131,10 +131,9 @@ namespace copy_stencil {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in())));
+        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in())));
 
         copy->ready();
 

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -71,7 +71,7 @@ namespace gridtools {
 
         // get a temporary storage for Host Naive
         template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive), 
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive),
             typename StorageWrapper::storage_info_t >::type
         instantiate_storage_info(Grid const &grid) {
             // get all the params (size in i,j,k and number of threads in i,j)
@@ -93,7 +93,7 @@ namespace gridtools {
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.k_max() + 1);
             constexpr uint_t colors = StorageWrapper::arg_t::location_t::n_colors::value;
-            constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();            
+            constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
             const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
             // create and return the storage info instance
@@ -114,21 +114,24 @@ namespace gridtools {
 
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.k_max() + 1);
-            constexpr uint_t colors = StorageWrapper::arg_t::location_t::n_colors::value;            
+            constexpr uint_t colors = StorageWrapper::arg_t::location_t::n_colors::value;
             const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
             constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
 
             constexpr int full_block_size = StorageWrapper::tileI_t::s_tile + 2 * MaxExtent::value;
-            constexpr int diff_between_blocks = 
-                ((storage_info_t::alignment_t::value > 1)
-                    ? _impl::static_ceil(static_cast< float >(full_block_size) / storage_info_t::alignment_t::value) *
-                          storage_info_t::alignment_t::value : full_block_size);
+            constexpr int diff_between_blocks = ((storage_info_t::alignment_t::value > 1)
+                                                     ? _impl::static_ceil(static_cast< float >(full_block_size) /
+                                                                          storage_info_t::alignment_t::value) *
+                                                           storage_info_t::alignment_t::value
+                                                     : full_block_size);
             constexpr int padding = diff_between_blocks - full_block_size;
-            const int inner_domain_size = threads_i * full_block_size - 2 * MaxExtent::value + (threads_i - 1) * padding;
+            const int inner_domain_size =
+                threads_i * full_block_size - 2 * MaxExtent::value + (threads_i - 1) * padding;
 
             // create and return the storage info instance
-            return storage_info_t(inner_domain_size, colors, 
+            return storage_info_t(inner_domain_size,
+                colors,
                 (StorageWrapper::tileJ_t::s_tile + 2 * halo_j::value) * threads_j - 2 * halo_j::value,
                 k_size);
         }

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -460,7 +460,7 @@ namespace gridtools {
             // i+offset_i or j+offset_j or k+offset_k is too large.
             // Most probably this is due to you specifying a positive offset which is larger than expected,
             // or maybe you did a mistake when specifying the ranges in the placehoders definition
-            GTASSERT(static_cast<int>(storage_info->size()) > static_cast<int>(pointer_offset));
+            GTASSERT(static_cast< int >(storage_info->size()) > static_cast< int >(pointer_offset));
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
                     typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
@@ -494,7 +494,7 @@ namespace gridtools {
             const storage_info_t *storage_info =
                 boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
 
-            GTASSERT(static_cast<int>(storage_info->size()) > static_cast<int>(offset));
+            GTASSERT(static_cast< int >(storage_info->size()) > static_cast< int >(offset));
 #endif
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,9 @@
 
 namespace gridtools {
 
-    template <class N>
-    struct is_vector : boost::mpl::false_ { };
+    template < class N >
+    struct is_vector : boost::mpl::false_ {};
 
-    template <class N, class A>
-    struct is_vector<std::vector<N, A> > : boost::mpl::true_ { };
-
+    template < class N, class A >
+    struct is_vector< std::vector< N, A > > : boost::mpl::true_ {};
 }
-
