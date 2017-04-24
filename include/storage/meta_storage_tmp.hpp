@@ -127,7 +127,7 @@ namespace gridtools {
             uint_t const &n_j_threads = 1)
 // TODO ICO_STORAGE INTRODUCTING GRIDS IN STORAGE
 #ifdef STRUCTURED_GRIDS
-            : super((tile_i + minus_i + plus_i) * n_i_threads, (tile_j + minus_j + plus_j) * n_j_threads, dim3)
+            : super((tile_i + minus_i + plus_i+1) * n_i_threads, (tile_j + minus_j + plus_j+1) * n_j_threads, dim3)
 #else
             : super((tile_i + minus_i + plus_i) * n_i_threads,
                   3,

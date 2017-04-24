@@ -181,14 +181,7 @@ namespace gridtools {
             }
         }
 
-        uint_t compute_tile(ushort_t component, uint_t const size_) const {
-            int_t low;
-            int_t high;
-            low_up_bounds(low, high, component, size_);
-            return high - low;
-        }
-
-/**@brief computes the lower and upprt index of the local interval
+/**@brief computes the lower and upper index of the local interval
    \param component the dimension being partitioned
    \param size the total size of the quantity being partitioned
 
@@ -246,7 +239,11 @@ namespace gridtools {
                       << "pid: " << m_pid[0] << " " << m_pid[1] << " " << m_pid[2] << std::endl
                       << "component, size: " << component << " " << size_ << std::endl;
 #endif
-            return tile_dimension + compute_halo(component, UP) + compute_halo(component, LOW);
+            // adding twice the halo => wasting some space in case the
+            // global boundary has no halo.
+            // The commented version is tight (and should be used), but it's not working.
+            return tile_dimension + 2*m_halo[component];
+            //+ compute_halo(component, UP) + compute_halo(component, LOW);
         }
 
         /** @brief method to query the halo dimension based on the periodicity of the communicator and the boundary flag

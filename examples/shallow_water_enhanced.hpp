@@ -290,16 +290,16 @@ namespace shallow_water {
             dimension< 1 > i;
             dimension< 2 > j;
 
-            eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
-                               (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));
+            eval(sol()) = eval(sol() - (tmpx(comp(1) , i + 1) - tmpx(comp(1))) * (dt() / dx()) -
+                               (tmpy(comp(2) , j + 1) - tmpy(comp(2))) * (dt() / dy()));
 
             eval(sol(comp(1))) =
                 eval(sol(comp(1)) -
                      (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / tl)) -
-                         (pow< 2 >(tmpx(comp(1))) / tmpx(i - 0) + pow< 2 >(tmpx(i - 0)) * ((g() / tl)))) *
+                         (pow< 2 >(tmpx(comp(1))) / tmpx() + pow< 2 >(tmpx()) * ((g() / tl)))) *
                          ((dt() / dx())) -
                      (tmpy(comp(2), j + 1) * tmpy(comp(1), j + 1) / tmpy(j + 1) -
-                         tmpy(comp(2)) * tmpy(comp(1)) / tmpy(i - 0)) *
+                         tmpy(comp(2)) * tmpy(comp(1)) / tmpy()) *
                          (dt() / dy()));
 
             eval(sol(comp(2))) =
@@ -458,9 +458,9 @@ namespace shallow_water {
         //! [parallel_storage]
         parallel_storage_info< storage_info_t, partitioner_t > meta_(part, d1, d2, d3);
         sol_type sol(meta_.get_metadata(), "sol");
+        //! [parallel_storage]
         // sol_type tmpx(meta_.get_metadata(), "tmpx");
         // sol_type tmpy(meta_.get_metadata(), "tmpy");
-        //! [parallel_storage]
 
         //! [add_halo]
         he.add_halo< 0 >(meta_.get_halo_gcl< 0 >());
@@ -468,13 +468,13 @@ namespace shallow_water {
         he.add_halo< 2 >(meta_.get_halo_gcl< 2 >());
 
         he.setup(3);
-//! [add_halo]
+        //! [add_halo]
 #else
         storage_info_t meta_(d1, d2, d3);
         sol_type sol(meta_, "sol");
 #endif
 
-//! [initialization_h]
+        //! [initialization_h]
 #ifdef __CUDACC__
         sol.template set< 0, 0 >(&bc_periodic< 0, 0 >::droplet); // h
 #else
@@ -487,7 +487,7 @@ namespace shallow_water {
         //! [initialization]
         sol.template set< 0, 1 >(0.); // u
         sol.template set< 0, 2 >(0.); // v
-//! [initialization]
+        //! [initialization]
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
@@ -594,7 +594,7 @@ namespace shallow_water {
 
         verifier check_result(1e-8);
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-        shallow_water_reference< sol_type, 11, 11 > reference;
+        shallow_water_reference< sol_type, 60+2, 83+2 > reference;
         reference.setup();
         for (uint_t t = 0; t < total_time; ++t) {
             reference.iterate();
