@@ -48,5 +48,5 @@ int main(int argc, char **argv) {
     gridtools::GCL_Init(argc, argv);
 
     // return !copy_stencil::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
-    return false;//!copy_stencil::test(45, 98, 34);
+    return copy_stencil::test(45, 98, 34);
 }

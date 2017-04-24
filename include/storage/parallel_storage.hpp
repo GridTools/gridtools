@@ -97,7 +97,7 @@ namespace gridtools {
             : m_partitioner(&part), m_coordinates(), m_coordinates_gcl(), m_low_bound(), m_up_bound(),
               m_metadata(
                   apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t, sizeof...(UInt) >::type >::
-                      template apply< metadata_t >(
+                  template apply< metadata_t >(// call the following lambda for every index_
                           ([&part](uint_t index_,
                                array< halo_descriptor, metadata_t::space_dimensions > & coordinates_,
                                array< halo_descriptor, metadata_t::space_dimensions > & coordinates_gcl_,
