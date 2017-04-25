@@ -44,9 +44,9 @@ namespace gridtools {
 
     namespace _impl {
 
-        template < typename Layout, typename Location, unsigned D1, unsigned D2, unsigned... Rest >
+        template < typename Layout, typename LocationType, unsigned D1, unsigned D2, unsigned... Rest >
         struct get_meta_storage {
-            typedef meta_storage_cache< Layout, D1, Location::n_colors::value, D2, Rest... > type;
+            typedef meta_storage_cache< Layout, D1, LocationType::n_colors::value, D2, Rest... > type;
         };
 
         template < typename Layout, unsigned D1, unsigned D2, unsigned... Rest >
