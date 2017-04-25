@@ -72,7 +72,7 @@ typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > 
 
 typedef arg< 0, storage_t > p_in;
 typedef arg< 2, storage_t > p_out;
-typedef arg< 1, storage_t, enumtype::default_location_type, true > p_buff;
+typedef tmp_arg< 1, storage_t > p_buff;
 typedef arg< 3, storage_t > p_notin;
 
 typedef decltype(gridtools::make_stage< functor1 >(p_in(), p_buff())) esf1_t;

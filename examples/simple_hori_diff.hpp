@@ -147,7 +147,7 @@ namespace shorizontal_diffusion {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, storage_type, enumtype::default_location_type, true > p_lap;
+        typedef tmp_arg< 0, storage_type > p_lap;
         typedef arg< 1, storage_type > p_coeff;
         typedef arg< 2, storage_type > p_in;
         typedef arg< 3, storage_type > p_out;

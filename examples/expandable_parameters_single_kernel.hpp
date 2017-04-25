@@ -166,14 +166,14 @@ namespace test_expandable_parameters {
         typedef arg< 14, storage_t > p_6_in;
         typedef arg< 15, storage_t > p_7_in;
 
-        typedef arg< 16, storage_t, enumtype::default_location_type, true > p_0_tmp;
-        typedef arg< 17, storage_t, enumtype::default_location_type, true > p_1_tmp;
-        typedef arg< 18, storage_t, enumtype::default_location_type, true > p_2_tmp;
-        typedef arg< 19, storage_t, enumtype::default_location_type, true > p_3_tmp;
-        typedef arg< 20, storage_t, enumtype::default_location_type, true > p_4_tmp;
-        typedef arg< 21, storage_t, enumtype::default_location_type, true > p_5_tmp;
-        typedef arg< 22, storage_t, enumtype::default_location_type, true > p_6_tmp;
-        typedef arg< 23, storage_t, enumtype::default_location_type, true > p_7_tmp;
+        typedef tmp_arg< 16, storage_t > p_0_tmp;
+        typedef tmp_arg< 17, storage_t > p_1_tmp;
+        typedef tmp_arg< 18, storage_t > p_2_tmp;
+        typedef tmp_arg< 19, storage_t > p_3_tmp;
+        typedef tmp_arg< 20, storage_t > p_4_tmp;
+        typedef tmp_arg< 21, storage_t > p_5_tmp;
+        typedef tmp_arg< 22, storage_t > p_6_tmp;
+        typedef tmp_arg< 23, storage_t > p_7_tmp;
 
         typedef boost::mpl::vector< p_0_out,
             p_1_out,

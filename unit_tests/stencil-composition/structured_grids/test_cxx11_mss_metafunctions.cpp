@@ -66,7 +66,7 @@ typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > stora
 
 typedef arg< 0, storage_t > p_in;
 typedef arg< 1, storage_t > p_out;
-typedef arg< 2, storage_t, enumtype::default_location_type, true > p_buff;
+typedef tmp_arg< 2, storage_t > p_buff;
 
 TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
     meta_data_t meta_(10, 10, 10);

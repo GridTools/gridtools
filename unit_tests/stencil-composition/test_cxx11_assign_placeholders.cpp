@@ -81,9 +81,9 @@ TEST(assign_placeholders, test) {
 
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
-    typedef arg< 0, data_store1_t, default_location_type, true > p_lap;
-    typedef arg< 1, data_store1_t, default_location_type, true > p_flx;
-    typedef arg< 2, data_store2_t, default_location_type, true > p_fly;
+    typedef tmp_arg< 0, data_store1_t > p_lap;
+    typedef tmp_arg< 1, data_store1_t > p_flx;
+    typedef tmp_arg< 2, data_store2_t > p_fly;
     typedef arg< 3, data_store2_t > p_coeff;
     typedef arg< 4, data_store1_t > p_in;
     typedef arg< 5, data_store2_t > p_out;
@@ -120,15 +120,14 @@ TEST(assign_placeholders, test) {
                                             gridtools::alignment< 1u > > >;
 
     // Check data store type correctness
-    typedef typename boost::is_same<
-        decltype(domain.m_arg_storage_pair_list),
-        boost::fusion::vector6<
-            gridtools::arg_storage_pair< gridtools::arg< 0u, dst1_tmp, default_location_type, true >, dst1_tmp >,
-            gridtools::arg_storage_pair< gridtools::arg< 1u, dst1_tmp, default_location_type, true >, dst1_tmp >,
-            gridtools::arg_storage_pair< gridtools::arg< 2u, dst2_tmp, default_location_type, true >, dst2_tmp >,
-            gridtools::arg_storage_pair< gridtools::arg< 3u, dst2 >, dst2 >,
-            gridtools::arg_storage_pair< gridtools::arg< 4u, dst1 >, dst1 >,
-            gridtools::arg_storage_pair< gridtools::arg< 5u, dst2 >, dst2 > > >::type check_storages_t;
+    typedef typename boost::is_same< decltype(domain.m_arg_storage_pair_list),
+        boost::fusion::vector6< gridtools::arg_storage_pair< gridtools::tmp_arg< 0u, dst1_tmp >, dst1_tmp >,
+                                         gridtools::arg_storage_pair< gridtools::tmp_arg< 1u, dst1_tmp >, dst1_tmp >,
+                                         gridtools::arg_storage_pair< gridtools::tmp_arg< 2u, dst2_tmp >, dst2_tmp >,
+                                         gridtools::arg_storage_pair< gridtools::arg< 3u, dst2 >, dst2 >,
+                                         gridtools::arg_storage_pair< gridtools::arg< 4u, dst1 >, dst1 >,
+                                         gridtools::arg_storage_pair< gridtools::arg< 5u, dst2 >, dst2 > > >::type
+        check_storages_t;
     static_assert(check_storages_t::value, "Type check failed.");
 
     // Check metadata_set correctness

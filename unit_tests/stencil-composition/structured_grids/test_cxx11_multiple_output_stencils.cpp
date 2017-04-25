@@ -119,10 +119,10 @@ TEST(multiple_outputs, compute_extents) {
     meta_data_t meta_data_(10, 10, 10);
     storage_t dummy(meta_data_, 0.);
 
-    using T_sqr_s = arg< 0, storage_t, enumtype::default_location_type, true >;
-    using S_sqr_uv = arg< 1, storage_t, enumtype::default_location_type, true >;
-    using smag_u = arg< 2, storage_t, enumtype::default_location_type, true >;
-    using smag_v = arg< 3, storage_t, enumtype::default_location_type, true >;
+    using T_sqr_s = tmp_arg< 0, storage_t >;
+    using S_sqr_uv = tmp_arg< 1, storage_t >;
+    using smag_u = tmp_arg< 2, storage_t >;
+    using smag_v = tmp_arg< 3, storage_t >;
 
     // Output fields
     using u_out = arg< 4, storage_t >;

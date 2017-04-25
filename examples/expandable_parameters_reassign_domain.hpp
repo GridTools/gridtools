@@ -124,7 +124,7 @@ namespace test_expandable_parameters {
 
         typedef arg< 0, storage_t > p_out;
         typedef arg< 1, storage_t > p_in;
-        typedef arg< 2, storage_t, enumtype::default_location_type, true > p_tmp;
+        typedef tmp_arg< 2, storage_t > p_tmp;
 
         typedef boost::mpl::vector< p_out, p_in, p_tmp > args_t;
 

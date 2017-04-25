@@ -96,9 +96,9 @@ bool test_domain_indices() {
     data_store_t out(meta_, -7.3);
     data_store_t coeff(meta_, 8.);
 
-    typedef arg< 2, data_store_t, default_location_type, true > p_lap;
-    typedef arg< 1, data_store_t, default_location_type, true > p_flx;
-    typedef arg< 5, data_store_t, default_location_type, true > p_fly;
+    typedef tmp_arg< 2, data_store_t > p_lap;
+    typedef tmp_arg< 1, data_store_t > p_flx;
+    typedef tmp_arg< 5, data_store_t > p_fly;
     typedef arg< 0, data_store_t > p_coeff;
     typedef arg< 3, data_store_t > p_in;
     typedef arg< 4, data_store_t > p_out;

@@ -212,11 +212,11 @@ namespace ico_operators {
 
             // fields for div
             typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
-            typedef arg< 2, cell_storage_type, enumtype::cells, true > p_div_on_cells;
+            typedef tmp_arg< 2, cell_storage_type, enumtype::cells > p_div_on_cells;
 
             // fields for curl
             typedef arg< 3, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
-            typedef arg< 4, vertex_storage_type, enumtype::vertices, true > p_curl_on_vertices;
+            typedef tmp_arg< 4, vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
 
             // fields for lap
             typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;
@@ -280,12 +280,12 @@ namespace ico_operators {
             // fields for div
             typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
             typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef arg< 3, cell_storage_type, enumtype::cells, true > p_div_on_cells;
+            typedef tmp_arg< 3, cell_storage_type, enumtype::cells > p_div_on_cells;
 
             // fields for curl
             typedef arg< 4, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
             typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
-            typedef arg< 6, vertex_storage_type, enumtype::vertices, true > p_curl_on_vertices;
+            typedef tmp_arg< 6, vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
 
             // fields for lap
             typedef arg< 7, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;

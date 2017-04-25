@@ -135,6 +135,10 @@ namespace gridtools {
         }
     };
 
+    /** alias template that provides convenient tmp arg declaration. */
+    template < uint_t I, typename Storage, typename Location = enumtype::default_location_type >
+    using tmp_arg = arg< I, Storage, Location, true >;
+
     template < typename T >
     struct arg_index;
 

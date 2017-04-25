@@ -297,7 +297,7 @@ namespace multi_types_test {
             }
         }
 
-        typedef arg< 3, data_store1_t, enumtype::default_location_type, true > p_temp;
+        typedef tmp_arg< 3, data_store1_t > p_temp;
         typedef arg< 0, data_store1_t > p_field1;
         typedef arg< 1, data_store2_t > p_field2;
         typedef arg< 2, data_store3_t > p_field3;

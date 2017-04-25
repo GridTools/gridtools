@@ -66,7 +66,7 @@ namespace all_args_in_aggregator {
         typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
         typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
         typedef arg< 0, data_store_t > p_in;
-        typedef arg< 2, data_store_t, default_location_type, true > p_tmp;
+        typedef tmp_arg< 2, data_store_t > p_tmp;
         typedef arg< 1, data_store_t > p_out;
         typedef arg< 3, data_store_t > p_err;
 

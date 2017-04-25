@@ -371,8 +371,8 @@ namespace shallow_water {
         // Definition of placeholders. The order of them reflects the order in which the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
         //! [args]
-        typedef arg< 0, sol_type, enumtype::default_location_type, true > p_tmpx;
-        typedef arg< 1, sol_type, enumtype::default_location_type, true > p_tmpy;
+        typedef tmp_arg< 0, sol_type > p_tmpx;
+        typedef tmp_arg< 1, sol_type > p_tmpy;
         // typedef arg<0, sol_type > p_tmpx;
         // typedef arg<1, sol_type > p_tmpy;
         typedef arg< 2, sol_type > p_sol;

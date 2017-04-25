@@ -234,8 +234,8 @@ namespace horizontal_diffusion_functions {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, storage_type, enumtype::default_location_type, true > p_flx;
-        typedef arg< 1, storage_type, enumtype::default_location_type, true > p_fly;
+        typedef tmp_arg< 0, storage_type > p_flx;
+        typedef tmp_arg< 1, storage_type > p_fly;
         typedef arg< 2, storage_type > p_coeff;
         typedef arg< 3, storage_type > p_in;
         typedef arg< 4, storage_type > p_out;

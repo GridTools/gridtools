@@ -121,7 +121,7 @@ int main() {
     // create some gridtools stuff
     typedef arg< 0, data_store_field_t > p_in;
     typedef arg< 1, data_store_field_t > p_out;
-    typedef arg< 2, data_store_field_t, enumtype::default_location_type, true > p_tmp;
+    typedef tmp_arg< 2, data_store_field_t > p_tmp;
 
     typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
     aggregator_type< accessor_list > domain(dsf_in, dsf_out);
