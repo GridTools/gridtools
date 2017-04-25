@@ -33,40 +33,35 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _NUMERICS_H_
-#define _NUMERICS_H_
 
-#include "defs.hpp"
-#include "host_device.hpp"
+#include <cmath>
 
-namespace gridtools {
-    namespace _impl {
-        /** @brief Compute 3^I at compile time*/
-        template < uint_t I >
-        struct static_pow3;
+#include "gtest/gtest.h"
+#include <common/numerics.hpp>
 
-        template <>
-        struct static_pow3< 0 > {
-            static const int value = 1;
-        };
+using namespace gridtools;
 
-        template <>
-        struct static_pow3< 1 > {
-            static const int value = 3;
-        };
-
-        template < uint_t I >
-        struct static_pow3 {
-            static const int value = 3 * static_pow3< I - 1 >::value;
-        };
-
-        /** @brief provide a constexpr version of std::ceil */
-        GT_FUNCTION constexpr int static_ceil(float num) {
-            return (static_cast< float >(static_cast< int >(num)) == num)
-                       ? static_cast< int >(num)
-                       : static_cast< int >(num) + ((num > 0) ? 1 : 0);
-        }
-    }
+TEST(numerics, pow3) {
+    constexpr int x0 = _impl::static_pow3< 0 >::value;
+    constexpr int x1 = _impl::static_pow3< 1 >::value;
+    constexpr int x2 = _impl::static_pow3< 2 >::value;
+    constexpr int x3 = _impl::static_pow3< 3 >::value;
+    constexpr int x4 = _impl::static_pow3< 4 >::value;
+    EXPECT_EQ(x0, 1);
+    EXPECT_EQ(x1, 3);
+    EXPECT_EQ(x2, 9);
+    EXPECT_EQ(x3, 27);
+    EXPECT_EQ(x4, 81);
 }
 
-#endif
+TEST(numerics, static_ceil) {
+    constexpr float x = 3.1415;
+    constexpr auto r1 = _impl::static_ceil(x / 1.0);
+    constexpr auto r2 = _impl::static_ceil(x / -1.0);
+    constexpr auto r3 = _impl::static_ceil(x / -2.0);
+    constexpr auto r4 = _impl::static_ceil(x / 2.0);
+    EXPECT_EQ(r1, std::ceil(x / 1.0));
+    EXPECT_EQ(r2, std::ceil(x / -1.0));
+    EXPECT_EQ(r3, std::ceil(x / -2.0));
+    EXPECT_EQ(r4, std::ceil(x / 2.0));
+}
