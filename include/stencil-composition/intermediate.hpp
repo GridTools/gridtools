@@ -301,38 +301,6 @@ namespace gridtools {
         typedef typename extract_mss_domains< Vec1 >::type type;
     };
 
-    // function that checks if the given extents (I+- and J+-)
-    // are within the halo that was defined when creating the grid.
-    template < typename ExtentsVec, typename Grid >
-    void check_grid_against_extents(Grid const &grid) {
-        typedef ExtentsVec all_extents_vecs_t;
-        // get smallest i_minus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 0 > > >::type >::type >::type >::
-            type IM_t;
-        // get smallest j_minus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 2 > > >::type >::type >::type >::
-            type JM_t;
-        // get largest i_plus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 1 > > >::type >::type >::type >::
-            type IP_t;
-        // get largest j_plus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 3 > > >::type >::type >::type >::
-            type JP_t;
-        const bool check = (IM_t::value >= -static_cast< int >(grid.direction_i().minus())) &&
-                           (IP_t::value <= static_cast< int >(grid.direction_i().plus())) &&
-                           (JM_t::value >= -static_cast< int >(grid.direction_j().minus())) &&
-                           (JP_t::value <= static_cast< int >(grid.direction_j().plus()));
-        assert(check && "One of the stencil accessor extents is exceeding the halo region.");
-    }
-
     /**
      * @class
      *  @brief structure collecting helper metafunctions
