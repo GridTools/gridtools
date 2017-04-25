@@ -229,17 +229,19 @@ namespace gridtools {
         }
 
         /**
-         * @brief returning by const reference the metadata set
+         * @brief returning by const reference the set of all metadatas
          */
         metadata_set_t const &get_metadata_set() const { return m_metadata_set; }
 
         /**
-         * @brief returning by const reference the arg_storage_pairs
+         * @brief returning by reference the list of all arg storage pairs. An arg storage pair maps
+         * an arg to an instance of a data_store, data_store_field, or std::vector.
          */
         arg_storage_pair_fusion_list_t &get_arg_storage_pairs() { return m_arg_storage_pair_list; }
 
         /**
-         *  @brief given the placeholder type returns the corresponding arg_storage_pair by const reference
+         * @brief returning by const reference an arg storage pair. An arg storage pair maps
+         * an arg to an instance of a data_store, data_store_field, or std::vector.
          */
         template < typename StoragePlaceholder,
             typename RealStoragePlaceholder = typename boost::mpl::if_< is_tmp_arg< StoragePlaceholder >,
@@ -253,7 +255,7 @@ namespace gridtools {
 
         /**
          *  @brief given the placeholder type and a data_store pointer, this method initializes the corresponding
-         * arg_storage_pair
+         * arg_storage_pair that maps the arg to an instance of either a data_store, data_store_field, or std::vector.
          */
         template < typename StoragePlaceholder >
         void set_arg_storage_pair(pointer< typename StoragePlaceholder::storage_t > storagePtr) {
