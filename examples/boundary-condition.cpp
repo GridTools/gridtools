@@ -82,7 +82,7 @@ struct direction_bc_input {
     template < typename Direction, typename DataField0, typename DataField1 >
     GT_FUNCTION void operator()(
         Direction, DataField0 &data_field0, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
-        data_field0(i, j, k) = data_field1(i, j, k) * value;
+        data_field1(i, j, k) = data_field0(i, j, k) * value;
     }
 
     // relative coordinates
@@ -93,7 +93,7 @@ struct direction_bc_input {
         uint_t i,
         uint_t j,
         uint_t k) const {
-        data_field0(i, j, k) = 88 * value;
+        data_field1(i, j, k) = 88 * value;
     }
 
     // relative coordinates
@@ -104,7 +104,7 @@ struct direction_bc_input {
         uint_t i,
         uint_t j,
         uint_t k) const {
-        data_field0(i, j, k) = 77777 * value;
+        data_field1(i, j, k) = 77777 * value;
     }
 
     template < typename DataField0, typename DataField1 >
@@ -114,7 +114,7 @@ struct direction_bc_input {
         uint_t i,
         uint_t j,
         uint_t k) const {
-        data_field0(i, j, k) = 55555 * value;
+        data_field1(i, j, k) = 55555 * value;
     }
 };
 
@@ -144,8 +144,8 @@ int main(int argc, char **argv) {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = 0;
-                out(i, j, k) = i + j + k;
+                in(i, j, k) = i + j + k;
+                out(i, j, k) = 0;
             }
         }
     }
@@ -173,13 +173,65 @@ int main(int argc, char **argv) {
     in_s.sync();
     out_s.sync();
 
-    // TODO: perform checks
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                // std::cout << in(i, j, k) << "\n";
-                // std::cout << out(i, j, k) << "\n";
+    // check inner domain (should be zero)
+    bool error = false;
+    for (uint_t i = 1; i < d3 - 1; ++i) {
+        for (uint_t j = 1; j < d2 - 1; ++j) {
+            for (uint_t k = 1; k < d1 - 1; ++k) {
+                if (in(k, j, i) != i + j + k) {
+                    std::cout << "Error: INPUT field got modified " << k << " " << j << " " << i << "\n";
+                    error = true;
+                }
+                if (out(k, j, i) != 0) {
+                    std::cout << "Error: Inner domain of OUTPUT field got modified " << k << " " << j << " " << i
+                              << "\n";
+                    error = true;
+                }
             }
         }
     }
+
+    // check edge column
+    if (out(0, 0, 0) != 111110) {
+        std::cout << "Error: edge column values in OUTPUT field are wrong 0 0 0\n";
+        error = true;
+    }
+    for (uint_t k = 1; k < d1; ++k) {
+        if (out(0, 0, k) != 155554) {
+            std::cout << "Error: edge column values in OUTPUT field are wrong 0 0 " << k << "\n";
+            error = true;
+        }
+    }
+
+    // check j==0 i>0 surface
+    for (uint_t i = 1; i < d1; ++i) {
+        for (uint_t k = 0; k < d3; ++k) {
+            if (out(i, 0, k) != 176) {
+                std::cout << "Error: j==0 surface values in OUTPUT field are wrong " << i << " 0 " << k << "\n";
+                error = true;
+            }
+        }
+    }
+
+    // check outer domain
+    for (uint_t i = 0; i < d1; ++i) {
+        for (uint_t j = 0; j < d2; ++j) {
+            for (uint_t k = 0; k < d3; ++k) {
+                // check outer surfaces of the cube
+                if (((i == 0 || i == d1 - 1) && j > 0) || (j > 0 && (k == 0 || k == d3 - 1))) {
+                    if (out(i, j, k) != in(i, j, k) * 2) {
+                        std::cout << "Error: values in OUTPUT field are wrong " << i << " " << j << " " << k << "\n";
+                        error = true;
+                    }
+                }
+            }
+        }
+    }
+
+    if (error) {
+        std::cout << "TEST failed.\n";
+        abort();
+    }
+
+    return error;
 }
