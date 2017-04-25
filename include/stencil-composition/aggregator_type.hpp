@@ -278,13 +278,10 @@ namespace gridtools {
          * @brief returning by const reference an arg storage pair. An arg storage pair maps
          * an arg to an instance of a data_store, data_store_field, or std::vector.
          */
-        template < typename StoragePlaceholder,
-            typename RealStoragePlaceholder = typename boost::mpl::if_< is_tmp_arg< StoragePlaceholder >,
-                typename _impl::replace_arg_storage_info< tmp_storage_info_id_t, StoragePlaceholder >::type,
-                StoragePlaceholder >::type >
-        typename _impl::get_arg_storage_pair_type< RealStoragePlaceholder >::type const &get_arg_storage_pair() const {
+        template < typename StoragePlaceholder >
+        typename _impl::get_arg_storage_pair_type< StoragePlaceholder >::type const &get_arg_storage_pair() const {
             return boost::fusion::deref(
-                boost::fusion::find< typename _impl::get_arg_storage_pair_type< RealStoragePlaceholder >::type >(
+                boost::fusion::find< typename _impl::get_arg_storage_pair_type< StoragePlaceholder >::type >(
                     m_arg_storage_pair_list));
         }
 
