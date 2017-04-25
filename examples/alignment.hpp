@@ -80,7 +80,9 @@ namespace aligned_copy_stencil {
 #ifdef __CUDACC__
         /** @brief checking all storages alignment using a specific storage_info
 
-            \param storage_id ordinal number identifying the storage_info checked
+            \tparam I index of the storage which alignment should be checked
+            \tparagm ItDomain iterate domain type
+            \param it_domain iterate domain, used to get the pointers and offsets
             \param boundary ordinal number identifying the alignment
         */
         template < unsigned I, typename ItDomain >
