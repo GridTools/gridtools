@@ -127,9 +127,9 @@ namespace aligned_copy_stencil {
 
         auto inv = make_host_view(in);
         auto outv = make_host_view(out);
-        for (uint_t i = halo_t::at< 0 >(); i < d1 + halo_t::at< 0 >(); ++i)
-            for (uint_t j = halo_t::at< 1 >(); j < d2 + halo_t::at< 1 >(); ++j)
-                for (uint_t k = halo_t::at< 2 >(); k < d3 + halo_t::at< 2 >(); ++k) {
+        for (uint_t i = 0; i < d1 + halo_t::at< 0 >(); ++i)
+            for (uint_t j = 0; j < d2 + halo_t::at< 1 >(); ++j)
+                for (uint_t k = 0; k < d3 + halo_t::at< 2 >(); ++k) {
                     inv(i, j, k) = i + j + k;
                 }
 
