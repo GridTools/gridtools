@@ -162,7 +162,11 @@ namespace gridtools {
         };
 
         /**
-           Static method in order to calculate the field offset.
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
+           the offset of this pointer. For temporaries we use an oversized storage in order to have private halo
+           regions for each block. This method calculates the offset for temporaries and takes the private halo and
+           alignment information into account.
         */
         template < typename LocalDomain,
             typename PEBlockSize,
@@ -174,25 +178,33 @@ namespace gridtools {
             StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
             typedef typename LocalDomain::max_i_extent_t max_i_t;
-
+            // get the halo size in I direction
             constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
+            // calculate the blocksize in I and J direction
             constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
             constexpr int block_size_j =
                 2 * StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >() + PEBlockSize::j_size_t::value;
 
-            // protect against div. by 0
+            // protect against div. by 0 and compute the distance between two blocks
             constexpr int diff_between_blocks =
                 ((StorageInfo::alignment_t::value > 1)
                         ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
                               StorageInfo::alignment_t::value
                         : block_size_i);
-            // compute position in i and j
+
+            // compute offset in I and J
             const uint_t i = processing_element_i() * diff_between_blocks;
             const uint_t j = Arg::location_t::n_colors::value *
                              (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
+            // return field offset (Initial storage offset + Alignment correction value + I offset + J offset)
             return StorageInfo::get_initial_offset() - CurrentExtent::iminus::value + i + j;
         }
 
+        /**
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
+           the offset of this pointer. This function computes the field offset for non temporary storages.
+        */
         template < typename LocalDomain,
             typename PEBlockSize,
             typename Arg,
@@ -201,6 +213,7 @@ namespace gridtools {
             typename StorageInfo >
         GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
             StorageInfo const *sinfo) {
+            // return field offset (Initial storage offset in order to be aligned)
             return StorageInfo::get_initial_offset();
         }
 

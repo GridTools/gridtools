@@ -161,7 +161,11 @@ namespace gridtools {
         };
 
         /**
-           Static method in order to calculate the field offset.
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage. In addition to this each OpenMP thread stores an integer that indicates the offset of this
+           pointer. For temporaries we use an oversized storage in order to have private halo
+           regions for each thread. This method calculates the offset for temporaries and takes the private halo and
+           alignment information into account.
         */
         template < typename LocalDomain,
             typename PEBlockSize,
@@ -171,13 +175,22 @@ namespace gridtools {
             typename StorageInfo >
         static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
+            // get the thread ID
             const uint_t i = processing_element_i();
+            // halo in I direction
             constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
+            // compute the blocksize
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
+            // return the field offset
             return StorageInfo::get_initial_offset() +
                    sinfo->template stride< grid_traits_t::dim_i_t::value >() * i * blocksize;
         }
 
+        /**
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage in the shared memory. In addition to this each OpenMP thread stores an integer that indicates
+           the offset of this pointer. This function computes the field offset for non temporary storages.
+        */
         template < typename LocalDomain,
             typename PEBlockSize,
             typename Arg,
@@ -185,6 +198,7 @@ namespace gridtools {
             typename GridTraits,
             typename StorageInfo >
         static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+            // return the field offset
             return StorageInfo::get_initial_offset();
         }
 
