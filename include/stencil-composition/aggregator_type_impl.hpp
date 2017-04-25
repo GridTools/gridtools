@@ -106,21 +106,40 @@ namespace gridtools {
 
     namespace _impl {
 
-        // metafunction that checks if argument is a suitable domain element
+        // metafunction that checks if argument is a suitable aggregator element (only arg_storage_pair)
         template < typename... Args >
-        struct domain_arg_check;
+        struct aggregator_arg_storage_pair_check;
 
-        template < typename T, typename... Rest >
-        struct domain_arg_check< T, Rest... > {
-            typedef typename is_data_store< T >::type c1;
-            typedef typename is_data_store_field< T >::type c2;
-            typedef typename is_vector< T >::type c3;
-            typedef typename boost::mpl::or_< c1, c2, c3 >::type is_suitable;
-            typedef typename boost::mpl::and_< is_suitable, typename domain_arg_check< Rest... >::type > type;
+        template < typename ArgStoragePair, typename... Rest >
+        struct aggregator_arg_storage_pair_check< ArgStoragePair, Rest... > {
+            typedef typename boost::decay< ArgStoragePair >::type arg_storage_pair_t;
+            typedef typename is_arg_storage_pair< arg_storage_pair_t >::type is_suitable;
+            typedef typename boost::mpl::and_< is_suitable,
+                typename aggregator_arg_storage_pair_check< Rest... >::type > type;
         };
 
         template <>
-        struct domain_arg_check<> {
+        struct aggregator_arg_storage_pair_check<> {
+            typedef boost::mpl::true_ type;
+        };
+
+        // metafunction that checks if argument is a suitable aggregator element (only data_store, data_store_field,
+        // std::vector)
+        template < typename... Args >
+        struct aggregator_storage_check;
+
+        template < typename Storage, typename... Rest >
+        struct aggregator_storage_check< Storage, Rest... > {
+            typedef typename boost::decay< Storage >::type storage_t;
+            typedef typename is_data_store< storage_t >::type c1;
+            typedef typename is_data_store_field< storage_t >::type c2;
+            typedef typename is_vector< storage_t >::type c3;
+            typedef typename boost::mpl::or_< c1, c2, c3 >::type is_suitable;
+            typedef typename boost::mpl::and_< is_suitable, typename aggregator_storage_check< Rest... >::type > type;
+        };
+
+        template <>
+        struct aggregator_storage_check<> {
             typedef boost::mpl::true_ type;
         };
 
@@ -429,6 +448,31 @@ the continuous_indices_check template argument must be an MPL vector of placehol
             void reassign(DataStore first, Rest... stores) {
                 this->operator()(first);
                 reassign(stores...);
+            }
+            void reassign() {}
+        };
+
+        /** Metafunction class.
+         *  This class is filling a fusion::vector of pointers to storages with pointers from given arg_storage_pairs
+         */
+        template < typename FusionVector >
+        struct fill_arg_storage_pair_list {
+          private:
+            FusionVector &m_fusion_vec;
+
+          public:
+            fill_arg_storage_pair_list(FusionVector &fusion_vec) : m_fusion_vec(fusion_vec) {}
+
+            template < typename ArgStoragePair,
+                typename boost::enable_if< is_arg_storage_pair< ArgStoragePair >, int >::type = 0 >
+            void operator()(ArgStoragePair arg_storage_pair) const {
+                boost::fusion::at< typename ArgStoragePair::arg_t::index_t >(m_fusion_vec) = arg_storage_pair;
+            }
+
+            template < typename ArgStoragePair, typename... Rest >
+            void reassign(ArgStoragePair first, Rest... pairs) {
+                this->operator()(first);
+                reassign(pairs...);
             }
             void reassign() {}
         };

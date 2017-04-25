@@ -126,7 +126,7 @@ namespace copy_stencil {
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain(in, out);
+        gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -166,7 +166,7 @@ namespace copy_stencil {
             for (uint_t i = 0; i < d1; ++i) {
                 for (uint_t j = 0; j < d2; ++j) {
                     for (uint_t k = 0; k < d3; ++k) {
-                        if (in_v(i, j, k) != out_v(i, j, k)) {
+                        if ((in_v(i, j, k) != i + j + k) && (out_v(i, j, k) != i + j + k)) {
                             std::cout << "error in " << i << ", " << j << ", " << k << ": "
                                       << "in = " << in_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
                             success = false;

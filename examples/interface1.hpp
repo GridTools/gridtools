@@ -196,7 +196,7 @@ namespace horizontal_diffusion {
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I
         // don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain(coeff, in, out);
+        gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out), (p_coeff() = coeff));
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,

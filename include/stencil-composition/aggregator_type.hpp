@@ -179,8 +179,43 @@ namespace gridtools {
          */
         metadata_set_t m_metadata_set;
 
+        /**
+           This constructor takes a variadic list of arg_storage_pairs and assigns the contents
+           to the arg_storage_pair_fusion_list_t element. Also the metadata_set is updated properly.
+         */
+        template < typename... ArgStoragePairs,
+            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+                int >::type = 0 >
+        aggregator_type(ArgStoragePairs... arg_storage_pairs)
+            : m_arg_storage_pair_list(), m_metadata_set() {
+
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(ArgStoragePairs) > 0),
+                "Computations with no data_stores are not supported. "
+                "Add at least one data_store to the aggregator_type "
+                "definition.");
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (boost::mpl::size< placeholders_t >::value -
+                        boost::mpl::count_if< placeholders_t, is_tmp_arg< boost::mpl::_ > >::value ==
+                    sizeof...(ArgStoragePairs)),
+                "The number of arguments specified when constructing the aggregator_type is not the same as the number "
+                "of "
+                "args to non-temporaries. Double check the temporary flag in the arg types or add the "
+                "necessary arg_storage_pairs.");
+            _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign((*arg_storage_pairs.ptr.get())...);
+            _impl::fill_arg_storage_pair_list< arg_storage_pair_fusion_list_t >(m_arg_storage_pair_list)
+                .reassign(arg_storage_pairs...);
+        }
+
+        /**
+           This constructor takes a variadic list of data_stores, data_store_fields, or std::vectors and assigns
+           arg_storage_pairs
+           filled with the correct pointers to the arg_storage_pair_fusion_list_t element. Also the metadata_set is
+           updated properly.
+         */
         template < typename... DataStores,
-            typename boost::enable_if< typename _impl::domain_arg_check< DataStores... >::type, int >::type = 0 >
+            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
+                0 >
         aggregator_type(DataStores &... ds)
             : m_arg_storage_pair_list(), m_metadata_set() {
 
