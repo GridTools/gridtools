@@ -301,8 +301,6 @@ namespace horizontal_diffusion_functions {
 #else
             result = verif.verify(repository.out_ref(), repository.out());
 #endif
-        } else {
-            std::cout << "WARNING: No verification performed." << std::endl;
         }
         if (!result) {
             std::cout << "ERROR" << std::endl;
