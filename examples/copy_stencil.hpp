@@ -84,10 +84,10 @@ namespace copy_stencil {
         uint_t d3 = z;
 
 #ifdef __CUDACC__
-#define BACKEND_V Cuda
+#define BACKEND_ARCH Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
-#define BACKEND_V Host
+#define BACKEND_ARCH Host
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
@@ -95,8 +95,8 @@ namespace copy_stencil {
 #endif
 #endif
 
-        typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_t > data_store_t;
+        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
 
         storage_info_t meta_data_(x, y, z);
 

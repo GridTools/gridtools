@@ -42,15 +42,15 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND_V Cuda
-typedef backend< BACKEND_V, GRIDBACKEND, Block > be;
+#define BACKEND_ARCH Cuda
+typedef backend< BACKEND_ARCH, GRIDBACKEND, Block > be;
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND_V Host
-typedef backend< BACKEND_V, GRIDBACKEND, Block > be;
+#define BACKEND_ARCH Host
+typedef backend< BACKEND_ARCH, GRIDBACKEND, Block > be;
 #else
-#define BACKEND_V Host
-typedef backend< BACKEND_V, GRIDBACKEND, Naive > be;
+#define BACKEND_ARCH Host
+typedef backend< BACKEND_ARCH, GRIDBACKEND, Naive > be;
 #endif
 #endif
 
@@ -83,9 +83,9 @@ int main() {
     int d2 = 128;
     int d3 = 80;
 
-    typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_ty;                   // storage info type
-    typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_ty > data_store_t; // data store type
-    typedef storage_traits< BACKEND_V >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 >
+    typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_ty; // storage info type
+    typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_ty > data_store_t; // data store type
+    typedef storage_traits< BACKEND_ARCH >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 >
         data_store_field_t; // data store field type with 3 components with size 1, 2, 3
 
     storage_info_ty si(d1, d2, d3);

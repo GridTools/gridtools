@@ -51,10 +51,10 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND_V Cuda
+#define BACKEND_ARCH Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
-#define BACKEND_V Host
+#define BACKEND_ARCH Host
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
@@ -93,8 +93,8 @@ namespace copy_stencil {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_V >::data_store_field_t< float_type, storage_info_t, 2 > data_store_field_t;
+        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< BACKEND_ARCH >::data_store_field_t< float_type, storage_info_t, 2 > data_store_field_t;
         storage_info_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
