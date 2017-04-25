@@ -43,9 +43,9 @@ using namespace expressions;
 
 //                      dims  x y z  qp
 //                   strides  1 x xy xyz
-typedef gridtools::layout_map< -1, -1, -1, 3, 2, 1, 0 > layoutphi_t;
-typedef gridtools::layout_map< 3, 2, 1, 0 > layout4_t;
-typedef gridtools::layout_map< 2, 1, 0, 3, 4, 5 > layout_t;
+typedef layout_map< -1, -1, -1, 3, 2, 1, 0 > layoutphi_t;
+typedef layout_map< 3, 2, 1, 0 > layout4_t;
+typedef layout_map< 2, 1, 0, 3, 4, 5 > layout_t;
 
 typedef BACKEND::storage_info< __COUNTER__, layout_t > metadata_t;
 typedef BACKEND::storage_info< __COUNTER__, layout4_t > metadata_global_quad_t;
@@ -172,8 +172,8 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
 
 namespace assembly {
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct integration {
         typedef in_accessor< 0, extent<>, 7 > phi;
@@ -269,7 +269,7 @@ namespace assembly {
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
+        aggregator_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
@@ -277,7 +277,7 @@ namespace assembly {
         */
         uint_t di[5] = {1, 1, 1, d1 - 3, d1};
         uint_t dj[5] = {1, 1, 1, d2 - 3, d2};
-        gridtools::grid< axis > grid(di, dj);
+        grid< axis > grid(di, dj);
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 2;
 
@@ -287,10 +287,10 @@ namespace assembly {
 #ifdef __CUDACC__
         stencil *
 #else
-        boost::shared_ptr< gridtools::stencil >
+        boost::shared_ptr< stencil >
 #endif
 #endif
-            fe_comp = make_computation< gridtools::BACKEND >(
+            fe_comp = make_computation< BACKEND >(
                 domain,
                 grid,
                 make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
