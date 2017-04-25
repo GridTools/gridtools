@@ -133,13 +133,13 @@ namespace gridtools {
 
     template < typename Intermediate >
     struct intermediate_mss_components_array {
-        GRIDTOOLS_STATIC_ASSERT((is_intermediate< Intermediate >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_intermediate< Intermediate >::value), GT_INTERNAL_ERROR);
         typedef typename Intermediate::mss_components_array_t type;
     };
 
     template < typename Intermediate >
     struct intermediate_extent_sizes {
-        GRIDTOOLS_STATIC_ASSERT((is_intermediate< Intermediate >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_intermediate< Intermediate >::value), GT_INTERNAL_ERROR);
         typedef typename Intermediate::extent_sizes_t type;
     };
 
@@ -173,7 +173,7 @@ namespace gridtools {
 
     template < typename Intermediate >
     struct intermediate_mss_local_domains {
-        GRIDTOOLS_STATIC_ASSERT((is_intermediate< Intermediate >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_intermediate< Intermediate >::value), GT_INTERNAL_ERROR);
         typedef typename Intermediate::mss_local_domains_t type;
     };
 
@@ -193,23 +193,25 @@ namespace gridtools {
                     LocalDomain &ld, StorageWrapperFusionVec &storage_wrappers, AggregatorType const &aggregator)
                     : m_local_domain(ld), m_storage_wrappers(storage_wrappers), m_aggregator(aggregator) {}
 
-                template < typename T >
-                void operator()(T &t) const {
+                template < typename StorageWrapper >
+                void operator()(StorageWrapper &t) const {
+                    GRIDTOOLS_STATIC_ASSERT((is_storage_wrapper< StorageWrapper >::value), GT_INTERNAL_ERROR);
                     // storage_info type that should be in the local domain
-                    typedef typename boost::add_pointer<
-                        typename boost::add_const< typename T::storage_info_t >::type >::type ld_storage_info_t;
+                    typedef typename boost::add_pointer< typename boost::add_const<
+                        typename StorageWrapper::storage_info_t >::type >::type ld_storage_info_ptr_t;
                     // storage_info type that should be in the metadata_set
-                    typedef gridtools::pointer< const typename T::storage_info_t > ms_storage_info_t;
+                    typedef gridtools::pointer< const typename StorageWrapper::storage_info_t > ms_storage_info_ptr_t;
                     // get the correct storage wrapper from the list of all storage wrappers
-                    auto sw = boost::fusion::deref(boost::fusion::find< T >(m_storage_wrappers));
+                    auto sw = boost::fusion::deref(boost::fusion::find< StorageWrapper >(m_storage_wrappers));
                     // feed the local domain with data ptrs
-                    sw.assign(
-                        boost::fusion::deref(boost::fusion::find< typename T::arg_t >(m_local_domain.m_local_data_ptrs))
-                            .second);
+                    sw.assign(boost::fusion::deref(boost::fusion::find< typename StorageWrapper::arg_t >(
+                                                       m_local_domain.m_local_data_ptrs))
+                                  .second);
                     // feed the local domain with a storage info ptr
                     boost::fusion::deref(
-                        boost::fusion::find< ld_storage_info_t >(m_local_domain.m_local_storage_info_ptrs)) =
-                        Backend::template extract_storage_info_ptrs< ms_storage_info_t, AggregatorType >(m_aggregator);
+                        boost::fusion::find< ld_storage_info_ptr_t >(m_local_domain.m_local_storage_info_ptrs)) =
+                        Backend::template extract_storage_info_ptrs< ms_storage_info_ptr_t, AggregatorType >(
+                            m_aggregator);
                 }
             };
 
@@ -243,7 +245,7 @@ namespace gridtools {
             /**Elem is a mss_local_domain*/
             template < typename Elem >
             GT_FUNCTION void operator()(Elem &mss_local_domain_list_) const {
-                GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< Elem >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< Elem >::value), GT_INTERNAL_ERROR);
                 boost::fusion::for_each(mss_local_domain_list_.local_domain_list,
                     _impl::instantiate_local_domain< Backend, StorageWrapperFusionVec, AggregatorType, IsStateful >(
                                             m_storage_wrappers, m_aggregator));

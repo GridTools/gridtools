@@ -63,8 +63,10 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id< enumtype::Host > {
 
-        template < typename T >
-        static T extract_storage_info_ptr(T t) {
+        template < typename StorageInfoPtr >
+        static StorageInfoPtr extract_storage_info_ptr(StorageInfoPtr t) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename boost::decay< decltype(*t) >::type >::value), GT_INTERNAL_ERROR);
             return t;
         }
 
@@ -74,25 +76,32 @@ namespace gridtools {
             AggregatorType &m_agg;
             instantiate_view(AggregatorType &agg) : m_agg(agg) {}
 
-            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
             arg_storage_pair< Arg, typename Arg::storage_t > get_arg_storage_pair() const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
                 return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::storage_t > >(
                     m_agg.get_arg_storage_pairs()));
             }
 
-            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
-            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(T &t) const {
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
+            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(
+                ViewFusionMapElem &t) const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
                 // make a view
-                if (get_arg_storage_pair< T >().ptr.get())
-                    t = make_host_view(*(get_arg_storage_pair< T >().ptr));
+                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
+                    t = make_host_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
             }
 
-            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
             typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
-                T &t) const {
+                ViewFusionMapElem &t) const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
                 // make a view
-                if (get_arg_storage_pair< T >().ptr.get())
-                    t = make_field_host_view(*(get_arg_storage_pair< T >().ptr));
+                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
+                    t = make_field_host_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
             }
         };
 

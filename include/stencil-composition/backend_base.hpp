@@ -167,6 +167,7 @@ namespace gridtools {
          */
         template < typename AggregatorType, typename ViewFusionMap >
         static void instantiate_views(AggregatorType &aggregator, ViewFusionMap &viewmap) {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
             boost::fusion::for_each(
                 viewmap, typename backend_traits_t::template instantiate_view< AggregatorType >(aggregator));
         }
@@ -174,10 +175,13 @@ namespace gridtools {
         /**
             Method to extract a storage_info pointer from a metadata_set
          */
-        template < typename T, typename AggregatorType >
-        static typename T::value_type *extract_storage_info_ptrs(AggregatorType const &aggregator) {
+        template < typename StorageInfoPtr, typename AggregatorType >
+        static typename StorageInfoPtr::value_type *extract_storage_info_ptrs(AggregatorType const &aggregator) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename boost::decay< typename StorageInfoPtr::value_type >::type >::value),
+                GT_INTERNAL_ERROR);
             return backend_traits_t::template extract_storage_info_ptr(
-                aggregator.get_metadata_set().template get< T >().get());
+                aggregator.get_metadata_set().template get< StorageInfoPtr >().get());
         }
 
         /**
@@ -187,8 +191,8 @@ namespace gridtools {
         template < typename MaxExtent, typename StorageWrapper, typename Grid >
         static typename StorageWrapper::storage_info_t instantiate_storage_info(Grid const &grid) {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_storage_info< typename StorageWrapper::storage_info_t >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_storage_wrapper< StorageWrapper >::value), "Internal Error: wrong type");
+                (is_storage_info< typename StorageWrapper::storage_info_t >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_storage_wrapper< StorageWrapper >::value), GT_INTERNAL_ERROR);
             return grid_traits_t::template instantiate_storage_info< MaxExtent, this_type, StorageWrapper >(grid);
         }
 

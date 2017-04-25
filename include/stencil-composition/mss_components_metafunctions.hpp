@@ -398,7 +398,7 @@ namespace gridtools {
 
     template < typename Sequence, typename TPred, typename AggregatorType, uint_t RepeatFunctor >
     struct fix_mss_arg_indices< meta_array< Sequence, TPred >, AggregatorType, RepeatFunctor > {
-        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
         typedef
             typename fix_arg_sequences< Sequence, fix_esf_sequence< AggregatorType, RepeatFunctor > >::type tmp_mss_t;
         typedef typename fix_cache_sequences< tmp_mss_t, fix_cache_sequence< AggregatorType > >::type mss_t;
