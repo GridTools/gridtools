@@ -477,9 +477,18 @@ namespace gridtools {
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
-        template < typename... DataStores >
+        template < typename... DataStores,
+            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
+                0 >
         void reassign(DataStores &... stores) {
-            m_domain.reassign_impl(stores...);
+            m_domain.reassign_storages_impl(stores...);
+        }
+
+        template < typename... ArgStoragePairs,
+            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+                int >::type = 0 >
+        void reassign(ArgStoragePairs... pairs) {
+            m_domain.reassign_arg_storage_pairs_impl(pairs...);
         }
 
         void reassign_aggregator(DomainType &new_domain) { m_domain = new_domain; }

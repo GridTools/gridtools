@@ -278,10 +278,13 @@ namespace gridtools {
          * @brief returning by const reference an arg storage pair. An arg storage pair maps
          * an arg to an instance of a data_store, data_store_field, or std::vector.
          */
-        template < typename StoragePlaceholder >
-        typename _impl::get_arg_storage_pair_type< StoragePlaceholder >::type const &get_arg_storage_pair() const {
+        template < typename StoragePlaceholder,
+            typename RealStoragePlaceholder = typename boost::mpl::if_< is_tmp_arg< StoragePlaceholder >,
+                typename _impl::replace_arg_storage_info< tmp_storage_info_id_t, StoragePlaceholder >::type,
+                StoragePlaceholder >::type >
+        typename _impl::get_arg_storage_pair_type< RealStoragePlaceholder >::type const &get_arg_storage_pair() const {
             return boost::fusion::deref(
-                boost::fusion::find< typename _impl::get_arg_storage_pair_type< StoragePlaceholder >::type >(
+                boost::fusion::find< typename _impl::get_arg_storage_pair_type< RealStoragePlaceholder >::type >(
                     m_arg_storage_pair_list));
         }
 
@@ -298,11 +301,13 @@ namespace gridtools {
             _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(storagePtr);
         }
 
-        template < typename... DataStores >
-        void reassign_impl(DataStores &... stores) {
+        template < typename... DataStores,
+            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
+                0 >
+        void reassign_storages_impl(DataStores &... stores) {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
-                "the assign_pointers must be called with at least one argument. "
+                "the reassign_storages_impl must be called with at least one argument. "
                 "otherwise what are you calling it for?");
             _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(stores...);
 
@@ -322,6 +327,19 @@ namespace gridtools {
                 boost::mpl::not_< is_arg_storage_pair_to_tmp< boost::mpl::_ > > >
                 filtered_vals(m_arg_storage_pair_list);
             boost::fusion::copy(tmp_arg_storage_pair_vec, filtered_vals);
+        }
+
+        template < typename... ArgStoragePairs,
+            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+                int >::type = 0 >
+        void reassign_arg_storage_pairs_impl(ArgStoragePairs... arg_storage_pairs) {
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(ArgStoragePairs) > 0),
+                "the reassign_arg_storage_pairs_impl must be called with at least one argument. "
+                "otherwise what are you calling it for?");
+
+            _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign((*arg_storage_pairs.ptr.get())...);
+            _impl::fill_arg_storage_pair_list< arg_storage_pair_fusion_list_t >(m_arg_storage_pair_list)
+                .reassign(arg_storage_pairs...);
         }
     };
 

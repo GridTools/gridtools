@@ -220,7 +220,7 @@ TEST(assign_placeholders, test) {
     out_new.allocate();
     coeff_new.allocate();
 
-    domain.reassign_impl(out_new, in_new, coeff_new);
+    domain.reassign_storages_impl(out_new, in_new, coeff_new);
 
     // check pointers again
     assert(domain.template get_arg_storage_pair< p_flx >().ptr.get() == 0x0);
@@ -266,4 +266,23 @@ TEST(assign_placeholders, test) {
                     gridtools::halo< 2u, 2u, 2u >,
                     gridtools::alignment< 1u > > > >()
                 .get() == coeff_new.get_storage_info_ptr()));
+
+    // test the reassign using arg_storage_pairs
+    data_store1_t in_new_2(meta_1_new);
+    data_store2_t out_new_2(meta_2_new);
+    data_store2_t coeff_new_2(meta_2_new);
+
+    in_new_2.allocate();
+    out_new_2.allocate();
+    coeff_new_2.allocate();
+
+    domain.reassign_arg_storage_pairs_impl((p_coeff() = out_new_2), (p_out() = coeff_new_2), (p_in() = in_new_2));
+
+    // check pointers again
+    assert(domain.template get_arg_storage_pair< p_flx >().ptr.get() == 0x0);
+    assert(domain.template get_arg_storage_pair< p_fly >().ptr.get() == 0x0);
+    assert(domain.template get_arg_storage_pair< p_lap >().ptr.get() == 0x0);
+    assert(domain.template get_arg_storage_pair< p_coeff >().ptr.get() == &out_new_2);
+    assert(domain.template get_arg_storage_pair< p_in >().ptr.get() == &in_new_2);
+    assert(domain.template get_arg_storage_pair< p_out >().ptr.get() == &coeff_new_2);
 }
