@@ -61,7 +61,7 @@ namespace gridtools {
     struct is_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::true_ {};
 
     template < typename T >
-    struct is_tmp_arg;
+    struct is_tmp_arg : boost::mpl::false_ {};
 
     template < uint_t I, typename Storage, typename Location, bool Temporary >
     struct is_tmp_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::bool_< Temporary > {};
