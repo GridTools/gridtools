@@ -173,35 +173,35 @@ TEST(assign_placeholders, test) {
     assert(domain.template get_arg_storage_pair< p_out >().ptr.get() == &out);
 
     // Temporary storage info ptrs are not present yet
-    assert(!(domain.get_metadata_set()
+    assert(!(domain.metadata_set_view()
                  .template present< gridtools::pointer< const gridtools::host_storage_info< 1u,
                      gridtools::layout_map< 0, 1, 2 >,
                      gridtools::halo< 1u, 1u, 1u >,
                      gridtools::alignment< 1u > > > >()));
-    assert(!(domain.get_metadata_set()
+    assert(!(domain.metadata_set_view()
                  .template present< gridtools::pointer< const gridtools::host_storage_info< 1u,
                      gridtools::layout_map< 0, 1, 2 >,
                      gridtools::halo< 2u, 2u, 2u >,
                      gridtools::alignment< 1u > > > >()));
 
     // Non-temporary storage info ptrs are present
-    assert((domain.get_metadata_set()
+    assert((domain.metadata_set_view()
                 .template present< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 1u, 1u, 1u >,
                     gridtools::alignment< 1u > > > >()));
-    assert((domain.get_metadata_set()
+    assert((domain.metadata_set_view()
                 .template present< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 2u, 2u, 2u >,
                     gridtools::alignment< 1u > > > >()));
-    assert((domain.get_metadata_set()
+    assert((domain.metadata_set_view()
                 .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 1u, 1u, 1u >,
                     gridtools::alignment< 1u > > > >()
                 .get() == in.get_storage_info_ptr()));
-    assert((domain.get_metadata_set()
+    assert((domain.metadata_set_view()
                 .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 2u, 2u, 2u >,
@@ -231,36 +231,36 @@ TEST(assign_placeholders, test) {
     assert(domain.template get_arg_storage_pair< p_out >().ptr.get() == &coeff_new);
 
     // Temporary storage info ptrs are not present yet
-    assert(!(domain.get_metadata_set()
+    assert(!(domain.metadata_set_view()
                  .template present< gridtools::pointer< const gridtools::host_storage_info< 1u,
                      gridtools::layout_map< 0, 1, 2 >,
                      gridtools::halo< 1u, 1u, 1u >,
                      gridtools::alignment< 1u > > > >()));
-    assert(!(domain.get_metadata_set()
+    assert(!(domain.metadata_set_view()
                  .template present< gridtools::pointer< const gridtools::host_storage_info< 1u,
                      gridtools::layout_map< 0, 1, 2 >,
                      gridtools::halo< 2u, 2u, 2u >,
                      gridtools::alignment< 1u > > > >()));
 
     // Non-temporary storage info ptrs are present
-    assert((domain.get_metadata_set()
+    assert((domain.metadata_set_view()
                 .template present< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 1u, 1u, 1u >,
                     gridtools::alignment< 1u > > > >()));
-    assert((domain.get_metadata_set()
+    assert((domain.metadata_set_view()
                 .template present< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 2u, 2u, 2u >,
                     gridtools::alignment< 1u > > > >()));
 
-    assert((domain.get_metadata_set()
+    assert((domain.metadata_set_view()
                 .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 1u, 1u, 1u >,
                     gridtools::alignment< 1u > > > >()
                 .get() == in_new.get_storage_info_ptr()));
-    assert((domain.get_metadata_set()
+    assert((domain.metadata_set_view()
                 .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 2u, 2u, 2u >,

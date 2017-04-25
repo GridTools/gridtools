@@ -266,7 +266,7 @@ namespace gridtools {
         /**
          * @brief returning by const reference the set of all metadatas
          */
-        metadata_set_t const &get_metadata_set() const { return m_metadata_set; }
+        metadata_set_t const &metadata_set_view() const { return m_metadata_set; }
 
         /**
          * @brief returning by reference the list of all arg storage pairs. An arg storage pair maps

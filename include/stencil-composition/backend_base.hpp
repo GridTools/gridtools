@@ -181,7 +181,7 @@ namespace gridtools {
                 (is_storage_info< typename boost::decay< typename StorageInfoPtr::value_type >::type >::value),
                 GT_INTERNAL_ERROR);
             return backend_traits_t::template extract_storage_info_ptr(
-                aggregator.get_metadata_set().template get< StorageInfoPtr >().get());
+                aggregator.metadata_set_view().template get< StorageInfoPtr >().get());
         }
 
         /**
