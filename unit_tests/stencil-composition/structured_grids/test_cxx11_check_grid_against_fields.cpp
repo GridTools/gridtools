@@ -43,21 +43,9 @@ namespace check_grid_bounds {
 
     typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
 
-#ifdef CUDA_EXAMPLE
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > the_backend;
-#else
-#ifdef BACKEND_BLOCK
     typedef gridtools::backend< gridtools::enumtype::Host,
         gridtools::enumtype::GRIDBACKEND,
         gridtools::enumtype::Block > the_backend;
-#else
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > the_backend;
-#endif
-#endif
 
     /**
        Testing the check of bounds for iteration spaces.
@@ -81,11 +69,8 @@ namespace check_grid_bounds {
         gridtools::uint_t gy,
         gridtools::uint_t gz,
         bool expected) {
-#ifdef __CUDACC__
-        typedef gridtools::layout_map< 2, 1, 0 > layout_type; // stride 1 on i
-#else
+
         typedef gridtools::layout_map< 0, 1, 2 > layout_type; // stride 1 on k
-#endif
 
         typedef the_backend::storage_info< 0, layout_type > storage_info1_t;
         typedef the_backend::storage_info< 1, layout_type > storage_info2_t;
