@@ -257,7 +257,7 @@ namespace gridtools {
     struct get_cache_set {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocalDomain >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocalDomain >::value, GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::fold< CacheSequence,
             boost::mpl::set0<>,

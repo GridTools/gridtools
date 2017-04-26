@@ -256,7 +256,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
         struct l_get_it_type {
             template < typename U >
             struct apply {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< U >::type::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_arg< U >::type::value), GT_INTERNAL_ERROR);
                 typedef typename U::iterator type;
             };
         };
@@ -418,28 +418,36 @@ the continuous_indices_check template argument must be an MPL vector of placehol
           public:
             fill_metadata_set(MetaDataSet &storageinfo) : m_storageinfo_set(storageinfo) {}
 
-            template < typename T, typename boost::enable_if< is_pointer< T >, int >::type = 0 >
-            void operator()(T &ds) const {
+            template < typename PointerType, typename boost::enable_if< is_pointer< PointerType >, int >::type = 0 >
+            void operator()(PointerType &ds) const {
+                GRIDTOOLS_STATIC_ASSERT(
+                    (is_storage_info< typename boost::decay< typename PointerType::value_type >::type >::value),
+                    GT_INTERNAL_ERROR);
                 this->operator()(*ds.get());
             }
 
-            template < typename T, typename boost::enable_if< is_vector< T >, int >::type = 0 >
-            void operator()(T &ds) const {
-                typedef typename T::value_type::storage_info_t storage_info_t;
+            template < typename VectorType, typename boost::enable_if< is_vector< VectorType >, int >::type = 0 >
+            void operator()(VectorType &ds) const {
+                typedef typename VectorType::value_type::storage_info_t storage_info_t;
+                GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_t;
                 m_storageinfo_set.insert(ptr_t(ds[0].get_storage_info_ptr()));
             }
 
-            template < typename T, typename boost::enable_if< is_data_store< T >, int >::type = 0 >
-            void operator()(T &ds) const {
-                typedef typename T::storage_info_t storage_info_t;
+            template < typename DataStoreType,
+                typename boost::enable_if< is_data_store< DataStoreType >, int >::type = 0 >
+            void operator()(DataStoreType &ds) const {
+                typedef typename DataStoreType::storage_info_t storage_info_t;
+                GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_ty;
                 m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr()));
             }
 
-            template < typename T, typename boost::enable_if< is_data_store_field< T >, int >::type = 0 >
-            void operator()(T &ds) const {
-                typedef typename T::storage_info_t storage_info_t;
+            template < typename DataStoreFieldType,
+                typename boost::enable_if< is_data_store_field< DataStoreFieldType >, int >::type = 0 >
+            void operator()(DataStoreFieldType &ds) const {
+                typedef typename DataStoreFieldType::storage_info_t storage_info_t;
+                GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_ty;
                 m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr()));
             }

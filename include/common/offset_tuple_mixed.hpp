@@ -56,7 +56,7 @@ namespace gridtools {
     template < typename ArgType, typename... Pair >
     struct offset_tuple_mixed {
 
-        GRIDTOOLS_STATIC_ASSERT(is_offset_tuple< ArgType >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_offset_tuple< ArgType >::value, GT_INTERNAL_ERROR);
         typedef offset_tuple_mixed< ArgType, Pair... > type;
         static const ushort_t n_dimensions = ArgType::n_dimensions;
 

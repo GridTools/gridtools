@@ -79,11 +79,12 @@ namespace gridtools {
         bool IsStateful,
         typename ExpandFactor >
     struct intermediate_expand : public computation< ReductionType > {
-        GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), "wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), "wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), "wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
 
         // create an mpl vector of @ref gridtools::arg, substituting the large
         // expandable parameters list with a chunk
