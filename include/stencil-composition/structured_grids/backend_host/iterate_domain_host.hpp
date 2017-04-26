@@ -142,7 +142,7 @@ namespace gridtools {
 
         template < typename Extent >
         GT_FUNCTION bool is_thread_in_domain() const {
-            true;
+            return true;
         }
 
       private:
