@@ -90,8 +90,8 @@ namespace vertical_advection {
             // set the fields to advect
             const double PI = std::atan(1.) * 4.;
 
-            const uint_t i_begin = 3;
-            const uint_t i_end = idim_ + 3;
+            const uint_t i_begin = 0;
+            const uint_t i_end = idim_;
             const uint_t j_begin = 0;
             const uint_t j_end = jdim_;
             const uint_t k_begin = 0;
@@ -116,7 +116,7 @@ namespace vertical_advection {
             double dz = 1. / (double)(k_end - k_begin);
 
             for (int j = j_begin; j < j_end; j++) {
-                for (int i = i_begin; i < i_end - 3; i++) {
+                for (int i = i_begin; i < i_end; i++) {
                     double x = dx * (double)(i - i_begin);
                     double y = dy * (double)(j - j_begin);
                     for (int k = k_begin; k < k_end; k++) {
