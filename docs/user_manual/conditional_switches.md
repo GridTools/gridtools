@@ -11,12 +11,12 @@ in the same way as the solution we will describe next, but it would create a
 code of an unmanageable size most of the time: suppose that inside a computation
 with 10 stages you want to choose among 5 possible versions of the last stage.
 You would have to create 5 different computations, in which the only difference
-is in the last stage, while the rest is repeated. This would be tedious and errorprone.
+is in the last stage, while the rest is repeated. This would be tedious and error-prone.
 
 The syntax we expose for ```if_``` statements is reported in the following example
 
 ```c++
-   auto cond = new_cond([]() { return false; });
+   auto cond = new_cond([&flag]() { return flag; });
    comp_ = make_computation< BACKEND >(
            domain_,
            grid_,
@@ -24,10 +24,12 @@ The syntax we expose for ```if_``` statements is reported in the following examp
                make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor0 >(p())),
                make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor1 >(p()))));
 ```
-where ```cond``` is defined using a predicate (returning false in this case). Note that this code will always only
-be executed on the host, so the predicate can access values which are available on the host, or even capture arguments.
+In this example ```cond``` is defined as a predicate using the ```new_cond``` $\GT$ keyword. Note that this code will always only
+be executed on the host, so the predicate can access values which are available on the host, so captures by reference can be used.
 The correct way to interpret this syntax is that the call to ```if_``` returns one multistage o the other based on
 the return value of the predicate attached to ```cond```.
+
+The value of ```cond``` is evaluated at every execution of the ```comp_.run()``` function.
 
 The conditionals can also be nested
 
@@ -79,14 +81,26 @@ and its use is exemplified in the following snippet
                        make_stage< functor2 >(p(), p_tmp())))))
 ```
 
-The value of ```p``` can change between two consecutive calls to ```comp_->run()```, and the
+As for the ```if_``` statement, ```cond_``` is evaluated at every call to ```comp_->run()```, and the
 multistage executed in the two calls will be different.
 
-NOTE: also ```switch_``` can be nested, as the ```if_```.
+---------------------------------------------------   --------------------------------------------------------
+![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+                                                      Also ```switch_``` can be nested, as the ```if_```.
+---------------------------------------------------   --------------------------------------------------------
 
-NOTE: the effect of having different branches is that all the possibilities get compiled, and only
-one gets chosen at each run. Therefore having lot of branches can increase dramatically the
-compilation times, you should not abuse of this feature.
 
-NOTE: currently there is a limitation. The different branches in the computation must use the
-same placeholders.
+---------------------------------------------------   --------------------------------------------------------
+![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+                                                      The effect of having different branches is that all the
+                                                      possibilities get compiled, and only one gets chosen at
+                                                      each run. Therefore having lot of branches can increase
+                                                      dramatically the compilation times, you should not abuse
+                                                      of this feature.
+---------------------------------------------------   --------------------------------------------------------
+
+---------------------------------------------------   --------------------------------------------------------
+![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+                                                      Currently there is a limitation. The different branches
+                                                      in the computation must use the same placeholders.
+---------------------------------------------------   --------------------------------------------------------

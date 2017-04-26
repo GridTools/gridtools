@@ -8,7 +8,7 @@ Normally this could be achieved by creating a loop and running multiple computat
 but this solution would be inefficient. Another possibility would be to create a storage_list,
 and use the [Vector Accessor](vector accessors) inside the Do method to manually
 unroll the loop. This second option is tedious, does not allow generic vector length, and it
-is forces the size of the vector to be compile-time known. The expandable parameters API
+forces the size of the vector to be compile-time known. The expandable parameters API
 solves this problem elegantly, with a minimal code overhead.
 
 The implementation requires the user to specify an integer ```expand_factor```. The vector of
@@ -30,6 +30,6 @@ The only differences with respect to the case without expandable parameters are:
 chuncks of expandable parameters we want to unroll in each computation.
 - a [Vector Accessor](vector accessor) has to be used instead of a regular one in the Do method
 
-All the rest is happening magically under the hood, so that the user is not exposed to the complexity of the
+All the rest is managed by $\GT$, so that the user is not exposed to the complexity of the
 unrolling, he can reuse the code when the expand_factor changes, and he can resize dynamically the expandable
-paramenters vector.
+paramenters vector, for instance by adding or removing elements.
