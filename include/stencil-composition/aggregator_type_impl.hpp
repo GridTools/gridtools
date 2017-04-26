@@ -420,9 +420,6 @@ the continuous_indices_check template argument must be an MPL vector of placehol
 
             template < typename PointerType, typename boost::enable_if< is_pointer< PointerType >, int >::type = 0 >
             void operator()(PointerType &ds) const {
-                GRIDTOOLS_STATIC_ASSERT(
-                    (is_storage_info< typename boost::decay< typename PointerType::value_type >::type >::value),
-                    GT_INTERNAL_ERROR);
                 this->operator()(*ds.get());
             }
 

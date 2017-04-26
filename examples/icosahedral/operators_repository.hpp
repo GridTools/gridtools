@@ -212,20 +212,17 @@ namespace ico_operators {
                                                     ((float_type)2. + cos(PI * (x + (float_type)1.5 * y)) +
                                                         sin((float_type)2 * PI * (x + (float_type)1.5 * y))) /
                                                     (float_type)4.;
-                            m_edge_length_v(i, c, j, 0) = (float_type)2.95 +
-                                                          ((float_type)2. + cos(PI * (x + (float_type)1.5 * y)) +
-                                                              sin((float_type)2 * PI * (x + (float_type)1.5 * y))) /
-                                                              (float_type)4.;
-                            m_edge_length_reciprocal_v(i, c, j, 0) = (float_type)1 / m_edge_length_v(i, c, j, 0);
-
-                            m_dual_edge_length_v(i, c, j, 0) =
-                                (float_type)2.2 +
-                                ((float_type)2. + cos(PI * (x + (float_type)2.5 * y)) +
-                                    sin((float_type)2 * PI * (x + (float_type)3.5 * y))) /
-                                    (float_type)4.;
-                            m_dual_edge_length_reciprocal_v(i, c, j, 0) =
-                                (float_type)1 / m_dual_edge_length_v(i, c, j, 0);
                         }
+                        m_edge_length_v(i, c, j, 0) = (float_type)2.95 +
+                                                      ((float_type)2. + cos(PI * (x + (float_type)1.5 * y)) +
+                                                          sin((float_type)2 * PI * (x + (float_type)1.5 * y))) /
+                                                          (float_type)4.;
+                        m_edge_length_reciprocal_v(i, c, j, 0) = (float_type)1 / m_edge_length_v(i, c, j, 0);
+                        m_dual_edge_length_v(i, c, j, 0) = (float_type)2.2 +
+                                                           ((float_type)2. + cos(PI * (x + (float_type)2.5 * y)) +
+                                                               sin((float_type)2 * PI * (x + (float_type)3.5 * y))) /
+                                                               (float_type)4.;
+                        m_dual_edge_length_reciprocal_v(i, c, j, 0) = (float_type)1 / m_dual_edge_length_v(i, c, j, 0);
                     }
                 }
             }
@@ -282,14 +279,12 @@ namespace ico_operators {
             for (int i = 0; i < m_idim; ++i) {
                 for (int c = 0; c < icosahedral_topology_t::vertices::n_colors::value; ++c) {
                     for (int j = 0; j < m_jdim; ++j) {
-                        for (uint_t k = 0; k < m_kdim; ++k) {
-                            m_edge_orientation_v(i, c, j, 0, 0) = -1;
-                            m_edge_orientation_v(i, c, j, 0, 2) = -1;
-                            m_edge_orientation_v(i, c, j, 0, 4) = -1;
-                            m_edge_orientation_v(i, c, j, 0, 1) = 1;
-                            m_edge_orientation_v(i, c, j, 0, 3) = 1;
-                            m_edge_orientation_v(i, c, j, 0, 5) = 1;
-                        }
+                        m_edge_orientation_v(i, c, j, 0, 0) = -1;
+                        m_edge_orientation_v(i, c, j, 0, 2) = -1;
+                        m_edge_orientation_v(i, c, j, 0, 4) = -1;
+                        m_edge_orientation_v(i, c, j, 0, 1) = 1;
+                        m_edge_orientation_v(i, c, j, 0, 3) = 1;
+                        m_edge_orientation_v(i, c, j, 0, 5) = 1;
                     }
                 }
             }
