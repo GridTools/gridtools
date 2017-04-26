@@ -82,18 +82,18 @@ namespace aligned_copy_stencil {
 #ifdef __CUDACC__
         /** @brief checking all storages alignment using a specific storage_info
 
-            \tparam I index of the storage which alignment should be checked
-            \tparagm ItDomain iterate domain type
+            \tparam Index index of the storage which alignment should be checked
+            \tparam ItDomain iterate domain type
             \param it_domain iterate domain, used to get the pointers and offsets
-            \param boundary ordinal number identifying the alignment
+            \param alignment ordinal number identifying the alignment
         */
-        template < unsigned I, typename ItDomain >
-        GT_FUNCTION static bool check_pointer_alignment(ItDomain const &it_domain, uint_t boundary) {
+        template < unsigned Index, typename ItDomain >
+        GT_FUNCTION static bool check_pointer_alignment(ItDomain const &it_domain, uint_t alignment) {
             bool result_ = true;
             if (threadIdx.x == 0) {
-                auto ptr = (static_cast< float_type * >(it_domain.get().data_pointer().template get< I >()[0]) +
+                auto ptr = (static_cast< float_type * >(it_domain.get().data_pointer().template get< Index >()[0]) +
                             it_domain.get().index()[0]);
-                result_ = (((uintptr_t)ptr & (boundary - 1)) == 0);
+                result_ = (((uintptr_t)ptr & (alignment - 1)) == 0);
             }
             return result_;
         }
