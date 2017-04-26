@@ -125,17 +125,14 @@ namespace gridtools {
                                                boost::mpl::_2 > > >::type placeholders_t;
 
         // filter out the storage infos which are the same
-        typedef typename boost::mpl::fold<
-            placeholders_t,
-            boost::mpl::set0<>, // check if the argument is a data_store placeholder before extracting the storage_info
-            boost::mpl::if_< is_storage_info< get_storage_info_from_arg< boost::mpl::_2 > >,
-                boost::mpl::insert< boost::mpl::_1, get_storage_info_from_arg< boost::mpl::_2 > >,
-                boost::mpl::_1 > >::type mpl_metadata_set_t;
+        typedef typename boost::mpl::fold< placeholders_t,
+            boost::mpl::set0<>,
+            boost::mpl::insert< boost::mpl::_1, get_storage_info_from_arg< boost::mpl::_2 > > >::type
+            mpl_metadata_set_t;
 
         // create an mpl::vector of metadata types
-        typedef typename boost::mpl::fold< mpl_metadata_set_t,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type metadata_vector_t;
+        typedef typename boost::mpl::copy< mpl_metadata_set_t,
+            boost::mpl::back_inserter< boost::mpl::vector0<> > >::type metadata_vector_t;
         const static uint_t len_meta = boost::mpl::size< metadata_vector_t >::type::value;
 
         // Get a sequence of the same type of placeholders_t, but containing the storage types for each placeholder
