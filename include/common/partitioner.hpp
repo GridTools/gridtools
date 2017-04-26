@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "common/defs.hpp"
-#include "common/halo_descriptor.hpp"
+#include "defs.hpp"
+#include "halo_descriptor.hpp"
 #include "cell_topology.hpp"
 #include "gt_math.hpp"
 
