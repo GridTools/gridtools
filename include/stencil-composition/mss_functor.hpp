@@ -196,11 +196,6 @@ namespace gridtools {
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps< mss_components_t, Grid >::type functors_map_t;
 
-// we check that the return types of the reduction user functor matcheds the value provided in the initial value
-// extracted from the make_reduction api (only available for CXX11)
-#ifdef CXX11_ENABLED
-            typedef typename check_reduction_types< mss_components_t, functors_map_t >::type reduction_type_check_t;
-#endif
             typedef backend_traits_from_id< BackendIds::s_backend_id > backend_traits_t;
 
             typedef typename backend_traits_t::template get_block_size< BackendIds::s_strategy_id >::type block_size_t;
