@@ -101,6 +101,9 @@ TEST(cache_metafunctions, extract_extents_for_caches) {
     typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
     gridtools::grid< axis > gr({0, 0, 0, 0, 1}, {0, 0, 0, 0, 1});
+    gr.value_list[0] = 0;
+    gr.value_list[1] = 1;
+
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
     auto pstencil = make_computation< backend_t >(domain,
