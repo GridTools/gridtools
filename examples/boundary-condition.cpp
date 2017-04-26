@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
         std::cout << "Error: edge column values in OUTPUT field are wrong 0 0 0\n";
         error = true;
     }
-    for (uint_t k = 1; k < d1; ++k) {
+    for (uint_t k = 1; k < d3; ++k) {
         if (out(0, 0, k) != 155554) {
             std::cout << "Error: edge column values in OUTPUT field are wrong 0 0 " << k << "\n";
             error = true;
