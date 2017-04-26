@@ -171,7 +171,7 @@ namespace gridtools {
         arg_storage_pair_fusion_list_t m_arg_storage_pair_list;
 
         /**
-           tuple of pointers to the storages metadata. Not that metadata is constant,
+           tuple of pointers to the storages metadata. Note that metadata is constant,
            so storing its original pointer is not needed
          */
         metadata_set_t m_metadata_set;

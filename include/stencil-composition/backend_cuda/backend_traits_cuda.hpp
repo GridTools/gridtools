@@ -72,6 +72,7 @@ namespace gridtools {
 
         template < typename AggregatorType >
         struct instantiate_view {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             AggregatorType &m_agg;
             instantiate_view(AggregatorType &agg) : m_agg(agg) {}
