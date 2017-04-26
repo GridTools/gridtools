@@ -24,7 +24,7 @@ $$-\alpha \nabla^4 \phi = -\alpha  \Delta L$$
 
 In the following we will walk through the following steps:
 
--   The $\GT$ coordinate system and its notation.
+-   The $\GT$ coordinate system and its notation.
 
 -   Storages: how does $\GT$ manage the input and output fields.
 
@@ -504,6 +504,8 @@ struct smoothing_function_3 {
 };
 /***/
 int main() {
+    std::unordered_map<int, std::string> x{};
+
     uint_t Ni = 10;
     uint_t Nj = 12;
     uint_t Nk = 20;

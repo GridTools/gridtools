@@ -6,7 +6,7 @@ with any dimension. The access is performed by
 specifying increments (offsets) with respect to
 the current position of the stencil (iteration point).
 
-As we know from
+As described in
 the [Storage](storage) documentation,
 a data field can be a contiguous array
 with arbitrary dimension, a vector of multidimensional arrays,
@@ -18,21 +18,20 @@ multidimensional array (or _snapshot_),
 and [Field Dimension](field dimensions) the dimensions identifying
 the position of the snapshot inside the
 vector (or matrix). Since the field dimensions are atmost two,
-we will identify them as _snapshot dimension_
-and _component dimension_, in line with their most intuitive use case,
+we will identify them as _component dimension_
+and _snapshot dimension_, in line with their most intuitive use case,
 i.e. a vector representation of a time discretization.
 
-The question from the
-user API point of view is: how do we specify to the
-accessor which dimension we want to access, or wether it is
-a space dimension or a field dimension?
+We introduce the accessors syntax with progressively more complex examples
+to explain how the different dimensions can be accessed.
 
 ##### Space Dimensions
 
 Let's start with an arbitrary dimensional array
 (a single _snapshot_). The API exposed is very intuitive.
 Suppose you have as first argument of the functor a
-5D snapshot and an input accessor with null extent called ```acc```:
+5 (space) dimentional snapshot as an input with null extent called ```acc```.
+Then the accessor to use is the following:
 ```c++
 using acc = accessor<0, enumtype::in, extent<>, 5>;
 ```
@@ -41,7 +40,7 @@ We can access the 2 extra dimensions by specifying all the offsets
 acc(0,0,-1,2,2)
 ```
 We can also assign a name to a dimension, and increment it
-using the following syntax
+using the following syntax, where we ignore the first two ```0```s:
 ```c++
 dimension<3> k; dimension<4> c; dimension<5> t;
 acc(k-1, c+2, t+2)
@@ -61,7 +60,15 @@ Specifying an offset for a field dimension works exactly as for the
 space dimension. So there is no way to distinguish the two only based
 on the user functor. Whether we are accessing a space dimension or a field
 dimension will depend only on the storage type which will be bound to the
-accessor, and not on the accessor itself.
+accessor, and not on the accessor itself. So in the example
+```c++
+dimension<3> k; dimension<4> c; dimension<5> t;
+acc(k-1, c+2, t+2)
+```
+```c+2``` may refer to an offset to the 4th dimension or the third components (the indices are
+zero based) of a vector field, while ```t+2``` may refer to the third snapshot of that component.
+Alternatively, if the storage passed in had 4 space dimensions, the ```t+2``` would have
+indicated the third component.
 
 ##### Accessor Alias
 
@@ -79,6 +86,7 @@ of the accessor:
 using w = alias<vec, dimension<4> >::set<2>;
 ```
 The line above sets at compile-time the fourth offset to the value 2, so that we have
+the following equivalency:
 ```c++
 w() == vec(0,0,0,2)
 ```
@@ -92,7 +100,7 @@ w(i+1) == vel(i+1, q+2)
 
 ##### Expressions
 
-Remember the Do method example provided in [Example]?
+The Do method example provided in [Example] showed the basic syntax to access data.
 
 ```c++
 template < typename Evaluation >
@@ -105,7 +113,7 @@ template < typename Evaluation >
 
 We can notice that the ```eval``` keyword is repeated several times, which is somehow
 tedious, especially when the expression is complicated it becaomes quickly very hard to read.
-It is possible thought to embed the expressions in a single eval, i.e.
+It is possible to embed the expressions in a single eval, i.e.
 ```c++
 using namespace expressions;
 template < typename Evaluation >
@@ -145,23 +153,29 @@ as if the same stencil was applied to all the elements of the vector concurrentl
 This "loop" or "vector operation" is completely abstracted away from the API of the
 user function. The user has to define a _vector\_accessor_ as if it was a regular
 accessor, and the corresponding stencil will be executed multiple times, each time
-considering a different element in the vector.
+considering different elements in the vector.
 
-NOTE: if multiple vector accessors are used in the same stencil, the corresponding
-expandable parameters storages must have the same length
+---------------------------------------------------   --------------------------------------------------------
+![Tip](figures/hint.gif){ width=20px height=20px }
+                                                      If multiple vector accessors are used in the same
+                                                      stencil, the corresponding expandable parameters
+                                                      storage vectors must have the same length
+---------------------------------------------------   --------------------------------------------------------
 
-NOTE: we can mix vector accessors with regular accessors. In that case the regular
-accessor will be the same for all the stencil invocations, while the vector accessor
-will iterate over its components.
-
-NOTE: the vector accessors are implemented using storage lists
+---------------------------------------------------   --------------------------------------------------------
+![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+                                                      We can mix vector accessors with regular accessors.
+                                                      In that case the regular accessor will be the same for
+                                                      all the stencil invocations, while the vector accessor
+                                                      will iterate over its components.
+---------------------------------------------------   --------------------------------------------------------
 
 For an example of usage of the vector accessor see the [Advection Pdbott](advection pdbott example)
 
 #### Global Accessors
 
 Global accessors are accessing read-only data which is independent of the current iteration point.
-For this reason [Intent](intents), [Extent](extents) and [Offset](offsets) do not make sense for a global accessor.
+For this reason [Intent](intents), [Extent](extents) and [Offset](offsets) cannot be specified for a global accessor.
 Here the term "global" means that the data is the same for the whole grid. An example can be
 a constant scalar parameter that you want to pass to the functor, or a user defined struct containing
 various configuration options.
@@ -178,17 +192,22 @@ in the do method
 ```c++
     auto ordinal_ = eval(global_boundary()).ordinal();
 ```
-NOTE: all the member functions defined in the user-defined data structure must be labeled with
-GT_FUNCTION, in order for them to be callable from the device.
+
+---------------------------------------------------   --------------------------------------------------------
+![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+                                                      All the member functions defined in the user-defined
+                                                      data structure must be labeled with GT_FUNCTION, in
+                                                      order for them to be callable from devices.
+---------------------------------------------------   --------------------------------------------------------
 
 There is a special case for which we have a dedicated API: i.e. when the user defined object
 (the global parameter)
 defines parenthesis operator ```operator()```, and we want to call that operator from the Do method.
 In that case the accessor's parenthesis operator can be used and the arguments will be
-automatically forwarded to the global parameter. A typical example is the case in which we want to pass
-a storage as a global parameter:
+automatically forwarded to the global parameter. An example is the case in which we want to pass
+a small matrix as a global parameter:
 ```c++
-    using global_accessor< 0 > global_storage_;
-    auto elem = eval(global_storage_(1,2,3));
+    using global_accessor< 0 > matrix;
+    auto elem = eval(matrix(i,j));
 ```
 A useful example to understand this use case can be found in the [Extended4D](extended4D example).

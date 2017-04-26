@@ -138,7 +138,7 @@ $(function() {
 <p><br /><span class="math display">−<em>α</em>∇<sup>4</sup><em>ϕ</em> = −<em>α</em><em>Δ</em><em>L</em></span><br /></p>
 <p>In the following we will walk through the following steps:</p>
 <ul>
-<li><p>The <span class="math inline"><em>GridTools</em></span> coordinate system and its notation.</p></li>
+<li><p>The <span class="math inline"><em>GridTools</em></span> coordinate system and its notation.</p></li>
 <li><p>Storages: how does <span class="math inline"><em>GridTools</em></span> manage the input and output fields.</p></li>
 <li><p>The first stencil: calculating <span class="math inline"><em>L</em></span>, the second order Laplacian of <span class="math inline"><em>ϕ</em></span>.</p></li>
 <li><p>The final stencil: function calls, Do-method overloads and temporaries</p></li>
@@ -354,6 +354,8 @@ struct smoothing_function_3 {
 };
 /***/
 int main() {
+    std::unordered_map&lt;int, std::string&gt; x{};
+
     uint_t Ni = 10;
     uint_t Nj = 12;
     uint_t Nk = 20;
