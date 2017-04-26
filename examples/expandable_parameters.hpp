@@ -108,18 +108,6 @@ namespace test_expandable_parameters {
         std::vector< storage_t > list_in_ = {
             storage10, storage20, storage30, storage40, storage50, storage60, storage70, storage80};
 
-        // make sure the values are properly initialized
-        for (uint_t l = 0; l < list_in_.size(); ++l) {
-            auto inv = make_host_view(list_in_[l]);
-            auto outv = make_host_view(list_out_[l]);
-            for (uint_t i = 0; i < d1; ++i)
-                for (uint_t j = 0; j < d2; ++j)
-                    for (uint_t k = 0; k < d3; ++k) {
-                        assert(inv(i, j, k) == -1.0 * (l + 1));
-                        assert(outv(i, j, k) == 1.0 * (l + 1));
-                    }
-        }
-
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
