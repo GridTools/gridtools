@@ -102,7 +102,7 @@ namespace ico_operators {
             typedef arg< 0, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
             typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
             typedef arg< 2, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
-            typedef arg< 3, edges_of_vertices_storage_type, enumtype::edges > p_edge_orientation;
+            typedef arg< 3, edges_of_vertices_storage_type, enumtype::vertices > p_edge_orientation;
 
             typedef boost::mpl::vector< p_dual_area_reciprocal, p_dual_edge_length, p_curl_weights, p_edge_orientation >
                 accessor_list_t;

@@ -75,7 +75,7 @@ namespace soeov {
     template < uint_t Color >
     struct test_on_edges_functor {
         typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > cell_area;
-        typedef inout_accessor< 1, icosahedral_topology_t::edges, 5 > weight_edges;
+        typedef inout_accessor< 1, icosahedral_topology_t::cells, 5 > weight_edges;
         typedef boost::mpl::vector< cell_area, weight_edges > arg_list;
 
         template < typename Evaluation >
@@ -127,7 +127,7 @@ namespace soeov {
         ref_weights.initialize(0.0);
 
         typedef arg< 0, cell_storage_type, enumtype::cells > p_cell_area;
-        typedef arg< 1, edges_of_cells_storage_type, enumtype::edges > p_weight_edges;
+        typedef arg< 1, edges_of_cells_storage_type, enumtype::cells > p_weight_edges;
 
         typedef boost::mpl::vector< p_cell_area, p_weight_edges > accessor_list_t;
 

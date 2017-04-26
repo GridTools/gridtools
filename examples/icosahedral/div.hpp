@@ -113,7 +113,7 @@ namespace ico_operators {
         {
             typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;
             typedef arg< 1, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef arg< 2, edges_of_cells_storage_type, enumtype::edges > p_orientation_of_normal;
+            typedef arg< 2, edges_of_cells_storage_type, enumtype::cells > p_orientation_of_normal;
             typedef arg< 3, cells_4d_storage_type, enumtype::cells > p_div_weights;
 
             typedef boost::mpl::vector< p_edge_length, p_cell_area_reciprocal, p_orientation_of_normal, p_div_weights >

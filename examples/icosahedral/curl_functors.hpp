@@ -50,7 +50,7 @@ namespace ico_operators {
         typedef in_accessor< 0, icosahedral_topology_t::vertices > dual_area_reciprocal;
         typedef in_accessor< 1, icosahedral_topology_t::edges, extent< -1, 0, -1, 0 > > dual_edge_length;
         typedef inout_accessor< 2, icosahedral_topology_t::vertices, 5 > weights;
-        typedef in_accessor< 3, icosahedral_topology_t::edges, extent< 0, 0, 0, 0 >, 5 > edge_orientation;
+        typedef in_accessor< 3, icosahedral_topology_t::vertices, extent< 0, 0, 0, 0 >, 5 > edge_orientation;
         typedef boost::mpl::vector< dual_area_reciprocal, dual_edge_length, weights, edge_orientation > arg_list;
 
         template < typename Evaluation >
