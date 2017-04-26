@@ -111,7 +111,7 @@ namespace assembly {
         typedef in_accessor< 3, extent<>, 6 > f;
         typedef inout_accessor< 4, extent<>, 6 > result;
         typedef boost::mpl::vector< phi, psi, jac, f, result > arg_list;
-        using quad = dimension< 4 >;
+        using quad = dimension< 7 >;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             dimension< 1 > i;
@@ -130,23 +130,23 @@ namespace assembly {
                         // check the initialization to 0
                         assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
-                            eval(result{di + I, dj + J, dk + K, qp}) +=
-                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i, j, k, qp + q} * jac{i, j, k, qp + q} *
+                            eval(result{di + I, dj + J, dk + K}) +=
+                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i, j, k, qp + q} * jac{i, j, k, di + q} *
                                          f{i, j, k, di, dj, dk} +
-                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di + 1, dj, dk, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +
-                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{dj + 1, dj, dk, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk} +
-                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{dk + 1, dj, dk, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, k, k, di, dj, dk + 1} +
-                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di + 1, dj + 1, dk, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk} +
-                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di + 1, dj, dk + 1, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk + 1} +
-                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di, dj + 1, dk + 1, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk + 1} +
-                                     !phi{di + I, dj + J, dk + K, qp + q} * !psi{di + 1, dj + 1, dk + 1, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk + 1}) /
+                                     phi{di + I, dj + J, dk + K, qp + q} * psi{di + 1, dj, dk, qp + q} *
+                                         jac{i, j, k, di + q} * f{i, j, k, di + 1, dj, dk} +
+                                     phi{di + I, dj + J, dk + K, qp + q} * psi{dj + 1, dj, dk, qp + q} *
+                                         jac{i, j, k, di + q} * f{i, j, k, di, dj + 1, dk} +
+                                     phi{di + I, dj + J, dk + K, qp + q} * psi{dk + 1, dj, dk, qp + q} *
+                                         jac{i, j, k, di + q} * f{i, k, k, di, dj, dk + 1} +
+                                     phi{di + I, dj + J, dk + K, qp + q} * psi{di + 1, dj + 1, dk, qp + q} *
+                                         jac{i, j, k, di + q} * f{i, j, k, di + 1, dj + 1, dk} +
+                                     phi{di + I, dj + J, dk + K, qp + q} * psi{di + 1, dj, dk + 1, qp + q} *
+                                         jac{i, j, k, di + q} * f{i, j, k, di + 1, dj, dk + 1} +
+                                     phi{di + I, dj + J, dk + K, qp + q} * psi{di, dj + 1, dk + 1, qp + q} *
+                                         jac{i, j, k, di + q} * f{i, j, k, di, dj + 1, dk + 1} +
+                                     phi{di + I, dj + J, dk + K, qp + q} * psi{di + 1, dj + 1, dk + 1, qp + q} *
+                                         jac{i, j, k, di + q} * f{i, j, k, di + 1, dj + 1, dk + 1}) /
                                 8;
                         }
                     }
