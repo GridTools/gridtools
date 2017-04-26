@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <cstdint>
+
 #include <stencil-composition/stencil-composition.hpp>
 #include "benchmarker.hpp"
 
@@ -91,7 +93,7 @@ namespace aligned_copy_stencil {
             if (threadIdx.x == 0) {
                 auto ptr = (static_cast< float_type * >(it_domain.get().data_pointer().template get< I >()[0]) +
                             it_domain.get().index()[0]);
-                result_ = (((unsigned long)ptr & (boundary - 1)) == 0);
+                result_ = (((uintptr_t)ptr & (boundary - 1)) == 0);
             }
             return result_;
         }
