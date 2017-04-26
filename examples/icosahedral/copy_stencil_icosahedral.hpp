@@ -89,7 +89,7 @@ namespace test_copy_stencil_icosahedral {
             for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                 for (int j = 0; j < d2; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        icv(i, c, j, k) = 1.;
+                        icv(i, c, j, k) = storage1.get_storage_info_ptr()->index(i, c, j, k);
                         ocv(i, c, j, k) = 10.;
                     }
                 }
