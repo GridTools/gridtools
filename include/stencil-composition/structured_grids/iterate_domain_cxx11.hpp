@@ -379,7 +379,7 @@ namespace gridtools {
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-            typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+            typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
             typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
@@ -520,7 +520,7 @@ namespace gridtools {
         typedef typename Accessor::index_t index_t;
         typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-        typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+        typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
             storage_wrapper_t;
         typedef typename storage_wrapper_t::storage_t storage_t;
         typedef typename storage_wrapper_t::storage_info_t storage_info_t;
@@ -589,7 +589,7 @@ namespace gridtools {
         typedef typename Accessor::index_t index_t;
         typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-        typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+        typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
             storage_wrapper_t;
         typedef typename storage_wrapper_t::storage_t storage_t;
         typedef typename storage_wrapper_t::storage_info_t storage_info_t;

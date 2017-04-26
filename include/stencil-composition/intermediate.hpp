@@ -212,7 +212,7 @@ namespace gridtools {
                 boost::mpl::_1,
                 boost::mpl::if_<
                     is_tmp_arg< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 > >,
-                    get_storage_wrapper_elem< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
+                    storage_wrapper_elem< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
                         all_tmps >,
                     storage_wrapper< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
                         boost::mpl::at< ViewList, boost::mpl::_2 >,
@@ -382,7 +382,7 @@ namespace gridtools {
             typename boost::fusion::result_of::as_vector< storage_wrapper_list_t >::type storage_wrapper_fusion_list_t;
 
         // get the maximum extent (used to retrieve the size of the temporaries)
-        typedef typename get_max_i_extent< storage_wrapper_fusion_list_t >::type max_i_extent_t;
+        typedef typename max_i_extent_from_storage_wrapper_list< storage_wrapper_fusion_list_t >::type max_i_extent_t;
 
         // creates an mpl sequence of local domains
         typedef typename create_mss_local_domains< backend_id< Backend >::value,

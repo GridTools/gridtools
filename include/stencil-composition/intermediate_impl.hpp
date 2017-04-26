@@ -391,7 +391,7 @@ namespace gridtools {
 
             template < typename T >
             void operator()(T &t) const {
-                typedef typename get_arg_from_storage_wrapper< T >::type arg_t;
+                typedef typename arg_from_storage_wrapper< T >::type arg_t;
                 t.initialize(boost::fusion::at_key< arg_t >(m_views));
             }
         };

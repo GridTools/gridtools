@@ -92,51 +92,51 @@ namespace gridtools {
     struct is_storage_wrapper< storage_wrapper< Arg, View, TileI, TileJ > > : boost::mpl::true_ {};
 
     template < typename T >
-    struct get_temporary_info_from_storage_wrapper : boost::mpl::bool_< T::is_temporary > {};
+    struct temporary_info_from_storage_wrapper : boost::mpl::bool_< T::is_temporary > {};
 
     template < typename T >
-    struct get_arg_from_storage_wrapper {
+    struct arg_from_storage_wrapper {
         typedef typename T::arg_t type;
     };
 
     template < typename T >
-    struct get_storage_size_from_storage_wrapper {
+    struct storage_size_from_storage_wrapper {
         typedef boost::mpl::int_< T::storage_size > type;
         static const int value = T::storage_size;
     };
 
     template < typename T >
-    struct get_storage_info_from_storage_wrapper {
+    struct storage_info_from_storage_wrapper {
         typedef typename T::storage_info_t type;
     };
 
     template < typename T >
-    struct get_storage_from_storage_wrapper {
+    struct storage_from_storage_wrapper {
         typedef typename T::storage_t type;
     };
 
     template < typename T >
-    struct get_data_ptr_from_storage_wrapper {
+    struct data_ptr_from_storage_wrapper {
         typedef typename T::data_t *type[T::storage_size];
     };
 
     template < typename T >
-    struct get_arg_index_from_storage_wrapper : T::index_t {};
+    struct arg_index_from_storage_wrapper : T::index_t {};
 
     template < typename EsfArg, typename StorageWrapperList >
-    struct get_storage_wrapper_elem {
+    struct storage_wrapper_elem {
         typedef typename boost::mpl::fold< StorageWrapperList,
             boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, get_arg_from_storage_wrapper< boost::mpl::_2 > > >::type ArgVec;
+            boost::mpl::push_back< boost::mpl::_1, arg_from_storage_wrapper< boost::mpl::_2 > > >::type ArgVec;
         typedef typename boost::mpl::at_c< StorageWrapperList,
             boost::mpl::find< ArgVec, EsfArg >::type::pos::value >::type type;
     };
 
     template < unsigned Coord >
-    struct get_tile_from_storage_wrapper;
+    struct tile_from_storage_wrapper;
 
     template <>
-    struct get_tile_from_storage_wrapper< 0 > {
+    struct tile_from_storage_wrapper< 0 > {
         template < typename T >
         struct apply {
             typedef typename T::tileI_t type;
@@ -144,7 +144,7 @@ namespace gridtools {
     };
 
     template <>
-    struct get_tile_from_storage_wrapper< 1 > {
+    struct tile_from_storage_wrapper< 1 > {
         template < typename T >
         struct apply {
             typedef typename T::tileJ_t type;
@@ -152,8 +152,8 @@ namespace gridtools {
     };
 
     template < typename StorageWrapperList >
-    struct get_max_i_extent {
-        typedef typename boost::mpl::transform< StorageWrapperList, get_tile_from_storage_wrapper< 1 > >::type
+    struct max_i_extent_from_storage_wrapper_list {
+        typedef typename boost::mpl::transform< StorageWrapperList, tile_from_storage_wrapper< 1 > >::type
             all_i_tiles_t;
         typedef typename boost::mpl::transform< all_i_tiles_t, get_minus_t_from_tile< boost::mpl::_ > >::type
             all_i_minus_tiles_t;

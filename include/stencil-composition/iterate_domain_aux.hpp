@@ -439,7 +439,7 @@ namespace gridtools {
         template < typename FusionPair >
         GT_FUNCTION void operator()(FusionPair const &sw) const {
             typedef typename boost::fusion::result_of::first< FusionPair >::type arg_t;
-            typedef typename get_storage_wrapper_elem< arg_t, typename LocalDomain::storage_wrapper_list_t >::type
+            typedef typename storage_wrapper_elem< arg_t, typename LocalDomain::storage_wrapper_list_t >::type
                 storage_wrapper_t;
             typedef typename boost::mpl::find< typename LocalDomain::storage_wrapper_list_t,
                 storage_wrapper_t >::type::pos pos_in_storage_wrapper_list_t;
