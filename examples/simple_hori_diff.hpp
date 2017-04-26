@@ -156,16 +156,8 @@ namespace shorizontal_diffusion {
 
         // An array of placeholders to be passed to the domain
         typedef boost::mpl::vector< p_lap, p_coeff, p_in, p_out, p_crlato, p_crlatu > accessor_list;
-
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are
-        // used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I
-        // don't particularly like this)
-
         gridtools::aggregator_type< accessor_list > domain(coeff, in, out, crlato, crlatu);
+
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
