@@ -509,7 +509,6 @@ namespace gridtools {
                returns `false` when the check passes.
 
                \tparam The type element of a metadata_set which is a gridtools::pointer to a metadata
-
                \param mde The element of a metadata_set which is a gridtools::pointer to a metadata
              */
             template < typename MetaDataElem >
