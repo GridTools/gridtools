@@ -232,10 +232,8 @@ namespace gridtools {
             _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(ds...);
 
             // create a fusion vector that contains all the arg_storage_pairs to all non temporary args
-            typedef typename boost::mpl::fold< non_tmp_placeholders_t,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1, _impl::get_arg_storage_pair_type< boost::mpl::_2 > > >::type
-                non_tmp_arg_storage_pairs_mpl_vec;
+            typedef typename boost::mpl::transform< non_tmp_placeholders_t,
+                _impl::get_arg_storage_pair_type< boost::mpl::_1 > >::type non_tmp_arg_storage_pairs_mpl_vec;
             typedef typename boost::fusion::result_of::as_vector< non_tmp_arg_storage_pairs_mpl_vec >::type
                 non_tmp_arg_storage_pairs_fusion_vec;
             // initialize those arg_storage_pairs with the given data_stores
@@ -309,10 +307,8 @@ namespace gridtools {
             _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(stores...);
 
             // create a fusion vector that contains all the arg_storage_pairs to all non temporary args
-            typedef typename boost::mpl::fold< non_tmp_placeholders_t,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1, _impl::get_arg_storage_pair_type< boost::mpl::_2 > > >::type
-                non_tmp_arg_storage_pairs_mpl_vec;
+            typedef typename boost::mpl::transform< non_tmp_placeholders_t,
+                _impl::get_arg_storage_pair_type< boost::mpl::_1 > >::type non_tmp_arg_storage_pairs_mpl_vec;
             typedef typename boost::fusion::result_of::as_vector< non_tmp_arg_storage_pairs_mpl_vec >::type
                 non_tmp_arg_storage_pairs_fusion_vec;
             // initialize those arg_storage_pairs with the given data_stores
