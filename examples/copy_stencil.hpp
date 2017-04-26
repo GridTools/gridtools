@@ -139,16 +139,6 @@ namespace copy_stencil {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        /*
-        Here we do lot of stuff
-        1) We pass to the intermediate representation ::run function the description
-        of the stencil, which is a multi-stage stencil (mss)
-        The mss includes (in order of execution) a laplacian, two fluxes which are independent
-        and a final step that is the out_function
-        2) The logical physical domain with the fields to use
-        3) The actual domain dimensions
-        */
-
         auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
             grid,
             gridtools::make_multistage // mss_descriptor
