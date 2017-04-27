@@ -159,10 +159,10 @@ namespace gridtools {
 
         // metafunction class that extracts the storage_info ID of a given arg
         struct extract_storage_info_id_from_arg {
-            template < typename T >
+            template < typename Arg >
             struct apply {
-                static_assert(is_arg< T >::value, "given type is no arg type");
-                typedef typename get_storage_from_arg< T >::type storage_t;
+                static_assert(is_arg< Arg >::value, "given type is no arg type");
+                typedef typename get_storage_from_arg< Arg >::type storage_t;
                 typedef typename storage_t::storage_info_t storage_info_t;
                 static_assert(is_storage_info< storage_info_t >::value, "given type is no arg type");
                 typedef boost::mpl::int_< storage_info_t::id > type;
@@ -262,16 +262,16 @@ the continuous_indices_check template argument must be an MPL vector of placehol
         };
 
         struct l_get_arg_storage_pair_type {
-            template < typename U, typename Dummy = void >
+            template < typename Arg, typename Dummy = void >
             struct apply {
-                typedef arg_storage_pair< U, typename U::storage_t > type;
+                typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
             };
         };
 
-        template < typename T >
-        struct get_arg_storage_pair_type {
-            static_assert(is_arg< T >::value, "The given type is not an arg type");
-            typedef arg_storage_pair< T, typename T::storage_t > type;
+        template < typename Arg >
+        struct create_arg_storage_pair_type {
+            static_assert(is_arg< Arg >::value, "The given type is not an arg type");
+            typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
         };
 
         struct moveto_functor {
