@@ -234,7 +234,7 @@ namespace gridtools {
         typedef typename reverse_map< T_layout_map >::type layout_map; // This is necessary since the internals of gcl
                                                                        // use "increasing stride order" instead of
                                                                        // "decreasing stride order"
-        typedef typename layout_transform< T_layout_map, layout2proc_map_abs >::type layout2proc_map;
+        typedef typename layout_transform< layout_map, layout2proc_map_abs >::type layout2proc_map;
 
       public:
         /**
