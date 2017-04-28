@@ -87,25 +87,10 @@ namespace gridtools {
             \param c Object containing information about periodicities as defined in \ref boollist_concept
             \param comm MPI Communicator describing the MPI 3D computing grid
         */
-        MPI_3D_process_grid_t(
-            period_type const &c, MPI_Comm const &comm, gridtools::array< int, ndims > const *dimensions = NULL)
+        MPI_3D_process_grid_t(period_type const &c, MPI_Comm const &comm)
             : m_communicator(comm), m_cyclic(c), m_nprocs(0), m_dimensions(), m_coordinates() {
-            for (ushort_t i = 0; i < ndims; ++i) {
-                m_coordinates[i] = 0;
-                m_dimensions[i] = 0;
-            }
 
-            MPI_Comm_size(comm, &m_nprocs);
-
-            if (!dimensions)
-                MPI_Dims_create(m_nprocs, ndims, &m_dimensions[0]);
-            else {
-                for (ushort_t i = 0; i < ndims; ++i) {
-                    m_dimensions[i] = (*dimensions)[i];
-                }
-            }
-
-            create(comm);
+            MPI_Cart_get(comm, ndims, &m_dimensions[0], 0x0, &m_coordinates[0]);
         }
 
         /**
