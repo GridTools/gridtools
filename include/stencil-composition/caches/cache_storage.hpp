@@ -203,7 +203,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "Error");
 
             constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;
-            if(ksize <= 1) return;
+            if (ksize <= 1)
+                return;
             constexpr uint_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : ksize - 1;
             constexpr uint_t kend = (IterationPolicy::value == enumtype::backward) ? ksize - 2 : 1;
             for (int_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
@@ -213,11 +214,11 @@ namespace gridtools {
 
       private:
 #if defined(CUDA8)
-          using array_t = array<value_type, size()>;
+        using array_t = array< value_type, size() >;
 #else
-          using array_t = array<value_type, _impl::compute_size< NColors, minus_t, plus_t, tiles_t, storage_t >::value>;
+        using array_t = array< value_type, _impl::compute_size< NColors, minus_t, plus_t, tiles_t, storage_t >::value >;
 #endif
-          array_t m_values;
+        array_t m_values;
     };
 
 #else // CXX11_ENABLED
