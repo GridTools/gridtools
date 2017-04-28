@@ -49,6 +49,9 @@ namespace gridtools {
     template < uint_t... Pad >
     struct halo {
         static const uint_t size = sizeof...(Pad);
+        static const array< uint_t, sizeof...(Pad) > m_pad;
+
+        GT_FUNCTION static constexpr uint_t get(const uint_t coordinate) { return m_pad[coordinate]; }
 
         template < ushort_t Coordinate >
         GT_FUNCTION static constexpr uint_t get() {
@@ -80,6 +83,11 @@ namespace gridtools {
                 return Pad3;
         }
     };
+#endif
+
+#ifdef CXX11_ENABLED
+    template < uint_t... Pad >
+    const array< uint_t, sizeof...(Pad) > halo< Pad... >::m_pad = {Pad...};
 #endif
 
     template < typename T >
