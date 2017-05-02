@@ -17,12 +17,12 @@ The syntax we expose for ```if_``` statements is reported in the following examp
 
 ```c++
    auto cond = new_cond([&flag]() { return flag; });
-   comp_ = make_computation< BACKEND >(
-           domain_,
-           grid_,
-           if_(cond,
-               make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor0 >(p())),
-               make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor1 >(p()))));
+   auto comp_ = make_computation< BACKEND >(
+                domain_,
+                grid_,
+                if_(cond,
+                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor0 >(p())),
+                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor1 >(p()))));
 ```
 In this example ```cond``` is defined as a predicate using the ```new_cond``` $\GT$ keyword. Note that this code will always only
 be executed on the host, so the predicate can access values which are available on the host, so captures by reference can be used.
@@ -36,16 +36,16 @@ The conditionals can also be nested
 ```c++
    auto cond = new_cond([]() { return false; });
    auto cond2 = new_cond([]() { return true; });
-   comp_ = make_computation< BACKEND >(
-           domain_,
-           grid_,
-           if_(cond,
-               make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor0 >(p())),
-               if_(cond2,
-                   make_multistage(
-                       enumtype::execute< enumtype::forward >(), make_stage< functor1 >(p())),
-                   make_multistage(
-                       enumtype::execute< enumtype::forward >(), make_stage< functor2 >(p())))));
+   auto comp_ = make_computation< BACKEND >(
+                domain_,
+                grid_,
+                if_(cond,
+                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor0 >(p())),
+                    if_(cond2,
+                        make_multistage(
+                            enumtype::execute< enumtype::forward >(), make_stage< functor1 >(p())),
+                        make_multistage(
+                            enumtype::execute< enumtype::forward >(), make_stage< functor2 >(p())))));
 ```
 
 The other syntactic element we introduce is a ```switch_```,
@@ -85,13 +85,13 @@ As for the ```if_``` statement, ```cond_``` is evaluated at every call to ```com
 multistage executed in the two calls will be different.
 
 ---------------------------------------------------   --------------------------------------------------------
-![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+![Tip](figures/hint.gif){ width=20px height=20px }
                                                       Also ```switch_``` can be nested, as the ```if_```.
 ---------------------------------------------------   --------------------------------------------------------
 
 
 ---------------------------------------------------   --------------------------------------------------------
-![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+![Tip](figures/hint.gif){ width=20px height=20px }
                                                       The effect of having different branches is that all the
                                                       possibilities get compiled, and only one gets chosen at
                                                       each run. Therefore having lot of branches can increase
@@ -100,7 +100,7 @@ multistage executed in the two calls will be different.
 ---------------------------------------------------   --------------------------------------------------------
 
 ---------------------------------------------------   --------------------------------------------------------
-![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+![Tip](figures/hint.gif){ width=20px height=20px }
                                                       Currently there is a limitation. The different branches
                                                       in the computation must use the same placeholders.
 ---------------------------------------------------   --------------------------------------------------------

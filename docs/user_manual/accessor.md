@@ -158,15 +158,15 @@ considering different elements in the vector.
 ---------------------------------------------------   --------------------------------------------------------
 ![Tip](figures/hint.gif){ width=20px height=20px }
                                                       If multiple vector accessors are used in the same
-                                                      stencil, the corresponding expandable parameters
+                                                      stage, the corresponding expandable parameters
                                                       storage vectors must have the same length
 ---------------------------------------------------   --------------------------------------------------------
 
 ---------------------------------------------------   --------------------------------------------------------
-![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+![Tip](figures/hint.gif){ width=20px height=20px }
                                                       We can mix vector accessors with regular accessors.
                                                       In that case the regular accessor will be the same for
-                                                      all the stencil invocations, while the vector accessor
+                                                      all the stage invocations, while the vector accessor
                                                       will iterate over its components.
 ---------------------------------------------------   --------------------------------------------------------
 
@@ -194,7 +194,7 @@ in the do method
 ```
 
 ---------------------------------------------------   --------------------------------------------------------
-![Tip](figures/hint.gif){ width=20px height=20px }                                                        
+![Tip](figures/hint.gif){ width=20px height=20px }
                                                       All the member functions defined in the user-defined
                                                       data structure must be labeled with GT_FUNCTION, in
                                                       order for them to be callable from devices.
