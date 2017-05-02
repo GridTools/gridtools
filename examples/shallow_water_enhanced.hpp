@@ -420,9 +420,9 @@ namespace shallow_water {
         //! [args]
 
         //! [proc_grid_dims]
-        array< int, 3 > dimensions{0, 0, 0};
-        MPI_3D_process_grid_t< 3 >::dims_create(PROCS, 2, dimensions);
-        dimensions[2] = 1;
+        array< int, 3 > dimensions{0, 0, 1};
+        MPI_Dims_create(PROCS, 3, &dimensions[0]);
+
         //! [proc_grid_dims]
 
         //! [pattern_type]
@@ -437,7 +437,7 @@ namespace shallow_water {
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, &dimensions);
+        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, dimensions);
         //! [pattern_type]
 
         //! [partitioner]

@@ -90,33 +90,29 @@ namespace gridtools {
         MPI_3D_process_grid_t(period_type const &c, MPI_Comm const &comm)
             : m_communicator(comm), m_cyclic(c), m_nprocs(0), m_dimensions(), m_coordinates() {
 
-            MPI_Cart_get(comm, ndims, &m_dimensions[0], 0x0, &m_coordinates[0]);
+            int period[ndims];
+            MPI_Cart_get(comm, ndims, &m_dimensions[0], period, &m_coordinates[0]);
+            MPI_Comm_size(comm, &m_nprocs);
+        }
+
+        /** Constructor that takes an MPI CART communicator, already configured, and use it to set up the process grid.
+            \param c Object containing information about periodicities as defined in \ref boollist_concept
+            \param comm MPI Communicator describing the MPI 3D computing grid
+        */
+        template < typename Array >
+        MPI_3D_process_grid_t(period_type const &c, MPI_Comm const &comm, Array const &dims)
+            : m_communicator(), m_cyclic(c), m_nprocs(0), m_dimensions(dims), m_coordinates() {
+            MPI_Comm_size(comm, &m_nprocs);
+            MPI_Dims_create(m_nprocs, dims.size(), &m_dimensions[0]);
+            int period[3] = {1, 1, 1};
+            MPI_Cart_create(comm, 3, &m_dimensions[0], period, false, &m_communicator);
+            MPI_Cart_get(m_communicator, ndims, &m_dimensions[0], period /*does not really care*/, &m_coordinates[0]);
         }
 
         /**
            Returns communicator
         */
         MPI_Comm communicator() const { return m_communicator; }
-
-        /**@brief wrapper around MPI_Dims_Create checking the array size*/
-        static int dims_create(int const &procs_, int const &ndims_, array< int, ndims > &dims_array_) {
-            assert(ndims >= ndims_);
-            return MPI_Dims_create(procs_, ndims_, &dims_array_[0]);
-        }
-
-        /** Function to create the grid. This can be called in case the
-            grid is default constructed. Its direct use is discouraged
-
-            \param comm MPI Communicator describing the MPI 3D computing grid
-        */
-        void create(MPI_Comm const &comm) {
-            // int dims[ndims]={0,0,0}, periods[ndims]={true,true,true}, coords[ndims]={0,0,0};
-            int period[ndims];
-            for (ushort_t i = 0; i < ndims; ++i)
-                period[i] = m_cyclic.value(i);
-            MPI_Cart_create(comm, ndims, &m_dimensions[0], period, false, &m_communicator);
-            MPI_Cart_get(m_communicator, ndims, &m_dimensions[0], period /*does not really care*/, &m_coordinates[0]);
-        }
 
         /** Returns in t_R and t_C the lenght of the dimensions of the process grid AS PRESCRIBED BY THE CONCEPT
             \param[out] t_R Number of elements in first dimension
