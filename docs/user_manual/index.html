@@ -460,6 +460,269 @@ int main() {
 <h1 id="interfacing-to-other-programming-languages">Interfacing to other programming languages</h1>
 <h1 id="benchmarking-stencils">Benchmarking stencils</h1>
 <h1 id="serialbox-and-porting-your-reference-application">SerialBox and porting your reference application</h1>
+<h4 id="regular-accessors">Regular Accessors</h4>
+<p>Regular accessors are proxy objects used to access <a href="data%20fields">Data Field</a> with any dimension. The access is performed by specifying increments (offsets) with respect to the current position of the stencil (iteration point).</p>
+<p>As described in the <a href="storage">Storage</a> documentation, a data field can be a contiguous array with arbitrary dimension, a vector of multidimensional arrays, or a kind of <em>matrix</em> of multidimensional arrays (possibly with empty elements). In order to avoid ambiguities we called <a href="space%20dimension">Space Dimension</a> the dimension of each multidimensional array (or <em>snapshot</em>), and <a href="field%20dimensions">Field Dimension</a> the dimensions identifying the position of the snapshot inside the vector (or matrix). Since the field dimensions are atmost two, we will identify them as <em>component dimension</em> and <em>snapshot dimension</em>, in line with their most intuitive use case, i.e. a vector representation of a time discretization.</p>
+<p>We introduce the accessors syntax with progressively more complex examples to explain how the different dimensions can be accessed.</p>
+<h5 id="space-dimensions">Space Dimensions</h5>
+<p>Let's start with an arbitrary dimensional array (a single <em>snapshot</em>). The API exposed is very intuitive. Suppose you have as first argument of the functor a 5 (space) dimentional snapshot as an input with null extent called <code>acc</code>. Then the accessor to use is the following:</p>
+<pre class="cpp"><code>using acc = accessor&lt;0, enumtype::in, extent&lt;&gt;, 5&gt;;</code></pre>
+<p>We can access the 2 extra dimensions by specifying all the offsets</p>
+<pre class="cpp"><code>acc(0,0,-1,2,2)</code></pre>
+<p>We can also assign a name to a dimension, and increment it using the following syntax, where we ignore the first two <code>0</code>s:</p>
+<pre class="cpp"><code>dimension&lt;3&gt; k; dimension&lt;4&gt; c; dimension&lt;5&gt; t;
+acc(k-1, c+2, t+2)</code></pre>
+<p>In the latter API the order of the arguments is irrelevant</p>
+<pre class="cpp"><code>dimension&lt;3&gt; k; dimension&lt;4&gt; c; dimension&lt;5&gt; t;
+acc(k-1, t+2, c+2) == acc(c+2, k-1, t+2)</code></pre>
+<p>Note that the second notation may greatly improve the readibility of the user functor body by exposing a matlab-like API, especially when high dimensionality is used.</p>
+<h5 id="field-dimensions">Field Dimensions</h5>
+<p>Specifying an offset for a field dimension works exactly as for the space dimension. So there is no way to distinguish the two only based on the user functor. Whether we are accessing a space dimension or a field dimension will depend only on the storage type which will be bound to the accessor, and not on the accessor itself. So in the example</p>
+<pre class="cpp"><code>dimension&lt;3&gt; k; dimension&lt;4&gt; c; dimension&lt;5&gt; t;
+acc(k-1, c+2, t+2)</code></pre>
+<p><code>c+2</code> may refer to an offset to the 4th dimension or the third components (the indices are zero based) of a vector field, while <code>t+2</code> may refer to the third snapshot of that component. Alternatively, if the storage passed in had 4 space dimensions, the <code>t+2</code> would have indicated the third component.</p>
+<h5 id="accessor-alias">Accessor Alias</h5>
+<p>An accessor alias is a regular accessor which has an offset set at compile-time. For instance, say you have a vector field in <span class="math inline">$\mathbb R^3$</span> with components h, v, w. This vector field is accessed via an accessor called <code>vec</code></p>
+<pre class="cpp"><code>using vec = accessor&lt;0, enumtype::in, extent&lt;&gt;, 4&gt;;</code></pre>
+<p>However you may want to be able to refer to the third element of the vector with <code>w</code> sometimes in some expressions. You can do this defining an alias to the third component of the accessor:</p>
+<pre class="cpp"><code>using w = alias&lt;vec, dimension&lt;4&gt; &gt;::set&lt;2&gt;;</code></pre>
+<p>The line above sets at compile-time the fourth offset to the value 2, so that we have the following equivalency:</p>
+<pre class="cpp"><code>w() == vec(0,0,0,2)</code></pre>
+<p>which may contribute to considerably lighten the notation in complicated expressions. Note that you can still access the other dimensions with an offset, by using the alias. So that</p>
+<pre><code>dimension&lt;1&gt; i;
+dimension&lt;4&gt; q;
+w(i+1) == vel(i+1, q+2)</code></pre>
+<h5 id="expressions">Expressions</h5>
+<p>The Do method example provided in [Example] showed the basic syntax to access data.</p>
+<pre class="cpp"><code>template &lt; typename Evaluation &gt;
+        GT_FUNCTION static void Do(Evaluation &amp;eval) {
+            eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
+            if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) &gt; 0) {
+                eval(out()) = 0.;
+            }</code></pre>
+<p>We can notice that the <code>eval</code> keyword is repeated several times, which is somehow tedious, especially when the expression is complicated it becaomes quickly very hard to read. It is possible to embed the expressions in a single eval, i.e.</p>
+<pre class="cpp"><code>using namespace expressions;
+template &lt; typename Evaluation &gt;
+        GT_FUNCTION static void Do(Evaluation &amp;eval) {
+            eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
+            if (eval(out() * (in(1, 0, 0) - in(0, 0, 0)) &gt; 0) {
+                eval(out()) = 0.;
+            }</code></pre>
+<p>This is achieved by using the expressions namespace, in which the operations <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>pow&lt;2&gt;</code> are overloaded, and generate an expression to be evaluated. An example of its usage, demonstrating its effectiveness, can be found in the <a href="shallow%20water">Shallow Water</a> example.</p>
+<p>It is possible also to instantiate a compile time expression to be lazily evaluated, useful for instance if we want to evaluate it multiple times</p>
+<pre class="cpp"><code>using namespace expressions;
+constexpr auto cond = out() * (in(1, 0, 0) - in(0, 0, 0);
+template &lt; typename Evaluation &gt;
+        GT_FUNCTION static void Do(Evaluation &amp;eval) {
+            eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
+            if (eval(cond) &gt; 0) {
+                eval(out()) = 0.;
+            }</code></pre>
+<h4 id="vector-accessors">Vector Accessors</h4>
+<p>Vector accessors are used when dealing with <a href="expandandable%20parameters">Expandable Parameters</a>, which are sequences of storages on which we want to perform the same operations. They implement a &quot;single stencil multiple storages&quot; pattern, as if the same stencil was applied to all the elements of the vector concurrently.</p>
+<p>This &quot;loop&quot; or &quot;vector operation&quot; is completely abstracted away from the API of the user function. The user has to define a <em>vector_accessor</em> as if it was a regular accessor, and the corresponding stencil will be executed multiple times, each time considering different elements in the vector.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>If multiple vector accessors are used in the same</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>stage, the corresponding expandable parameters</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>storage vectors must have the same length</td>
+</tr>
+</tbody>
+</table>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>We can mix vector accessors with regular accessors.</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>In that case the regular accessor will be the same for</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>all the stage invocations, while the vector accessor</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>will iterate over its components.</td>
+</tr>
+</tbody>
+</table>
+<p>For an example of usage of the vector accessor see the <a href="advection%20pdbott%20example">Advection Pdbott</a></p>
+<h4 id="global-accessors">Global Accessors</h4>
+<p>Global accessors are accessing read-only data which is independent of the current iteration point. For this reason <a href="intents">Intent</a>, <a href="extents">Extent</a> and <a href="offsets">Offset</a> cannot be specified for a global accessor. Here the term &quot;global&quot; means that the data is the same for the whole grid. An example can be a constant scalar parameter that you want to pass to the functor, or a user defined struct containing various configuration options.</p>
+<p>The API allows the user to define an arbitrary object deriving from <a href="global%20parameter">Global Parameter</a>, and pass it to the computation. The accessor associated with this global parameter must be a global accessor</p>
+<pre class="cpp"><code>    using global_accessor&lt; 0 &gt; global_boundary;</code></pre>
+<p>Calling <code>eval</code> on the global accessor returns the user defined data structure. Supposing that this data structure contains a user function called <code>ordinal</code> returning an integer, we can write in the do method</p>
+<pre class="cpp"><code>    auto ordinal_ = eval(global_boundary()).ordinal();</code></pre>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>All the member functions defined in the user-defined</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>data structure must be labeled with GT_FUNCTION, in</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>order for them to be callable from devices.</td>
+</tr>
+</tbody>
+</table>
+<p>There is a special case for which we have a dedicated API: i.e. when the user defined object (the global parameter) defines parenthesis operator <code>operator()</code>, and we want to call that operator from the Do method. In that case the accessor's parenthesis operator can be used and the arguments will be automatically forwarded to the global parameter. An example is the case in which we want to pass a small matrix as a global parameter:</p>
+<pre class="cpp"><code>    using global_accessor&lt; 0 &gt; matrix;
+    auto elem = eval(matrix(i,j));</code></pre>
+<p>A useful example to understand this use case can be found in the <a href="extended4D%20example">Extended4D</a>.</p>
+<h4 id="expandable-parameters-1">Expandable Parameters</h4>
+<p>Expandable parameters implement a &quot;single stencil multiple storages&quot; pattern. They are useful when we have a vector of storages which have the same storage info, and we want to perform the same operation with all of them (a typical situation when implementing e.g. time differentiation schemes). Normally this could be achieved by creating a loop and running multiple computations, but this solution would be inefficient. Another possibility would be to create a storage_list, and use the <a href="vector%20accessors">Vector Accessor</a> inside the Do method to manually unroll the loop. This second option is tedious, does not allow dynamic vector length, i.e. it forces the size of the vector to be compile-time known. The expandable parameters API solves this problem elegantly, with a minimal code overhead.</p>
+<p>The user must collect the storage pointers in a <code>std::vector</code></p>
+<pre class="cpp"><code>        using exp_param_t = std::vector&lt; pointer&lt; storage_t &gt; &gt;;
+        exp_param_t list_ = {
+            &amp;storage1, &amp;storage2, &amp;storage3, &amp;storage4, &amp;storage5, &amp;storage6, &amp;storage7, &amp;storage8};</code></pre>
+<p>This <code>std::vector</code> is then used as a storage type <code>exp_param_t</code> with no differences with respect to the regular storages.</p>
+<p>The implementation requires the user to specify an integer <code>expand_factor</code> when defining the computation:</p>
+<pre class="cpp"><code>auto comp_ = make_computation&lt; BACKEND &gt;(
+        expand_factor&lt;4&gt;,
+        domain_,
+        grid_,
+        make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor &gt;(p())));</code></pre>
+<p>The vector of storages is then partitioned into chuncks of <code>expand_factor</code> size (with a remainder). Each chunck is unrolled whithin a computation, and for each chunck a different computation is instantiated. The remainder elements are then processed one by one. More information on how to access the expandable parameter storages inside a computation is given in the <a href="Vector%20Accessors">Vector Accessors</a> session (where also some of the constraints are reported).</p>
+<p>Summing up, the only differences with respect to the case without expandable parameters are: - an <code>expand_factor</code> has to be passed to the make_computation, defining the size of the chuncks of expandable parameters we want to unroll in each computation. - a <a href="vector%20accessor">Vector Accessor</a> has to be used instead of a regular one in the Do method - a <code>std::vector</code> of storage pointers has to be used instead of a single storage.</p>
+<p>All the rest is managed by <span class="math inline"><em>GridTools</em></span>, so that the user is not exposed to the complexity of the unrolling, he can reuse the code when the expand factor changes, and he can resize dynamically the expandable paramenters vector, for instance by adding or removing elements.</p>
+<h4 id="conditionals">Conditionals</h4>
+<p>Conditionals introduce two new syntactic elements in the <a href="computation%20grammar">Grammar</a>, namely <code>if_</code> and <code>switch_</code>. These implement run-time branches in the computation tree, i.e. one computation or another can be chosen based on the value of a runtime variable. Note that this is just syntactic sugar, as you could instantiate all the possible combinations of the computation tree and then choose which one to execute by querying the value of a runtime condition. This would work in the same way as the solution we will describe next, but it would create a code of an unmanageable size most of the time: suppose that inside a computation with 10 stages you want to choose among 5 possible versions of the last stage. You would have to create 5 different computations, in which the only difference is in the last stage, while the rest is repeated. This would be tedious and error-prone.</p>
+<p>The syntax we expose for <code>if_</code> statements is reported in the following example</p>
+<pre class="cpp"><code>   auto cond = new_cond([&amp;flag]() { return flag; });
+   auto comp_ = make_computation&lt; BACKEND &gt;(
+                domain_,
+                grid_,
+                if_(cond,
+                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor0 &gt;(p())),
+                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor1 &gt;(p()))));</code></pre>
+<p>In this example <code>cond</code> is defined as a predicate using the <code>new_cond</code> <span class="math inline"><em>GridTools</em></span> keyword. Note that this code will always only be executed on the host, so the predicate can access values which are available on the host, so captures by reference can be used. The correct way to interpret this syntax is that the call to <code>if_</code> returns one multistage o the other based on the return value of the predicate attached to <code>cond</code>.</p>
+<p>The value of <code>cond</code> is evaluated at every execution of the <code>comp_.run()</code> function.</p>
+<p>The conditionals can also be nested</p>
+<pre class="cpp"><code>   auto cond = new_cond([]() { return false; });
+   auto cond2 = new_cond([]() { return true; });
+   auto comp_ = make_computation&lt; BACKEND &gt;(
+                domain_,
+                grid_,
+                if_(cond,
+                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor0 &gt;(p())),
+                    if_(cond2,
+                        make_multistage(
+                            enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor1 &gt;(p())),
+                        make_multistage(
+                            enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor2 &gt;(p())))));</code></pre>
+<p>The other syntactic element we introduce is a <code>switch_</code>, and its use is exemplified in the following snippet</p>
+<pre class="cpp"><code>   auto cond_ = new_switch_variable([&amp;p]() { return p ? 0 : 5; });
+   auto comp_ = make_computation&lt; BACKEND &gt;(
+       domain_,
+       grid_,
+       make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+           make_stage&lt; functor0 &gt;(p(), p_tmp()),
+           make_stage&lt; functor1 &gt;(p(), p_tmp())),
+       switch_(cond_,
+           case_(0,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp()))),
+           case_(1,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp()))),
+           case_(2,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp()))),
+           case_(3,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp()))),
+           case_(4,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp())))))</code></pre>
+<p>As for the <code>if_</code> statement, <code>cond_</code> is evaluated at every call to <code>comp_-&gt;run()</code>, and the multistage executed in the two calls will be different.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>Also <code>switch_</code> can be nested, as the <code>if_</code>.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>The effect of having different branches is that all the</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>possibilities get compiled, and only one gets chosen at</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>each run. Therefore having lot of branches can increase</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>dramatically the compilation times, you should not abuse</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>of this feature.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>Currently there is a limitation. The different branches</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>in the computation must use the same placeholders.</td>
+</tr>
+</tbody>
+</table>
 <div class="footnotes">
 <hr />
 <ol>
