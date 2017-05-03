@@ -41,6 +41,10 @@
 namespace gridtools {
     namespace _impl {
 
+        /**
+           @brief function is used to retrieve an aggregator type isntance when given a boost fusion
+           vector containing data_stores, etc.
+        */
         template < typename R, typename Vec, typename... T >
         typename boost::enable_if_c< sizeof...(T) == boost::mpl::size< Vec >::value, R * >::type get_aggregator(
             Vec &v, T &... t) {
