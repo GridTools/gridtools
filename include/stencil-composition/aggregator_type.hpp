@@ -50,6 +50,7 @@
 #include <boost/mpl/find.hpp>
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/insert.hpp>
+#include <boost/mpl/copy_if.hpp>
 #include <boost/mpl/max_element.hpp>
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/set.hpp>
@@ -105,12 +106,8 @@ namespace gridtools {
         const static uint_t len = boost::mpl::size< sorted_placeholders_t >::type::value;
 
         // create a unique id that will be used as temporary storage info id
-        typedef typename boost::mpl::fold< Placeholders,
-            boost::mpl::vector<>,
-            boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
-                                               boost::mpl::_1,
-                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type
-            non_tmp_placeholders_t;
+        typedef
+            typename boost::mpl::copy_if< Placeholders, boost::mpl::quote1< is_tmp_arg > >::type non_tmp_placeholders_t;
         typedef typename boost::mpl::next< typename boost::mpl::deref<
             typename boost::mpl::max_element< typename boost::mpl::transform< non_tmp_placeholders_t,
                 _impl::extract_storage_info_id_from_arg >::type >::type >::type >::type tmp_storage_info_id_t;
@@ -277,7 +274,8 @@ namespace gridtools {
             typename RealStoragePlaceholder = typename boost::mpl::if_< is_tmp_arg< StoragePlaceholder >,
                 typename _impl::replace_arg_storage_info< tmp_storage_info_id_t, StoragePlaceholder >::type,
                 StoragePlaceholder >::type >
-        typename _impl::create_arg_storage_pair_type< RealStoragePlaceholder >::type const &get_arg_storage_pair() const {
+        typename _impl::create_arg_storage_pair_type< RealStoragePlaceholder >::type const &
+        get_arg_storage_pair() const {
             return boost::fusion::deref(
                 boost::fusion::find< typename _impl::create_arg_storage_pair_type< RealStoragePlaceholder >::type >(
                     m_arg_storage_pair_list));
