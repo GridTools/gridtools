@@ -57,12 +57,13 @@ namespace gridtools {
 
     namespace impl_ {
 
-        /** helper function computing sum(offset*stride ...)*/
+        /** helper function (base case) computing sum(offset*stride ...)*/
         template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
         GT_FUNCTION constexpr typename boost::enable_if_c< (From == To), int_t >::type get_offset(Accessor acc) {
             return 0;
         }
 
+        /** helper function (step case) computing sum(offset*stride ...)*/
         template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
         GT_FUNCTION constexpr typename boost::enable_if_c< (From < To), int_t >::type get_offset(Accessor acc) {
             return StorageInfo::template stride< From >() * acc.template get< Accessor::n_dimensions - 1 - From >() +
