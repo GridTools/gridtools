@@ -51,6 +51,17 @@
 
 namespace gridtools {
 
+    /**
+     * @brief The StorageWrapper class is used to keep together information about storages (data_store,
+     * data_store_fields)
+     * that are mapped to an arg and a corresponding view type. The contained information is a collection of types
+     * (view type, arg type, storage type, data type, storage_info type, etc.) and information about temporary, size
+     * read_only, etc.
+     * @tparam Arg arg type
+     * @tparam View view type associated to the arg type
+     * @tparam TileI tiling information in I direction (important for temporaries)
+     * @tparam TileJ tiling information in J direction (important for temporaries)
+     */
     template < typename Arg, typename View, typename TileI, typename TileJ >
     struct storage_wrapper {
         // some type information
@@ -84,6 +95,8 @@ namespace gridtools {
         // data ptrs
         data_t *m_data_ptrs[storage_size];
     };
+
+    /* Storage Wrapper metafunctions */
 
     template < typename T >
     struct is_storage_wrapper : boost::mpl::false_ {};
@@ -132,29 +145,36 @@ namespace gridtools {
             boost::mpl::find< ArgVec, EsfArg >::type::pos::value >::type type;
     };
 
+    /** @brief get tiling information out of a given storage wrapper.
+     *  @tparam Coord coordinate (I --> 0, J --> 1)
+     */
     template < unsigned Coord >
     struct tile_from_storage_wrapper;
 
     template <>
     struct tile_from_storage_wrapper< 0 > {
-        template < typename T >
+        template < typename StorageWrapper >
         struct apply {
-            typedef typename T::tileI_t type;
+            typedef typename StorageWrapper::tileI_t type;
         };
     };
 
     template <>
     struct tile_from_storage_wrapper< 1 > {
-        template < typename T >
+        template < typename StorageWrapper >
         struct apply {
-            typedef typename T::tileJ_t type;
+            typedef typename StorageWrapper::tileJ_t type;
         };
     };
 
+    /** @brief get the maximum extent in I direction from a given storage wrapper list.
+     *  This information is needed when using temporary storages.
+     *  @tparam StorageWrapperList given storage wrapper list
+     */
     template < typename StorageWrapperList >
     struct max_i_extent_from_storage_wrapper_list {
-        typedef typename boost::mpl::transform< StorageWrapperList, tile_from_storage_wrapper< 1 > >::type
-            all_i_tiles_t;
+        typedef
+            typename boost::mpl::transform< StorageWrapperList, tile_from_storage_wrapper< 1 > >::type all_i_tiles_t;
         typedef typename boost::mpl::transform< all_i_tiles_t, get_minus_t_from_tile< boost::mpl::_ > >::type
             all_i_minus_tiles_t;
         typedef typename boost::mpl::transform< all_i_tiles_t, get_plus_t_from_tile< boost::mpl::_ > >::type
