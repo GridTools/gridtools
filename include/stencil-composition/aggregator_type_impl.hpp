@@ -408,7 +408,8 @@ the continuous_indices_check template argument must be an MPL vector of placehol
         };
 
         /** Metafunction class.
-         *  This class is filling a storage_info_set with pointers from given data_stores
+         *  This class is filling a storage_info_set with pointers from given storages (data_store, data_store_field,
+         * std::vector)
          */
         template < typename MetaDataSet >
         struct fill_metadata_set {
@@ -418,11 +419,13 @@ the continuous_indices_check template argument must be an MPL vector of placehol
           public:
             fill_metadata_set(MetaDataSet &storageinfo) : m_storageinfo_set(storageinfo) {}
 
+            // unwrap an recursive call if given type is a pointer type
             template < typename PointerType, typename boost::enable_if< is_pointer< PointerType >, int >::type = 0 >
             void operator()(PointerType &ds) const {
                 this->operator()(*ds.get());
             }
 
+            // specialization for std::vector (expandable param)
             template < typename VectorType, typename boost::enable_if< is_vector< VectorType >, int >::type = 0 >
             void operator()(VectorType &ds) const {
                 typedef typename VectorType::value_type::storage_info_t storage_info_t;
@@ -431,6 +434,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 m_storageinfo_set.insert(ptr_t(ds[0].get_storage_info_ptr()));
             }
 
+            // specialization for data store type
             template < typename DataStoreType,
                 typename boost::enable_if< is_data_store< DataStoreType >, int >::type = 0 >
             void operator()(DataStoreType &ds) const {
@@ -440,6 +444,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr()));
             }
 
+            // specialization for data store field type
             template < typename DataStoreFieldType,
                 typename boost::enable_if< is_data_store_field< DataStoreFieldType >, int >::type = 0 >
             void operator()(DataStoreFieldType &ds) const {
@@ -449,8 +454,10 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr()));
             }
 
-            template < typename DataStore, typename... Rest >
-            void reassign(DataStore first, Rest... stores) {
+            // reset metadata_set with fresh storage info ptrs contained in storages (either data_store,
+            // data_store_field, std::vector)
+            template < typename Storage, typename... Rest >
+            void reassign(Storage first, Rest... stores) {
                 this->operator()(first);
                 reassign(stores...);
             }
@@ -474,6 +481,8 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 boost::fusion::at< typename ArgStoragePair::arg_t::index_t >(m_fusion_vec) = arg_storage_pair;
             }
 
+            // reset fusion::vector of pointers to storages with fresh pointers from given storages (either data_store,
+            // data_store_field, std::vector)
             template < typename ArgStoragePair, typename... Rest >
             void reassign(ArgStoragePair first, Rest... pairs) {
                 this->operator()(first);
