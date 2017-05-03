@@ -504,7 +504,6 @@ struct smoothing_function_3 {
 };
 /***/
 int main() {
-    std::unordered_map<int, std::string> x{};
 
     uint_t Ni = 10;
     uint_t Nj = 12;
