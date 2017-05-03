@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "../../common/is_vector.hpp"
+#include "../../common/vector_traits.hpp"
 
 /** @file metafunctions used in @ref gridtools::intermediate_expand*/
 

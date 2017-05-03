@@ -36,7 +36,7 @@
 #pragma once
 #include <boost/utility.hpp>
 
-#include "../../common/is_vector.hpp"
+#include "../../common/vector_traits.hpp"
 
 namespace gridtools {
     namespace _impl {

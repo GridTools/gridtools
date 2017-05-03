@@ -47,7 +47,7 @@
 #include <boost/type_traits/remove_pointer.hpp>
 
 #include "../gridtools.hpp"
-#include "../common/is_vector.hpp"
+#include "../common/vector_traits.hpp"
 #include "accessor.hpp"
 #include "arg.hpp"
 
