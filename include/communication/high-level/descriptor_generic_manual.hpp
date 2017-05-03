@@ -698,7 +698,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[0].set_minus(0);
+                        fields[l].halos[0].remove_minus();
                 }
             }
             {
@@ -710,7 +710,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[0].set_plus(0);
+                        fields[l].halos[0].remove_plus();
                 }
             }
             {
@@ -722,7 +722,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[1].set_minus(0);
+                        fields[l].halos[1].remove_minus();
                 }
             }
             {
@@ -734,7 +734,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[1].set_plus(0);
+                        fields[l].halos[1].remove_plus();
                 }
             }
             {
@@ -746,7 +746,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[2].set_minus(0);
+                        fields[l].halos[2].remove_minus();
                 }
             }
             {
@@ -758,7 +758,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[2].set_plus(0);
+                        fields[l].halos[2].remove_plus();
                 }
             }
 
@@ -854,7 +854,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[0].set_plus(0);
+                        fields[l].halos[0].remove_plus();
                 }
             }
             {
@@ -866,7 +866,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[0].set_minus(0);
+                        fields[l].halos[0].remove_minus();
                 }
             }
             {
@@ -878,7 +878,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[1].set_plus(0);
+                        fields[l].halos[1].remove_plus();
                 }
             }
             {
@@ -890,7 +890,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[1].set_minus(0);
+                        fields[l].halos[1].remove_minus();
                 }
             }
             {
@@ -902,7 +902,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[2].set_plus(0);
+                        fields[l].halos[2].remove_plus();
                 }
             }
             {
@@ -914,7 +914,7 @@ namespace gridtools {
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[2].set_minus(0);
+                        fields[l].halos[2].remove_minus();
                 }
             }
 

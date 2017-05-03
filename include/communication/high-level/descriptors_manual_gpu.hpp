@@ -276,8 +276,8 @@ namespace gridtools {
                 const int jj_P = map_type().template select< 1 >(ii, jj, kk);
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[0].set_minus(0);
-                    dangeroushalo_r[0].set_plus(0);
+                    dangeroushalo[0].remove_minus();
+                    dangeroushalo_r[0].remove_plus();
                 }
             }
             {
@@ -289,8 +289,8 @@ namespace gridtools {
                 const int jj_P = map_type().template select< 1 >(ii, jj, kk);
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[0].set_plus(0);
-                    dangeroushalo_r[0].set_minus(0);
+                    dangeroushalo[0].remove_plus();
+                    dangeroushalo_r[0].remove_minus();
                 }
             }
             {
@@ -302,8 +302,8 @@ namespace gridtools {
                 const int jj_P = map_type().template select< 1 >(ii, jj, kk);
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[1].set_minus(0);
-                    dangeroushalo_r[1].set_plus(0);
+                    dangeroushalo[1].remove_minus();
+                    dangeroushalo_r[1].remove_plus();
                 }
             }
             {
@@ -315,8 +315,8 @@ namespace gridtools {
                 const int jj_P = map_type().template select< 1 >(ii, jj, kk);
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[1].set_plus(0);
-                    dangeroushalo_r[1].set_minus(0);
+                    dangeroushalo[1].remove_plus();
+                    dangeroushalo_r[1].remove_minus();
                 }
             }
             {
@@ -328,8 +328,8 @@ namespace gridtools {
                 const int jj_P = map_type().template select< 1 >(ii, jj, kk);
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[2].set_minus(0);
-                    dangeroushalo_r[2].set_plus(0);
+                    dangeroushalo[2].remove_minus();
+                    dangeroushalo_r[2].remove_plus();
                 }
             }
             {
@@ -341,8 +341,8 @@ namespace gridtools {
                 const int jj_P = map_type().template select< 1 >(ii, jj, kk);
                 const int kk_P = map_type().template select< 2 >(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[2].set_plus(0);
-                    dangeroushalo_r[2].set_minus(0);
+                    dangeroushalo[2].remove_plus();
+                    dangeroushalo_r[2].remove_minus();
                 }
             }
 
