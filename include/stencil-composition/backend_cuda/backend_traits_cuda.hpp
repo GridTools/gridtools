@@ -63,6 +63,9 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id< enumtype::Cuda > {
 
+        /** This is the function used to extract a pointer out of a given storage info.
+            In the case of CUDA we have to retrieve the GPU pointer.
+        */
         template < typename StorageInfoPtr >
         static StorageInfoPtr extract_storage_info_ptr(StorageInfoPtr t) {
             GRIDTOOLS_STATIC_ASSERT(
@@ -70,6 +73,10 @@ namespace gridtools {
             return t->get_gpu_ptr();
         }
 
+        /** This is the functor used to generate view instances. According to the given storage (data_store,
+           data_store_field) an appropriate view is returned. When using the CUDA backend we return device view
+           instances.
+        */
         template < typename AggregatorType >
         struct instantiate_view {
             GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
@@ -85,6 +92,7 @@ namespace gridtools {
                     m_agg.get_arg_storage_pairs()));
             }
 
+            // specialization for creating view instance for data stores
             template < typename ViewFusionMapElem,
                 typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
             typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(
@@ -95,6 +103,7 @@ namespace gridtools {
                     t = make_device_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
             }
 
+            // specialization for creating view instance for data store fields
             template < typename ViewFusionMapElem,
                 typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
             typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
