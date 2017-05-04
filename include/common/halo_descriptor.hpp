@@ -244,12 +244,12 @@ namespace gridtools {
         * This operation is needed in the communication module.
         * Unlike a general setter this operation will always result in a valid halo_descriptor.
         */
-        GT_FUNCTION void remove_minus() const { m_minus = 0; }
+        GT_FUNCTION void reset_minus() { m_minus = 0; }
         /**
          * @brief sets plus halo to zero.
          * This operation, unlike a general setter, will always result in a valid halo_descriptor.
          */
-        GT_FUNCTION void remove_plus() const { m_plus = 0; }
+        GT_FUNCTION void reset_plus() { m_plus = 0; }
 
         GT_FUNCTION bool operator==(const halo_descriptor &rhs) const {
             return (m_minus == rhs.m_minus) && (m_plus == rhs.m_plus) && (m_begin == rhs.m_begin) &&
