@@ -421,7 +421,7 @@ namespace shallow_water {
         // typedef arg<1, sol_type > p_tmpy;
         typedef arg< 2, sol_type > p_sol;
         typedef boost::mpl::vector< p_tmpx, p_tmpy, p_sol > accessor_list;
-        //! [args]
+//! [args]
 
 #ifdef _GCL_MPI_
         //! [proc_grid_dims]
@@ -468,13 +468,13 @@ namespace shallow_water {
         he.add_halo< 2 >(meta_.get_halo_gcl< 2 >());
 
         he.setup(3);
-        //! [add_halo]
+//! [add_halo]
 #else
         storage_info_t meta_(d1, d2, d3);
         sol_type sol(meta_, "sol");
 #endif
 
-        //! [initialization_h]
+//! [initialization_h]
 #ifdef __CUDACC__
         sol.template set< 0, 0 >(&bc_periodic< 0, 0 >::droplet); // h
 #else
@@ -487,7 +487,7 @@ namespace shallow_water {
         //! [initialization]
         sol.template set< 0, 1 >(0.); // u
         sol.template set< 0, 2 >(0.); // v
-        //! [initialization]
+                                      //! [initialization]
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
@@ -506,12 +506,12 @@ namespace shallow_water {
         //! [aggregator_type]
         aggregator_type< accessor_list > domain(boost::fusion::make_vector( //&tmpx, &tmpy,
             &sol));
-        //! [aggregator_type]
+//! [aggregator_type]
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        //! [grid]
+// Definition of the physical dimensions of the problem.
+// The constructor takes the horizontal plane dimensions,
+// while the vertical ones are set according the the axis property soon after
+//! [grid]
 #ifdef _GCL_MPI_
         grid< axis, partitioner_t > grid(part, meta_);
 #else
@@ -544,9 +544,9 @@ namespace shallow_water {
         uint_t total_time = t;
 
         for (; final_step::current_time < total_time; ++final_step::current_time) {
-            //! [exchange]
-            // std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(),
-            // sol.fields()[2].get()};
+//! [exchange]
+// std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(),
+// sol.fields()[2].get()};
 #ifdef _GCL_MPI_
 
             std::vector< pointer_type::pointee_t * > vec(3);
@@ -554,9 +554,11 @@ namespace shallow_water {
             vec[1] = sol.get< 0, 1 >().get();
             vec[2] = sol.get< 0, 2 >().get();
 
+#ifndef __CUDACC__ // TODO: fix this
             he.pack(vec);
             he.exchange();
             he.unpack(vec);
+#endif
 #endif
 //! [exchange]
 
@@ -573,7 +575,7 @@ namespace shallow_water {
             //! [run]
         }
 
-        //! [finalize]
+//! [finalize]
 #ifdef _GCL_MPI_
         he.wait();
 #endif
@@ -594,7 +596,7 @@ namespace shallow_water {
 
         verifier check_result(1e-8);
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-        shallow_water_reference< sol_type, 60+2, 83+2 > reference;
+        shallow_water_reference< sol_type, 60 + 2, 83 + 2 > reference;
         reference.setup();
         for (uint_t t = 0; t < total_time; ++t) {
             reference.iterate();
