@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -97,7 +97,7 @@ namespace gridtools {
                     &sizes[0],
                     &subsizes[0],
                     &starts[0],
-                    MPI_ORDER_FORTRAN, // increasing strides
+                    MPI_ORDER_C, // decreasing strides
                     type(),
                     &res);
                 MPI_Type_commit(&res);

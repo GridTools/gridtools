@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -764,10 +764,12 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
             GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
 
-            static_assert((Selector::length == sizeof...(IntTypes) + 4), "Error");
+            GRIDTOOLS_STATIC_ASSERT(
+                (Selector::length == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
 
             using meta_storage_type = meta_storage_t< LocationType, Selector >;
-            static_assert((Selector::length == meta_storage_type::space_dimensions), "Error");
+            GRIDTOOLS_STATIC_ASSERT((Selector::length == meta_storage_type::space_dimensions),
+                "ERROR: Mismatch between Selector and space dimensions");
 
             array< uint_t, meta_storage_type::space_dimensions > metastorage_sizes =
                 impl::array_dim_initializers< uint_t, meta_storage_type::space_dimensions, LocationType, Selector >::
@@ -794,10 +796,12 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
             GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
 
-            static_assert((Selector::length == sizeof...(IntTypes) + 4), "Error");
+            GRIDTOOLS_STATIC_ASSERT(
+                (Selector::length == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
 
             using meta_storage_type = meta_storage_t< LocationType, Selector >;
-            static_assert((Selector::length == meta_storage_type::space_dimensions), "Error");
+            GRIDTOOLS_STATIC_ASSERT((Selector::length == meta_storage_type::space_dimensions),
+                "ERROR: Mismatch between Selector and space dimensions");
 
             array< uint_t, meta_storage_type::space_dimensions > metastorage_sizes =
                 impl::array_dim_initializers< uint_t, meta_storage_type::space_dimensions, LocationType, Selector >::

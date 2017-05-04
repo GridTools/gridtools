@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -290,25 +290,25 @@ namespace shallow_water {
             dimension< 1 > i;
             dimension< 2 > j;
 
-            eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
+            eval(sol()) = eval(sol{} - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
                                (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));
 
             eval(sol(comp(1))) =
                 eval(sol(comp(1)) -
                      (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / tl)) -
-                         (pow< 2 >(tmpx(comp(1))) / tmpx(i - 0) + pow< 2 >(tmpx(i - 0)) * ((g() / tl)))) *
+                      (pow< 2 >(tmpx(comp(1))) / tmpx{} + pow< 2 >(tmpx{}) * ((g() / tl)))) *
                          ((dt() / dx())) -
                      (tmpy(comp(2), j + 1) * tmpy(comp(1), j + 1) / tmpy(j + 1) -
-                         tmpy(comp(2)) * tmpy(comp(1)) / tmpy(i - 0)) *
+                      tmpy(comp(2)) * tmpy(comp(1)) / tmpy{}) *
                          (dt() / dy()));
 
             eval(sol(comp(2))) =
                 eval(sol(comp(2)) -
                      (tmpx(comp(1), i + 1) * tmpx(comp(2), i + 1) / tmpx(i + 1) -
-                         (tmpx(comp(1)) * tmpx(comp(2))) / tmpx(i - 0)) *
+                      (tmpx(comp(1)) * tmpx(comp(2))) / tmpx{}) *
                          ((dt() / dx())) -
                      (pow< 2 >(tmpy(comp(2), j + 1)) / tmpy(j + 1) + pow< 2 >(tmpy(j + 1)) * ((g() / tl)) -
-                         (pow< 2 >(tmpy(comp(2))) / tmpy(i - 0) + pow< 2 >(tmpy(i - 0)) * ((g() / tl)))) *
+                      (pow< 2 >(tmpy(comp(2))) / tmpy{} + pow< 2 >(tmpy{}) * ((g() / tl)))) *
                          ((dt() / dy())));
 
 #else
@@ -425,9 +425,10 @@ namespace shallow_water {
 
 #ifdef _GCL_MPI_
         //! [proc_grid_dims]
-        array< int, 3 > dimensions{0, 0, 0};
-        MPI_3D_process_grid_t< 3 >::dims_create(PROCS, 2, dimensions);
+        array< int, 3 > dimensions{0, 0, 1};
+        MPI_Dims_create(PROCS, 2, &dimensions[0]);
         dimensions[2] = 1;
+
         //! [proc_grid_dims]
 
         //! [pattern_type]
@@ -442,16 +443,23 @@ namespace shallow_water {
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, &dimensions);
+        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, dimensions);
         //! [pattern_type]
 
         //! [partitioner]
         array< ushort_t, 3 > padding{1, 1, 0};
         array< ushort_t, 3 > halo{1, 1, 0};
 
+        if (PROCS == 1) // serial execution
+        {
+            halo[0] = halo[1] = 1;
+            halo[2] = 0;
+        }
+
         typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
             pattern_type::grid_type > partitioner_t;
 
+        printf("============= construct partitioner\n");
         partitioner_t part(he.comm(), halo, padding);
         //! [padding_halo]
 
@@ -462,10 +470,13 @@ namespace shallow_water {
         // sol_type tmpx(meta_.get_metadata(), "tmpx");
         // sol_type tmpy(meta_.get_metadata(), "tmpy");
 
+        uint_t halo_size = 1;
         //! [add_halo]
-        he.add_halo< 0 >(meta_.get_halo_gcl< 0 >());
-        he.add_halo< 1 >(meta_.get_halo_gcl< 1 >());
-        he.add_halo< 2 >(meta_.get_halo_gcl< 2 >());
+        he.add_halo< 0 >(halo_descriptor(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1));
+        he.add_halo< 1 >(halo_descriptor(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2));
+        he.add_halo< 2 >(halo_descriptor(0, 0, d3, d2 - 1, d3));
+        // he.add_halo< 1 >(meta_.get_halo_gcl< 1 >());
+        // he.add_halo< 2 >(meta_.get_halo_gcl< 2 >());
 
         he.setup(3);
 //! [add_halo]
@@ -515,7 +526,6 @@ namespace shallow_water {
 #ifdef _GCL_MPI_
         grid< axis, partitioner_t > grid(part, meta_);
 #else
-        uint_t halo_size = 1;
         uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
         grid< axis > grid(di, dj);
@@ -544,23 +554,20 @@ namespace shallow_water {
         uint_t total_time = t;
 
         for (; final_step::current_time < total_time; ++final_step::current_time) {
-//! [exchange]
-// std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(),
-// sol.fields()[2].get()};
 #ifdef _GCL_MPI_
-
-            std::vector< pointer_type::pointee_t * > vec(3);
+#ifndef __CUDACC__ // TODO: fix this
+//! [exchange]
+            std::vector< pointer_type::pointee_t * > vec(2);
             vec[0] = sol.get< 0, 0 >().get();
             vec[1] = sol.get< 0, 1 >().get();
-            vec[2] = sol.get< 0, 2 >().get();
+            // vec[2] = sol.get< 0, 2 >().get();
 
-#ifndef __CUDACC__ // TODO: fix this
             he.pack(vec);
             he.exchange();
             he.unpack(vec);
-#endif
-#endif
 //! [exchange]
+#endif // __CUDACC__
+#endif // _GCL_MPI_
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
@@ -603,7 +610,9 @@ namespace shallow_water {
         }
 
 #ifdef _GCL_MPI_
+#ifndef __CUDACC__ // TODO fix bug with CUDA
         retval = check_result.verify_parallel(grid, meta_, sol, reference.solution, halos);
+#endif
 #else
         retval = check_result.verify(grid, sol, reference.solution, halos);
 #endif

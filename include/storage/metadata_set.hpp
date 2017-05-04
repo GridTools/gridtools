@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -58,9 +58,9 @@ namespace gridtools {
      */
     template < typename Sequence >
     struct metadata_set {
-        GRIDTOOLS_STATIC_ASSERT(boost::mpl::is_sequence< Sequence >::value, "internal error: not a sequence");
+        GRIDTOOLS_STATIC_ASSERT(boost::mpl::is_sequence< Sequence >::value, GT_INTERNAL_ERROR_MSG("not a sequence"));
         GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< Sequence, is_pointer >::value), "internal error: not a sequence of pointers");
+            (is_sequence_of< Sequence, is_pointer >::value), GT_INTERNAL_ERROR_MSG("not a sequence of pointers"));
         typedef typename boost::fusion::result_of::as_set< Sequence >::type set_t;
 
       private:
@@ -112,7 +112,7 @@ namespace gridtools {
         template < typename T >
         GT_FUNCTION bool present() {
             GRIDTOOLS_STATIC_ASSERT((boost::fusion::result_of::has_key< set_t, T >::type::value),
-                "internal error: calling metadata_set::present with a metadata type which has not been defined");
+                GT_INTERNAL_ERROR_MSG("calling metadata_set::present with a metadata type which has not been defined"));
             return boost::fusion::at_key< T >(m_set).get();
         }
     };
@@ -138,7 +138,7 @@ namespace gridtools {
             "if you are using generic accessors disable the pedantic mode. Otherwise most probably you used in the "
             "aggregator_type constructor a storage type which is not supported.");
 #endif
-        GRIDTOOLS_STATIC_ASSERT(is_metadata_set< Sequence >::type::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_metadata_set< Sequence >::type::value, GT_INTERNAL_ERROR);
 
       private:
         Sequence &m_seq;

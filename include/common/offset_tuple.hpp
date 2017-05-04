@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 #include <boost/mpl/find.hpp>
 #include "defs.hpp"
 #include "dimension.hpp"
-#include "generic_metafunctions/logical_ops.hpp"
+#include "generic_metafunctions/binary_ops.hpp"
 #include "generic_metafunctions/variadic_to_vector.hpp"
 #include "generic_metafunctions/accumulate.hpp"
 #include "generic_metafunctions/is_variadic_pack_of.hpp"
@@ -175,7 +175,7 @@ namespace gridtools {
         template < int_t I >
         GT_FUNCTION constexpr offset_tuple(offset_tuple< I, NDim > const &other)
             : super(other), m_offset(other.template get< n_args - 1 >()) {
-            GRIDTOOLS_STATIC_ASSERT((I <= NDim), "Internal error");
+            GRIDTOOLS_STATIC_ASSERT((I <= NDim), GT_INTERNAL_ERROR);
         }
 
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
@@ -214,9 +214,8 @@ namespace gridtools {
         GT_FUNCTION constexpr offset_tuple(dimension< Idx > const &t, GenericElements const &... x)
             : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {
             GRIDTOOLS_STATIC_ASSERT(
-                (Index <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
+                (Idx <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
         }
-
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base

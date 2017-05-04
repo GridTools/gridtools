@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -132,7 +132,7 @@ namespace copy_stencil {
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, &dimensions);
+        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, dimensions);
 #ifdef VERBOSE
         printf("halo exchange ok\n");
 #endif
@@ -264,7 +264,8 @@ namespace copy_stencil {
             halos, boundary_conditions< partitioner_t >(part), gridtools::bitmap_predicate< partitioner_t >(part))
             .apply(in, out);
 
-        std::vector< pointer_type::pointee_t * > vec(2);
+        std::vect
+or< pointer_type::pointee_t * > vec(2);
         vec[0] = in.data().get();
         vec[1] = out.data().get();
 

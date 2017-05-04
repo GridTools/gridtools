@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -64,16 +64,17 @@ namespace gridtools {
         typename FunctorReturnType >
     struct iterate_domain_arguments {
 
-        GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtendSizes, is_extent >::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< ProcessingElementsBlockSize >::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< PhysicalDomainBlockSize >::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Iternal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT(
-            (IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtendSizes, is_extent >::value),
+            "There seems to be a stage in the computation which does not contain any output field. Check that at least "
+            "one accessor in each stage is defined as \'inout\'");
+        GRIDTOOLS_STATIC_ASSERT((is_block_size< ProcessingElementsBlockSize >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_block_size< PhysicalDomainBlockSize >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((IsReduction::value == true || IsReduction::value == false), GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
         typedef LocalDomain local_domain_t;
@@ -144,18 +145,16 @@ namespace gridtools {
                                    // concept of a color
         >
     struct run_functor_arguments {
-        GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_execution_engine< ExecutionEngine >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< ProcessingElementsBlockSize >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< PhysicalDomainBlockSize >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((is_color_type< Color >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT(
-            (IsReduction::value == true || IsReduction::value == false), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_execution_engine< ExecutionEngine >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_block_size< ProcessingElementsBlockSize >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_block_size< PhysicalDomainBlockSize >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_color_type< Color >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((IsReduction::value == true || IsReduction::value == false), GT_INTERNAL_ERROR);
 
         typedef BackendIds backend_ids_t;
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
@@ -237,8 +236,7 @@ namespace gridtools {
      */
     template < typename RunFunctorArguments, typename Index >
     struct esf_arguments {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::at< typename RunFunctorArguments::functor_list_t, Index >::type functor_t;
         typedef typename boost::mpl::at< typename RunFunctorArguments::esf_args_map_sequence_t, Index >::type

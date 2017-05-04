@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -53,8 +53,7 @@ namespace gridtools {
         template < typename > class IterateDomainBase,
         template < template < typename > class, typename > class IterateDomainImpl >
     struct iterate_domain_impl_arguments< IterateDomainImpl< IterateDomainBase, IterateDomainArguments > > {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
         typedef IterateDomainArguments type;
     };
 }

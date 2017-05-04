@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -55,9 +55,8 @@ namespace gridtools {
       public:
         pattern_type m_haloexch; // TODO private
 
-        template < typename Array >
-        descriptor_base(typename grid_type::period_type const &c, MPI_Comm const &comm, Array const *dimensions)
-            : m_grid(grid_type(c, comm, dimensions)), m_haloexch(m_grid) {}
+        descriptor_base(typename grid_type::period_type const &c, MPI_Comm const &comm)
+            : m_grid(grid_type(c, comm)), m_haloexch(m_grid) {}
 
         descriptor_base(grid_type const &g) : m_grid(g), m_haloexch(g) {}
 

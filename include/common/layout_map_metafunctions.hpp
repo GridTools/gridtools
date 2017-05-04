@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ namespace gridtools {
      */
     template < typename Layout, typename DimSelector >
     struct filter_layout {
-        GRIDTOOLS_STATIC_ASSERT((is_selector< DimSelector >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_selector< DimSelector >::value), "Error: Dimension selector is wrong");
         GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), "Error: need a layout map type");
         GRIDTOOLS_STATIC_ASSERT(
             (DimSelector::length >= Layout::length), "Error: need to specifiy at least 4 dimensions");

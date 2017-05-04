@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,7 @@ namespace gridtools {
         all_to_all_halo(grid_type const &g, MPI_Comm &c) : proc_grid(g), a2a(proc_grid.size(), c) {}
 
         /** This function takes an array or vector of halos (sorted by
-            increasing strides) (size equal to ndims), the pointer to the
+            decreasing strides) (size equal to ndims), the pointer to the
             data and the coordinated of the receiving processors and
             prepare the pattern to send that sub-array to that processor.
 
@@ -101,7 +101,7 @@ namespace gridtools {
         }
 
         /** This function takes an array or vector of halos (sorted by
-            increasing strides) (size equal to ndims), the pointer to the
+            decreasing strides) (size equal to ndims), the pointer to the
             data and the coordinated of the receiving processors and
             prepare the pattern to receive that sub-array from that
             processor.

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,8 @@ namespace gridtools {
 
     template < typename Axis, typename GridTopology >
     struct grid : public grid_base< Axis >, public clonable_to_gpu< grid< Axis, GridTopology > > {
-        GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), GT_INTERNAL_ERROR);
 
         typedef GridTopology grid_topology_t;
 

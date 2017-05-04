@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -46,5 +46,6 @@ int main(int argc, char **argv) {
     // }
 
     // return !shallow_water::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+    printf("============ run shallow water\n");
     return !shallow_water::test(60, 83, 1, 1);
 }

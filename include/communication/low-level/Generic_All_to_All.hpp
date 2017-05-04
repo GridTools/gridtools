@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@ namespace gridtools {
             the pointer value is used to determine if a message should be
             sent or not. If not null, a mpi send/receive is issued.
          */
-        packet() : ptr(NULL) {}
+        packet() : mpidt(), ptr(NULL), send_r(), recv_r() {}
 
         /** This is the basic constructor. Given the MPI datatype and the
             pointer to data, the packet is constructed. If pointer is

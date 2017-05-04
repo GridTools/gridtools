@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ namespace gridtools {
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), GT_INTERNAL_ERROR);
         typedef typename boost::remove_pointer<
             typename boost::mpl::at_c< typename local_domain_t::mpl_storages, 0 >::type >::type::value_type value_type;
 
@@ -130,7 +130,7 @@ namespace gridtools {
 
         template < typename MapF, typename LT, typename Arg0, typename... Args >
         struct map_return_type< map_function< MapF, LT, Arg0, Args... > > {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Arg0 >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Arg0 >::value), GT_INTERNAL_ERROR);
             typedef typename remove_restrict_reference< typename accessor_return_type< Arg0 >::type >::type type;
         };
 
@@ -248,7 +248,7 @@ namespace gridtools {
          */
         template < typename BackendType, typename Strides >
         GT_FUNCTION void assign_stride_pointers() {
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error type");
+            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), GT_INTERNAL_ERROR);
             boost::mpl::for_each< metadata_map_t >(assign_strides_functor< BackendType,
                 Strides,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
@@ -342,7 +342,7 @@ namespace gridtools {
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
 
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions,
-                "requested accessor index lower than zero. Check that when you define the accessor you specify the "
+                "Requested accessor index lower than zero. Check that when you define the accessor you specify the "
                 "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
                 "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
                 "you here.");

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -127,7 +127,7 @@ namespace gridtools {
             typedef typename _aux::iterate_domain_remapper_base_esf_args_map< IterateDomainEvaluatorImpl >::type
                 esf_args_map_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< iterate_domain_t >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< iterate_domain_t >::value), GT_INTERNAL_ERROR);
             typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
 #ifdef CXX11_ENABLED
@@ -268,9 +268,9 @@ namespace gridtools {
                          unsigned int >::value ||
                         is_array< typename boost::remove_const<
                             typename boost::remove_reference< NeighborsArray >::type >::type >::value),
-                    "Error");
+                    GT_INTERNAL_ERROR);
 
-                GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Error");
+                GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
 
                 typedef reduce_tuple_data_holder< ValueType, NeighborsArray, Reduction, IterateDomain >
                     reduce_tuple_holder_t;
@@ -398,7 +398,7 @@ namespace gridtools {
             DISALLOW_COPY_AND_ASSIGN(iterate_domain_remapper);
 
           public:
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
             typedef iterate_domain_remapper_base<
                 iterate_domain_remapper< IterateDomain, EsfArgsMap, EsfLocationType, Color > > super;
 
@@ -424,8 +424,8 @@ namespace gridtools {
      */
     template < typename IterateDomain, typename EsfArgsMap, typename EsfLocationType, uint_t Color >
     struct get_iterate_domain_remapper {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< EsfLocationType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< EsfLocationType >::value), GT_INTERNAL_ERROR);
 
         typedef icgrid::iterate_domain_remapper< IterateDomain, EsfArgsMap, EsfLocationType, Color > type;
     };
@@ -436,8 +436,8 @@ namespace gridtools {
      */
     template < typename IterateDomain, typename Esf, typename Color >
     struct get_trivial_iterate_domain_remapper {
-        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
 
         template < typename Map, typename Item >
         struct insert_ {

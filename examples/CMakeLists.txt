@@ -93,7 +93,7 @@ else()
 
         cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
         target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS}  gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest gtest_main)
-        # gridtools_add_test( tests.shallow_water_enhanced_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced_cuda" "64 16 1 1")
+        gridtools_add_test( tests.shallow_water_enhanced_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced_cuda" "64 16 1 1")
 
         if( GCL_MPI )
           set(ccflags " " )

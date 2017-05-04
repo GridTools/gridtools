@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -152,7 +152,11 @@ namespace test_expandable_parameters_icosahedral {
         comp_->run();
         comp_->finalize();
 
+#if FLOAT_PRECISION == 4
+        verifier ver(1e-6);
+#else
         verifier ver(1e-10);
+#endif
 
         array< array< uint_t, 2 >, 4 > halos = {{{0, 0}, {0, 0}, {0, 0}, {0, 0}}};
         bool result = ver.verify(grid_, storage1, storage10, halos);
