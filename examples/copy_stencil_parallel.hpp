@@ -110,8 +110,9 @@ namespace copy_stencil {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
-        array< int, 3 > dimensions{0, 0, 0};
-        MPI_3D_process_grid_t< 3 >::dims_create(PROCS, 2, dimensions);
+        //! [proc_grid_dims]
+        array< int, 3 > dimensions{0, 0, 1};
+        MPI_Dims_create(PROCS, 2, &dimensions[0]);
         dimensions[2] = 1;
 
         //                   strides  1 x xy
@@ -264,8 +265,7 @@ namespace copy_stencil {
             halos, boundary_conditions< partitioner_t >(part), gridtools::bitmap_predicate< partitioner_t >(part))
             .apply(in, out);
 
-        std::vect
-or< pointer_type::pointee_t * > vec(2);
+        std::vector< pointer_type::pointee_t * > vec(2);
         vec[0] = in.data().get();
         vec[1] = out.data().get();
 
