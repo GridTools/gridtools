@@ -85,6 +85,7 @@ namespace gridtools {
                 (!boost::is_same< typename Arg::location_t, enumtype::default_location_type >::value),
                 "args in irregular grids require a location type");
 #endif
+            typedef Interval interval_t;
             typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;
         };
 

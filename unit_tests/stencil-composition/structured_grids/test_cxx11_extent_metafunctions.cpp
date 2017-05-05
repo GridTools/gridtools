@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2016, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,43 +33,14 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+#include "gtest/gtest.h"
+#include <stencil-composition/extent_metafunctions.hpp>
 
-namespace gridtools {
-    /**
-       @brief simple wrapper for a pair of types
-     */
-    template < typename T, typename U >
-    struct pair_type {
-        typedef T first;
-        typedef U second;
-    };
+using namespace gridtools;
+using namespace enumtype;
 
-    /**
-       @brief simple wrapper for a pair of integral types
-     */
-    template < typename Value, Value T, Value U >
-    struct ipair_type {
-        static constexpr Value first = T;
-        static constexpr Value second = U;
-    };
-
-    /**
-       @brief simple pair with constexpr constructor
-
-       NOTE: can be replaced by std::pair
-     */
-    template < typename T1, typename T2 >
-    struct pair {
-        constexpr pair(T1 t1_, T2 t2_) : first(t1_), second(t2_) {}
-
-        T1 first;
-        T2 second;
-    };
-
-    template < typename T1, typename T2 >
-    constexpr pair< T1, T2 > make_pair(T1 t1_, T2 t2_) {
-        return pair< T1, T2 >(t1_, t2_);
-    }
-
-} // namespace gridtools
+TEST(extent_metafunctions, enclosing_extent_test) {
+    using enc_extent_t =
+        enclosing_extent_full< extent< 4, 5, 6, 7, 1, 1, -3 >, extent< -1, 2, -3, 4, -1, 2, -5 > >::type;
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< enc_extent_t, extent< -1, 5, -3, 7, -1, 2, -5 > >::value), "ERROR");
+}

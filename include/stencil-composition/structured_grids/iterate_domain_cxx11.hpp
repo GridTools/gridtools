@@ -116,9 +116,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_holds_data_field {
-            typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
-                arg_holds_data_field_h< get_arg_from_accessor< Accessor, iterate_domain_arguments_t > >,
-                boost::mpl::identity< boost::mpl::false_ > >::type type;
+            typedef typename aux::accessor_holds_data_field< Accessor, iterate_domain_arguments_t >::type type;
         };
 
         /**
@@ -316,7 +314,7 @@ namespace gridtools {
            \param arg placeholder containing the storage ID and the offsets
            \param storage_pointer pointer to the first element of the specific data field used
         */
-        template < typename Accessor, typename StoragePointer >
+        template < typename Accessor, typename StoragePointer, bool DirectGMemAccess = false >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
             Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const;
 
@@ -402,13 +400,18 @@ namespace gridtools {
          */
         template < ushort_t Coordinate, typename Accessor >
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
+
             GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
-            typedef typename Accessor::index_t index_t;
-            typedef typename local_domain_t::template get_storage< index_t >::type::storage_info_t storage_info_t;
-            typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
-                const storage_info_t * >::type::pos storage_info_index_t;
-            return boost::fusion::at< storage_info_index_t >(local_domain.m_local_storage_info_ptrs)
-                ->template dim< Coordinate >();
+            typedef typename Accessor::index_type index_t;
+            typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
+            // getting information about the metadata
+            typedef
+                typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
+
+            pointer< const typename storage_t::storage_info_type > const metadata_ =
+                boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
+
+            return metadata_->template dim< Coordinate >();
         }
 
         /** @brief return a the value in gmem pointed to by an accessor
@@ -419,9 +422,7 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             ,
             const int_t pointer_offset) const {
-#ifdef CUDA8
             assert(storage_pointer);
-#endif
             return *(storage_pointer + pointer_offset);
         }
 
@@ -512,10 +513,11 @@ namespace gridtools {
        \param storage_pointer pointer to the first element of the specific data field used
     */
     template < typename IterateDomainImpl >
-    template < typename Accessor, typename StoragePointer >
+    template < typename Accessor, typename StoragePointer, bool DirectGMemAccess >
     GT_FUNCTION typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type
     iterate_domain< IterateDomainImpl >::get_value(
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
+
         // getting information about the storage
         typedef typename Accessor::index_t index_t;
         typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
@@ -556,11 +558,15 @@ namespace gridtools {
         // or maybe you did a mistake when specifying the ranges in the placehoders definition
         GTASSERT(storage_info->size() > pointer_offset);
 
-        return static_cast< const IterateDomainImpl * >(this)
+        if (DirectGMemAccess) {
+            return get_gmem_value< return_t >(real_storage_pointer, pointer_offset);
+        } else {
+            return static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<
                 typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
                 Accessor,
                 data_t * >(real_storage_pointer, pointer_offset);
+        }
     }
 
     /** @brief method called in the Do methods of the functors.

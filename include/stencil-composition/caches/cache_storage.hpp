@@ -34,19 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/utility/enable_if.hpp>
 #include "../../common/gt_assert.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/array.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
+#include "../iteration_policy_fwd.hpp"
 #include "../../common/offset_tuple.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../iterate_domain_aux.hpp"
 
-#ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"
 #include "cache_storage_metafunctions.hpp"
-#endif
+#include "cache_traits.hpp"
 
 namespace gridtools {
     template < typename T, typename U >
@@ -82,15 +83,16 @@ namespace gridtools {
      * in future version we need to support K and IJK storages. Data is allocated on the stack.
      * The size of the storage is determined by the block size and the extension to this block sizes required for
      *  halo regions (determined by a extent type)
+     * @tparam Cache a cache
      * @tparam Value value type being stored
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
      * @tparam NColors number of colors of the location type of the storage
      * @tparam Storage type of the storage
      */
-    template < uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper >
+    template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper >
     struct cache_storage< block_size< Tiles... >, extent< ExtentBounds... >, StorageWrapper > {
-
+        GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
       public:
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_t;
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_t;
@@ -98,10 +100,32 @@ namespace gridtools {
 
         typedef typename StorageWrapper::data_t value_type;
 
-        typedef typename boost::is_same< enumtype::default_location_type,
-            typename StorageWrapper::arg_t::location_t >::type is_default_location_t;
+
+        using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
+        using jminus_t = typename boost::mpl::at_c< typename minus_t::type, 1 >::type;
+        using kminus_t = typename boost::mpl::at_c< typename minus_t::type, 2 >::type;
+        using iplus_t = typename boost::mpl::at_c< typename plus_t::type, 0 >::type;
+        using jplus_t = typename boost::mpl::at_c< typename plus_t::type, 1 >::type;
+        using kplus_t = typename boost::mpl::at_c< typename plus_t::type, 2 >::type;
+
+        GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != K) || (iminus_t::value == 0 && jminus_t::value == 0 &&
+                                                                         iplus_t::value == 0 && jplus_t::value == 0),
+            "KCaches can not be use with a non null extent in the horizontal dimensions");
+
+        GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
+            "Only KCaches can be accessed with a non null extent in K");
+
         typedef typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t,
-            sizeof...(Tiles) + (!is_default_location_t::value) >::type >::type layout_t;
+            sizeof...(Tiles) + 2 /*FD*/
+// TODO ICO_STORAGE in irregular grids we have one more dim for color
+#ifndef STRUCTURED_GRIDS
+                +
+                1
+#endif
+            >::type >::type layout_t;
+
+        template < typename Accessor >
+        struct is_acc_k_cache : is_k_cache< cache_t > {};
 
         GT_FUNCTION
         explicit constexpr cache_storage() {}
@@ -118,21 +142,23 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< accessor_t >::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
 
-            typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
-            typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
-
             typedef static_int< meta_t::template stride< 0 >() > check_constexpr_1;
             typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
 
             // manually aligning the storage
-            const uint_t extra_ =
-                (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
-                (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (!is_default_location_t::value) >() +
-                (!is_default_location_t::value) * Color * meta_t::template stride< 1 >() +
-                size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
+            const uint_t extra_ = (thread_pos[0] - iminus::value) * meta_t::template strides< 0 >() +
+// TODO ICO_STORAGE
+#ifdef STRUCTURED_GRIDS
+                                  (thread_pos[1] - jminus::value) * meta_t::template strides< 1 >() +
+#else
+                                  Color * meta_t::template strides< 1 >() +
+                                  (thread_pos[1] - jminus::value) * meta_t::template strides< 2 >() +
+#endif
+                                  size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                                  impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
+            assert((extra_) < size() * StorageWrapper::storage_size);
             assert((extra_) >= 0);
-            assert((extra_) < (size() * StorageWrapper::storage_size));
+
             return m_values[extra_];
         }
 

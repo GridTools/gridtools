@@ -64,7 +64,7 @@ namespace make_computation_test {
         using arg_list = boost::mpl::vector1< in >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
     };
 }
 

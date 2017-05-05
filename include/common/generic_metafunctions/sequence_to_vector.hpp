@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2016, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,42 +34,23 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/mpl/vector/vector0.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/fold.hpp>
 
 namespace gridtools {
-    /**
-       @brief simple wrapper for a pair of types
-     */
-    template < typename T, typename U >
-    struct pair_type {
-        typedef T first;
-        typedef U second;
-    };
 
     /**
-       @brief simple wrapper for a pair of integral types
+     * @struct sequence_to_vector
+     * convert a forward sequence (vector like) into a vector.
+     * This is used in order to force instantiation of mpl vector from lazy sequence like
+     * mpl::filter_view
      */
-    template < typename Value, Value T, Value U >
-    struct ipair_type {
-        static constexpr Value first = T;
-        static constexpr Value second = U;
+    template < typename Vec >
+    struct sequence_to_vector {
+        typedef typename boost::mpl::fold< Vec,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
-
-    /**
-       @brief simple pair with constexpr constructor
-
-       NOTE: can be replaced by std::pair
-     */
-    template < typename T1, typename T2 >
-    struct pair {
-        constexpr pair(T1 t1_, T2 t2_) : first(t1_), second(t2_) {}
-
-        T1 first;
-        T2 second;
-    };
-
-    template < typename T1, typename T2 >
-    constexpr pair< T1, T2 > make_pair(T1 t1_, T2 t2_) {
-        return pair< T1, T2 >(t1_, t2_);
-    }
 
 } // namespace gridtools

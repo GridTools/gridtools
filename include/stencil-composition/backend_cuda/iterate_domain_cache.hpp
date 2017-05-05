@@ -91,27 +91,30 @@ namespace gridtools {
         typedef typename boost::mpl::copy_if< cache_sequence_t,
             is_arg_used_in_esf_sequence< esf_sequence_t, cache_parameter< boost::mpl::_ > > >::type caches_t;
 
-        // extract a sequence of extents for each cache
-        typedef typename extract_extents_for_caches< IterateDomainArguments >::type cache_extents_map_t;
+        // extract a sequence of extents for each ij cache
+        typedef typename extract_ij_extents_for_caches< IterateDomainArguments >::type ij_cache_extents_map_t;
 
-        // compute the fusion vector of pair<index_t, cache_storage>
+        // extract a sequence of extents for each k cache
+        typedef typename extract_k_extents_for_caches< IterateDomainArguments >::type k_cache_extents_map_t;
+
+        // compute the fusion vector of pair<index_type, cache_storage> for ij caches
         typedef typename get_cache_storage_tuple< IJ,
             caches_t,
-            cache_extents_map_t,
+            ij_cache_extents_map_t,
             typename IterateDomainArguments::physical_domain_block_size_t,
             typename IterateDomainArguments::local_domain_t >::type ij_caches_vector_t;
 
-        // compute the fusion vector of pair<index_t, cache_storage>
+        // compute the fusion vector of pair<index_type, cache_storage> for k caches
         typedef typename get_cache_storage_tuple< K,
             caches_t,
-            cache_extents_map_t,
+            k_cache_extents_map_t,
             typename IterateDomainArguments::physical_domain_block_size_t,
             typename IterateDomainArguments::local_domain_t >::type k_caches_vector_t;
 
-        // extract a fusion map from the fusion vector of pairs
+        // extract a fusion map from the fusion vector of pairs for ij caches
         typedef typename boost::fusion::result_of::as_map< ij_caches_vector_t >::type ij_caches_tuple_t;
 
-        // extract a fusion map from the fusion vector of pairs
+        // extract a fusion map from the fusion vector of pairs for k caches
         typedef typename boost::fusion::result_of::as_map< k_caches_vector_t >::type k_caches_tuple_t;
 
         // compute an mpl from the previous fusion vector, to be used for compile time meta operations
@@ -120,12 +123,267 @@ namespace gridtools {
         // compute an mpl from the previous fusion vector, to be used for compile time meta operations
         typedef typename fusion_map_to_mpl_map< k_caches_tuple_t >::type k_caches_map_t;
 
+        // list of indexes of kcaches that require flushing operations
+        typedef typename filter_map_indexes< k_caches_map_t, is_flushing_cache >::type k_flushing_caches_indexes_t;
+
+        // list of indexes of kcaches that require end-point flushing operations
+        typedef typename filter_map_indexes< k_caches_map_t, is_epflushing_cache >::type k_epflushing_caches_indexes_t;
+
+        // list of indexes of kcaches that require filling operations
+        typedef typename filter_map_indexes< k_caches_map_t, is_filling_cache >::type k_filling_caches_indexes_t;
+
+        // list of indexes of kcaches that require begin-point filling operations
+        typedef typename filter_map_indexes< k_caches_map_t, is_bpfilling_cache >::type k_bpfilling_caches_indexes_t;
+
+        // set of "bypass" caches
         typedef
             typename get_cache_set_for_type< bypass, caches_t, typename IterateDomainArguments::local_domain_t >::type
                 bypass_caches_set_t;
 
         // associative container with all caches
         typedef typename get_cache_set< caches_t, typename IterateDomainArguments::local_domain_t >::type all_caches_t;
+
+        // returns a k cache from the tuple
+        template < typename IndexType >
+        GT_FUNCTION typename boost::mpl::at< k_caches_map_t, IndexType >::type &RESTRICT get_k_cache() {
+            GRIDTOOLS_STATIC_ASSERT(
+                (boost::mpl::has_key< k_caches_map_t, IndexType >::value), "Accessing a non registered cached");
+            return boost::fusion::at_key< IndexType >(m_k_caches_tuple);
+        }
+
+        // slide all the k caches
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+
+            boost::fusion::for_each(m_k_caches_tuple, slide_cache_functor< IterationPolicy >());
+        }
+
+        /**
+         * @struct io_cache_functor
+         * functor that performs the io cache operations (fill and flush) from main memory into a kcache and viceversa
+         * @tparam IterateDomain is the iterate domain
+         * @tparam IterationPolicy: forward, backward
+         * @tparam Grid grid type
+         * @tparam CacheIOPolicy the cache io policy: fill, flush
+         */
+        template < typename IterateDomain, typename IterationPolicy, typename Grid, cache_io_policy CacheIOPolicy >
+        struct io_cache_functor {
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "error");
+
+            GT_FUNCTION
+            io_cache_functor(
+                IterateDomain const &it_domain, k_caches_tuple_t &kcaches, const int_t klevel, Grid const &grid)
+                : m_it_domain(it_domain), m_kcaches(kcaches), m_klevel(klevel), m_grid(grid) {}
+
+            IterateDomain const &m_it_domain;
+            k_caches_tuple_t &m_kcaches;
+            const int_t m_klevel;
+            Grid const &m_grid;
+
+            template < typename Idx >
+            GT_FUNCTION void operator()(Idx const &) const {
+                typedef typename boost::mpl::at< k_caches_map_t, Idx >::type k_cache_storage_t;
+
+                // compute the offset values that we will fill/flush from/to memory
+                constexpr int_t koffset =
+                    ((IterationPolicy::value == enumtype::backward) && CacheIOPolicy == fill) ||
+                            ((IterationPolicy::value == enumtype::forward) && CacheIOPolicy == flush)
+                        ? boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
+                        : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
+
+                constexpr int_t koffset_abs = koffset > 0 ? koffset : -koffset;
+
+                typedef accessor< Idx::value,
+                    enumtype::in,
+                    extent< 0, 0, 0, 0, (koffset < 0) ? koffset : -koffset, (koffset > 0) ? koffset : -koffset > >
+                    acc_t;
+                constexpr acc_t acc_(0, 0, koffset);
+
+                // compute the limit level of the iteration space in k, below which we can not fill (in case of fill)
+                // or beyond which we can not flush (in case of flush) since it might
+                // produce an out of bounds when accessing main memory. This limit level is defined by the interval
+                // associated to the kcache
+                const int_t limit_lev =
+                    (IterationPolicy::value == enumtype::backward && CacheIOPolicy == fill) ||
+                            (IterationPolicy::value == enumtype::forward && CacheIOPolicy == flush)
+                        ? m_klevel -
+                              m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::FromLevel >()
+                        : m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::ToLevel >() -
+                              m_klevel;
+
+                if (koffset_abs <= limit_lev) {
+                    boost::fusion::at_key< Idx >(m_kcaches).at(acc_) = m_it_domain.gmem_access(acc_);
+                }
+            }
+        };
+
+        /**
+         * @struct endpoint_io_cache_functor
+         * functor that performs the final flush or begin fill operation between main memory and a kcache, that is
+         * executed
+         * at the end of the vertical iteration(flush) or at the beginning the of iteration of the vertical interval
+         * (fill),
+         * @tparam IterateDomain is the iterate domain
+         * @tparam IterationPolicy: forward, backward
+         * @tparam CacheIOPolicy cache io policy: fill or flush
+         */
+        template < typename IterateDomain, typename IterationPolicy, cache_io_policy CacheIOPolicy >
+        struct endpoint_io_cache_functor {
+
+            GT_FUNCTION
+            endpoint_io_cache_functor(IterateDomain const &it_domain, k_caches_tuple_t &kcaches)
+                : m_it_domain(it_domain), m_kcaches(kcaches) {}
+
+            IterateDomain const &m_it_domain;
+            k_caches_tuple_t &m_kcaches;
+
+            template < typename Idx >
+            GT_FUNCTION void operator()(Idx const &) const {
+                typedef typename boost::mpl::at< k_caches_map_t, Idx >::type k_cache_storage_t;
+
+                GRIDTOOLS_STATIC_ASSERT(
+                    (boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value <= 0 &&
+                        boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value >= 0),
+                    "Error");
+
+                // compute the maximum offset of all levels that we need to prefill or final flush
+                constexpr uint_t koffset =
+                    (IterationPolicy::value == enumtype::forward && CacheIOPolicy == flush) ||
+                            (IterationPolicy::value == enumtype::backward && CacheIOPolicy == fill)
+                        ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
+                        : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
+
+                // compute the sequence of all offsets that we need to prefill or final flush
+                using seq = gridtools::apply_gt_integer_sequence<
+                    typename gridtools::make_gt_integer_sequence< int_t, koffset >::type >;
+
+                using io_op_t = typename io_operator< Idx, IterationPolicy::value, CacheIOPolicy >::type;
+
+                auto &cache_st = boost::fusion::at_key< Idx >(m_kcaches);
+                seq::template apply_void_lambda< io_op_t::apply_t >(m_it_domain, cache_st);
+            }
+        };
+
+        // fill next k level from main memory for all k caches
+        template < typename IterationPolicy, typename IterateDomain, typename Grid >
+        GT_FUNCTION void fill_caches(IterateDomain const &it_domain, const int_t klevel, const Grid &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+
+            boost::mpl::for_each< k_filling_caches_indexes_t >(
+                io_cache_functor< IterateDomain, IterationPolicy, Grid, fill >(
+                    it_domain, m_k_caches_tuple, klevel, grid));
+        }
+
+        // flush the last k level of the ring buffer into main memory
+        template < typename IterationPolicy, typename IterateDomain, typename Grid >
+        GT_FUNCTION void flush_caches(IterateDomain const &it_domain, const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+
+            boost::mpl::for_each< k_flushing_caches_indexes_t >(
+                io_cache_functor< IterateDomain, IterationPolicy, Grid, flush >(
+                    it_domain, m_k_caches_tuple, klevel, grid));
+        }
+
+        /**
+         * @struct kcache_final_flush_indexes
+         * metafunction that computes the list of indexes of all k caches that require a final flush
+         */
+        template < typename IterationPolicy >
+        struct kcache_final_flush_indexes {
+            template < typename CacheStorage >
+            struct is_end_index {
+                //                GRIDTOOLS_STATIC_ASSERT((is_cache_storage< CacheStorage >::value), "Internal Error");
+                using cache_t = typename CacheStorage::cache_t;
+                using to_index = typename level_to_index< typename IterationPolicy::to >::type;
+
+                static constexpr bool value = (IterationPolicy::value == enumtype::forward)
+                                                  ? (interval_to_index< typename cache_t::interval_t >::type::value ==
+                                                        level_to_index< typename IterationPolicy::to >::type::value)
+                                                  : (interval_from_index< typename cache_t::interval_t >::type::value ==
+                                                        level_to_index< typename IterationPolicy::to >::type::value);
+            };
+
+            // determine indexes of all k caches that require flushing, whose associated interval ends with the interval
+            // of the current iteration
+            // policy.
+            using interval_flushing_indexes_t = typename boost::mpl::filter_view< k_flushing_caches_indexes_t,
+                is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
+
+            // same for those k caches that need an end-point flush. Determine among them, which ones have an interval
+            // whose end
+            // matches the current interval
+            using interval_epflushing_indexes_t =
+                typename sequence_to_vector< typename boost::mpl::filter_view< k_epflushing_caches_indexes_t,
+                    is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
+
+            using type =
+                typename boost::mpl::copy< interval_flushing_indexes_t,
+                    boost::mpl::inserter< interval_epflushing_indexes_t,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type;
+        };
+
+        /**
+         * @struct kcache_begin_fill_indexes
+         * metafunction that computes the list of indexes of all k caches that require a begin pre-fill of the cache
+         */
+        template < typename IterationPolicy >
+        struct kcache_begin_fill_indexes {
+            template < typename CacheStorage >
+            struct is_end_index {
+                using cache_t = typename CacheStorage::cache_t;
+                using to_index = typename level_to_index< typename IterationPolicy::to >::type;
+
+                static constexpr bool value = (IterationPolicy::value == enumtype::forward)
+                                                  ? (interval_from_index< typename cache_t::interval_t >::type::value ==
+                                                        level_to_index< typename IterationPolicy::from >::type::value)
+                                                  : (interval_to_index< typename cache_t::interval_t >::type::value ==
+                                                        level_to_index< typename IterationPolicy::from >::type::value);
+            };
+
+            // determine indexes of all k caches that require filling, whose associated interval starts with the
+            // interval
+            // of the current iteration policy.
+            using interval_filling_indexes_t = typename boost::mpl::filter_view< k_filling_caches_indexes_t,
+                is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
+
+            // same for those k cache that require a begin-point filling
+            using interval_bpfilling_indexes_t =
+                typename sequence_to_vector< typename boost::mpl::filter_view< k_bpfilling_caches_indexes_t,
+                    is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
+
+            using type =
+                typename boost::mpl::copy< interval_filling_indexes_t,
+                    boost::mpl::inserter< interval_bpfilling_indexes_t,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type;
+        };
+
+        // apply a prefill of all k caches
+        template < typename IterationPolicy, typename IterateDomain >
+        GT_FUNCTION void begin_fill(IterateDomain const &it_domain) {
+            typedef typename kcache_begin_fill_indexes< IterationPolicy >::type k_begin_filling_caches_indexes_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            boost::mpl::for_each< k_begin_filling_caches_indexes_t >(
+                endpoint_io_cache_functor< IterateDomain, IterationPolicy, fill >(it_domain, m_k_caches_tuple));
+        }
+
+        // apply a final flush at the end of the interval iteration
+        template < typename IterationPolicy, typename IterateDomain >
+        GT_FUNCTION void final_flush(IterateDomain const &it_domain) {
+            typedef typename kcache_final_flush_indexes< IterationPolicy >::type k_final_flushing_caches_indexes_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            boost::mpl::for_each< k_final_flushing_caches_indexes_t >(
+                endpoint_io_cache_functor< IterateDomain, IterationPolicy, flush >(it_domain, m_k_caches_tuple));
+        }
+
+      private:
+        k_caches_tuple_t m_k_caches_tuple;
     };
 
     template < typename IterateDomainArguments >

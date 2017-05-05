@@ -35,10 +35,10 @@
 */
 #pragma once
 
-#include "stencil-composition/iterate_domain.hpp"
 #include "stencil-composition/iterate_domain_fwd.hpp"
-#include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
+#include "stencil-composition/iterate_domain.hpp"
 #include "stencil-composition/iterate_domain_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -115,6 +115,34 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
 
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
+        }
+
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+        }
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+        }
+        template < typename IterationPolicy >
+        GT_FUNCTION void final_flush() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+        template < typename IterationPolicy >
+        GT_FUNCTION void begin_fill() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+
+        template < typename Extent >
+        GT_FUNCTION bool is_thread_in_domain() const {
+            return true;
         }
 
       private:
