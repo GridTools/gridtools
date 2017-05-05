@@ -53,8 +53,121 @@
 #include <boost/fusion/include/pair.hpp>
 #include <boost/fusion/support/pair.hpp>
 #include <boost/mpl/copy_if.hpp>
+#include "../../common/generic_metafunctions/sequence_to_vector.hpp"
 
 namespace gridtools {
+
+    /**
+     * @struct slide_cache_functor
+     * functor used to apply the slide operation on all kcache arguments of the kcache tuple
+     */
+    template < typename IterationPolicy >
+    struct slide_cache_functor {
+      public:
+        slide_cache_functor() {}
+
+        template < typename Arg >
+        void operator()(Arg &arg_) const {
+            arg_.second.template slide< IterationPolicy >();
+        }
+    };
+
+    /**
+     * @struct filter_map_indexes
+     * metafunction that returns a sequence of all the indexes of the pair elements
+     * in the map that fulfil the predicate
+     * \tparam Map is a map of <index, cache_storage>
+     * \tparam Pred predicate used to filter the map elements
+     */
+    template < typename Map, template < typename > class Pred >
+    struct filter_map_indexes {
+        template < typename Pair >
+        struct apply_pred {
+            typedef typename Pred< typename Pair::second::cache_t >::type type;
+        };
+        typedef
+            typename boost::mpl::fold< Map,
+                boost::mpl::vector0<>,
+                boost::mpl::if_< apply_pred< boost::mpl::_2 >,
+                                           boost::mpl::push_back< boost::mpl::_1, boost::mpl::first< boost::mpl::_2 > >,
+                                           boost::mpl::_1 > >::type type;
+    };
+
+    /**
+      * @struct sync_mem_accessor
+      * functor that will synchronize a cache with main memory
+      * \tparam AccIndex index of the accessor
+      * \tparam ExecutionPolicy : forward, backward
+      */
+    template < typename AccIndex, enumtype::execution ExecutionPolicy >
+    struct sync_mem_accessor {
+        /**
+         * @struct apply struct of the functor
+         * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
+         */
+        template < int_t Offset >
+        struct apply_t {
+            /**
+             * @brief apply the functor
+             * @param it_domain iterate domain
+             * @param cache_st cache storage
+             */
+            template < typename IterateDomain, typename CacheStorage >
+            GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
+
+                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset - 1, Offset + 1 > >
+                    acc_t;
+                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -Offset - 1 : Offset + 1);
+
+                it_domain.gmem_access(acc_) = cache_st.at(acc_);
+                return 0;
+            }
+        };
+    };
+
+    /**
+     * @struct prefill_cache
+     * functor that prefill a kcache (before starting the vertical iteration) with initial values from main memory
+     * \tparam AccIndex index of the accessor
+     * \tparam ExecutionPolicy : forward, backward
+     */
+    template < typename AccIndex, enumtype::execution ExecutionPolicy >
+    struct prefill_cache {
+        /**
+         * @struct apply struct of the functor
+         * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
+         */
+        template < int_t Offset >
+        struct apply_t {
+            /**
+             * @brief apply the functor
+             * @param it_domain iterate domain
+             * @param cache_st cache storage
+             */
+            template < typename IterateDomain, typename CacheStorage >
+            GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage &cache_st) {
+
+                typedef accessor< AccIndex::value, enumtype::in, extent< 0, 0, 0, 0, -Offset, Offset > > acc_t;
+                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::backward) ? -Offset : Offset);
+
+                cache_st.at(acc_) = it_domain.gmem_access(acc_);
+                return 0;
+            }
+        };
+    };
+
+    template < typename AccIndex, enumtype::execution ExecutionPolicy, cache_io_policy CacheIOPolicy >
+    struct io_operator;
+
+    template < typename AccIndex, enumtype::execution ExecutionPolicy >
+    struct io_operator< AccIndex, ExecutionPolicy, fill > {
+        using type = prefill_cache< AccIndex, ExecutionPolicy >;
+    };
+
+    template < typename AccIndex, enumtype::execution ExecutionPolicy >
+    struct io_operator< AccIndex, ExecutionPolicy, flush > {
+        using type = sync_mem_accessor< AccIndex, ExecutionPolicy >;
+    };
 
     /**
      * @class iterate_domain_cache
