@@ -168,7 +168,7 @@ namespace gridtools {
 
             auto non_tmp_expand_vec =
                 boost::fusion::filter_if< boost::mpl::not_< is_arg_storage_pair_to_tmp< boost::mpl::_ > > >(expand_vec);
-            m_domain_chunk.reset(_impl::get_aggregator< aggregator_t >(non_tmp_expand_vec));
+            m_domain_chunk.reset(_impl::make_aggregator< aggregator_t >(non_tmp_expand_vec));
 
             if (m_size >= ExpandFactor::value)
                 m_intermediate.reset(new intermediate_t(*m_domain_chunk, grid, conditionals_));
@@ -181,7 +181,7 @@ namespace gridtools {
                     boost::fusion::filter_if< boost::mpl::not_< is_arg_storage_pair_to_tmp< boost::mpl::_ > > >(
                         expand_vec_remainder);
                 m_domain_chunk_remainder.reset(
-                    _impl::get_aggregator< aggregator_remainder_t >(non_tmp_expand_vec_remainder));
+                    _impl::make_aggregator< aggregator_remainder_t >(non_tmp_expand_vec_remainder));
                 m_intermediate_remainder.reset(
                     new intermediate_remainder_t(*m_domain_chunk_remainder, grid, conditionals_));
             }

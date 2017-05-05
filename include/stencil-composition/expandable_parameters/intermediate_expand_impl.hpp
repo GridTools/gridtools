@@ -43,25 +43,42 @@ namespace gridtools {
 
         /**
            @brief function is used to retrieve an aggregator type isntance when given a boost fusion
-           vector containing data_stores, etc.
+           vector containing data_stores, etc. (base case)
+           @tparam AggregatorType the result type (aggregator_type)
+           @tparam DataStoreFieldVec the fusion vector type
+           @tparam DataStoreFields variadic pack of data_store_fields
+           @param dsf_vec fusion vector containing the data_store_fields
+           @param dsf variadic list of data_store_fields
         */
-        template < typename R, typename Vec, typename... T >
-        typename boost::enable_if_c< sizeof...(T) == boost::mpl::size< Vec >::value, R * >::type get_aggregator(
-            Vec &v, T &... t) {
-            return new R(t...);
+        template < typename AggregatorType, typename DataStoreFieldVec, typename... DataStoreFields >
+        typename boost::enable_if_c< sizeof...(DataStoreFields) == boost::mpl::size< DataStoreFieldVec >::value,
+            AggregatorType * >::type
+        make_aggregator(DataStoreFieldVec &dsf_vec, DataStoreFields &... dsf) {
+            return new AggregatorType(dsf...);
         }
 
-        template < typename R, typename Vec, typename... T >
-        typename boost::enable_if_c< sizeof...(T) < boost::mpl::size< Vec >::value, R * >::type get_aggregator(
-            Vec &v, T &... t) {
-            return get_aggregator< R >(v,
-                t...,
-                *(boost::fusion::deref(boost::fusion::advance_c< sizeof...(T) >(boost::fusion::begin(v))).ptr));
+        /**
+           @brief function is used to retrieve an aggregator type isntance when given a boost fusion
+           vector containing data_stores, etc. (step case)
+           @tparam AggregatorType the result type (aggregator_type)
+           @tparam DataStoreFieldVec the fusion vector type
+           @tparam DataStoreFields variadic pack of data_store_fields
+           @param dsf_vec fusion vector containing the data_store_fields
+           @param dsf variadic list of data_store_fields
+        */
+        template < typename AggregatorType, typename DataStoreFieldVec, typename... DataStoreFields >
+        typename boost::enable_if_c< sizeof...(DataStoreFields) < boost::mpl::size< DataStoreFieldVec >::value,
+            AggregatorType * >::type
+        make_aggregator(DataStoreFieldVec &dsf_vec, DataStoreFields &... dsf) {
+            return make_aggregator< AggregatorType >(dsf_vec,
+                dsf...,
+                *(boost::fusion::deref(boost::fusion::advance_c< sizeof...(DataStoreFields) >(boost::fusion::begin(
+                                           dsf_vec))).ptr));
         }
 
         /**
            @brief functor used to initialize the storage in a boost::fusion::vector full an
-           instance of gridtools::domain_type
+           instance of gridtools::aggregator_type
         */
         template < typename DomainFull, typename Vec >
         struct initialize_storage {
