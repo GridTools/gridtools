@@ -53,7 +53,7 @@ namespace gridtools {
     template < typename T, typename U >
     struct get_storage_accessor;
 
-    template < typename BlockSize, typename Extent, typename StorageWrapper >
+    template < typename Cache, typename BlockSize, typename Extent, typename StorageWrapper >
     struct cache_storage;
 
     namespace impl_ {
@@ -91,15 +91,16 @@ namespace gridtools {
      * @tparam Storage type of the storage
      */
     template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper >
-    struct cache_storage< block_size< Tiles... >, extent< ExtentBounds... >, StorageWrapper > {
+    struct cache_storage< Cache, block_size< Tiles... >, extent< ExtentBounds... >, StorageWrapper > {
         GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
+
       public:
+        using cache_t = Cache;
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::first minus_t;
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_t;
         typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
 
         typedef typename StorageWrapper::data_t value_type;
-
 
         using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
         using jminus_t = typename boost::mpl::at_c< typename minus_t::type, 1 >::type;
@@ -146,13 +147,13 @@ namespace gridtools {
             typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
 
             // manually aligning the storage
-            const uint_t extra_ = (thread_pos[0] - iminus::value) * meta_t::template strides< 0 >() +
+            const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template strides< 0 >() +
 // TODO ICO_STORAGE
 #ifdef STRUCTURED_GRIDS
-                                  (thread_pos[1] - jminus::value) * meta_t::template strides< 1 >() +
+                                  (thread_pos[1] - jminus_t::value) * meta_t::template strides< 1 >() +
 #else
                                   Color * meta_t::template strides< 1 >() +
-                                  (thread_pos[1] - jminus::value) * meta_t::template strides< 2 >() +
+                                  (thread_pos[1] - jminus_t::value) * meta_t::template strides< 2 >() +
 #endif
                                   size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                                   impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);

@@ -403,15 +403,11 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
             typedef typename Accessor::index_type index_t;
-            typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
-            // getting information about the metadata
-            typedef
-                typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
-
-            pointer< const typename storage_t::storage_info_type > const metadata_ =
-                boost::fusion::at< metadata_index_t >(local_domain.m_local_metadata);
-
-            return metadata_->template dim< Coordinate >();
+            typedef typename local_domain_t::template get_storage< index_t >::type::storage_info_t storage_info_t;
+            typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
+                const storage_info_t * >::type::pos storage_info_index_t;
+            return boost::fusion::at< storage_info_index_t >(local_domain.m_local_storage_info_ptrs)
+                ->template dim< Coordinate >();
         }
 
         /** @brief return a the value in gmem pointed to by an accessor
@@ -518,6 +514,8 @@ namespace gridtools {
     iterate_domain< IterateDomainImpl >::get_value(
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
 
+        typedef typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type return_t;
+
         // getting information about the storage
         typedef typename Accessor::index_t index_t;
         typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
@@ -562,10 +560,10 @@ namespace gridtools {
             return get_gmem_value< return_t >(real_storage_pointer, pointer_offset);
         } else {
             return static_cast< const IterateDomainImpl * >(this)
-            ->template get_value_impl<
-                typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
-                Accessor,
-                data_t * >(real_storage_pointer, pointer_offset);
+                ->template get_value_impl<
+                    typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+                    Accessor,
+                    data_t * >(real_storage_pointer, pointer_offset);
         }
     }
 
