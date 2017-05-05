@@ -39,7 +39,7 @@
 using namespace gridtools;
 using namespace enumtype;
 
-TEST(tt, tt) {
+TEST(extent_metafunctions, enclosing_extent_test) {
     using enc_extent_t =
         enclosing_extent_full< extent< 4, 5, 6, 7, 1, 1, -3 >, extent< -1, 2, -3, 4, -1, 2, -5 > >::type;
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< enc_extent_t, extent< -1, 5, -3, 7, -1, 2, -5 > >::value), "ERROR");

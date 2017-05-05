@@ -67,7 +67,6 @@ namespace gridtools {
         using seq = gridtools::apply_gt_integer_sequence<
             typename gridtools::make_gt_integer_sequence< int, sizeof...(Vals1) >::type >;
 
-        // calling the array constexpr copy constructor
         using type = typename seq::
             template apply_t< int_t, extent, impl::get_component, ipair_type< int_t, Vals1, Vals2 >... >::type;
     };

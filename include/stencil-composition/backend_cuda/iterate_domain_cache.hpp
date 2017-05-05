@@ -55,7 +55,7 @@
 #include "../caches/cache_metafunctions.hpp"
 #include "../caches/extract_extent_caches.hpp"
 #include "../accessor_fwd.hpp"
-#include "../../common/generic_metafunctions/vector_to_vector.hpp"
+#include "../../common/generic_metafunctions/sequence_to_vector.hpp"
 
 namespace gridtools {
 
@@ -433,7 +433,7 @@ namespace gridtools {
             // whose end
             // matches the current interval
             using interval_epflushing_indexes_t =
-                typename vector_to_vector< typename boost::mpl::filter_view< k_epflushing_caches_indexes_t,
+                typename sequence_to_vector< typename boost::mpl::filter_view< k_epflushing_caches_indexes_t,
                     is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
 
             using type =
@@ -468,7 +468,7 @@ namespace gridtools {
 
             // same for those k cache that require a begin-point filling
             using interval_bpfilling_indexes_t =
-                typename vector_to_vector< typename boost::mpl::filter_view< k_bpfilling_caches_indexes_t,
+                typename sequence_to_vector< typename boost::mpl::filter_view< k_bpfilling_caches_indexes_t,
                     is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
 
             using type =

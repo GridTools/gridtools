@@ -236,7 +236,7 @@ namespace gridtools {
         struct accessor_from_shared_mem {
             typedef typename boost::remove_reference< Accessor >::type acc_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
             typedef static_uint< acc_t::index_type::value > index_t;
             typedef typename boost::mpl::has_key< ij_caches_map_t, index_t >::type type;
             static const bool value = type::value;
@@ -249,7 +249,7 @@ namespace gridtools {
         struct accessor_from_kcache_reg {
             typedef typename boost::remove_reference< Accessor >::type acc_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
             typedef static_uint< acc_t::index_type::value > index_t;
             typedef typename boost::mpl::has_key< k_caches_map_t, index_t >::type type;
             static const bool value = type::value;
@@ -281,7 +281,7 @@ namespace gridtools {
                 static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
             ReturnType >::type
         get_cache_value_impl(Accessor const &accessor_) const {
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
             return super::template get_value< Accessor, void * RESTRICT >(
                 accessor_, super::template get_data_pointer< Accessor >(accessor_));
         }
@@ -294,13 +294,12 @@ namespace gridtools {
         GT_FUNCTION typename boost::enable_if< accessor_from_kcache_reg< Accessor >, ReturnType >::type
         get_cache_value_impl(Accessor const &accessor_) {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
 
             // TODO ICO_STORAGE
             // retrieve the k cache from the fusion tuple and access the element required give the current thread
             // position within
             // the block and the offsets of the accessor
-            //            return
             return m_iterate_domain_cache.template get_k_cache< static_uint< acc_t::index_type::value > >().at(
                 accessor_);
         }
@@ -334,13 +333,13 @@ namespace gridtools {
 
         template < typename IterationPolicy >
         GT_FUNCTION void slide_caches() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
             m_iterate_domain_cache.template slide_caches< IterationPolicy >();
         }
 
         template < typename IterationPolicy, typename Grid >
         GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
 
             m_iterate_domain_cache.template fill_caches< IterationPolicy >(*this, klevel, grid);
@@ -348,7 +347,7 @@ namespace gridtools {
 
         template < typename IterationPolicy, typename Grid >
         GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
 
             m_iterate_domain_cache.template flush_caches< IterationPolicy >(*this, klevel, grid);
@@ -356,13 +355,13 @@ namespace gridtools {
 
         template < typename IterationPolicy >
         GT_FUNCTION void final_flush() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
             m_iterate_domain_cache.template final_flush< IterationPolicy >(*this);
         }
 
         template < typename IterationPolicy >
         GT_FUNCTION void begin_fill() {
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
             m_iterate_domain_cache.template begin_fill< IterationPolicy >(*this);
         }
 
