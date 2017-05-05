@@ -117,7 +117,7 @@ namespace gridtools {
             "Only KCaches can be accessed with a non null extent in K");
 
         typedef typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t,
-            sizeof...(Tiles) + 2 /*FD*/
+            sizeof...(Tiles)
 // TODO ICO_STORAGE in irregular grids we have one more dim for color
 #ifndef STRUCTURED_GRIDS
                 +
@@ -147,13 +147,13 @@ namespace gridtools {
             typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
 
             // manually aligning the storage
-            const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template strides< 0 >() +
+            const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template stride< 0 >() +
 // TODO ICO_STORAGE
 #ifdef STRUCTURED_GRIDS
-                                  (thread_pos[1] - jminus_t::value) * meta_t::template strides< 1 >() +
+                                  (thread_pos[1] - jminus_t::value) * meta_t::template stride< 1 >() +
 #else
-                                  Color * meta_t::template strides< 1 >() +
-                                  (thread_pos[1] - jminus_t::value) * meta_t::template strides< 2 >() +
+                                  Color * meta_t::template stride< 1 >() +
+                                  (thread_pos[1] - jminus_t::value) * meta_t::template stride< 2 >() +
 #endif
                                   size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                                   impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
