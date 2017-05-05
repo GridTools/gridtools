@@ -92,31 +92,32 @@ namespace tridiagonal {
         typedef accessor< 4, enumtype::inout > rhs; // d
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
 
-        template < typename Domain >
-        GT_FUNCTION static void shared_kernel(Domain const &dom) {
+        template < typename Evaluation >
+        GT_FUNCTION static void shared_kernel(Evaluation &eval) {
 #if (defined(CXX11_ENABLED))
-            dom(sup{}) = dom(sup{} / (diag{} - sup{z{-1}} * inf{}));
-            dom(rhs{}) = dom((rhs{} - inf{} * rhs{z(-1)}) / (diag{} - sup{z(-1)} * inf{}));
+            eval(sup{}) = eval(sup{} / (diag{} - sup{z{-1}} * inf{}));
+            eval(rhs{}) = eval((rhs{} - inf{} * rhs{z(-1)}) / (diag{} - sup{z(-1)} * inf{}));
 #else
-            dom(sup()) = dom(sup()) / (dom(diag()) - dom(sup(z(-1))) * dom(inf()));
-            dom(rhs()) = (dom(rhs()) - dom(inf()) * dom(rhs(z(-1)))) / (dom(diag()) - dom(sup(z(-1))) * dom(inf()));
+            eval(sup()) = eval(sup()) / (eval(diag()) - eval(sup(z(-1))) * eval(inf()));
+            eval(rhs()) =
+                (eval(rhs()) - eval(inf()) * eval(rhs(z(-1)))) / (eval(diag()) - eval(sup(z(-1))) * eval(inf()));
 #endif
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_internal) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_internal) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_last) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_last) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_first) {
-            dom(sup()) = dom(sup()) / dom(diag());
-            dom(rhs()) = dom(rhs()) / dom(diag());
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_first) {
+            eval(sup()) = eval(sup()) / eval(diag());
+            eval(rhs()) = eval(rhs()) / eval(diag());
         }
     };
 
@@ -128,28 +129,28 @@ namespace tridiagonal {
         typedef accessor< 4, enumtype::inout > rhs; // d
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
 
-        template < typename Domain >
-        GT_FUNCTION static void shared_kernel(Domain &dom) {
+        template < typename Evaluation >
+        GT_FUNCTION static void shared_kernel(Evaluation &eval) {
 #if (defined(CXX11_ENABLED))
-            dom(out()) = dom(rhs{} - sup{} * out{0, 0, 1});
+            eval(out()) = eval(rhs{} - sup{} * out{0, 0, 1});
 #else
-            dom(out()) = dom(rhs()) - dom(sup()) * dom(out(0, 0, 1));
+            eval(out()) = eval(rhs()) - eval(sup()) * eval(out(0, 0, 1));
 #endif
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_internal) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_internal) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_first) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_first) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_last) {
-            dom(out()) = dom(rhs());
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_last) {
+            eval(out()) = eval(rhs());
         }
     };
 

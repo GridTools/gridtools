@@ -62,7 +62,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((has_do< EsfFunction, interval_t >::type::value),
                 "Error: Do method does not contain signature with specified interval");
-            using rtype = decltype(EsfFunction::Do(int(), interval_t()));
+            int dumm;
+            using rtype = decltype(EsfFunction::Do(dumm, interval_t()));
             typedef typename boost::mpl::if_< boost::is_same< void, rtype >, notype, rtype >::type type;
         };
 

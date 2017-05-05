@@ -435,7 +435,7 @@ namespace gridtools {
         */
         template < uint_t I, enumtype::intend Intend >
         GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
-            global_accessor< I, Intend > const &accessor) const {
+            global_accessor< I, Intend > const &accessor) {
             typedef typename accessor_return_type< global_accessor< I, Intend > >::type return_t;
             typedef typename global_accessor< I, Intend >::index_t index_t;
             return *static_cast< return_t * >(data_pointer().template get< index_t::value >()[0]);
@@ -448,7 +448,7 @@ namespace gridtools {
         template < typename Accessor >
         GT_FUNCTION
             typename boost::enable_if< cached< Accessor >, typename accessor_return_type< Accessor >::type >::type
-            operator()(Accessor const &accessor_) const {
+            operator()(Accessor const &accessor_) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
@@ -461,7 +461,7 @@ namespace gridtools {
                                                     boost::mpl::not_< is_accessor< Accessor > >,
                                                     is_global_accessor< Accessor > >,
             typename accessor_return_type< Accessor >::type >::type
-        operator()(Accessor const &accessor) const {
+        operator()(Accessor const &accessor) {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             GRIDTOOLS_STATIC_ASSERT(
@@ -472,7 +472,7 @@ namespace gridtools {
 
         template < typename Accessor >
         GT_FUNCTION typename accessor_return_type< Accessor >::type operator()(
-            expr_direct_access< Accessor > const &accessor) const {
+            expr_direct_access< Accessor > const &accessor) {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return get_value(accessor, get_data_pointer(accessor));
@@ -483,7 +483,7 @@ namespace gridtools {
             Overload of the operator() for expressions.
         */
         template < typename... Arguments, template < typename... Args > class Expression >
-        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
+        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg)
             -> decltype(expressions::evaluation::value(*this, arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
@@ -497,7 +497,7 @@ namespace gridtools {
             (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
            expression)*/
         template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
-        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg) const
+        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg)
             -> decltype(expressions::evaluation::value((*this), arg)) {
 
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");

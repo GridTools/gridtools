@@ -77,7 +77,7 @@ namespace soem {
         typedef boost::mpl::vector< in1, in2, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](
                 const double _in1, const double _in2, const double _res) -> double { return _in1 + _in2 * 0.1 + _res; };
 
