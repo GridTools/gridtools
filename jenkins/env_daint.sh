@@ -26,9 +26,11 @@ if [[ ${COMPILER} == "gcc" ]]; then
         module swap gcc/4.9.3
     fi
   fi
+  export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "clang" ]]; then
   module unload PrgEnv-gnu
   module load /users/vogtha/modules/compilers/clang/3.8.1
+  export HOST_COMPILER=`which clang++`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
@@ -49,4 +51,4 @@ export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
 export USE_MPI_COMPILER=OFF
-export HOST_COMPILER=CC
+
