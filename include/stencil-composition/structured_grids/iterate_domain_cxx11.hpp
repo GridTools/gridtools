@@ -454,9 +454,18 @@ namespace gridtools {
         }
 
         template < typename Accessor >
-        GT_FUNCTION typename boost::disable_if< boost::mpl::or_< cached< Accessor >,
-                                                    boost::mpl::not_< is_accessor< Accessor > >,
-                                                    is_global_accessor< Accessor > >,
+        GT_FUNCTION typename accessor_return_type< Accessor >::type gmem_access(Accessor const &accessor) const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+
+            return get_value< Accessor, void *, true >(accessor, get_data_pointer(accessor));
+        }
+
+        template < typename Accessor >
+        GT_FUNCTION typename boost::disable_if<
+            boost::mpl::or_< cached< Accessor >, boost::mpl::not_< is_accessor< Accessor > > >,
             typename accessor_return_type< Accessor >::type >::type
         operator()(Accessor const &accessor) {
             GRIDTOOLS_STATIC_ASSERT(

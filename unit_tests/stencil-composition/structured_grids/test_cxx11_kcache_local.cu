@@ -39,12 +39,6 @@
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef __CUDACC__
-typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
-#else
-typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
-#endif
-
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 

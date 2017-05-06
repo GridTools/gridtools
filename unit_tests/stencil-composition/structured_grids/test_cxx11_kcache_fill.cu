@@ -39,14 +39,6 @@
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef __CUDACC__
-typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
-#else
-//                   strides  1 x xy
-//                      dims  x y z
-typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
-#endif
-
 // This is the definition of the special regions in the "vertical" direction
 typedef gridtools::interval< level< 0, -2 >, level< 1, 2 > > axis;
 
@@ -115,8 +107,10 @@ TEST(kcache, fill_forward) {
     uint_t d3 = 10;
 
 #ifdef __CUDACC__
+#define BACKEND_ARCH Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
+#define BACKEND_ARCH Host
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
@@ -124,33 +118,39 @@ TEST(kcache, fill_forward) {
 #endif
 #endif
 
-    typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
-    typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
-    typedef BACKEND::temporary_storage_type< float_type, meta_data_t >::type tmp_storage_t;
+    typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
+    typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
 
-    meta_data_t meta_data_(d1, d2, d3);
+    storage_info_t meta_data_(d1, d2, d3);
 
     // Definition of the actual data fields that are used for input/output
-    typedef storage_t storage_type;
-    storage_type in(meta_data_, "in");
-    storage_type ref(meta_data_, "ref");
+    data_store_t in(meta_data_);
+    data_store_t ref(meta_data_);
+    data_store_t out(meta_data_);
 
-    storage_type out(meta_data_, float_type(-1.));
+    in.allocate();
+    out.allocate();
+    ref.allocate();
+
+    auto in_v = make_host_view(in);
+    auto out_v = make_host_view(out);
+    auto ref_v = make_host_view(ref);
+
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = i + j + k;
+                in_v(i, j, k) = i + j + k;
             }
-            ref(i, j, 0) = in(i, j, 0) + in(i, j, 1);
+            ref_v(i, j, 0) = in_v(i, j, 0) + in_v(i, j, 1);
             for (uint_t k = 1; k < d3 - 1; ++k) {
-                ref(i, j, k) = in(i, j, k - 1) + in(i, j, k) + in(i, j, k + 1);
+                ref_v(i, j, k) = in_v(i, j, k - 1) + in_v(i, j, k) + in_v(i, j, k + 1);
             }
-            ref(i, j, d3 - 1) = in(i, j, d3 - 1) + in(i, j, d3 - 2);
+            ref_v(i, j, d3 - 1) = in_v(i, j, d3 - 1) + in_v(i, j, d3 - 2);
         }
     }
 
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
+    typedef arg< 0, data_store_t > p_in;
+    typedef arg< 1, data_store_t > p_out;
 
     typedef boost::mpl::vector< p_in, p_out > accessor_list;
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
@@ -158,7 +158,7 @@ TEST(kcache, fill_forward) {
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in
     // order. (I don't particularly like this)
-    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+    gridtools::aggregator_type< accessor_list > domain((p_out() = out), (p_in() = in));
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -187,18 +187,16 @@ TEST(kcache, fill_forward) {
 
     kcache_stencil->run();
 
-#ifdef __CUDACC__
-    out.d2h_update();
-    in.d2h_update();
-#endif
+    out.sync();
+    out.reactivate_host_write_views();
 
     bool success = true;
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (ref(i, j, k) != out(i, j, k)) {
+                if (ref_v(i, j, k) != out_v(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << ref(i, j, k) << ", out = " << out(i, j, k) << std::endl;
+                              << "ref = " << ref_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
                     success = false;
                 }
             }
@@ -216,8 +214,10 @@ TEST(kcache, fill_backward) {
     uint_t d3 = 10;
 
 #ifdef __CUDACC__
+#define BACKEND_ARCH Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
+#define BACKEND_ARCH Host
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
@@ -225,34 +225,40 @@ TEST(kcache, fill_backward) {
 #endif
 #endif
 
-    typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
-    typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
-    typedef BACKEND::temporary_storage_type< float_type, meta_data_t >::type tmp_storage_t;
+    typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
+    typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
 
-    meta_data_t meta_data_(d1, d2, d3);
+    storage_info_t meta_data_(d1, d2, d3);
 
     // Definition of the actual data fields that are used for input/output
-    typedef storage_t storage_type;
-    storage_type in(meta_data_, "in");
-    storage_type ref(meta_data_, "ref");
+    data_store_t in(meta_data_);
+    data_store_t ref(meta_data_);
+    data_store_t out(meta_data_);
 
-    storage_type out(meta_data_, float_type(-1.));
+    in.allocate();
+    out.allocate();
+    ref.allocate();
+
+    auto in_v = make_host_view(in);
+    auto out_v = make_host_view(out);
+    auto ref_v = make_host_view(ref);
+
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (int_t k = 0; k < d3; --k) {
-                in(i, j, k) = i + j + k;
+                in_v(i, j, k) = i + j + k;
             }
 
-            ref(i, j, d3 - 1) = in(i, j, d3 - 1) + in(i, j, d3 - 2);
+            ref_v(i, j, d3 - 1) = in_v(i, j, d3 - 1) + in_v(i, j, d3 - 2);
             for (int_t k = d3 - 2; k >= 1; --k) {
-                ref(i, j, k) = in(i, j, k + 1) + in(i, j, k) + in(i, j, k - 1);
+                ref_v(i, j, k) = in_v(i, j, k + 1) + in_v(i, j, k) + in_v(i, j, k - 1);
             }
-            ref(i, j, 0) = in(i, j, 1) + in(i, j, 0);
+            ref_v(i, j, 0) = in_v(i, j, 1) + in_v(i, j, 0);
         }
     }
 
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
+    typedef arg< 0, data_store_t > p_in;
+    typedef arg< 1, data_store_t > p_out;
 
     typedef boost::mpl::vector< p_in, p_out > accessor_list;
     // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
@@ -260,7 +266,7 @@ TEST(kcache, fill_backward) {
     // It must be noted that the only fields to be passed to the constructor are the non-temporary.
     // The order in which they have to be passed is the order in which they appear scanning the placeholders in
     // order. (I don't particularly like this)
-    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+    gridtools::aggregator_type< accessor_list > domain((p_out() = out), (p_in() = in));
 
     // Definition of the physical dimensions of the problem.
     // The constructor takes the horizontal plane dimensions,
@@ -289,18 +295,16 @@ TEST(kcache, fill_backward) {
 
     kcache_stencil->run();
 
-#ifdef __CUDACC__
-    out.d2h_update();
-    in.d2h_update();
-#endif
+    out.sync();
+    out.reactivate_host_write_views();
 
     bool success = true;
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (ref(i, j, k) != out(i, j, k)) {
+                if (ref_v(i, j, k) != out_v(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << ref(i, j, k) << ", out = " << out(i, j, k) << std::endl;
+                              << "ref = " << ref_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
                     success = false;
                 }
             }
