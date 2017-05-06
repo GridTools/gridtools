@@ -53,6 +53,13 @@
 #include <boost/fusion/include/pair.hpp>
 #include <boost/fusion/support/pair.hpp>
 #include <boost/mpl/copy_if.hpp>
+#include <boost/mpl/filter_view.hpp>
+#include "common/generic_metafunctions/vector_to_map.hpp"
+#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "stencil-composition/iterate_domain_fwd.hpp"
+#include "../caches/cache_metafunctions.hpp"
+#include "../caches/extract_extent_caches.hpp"
+#include "../accessor_fwd.hpp"
 #include "../../common/generic_metafunctions/sequence_to_vector.hpp"
 
 namespace gridtools {
@@ -94,11 +101,11 @@ namespace gridtools {
     };
 
     /**
-      * @struct sync_mem_accessor
-      * functor that will synchronize a cache with main memory
-      * \tparam AccIndex index of the accessor
-      * \tparam ExecutionPolicy : forward, backward
-      */
+     * @struct sync_mem_accessor
+     * functor that will synchronize a cache with main memory
+     * \tparam AccIndex index of the accessor
+     * \tparam ExecutionPolicy : forward, backward
+     */
     template < typename AccIndex, enumtype::execution ExecutionPolicy >
     struct sync_mem_accessor {
         /**

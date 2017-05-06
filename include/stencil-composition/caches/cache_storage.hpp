@@ -163,6 +163,65 @@ namespace gridtools {
             return m_values[extra_];
         }
 
+        template < typename Accessor >
+        GT_FUNCTION value_type const &RESTRICT check_kcache_access(Accessor const &accessor_,
+            typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
+
+            constexpr const meta_t s_storage_info;
+
+            using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
+
+#ifdef CUDA8
+            typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
+            typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
+#else
+            assert((_impl::compute_size< NColors, minus_t, plus_t, tiles_t, storage_t >::value == size()));
+#endif
+
+            assert(s_storage_info.index(accessor_) - kminus_t::value < size());
+            assert(s_storage_info.index(accessor_) - kminus_t::value >= 0);
+        }
+
+        template < typename Accessor >
+        GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_,
+            typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) {
+            check_kcache_access(accessor_);
+
+            const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                                  impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
+
+            return m_values[index_ - kminus_t::value];
+        }
+
+        template < typename Accessor >
+        GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_,
+            typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
+            check_kcache_access(accessor_);
+
+            const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                                  impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
+
+            return m_values[index_];
+        }
+
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide() {
+            // TODO do not slide if cache interval out of ExecutionPolicy intervals
+
+            GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value == K), "Error: we can only slide KCaches");
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "Error");
+
+            constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;
+            if (ksize <= 1)
+                return;
+            constexpr uint_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : ksize - 1;
+            constexpr uint_t kend = (IterationPolicy::value == enumtype::backward) ? ksize - 2 : 1;
+            for (int_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
+                m_values[k] = (IterationPolicy::value == enumtype::forward) ? m_values[k + 1] : m_values[k - 1];
+            }
+        }
+
       private:
         value_type m_values[size() * StorageWrapper::storage_size];
     };
