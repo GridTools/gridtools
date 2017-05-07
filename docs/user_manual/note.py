@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 
 """
-Pandoc filter to process code blocks with class "include" and
-replace their content with the included file
-Additional features: Pradeep Gowda <@btbytes> 2014-08-28
-- include only code between "start=x" and "end=y" line numberLines
-- if '.numberLines' is specified in code fence, the line numbers shown
-will correspond to the actual file line numbers.
-Additional annotation to the fenced code blocks:
-~~~~{.python .numberLines include="hello.py" start="1" end="3"}
-~~~~
+Pandoc filter to process code blocks of the form
+
+~~~note
+text
+~~~
+and replace their content with a table with images
+
 Typical Usage:
-pandoc sample.md -t json | ./include.py | pandoc -f json -t html -s
+pandoc sample.md -t json | ./note.py | pandoc -f json -t html -s
 """
 
 from pandocfilters import toJSONFilter, CodeBlock, Table, Str, Header, Link, Space, split_string, AlignLeft, AlignDefault, Plain, Image
