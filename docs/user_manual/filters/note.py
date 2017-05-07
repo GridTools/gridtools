@@ -19,7 +19,7 @@ def code_include(key, value, format, meta):
     if key == 'CodeBlock':
         [[ident, classes, namevals], code] = value
 
-        if classes[0] == "note" :
+        if classes != [] and classes[0] == "note" :
             return Table([],
                          [AlignLeft(),AlignDefault()],
                          [0,0],
