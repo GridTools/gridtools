@@ -64,6 +64,11 @@ namespace gridtools {
      */
     template < typename Arg, typename View, typename TileI, typename TileJ >
     struct storage_wrapper {
+        // checks
+        GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_data_view< View >::value || is_data_field_view< View >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), GT_INTERNAL_ERROR);
+
         // some type information
         using derived_t = storage_wrapper< Arg, View, TileI, TileJ >;
         using arg_t = Arg;
