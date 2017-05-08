@@ -62,12 +62,12 @@ namespace gridtools {
         using state_machine_t = typename DataStore::state_machine_t;
         using storage_info_t = typename DataStore::storage_info_t;
 
-        const static unsigned size = get_accumulated_data_field_index(sizeof...(N), N...);
-        const static unsigned dims = sizeof...(N);
+        const static unsigned num_of_storages = get_accumulated_data_field_index(sizeof...(N), N...);
+        const static unsigned num_of_components = sizeof...(N);
 
         // tuple of arrays (e.g., { {s00,s01,s02}, {s10, s11}, {s20} }, 3-dimensional field with snapshot sizes 3, 2,
         // and 1. All together we have 6 storages.)
-        std::array< DataStore, size > m_field;
+        std::array< DataStore, num_of_storages > m_field;
 
         /**
          * @brief data_store_field constructor
@@ -78,7 +78,8 @@ namespace gridtools {
          * @brief data_store_field constructor
          * @param info storage info that contains size, halo information, etc.
          */
-        constexpr data_store_field(storage_info_t const &info) : m_field(fill_array< DataStore, size >(info)) {}
+        constexpr data_store_field(storage_info_t const &info)
+            : m_field(fill_array< DataStore, num_of_storages >(info)) {}
 
         /**
          * @brief method that is used to extract a data_store out of a data_store_field
@@ -88,7 +89,7 @@ namespace gridtools {
          */
         template < unsigned Dim, unsigned Snapshot >
         DataStore const &get() const {
-            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size,
+            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages,
                 "Data store field out of bounds access");
             // return
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
@@ -101,7 +102,7 @@ namespace gridtools {
          * @return data_store instance
          */
         DataStore const &get(unsigned Dim, unsigned Snapshot) const {
-            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size &&
+            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages &&
                    "Data store field out of bounds access");
             // return
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
@@ -115,14 +116,15 @@ namespace gridtools {
          */
         template < unsigned Dim, unsigned Snapshot >
         void set(DataStore const &store) {
-            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size,
+            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages,
                 "Data store field out of bounds access");
             // check equality of storage infos
             for (auto elem : get_field()) {
                 if (elem.valid()) {
                     assert(store.valid() && "Passed invalid data store.");
                     assert(*elem.get_storage_info_ptr() == *store.get_storage_info_ptr() &&
-                           "Passed data store cannot be inserted into data store field because storage infos are not compatible.");
+                           "Passed data store cannot be inserted into data store field because storage infos are not "
+                           "compatible.");
                 }
             }
             // set data store
@@ -136,14 +138,15 @@ namespace gridtools {
          * @param store data_store that should be inserted into the field
          */
         void set(unsigned Dim, unsigned Snapshot, DataStore const &store) {
-            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < size &&
+            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages &&
                    "Data store field out of bounds access");
             // check equality of storage infos
             for (auto elem : get_field()) {
                 if (elem.valid()) {
                     assert(store.valid() && "Passed invalid data store.");
                     assert(*elem.get_storage_info_ptr() == *store.get_storage_info_ptr() &&
-                           "Passed data store cannot be inserted into data store field because storage infos do not match.");
+                           "Passed data store cannot be inserted into data store field because storage infos do not "
+                           "match.");
                 }
             }
             // set data store
@@ -182,7 +185,7 @@ namespace gridtools {
          * @brief get the content of the data_store_field
          * @return the whole field that contains all data_stores
          */
-        std::array< DataStore, size > const &get_field() const { return m_field; }
+        std::array< DataStore, num_of_storages > const &get_field() const { return m_field; }
 
         /**
          * @brief retrieve the sizes of the data_store_field components

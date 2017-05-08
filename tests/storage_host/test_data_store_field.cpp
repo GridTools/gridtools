@@ -107,7 +107,7 @@ TEST(DataStoreFieldTest, GetSet) {
     data_store< host_storage< double >, storage_info_t > ds1;
     ASSERT_DEATH((f.set<0,0>(ds1)), "Passed invalid data store.");
     ds1.allocate(si1);
-    ASSERT_DEATH((f.set<0,0>(ds1)), "Passed data store cannot be inserted into data store field because storage infos are not compatible.");
+    ASSERT_DEATH((f.set<0,0>(ds1)), "Passed data store cannot be inserted into data store field because storage infos.*");
 #endif
     // get a storage and compare ptrs
     data_store< host_storage< double >, storage_info_t > st = f.get< 1, 0 >();
