@@ -36,11 +36,7 @@
 #pragma once
 // [includes]
 #include <iostream>
-#ifndef NDEBUG
-#ifndef __CUDACC__
 #include <fstream>
-#endif
-#endif
 #include <gridtools.hpp>
 #include <stencil-composition/make_computation.hpp>
 #include <storage/partitioner_trivial.hpp>

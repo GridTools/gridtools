@@ -43,6 +43,7 @@
 
 #include <communication/halo_exchange.hpp>
 #include <boundary-conditions/apply.hpp>
+#include <iostream>
 #include <fstream>
 
 #include "../unit_tests/communication/check_flags.hpp"
