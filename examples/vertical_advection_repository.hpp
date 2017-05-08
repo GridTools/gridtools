@@ -64,25 +64,15 @@ namespace vertical_advection {
               jpos_(m_storage_info), kpos_(m_storage_info),
               // dtr_stage_(0,0,0, -1, "dtr_stage"),
               dtr_stage_(m_scalar_storage_info), halo_size_(halo_size), idim_(idim), jdim_(jdim), kdim_(kdim) {
-            utens_stage_.allocate();
             init_field_to_value(utens_stage_, -1.);
-            utens_stage_ref_.allocate();
             init_field_to_value(utens_stage_ref_, -1.);
-            u_stage_.allocate();
             init_field_to_value(u_stage_, -1.);
-            wcon_.allocate();
             init_field_to_value(wcon_, -1.);
-            u_pos_.allocate();
             init_field_to_value(u_pos_, -1.);
-            utens_.allocate();
             init_field_to_value(utens_, -1.);
-            ipos_.allocate();
             init_field_to_value(ipos_, -1.);
-            jpos_.allocate();
             init_field_to_value(jpos_, -1.);
-            kpos_.allocate();
             init_field_to_value(kpos_, -1.);
-            dtr_stage_.allocate();
             init_field_to_value(dtr_stage_, -1.);
         }
 
@@ -166,12 +156,9 @@ namespace vertical_advection {
 
             storage_info_ij_t storage_info_ij(idim_ - (2 * halo_size_), jdim_ - (2 * halo_size_), (uint_t)1);
             ij_storage_type datacol(storage_info_ij);
-            datacol.allocate();
             storage_info_ijk_t storage_info_(idim_ - (2 * halo_size_), jdim_ - (2 * halo_size_), kdim_);
             storage_type ccol(storage_info_);
             storage_type dcol(storage_info_);
-            ccol.allocate();
-            dcol.allocate();
 
             init_field_to_value(ccol, 0.0);
             init_field_to_value(dcol, 0.0);

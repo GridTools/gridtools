@@ -115,7 +115,6 @@ namespace smf {
 
         // area of cells is a storage with location type cells
         auto cell_area = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("cell_area");
-        cell_area.allocate();
         // we need a storage of weights with location cells, but storing 3 weights (one for each edge).
         // We extend the storage with location type cells by one more dimension with length 3
         auto weight_edges_meta = storage_info_extender()(cell_area.get_storage_info_ptr(), 3);

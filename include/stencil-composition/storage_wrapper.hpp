@@ -42,8 +42,7 @@
 #include <boost/mpl/transform_view.hpp>
 #include <boost/mpl/filter_view.hpp>
 
-#include "common/data_field_view.hpp"
-#include "common/data_view.hpp"
+#include "storage-facility.hpp"
 
 #include "../common/pointer.hpp"
 #include "arg.hpp"
@@ -81,9 +80,9 @@ namespace gridtools {
         using storage_info_t = typename storage_t::storage_info_t;
 
         // some more information
-        constexpr static uint_t storage_size = view_t::N;
+        constexpr static uint_t storage_size = view_t::size;
         constexpr static bool is_temporary = arg_t::is_temporary;
-        constexpr static bool is_read_only = view_t::read_only;
+        constexpr static bool is_read_only = (view_t::mode == access_mode::ReadOnly);
 
         // assign the data ptrs to some other ptrs
         template < typename T >

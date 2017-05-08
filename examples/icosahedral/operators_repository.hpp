@@ -165,20 +165,7 @@ namespace ico_operators {
               m_dual_area_reciprocal(
                   icosahedral_grid_
                       .make_storage< icosahedral_topology_t::vertices, float_type, halo_t, selector< 1, 1, 1, 0 > >(
-                          "dual_area_reciprocal")) {
-            m_u.allocate();
-            m_out_vertex.allocate();
-            m_dual_area.allocate();
-            m_cell_area.allocate();
-            m_cell_area_reciprocal.allocate();
-            m_edge_length.allocate();
-            m_edge_length_reciprocal.allocate();
-            m_dual_edge_length.allocate();
-            m_dual_edge_length_reciprocal.allocate();
-            m_edge_orientation.allocate();
-            m_orientation_of_normal.allocate();
-            m_dual_area_reciprocal.allocate();
-        }
+                          "dual_area_reciprocal")) {}
 
         void init_fields() {
             const float_type PI = std::atan(1.) * 4.;

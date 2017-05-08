@@ -80,7 +80,6 @@ struct functor {
 TEST(test_global_accessor, boundary_conditions) {
     storage_info_t sinfo(10, 10, 10);
     data_store_t sol_(sinfo);
-    sol_.allocate();
 
     auto solv = make_host_view(sol_);
     for (unsigned i = 0; i < 10; ++i) {

@@ -99,13 +99,14 @@ namespace copy_stencil {
 
         // Definition of the actual data fields that are used for input/output
         data_store_field_t in(meta_data_);
-        in.allocate();
         auto inv = make_field_host_view(in);
+        auto inv00 = inv.get< 0, 0 >();
+        auto inv01 = inv.get< 0, 1 >();
         for (uint_t i = 0; i < d1; ++i) {
             for (uint_t j = 0; j < d2; ++j) {
                 for (uint_t k = 0; k < d3; ++k) {
-                    inv.template get_value< 0, 1 >(i, j, k) = i + j + k;
-                    inv.template get_value< 0, 0 >(i, j, k) = 0.;
+                    inv00(i, j, k) = i + j + k;
+                    inv01(i, j, k) = 0.;
                 }
             }
         }
@@ -151,10 +152,9 @@ namespace copy_stencil {
         for (uint_t i = 0; i < d1; ++i) {
             for (uint_t j = 0; j < d2; ++j) {
                 for (uint_t k = 0; k < d3; ++k) {
-                    if (inv.template get_value< 0, 0 >(i, j, k) != inv.template get_value< 0, 1 >(i, j, k)) {
+                    if (inv00(i, j, k) != inv01(i, j, k)) {
                         std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                  << "in = " << (inv.template get_value< 0, 0 >(i, j, k))
-                                  << ", out = " << (inv.template get_value< 0, 1 >(i, j, k)) << std::endl;
+                                  << "in = " << (inv00(i, j, k)) << ", out = " << (inv01(i, j, k)) << std::endl;
                         success = false;
                     }
                 }

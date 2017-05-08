@@ -94,16 +94,7 @@ namespace horizontal_diffusion {
               m_storage_info_scalar(1, 1, 1), in_(m_storage_info_ijk), crlato_(m_storage_info_j),
               crlatu_(m_storage_info_j), crlat0_(m_storage_info_j), crlat1_(m_storage_info_j), out_(m_storage_info_ijk),
               out_ref_(m_storage_info_ijk), coeff_(m_storage_info_ijk), halo_size_(halo_size), idim_(idim), jdim_(jdim),
-              kdim_(kdim) {
-            in_.allocate();
-            crlato_.allocate();
-            crlatu_.allocate();
-            crlat0_.allocate();
-            crlat1_.allocate();
-            out_.allocate();
-            out_ref_.allocate();
-            coeff_.allocate();
-        }
+              kdim_(kdim) {}
 
         void init_fields() {
             const double PI = std::atan(1.) * 4.;
@@ -173,9 +164,6 @@ namespace horizontal_diffusion {
             ij_storage_type lap(m_storage_info_ij);
             ij_storage_type flx(m_storage_info_ij);
             ij_storage_type fly(m_storage_info_ij);
-            lap.allocate();
-            flx.allocate();
-            fly.allocate();
 
             init_field_to_value(lap, 0.0);
 
@@ -224,7 +212,6 @@ namespace horizontal_diffusion {
 
         void generate_reference_simple() {
             ij_storage_type lap(m_storage_info_ij);
-            lap.allocate();
 
             init_field_to_value(lap, 0.0);
 

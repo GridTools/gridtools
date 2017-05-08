@@ -45,7 +45,7 @@ namespace gridtools {
         typedef storage_info_interface< 0, Layout > meta_storage_t;
         typedef Layout layout_t;
         static_assert(
-            layout_t::length == sizeof...(Dims), "Mismatch in layout length and passed number of dimensions.");
+            layout_t::masked_length == sizeof...(Dims), "Mismatch in layout length and passed number of dimensions.");
 
       public:
         GT_FUNCTION

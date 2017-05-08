@@ -104,9 +104,6 @@ namespace copy_stencil {
         data_store_t in(meta_data_);
         data_store_t out(meta_data_);
 
-        in.allocate();
-        out.allocate();
-
         auto in_v = make_host_view(in);
         auto out_v = make_host_view(out);
 

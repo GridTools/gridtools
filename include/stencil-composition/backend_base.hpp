@@ -153,7 +153,6 @@ namespace gridtools {
         make_global_parameter(T const &t) {
             typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > si(1);
             typename storage_traits_t::template data_store_t< T, decltype(si) > ds(si);
-            ds.allocate();
             make_host_view(ds)(0) = t;
             return ds;
         }
@@ -165,7 +164,7 @@ namespace gridtools {
         static void update_global_parameter(T &gp, V const &new_val) {
             gp.sync();
             auto view = make_host_view(gp);
-            assert(valid(gp, view) && "Cannot create a valid view to a global parameter. Properly synced?");
+            assert(check_consistency(gp, view) && "Cannot create a valid view to a global parameter. Properly synced?");
             view(0) = new_val;
             gp.sync();
         }

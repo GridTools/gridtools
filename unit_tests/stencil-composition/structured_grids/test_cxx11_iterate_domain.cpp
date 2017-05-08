@@ -86,13 +86,10 @@ namespace test_iterate_domain {
 
         meta_ijkp_t meta_ijkp_(d1 + 3, d2 + 2, d3 + 1, d4);
         storage_t in(meta_ijkp_);
-        in.allocate();
         meta_kji_t meta_kji_(d1, d2, d3);
         storage_buff_t buff(meta_kji_);
-        buff.allocate();
         meta_ij_t meta_ij_(d1 + 2, d2 + 1);
         storage_out_t out(meta_ij_);
-        out.allocate();
 
         typedef arg< 0, storage_t > p_in;
         typedef arg< 1, storage_buff_t > p_buff;
@@ -214,12 +211,12 @@ namespace test_iterate_domain {
         // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
         it_domain.set_index(0);
         auto inv = make_field_host_view(in);
-        inv.get_value< 0, 0 >(0, 0, 0, 0) = 0.; // is accessor<0>
-        inv.get_value< 0, 1 >(0, 0, 0, 0) = 1.;
-        inv.get_value< 0, 2 >(0, 0, 0, 0) = 2.;
-        inv.get_value< 1, 0 >(0, 0, 0, 0) = 10.;
-        inv.get_value< 1, 1 >(0, 0, 0, 0) = 11.;
-        inv.get_value< 2, 0 >(0, 0, 0, 0) = 20.;
+        inv.get< 0, 0 >()(0, 0, 0, 0) = 0.; // is accessor<0>
+        inv.get< 0, 1 >()(0, 0, 0, 0) = 1.;
+        inv.get< 0, 2 >()(0, 0, 0, 0) = 2.;
+        inv.get< 1, 0 >()(0, 0, 0, 0) = 10.;
+        inv.get< 1, 1 >()(0, 0, 0, 0) = 11.;
+        inv.get< 2, 0 >()(0, 0, 0, 0) = 20.;
 
 #ifdef CUDA8
         assert(
@@ -238,17 +235,17 @@ namespace test_iterate_domain {
 
         // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
         auto buffv = make_field_host_view(buff);
-        buffv.get_value< 0, 0 >(0, 0, 0) = 0.; // is accessor<1>
-        buffv.get_value< 0, 1 >(0, 0, 0) = 1.;
-        buffv.get_value< 0, 2 >(0, 0, 0) = 2.;
-        buffv.get_value< 0, 3 >(0, 0, 0) = 3.;
-        buffv.get_value< 1, 0 >(0, 0, 0) = 10.;
-        buffv.get_value< 1, 1 >(0, 0, 0) = 11.;
-        buffv.get_value< 1, 2 >(0, 0, 0) = 12.;
-        buffv.get_value< 1, 3 >(0, 0, 0) = 13.;
-        buffv.get_value< 1, 4 >(0, 0, 0) = 14.;
-        buffv.get_value< 1, 5 >(0, 0, 0) = 15.;
-        buffv.get_value< 1, 6 >(0, 0, 0) = 16.;
+        buffv.get< 0, 0 >()(0, 0, 0) = 0.; // is accessor<1>
+        buffv.get< 0, 1 >()(0, 0, 0) = 1.;
+        buffv.get< 0, 2 >()(0, 0, 0) = 2.;
+        buffv.get< 0, 3 >()(0, 0, 0) = 3.;
+        buffv.get< 1, 0 >()(0, 0, 0) = 10.;
+        buffv.get< 1, 1 >()(0, 0, 0) = 11.;
+        buffv.get< 1, 2 >()(0, 0, 0) = 12.;
+        buffv.get< 1, 3 >()(0, 0, 0) = 13.;
+        buffv.get< 1, 4 >()(0, 0, 0) = 14.;
+        buffv.get< 1, 5 >()(0, 0, 0) = 15.;
+        buffv.get< 1, 6 >()(0, 0, 0) = 16.;
 
         assert(it_domain(
                    alias< accessor< 1, enumtype::in, extent< 0, 0, 0, 0, 0 >, 5 >, dimension< 5 > >::set< 0 >()) == 0.);
@@ -279,12 +276,12 @@ namespace test_iterate_domain {
                    dimension< 5 > >::set< 1, 6 >()) == 16.);
 
         auto outv = make_field_host_view(out);
-        outv.get_value< 0, 0 >(0, 0) = 0.; // is accessor<2>
-        outv.get_value< 0, 1 >(0, 0) = 1.;
-        outv.get_value< 1, 0 >(0, 0) = 10.;
-        outv.get_value< 1, 1 >(0, 0) = 11.;
-        outv.get_value< 2, 0 >(0, 0) = 20.;
-        outv.get_value< 2, 1 >(0, 0) = 21.;
+        outv.get< 0, 0 >()(0, 0) = 0.; // is accessor<2>
+        outv.get< 0, 1 >()(0, 0) = 1.;
+        outv.get< 1, 0 >()(0, 0) = 10.;
+        outv.get< 1, 1 >()(0, 0) = 11.;
+        outv.get< 2, 0 >()(0, 0) = 20.;
+        outv.get< 2, 1 >()(0, 0) = 21.;
 
         assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >()) == 0.);
         assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(dimension< 4 >(1))) == 1.);
@@ -364,16 +361,16 @@ namespace test_iterate_domain {
         auto d2_ = in_1_1{dimension< 2 >{1}};
         auto d3_ = in_1_1{dimension< 3 >{1}};
         auto d4_ = in_1_1{dimension< 4 >{1}};
-        assert(((float_type *)(&inv.get_value< 1, 1 >(0, 0, 0, 0) + new_index[0] + mdi->template stride< 0 >() ==
+        assert(((float_type *)(&inv.get< 1, 1 >()(0, 0, 0, 0) + new_index[0] + mdi->template stride< 0 >() ==
                                &it_domain(d1_))));
 
-        assert(((float_type *)(&inv.get_value< 1, 1 >(0, 0, 0, 0) + new_index[0] + mdi->template stride< 1 >() ==
+        assert(((float_type *)(&inv.get< 1, 1 >()(0, 0, 0, 0) + new_index[0] + mdi->template stride< 1 >() ==
                                &it_domain(d2_))));
 
-        assert(((float_type *)(&inv.get_value< 1, 1 >(0, 0, 0, 0) + new_index[0] + mdi->template stride< 2 >() ==
+        assert(((float_type *)(&inv.get< 1, 1 >()(0, 0, 0, 0) + new_index[0] + mdi->template stride< 2 >() ==
                                &it_domain(d3_))));
 
-        assert(((float_type *)(&inv.get_value< 1, 1 >(0, 0, 0, 0) + new_index[0] + mdi->template stride< 3 >() ==
+        assert(((float_type *)(&inv.get< 1, 1 >()(0, 0, 0, 0) + new_index[0] + mdi->template stride< 3 >() ==
                                &it_domain(d4_))));
 
         // check offsets for the space dimensions
@@ -385,13 +382,13 @@ namespace test_iterate_domain {
         auto b2_ = buff_1_1{dimension< 2 >{1}};
         auto b3_ = buff_1_1{dimension< 3 >{1}};
 
-        assert(((float_type *)(&buffv.get_value< 1, 1 >(0, 0, 0) + new_index[1] + mdb->template stride< 0 >() ==
+        assert(((float_type *)(&buffv.get< 1, 1 >()(0, 0, 0) + new_index[1] + mdb->template stride< 0 >() ==
                                &it_domain(b1_))));
 
-        assert(((float_type *)(&buffv.get_value< 1, 1 >(0, 0, 0) + new_index[1] + mdb->template stride< 1 >() ==
+        assert(((float_type *)(&buffv.get< 1, 1 >()(0, 0, 0) + new_index[1] + mdb->template stride< 1 >() ==
                                &it_domain(b2_))));
 
-        assert(((float_type *)(&buffv.get_value< 1, 1 >(0, 0, 0) + new_index[1] + mdb->template stride< 2 >() ==
+        assert(((float_type *)(&buffv.get< 1, 1 >()(0, 0, 0) + new_index[1] + mdb->template stride< 2 >() ==
                                &it_domain(b3_))));
 
         using out_1 =
@@ -400,11 +397,11 @@ namespace test_iterate_domain {
         auto c1_ = out_1{dimension< 1 >{1}};
         auto c2_ = out_1{dimension< 2 >{1}};
 
-        assert(((float_type *)(&outv.get_value< 1, 1 >(0, 0) + new_index[2] + mdo->template stride< 0 >() ==
-                               &it_domain(c1_))));
+        assert((
+            (float_type *)(&outv.get< 1, 1 >()(0, 0) + new_index[2] + mdo->template stride< 0 >() == &it_domain(c1_))));
 
-        assert(((float_type *)(&outv.get_value< 1, 1 >(0, 0) + new_index[2] + mdo->template stride< 1 >() ==
-                               &it_domain(c2_))));
+        assert((
+            (float_type *)(&outv.get< 1, 1 >()(0, 0) + new_index[2] + mdo->template stride< 1 >() == &it_domain(c2_))));
 
         // check runtime alias arguments
         alias< accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >, dimension< 3 >, dimension< 4 > > acc_(1, 1);

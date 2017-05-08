@@ -190,12 +190,6 @@ namespace tridiagonal {
         storage_type sup(meta_);
         storage_type rhs(meta_);
         storage_type solution(meta_);
-        out.allocate();
-        inf.allocate();
-        diag.allocate();
-        sup.allocate();
-        rhs.allocate();
-        solution.allocate();
 
         // create views
         auto outv = make_host_view(out);

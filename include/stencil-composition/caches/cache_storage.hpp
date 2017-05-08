@@ -130,7 +130,7 @@ namespace gridtools {
                 (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (!is_default_location_t::value) >() +
                 (!is_default_location_t::value) * Color * meta_t::template stride< 1 >() +
                 size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
+                impl_::get_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
             assert((extra_) >= 0);
             assert((extra_) < (size() * StorageWrapper::storage_size));
             return m_values[extra_];

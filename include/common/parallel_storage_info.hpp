@@ -55,11 +55,11 @@ namespace gridtools {
       private:
         partitioner_t const *m_partitioner;
         // these are set by the partitioner
-        array< halo_descriptor, metadata_t::layout_t::length > m_coordinates;
-        array< halo_descriptor, metadata_t::layout_t::length > m_coordinates_gcl;
+        array< halo_descriptor, metadata_t::layout_t::masked_length > m_coordinates;
+        array< halo_descriptor, metadata_t::layout_t::masked_length > m_coordinates_gcl;
         // these remember where am I in the storage (also set by the partitioner)
-        array< int_t, metadata_t::layout_t::length > m_low_bound;
-        array< int_t, metadata_t::layout_t::length > m_up_bound;
+        array< int_t, metadata_t::layout_t::masked_length > m_low_bound;
+        array< int_t, metadata_t::layout_t::masked_length > m_up_bound;
         metadata_t m_metadata;
 
       public:
@@ -99,10 +99,10 @@ namespace gridtools {
                   apply_gt_integer_sequence< typename make_gt_integer_sequence< uint_t, sizeof...(UInt) >::type >::
                       template apply< metadata_t >(
                           ([&part](uint_t index_,
-                               array< halo_descriptor, metadata_t::layout_t::length > & coordinates_,
-                               array< halo_descriptor, metadata_t::layout_t::length > & coordinates_gcl_,
-                               array< int_t, metadata_t::layout_t::length > & low_bound_,
-                               array< int_t, metadata_t::layout_t::length > & up_bound_,
+                               array< halo_descriptor, metadata_t::layout_t::masked_length > & coordinates_,
+                               array< halo_descriptor, metadata_t::layout_t::masked_length > & coordinates_gcl_,
+                               array< int_t, metadata_t::layout_t::masked_length > & low_bound_,
+                               array< int_t, metadata_t::layout_t::masked_length > & up_bound_,
                                UInt const &... args_) -> uint_t {
                               return part.compute_bounds(
                                   index_, coordinates_, coordinates_gcl_, low_bound_, up_bound_, args_...);
@@ -129,13 +129,13 @@ namespace gridtools {
         */
         template < typename... UInt >
         bool mine(UInt const &... coordinates_) const {
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(UInt) >= metadata_t::layout_t::length),
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(UInt) >= metadata_t::layout_t::masked_length),
                 "not enough indices specified in the call to parallel_storage_info::mine()");
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(UInt) <= metadata_t::layout_t::length),
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(UInt) <= metadata_t::layout_t::masked_length),
                 "too many indices specified in the call to parallel_storage_info::mine()");
-            uint_t coords[metadata_t::layout_t::length] = {coordinates_...};
+            uint_t coords[metadata_t::layout_t::masked_length] = {coordinates_...};
             bool result = true;
-            for (ushort_t i = 0; i < metadata_t::layout_t::length; ++i)
+            for (ushort_t i = 0; i < metadata_t::layout_t::masked_length; ++i)
                 if (coords[i] < m_low_bound[i] + m_coordinates[i].begin() ||
                     coords[i] > m_low_bound[i] + m_coordinates[i].end())
                     result = false;
@@ -172,7 +172,7 @@ namespace gridtools {
         */
         template < uint_t Component >
         uint_t const &local_to_global(uint_t const &value) {
-            GRIDTOOLS_STATIC_ASSERT(Component < metadata_t::layout_t::length,
+            GRIDTOOLS_STATIC_ASSERT(Component < metadata_t::layout_t::masked_length,
                 "only positive integers smaller than the "
                 "number of dimensions are accepted as "
                 "template arguments of local_to_global");
@@ -186,7 +186,7 @@ namespace gridtools {
         */
         template < ushort_t dimension >
         halo_descriptor const &get_halo_descriptor() const {
-            GRIDTOOLS_STATIC_ASSERT(dimension < metadata_t::layout_t::length,
+            GRIDTOOLS_STATIC_ASSERT(dimension < metadata_t::layout_t::masked_length,
                 "only positive integers smaller than the number of dimensions are accepted as template arguments of "
                 "get_halo_descriptor");
             return m_coordinates[dimension];

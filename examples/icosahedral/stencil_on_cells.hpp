@@ -95,8 +95,6 @@ namespace soc {
         auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
         auto ref_on_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells");
         in_cells = decltype(in_cells)(*in_cells.get_storage_info_ptr(), 0.0);
-        out_cells.allocate();
-        ref_on_cells.allocate();
 
         auto icv = make_host_view(in_cells);
         auto ocv = make_host_view(out_cells);

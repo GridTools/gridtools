@@ -109,9 +109,7 @@ struct shallow_water_reference {
           h(solution_meta, h_array, enumtype::ExternalCPU), ux(solution_meta, ux_array, enumtype::ExternalCPU),
           vx(solution_meta, vx_array, enumtype::ExternalCPU), hx(solution_meta, hx_array, enumtype::ExternalCPU),
           uy(solution_meta, uy_array, enumtype::ExternalCPU), vy(solution_meta, vy_array, enumtype::ExternalCPU),
-          hy(solution_meta, hy_array, enumtype::ExternalCPU) {
-        solution.allocate();
-    }
+          hy(solution_meta, hy_array, enumtype::ExternalCPU) {}
 
     void setup() {
         for (uint_t i = 0; i < DimI; ++i)

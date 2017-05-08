@@ -79,8 +79,6 @@ namespace test_staggered_keyword {
         meta_data_t meta_((uint_t)30, (uint_t)20, (uint_t)1);
         storage_t i_data(meta_);
         storage_t j_data(meta_);
-        i_data.allocate();
-        j_data.allocate();
 
         auto iv = make_host_view(i_data);
         auto jv = make_host_view(j_data);

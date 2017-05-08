@@ -123,7 +123,6 @@ namespace copy_stencils_3D_2D_1D_0D {
         meta_src_t meta_src_(d1, d2, d3);
         // Definition of the actual data fields that are used for input/output
         src_storage_t in(meta_src_);
-        in.allocate();
         auto inv = make_host_view(in);
         for (int i = 0; i < d1; ++i)
             for (int j = 0; j < d2; ++j)

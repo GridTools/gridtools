@@ -87,8 +87,6 @@ TEST(test_copy_stencil, run) {
 
     cell_storage_type in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
     cell_storage_type out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
-    in_cells.allocate();
-    out_cells.allocate();
 
     auto inv = make_host_view(in_cells);
     auto outv = make_host_view(out_cells);

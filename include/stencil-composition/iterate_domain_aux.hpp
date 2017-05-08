@@ -158,7 +158,7 @@ namespace gridtools {
         typedef typename boost::remove_pointer< typename boost::remove_cv< storage_info_ptr_t >::type >::type
             storage_info_t;
         typedef strides_cached< ID - 1, StorageInfoList > super;
-        typedef array< int_t, storage_info_t::layout_t::length - 1 > data_array_t;
+        typedef array< int_t, storage_info_t::layout_t::masked_length - 1 > data_array_t;
 
         template < short_t Idx >
         using return_t = typename boost::mpl::if_< boost::mpl::bool_< Idx == ID >,
@@ -194,7 +194,7 @@ namespace gridtools {
         GT_FUNCTION
         strides_cached() {}
 
-        typedef array< int_t, storage_info_t::layout_t::length - 1 > data_array_t;
+        typedef array< int_t, storage_info_t::layout_t::masked_length - 1 > data_array_t;
 
         template < short_t Idx >
         using return_t = data_array_t;
@@ -246,11 +246,11 @@ namespace gridtools {
             : m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached) {}
 
         template < typename StorageInfo,
-            typename boost::enable_if_c< (Coordinate >= StorageInfo::layout_t::length), int >::type = 0 >
+            typename boost::enable_if_c< (Coordinate >= StorageInfo::layout_t::masked_length), int >::type = 0 >
         GT_FUNCTION void operator()(const StorageInfo *sinfo) const {}
 
         template < typename StorageInfo,
-            typename boost::enable_if_c< (Coordinate < StorageInfo::layout_t::length), int >::type = 0 >
+            typename boost::enable_if_c< (Coordinate < StorageInfo::layout_t::masked_length), int >::type = 0 >
         GT_FUNCTION void operator()(const StorageInfo *sinfo) const {
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const StorageInfo * >::type::pos index_t;
@@ -370,11 +370,11 @@ namespace gridtools {
             : m_strides(strides), m_initial_pos(initial_pos), m_block(block), m_index_array(index_array) {}
 
         template < typename StorageInfo,
-            typename boost::enable_if_c< (Coordinate >= StorageInfo::layout_t::length), int >::type = 0 >
+            typename boost::enable_if_c< (Coordinate >= StorageInfo::layout_t::masked_length), int >::type = 0 >
         GT_FUNCTION void operator()(const StorageInfo *storage_info) const {}
 
         template < typename StorageInfo,
-            typename boost::enable_if_c< (Coordinate < StorageInfo::layout_t::length), int >::type = 0 >
+            typename boost::enable_if_c< (Coordinate < StorageInfo::layout_t::masked_length), int >::type = 0 >
         GT_FUNCTION void operator()(const StorageInfo *storage_info) const {
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const StorageInfo * >::type::pos index_t;
@@ -396,7 +396,7 @@ namespace gridtools {
                                                          : ((Coordinate == i_pos) ? PEBlockSize::i_size_t::value : 0)))
                     : m_initial_pos;
             constexpr int pos = StorageInfo::layout_t::template at< Coordinate >();
-            if (Coordinate < StorageInfo::layout_t::length && pos >= 0) {
+            if (Coordinate < StorageInfo::layout_t::masked_length && pos >= 0) {
                 auto stride = (max_t::value < 0)
                                   ? 0
                                   : ((pos == max_t::value) ? 1 : m_strides.template get< index_t::value >()[pos]);
@@ -504,7 +504,7 @@ namespace gridtools {
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
                 constexpr int pos = SInfo::layout_t::template find< Coordinate::value >();
                 GRIDTOOLS_STATIC_ASSERT(
-                    (pos < SInfo::layout_t::length),
+                    (pos < SInfo::layout_t::masked_length),
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
                 BackendType::template once_per_block< index_t::value, PEBlockSize >::assign(
@@ -636,11 +636,11 @@ namespace gridtools {
     };
 
     template < typename Max, typename StridesCached, typename Accessor, typename StorageInfo, unsigned N >
-    GT_FUNCTION constexpr typename boost::enable_if_c< (N < (StorageInfo::layout_t::length - 1)), int_t >::type
+    GT_FUNCTION constexpr typename boost::enable_if_c< (N < (StorageInfo::layout_t::masked_length - 1)), int_t >::type
     apply_accessor(StridesCached const &RESTRICT strides, Accessor const &RESTRICT acc) {
         typedef boost::mpl::int_< (StorageInfo::layout_t::template at< N >()) > val_t;
         static_assert(
-            (val_t::value == Max::value) || (N < StorageInfo::layout_t::length), "invalid stride array access");
+            (val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length), "invalid stride array access");
         typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == Max::value) > is_max_t;
         typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == -1) > is_masked_t;
         typedef typename boost::mpl::if_< is_array< Accessor >,
@@ -652,11 +652,11 @@ namespace gridtools {
     }
 
     template < typename Max, typename StridesCached, typename Accessor, typename StorageInfo, unsigned N >
-    GT_FUNCTION constexpr typename boost::enable_if_c< (N == (StorageInfo::layout_t::length - 1)), int_t >::type
+    GT_FUNCTION constexpr typename boost::enable_if_c< (N == (StorageInfo::layout_t::masked_length - 1)), int_t >::type
     apply_accessor(StridesCached const &RESTRICT strides, Accessor const &RESTRICT acc) {
         typedef boost::mpl::int_< (StorageInfo::layout_t::template at< N >()) > val_t;
         static_assert(
-            (val_t::value == Max::value) || (N < StorageInfo::layout_t::length), "invalid stride array access");
+            (val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length), "invalid stride array access");
         typedef boost::mpl::bool_< (val_t::value == Max::value) > is_max_t;
         typedef boost::mpl::bool_< (val_t::value == -1) > is_masked_t;
         typedef typename boost::mpl::if_< is_array< Accessor >,

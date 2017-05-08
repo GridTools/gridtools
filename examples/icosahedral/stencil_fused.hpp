@@ -119,10 +119,6 @@ namespace sf {
         auto ref_on_cells_tmp =
             icosahedral_grid.make_storage< icosahedral_topology_t::cells, double /* , halo<2,0,2,0> */ >(
                 "ref_on_cells_tmp");
-        in_edges.allocate();
-        out_cells.allocate();
-        ref_on_cells.allocate();
-        ref_on_cells_tmp.allocate();
 
         auto iev = make_host_view(in_edges);
         for (int i = 1; i < d1 - 1; ++i) {

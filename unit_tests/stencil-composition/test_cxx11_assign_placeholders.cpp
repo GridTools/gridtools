@@ -75,10 +75,6 @@ TEST(assign_placeholders, test) {
     data_store2_t out(meta_2);
     data_store2_t coeff(meta_2);
 
-    in.allocate();
-    out.allocate();
-    coeff.allocate();
-
     // Definition of placeholders. The order of them reflect the order the user will deal with them
     // especially the non-temporary ones, in the construction of the domain
     typedef tmp_arg< 0, data_store1_t > p_lap;
@@ -216,10 +212,6 @@ TEST(assign_placeholders, test) {
     data_store2_t out_new(meta_2_new);
     data_store2_t coeff_new(meta_2_new);
 
-    in_new.allocate();
-    out_new.allocate();
-    coeff_new.allocate();
-
     domain.reassign_storages_impl(out_new, in_new, coeff_new);
 
     // check pointers again
@@ -271,10 +263,6 @@ TEST(assign_placeholders, test) {
     data_store1_t in_new_2(meta_1_new);
     data_store2_t out_new_2(meta_2_new);
     data_store2_t coeff_new_2(meta_2_new);
-
-    in_new_2.allocate();
-    out_new_2.allocate();
-    coeff_new_2.allocate();
 
     domain.reassign_arg_storage_pairs_impl((p_coeff() = out_new_2), (p_out() = coeff_new_2), (p_in() = in_new_2));
 
