@@ -104,12 +104,15 @@ struct shallow_water_reference {
     }
 
     shallow_water_reference()
-        : solution_meta(DimI, DimJ, static_cast< uint_t >(1)), solution(solution_meta),
-          u(solution_meta, u_array, enumtype::ExternalCPU), v(solution_meta, v_array, enumtype::ExternalCPU),
-          h(solution_meta, h_array, enumtype::ExternalCPU), ux(solution_meta, ux_array, enumtype::ExternalCPU),
-          vx(solution_meta, vx_array, enumtype::ExternalCPU), hx(solution_meta, hx_array, enumtype::ExternalCPU),
-          uy(solution_meta, uy_array, enumtype::ExternalCPU), vy(solution_meta, vy_array, enumtype::ExternalCPU),
-          hy(solution_meta, hy_array, enumtype::ExternalCPU) {}
+        : solution_meta(DimI, DimJ, static_cast< uint_t >(1)), solution(solution_meta, "solution"),
+          u(solution_meta, u_array, enumtype::ExternalCPU, "u"), v(solution_meta, v_array, enumtype::ExternalCPU, "v"),
+          h(solution_meta, h_array, enumtype::ExternalCPU, "h"),
+          ux(solution_meta, ux_array, enumtype::ExternalCPU, "ux"),
+          vx(solution_meta, vx_array, enumtype::ExternalCPU, "vx"),
+          hx(solution_meta, hx_array, enumtype::ExternalCPU, "hx"),
+          uy(solution_meta, uy_array, enumtype::ExternalCPU, "uy"),
+          vy(solution_meta, vy_array, enumtype::ExternalCPU, "vy"),
+          hy(solution_meta, hy_array, enumtype::ExternalCPU, "hy") {}
 
     void setup() {
         for (uint_t i = 0; i < DimI; ++i)

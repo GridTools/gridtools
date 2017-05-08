@@ -80,7 +80,7 @@ namespace gridtools {
         using storage_info_t = typename storage_t::storage_info_t;
 
         // some more information
-        constexpr static uint_t storage_size = view_t::size;
+        constexpr static uint_t storage_size = view_t::view_size;
         constexpr static bool is_temporary = arg_t::is_temporary;
         constexpr static bool is_read_only = (view_t::mode == access_mode::ReadOnly);
 

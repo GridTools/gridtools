@@ -59,11 +59,11 @@ namespace vertical_advection {
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
             : m_storage_info(idim - (2 * halo_size), jdim - (2 * halo_size), kdim),
               m_scalar_storage_info(1, 1, 1), // fake 3D
-              utens_stage_(m_storage_info), utens_stage_ref_(m_storage_info), u_stage_(m_storage_info),
-              wcon_(m_storage_info), u_pos_(m_storage_info), utens_(m_storage_info), ipos_(m_storage_info),
-              jpos_(m_storage_info), kpos_(m_storage_info),
-              // dtr_stage_(0,0,0, -1, "dtr_stage"),
-              dtr_stage_(m_scalar_storage_info), halo_size_(halo_size), idim_(idim), jdim_(jdim), kdim_(kdim) {
+              utens_stage_(m_storage_info, "utens_stage"), utens_stage_ref_(m_storage_info, "u_stage_ref"),
+              u_stage_(m_storage_info, "u_stage"), wcon_(m_storage_info, "wcon"), u_pos_(m_storage_info, "upos"),
+              utens_(m_storage_info, "utens"), ipos_(m_storage_info, "ipos"), jpos_(m_storage_info, "jpos"),
+              kpos_(m_storage_info, "kpos"), dtr_stage_(m_scalar_storage_info, "dtr_stage"), halo_size_(halo_size),
+              idim_(idim), jdim_(jdim), kdim_(kdim) {
             init_field_to_value(utens_stage_, -1.);
             init_field_to_value(utens_stage_ref_, -1.);
             init_field_to_value(u_stage_, -1.);

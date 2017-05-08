@@ -800,7 +800,7 @@ namespace gridtools {
                     LocationType,
                     Selector >::apply(m_dims, extra_dims...);
             auto ameta = impl::get_storage_info_from_array< meta_storage_type >(metastorage_sizes);
-            return storage_t< LocationType, ValueType, Halo, Selector >(ameta);
+            return storage_t< LocationType, ValueType, Halo, Selector >(ameta, name);
         }
 
         template < typename LocationType >

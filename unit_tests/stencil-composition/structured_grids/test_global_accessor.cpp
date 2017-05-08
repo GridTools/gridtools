@@ -79,16 +79,7 @@ struct functor {
 
 TEST(test_global_accessor, boundary_conditions) {
     storage_info_t sinfo(10, 10, 10);
-    data_store_t sol_(sinfo);
-
-    auto solv = make_host_view(sol_);
-    for (unsigned i = 0; i < 10; ++i) {
-        for (unsigned j = 0; j < 10; ++j) {
-            for (unsigned k = 0; k < 10; ++k) {
-                solv(i, j, k) = 2.;
-            }
-        }
-    }
+    data_store_t sol_(sinfo, 2.);
 
     boundary bd(20);
 
@@ -114,7 +105,7 @@ TEST(test_global_accessor, boundary_conditions) {
     bc_eval->run();
     // fetch data and check
     sol_.sync();
-    sol_.reactivate_host_write_views();
+    auto solv = make_host_view(sol_);
     bool result = true;
     for (int i = 0; i < 10; ++i)
         for (int j = 0; j < 10; ++j)

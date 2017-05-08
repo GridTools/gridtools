@@ -95,8 +95,8 @@ namespace adv_prepare_tracers {
         std::vector< storage_t > list_in_;
 
         for (unsigned i = 0; i < vec_size; ++i) {
-            list_out_.push_back(storage_t(meta_data_, 0.0));
-            list_in_.push_back(storage_t(meta_data_, i));
+            list_out_.push_back(storage_t(meta_data_, 0.0, "in"));
+            list_in_.push_back(storage_t(meta_data_, i, "out"));
         }
 
         storage_t rho(meta_data_, 1.1);

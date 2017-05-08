@@ -225,23 +225,13 @@ class call_interface : public testing::Test {
 #else
           verifier_(1e-12),
 #endif
-          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}}, in(meta_, 0),
-          out(meta_, -5), reference_unchanged(meta_, -1), reference_shifted(meta_, -1), domain(in, out) {
+          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
+          in(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }), out(meta_, -5),
+          reference_unchanged(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }),
+          reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) + (j + 1) * 10 + k * 100; }),
+          domain(in, out) {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
-
-        auto in_v = make_host_view(in);
-        auto reference_unchanged_v = make_host_view(reference_unchanged);
-        auto reference_shifted_v = make_host_view(reference_shifted);
-        for (int i = 0; i < d1; ++i) {
-            for (int j = 0; j < d2; ++j) {
-                for (int k = 0; k < d3; ++k) {
-                    in_v(i, j, k) = i + j * 10 + k * 100;
-                    reference_unchanged_v(i, j, k) = i + j * 10 + k * 100;
-                    reference_shifted_v(i, j, k) = (i + 1) + (j + 1) * 10 + k * 100;
-                }
-            }
-        }
     }
 
     template < typename Computation >
@@ -447,24 +437,13 @@ class call_proc_interface : public testing::Test {
 #else
           verifier_(1e-12),
 #endif
-          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}}, in(meta_, 0),
-          out1(meta_, -5), out2(meta_, -5), reference_unchanged(meta_, -1), reference_shifted(meta_, -1),
+          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
+          in(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }), out1(meta_, -5), out2(meta_, -5),
+          reference_unchanged(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }),
+          reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) + (j + 1) * 10 + k * 100; }),
           domain(in, out1, out2) {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
-
-        auto in_v = make_host_view(in);
-        auto reference_unchanged_v = make_host_view(reference_unchanged);
-        auto reference_shifted_v = make_host_view(reference_shifted);
-        for (int i = 0; i < d1; ++i) {
-            for (int j = 0; j < d2; ++j) {
-                for (int k = 0; k < d3; ++k) {
-                    in_v(i, j, k) = i + j * 10 + k * 100;
-                    reference_unchanged_v(i, j, k) = i + j * 10 + k * 100;
-                    reference_shifted_v(i, j, k) = (i + 1) + (j + 1) * 10 + k * 100;
-                }
-            }
-        }
     }
 
     template < typename Computation >

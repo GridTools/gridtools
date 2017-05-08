@@ -134,21 +134,9 @@ int main(int argc, char **argv) {
     typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
-    meta_data_t meta_(d1-2, d2-2, d3-2);
-    storage_t in_s(meta_, -1);
-    storage_t out_s(meta_, -7);
-
-    auto in = make_host_view(in_s);
-    auto out = make_host_view(out_s);
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = i + j + k;
-                out(i, j, k) = 0;
-            }
-        }
-    }
+    meta_data_t meta_(d1 - 2, d2 - 2, d3 - 2);
+    storage_t in_s(meta_, [](int i, int j, int k) { return i + j + k; }, "in");
+    storage_t out_s(meta_, 0, "out");
 
     gridtools::array< gridtools::halo_descriptor, 3 > halos;
     halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
@@ -158,6 +146,9 @@ int main(int argc, char **argv) {
     // sync the data stores if needed
     in_s.sync();
     out_s.sync();
+
+    auto in = make_host_view(in_s);
+    auto out = make_host_view(out_s);
 
 #ifdef __CUDACC__
     auto dvin = make_device_view(in_s);

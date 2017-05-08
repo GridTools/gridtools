@@ -276,11 +276,11 @@ namespace ico_operators {
                 }
             }
             // reinitialize some fields to 0.0
-            m_curl_u_ref = decltype(m_curl_u_ref)(*m_curl_u_ref.get_storage_info_ptr(), 0.0);
-            m_div_u_ref = decltype(m_div_u_ref)(*m_div_u_ref.get_storage_info_ptr(), 0.0);
-            m_lap_ref = decltype(m_lap_ref)(*m_lap_ref.get_storage_info_ptr(), 0.0);
-            m_div_weights = decltype(m_div_weights)(*m_div_weights.get_storage_info_ptr(), 0.0);
-            m_grad_n_ref = decltype(m_grad_n_ref)(*m_grad_n_ref.get_storage_info_ptr(), 0.0);
+            m_curl_u_ref = vertex_storage_type(*m_curl_u_ref.get_storage_info_ptr(), 0.0);
+            m_div_u_ref = cell_storage_type(*m_div_u_ref.get_storage_info_ptr(), 0.0);
+            m_lap_ref = edge_storage_type(*m_lap_ref.get_storage_info_ptr(), 0.0);
+            m_div_weights = cells_4d_storage_type(*m_div_weights.get_storage_info_ptr(), 0.0);
+            m_grad_n_ref = edge_storage_type(*m_grad_n_ref.get_storage_info_ptr(), 0.0);
         }
 
         inline void generate_div_ref() {

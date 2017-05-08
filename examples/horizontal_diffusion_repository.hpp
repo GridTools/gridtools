@@ -91,10 +91,11 @@ namespace horizontal_diffusion {
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
             : m_storage_info_ijk(idim - (2 * halo_size), jdim - (2 * halo_size), kdim),
               m_storage_info_ij(idim - (2 * halo_size), jdim - (2 * halo_size), kdim), m_storage_info_j(1, jdim, 1),
-              m_storage_info_scalar(1, 1, 1), in_(m_storage_info_ijk), crlato_(m_storage_info_j),
-              crlatu_(m_storage_info_j), crlat0_(m_storage_info_j), crlat1_(m_storage_info_j), out_(m_storage_info_ijk),
-              out_ref_(m_storage_info_ijk), coeff_(m_storage_info_ijk), halo_size_(halo_size), idim_(idim), jdim_(jdim),
-              kdim_(kdim) {}
+              m_storage_info_scalar(1, 1, 1), in_(m_storage_info_ijk, "in"), crlato_(m_storage_info_j, "crlato"),
+              crlatu_(m_storage_info_j, "crlatu"), crlat0_(m_storage_info_j, "crlat0"),
+              crlat1_(m_storage_info_j, "crlat1"), out_(m_storage_info_ijk, "out"),
+              out_ref_(m_storage_info_ijk, "out_ref"), coeff_(m_storage_info_ijk, "coeff"), halo_size_(halo_size),
+              idim_(idim), jdim_(jdim), kdim_(kdim) {}
 
         void init_fields() {
             const double PI = std::atan(1.) * 4.;
@@ -145,7 +146,7 @@ namespace horizontal_diffusion {
         }
 
         template < typename TStorage_type, typename TValue_type >
-        void init_field_to_value(TStorage_type &field, TValue_type value) {
+        void init_field_to_value(TStorage_type field, TValue_type value) {
             const uint_t dim0 = (TStorage_type::storage_info_t::layout_t::template at< 0 >() == -1) ? 1 : idim_;
             const uint_t dim1 = (TStorage_type::storage_info_t::layout_t::template at< 1 >() == -1) ? 1 : jdim_;
             const uint_t dim2 = (TStorage_type::storage_info_t::layout_t::template at< 2 >() == -1) ? 1 : kdim_;
@@ -161,9 +162,9 @@ namespace horizontal_diffusion {
         }
 
         void generate_reference() {
-            ij_storage_type lap(m_storage_info_ij);
-            ij_storage_type flx(m_storage_info_ij);
-            ij_storage_type fly(m_storage_info_ij);
+            ij_storage_type lap(m_storage_info_ij, "lap");
+            ij_storage_type flx(m_storage_info_ij, "flx");
+            ij_storage_type fly(m_storage_info_ij, "fly");
 
             init_field_to_value(lap, 0.0);
 
@@ -211,7 +212,7 @@ namespace horizontal_diffusion {
         }
 
         void generate_reference_simple() {
-            ij_storage_type lap(m_storage_info_ij);
+            ij_storage_type lap(m_storage_info_ij, "lap");
 
             init_field_to_value(lap, 0.0);
 

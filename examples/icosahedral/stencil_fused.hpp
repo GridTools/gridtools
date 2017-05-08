@@ -120,6 +120,11 @@ namespace sf {
             icosahedral_grid.make_storage< icosahedral_topology_t::cells, double /* , halo<2,0,2,0> */ >(
                 "ref_on_cells_tmp");
 
+        typedef decltype(in_edges) in_edges_storage_t;
+        typedef decltype(out_cells) out_cells_storage_t;
+        typedef decltype(ref_on_cells_tmp) ref_on_cells_tmp_storage_t;
+        typedef decltype(ref_on_cells) ref_on_cells_storage_t;
+
         auto iev = make_host_view(in_edges);
         for (int i = 1; i < d1 - 1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
@@ -131,9 +136,9 @@ namespace sf {
             }
         }
 
-        out_cells = decltype(out_cells)(*out_cells.get_storage_info_ptr(), 0.0);
-        ref_on_cells = decltype(ref_on_cells)(*ref_on_cells.get_storage_info_ptr(), 0.0);
-        ref_on_cells_tmp = decltype(ref_on_cells_tmp)(*ref_on_cells_tmp.get_storage_info_ptr(), 0.0);
+        out_cells = out_cells_storage_t(*out_cells.get_storage_info_ptr(), 0.0);
+        ref_on_cells = ref_on_cells_storage_t(*ref_on_cells.get_storage_info_ptr(), 0.0);
+        ref_on_cells_tmp = ref_on_cells_tmp_storage_t(*ref_on_cells_tmp.get_storage_info_ptr(), 0.0);
         auto roctv = make_host_view(ref_on_cells_tmp);
         auto ocv = make_host_view(out_cells);
         auto rocv = make_host_view(ref_on_cells);

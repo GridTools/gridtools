@@ -101,18 +101,8 @@ namespace copy_stencil {
         storage_info_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
-        data_store_t in(meta_data_);
-        data_store_t out(meta_data_);
-
-        auto in_v = make_host_view(in);
-        auto out_v = make_host_view(out);
-
-        for (uint_t i = 0; i < d1; ++i)
-            for (uint_t j = 0; j < d2; ++j)
-                for (uint_t k = 0; k < d3; ++k) {
-                    in_v(i, j, k) = i + j + k;
-                    out_v(i, j, k) = -1.0;
-                }
+        data_store_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
+        data_store_t out(meta_data_, -1.0, "out");
 
         typedef arg< 0, data_store_t > p_in;
         typedef arg< 1, data_store_t > p_out;
@@ -147,6 +137,12 @@ namespace copy_stencil {
 
         out.sync();
         in.sync();
+
+        auto in_v = make_host_view(in);
+        auto out_v = make_host_view(out);
+        // check consistency
+        assert(check_consistency(in, in_v) && "view cannot be used safely.");
+        assert(check_consistency(out, out_v) && "view cannot be used safely.");
 
         bool success = true;
         if (verify) {

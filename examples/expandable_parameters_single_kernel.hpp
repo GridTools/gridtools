@@ -118,23 +118,23 @@ namespace test_expandable_parameters {
 
         meta_data_t meta_data_(d1, d2, d3);
 
-        storage_t storage1(meta_data_, 1.);
-        storage_t storage2(meta_data_, 2.);
-        storage_t storage3(meta_data_, 3.);
-        storage_t storage4(meta_data_, 4.);
-        storage_t storage5(meta_data_, 5.);
-        storage_t storage6(meta_data_, 6.);
-        storage_t storage7(meta_data_, 7.);
-        storage_t storage8(meta_data_, 8.);
+        storage_t storage1(meta_data_, 1., "storage1");
+        storage_t storage2(meta_data_, 2., "storage2");
+        storage_t storage3(meta_data_, 3., "storage3");
+        storage_t storage4(meta_data_, 4., "storage4");
+        storage_t storage5(meta_data_, 5., "storage5");
+        storage_t storage6(meta_data_, 6., "storage6");
+        storage_t storage7(meta_data_, 7., "storage7");
+        storage_t storage8(meta_data_, 8., "storage8");
 
-        storage_t storage10(meta_data_, -1.);
-        storage_t storage20(meta_data_, -2.);
-        storage_t storage30(meta_data_, -3.);
-        storage_t storage40(meta_data_, -4.);
-        storage_t storage50(meta_data_, -5.);
-        storage_t storage60(meta_data_, -6.);
-        storage_t storage70(meta_data_, -7.);
-        storage_t storage80(meta_data_, -8.);
+        storage_t storage10(meta_data_, -1., "storage10");
+        storage_t storage20(meta_data_, -2., "storage20");
+        storage_t storage30(meta_data_, -3., "storage30");
+        storage_t storage40(meta_data_, -4., "storage40");
+        storage_t storage50(meta_data_, -5., "storage50");
+        storage_t storage60(meta_data_, -6., "storage60");
+        storage_t storage70(meta_data_, -7., "storage70");
+        storage_t storage80(meta_data_, -8., "storage80");
 
         std::vector< storage_t > list_out_ = {
             storage1, storage2, storage3, storage4, storage5, storage6, storage7, storage8};
@@ -264,6 +264,8 @@ namespace test_expandable_parameters {
         for (uint_t l = 0; l < list_in_.size(); ++l) {
             auto inv = make_host_view(list_in_[l]);
             auto outv = make_host_view(list_out_[l]);
+            assert(check_consistency(list_out_[l], outv) && "view cannot be used safely.");
+            assert(check_consistency(list_in_[l], inv) && "view cannot be used safely.");
             for (uint_t i = 0; i < d1; ++i)
                 for (uint_t j = 0; j < d2; ++j)
                     for (uint_t k = 0; k < d3; ++k) {

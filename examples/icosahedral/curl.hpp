@@ -87,7 +87,7 @@ namespace ico_operators {
                                               selector< 1, 1, 1, 1, 1 > >("weights", 6));
         edges_of_vertices_storage_type &edge_orientation = repo.edge_orientation();
 
-        curl_weights = decltype(curl_weights)(*curl_weights.get_storage_info_ptr(), 0.0);
+        curl_weights = vertices_4d_storage_type(*curl_weights.get_storage_info_ptr(), 0.0);
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};

@@ -411,7 +411,7 @@ namespace shallow_water {
 
         //! [parallel_storage]
         parallel_storage_info< storage_info_t, partitioner_t > meta_(part, d1, d2, d3);
-        sol_type sol(meta_.get_metadata());
+        sol_type sol(meta_.get_metadata(), "sol");
         // sol_type tmpx(meta_.get_metadata(), "tmpx");
         // sol_type tmpy(meta_.get_metadata(), "tmpy");
         //! [parallel_storage]
