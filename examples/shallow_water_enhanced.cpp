@@ -38,6 +38,12 @@
 
 int main(int argc, char **argv) {
 
+#ifdef _USE_GPU_
+#ifdef _GCL_MPI_
+    device_binding();
+#endif
+#endif
+
     // if (argc != 5) {
     //     std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz timesteps\n where args are integer sizes of the "
     //                  "data fields and the number of timesteps performed"

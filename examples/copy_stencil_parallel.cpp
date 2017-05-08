@@ -38,6 +38,10 @@
 
 int main(int argc, char **argv) {
 
+#ifdef _USE_GPU_
+    device_binding();
+#endif
+
     // if (argc != 4) {
     //     std::cout << "Usage: copy_stencil_parallel_<whatever> dimx dimy dimz\n where args are integer sizes of the "
     //                  "data fields"

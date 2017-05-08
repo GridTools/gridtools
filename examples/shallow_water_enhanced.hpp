@@ -59,6 +59,11 @@
 
 #include <tools/verifier.hpp>
 #include "shallow_water_reference.hpp"
+
+#include "../unit_tests/communication/check_flags.hpp"
+#include "../unit_tests/communication/mpi_listener.hpp"
+#include "../unit_tests/communication/device_binding.hpp"
+
 // [includes]
 
 // [backend]
