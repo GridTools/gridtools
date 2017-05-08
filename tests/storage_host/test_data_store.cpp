@@ -167,9 +167,58 @@ TEST(DataStoreTest, Initializer) {
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
 }
 
+TEST(DataStoreTest, LambdaInitializer) {
+    storage_info_t si(10, 11, 12);
+    data_store< host_storage< double >, storage_info_t > ds(si, [](int i, int j, int k) { return i + j + k; });
+    for (unsigned i = 0; i < 10; ++i)
+        for (unsigned j = 0; j < 11; ++j)
+            for (unsigned k = 0; k < 12; ++k)
+                EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), (i + j + k));
+}
+
+TEST(DataStoreTest, Naming) {
+    storage_info_t si(10, 11, 12);
+    // no naming
+    data_store< host_storage< double >, storage_info_t > ds1_nn;
+    data_store< host_storage< double >, storage_info_t > ds2_nn(si);
+    data_store< host_storage< double >, storage_info_t > ds3_nn(si, 1.0);
+    data_store< host_storage< double >, storage_info_t > ds4_nn(si, [](int i, int j, int k) { return i + j + k; });
+    EXPECT_EQ(ds1_nn.name(), "");
+    EXPECT_EQ(ds2_nn.name(), "");
+    EXPECT_EQ(ds3_nn.name(), "");
+    EXPECT_EQ(ds4_nn.name(), "");
+
+    // test naming
+    data_store< host_storage< double >, storage_info_t > ds1("empty storage");
+    data_store< host_storage< double >, storage_info_t > ds2(si, "standard storage");
+    data_store< host_storage< double >, storage_info_t > ds3(si, 1.0, "value init. storage");
+    data_store< host_storage< double >, storage_info_t > ds4(
+        si, [](int i, int j, int k) { return i + j + k; }, "lambda init. storage");
+    EXPECT_EQ(ds1.name(), "empty storage");
+    EXPECT_EQ(ds2.name(), "standard storage");
+    EXPECT_EQ(ds3.name(), "value init. storage");
+    EXPECT_EQ(ds4.name(), "lambda init. storage");
+
+    // create a copy and see if still ok
+    auto ds2_tmp = ds2;
+    EXPECT_EQ(ds2_tmp.name(), "standard storage");
+    ds1 = ds3;
+    EXPECT_EQ(ds1.name(), "value init. storage");
+    EXPECT_EQ(ds3.name(), "value init. storage");
+}
+
 TEST(DataStoreTest, InvalidSize) {
     EXPECT_THROW(storage_info_t(128, 128, 0), std::runtime_error);
     EXPECT_THROW(storage_info_t(-128, 128, 80), std::runtime_error);
+}
+
+TEST(DataStoreTest, DimAndSizeInterface) {
+    storage_info_t si(128, 128, 80);
+    data_store< host_storage< double >, storage_info_t > ds(si, 3.1415);
+    ASSERT_TRUE((ds.size() == si.size()));
+    ASSERT_TRUE((ds.dim< 0 >() == si.dim< 0 >()));
+    ASSERT_TRUE((ds.dim< 1 >() == si.dim< 1 >()));
+    ASSERT_TRUE((ds.dim< 2 >() == si.dim< 2 >()));
 }
 
 TEST(DataStoreTest, ExternalPointer) {
