@@ -477,11 +477,9 @@ namespace shallow_water {
 
         uint_t halo_size = 1;
         //! [add_halo]
-        he.add_halo< 0 >(halo_descriptor(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1));
-        he.add_halo< 1 >(halo_descriptor(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2));
-        he.add_halo< 2 >(halo_descriptor(0, 0, d3, d2 - 1, d3));
-        // he.add_halo< 1 >(meta_.get_halo_gcl< 1 >());
-        // he.add_halo< 2 >(meta_.get_halo_gcl< 2 >());
+        he.add_halo< 0 >(meta_.get_halo_gcl< 0 >());
+        he.add_halo< 1 >(meta_.get_halo_gcl< 1 >());
+        he.add_halo< 2 >(meta_.get_halo_gcl< 2 >());
 
         he.setup(3);
 //! [add_halo]
