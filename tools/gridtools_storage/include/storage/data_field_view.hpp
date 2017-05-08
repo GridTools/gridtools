@@ -59,12 +59,12 @@ namespace gridtools {
         typedef typename DataStoreField::data_t data_t;
         typedef typename DataStoreField::state_machine_t state_machine_t;
         typedef typename DataStoreField::storage_info_t storage_info_t;
-        static const unsigned size = DataStoreField::size;
+        static const unsigned view_size = DataStoreField::size;
         static const unsigned Dims = DataStoreField::dims;
         const static access_mode mode = AccessMode;
 
-        data_t *m_raw_ptrs[size];
-        state_machine_t *m_state_machines[size];
+        data_t *m_raw_ptrs[view_size];
+        state_machine_t *m_state_machines[view_size];
         storage_info_t const *m_storage_infos[Dims];
         unsigned m_offsets[Dims];
         bool m_device_view;
@@ -83,17 +83,17 @@ namespace gridtools {
          * @param offsets list of accumulated offsets (e.g., coordinate sizes 1,2,3 will result in offsets 0, 1, 3)
          * @param device_view true if device view, false otherwise
          */
-        data_field_view(data_t *data_ptrs[size],
+        data_field_view(data_t *data_ptrs[view_size],
             storage_info_t const *info_ptrs[Dims],
-            state_machine_t *state_machines[size],
+            state_machine_t *state_machines[view_size],
             unsigned offsets[Dims],
             bool device_view)
             : m_device_view(device_view) {
-            for (unsigned i = 0; i < size; ++i)
+            for (unsigned i = 0; i < view_size; ++i)
                 m_raw_ptrs[i] = data_ptrs[i];
             for (unsigned i = 0; i < Dims; ++i)
                 m_storage_infos[i] = info_ptrs[i];
-            for (unsigned i = 0; i < size; ++i)
+            for (unsigned i = 0; i < view_size; ++i)
                 m_state_machines[i] = state_machines[i];
             for (unsigned i = 0; i < Dims; ++i)
                 m_offsets[i] = offsets[i];
