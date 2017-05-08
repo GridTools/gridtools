@@ -146,7 +146,7 @@ namespace gridtools {
 
       private:
         // private members
-        DomainType const &m_domain_full;
+        DomainType const m_domain_full;
         std::unique_ptr< aggregator_type< expand_arg_list > > m_domain_chunk;
         std::unique_ptr< aggregator_type< expand_arg_list_remainder > > m_domain_chunk_remainder;
         std::unique_ptr< intermediate_t > m_intermediate;
