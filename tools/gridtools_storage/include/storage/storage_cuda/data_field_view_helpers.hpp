@@ -61,19 +61,19 @@ namespace gridtools {
                                    is_data_store_field< DecayedDSF > >,
         data_field_view< DecayedDSF, AccessMode > >::type
     make_field_host_view(DataStoreField &ds) {
-        typename DecayedDSF::data_t *ptrs[DecayedDSF::size];
-        typename DecayedDSF::state_machine_t *state_ptrs[DecayedDSF::size];
-        typename DecayedDSF::storage_info_t const *info_ptrs[DecayedDSF::dims];
-        unsigned offsets[DecayedDSF::dims] = {
+        typename DecayedDSF::data_t *ptrs[DecayedDSF::num_of_storages];
+        typename DecayedDSF::state_machine_t *state_ptrs[DecayedDSF::num_of_storages];
+        typename DecayedDSF::storage_info_t const *info_ptrs[DecayedDSF::num_of_components];
+        unsigned offsets[DecayedDSF::num_of_components] = {
             0,
         };
-        for (unsigned i = 1; i < DecayedDSF::dims; ++i) {
+        for (unsigned i = 1; i < DecayedDSF::num_of_components; ++i) {
             offsets[i] = offsets[i - 1] + ds.get_dim_sizes()[i - 1];
         }
-        for (unsigned i = 0; i < DecayedDSF::dims; ++i) {
+        for (unsigned i = 0; i < DecayedDSF::num_of_components; ++i) {
             info_ptrs[i] = ds.get_field()[offsets[i]].get_storage_info_ptr();
         }
-        for (unsigned i = 0; i < DecayedDSF::size; ++i) {
+        for (unsigned i = 0; i < DecayedDSF::num_of_storages; ++i) {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_cpu_ptr();
             state_ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr();
             if (AccessMode != access_mode::ReadOnly) {
@@ -100,19 +100,19 @@ namespace gridtools {
                                    is_data_store_field< DecayedDSF > >,
         data_field_view< DecayedDSF, AccessMode > >::type
     make_field_device_view(DataStoreField &ds) {
-        typename DecayedDSF::data_t *ptrs[DecayedDSF::size];
-        typename DecayedDSF::state_machine_t *state_ptrs[DecayedDSF::size];
-        typename DecayedDSF::storage_info_t const *info_ptrs[DecayedDSF::dims];
-        unsigned offsets[DecayedDSF::dims] = {
+        typename DecayedDSF::data_t *ptrs[DecayedDSF::num_of_storages];
+        typename DecayedDSF::state_machine_t *state_ptrs[DecayedDSF::num_of_storages];
+        typename DecayedDSF::storage_info_t const *info_ptrs[DecayedDSF::num_of_components];
+        unsigned offsets[DecayedDSF::num_of_components] = {
             0,
         };
-        for (unsigned i = 1; i < DecayedDSF::dims; ++i) {
+        for (unsigned i = 1; i < DecayedDSF::num_of_components; ++i) {
             offsets[i] = offsets[i - 1] + ds.get_dim_sizes()[i - 1];
         }
-        for (unsigned i = 0; i < DecayedDSF::dims; ++i) {
+        for (unsigned i = 0; i < DecayedDSF::num_of_components; ++i) {
             info_ptrs[i] = ds.get_field()[offsets[i]].get_storage_info_ptr()->get_gpu_ptr();
         }
-        for (unsigned i = 0; i < DecayedDSF::size; ++i) {
+        for (unsigned i = 0; i < DecayedDSF::num_of_storages; ++i) {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_gpu_ptr();
             state_ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr();
             if (AccessMode != access_mode::ReadOnly) {
@@ -143,7 +143,7 @@ namespace gridtools {
         static_assert(is_data_field_view< DecayedDFV >::value, "Passed type is no data_field_view type");
         bool res = true;
         unsigned i = 0;
-        for (unsigned dim = 0; dim < DecayedDSF::dims; ++dim) {
+        for (unsigned dim = 0; dim < DecayedDSF::num_of_components; ++dim) {
             for (unsigned pos = 0; pos < ds.get_dim_sizes()[dim]; ++pos) {
                 res &= check_consistency(ds.get_field()[i], dv.get(dim, pos));
                 i++;

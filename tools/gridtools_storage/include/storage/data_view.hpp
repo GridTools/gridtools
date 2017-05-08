@@ -61,7 +61,7 @@ namespace gridtools {
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
         const static access_mode mode = AccessMode;
-        const static unsigned view_size = 1;
+        const static unsigned num_of_storages = 1;
 
         data_t *m_raw_ptrs[1];
         state_machine_t *m_state_machine_ptr;

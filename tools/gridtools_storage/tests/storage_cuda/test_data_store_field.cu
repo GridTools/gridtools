@@ -156,7 +156,7 @@ TEST(DataStoreFieldTest, GetSet) {
     ASSERT_DEATH((f.set< 0, 0 >(ds1)), "Passed invalid data store.");
     ds1.allocate(si1);
     ASSERT_DEATH((f.set< 0, 0 >(ds1)),
-        "Passed data store cannot be inserted into data store field because storage infos are not compatible.");
+        "Passed data store cannot be inserted into data store field because storage infos.*");
 #endif
 
     // get a storage and compare ptrs
