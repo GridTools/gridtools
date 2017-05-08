@@ -55,7 +55,7 @@
 #include "../../storage/expandable_parameters.hpp"
 #endif
 
-#ifdef CUDA8
+#ifdef CXX11_ENABLED
 #include "iterate_domain_cxx11.hpp"
 #else
 #include "iterate_domain_cxx03.hpp"
