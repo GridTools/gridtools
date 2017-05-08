@@ -60,7 +60,7 @@ namespace gridtools {
 
         typedef typename boost::mpl::fold< storages_wrappers_t,
             boost::mpl::int_< 0 >,
-            boost::mpl::plus< boost::mpl::_1, storage_size_from_storage_wrapper< boost::mpl::_2 > > >::type type;
+            boost::mpl::plus< boost::mpl::_1, num_of_storages_from_storage_wrapper< boost::mpl::_2 > > >::type type;
 
         static const uint_t value = type::value;
 

@@ -391,7 +391,7 @@ namespace gridtools {
 
             const int_t idx = get_datafield_offset< storage_t >::get(accessor);
 #ifdef CUDA8
-            assert(idx < storage_t::size && "Out of bounds access when accessing data store field element.");
+            assert(idx < storage_t::num_of_storages && "Out of bounds access when accessing data store field element.");
 #endif
             return data_pointer().template get< index_t::value >()[idx];
         }

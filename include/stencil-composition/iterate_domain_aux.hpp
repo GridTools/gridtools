@@ -59,12 +59,13 @@
 #endif
 #include "../common/array.hpp"
 #include "../common/meta_array.hpp"
-#include "common/generic_metafunctions/reversed_range.hpp"
-#include "common/generic_metafunctions/static_if.hpp"
-#include "stencil-composition/total_storages.hpp"
+#include "../common/generic_metafunctions/reversed_range.hpp"
+#include "../common/generic_metafunctions/static_if.hpp"
+#include "total_storages.hpp"
 #include "run_functor_arguments_fwd.hpp"
 #include "run_functor_arguments.hpp"
 #include "arg_metafunctions.hpp"
+#include "offset_computation.hpp"
 
 /**
    @file
@@ -91,7 +92,7 @@ namespace gridtools {
     struct data_ptr_cached : data_ptr_cached< StorageWrapperList, I - 1 > {
         typedef data_ptr_cached< StorageWrapperList, I - 1 > super;
         typedef typename boost::mpl::at_c< StorageWrapperList, I >::type storage_wrapper_t;
-        typedef void *data_ptr_t[storage_wrapper_t::storage_size];
+        typedef void *data_ptr_t[storage_wrapper_t::num_of_storages];
 
         constexpr static int index = I;
 
@@ -116,7 +117,7 @@ namespace gridtools {
     template < typename StorageWrapperList >
     struct data_ptr_cached< StorageWrapperList, 0 > {
         typedef typename boost::mpl::at_c< StorageWrapperList, 0 >::type storage_wrapper_t;
-        typedef void *data_ptr_t[storage_wrapper_t::storage_size];
+        typedef void *data_ptr_t[storage_wrapper_t::num_of_storages];
 
         constexpr static int index = 0;
 
@@ -453,7 +454,7 @@ namespace gridtools {
                 typename storage_wrapper_t::arg_t,
                 max_extent_t,
                 GridTraits >(boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
-            for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i) {
+            for (unsigned i = 0; i < storage_wrapper_t::num_of_storages; ++i) {
                 BackendTraits::template once_per_block< pos_in_storage_wrapper_list_t::value, PEBlockSize >::assign(
                     m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i], sw.second[i] + offset);
             }
@@ -633,47 +634,6 @@ namespace gridtools {
         typedef typename boost::mpl::if_< is_accessor_readonly< acc_t >,
             typename boost::add_const< accessor_value_type >::type,
             typename boost::add_reference< accessor_value_type >::type RESTRICT >::type type;
-    };
-
-    template < typename Max, typename StridesCached, typename Accessor, typename StorageInfo, unsigned N >
-    GT_FUNCTION constexpr typename boost::enable_if_c< (N < (StorageInfo::layout_t::masked_length - 1)), int_t >::type
-    apply_accessor(StridesCached const &RESTRICT strides, Accessor const &RESTRICT acc) {
-        typedef boost::mpl::int_< (StorageInfo::layout_t::template at< N >()) > val_t;
-        static_assert(
-            (val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length), "invalid stride array access");
-        typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == Max::value) > is_max_t;
-        typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == -1) > is_masked_t;
-        typedef typename boost::mpl::if_< is_array< Accessor >,
-            boost::mpl::int_< N >,
-            boost::mpl::int_< ((Accessor::n_dimensions - 1) - N) > >::type offset_t;
-        return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
-                   acc.template get< offset_t::value >() +
-               apply_accessor< Max, StridesCached, Accessor, StorageInfo, N + 1 >(strides, acc);
-    }
-
-    template < typename Max, typename StridesCached, typename Accessor, typename StorageInfo, unsigned N >
-    GT_FUNCTION constexpr typename boost::enable_if_c< (N == (StorageInfo::layout_t::masked_length - 1)), int_t >::type
-    apply_accessor(StridesCached const &RESTRICT strides, Accessor const &RESTRICT acc) {
-        typedef boost::mpl::int_< (StorageInfo::layout_t::template at< N >()) > val_t;
-        static_assert(
-            (val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length), "invalid stride array access");
-        typedef boost::mpl::bool_< (val_t::value == Max::value) > is_max_t;
-        typedef boost::mpl::bool_< (val_t::value == -1) > is_masked_t;
-        typedef typename boost::mpl::if_< is_array< Accessor >,
-            boost::mpl::int_< N >,
-            boost::mpl::int_< ((Accessor::n_dimensions - 1) - N) > >::type offset_t;
-        return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
-               acc.template get< offset_t::value >();
-    }
-
-    // pointer offset computation
-    template < typename StorageInfo, typename Accessor, typename StridesCached >
-    GT_FUNCTION constexpr int_t compute_offset(
-        StridesCached const &RESTRICT strides_cached, Accessor const &RESTRICT acc) {
-        // get the max coordinate of given StorageInfo
-        typedef typename boost::mpl::deref< typename boost::mpl::max_element<
-            typename StorageInfo::layout_t::static_layout_vector >::type >::type max_t;
-        return apply_accessor< max_t, StridesCached, Accessor, StorageInfo, 0 >(strides_cached, acc);
     };
 
 } // namespace gridtools

@@ -134,13 +134,12 @@ namespace gridtools {
                     boost::add_pointer< boost::add_const<
                         storage_info_from_storage_wrapper< boost::mpl::_2 > > > > > >::type storage_info_ptr_list;
 
-        typedef
-            typename boost::mpl::fold< StorageWrapperList,
-                boost::mpl::map0<>,
-                boost::mpl::insert< boost::mpl::_1,
-                                           boost::mpl::pair< storage_info_from_storage_wrapper< boost::mpl::_2 >,
-                                               temporary_info_from_storage_wrapper< boost::mpl::_2 > > > >::type
-                storage_info_tmp_info_t;
+        typedef typename boost::mpl::fold< StorageWrapperList,
+            boost::mpl::map0<>,
+            boost::mpl::insert< boost::mpl::_1,
+                                               boost::mpl::pair< storage_info_from_storage_wrapper< boost::mpl::_2 >,
+                                                   temporary_info_from_storage_wrapper< boost::mpl::_2 > > > >::type
+            storage_info_tmp_info_t;
 
         typedef typename boost::fusion::result_of::as_map<
             typename boost::fusion::result_of::as_vector< arg_to_data_ptr_map_t >::type >::type data_ptr_fusion_map;
@@ -195,7 +194,7 @@ namespace gridtools {
                 typedef typename storage_wrapper_elem< typename boost::fusion::result_of::first< T >::type,
                     storage_wrapper_list_t >::type storage_wrapper_t;
                 out_s << "arg_index: " << arg_index_from_storage_wrapper< storage_wrapper_t >::value << std::endl;
-                for (unsigned i = 0; i < storage_wrapper_t::storage_size; ++i)
+                for (unsigned i = 0; i < storage_wrapper_t::num_of_storages; ++i)
                     out_s << e.second[i] << "\t";
                 out_s << "\n\n";
             }
