@@ -56,6 +56,13 @@ TEST(DataViewTest, Simple) {
     static_assert(is_data_view< decltype(dv) >::value, "is_data_view check failed");
     dv(0, 0, 0) = 50;
     dv(0, 0, 1) = 60;
+
+    // check if dim interface works
+    ASSERT_TRUE((si.dim< 0 >() == dv.dim< 0 >()));
+    ASSERT_TRUE((si.dim< 1 >() == dv.dim< 1 >()));
+    ASSERT_TRUE((si.dim< 2 >() == dv.dim< 2 >()));
+    ASSERT_TRUE((si.size() == dv.size()));
+
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
     EXPECT_EQ(dv(0, 0, 1), 60);

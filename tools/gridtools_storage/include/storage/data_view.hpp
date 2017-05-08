@@ -61,7 +61,7 @@ namespace gridtools {
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
         const static access_mode mode = AccessMode;
-        const static unsigned size = 1;
+        const static unsigned view_size = 1;
 
         data_t *m_raw_ptrs[1];
         state_machine_t *m_state_machine_ptr;
@@ -97,10 +97,23 @@ namespace gridtools {
         template < typename... Coords >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(Coords... c) const {
-            static_assert(
-                boost::mpl::and_< boost::mpl::int_< sizeof...(Coords) >, is_all_integral< Coords... > >::value,
+            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Coords) >,
+                              typename is_all_integral< Coords... >::type >::value,
                 "Index arguments have to be integral types.");
             return m_raw_ptrs[0][m_storage_info->index(c...)];
+        }
+
+        /**
+         * @brief operator() is used to access elements. E.g., view({0,0,2}) will return the third element.
+         * @param arr array of indices
+         * @return reference to the queried value
+         */
+        template < typename T, unsigned N >
+        typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
+        operator()(std::array< T, N > const &arr) const {
+            static_assert(boost::mpl::and_< boost::mpl::int_< N >, typename is_all_integral< T >::type >::value,
+                "Index arguments have to be integral types.");
+            return m_raw_ptrs[0][m_storage_info->index(arr)];
         }
 
         /**
@@ -123,6 +136,22 @@ namespace gridtools {
             return m_device_view ? ((m_state_machine_ptr->m_hnu) && !(m_state_machine_ptr->m_dnu))
                                  : (!(m_state_machine_ptr->m_hnu) && (m_state_machine_ptr->m_dnu));
         }
+
+        /*
+         * @brief function to retrieve the (aligned) size of a dimension (e.g., I, J, or K).
+         * @tparam Coord queried coordinate
+         * @return size of dimension
+         */
+        template < int Coord >
+        GT_FUNCTION constexpr int dim() const {
+            return m_storage_info->template dim< Coord >();
+        }
+
+        /*
+         * @brief member function to retrieve the total size (dimensions, halos, initial_offset).
+         * @return total size
+         */
+        GT_FUNCTION constexpr int size() const { return m_storage_info->size(); }
     };
 
     template < typename T >

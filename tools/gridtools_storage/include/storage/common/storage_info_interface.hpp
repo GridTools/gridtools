@@ -166,6 +166,34 @@ namespace gridtools {
         }
 
         /*
+         * @brief helper function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc (base
+         * case).
+         * @tparam Args pack of integers
+         * @param idx given offset array
+         * @param indices pack of offsets
+         * @return index
+         */
+        template < typename... Args >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) == layout_t::masked_length), int >::type
+        index_part(std::array< int, layout_t::masked_length > const &idx, Args... indices) const {
+            return index(indices...);
+        }
+
+        /*
+         * @brief helper function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc (step
+         * case).
+         * @tparam Args pack of integers
+         * @param idx given offset array
+         * @param indices pack of offsets
+         * @return index
+         */
+        template < typename... Args >
+        GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) < layout_t::masked_length), int >::type
+        index_part(std::array< int, layout_t::masked_length > const &idx, Args... indices) const {
+            return index_part(idx, indices..., idx[sizeof...(Args)]);
+        }
+
+        /*
          * @brief Helper function to calculate the total storage size (step case)
          * @return total storage size
          */
@@ -191,7 +219,7 @@ namespace gridtools {
          * region is added to the corresponding dimensions and the alignment is applied.
          */
         template < typename... Dims >
-        constexpr storage_info_interface(Dims... dims_)
+        explicit constexpr storage_info_interface(Dims... dims_)
             : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                   extend_by_halo< Halos, LayoutArgs >::extend(dims_))...},
               m_strides(get_strides< layout_t >::get_stride_array(
@@ -200,7 +228,8 @@ namespace gridtools {
               m_alignment(nano_array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(
                               dims_)...},
                   get_strides< layout_t >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
-            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Dims) >, is_all_integral< Dims... > >::value,
+            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Dims) >,
+                              typename is_all_integral< Dims... >::type >::value,
                 "Dimensions have to be integral types.");
             static_assert((sizeof...(Dims) == layout_t::masked_length),
                 "Number of passed dimensions do not match the layout map length.");
@@ -279,8 +308,10 @@ namespace gridtools {
          * @return index
          */
         template < typename... Ints >
-        GT_FUNCTION constexpr int index(Ints... idx) const {
-            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Ints) >, is_all_integral< Ints... > >::value,
+        GT_FUNCTION constexpr
+            typename boost::enable_if< typename is_all_integral< Ints... >::type, int >::type index(Ints... idx) const {
+            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Ints) >,
+                              typename is_all_integral< Ints... >::type >::value,
                 "Dimensions have to be integral types.");
             static_assert(
                 sizeof...(Ints) == layout_t::masked_length, "Index function called with wrong number of arguments.");
@@ -290,6 +321,16 @@ namespace gridtools {
             return (check_bounds< 0 >(idx...)) ? index_part< 0 >(idx...) + get_initial_offset()
                                                : error::trigger("Storage out of bounds access");
 #endif
+        }
+
+        /*
+         * @brief member function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc.
+         * E.g., index(1,2,3) --> 1*strideI + 2*strideJ + 3*strideK + initial_offset
+         * @param offsets given offset array
+         * @return index
+         */
+        GT_FUNCTION constexpr int index(std::array< int, layout_t::masked_length > const &offsets) const {
+            return index_part(offsets);
         }
 
         /*

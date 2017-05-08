@@ -178,7 +178,8 @@ namespace gridtools {
     struct get_strides< layout_map< LayoutArgs... > > {
         template < typename... Dims >
         static constexpr nano_array< unsigned, sizeof...(LayoutArgs) > get_stride_array(Dims... d) {
-            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Dims) >, is_all_integral< Dims... > >::value,
+            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Dims) >,
+                              typename is_all_integral< Dims... >::type >::value,
                 "Dimensions have to be integral types.");
             typedef layout_map< LayoutArgs... > Layout;
             return (nano_array< unsigned, Layout::masked_length >){
