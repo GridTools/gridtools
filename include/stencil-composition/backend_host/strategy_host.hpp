@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -64,9 +64,9 @@ namespace gridtools {
         template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
             typedef boost::mpl::range_c< uint_t,
                 0,
@@ -74,7 +74,7 @@ namespace gridtools {
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 boost::mpl::for_each< iter_range >(
                     mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(
@@ -89,7 +89,7 @@ namespace gridtools {
          */
         template < typename RunFunctorArgs >
         struct mss_loop {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
             template < typename LocalDomain, typename Grid, typename ReductionData >
             static void run(const LocalDomain &local_domain,
@@ -97,9 +97,9 @@ namespace gridtools {
                 ReductionData &reduction_data,
                 const uint_t bi,
                 const uint_t bj) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef
@@ -110,7 +110,8 @@ namespace gridtools {
                     kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< functor_list_t >::value == 1), "Internal Error: wrong size");
+                GRIDTOOLS_STATIC_ASSERT(
+                    (boost::mpl::size< functor_list_t >::value == 1), GT_INTERNAL_ERROR_MSG("Wrong Size"));
                 kernel_functor_executor_t(local_domain, grid, reduction_data)();
             }
         };
@@ -128,15 +129,17 @@ namespace gridtools {
 #endif
             >
         struct get_tmp_storage_info {
-            GRIDTOOLS_STATIC_ASSERT(is_aligned< Alignment >::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_aligned< Alignment >::type::value, GT_INTERNAL_ERROR);
 
-            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "wrong type for layout map");
+            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, GT_INTERNAL_ERROR_MSG("wrong type for layout map"));
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #endif
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, GT_INTERNAL_ERROR);
 
             typedef meta_storage< meta_storage_aligned< meta_storage_base< Index, Layout, true >, Alignment, Halo > >
                 type;
@@ -153,9 +156,11 @@ namespace gridtools {
 #endif
         struct get_tmp_storage {
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #endif
             typedef storage<
 #ifdef CXX11_ENABLED
@@ -200,9 +205,9 @@ namespace gridtools {
         template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
             typedef boost::mpl::range_c< uint_t,
                 0,
@@ -210,7 +215,7 @@ namespace gridtools {
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 uint_t m = grid.j_high_bound() - grid.j_low_bound();
@@ -241,7 +246,7 @@ namespace gridtools {
          */
         template < typename RunFunctorArgs >
         struct mss_loop {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
 
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
@@ -251,9 +256,9 @@ namespace gridtools {
                 ReductionData &reduction_data,
                 const uint_t bi,
                 const uint_t bj) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef
@@ -263,7 +268,7 @@ namespace gridtools {
                     kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< functor_list_t >::value == 1), "Internal Error: wrong size");
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< functor_list_t >::value == 1), GT_INTERNAL_ERROR);
 
                 uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 uint_t m = grid.j_high_bound() - grid.j_low_bound();
@@ -305,13 +310,15 @@ namespace gridtools {
 #endif
             >
         struct get_tmp_meta_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "wrong type for layout map");
+            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, GT_INTERNAL_ERROR_MSG("wrong type for layout map"));
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #endif
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, GT_INTERNAL_ERROR);
 
             typedef meta_storage_tmp<
                 meta_storage_aligned< meta_storage_base< Index, Layout, true >, aligned< 0 >, Halo >
@@ -337,9 +344,11 @@ namespace gridtools {
 #endif
         struct get_tmp_storage {
 #ifdef CXX11_ENABLED
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_tile< Tiles >::type::value...),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #else
-            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), "wrong type for the tiles");
+            GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value),
+                GT_INTERNAL_ERROR_MSG("wrong type for the tiles"));
 #endif
             typedef storage<
 #ifdef CXX11_ENABLED

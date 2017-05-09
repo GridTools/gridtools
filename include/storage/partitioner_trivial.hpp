@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -242,7 +242,7 @@ namespace gridtools {
             // adding twice the halo => wasting some space in case the
             // global boundary has no halo.
             // The commented version is tight (and should be used), but it's not working.
-            return tile_dimension + 2*m_halo[component];
+            return tile_dimension + 2 * m_halo[component];
             //+ compute_halo(component, UP) + compute_halo(component, LOW);
         }
 

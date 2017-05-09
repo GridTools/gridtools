@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -51,10 +51,6 @@
    Here are defined the classes select_s and layout_map.
 */
 namespace gridtools {
-
-    // fwd decl
-    template < typename T >
-    struct is_vector_accessor;
 
     template < typename T >
     struct is_layout_map;

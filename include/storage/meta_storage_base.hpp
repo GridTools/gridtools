@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -108,7 +108,7 @@ namespace gridtools {
 #endif
         > {
 
-        GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), "ERROR");
+        GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), GT_INTERNAL_ERROR);
 
         typedef meta_storage_base< Index,
             Layout,
@@ -355,11 +355,6 @@ namespace gridtools {
                 return me.index(args...);
             }
         };
-
-        template < typename... UInt, typename Dummy = all_static_integers< UInt... > >
-        constexpr GT_FUNCTION uint_t index(uint_t first, UInt... args_) const {
-            return _index(strides(), first, args_...);
-        }
 
         template < size_t S >
         GT_FUNCTION int_t index(array< uint_t, S > const &a) const {

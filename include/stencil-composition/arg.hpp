@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ namespace gridtools {
     template < typename ArgType, typename Storage >
     struct arg_storage_pair {
 
-        GRIDTOOLS_STATIC_ASSERT(is_arg< ArgType >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_arg< ArgType >::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename ArgType::storage_type, Storage >::value),
             "in the instantiation of the aggregator type a pair (plch() = storage) is not matched");
 
@@ -102,7 +102,7 @@ namespace gridtools {
         typename LocationType = enumtype::default_location_type,
         typename is_temporary_storage = void >
     struct arg {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), GT_INTERNAL_ERROR);
         typedef Storage storage_type;
         typedef typename Storage::iterator iterator;
         typedef typename Storage::value_type value_type;
@@ -135,14 +135,14 @@ namespace gridtools {
      */
     template < typename Storage >
     struct arg_get_storage_info {
-        GRIDTOOLS_STATIC_ASSERT((is_any_storage< Storage >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_any_storage< Storage >::value), GT_INTERNAL_ERROR);
 
         typedef typename Storage::storage_info_type type;
     };
 
     template < typename Storage >
     struct arg_get_storage_info< std::vector< pointer< Storage > > > {
-        GRIDTOOLS_STATIC_ASSERT((is_any_storage< Storage >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_any_storage< Storage >::value), GT_INTERNAL_ERROR);
 
         typedef typename Storage::storage_info_type type;
     };
@@ -156,7 +156,7 @@ namespace gridtools {
         Storage,
         LocationType,
         typename boost::enable_if< typename is_any_storage< Storage >::type, bool >::type > {
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), GT_INTERNAL_ERROR);
 
         typedef Storage storage_type;
         typedef typename Storage::iterator iterator;

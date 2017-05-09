@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -104,7 +104,7 @@ namespace gridtools {
         typedef typename backend_traits_from_id< backend_id_t::value >::template select_iterate_domain_cache<
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
-        GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_local_domain< local_domain_t >::value), GT_INTERNAL_ERROR);
         // **************** end of internal type definitions
         //***************** types exposed in API
         typedef typename compute_readonly_args_indices< typename iterate_domain_arguments_t::esf_sequence_t >::type
@@ -250,7 +250,7 @@ namespace gridtools {
          */
         template < typename BackendType, typename Strides >
         GT_FUNCTION void assign_stride_pointers() {
-            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), "internal error type");
+            GRIDTOOLS_STATIC_ASSERT((is_strides_cached< Strides >::value), GT_INTERNAL_ERROR);
             boost::mpl::for_each< metadata_map_t >(assign_strides_functor< BackendType,
                 Strides,
                 typename boost::fusion::result_of::as_vector< typename local_domain_t::local_metadata_type >::type,
@@ -439,7 +439,7 @@ namespace gridtools {
         template < ushort_t Coordinate, typename Accessor >
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
 
-            GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
             typedef typename Accessor::index_type index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
             // getting information about the metadata
@@ -460,7 +460,9 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             ,
             const int_t pointer_offset) const {
+#ifdef CUDA8
             assert(storage_pointer);
+#endif
             return *(storage_pointer + pointer_offset);
         }
 
@@ -550,12 +552,14 @@ namespace gridtools {
         typedef typename get_storage_pointer_accessor< local_domain_t, Accessor >::type storage_pointer_t;
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-
+#ifdef CUDA8
         assert(storage_pointer);
+#endif
         typename storage_t::value_type *RESTRICT real_storage_pointer =
             static_cast< typename storage_t::value_type * >(storage_pointer);
-
+#ifdef CUDA8
         assert(real_storage_pointer);
+#endif
         // getting information about the metadata
         typedef typename boost::mpl::at< metadata_map_t, typename storage_t::storage_info_type >::type metadata_index_t;
 

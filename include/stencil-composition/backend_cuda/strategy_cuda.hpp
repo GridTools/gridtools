@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -75,9 +75,9 @@ namespace gridtools {
         template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
             typedef boost::mpl::range_c< uint_t,
                 0,
@@ -85,7 +85,7 @@ namespace gridtools {
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 boost::mpl::for_each< iter_range >(
                     mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(

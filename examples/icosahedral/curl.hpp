@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include "gtest/gtest.h"
@@ -47,7 +82,7 @@ namespace ico_operators {
         auto &out_vertices = repo.out_vertex();
 
         vertices_4d_storage_type curl_weights(
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double, selector< 1, 1, 1, 1, 1 > >(
+            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 1, 1 > >(
                 "weights", 6));
         edges_of_vertices_storage_type &edge_orientation = repo.edge_orientation();
 
@@ -125,8 +160,11 @@ namespace ico_operators {
             out_vertices.d2h_update();
 #endif
 
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-4);
+#else
             verifier ver(1e-9);
-
+#endif
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);
 
@@ -169,7 +207,11 @@ namespace ico_operators {
             out_vertices.d2h_update();
 #endif
 
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-4);
+#else
             verifier ver(1e-9);
+#endif
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = result && ver.verify(grid_, ref_vertices, out_vertices, halos);

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -88,9 +88,10 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
         (boost::mpl::equal< mss_t::esf_sequence_t, boost::mpl::vector2< esf1_t, esf2_t > >::value), "ERROR");
 
 #ifndef __DISABLE_CACHING__
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< mss_t::cache_sequence_t,
-                                boost::mpl::vector2< detail::cache_impl< IJ, p_buff, local >,
-                                                    detail::cache_impl< IJ, p_out, local > > >::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::equal< mss_t::cache_sequence_t,
+            boost::mpl::vector2< detail::cache_impl< IJ, p_buff, local, boost::mpl::void_ >,
+                                detail::cache_impl< IJ, p_out, local, boost::mpl::void_ > > >::value),
         "ERROR\nLists do not match");
 #else
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::empty< mss_t::cache_sequence_t >::value), "ERROR\nList not empty");

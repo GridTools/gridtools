@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -108,7 +108,7 @@ namespace gridtools {
     template < typename Storage, uint_t Id, uint_t IdMax >
     struct compute_storage_offset {
 
-        GRIDTOOLS_STATIC_ASSERT(IdMax >= Id && Id >= 0, "Library internal error");
+        GRIDTOOLS_STATIC_ASSERT(IdMax >= Id && Id >= 0, GT_INTERNAL_ERROR);
         typedef typename boost::mpl::eval_if_c< IdMax - Id == 0,
             get_fields< typename Storage::super >,
             get_value_< compute_storage_offset< typename Storage::super, Id + 1, IdMax > > >::type type;
@@ -125,8 +125,8 @@ namespace gridtools {
     struct compute_storage_list_width {
         typedef typename Storage::super next_storage_t;
 
-        GRIDTOOLS_STATIC_ASSERT(IdMax >= Id && Id >= 0, "Library internal error");
-        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
+        GRIDTOOLS_STATIC_ASSERT(IdMax >= Id && Id >= 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, GT_INTERNAL_ERROR);
         typedef typename get_width<
             typename compute_storage_list_width< next_storage_t, Id + 1, IdMax >::next_storage_t >::type type;
         static const uint_t value = type::value;
@@ -135,8 +135,8 @@ namespace gridtools {
     // recursion anchor
     template < typename Storage, uint_t IdMax >
     struct compute_storage_list_width< Storage, IdMax, IdMax > {
-        GRIDTOOLS_STATIC_ASSERT(IdMax >= 0, "Library internal error");
-        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, "Library internal error");
+        GRIDTOOLS_STATIC_ASSERT(IdMax >= 0, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_dimension_extension_traits< Storage >::value, GT_INTERNAL_ERROR);
         typedef Storage next_storage_t;
         typedef typename get_width< Storage >::type type;
         static const uint_t value = type::value;
@@ -289,10 +289,10 @@ namespace gridtools {
 
             /*If the following assertion fails your field dimension is smaller than the dimension you are trying to
              * access*/
-            BOOST_STATIC_ASSERT(n_width > dimension);
+            GRIDTOOLS_STATIC_ASSERT(n_width > dimension, GT_INTERNAL_ERROR);
             /*If the following assertion fails you specified a dimension which does not contain any snapshot. Each
              * dimension must contain at least one snapshot.*/
-            BOOST_STATIC_ASSERT(n_width <= traits::n_fields);
+            GRIDTOOLS_STATIC_ASSERT(n_width <= traits::n_fields, GT_INTERNAL_ERROR);
             uint_t const indexFrom = _impl::access< n_width - dimension, traits >::type::n_fields;
             uint_t const indexTo = _impl::access< n_width - dimension - 1, traits >::type::n_fields;
             super::push_front(field, indexFrom, indexTo);

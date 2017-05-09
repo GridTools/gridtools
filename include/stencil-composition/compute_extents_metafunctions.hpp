@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -136,8 +136,8 @@ namespace gridtools {
          */
         template < typename MssDescriptor >
         struct for_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDescriptor >::value or MssDescriptor::is_reduction_t::value),
-                "Internal Error: invalid type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_mss_descriptor< MssDescriptor >::value or MssDescriptor::is_reduction_t::value), GT_INTERNAL_ERROR);
 
             /**
                This is the main operation perfromed: we first need to
@@ -151,8 +151,8 @@ namespace gridtools {
                 template < typename PlcRangePair, typename CurrentMap >
                 struct with {
 
-                    GRIDTOOLS_STATIC_ASSERT((is_extent< CurrentRange >::value), "wrong type");
-                    GRIDTOOLS_STATIC_ASSERT((is_extent< typename PlcRangePair::second >::value), "wrong type");
+                    GRIDTOOLS_STATIC_ASSERT((is_extent< CurrentRange >::value), GT_INTERNAL_ERROR);
+                    GRIDTOOLS_STATIC_ASSERT((is_extent< typename PlcRangePair::second >::value), GT_INTERNAL_ERROR);
 
                     typedef typename sum_extent< CurrentRange, typename PlcRangePair::second >::type candidate_extent;
                     typedef typename enclosing_extent< candidate_extent,
@@ -180,7 +180,7 @@ namespace gridtools {
             struct for_each_output {
                 typedef typename boost::mpl::at< CurrentMap, typename Output::first >::type current_extent;
 
-                GRIDTOOLS_STATIC_ASSERT((is_extent< current_extent >::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_extent< current_extent >::value), GT_INTERNAL_ERROR);
 
                 typedef typename boost::mpl::fold< Inputs,
                     CurrentMap,
@@ -214,7 +214,7 @@ namespace gridtools {
             struct update_map_for_multiple_outputs {
                 template < typename TheMap, typename ThePair >
                 struct update_value {
-                    GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Outputs, pair_arg_extent >::value), "wrong sequence");
+                    GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Outputs, pair_arg_extent >::value), GT_INTERNAL_ERROR);
 
                     // Erasure is needed - we know the key is there otherwise an error would have been catched earlier
                     typedef typename boost::mpl::erase_key< TheMap, typename ThePair::first >::type _Map;
@@ -240,7 +240,7 @@ namespace gridtools {
             template < typename Map, typename OutputPairs >
             struct extract_output_extents {
 
-                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< OutputPairs, pair_arg_extent >::value), "wrong sequence");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< OutputPairs, pair_arg_extent >::value), GT_INTERNAL_ERROR);
 
                 template < typename ThePair >
                 struct _find_from_second {
@@ -256,20 +256,26 @@ namespace gridtools {
              */
             template < typename ESFs, typename CurrentMap, int Elements >
             struct update_map {
-                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ESFs, is_esf_descriptor >::value), "Error");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ESFs, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
                 typedef typename boost::mpl::at_c< ESFs, 0 >::type current_ESF;
                 typedef typename boost::mpl::pop_front< ESFs >::type rest_of_ESFs;
 
                 // First determine which are the outputs
                 typedef typename esf_get_w_per_functor< current_ESF, boost::true_type >::type outputs_original;
+                GRIDTOOLS_STATIC_ASSERT(
+                    (MssDescriptor::is_reduction_t::value || boost::mpl::size< outputs_original >::value),
+                    "there seems to be a functor without output fields "
+                    "check that each stage has at least one accessor "
+                    "defined as \'inout\'");
                 // substitute the types for expandable parameters arg
                 typedef typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs;
-#ifndef ALLOW_EMPTY_EXTENTS
-                GRIDTOOLS_STATIC_ASSERT((check_all_extents_are< outputs, extent<> >::type::value),
-                    "Extents of the outputs of ESFs are not all empty. All outputs must have empty extents");
+#ifndef __CUDACC__
+                static_assert((check_all_extents_are_same_upto< outputs, extent<>, 4 >::type::value),
+                    "Horizontal extents of the outputs of ESFs are not all empty. "
+                    "All outputs must have empty (horizontal) extents");
 #endif
 
-                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< outputs, pair_arg_extent >::value), "wrong sequence");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< outputs, pair_arg_extent >::value), GT_INTERNAL_ERROR);
 
                 // We need to check the map here: if the outputs of a
                 // single function has different extents in the map we
@@ -304,7 +310,7 @@ namespace gridtools {
                 // Then determine the inputs
                 typedef typename esf_get_r_per_functor< current_ESF, boost::true_type >::type inputs;
 
-                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< inputs, pair_arg_extent >::value), "wrong sequence");
+                GRIDTOOLS_STATIC_ASSERT((is_sequence_of< inputs, pair_arg_extent >::value), GT_INTERNAL_ERROR);
 
                 // Finally, for each output we need to update its
                 // extent based on the extents at which the inputs are
@@ -361,9 +367,9 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorArray, is_mss_or_reduction >::value ||
                                     is_condition< MssDescriptorArray >::value),
-            "Wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id< GridTraits >::value), "Wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value), "Wrong type");
+            GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id< GridTraits >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value), GT_INTERNAL_ERROR);
 
       public:
         typedef typename GridTraits::select_mss_compute_extent_sizes mss_compute_extent_sizes_t;
@@ -374,7 +380,7 @@ namespace gridtools {
         template < typename CurrentMap, typename Mss >
         struct update_map {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_mss_descriptor< Mss >::value || is_reduction_descriptor< Mss >::value), "Internal Error");
+                (is_mss_descriptor< Mss >::value || is_reduction_descriptor< Mss >::value), GT_INTERNAL_ERROR);
 
             typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss, RepeatFunctor >::type type;
         };
@@ -437,7 +443,7 @@ namespace gridtools {
         };
 
       public:
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtentsMap, __pairs_of >::value), "Wront type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtentsMap, __pairs_of >::value), GT_INTERNAL_ERROR);
 
         /** This is the metafucntion to iterate over the esfs of a multi-stage stencil
             and gather the outputs (check that they have the same extents), and associate
@@ -445,13 +451,13 @@ namespace gridtools {
         template < typename MapOfPlaceholders, /*, typename BackendIds,*/ typename Mss >
         struct iterate_over_esfs {
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MapOfPlaceholders, __pairs_of >::value), "Wront type");
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MapOfPlaceholders, __pairs_of >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss >::value), GT_INTERNAL_ERROR);
 
             template < typename Esf >
             struct get_extent_for {
 
-                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
 
                 typedef typename esf_get_w_per_functor< Esf >::type w_plcs_original;
                 // substitute the types for expandable parameters arg
@@ -528,7 +534,7 @@ namespace gridtools {
     // extract the extent vector of a given extent type
     template < typename T >
     struct get_extent_vec_t {
-        GRIDTOOLS_STATIC_ASSERT(is_extent< T >::value, "Given type is not an extent");
+        GRIDTOOLS_STATIC_ASSERT(is_extent< T >::value, GT_INTERNAL_ERROR_MSG("Given type is not an extent"));
         typedef typename T::extent_vec_t type;
     };
 

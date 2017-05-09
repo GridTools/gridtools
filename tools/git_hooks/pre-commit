@@ -139,21 +139,36 @@ do
         sed -e "1s|--- |--- a/|" -e "2s|+++ -|+++ b/$file|" >> "$patch"
 done
 
+error_code=0
 # if no patch has been generated all is ok, clean up the file stub and exit
 if [ ! -s "$patch" ] ; then
     printf "Files in this commit comply with the clang-format rules.\n"
     rm -f "$patch"
-    exit 0
+else
+# a patch has been created, notify the user and exit
+    printf "\nThe following differences were found between the code to commit "
+    printf "and the clang-format rules:\n\n"
+    cat "$patch"
+
+    printf "\nYou can apply these changes with:\n git apply --index $patch\n"
+    printf "(may need to be called from the root directory of your repository)\n"
+
+    error_code=$((error_code || 1 ))
 fi
 
-# a patch has been created, notify the user and exit
-printf "\nThe following differences were found between the code to commit "
-printf "and the clang-format rules:\n\n"
-cat "$patch"
+# call the modularization checker (check will be applied on all files even if not included in commit)
+echo
+source $(pwd)/tools/check_modularization/check_modularization.sh
+if [ $modularization_result -eq 0 ]; then 
+    printf "Modularization check passed!\n"
+fi
 
-printf "\nYou can apply these changes with:\n git apply --index $patch\n"
-printf "(may need to be called from the root directory of your repository)\n"
-printf "Aborting commit. Apply changes and commit again or skip checking with"
-printf " --no-verify (not recommended).\n"
+# exit if errors
+error_code=$((error_code || modularization_result ))
+if [ "$error_code" -gt 0 ]; then
+    printf "\nAborting commit. Apply changes and commit again or skip checking with"
+    printf " --no-verify (not recommended).\n"
+fi
 
-exit 1
+exit $error_code
+

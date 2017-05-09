@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -70,7 +70,7 @@ namespace gridtools {
         struct esfs_functor_return_type {
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size< EsfSequence >::value == 1), "Error: Reductions can have only one esf");
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< IntervalsMapSeq >::value == 1), "Error");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< IntervalsMapSeq >::value == 1), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::front< IntervalsMapSeq >::type intervals_map_t;
 
@@ -104,18 +104,16 @@ namespace gridtools {
         typename BackendIds,
         typename ReductionData >
     struct mss_functor {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
-        GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
 #ifdef CXX11_ENABLED
         template < typename MssComponents, typename FunctorsMap >
         struct check_reduction_types {
-            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
             // extract the type derived from the return type of the user functors of the reduction
             typedef typename mss_components_functors_return_type< MssComponents, FunctorsMap >::type reduction_t;
 
@@ -132,7 +130,7 @@ namespace gridtools {
                 typename boost::is_same< functor_return_t, typename ReductionData::reduction_type_t >::type,
                 boost::mpl::true_ >::type type;
 
-            GRIDTOOLS_STATIC_ASSERT((type::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((type::value), GT_INTERNAL_ERROR);
         };
 #endif
 
@@ -165,16 +163,15 @@ namespace gridtools {
         template < typename Index >
         void operator()(Index const &) const {
             typedef typename boost::fusion::result_of::value_at< MssLocalDomainArray, Index >::type mss_local_domain_t;
-            GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< mss_local_domain_t >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< mss_local_domain_t >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT(
-                (Index::value < boost::mpl::size< typename MssComponentsArray::elements >::value), "Internal Error");
+                (Index::value < boost::mpl::size< typename MssComponentsArray::elements >::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::at< typename MssComponentsArray::elements, Index >::type mss_components_t;
 
             typedef typename mss_local_domain_list< mss_local_domain_t >::type local_domain_list_t;
             typedef typename mss_local_domain_esf_args_map< mss_local_domain_t >::type local_domain_esf_args_map_t;
 
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::size< local_domain_list_t >::value == 1), "Internal Error: wrong size");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< local_domain_list_t >::value == 1), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::back< local_domain_list_t >::type local_domain_t;
             local_domain_list_t &local_domain_list =
                 (local_domain_list_t &)boost::fusion::at< Index >(m_local_domain_lists).local_domain_list;
@@ -216,7 +213,8 @@ namespace gridtools {
 
                 this is what the following metafunction does:
 
-                - sets the last boolean of the vector to TRUE (never need to sync the last ESF)
+                - sets the last boolean of the vector to TRUE if we don't use IJ
+                caches (in this case we can avoid the sync in the last ESF)
                 - loops over the inner linearized ESFs starting from 0, excluding the last one
                 - if the next ESF is not independent, then this one needs to be synced, otherwise
                 it is not synced
@@ -258,11 +256,19 @@ namespace gridtools {
                         boost::mpl::pair< boost::mpl::at< functors_list_t, boost::mpl::_2 >,
                                             boost::mpl::false_ > > > >::type async_esf_map_tmp_t;
 
-            // insert true for the last esf
+            // insert true for the last esf (but only if there are no IJ caches;
+            // otherwise it could happen that warp A is already in level k+1
+            // filling values in the cache while warp B did not consume the
+            // cached values (written by A) from level k yet -> race condition)
+            typedef typename boost::mpl::transform< typename mss_components_t::cache_sequence_t,
+                cache_is_type< IJ > >::type cache_types_t;
+            typedef typename boost::mpl::not_< typename boost::mpl::contains< cache_types_t,
+                boost::integral_constant< bool, true > >::type >::type contains_no_IJ_cache_t;
+
             typedef typename boost::mpl::insert< async_esf_map_tmp_t,
                 boost::mpl::pair< typename boost::mpl::at_c< functors_list_t,
                                       boost::mpl::size< next_thing >::value >::type,
-                                                     boost::mpl::true_ > >::type async_esf_map_t;
+                                                     contains_no_IJ_cache_t > >::type async_esf_map_t;
 
             // perform some checks concerning the reduction types
             typedef run_functor_arguments< BackendIds,

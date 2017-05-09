@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,7 @@ namespace gridtools {
      */
     template < typename Seq, typename... Args >
     struct sequence_unpacker {
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Seq >::value > 0 || sizeof...(Args) > 0), "Error");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Seq >::value > 0 || sizeof...(Args) > 0), GT_INTERNAL_ERROR);
 
         template < typename Seq_ >
         struct rec_unpack {

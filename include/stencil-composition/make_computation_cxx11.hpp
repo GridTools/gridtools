@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@
 #include "computation_grammar.hpp"
 #include "make_computation_cxx11_impl.hpp"
 #include "make_computation_helper_cxx11.hpp"
+#include "all_args_in_aggregator.hpp"
 
 namespace gridtools {
 
@@ -51,7 +52,7 @@ namespace gridtools {
          */
         template < typename Sequence >
         struct get_mss_array {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence< Sequence >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence< Sequence >::value), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::fold< Sequence,
                 boost::mpl::vector0<>,
@@ -74,6 +75,10 @@ namespace gridtools {
         typename _impl::reduction_helper< Mss... >::reduction_type_t,
         Positional > >
     make_computation_impl(Domain &domain, const Grid &grid, Mss... args_) {
+
+        GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< Domain, Mss... >::type::value),
+            "Some placeholders used in the computation are not listed in the aggregator");
+
         typedef typename _impl::create_conditionals_set< Domain, Grid, Mss... >::type conditionals_set_t;
 
         conditionals_set_t conditionals_set_;
@@ -114,7 +119,7 @@ namespace gridtools {
     // user protections
     template < typename... Args >
     short_t make_computation(Args...) {
-        GRIDTOOLS_STATIC_ASSERT((sizeof...(Args)), "the computation is malformed");
+        GRIDTOOLS_STATIC_ASSERT((sizeof...(Args)), "The computation is malformed");
         return -1;
     }
 }

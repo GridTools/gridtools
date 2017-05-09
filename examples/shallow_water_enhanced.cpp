@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,8 @@
 int main(int argc, char **argv) {
 
     // if (argc != 5) {
-    //     std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz timesteps\n where args are integer sizes of the "
+    //     std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz timesteps\n where args are integer sizes of the
+    //     "
     //                  "data fields and the number of timesteps performed"
     //               << std::endl;
     //     return 1;

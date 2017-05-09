@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -80,8 +80,8 @@ namespace gridtools {
         typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
 
         // Storage must be a gridtools::pointer to storage
-        GRIDTOOLS_STATIC_ASSERT(is_pointer< Storage >::value, "wrong type");
-        GRIDTOOLS_STATIC_ASSERT(is_storage< typename Storage::value_type >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_pointer< Storage >::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_storage< typename Storage::value_type >::value, GT_INTERNAL_ERROR);
         typedef typename Storage::value_type::basic_type storage_t;
         typedef typename storage_t::value_type value_type;
 
@@ -109,7 +109,8 @@ namespace gridtools {
             constexpr const meta_t s_storage_info;
 
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_accessor< accessor_t >::value), GT_INTERNAL_ERROR_MSG("Error type is not accessor tuple"));
 
             typedef typename boost::mpl::at_c< typename minus_t::type, 0 >::type iminus;
             typedef typename boost::mpl::at_c< typename minus_t::type, 1 >::type jminus;
@@ -161,8 +162,8 @@ namespace gridtools {
     template < typename BlockSize, typename Extend, uint_t NColors, typename Storage >
     struct cache_storage {
 
-        GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), GT_INTERNAL_ERROR);
 
         typedef typename BlockSize::i_size_t tile_i;
         typedef typename BlockSize::j_size_t tile_j;
@@ -183,8 +184,8 @@ namespace gridtools {
 
         template < uint_t Color, typename Offset >
         GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Offset const &offset) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_offset_tuple< typename Offset::offset_tuple_t >::value), "Error type is not offset tuple");
+            GRIDTOOLS_STATIC_ASSERT((is_offset_tuple< typename Offset::offset_tuple_t >::value),
+                GT_INTERNAL_ERROR_MSG("Error type is not offset tuple"));
             assert(index< Color >(thread_pos, offset.offsets()) < storage_size_t::value);
             assert(index< Color >(thread_pos, offset.offsets()) >= 0);
 

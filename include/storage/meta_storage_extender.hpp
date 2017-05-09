@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -89,17 +89,18 @@ namespace gridtools {
      * helper that extends a metastorage by certain number of dimensions. Lengths of the extra dimensions are passed by
      * arguments. Values of halos of extra dims are set to null, and the layout of the new meta storage is such that the
      * newly added dimensions have the largest stride.
+
+     NOTE: the extended meta_storage in not a literal type, while the storage_info is
      */
     struct meta_storage_extender {
+
         template < typename MetaStorage >
         typename meta_storage_extender_impl< MetaStorage, 1 >::type operator()(
-            const MetaStorage other, uint_t extradim_length) {
+            const MetaStorage other, uint_t extradim_length) const {
             GRIDTOOLS_STATIC_ASSERT((is_meta_storage< MetaStorage >::value), "Use with a MetaStorage type only");
             typedef typename meta_storage_extender_impl< MetaStorage, 1 >::type type;
 
-            const array< uint_t, MetaStorage::space_dimensions > dims = other.unaligned_dims();
-            auto ext_dim = dims.append_dim(extradim_length);
-            return type(ext_dim);
+            return type{other.unaligned_dims().append_dim(extradim_length)};
         }
     };
 }
