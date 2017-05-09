@@ -143,12 +143,11 @@ int main(int argc, char **argv) {
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
+    auto in = make_host_view(in_s);
+    auto out = make_host_view(out_s);
     // sync the data stores if needed
     in_s.sync();
     out_s.sync();
-
-    auto in = make_host_view(in_s);
-    auto out = make_host_view(out_s);
 
 #ifdef __CUDACC__
     auto dvin = make_device_view(in_s);
@@ -157,12 +156,19 @@ int main(int argc, char **argv) {
     gridtools::boundary_apply_gpu< direction_bc_input< uint_t > >(halos, direction_bc_input< uint_t >(2))
         .apply(dvin, dvout);
 #else
+
     gridtools::boundary_apply< direction_bc_input< uint_t > >(halos, direction_bc_input< uint_t >(2)).apply(in, out);
 #endif
 
     // sync the data stores if needed
     in_s.sync();
     out_s.sync();
+    
+    // reactivate views and check consistency
+    in_s.reactivate_host_write_views();
+    out_s.reactivate_host_write_views();
+    assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
+    assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
 
     // check inner domain (should be zero)
     bool error = false;
