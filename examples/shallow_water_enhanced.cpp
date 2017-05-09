@@ -45,9 +45,8 @@ int main(int argc, char **argv) {
 #endif
 
     if (argc != 5) {
-        std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz timesteps\n where args are integer sizes of the
-        "
-                     "data fields and the number of timesteps performed"
+        std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz timesteps\n where args are integer sizes of"
+                     "the data fields and the number of timesteps performed"
                   << std::endl;
         return 1;
     }

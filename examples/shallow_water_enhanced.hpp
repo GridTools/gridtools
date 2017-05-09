@@ -423,6 +423,7 @@ namespace shallow_water {
         typedef arg< 2, sol_type > p_sol;
         typedef boost::mpl::vector< p_tmpx, p_tmpy, p_sol > accessor_list;
 //! [args]
+        uint_t halo_size = 1;
 
 #ifdef _GCL_MPI_
         //! [proc_grid_dims]
@@ -470,7 +471,6 @@ namespace shallow_water {
         // sol_type tmpx(meta_.get_metadata(), "tmpx");
         // sol_type tmpy(meta_.get_metadata(), "tmpy");
 
-        uint_t halo_size = 1;
         //! [add_halo]
         he.add_halo< 0 >(meta_.get_halo_gcl< 0 >());
         he.add_halo< 1 >(meta_.get_halo_gcl< 1 >());
