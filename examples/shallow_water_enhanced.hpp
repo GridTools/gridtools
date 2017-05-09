@@ -56,9 +56,11 @@
 #include <tools/verifier.hpp>
 #include "shallow_water_reference.hpp"
 
+#ifdef _GCL_MPI_
 #include "../unit_tests/communication/check_flags.hpp"
 #include "../unit_tests/communication/mpi_listener.hpp"
 #include "../unit_tests/communication/device_binding.hpp"
+#endif
 
 // [includes]
 
