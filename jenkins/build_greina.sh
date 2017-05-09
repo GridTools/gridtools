@@ -31,7 +31,7 @@ INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
-VERSION_="4.9"
+VERSION_="5.3"
 
 while getopts "h:b:t:f:c:l:zmsidvq:x:" opt; do
     case "$opt" in
@@ -232,25 +232,36 @@ fi
 
 exit_if_error $?
 
-if [[ "$RUN_MPI_TESTS" == "ON"  && ${STRUCTURED_GRIDS} == "ON" ]]
+if [[ "$RUN_MPI_TESTS" == "ON" && ${myhost} == "greina" && ${STRUCTURED_GRIDS} == "ON" ]]
 then
-  if [ "x$CXX_STD" == "xcxx11" ]
-  then
-      if [ "x$TARGET" == "xcpu" ]
-      then
-          export MV2_USE_GPUDIRECT_GDRCOPY=0
-          export HOST_NAME=`hostname`
-          echo "running shallow water test with MPI"
-          echo "mpirun -np 4 ./build/shallow_water_enhanced 8 8 1 10"
-          mpirun -np 4 ./examples/shallow_water_enhanced 8 8 1 10
-          exit_if_error $?
+   if [ "x$CXX_STD" == "xcxx11" ]
+   then
+       if [ "x$TARGET" == "xcpu" ]
+       then
+           mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 10
+           exit_if_error $?
 
-          echo "running copy stencil test with MPI"
-          echo "mpirun -np 2 ./build/copy_stencil_parallel 62 53 15"
-          mpirun -np 2 ./examples/copy_stencil_parallel 62 53 15
-          exit_if_error $?
-      fi
-  fi
+           mpiexec -np 2 ./build/copy_stencil_parallel 62 53 15
+           exit_if_error $?
+       fi
+       if [ "x$TARGET" == "xgpu" ]
+       then
+            # problems in the execution of the copy_stencil_parallel_cuda
+            # TODO fix
+            # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
+            # exit_if_error $?
+            # CUDA allocation error with more than 1 GPU in RELEASE mode
+            # To be fixed
+            # mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
+            # exit_if_error $?
+
+           mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2
+           exit_if_error $?
+
+       fi
+       #TODO not updated to greina
+       #    ../examples/communication/run_communication_tests.sh
+   fi
 fi
 
 exit 0
