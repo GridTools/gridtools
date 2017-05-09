@@ -44,15 +44,13 @@ int main(int argc, char **argv) {
 #endif
 #endif
 
-    // if (argc != 5) {
-    //     std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz timesteps\n where args are integer sizes of the
-    //     "
-    //                  "data fields and the number of timesteps performed"
-    //               << std::endl;
-    //     return 1;
-    // }
+    if (argc != 5) {
+        std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz timesteps\n where args are integer sizes of the
+        "
+                     "data fields and the number of timesteps performed"
+                  << std::endl;
+        return 1;
+    }
 
-    // return !shallow_water::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
-    printf("============ run shallow water\n");
     return !shallow_water::test(60, 83, 1, 1);
 }

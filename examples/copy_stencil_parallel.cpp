@@ -42,15 +42,14 @@ int main(int argc, char **argv) {
     device_binding();
 #endif
 
-    // if (argc != 4) {
-    //     std::cout << "Usage: copy_stencil_parallel_<whatever> dimx dimy dimz\n where args are integer sizes of the "
-    //                  "data fields"
-    //               << std::endl;
-    //     return 1;
-    // }
+    if (argc != 4) {
+        std::cout << "Usage: copy_stencil_parallel_<whatever> dimx dimy dimz\n where args are integer sizes of the "
+                     "data fields"
+                  << std::endl;
+        return 1;
+    }
 
     gridtools::GCL_Init(argc, argv);
 
-    // return !copy_stencil::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
-    return copy_stencil::test(45, 98, 34);
+    return copy_stencil::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
 }
