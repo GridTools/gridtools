@@ -375,7 +375,7 @@ namespace gridtools {
                 "You specified a too small dimension for the data_store_field");
 
             const uint_t idx = get_datafield_offset< storage_t >::get(accessor);
-            assert(idx < storage_t::size && "Out of bounds access when accessing data store field element.");
+            assert(idx < storage_t::num_of_storages && "Out of bounds access when accessing data store field element.");
             return data_pointer().template get< index_t::value >()[idx];
         }
 
