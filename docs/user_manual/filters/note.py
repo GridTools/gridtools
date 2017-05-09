@@ -3,19 +3,19 @@
 """
 Pandoc filter to process code blocks of the form
 
-~~~note
+```note
 text
-~~~
+```
 and replace their content with a table with images
 
 Typical Usage:
-pandoc sample.md -t json | ./note.py | pandoc -f json -t html -s
+pandoc sample.md -t json | python ./note.py | pandoc -f json -t html -s
 """
 
 from pandocfilters import toJSONFilter, CodeBlock, Table, Str, Header, Link, Space, split_string, AlignLeft, AlignDefault, Plain, Image
 
 
-def code_include(key, value, format, meta):
+def substitute_note(key, value, format, meta):
     if key == 'CodeBlock':
         [[ident, classes, namevals], code] = value
 
@@ -32,4 +32,4 @@ def code_include(key, value, format, meta):
         return CodeBlock([ident, classes, namevals], code)
 
 if __name__ == "__main__":
-    toJSONFilter(code_include)
+    toJSONFilter(substitute_note)
