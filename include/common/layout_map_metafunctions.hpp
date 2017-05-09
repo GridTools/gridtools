@@ -39,7 +39,8 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/fold.hpp>
 
-#include "storage-facility.hpp"
+#include "layout_map.hpp"
+#include "selector.hpp"
 #include "generic_metafunctions/gt_integer_sequence.hpp"
 #include "generic_metafunctions/replace.hpp"
 #include "generic_metafunctions/sequence_unpacker.hpp"

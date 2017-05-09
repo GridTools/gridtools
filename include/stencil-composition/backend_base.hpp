@@ -60,7 +60,7 @@
 #include "./mss_metafunctions.hpp"
 #include "./storage_wrapper.hpp"
 #include "./tile.hpp"
-#include "storage-facility.hpp"
+#include "../storage/storage-facility.hpp"
 
 /**
    @file

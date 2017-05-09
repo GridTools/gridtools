@@ -36,7 +36,7 @@
 #pragma once
 
 #include <gridtools.hpp>
-#include <storage-facility.hpp>
+#include <storage/storage-facility.hpp>
 
 namespace horizontal_diffusion {
 

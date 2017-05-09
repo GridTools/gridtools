@@ -37,7 +37,7 @@
 
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
-#include <storage-facility.hpp>
+#include <storage/storage-facility.hpp>
 
 using namespace gridtools;
 using namespace enumtype;

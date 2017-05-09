@@ -35,7 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include <gridtools.hpp>
-#include "storage-facility.hpp"
+#include "storage/storage-facility.hpp"
 #include "stencil-composition/stencil-composition.hpp"
 
 /*

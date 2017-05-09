@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,34 +33,37 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
-#include <stencil-composition/stencil-composition.hpp>
-#include <gridtools.hpp>
-#include <storage/storage-facility.hpp>
 
-namespace vertical_advection {
+#include <assert.h>
+#include <stdexcept>
 
-// define some physical constants
-#define BETA_V ((double)0.0)
-#define BET_M ((double)0.5 * ((double)1.0 - BETA_V))
-#define BET_P ((double)0.5 * ((double)1.0 + BETA_V))
+#include "host_device.hpp"
 
-#ifdef CUDA_EXAMPLE
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
-    typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
+namespace gridtools {
+
+    /**
+     * @brief This struct is used to trigger runtime errors. The reason
+     * for having a struct is simply that this element can be used in
+     * constexpr functions while a simple call to e.g., std::runtime_error
+     * would not compile.
+     */
+    struct error {
+
+        template < typename T >
+        GT_FUNCTION static T get(char const *msg) {
+#ifdef __CUDACC__
+            assert(false);
+            return *((T *)(0x0));
 #else
-#ifdef BACKEND_BLOCK
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
-#else
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > va_backend;
+            throw std::runtime_error(msg);
+            assert(false);
 #endif
-    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
-#endif
+        }
+
+        template < typename T = unsigned >
+        GT_FUNCTION static constexpr T trigger(char const *msg = "Error triggered") {
+            return get< T >(msg);
+        }
+    };
 }

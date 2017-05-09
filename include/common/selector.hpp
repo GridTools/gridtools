@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,34 +33,28 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
-#include <stencil-composition/stencil-composition.hpp>
-#include <gridtools.hpp>
-#include <storage/storage-facility.hpp>
 
-namespace vertical_advection {
+#include <boost/mpl/bool.hpp>
 
-// define some physical constants
-#define BETA_V ((double)0.0)
-#define BET_M ((double)0.5 * ((double)1.0 - BETA_V))
-#define BET_P ((double)0.5 * ((double)1.0 + BETA_V))
+#include "defs.hpp"
 
-#ifdef CUDA_EXAMPLE
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
-    typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
-#else
-#ifdef BACKEND_BLOCK
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
-#else
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > va_backend;
-#endif
-    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
-#endif
+namespace gridtools {
+
+    /**
+     *  @brief A class that is used as a selector when selecting which dimensions should be masked.
+     *  E.g., Lets say we want to have a 3-dimensional storage but second dimension should be masked
+     *  we have to pass following selector selector<1,0,1> to the storage-facility.
+     *  @tparam Bitmask bitmask defining the masked and unmasked dimensions
+     */
+    template < bool... Bitmask >
+    struct selector {
+        static constexpr unsigned size = sizeof...(Bitmask);
+    };
+
+    template < typename T >
+    struct is_selector : boost::mpl::false_ {};
+
+    template < bool... Bitmask >
+    struct is_selector< selector< Bitmask... > > : boost::mpl::true_ {};
 }

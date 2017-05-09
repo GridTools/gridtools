@@ -37,7 +37,7 @@
 
 #include "vertical_advection_defs.hpp"
 #include <gridtools.hpp>
-#include <storage-facility.hpp>
+#include <storage/storage-facility.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;

@@ -50,7 +50,7 @@
 #include "arg_fwd.hpp"
 #include "arg_metafunctions.hpp"
 #include "arg_metafunctions_fwd.hpp"
-#include "storage-facility.hpp"
+#include "../storage/storage-facility.hpp"
 
 namespace gridtools {
 

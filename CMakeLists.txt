@@ -22,7 +22,6 @@ include (testing)
 # ===============
 # library header files
 # ===============
-include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/tools/gridtools_storage/include/storage/")
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/communication" )
 include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/communication/high-level" )

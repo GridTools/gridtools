@@ -109,8 +109,7 @@ namespace gridtools {
         T *data() const { return _array; }
 
         GT_FUNCTION
-        constexpr T const &operator[](size_t i) const {
-            // assert((i < _size));
+        constexpr T operator[](size_t i) {
             return _array[i];
         }
 

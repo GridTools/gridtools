@@ -42,7 +42,7 @@
 #include <boost/mpl/transform_view.hpp>
 #include <boost/mpl/filter_view.hpp>
 
-#include "storage-facility.hpp"
+#include "../storage/storage-facility.hpp"
 
 #include "../common/pointer.hpp"
 #include "arg.hpp"

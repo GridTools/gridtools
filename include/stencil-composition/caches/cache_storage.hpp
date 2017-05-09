@@ -83,10 +83,15 @@ namespace gridtools {
 
         typedef typename StorageWrapper::data_t value_type;
 
-        typedef typename boost::is_same< enumtype::default_location_type,
-            typename StorageWrapper::arg_t::location_t >::type is_default_location_t;
+// TODO ICO_STORAGE in irregular grids we have one more dim for color		
+#ifndef STRUCTURED_GRIDS		
+        static constexpr int extra_dims = 1;
+#else 
+        static constexpr int extra_dims = 0;
+#endif
+
         typedef typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t,
-            sizeof...(Tiles) + (!is_default_location_t::value) >::type >::type layout_t;
+            sizeof...(Tiles) + (extra_dims) >::type >::type layout_t;
 
         GT_FUNCTION
         explicit constexpr cache_storage() {}
@@ -112,8 +117,8 @@ namespace gridtools {
             // manually aligning the storage
             const uint_t extra_ =
                 (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
-                (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (!is_default_location_t::value) >() +
-                (!is_default_location_t::value) * Color * meta_t::template stride< 1 >() +
+                (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (extra_dims) >() +
+                (extra_dims) * Color * meta_t::template stride< 1 >() +
                 size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                 _impl::get_cache_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
             assert((extra_) >= 0);

@@ -45,7 +45,7 @@
 #include "../common/is_temporary_storage.hpp"
 #include "../gridtools.hpp"
 
-#include "storage-facility.hpp"
+#include "../storage/storage-facility.hpp"
 
 #include "../common/offset_tuple_mixed.hpp"
 #include "extent.hpp"

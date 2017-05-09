@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,32 +35,11 @@
 */
 
 #pragma once
-#include <stencil-composition/stencil-composition.hpp>
-#include <gridtools.hpp>
-#include <storage/storage-facility.hpp>
 
-namespace vertical_advection {
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
 
-// define some physical constants
-#define BETA_V ((double)0.0)
-#define BET_M ((double)0.5 * ((double)1.0 - BETA_V))
-#define BET_P ((double)0.5 * ((double)1.0 + BETA_V))
-
-#ifdef CUDA_EXAMPLE
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
-    typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
-#else
-#ifdef BACKEND_BLOCK
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > va_backend;
-#else
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > va_backend;
-#endif
-    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
-#endif
+namespace gridtools {
+        enum class access_mode { ReadWrite = 0, ReadOnly = 1 };
+        enum class ownership { Full = 0, ExternalGPU = 1, ExternalCPU = 2 };
 }
