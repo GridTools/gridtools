@@ -62,7 +62,7 @@ else()
         set(ccflags " " )
         set(ldflags " ")
 
-        add_custom_mpi_host_test(shallow_water_enhanced_mpi ${CMAKE_CURRENT_SOURCE_DIR}/../examples/shallow_water_enhanced.cpp ${ldflags} ${ccflags})
+        #add_custom_mpi_host_test(shallow_water_enhanced_mpi ${CMAKE_CURRENT_SOURCE_DIR}/../examples/shallow_water_enhanced.cpp ${ldflags} ${ccflags})
         add_custom_mpi_host_test(copy_stencil_parallel ${CMAKE_CURRENT_SOURCE_DIR}/../examples/copy_stencil_parallel.cpp ${ldflags} ${ccflags})
     endif()
   endif()
