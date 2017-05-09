@@ -185,6 +185,7 @@ namespace assembly {
                     for (uint_t q = 0; q < nbQuadPt; ++q) {
                         jac(i, j, k, q) = 1. + q;
                     }
+
         for (uint_t i = 0; i < b1; ++i)
             for (uint_t j = 0; j < b2; ++j)
                 for (uint_t k = 0; k < b3; ++k)

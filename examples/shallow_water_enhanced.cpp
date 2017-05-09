@@ -38,6 +38,12 @@
 
 int main(int argc, char **argv) {
 
+#ifdef _USE_GPU_
+#ifdef _GCL_MPI_
+    device_binding();
+#endif
+#endif
+
     // if (argc != 5) {
     //     std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz timesteps\n where args are integer sizes of the
     //     "
@@ -47,5 +53,6 @@ int main(int argc, char **argv) {
     // }
 
     // return !shallow_water::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+    printf("============ run shallow water\n");
     return !shallow_water::test(60, 83, 1, 1);
 }

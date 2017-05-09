@@ -43,7 +43,12 @@
 
 #include <communication/halo_exchange.hpp>
 #include <boundary-conditions/apply.hpp>
+#include <iostream>
 #include <fstream>
+
+#include "../unit_tests/communication/check_flags.hpp"
+#include "../unit_tests/communication/mpi_listener.hpp"
+#include "../unit_tests/communication/device_binding.hpp"
 
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel with boundary conditions*/
@@ -110,8 +115,9 @@ namespace copy_stencil {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
-        array< int, 3 > dimensions{0, 0, 0};
-        MPI_3D_process_grid_t< 3 >::dims_create(PROCS, 2, dimensions);
+        //! [proc_grid_dims]
+        array< int, 3 > dimensions{0, 0, 1};
+        MPI_Dims_create(PROCS, 2, &dimensions[0]);
         dimensions[2] = 1;
 
         //                   strides  1 x xy
@@ -132,7 +138,7 @@ namespace copy_stencil {
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, &dimensions);
+        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, dimensions);
 #ifdef VERBOSE
         printf("halo exchange ok\n");
 #endif

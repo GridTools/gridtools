@@ -31,7 +31,7 @@ INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
-VERSION_="5.3"
+VERSION_="4.9"
 
 while getopts "h:b:t:f:c:l:zmsidvq:x:" opt; do
     case "$opt" in

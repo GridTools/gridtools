@@ -117,9 +117,9 @@ namespace gridtools {
             static const short_t real_length = accumulate(add_functor(), ((Args >= 0) ? 1 : 0)...);
 
             template < short_t... Idx >
-            constexpr static layout_map< Args..., ((Idx >= 0) ? (Idx + real_length) : (-1))... > sum_to_map_indices(
-                layout_map< Idx... >) {
-                return layout_map< Args..., ((Idx >= 0) ? (Idx + real_length) : (-1))... >();
+            constexpr static layout_map< Args..., ((Idx >= 0) ? (Idx + real_length) : (((short_t)-1)))... >
+                sum_to_map_indices(layout_map< Idx... >) {
+                return layout_map< Args..., ((Idx >= 0) ? (Idx + real_length) : (((short_t)-1)))... >();
             }
 
             typedef decltype(sum_to_map_indices(Layout())) type;
@@ -354,7 +354,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(I < length,
                 "Index out of bound: accessing an object with a layout map (a storage) using too many indices.");
 #endif
-            static const short_t value = I < length ? layout_vector[I] : -1;
+            static const short_t value = I < length ? layout_vector[I] : ((short_t)-1);
         };
 
         template < ushort_t I, short_t DefaultVal >

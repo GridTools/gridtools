@@ -253,6 +253,17 @@ namespace gridtools {
         typedef typename _impl::get_pattern< DIMS, grid_type, version >::type pattern_type;
 
       private:
+        template < typename Array >
+        MPI_Comm _make_comm(MPI_Comm comm, Array dims) {
+            int nprocs;
+            MPI_Comm_size(comm, &nprocs);
+            MPI_Dims_create(nprocs, dims.size(), &dims[0]);
+            int period[3] = {1, 1, 1};
+            MPI_Comm CartComm;
+            MPI_Cart_create(MPI_COMM_WORLD, 3, &dims[0], period, false, &CartComm);
+            return CartComm;
+        }
+
         typedef hndlr_dynamic_ut< DataType, GridType, pattern_type, layout2proc_map, Gcl_Arch, version > hd_t;
 
         hd_t hd;
@@ -302,11 +313,27 @@ namespace gridtools {
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
             \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
         */
-        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c,
-            MPI_Comm const &comm,
-            gridtools::array< int, grid_type::ndims > const *dimensions = NULL)
-            : hd(c.template permute< layout2proc_map_abs >(), comm, dimensions) //, periodicity(c)
-        {}
+        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
+            : hd(c.template permute< layout2proc_map_abs >(), comm) {}
+
+        /** constructor that takes the periodicity (mathich the \link
+            boollist_concept \endlink concept, and the MPI CART
+            communicator in DIMS (specified as template argument to the
+            pattern) dimensions of the processing grid. the periodicity is
+            specified in the order chosen by the programmer for the data,
+            as in the rest of the application. It is up tp the
+            construnctor implementation to translate it into the right
+            order depending on the gridtools::layout_map passed to the class.
+
+            \tparam Array An array of dimensions [contiguous in memory and with a size() member
+            \param[in] c Periodicity specification as in \link boollist_concept \endlink
+            \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
+            \param[in] dims Array if dimensions of the ocmputing grid. The behavior is like MPI_Dims_create.
+        */
+        template < typename Array >
+        explicit halo_exchange_dynamic_ut(
+            typename grid_type::period_type const &c, MPI_Comm const &comm, Array const &dims)
+            : hd(c.template permute< layout2proc_map_abs >(), _make_comm(comm, dims)) {}
 
         /** Function to rerturn the L3 level pattern used inside the pattern itself.
 

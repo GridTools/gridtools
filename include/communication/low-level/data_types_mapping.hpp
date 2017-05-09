@@ -97,7 +97,7 @@ namespace gridtools {
                     &sizes[0],
                     &subsizes[0],
                     &starts[0],
-                    MPI_ORDER_FORTRAN, // increasing strides
+                    MPI_ORDER_C, // decreasing strides
                     type(),
                     &res);
                 MPI_Type_commit(&res);
