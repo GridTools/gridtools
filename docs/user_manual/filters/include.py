@@ -64,8 +64,19 @@ def code_include(key, value, format, meta):
                     raise ValueError("Something went wrong: maybe included file was not found")
 
                 source = out.decode('utf-8')
+
                 doc = json.loads(source)
-                return doc[1]
+
+                if 'meta' in doc:
+                    doc = doc['blocks']
+                else:
+                    doc=doc[1]
+
+                # print "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+                # print doc
+                # print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+
+                return doc
 
         return CodeBlock([ident, classes, namevals], code)
 
