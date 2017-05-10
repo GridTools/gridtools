@@ -65,7 +65,8 @@
         <li><a href="#reductions">Reductions</a></li>
         <li><a href="#details-for-performance">Details for performance</a><ul>
         <li><a href="#fusion-and-organization-of-stages">Fusion and organization of stages</a></li>
-        <li><a href="#software-managed-caches">Software Managed Caches</a></li>
+        </ul></li>
+        <li><a href="#software-managed-caches">Software Managed Caches</a><ul>
         <li><a href="#alignment-halo-of-storages">Alignment: halo of storages</a></li>
         <li><a href="#expandable-parameters">Expandable parameters</a></li>
         </ul></li>
@@ -148,9 +149,9 @@ $(function() {
 <h1 id="reductions">Reductions</h1>
 <h1 id="details-for-performance">Details for performance</h1>
 <h2 id="fusion-and-organization-of-stages">Fusion and organization of stages</h2>
-<h2 id="software-managed-caches">Software Managed Caches</h2>
-<p>Software managed caches are a very important functionality of <span class="math"><em>GridTools</em></span> in order to exploit performance for stencils on computing architectures, like NVIDIA GPUs, where cache of data is not automatic. A significant optimization of the stencils using <span class="math"><em>GridTools</em></span> is achieved by means of an increase of the data locality of the stencil algorithms, for which detecting data reuse patterns and caching the corresponding fields is essential for a good performance.</p>
-<p>Since GPUs require to explicit express in the code the use of the different memory hierarchies (i.e. shared memory, registers, texture cache... ) <span class="math"><em>GridTools</em></span> provides a special syntax to express the data reuse patterns. The syntax is independent of the type of scratch pad used by the library to store data and depends only on the access patterns of that field by the stencil methods. The main syntax for caching certain fields of a <code>computation</code> is shown below</p>
+<h1 id="software-managed-caches">Software Managed Caches</h1>
+<p>Software managed caches are provide significant optimization since they provide increased data locality for multi-stage stencils in architectures with user-managed address spaces with different performance tradeoffs. For instance, they allow the stencil algorithms to exploit texture memory, shared memory, and register files on GPUs in cases in which a compiler could not provide such optimizations.</p>
+<p>The user is responsible for detecting data reuse patterns and caching the corresponding fields in order to fully utilize the hardware resources essential for a good performance. The syntax provided by <span class="math">$\GT$</span> is independent of the type of hardware resources used by the library to store data and depends only on the access patterns of the fields by the stencil methods. An example of the syntax for caching certain fields of a <code>computation</code> is shown below</p>
 <pre class="cpp"><code>auto comp = make_computation&lt; BACKEND &gt;(
     domain,
     grid,
@@ -162,15 +163,59 @@ $(function() {
     )
 );</code></pre>
 <p>The cache DSL elements are enclosed into a <code>define_caches</code> construct, that accept any number of <code>cache</code> constructs. At the same time, each <code>cache</code> construct can specify multiple fields that shared the same access pattern.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hint.gif" alt="Tip" />{ width=20px height=20px }</td>
+<td align="left"></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">It is important to note that the <code>cache</code> specifications</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td align="left">are prescribing the behavior of the library: if a cache</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">is specified a cache will be used. Using too many caches</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td align="left">may cause over-use of hardware resources that may lead</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td align="left">to decrease in performance.</td>
+</tr>
+</tbody>
+</table>
 <p>The <code>cache</code> construct adheres to the following syntax:</p>
-<pre><code>cache&lt; cache_type, io_policy, [interval] &gt;( p_arg) </code></pre>
-<p>There are multiple type of caches that can be used for different data reuse pattern situations:</p>
+<pre><code>cache&lt; cache_type, io_policy, [interval] &gt;( p_args... ) </code></pre>
+<p>We now describe the details of each element of the cache constructs.</p>
+<h3 id="cache-type">Cache Type</h3>
+<p><code>cache_type</code> depends on the reuse pattern of the data fields. It's value can be one of the following (where we indicate the basic mean of implementation on the GPUs, so that the user can understand the amount of resources involved):</p>
 <ol style="list-style-type: decimal">
-<li><p>IJ caches: cache fields whose access pattern lies in the IJ-plane</p></li>
-<li><p>K caches: cache field whose access pattern is restricted to the K-plane</p></li>
-<li><p>bypass: Special cache-type that express null or very little reuse within the stencil</p></li>
+<li><p><code>IJ_caches</code>: cache data fields whose access pattern lies in the IJ-plane (Implemented using the shared memory</p></li>
+<li><p><code>K_caches</code>: cache data field whose access pattern is restricted to the K-direction (implemented using the register file of GPUs)</p></li>
+<li><p><code>IJK_caches</code>: for data fields that are accessed in a three dimensions (not fully supported yet)</p></li>
+<li><p><code>Pointr_caches</code>: for data fields accessed multiple times in the point of evaluation only (not fully supported yet)</p></li>
+<li><p><code>bypass</code>: Special cache-type that express null or very little reuse within the stencil. This can be specified to disable the default use of texture memory for read only data fields that the library would use.</p></li>
 </ol>
 <p>Additionally the cache</p>
+<h3 id="cache-policy">Cache policy</h3>
+<p><code>cache_policy</code> specify what is the relation between the data in the cache and the data in the data fields. The possible values are:</p>
+<ol style="list-style-type: decimal">
+<li><p><code>fetch</code>: Before starting executing the stencil operators the data to be cached has to be fetched from the corresponding data fields into the corresponding cache</p></li>
+<li><p><code>flush</code>: After the execution of the stencil operators the data in the cache has to be written back into the data fields.</p></li>
+<li><p><code>fetch_and_flush</code>: The combination of <code>fetch</code> and <code>flush</code></p></li>
+<li><p><code>local</code>: The data will be produced by the stencil opertators and consumed by other operators of the multi-stage stencil.</p></li>
+</ol>
+<h3 id="interval">Interval</h3>
+<p>Not sure what to write here</p>
+<h3 id="p_args">p_args</h3>
+<p>The <code>p_args...</code> indicate a list of placeholders corresponding to the data fields for which the specified caching type and policy has been requested.</p>
 <h2 id="alignment-halo-of-storages">Alignment: halo of storages</h2>
 <h2 id="expandable-parameters">Expandable parameters</h2>
 <h1 id="halo-updates">Halo Updates</h1>
@@ -180,6 +225,7 @@ $(function() {
 <h1 id="interfacing-to-other-programming-languages">Interfacing to other programming languages</h1>
 <h1 id="benchmarking-stencils">Benchmarking stencils</h1>
 <h1 id="serialbox-and-porting-your-reference-application">SerialBox and porting your reference application</h1>
+<p>I'm here and I'm loving every minute of it</p>
 <h1 id="installation-and-configuration">Installation and Configuration</h1>
 <h1 id="sec:getting_started">Quick Start Guide</h1>
 <p>This chapter describes how to use <span class="math"><em>GridTools</em></span> to solve a (simple) PDE. We will use the fourth-order horizontal smoothing filter example from with small modifications to explain the necessary steps to assemble a stencil from scratch. We will not go into details in this chapter but refer to latter chapters for more details.</p>
@@ -271,7 +317,7 @@ storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
 <ul>
 <li><p>retrieve the name of the field,</p></li>
 <li><p>read and write values in the field using the parenthesis syntax,</p></li>
-<li><p>copy the data to device or back to host (in Cuda mode)<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>.</p></li>
+<li><p>copy the data to device or back to host (in Cuda mode)[^1].</p></li>
 </ul>
 <h2 id="storage-with-halo">Storage with halo</h2>
 <p>It is usually beneficial to align the storage to the location of the first element of the calculation domain. Therefore it is possible to tell the storage about the halo region. Since this will probably change in the new storage design we will leave the documentation of this advanced feature for later.</p>
@@ -280,7 +326,327 @@ storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
 <h2 id="example-naive-2d-laplacian">Example: Naive 2D Laplacian</h2>
 <p>The simplest discretization of the 2D Laplacian is the finite difference five-point stencil as depicted in [Fig. [fig:getting_started:laplacian2D]]{}. For the calculation of the Laplacian at a given grid point we need the value at the grid point itself and its four direct neighbors along the Cartesian axis.</p>
 <p><img src="figures/Laplacian2D.png" alt="Access pattern of a 2D Laplacian" />{width=&quot;0.49&quot;}</p>
-<p>A naive C++ implementation of the 2D Laplacian stencil is provided in [Listing [code:getting_started:cxx_laplacian]]{}.</p>
+<p>A naive C++ implementation of the 2D Laplacian stencil is provided in</p>
+<pre class="cpp"><code>/*
+  GridTools Libraries
+
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
+#include &quot;gtest/gtest.h&quot;
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;fstream&gt;
+
+#include &lt;gridtools.hpp&gt;
+#include &lt;stencil-composition/stencil-composition.hpp&gt;
+#include &lt;tools/verifier.hpp&gt;
+#include &quot;Options.hpp&quot;
+
+/*! @file
+  @brief  This file shows an implementation of the &quot;laplace&quot; stencil, similar to the one used in COSMO
+*/
+// [namespaces]
+using namespace gridtools;
+// [namespaces]
+
+// [intervals]
+/*!
+  @brief This is the definition of the special regions in the &quot;vertical&quot; direction for the laplacian functor
+  @tparam level is a struct containing two integers (a splitter and an offset) which identify a point on the vertical
+  axis
+*/
+typedef gridtools::interval&lt; level&lt; 0, -1 &gt;, level&lt; 1, -1 &gt; &gt; x_lap;
+/*!
+  @brief This is the definition of the whole vertical axis
+*/
+typedef gridtools::interval&lt; level&lt; 0, -1 &gt;, level&lt; 1, 1 &gt; &gt; axis;
+
+// [intervals]
+// [functor]
+/**
+   @brief structure containing the Laplacian-specific information.
+
+Contains the stencil operators that compose the multistage stencil in this test
+*/
+struct lap_function {
+    /**
+       @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus
+       method summing values to the offsets
+    */
+    typedef accessor&lt; 0, enumtype::inout, extent&lt;&gt;, 3 &gt; out;
+    /**
+           @brief  placeholder for the input field, index 1
+        */
+    typedef accessor&lt; 1, enumtype::in, extent&lt; -1, 1, -1, 1 &gt;, 3 &gt; in;
+    /**
+       @brief MPL vector of the out and in types
+    */
+    typedef boost::mpl::vector&lt; out, in &gt; arg_list;
+
+    /**
+       @brief Do method, overloaded. t_domain specifies the policy, x_lapl is a dummy argument here \todo should it be
+       removed?
+    */
+    template &lt; typename t_domain &gt;
+    GT_FUNCTION static void Do(t_domain const &amp;dom, x_lap) {
+
+        dom(out()) = 4 * dom(in()) - (dom(in(1, 0, 0)) + dom(in(0, 1, 0)) + dom(in(-1, 0, 0)) + dom(in(0, -1, 0)));
+    }
+};
+
+// [functor]
+
+/*!
+ * @brief This operator is used for debugging only
+ */
+
+std::ostream &amp;operator&lt;&lt;(std::ostream &amp;s, lap_function const) { return s &lt;&lt; &quot;lap_function&quot;; }
+
+// [start_main]
+/// \brief  Main function
+/// \param  argc An integer argument count of the command line arguments
+/// \param  argv An argument vector of the command line arguments
+/// \return an integer 0 upon exit success
+TEST(Laplace, test) {
+
+    uint_t d1 = Options::getInstance().m_size[0];
+    uint_t d2 = Options::getInstance().m_size[1];
+    uint_t d3 = Options::getInstance().m_size[2];
+
+    uint_t halo_size = 2;
+
+    using namespace gridtools;
+    using namespace enumtype;
+// [start_main]
+
+// [backend]
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend&lt; Cuda, GRIDBACKEND, Block &gt;
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend&lt; Host, GRIDBACKEND, Block &gt;
+#else
+#define BACKEND backend&lt; Host, GRIDBACKEND, Naive &gt;
+#endif
+#endif
+    // [backend]
+
+    // [layout_map]
+    typedef gridtools::layout_map&lt; 2, 1, 0 &gt; layout_t;
+    // [layout_map]
+
+    // [storage_type]
+    /**
+       - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy
+       for the backend (policy pattern)?
+    */
+    typedef BACKEND::storage_info&lt; 0, layout_t &gt; storage_info_t;
+    typedef BACKEND::storage_type&lt; float_type, storage_info_t &gt;::type storage_type;
+    // [storage_type]
+
+    // [storage_initialization]
+    /**
+        - Instantiation of the actual data fields that are used for input/output
+    */
+    storage_info_t metadata_(d1, d2, d3);
+    storage_type in(metadata_, -1., &quot;in&quot;);
+    storage_type out(metadata_, -7.3, &quot;out&quot;);
+    // [storage_initialization]
+
+    // [placeholders]
+    /**
+       - Definition of placeholders. The order of them reflect the order the user will deal with them
+       especially the non-temporary ones, in the construction of the domain.
+       A placeholder only contains a static const index and a storage type
+    */
+    typedef arg&lt; 0, storage_type &gt; p_in;
+    typedef arg&lt; 1, storage_type &gt; p_out;
+
+    /**
+       - Creation of an array of placeholders to be passed to the domain
+       \todo I&#39;m using mpl::vector, but the final API should look slightly simpler
+    */
+    typedef boost::mpl::vector&lt; p_in, p_out &gt; accessor_list;
+    // [placeholders]
+
+    // [aggregator_type]
+    /**
+       - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that
+       are used, temporary and not
+       It must be noted that the only fields to be passed to the constructor are the non-temporary.
+       The order in which they have to be passed is the order in which they appear scanning the placeholders in order
+       (i.e. the order in the accessor_list?). \todo (I don&#39;t particularly like this).
+       \note aggregator_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is
+       &#39;clonable to gpu&#39; must derive from the CRTP base class.
+    */
+    gridtools::aggregator_type&lt; accessor_list &gt; domain(boost::fusion::make_vector(&amp;in, &amp;out));
+    // [aggregator_type]
+
+    // [grid]
+    /**
+       - Definition of the physical dimensions of the problem.
+       The grid constructor takes the horizontal plane dimensions,
+       while the vertical ones are set according the the axis property soon after
+    */
+    uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+    uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+
+    gridtools::grid&lt; axis &gt; grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = d3 - 1;
+// [grid]
+
+// [computation]
+/*!
+  - Here we do lot of stuff:
+
+  1) We pass to the intermediate representation ::run function the description
+  of the stencil, which is a multi-stage stencil (mss)
+  The mss includes (in order of execution) a laplacian, two fluxes which are independent
+  and a final step that is the out_function
+
+  2) The logical physical domain with the fields to use
+
+  3) The actual domain dimensions
+
+  \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and grid), it only
+  calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the
+  \ref gridtools::intermediate &quot;intermediate&quot; class.
+  \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
+*/
+#ifdef CXX11_ENABLED
+    auto
+#else
+#ifdef __CUDACC__
+    stencil *
+#else
+    boost::shared_ptr&lt; gridtools::stencil &gt;
+#endif
+#endif
+        laplace = make_computation&lt; gridtools::BACKEND &gt;(
+            domain,
+            grid,
+            make_multistage        //! \todo all the arguments in the call to make_multistage are actually dummy.
+            (execute&lt; forward &gt;(), //!\todo parameter used only for overloading purpose?
+                make_stage&lt; lap_function &gt;(
+                    p_out(), p_in()) //!  \todo elementary stencil function, also here the arguments are dummy.
+                ));
+    // [computation]
+
+    // [ready_steady_run_finalize]
+    /**
+       @brief This method allocates on the heap the temporary variables
+       this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of extents
+       defined in the temporary placeholders (none).
+     */
+    laplace-&gt;ready();
+
+    /**
+       @brief calls setup_computation and creates the local domains
+       the constructors of the local domains get called (\ref gridtools::intermediate::instantiate_local_domain, which
+       only initializes the dom public pointer variable)
+       @note the local domains are allocated in the public scope of the \ref gridtools::intermediate struct, only the
+       pointer is passed to the instantiate_local_domain struct
+     */
+    laplace-&gt;steady();
+
+    /**
+       Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the
+       backend.
+     */
+    laplace-&gt;run();
+
+    laplace-&gt;finalize();
+
+    // [ready_steady_run_finalize]
+
+    // [generate reference]
+
+    storage_type ref(metadata_, -7.3, &quot;ref&quot;);
+
+    for (uint_t i = halo_size; i != d1 - halo_size; ++i) {
+        for (uint_t j = halo_size; j != d2 - halo_size; ++j) {
+            for (uint_t k = 0; k != d3; ++k) {
+                ref(i, j, k) =
+                    4 * in(i, j, k) - (in(i + 1, j, k) + in(i, j + 1, k) + in(i - 1, j, k) + in(i, j - 1, k));
+            }
+        }
+    }
+
+#ifdef CXX11_ENABLED
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-12);
+#endif
+    array&lt; array&lt; uint_t, 2 &gt;, 3 &gt; halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+    bool result = verif.verify(grid, ref, out, halos);
+#else
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6, halo_size);
+#else
+    verifier verif(1e-12, halo_size);
+#endif
+    bool result = verif.verify(grid, out, ref);
+#endif
+
+#ifdef BENCHMARK
+    std::cout &lt;&lt; laplace-&gt;print_meter() &lt;&lt; std::endl;
+#endif
+
+    ASSERT_TRUE(result);
+}
+
+int main(int argc, char **argv) {
+    // Pass command line arguments to googltest
+    ::testing::InitGoogleTest(&amp;argc, argv);
+
+    if (argc != 4) {
+        printf(&quot;Usage: laplace_&lt;whatever&gt; dimx dimy dimz\n where args are integer sizes of the data fields\n&quot;);
+        return 1;
+    }
+
+    for (int i = 0; i != 3; ++i) {
+        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+    }
+
+    return RUN_ALL_TESTS();
+}
+
+/**
+@}
+*/
+</code></pre>
 <p>Apart from the initialization (orange) the stencil implementation consists of 2 main components:</p>
 <ul>
 <li><p>Loop-logic (green): defines the stencil application domain and loop order</p></li>
@@ -320,7 +686,7 @@ storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
 <p>Our first <span class="math"><em>GridTools</em></span> implementation will be very close to the naive implementation: we will call two times the Laplacian functor from the previous section and store the result in two extra fields. Then we will call a third functor to compute the final result. This functor, see [Listing [code:getting_started:gt_smoothing_version1]]{} shows how we can specialize the computation in the <span class="math"><em>k</em></span>-direction. We define two intervals, the [<code>]{} and the [</code>]{}, and provide an overload of the [``]{}-method for each interval.</p>
 <p>The intervals are defined as</p>
 <p>Since we are working currently on a nicer API to define the intervals we don’t want to describe the (non-trivial) details now. In short: the first entry in the level is a so-called [<code>]{}, an abstraction to tell that we want to split the axis here. The second entry is an offset relative to the splitter. At runtime we assign an index of the k-axis to the splitters. Then the [</code>]{} corresponds to the index in the [<code>]{} entry. Additionally we have to define an [</code>]{} such that all intervals are a strict subset of the [``]{}.</p>
-<p>Finally, the call to [``]{} looks as follows<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a></p>
+<p>Finally, the call to [``]{} looks as follows[^3]</p>
 <p>In this version we needed to explicitly allocate the temporary fields [<code>]{} and [</code>]{}. In the next section we will learn about <span class="math"><em>GridTools</em></span> temporaries.</p>
 <h2 id="textitgridtoolstemporaries"><span class="math"><em>GridTools</em></span> temporaries</h2>
 <p><em><span class="math"><em>GridTools</em></span> temporary storages</em> are storages with the lifetime of the [<code>]{}, i.e. they can be used by different stages assembled in one [</code>]{} call. This is exactly what we need for the [<code>]{} and [</code>]{} fields.</p>
@@ -331,7 +697,7 @@ storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
 <p>The new setup looks as follows</p>
 <p>The attentive reader may have noticed that our first versions did more work than needed: we calculated the Laplacian of the Laplacian of phi (<span class="math">ΔΔ<em>ϕ</em></span>) for all <span class="math"><em>k</em></span>-levels, however we used it only for <span class="math"><em>k</em> &lt; <em>k</em><sub>max</sub></span>. In this version we do a bit better: we still calculate the Laplacian (<span class="math"><em>L</em> = Δ<em>ϕ</em></span>) for all levels but we only calculate <span class="math">Δ<em>L</em></span> for the levels where we need it.</p>
 <h4 id="outlook">Outlook</h4>
-<p>Eventually we would like to get rid of this problem (and the last temporary) in an elegant way with nested function calls as follows Unfortunately, this is currently not supported in <span class="math"><em>GridTools</em></span><a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a>.</p>
+<p>Eventually we would like to get rid of this problem (and the last temporary) in an elegant way with nested function calls as follows Unfortunately, this is currently not supported in <span class="math"><em>GridTools</em></span>[^4].</p>
 <h2 id="mm">Full code listing</h2>
 <p>The full compilable version of the code is given in <a href="#full_lap">Full code listing</a></p>
 <pre id="full_lap" class="cpp numberLines"><code>#include &lt;common/defs.hpp&gt;
@@ -620,14 +986,6 @@ w(i+1) == vel(i+1, q+2)</code></pre>
 </tr>
 </tbody>
 </table>
-<div class="footnotes">
-<hr />
-<ol>
-<li id="fn1"><p>With the Cuda backend we allocate memory on host and device. In the standard use-cases you don’t need to update the data manually, but you still have the option to do so.<a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p>At this point the reader should be able to complete the missing parts in the setup.<a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p>There are other ways to accomplish this behavior. The extra computation can be avoided by defining the Laplacian only on the interval where we need it; the temporary could be avoided by a bit of code duplication, however there is no good reason to do it.<a href="#fnref3">↩</a></p></li>
-</ol>
-</div>
             </div>
     </div>
   </div>
