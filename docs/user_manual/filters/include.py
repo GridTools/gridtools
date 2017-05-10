@@ -37,13 +37,11 @@ import json
 def code_include(key, value, format, meta):
     if key == 'CodeBlock':
         [[ident, classes, namevals], code] = value
-        print classes
-        print namevals
+
         if classes != [] and classes[0] == "include" :
 
             tags = [l[0] for l in namevals if l[0]]
             if "lang" in tags:
-                print "LANG"
                 # switch to including into a codeblock
                 vals = [l[1] for l in namevals if l[1]]
                 lang = vals[tags.index("lang")]
@@ -56,7 +54,6 @@ def code_include(key, value, format, meta):
                 f.close()
                 return CodeBlock([ident, classes, namevals], newcode)
             else:
-                print "REGULAR"
                 lines = code.split("\n")
                 if len(lines) > 1:
                     raise ValueError("Only one file at a time can be included")
