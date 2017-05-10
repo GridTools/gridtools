@@ -54,6 +54,8 @@
 
 #include "communication/GCL.hpp"
 
+#include "storage/storage-facility.hpp"
+
 #include "common/defs.hpp"
 #include "common/host_device.hpp"
 #include "common/array.hpp"

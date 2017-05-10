@@ -411,7 +411,7 @@ namespace shallow_water {
 
         //! [parallel_storage]
         parallel_storage_info< storage_info_t, partitioner_t > meta_(part, d1, d2, d3);
-        sol_type sol(meta_.get_metadata(), "sol");
+        sol_type sol(meta_.get_metadata());
         // sol_type tmpx(meta_.get_metadata(), "tmpx");
         // sol_type tmpy(meta_.get_metadata(), "tmpy");
         //! [parallel_storage]
@@ -583,7 +583,7 @@ namespace shallow_water {
         for (uint_t t = 0; t < total_time; ++t) {
             reference.iterate();
         }
-        for (int i = 0; i < sol_type::size; ++i) {
+        for (int i = 0; i < sol_type::num_of_storages; ++i) {
             retval &= check_result.verify(grid, sol.get_field()[i], reference.solution.get_field()[i], halos);
         }
 

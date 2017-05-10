@@ -43,6 +43,7 @@
 
 #include <boost/mpl/bool.hpp>
 
+#include "common/definitions.hpp"
 #include "common/storage_interface.hpp"
 #include "common/storage_info_interface.hpp"
 
