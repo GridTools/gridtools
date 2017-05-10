@@ -229,7 +229,7 @@ namespace gridtools {
               m_alignment(array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(
                               dims_)...},
                   get_strides< layout_t >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
-            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Dims) >,
+            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                               typename is_all_integral< Dims... >::type >::value,
                 "Dimensions have to be integral types.");
             static_assert((sizeof...(Dims) == layout_t::masked_length),
@@ -311,7 +311,7 @@ namespace gridtools {
         template < typename... Ints >
         GT_FUNCTION constexpr
             typename boost::enable_if< typename is_all_integral< Ints... >::type, int >::type index(Ints... idx) const {
-            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Ints) >,
+            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Ints) > 0) >,
                               typename is_all_integral< Ints... >::type >::value,
                 "Dimensions have to be integral types.");
             static_assert(

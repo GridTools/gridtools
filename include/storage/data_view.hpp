@@ -97,7 +97,7 @@ namespace gridtools {
         template < typename... Coords >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(Coords... c) const {
-            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Coords) >,
+            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Coords) > 0) >,
                               typename is_all_integral< Coords... >::type >::value,
                 "Index arguments have to be integral types.");
             return m_raw_ptrs[0][m_storage_info->index(c...)];
@@ -111,7 +111,7 @@ namespace gridtools {
         template < typename T, unsigned N >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(std::array< T, N > const &arr) const {
-            static_assert(boost::mpl::and_< boost::mpl::int_< N >, typename is_all_integral< T >::type >::value,
+            static_assert(boost::mpl::and_< boost::mpl::bool_< (N>0) >, typename is_all_integral< T >::type >::value,
                 "Index arguments have to be integral types.");
             return m_raw_ptrs[0][m_storage_info->index(arr)];
         }

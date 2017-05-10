@@ -67,7 +67,7 @@ namespace gridtools {
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
             static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
             static_assert(is_alignment< Alignment >::value, "Given type is not an alignment type.");
-            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Dims) >,
+            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                               typename is_all_integral< Dims... >::type >::value,
                 "Dimensions have to be integral types.");
         }

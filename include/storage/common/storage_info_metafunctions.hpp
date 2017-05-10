@@ -178,7 +178,7 @@ namespace gridtools {
     struct get_strides< layout_map< LayoutArgs... > > {
         template < typename... Dims >
         static constexpr array< unsigned, sizeof...(LayoutArgs) > get_stride_array(Dims... d) {
-            static_assert(boost::mpl::and_< boost::mpl::int_< sizeof...(Dims) >,
+            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                               typename is_all_integral< Dims... >::type >::value,
                 "Dimensions have to be integral types.");
             typedef layout_map< LayoutArgs... > Layout;
