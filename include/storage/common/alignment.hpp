@@ -82,12 +82,12 @@ namespace gridtools {
 
         template < unsigned Coord >
         GT_FUNCTION constexpr unsigned unaligned_dim() const {
-            return m_unaligned_dims[Coord];
+            return m_unaligned_dims.template get<Coord>();
         }
 
         template < unsigned Coord >
         GT_FUNCTION constexpr unsigned unaligned_stride() const {
-            return m_unaligned_strides[Coord];
+            return m_unaligned_strides.template get<Coord>();
         }
     };
 

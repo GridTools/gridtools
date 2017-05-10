@@ -151,7 +151,7 @@ namespace gridtools {
         template < unsigned N, typename... Ints >
         GT_FUNCTION constexpr typename boost::enable_if_c< (N < layout_t::masked_length), int >::type index_part(
             int first, Ints... ints) const {
-            return first * m_strides[N] + index_part< N + 1 >(ints..., first);
+            return first * m_strides.template get<N>() + index_part< N + 1 >(ints..., first);
         }
 
         /*
@@ -200,7 +200,7 @@ namespace gridtools {
          */
         template < unsigned From = layout_t::masked_length - 1 >
         GT_FUNCTION constexpr typename boost::enable_if_c< (From > 0), unsigned >::type size_part() const {
-            return m_dims[From] * size_part< From - 1 >();
+            return m_dims.template get<From>() * size_part< From - 1 >();
         }
 
         /*
@@ -209,7 +209,7 @@ namespace gridtools {
          */
         template < unsigned From = layout_t::masked_length - 1 >
         GT_FUNCTION constexpr typename boost::enable_if_c< (From == 0), unsigned >::type size_part() const {
-            return m_dims[0];
+            return m_dims.template get<0>();
         }
 
       public:
@@ -258,7 +258,7 @@ namespace gridtools {
         template < int Coord >
         GT_FUNCTION constexpr int dim() const {
             static_assert((Coord < layout_t::masked_length), "Out of bounds access in storage info dimension call.");
-            return m_dims[Coord];
+            return m_dims.template get<Coord>();
         }
 
         /*
@@ -269,7 +269,7 @@ namespace gridtools {
         template < int Coord >
         GT_FUNCTION constexpr int stride() const {
             static_assert((Coord < layout_t::masked_length), "Out of bounds access in storage info stride call.");
-            return m_strides[Coord];
+            return m_strides.template get<Coord>();
         }
 
         /*
