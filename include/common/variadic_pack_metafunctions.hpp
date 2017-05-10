@@ -38,6 +38,8 @@
 #include <stdexcept>
 
 #include <boost/utility.hpp>
+#include <boost/mpl/and.hpp>
+#include <boost/type_traits.hpp>
 
 #include "host_device.hpp"
 #include "error.hpp"

@@ -430,11 +430,11 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), GT_INTERNAL_ERROR);
         typedef typename LocalDomain::storage_info_ptr_fusion_list storage_info_ptrs_t;
 
-        DataPtrCached RESTRICT &m_data_ptr_cached;
-        storage_info_ptrs_t const RESTRICT &m_storageinfo_fusion_list;
+        DataPtrCached &RESTRICT m_data_ptr_cached;
+        storage_info_ptrs_t const &RESTRICT m_storageinfo_fusion_list;
 
         GT_FUNCTION assign_storage_ptrs(
-            DataPtrCached RESTRICT &data_ptr_cached, storage_info_ptrs_t const RESTRICT &storageinfo_fusion_list)
+            DataPtrCached &RESTRICT data_ptr_cached, storage_info_ptrs_t const &RESTRICT storageinfo_fusion_list)
             : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list) {}
 
         template < typename FusionPair >
@@ -482,9 +482,9 @@ namespace gridtools {
         template < typename SInfo >
         struct assign {
             const SInfo *m_storage_info;
-            StridesCached RESTRICT &m_strides_cached;
+            StridesCached &RESTRICT m_strides_cached;
 
-            GT_FUNCTION assign(const SInfo *storage_info, StridesCached RESTRICT &strides_cached)
+            GT_FUNCTION assign(const SInfo *storage_info, StridesCached &RESTRICT strides_cached)
                 : m_storage_info(storage_info), m_strides_cached(strides_cached) {}
 
             template < typename Coordinate >
@@ -514,16 +514,16 @@ namespace gridtools {
             }
         };
 
-        StridesCached RESTRICT &m_strides_cached;
+        StridesCached &RESTRICT m_strides_cached;
 
-        GT_FUNCTION assign_strides(StridesCached RESTRICT &strides_cached) : m_strides_cached(strides_cached) {}
+        GT_FUNCTION assign_strides(StridesCached &RESTRICT strides_cached) : m_strides_cached(strides_cached) {}
 
         template < typename StorageInfo >
         GT_FUNCTION typename boost::enable_if_c< StorageInfo::layout_t::unmasked_length == 0, void >::type operator()(
             const StorageInfo *storage_info) const {}
 
         template < typename StorageInfo >
-        GT_FUNCTION typename boost::enable_if_c< StorageInfo::layout_t::unmasked_length, void >::type operator()(
+        GT_FUNCTION typename boost::enable_if_c< StorageInfo::layout_t::unmasked_length != 0, void >::type operator()(
             const StorageInfo *storage_info) const {
             boost::mpl::for_each< boost::mpl::range_c< short_t, 0, StorageInfo::layout_t::unmasked_length - 1 > >(
                 assign< StorageInfo >(storage_info, m_strides_cached));

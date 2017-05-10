@@ -43,6 +43,8 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/plus.hpp>
 
+#include "../../common/variadic_pack_metafunctions.hpp"
+
 namespace gridtools {
 
     /**
@@ -55,7 +57,6 @@ namespace gridtools {
      */
     template < unsigned... N >
     struct halo {
-        static constexpr unsigned value[sizeof...(N)] = {N...};
 
         /**
          * @brief member function used to query the halo size of a given dimension
@@ -65,7 +66,7 @@ namespace gridtools {
         template < unsigned V >
         static constexpr unsigned at() {
             static_assert((V < sizeof...(N)), "Out of bounds access in halo type discovered.");
-            return value[V];
+            return get_value_from_pack(V, N...);
         }
 
         /**
@@ -73,7 +74,7 @@ namespace gridtools {
          * @param V Dimension or coordinate to query
          * @return halo size
          */
-        static constexpr unsigned at(unsigned V) { return value[V]; }
+        static constexpr unsigned at(unsigned V) { return get_value_from_pack(V, N...); }
 
         /**
          * @brief member function used to query the number of dimensions. E.g., a halo
