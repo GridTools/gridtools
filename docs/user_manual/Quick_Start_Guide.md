@@ -190,7 +190,9 @@ itself and its four direct neighbors along the Cartesian axis.
 ![Access pattern of a 2D Laplacian](figures/Laplacian2D.png){width="0.49\columnwidth"}
 
 A naive C++ implementation of the 2D Laplacian stencil is provided in
-[Listing \[code:getting\_started:cxx\_laplacian\]]{}.
+```{.include lang=cpp}
+../../examples/laplacian.cpp
+```
 
 Apart from the initialization (orange) the stencil implementation
 consists of 2 main components:
