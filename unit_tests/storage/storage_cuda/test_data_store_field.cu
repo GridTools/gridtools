@@ -100,10 +100,6 @@ TEST(DataStoreFieldTest, FillAndReadData) {
     static_assert(is_data_field_view< decltype(dv) >::value, "is_data_field_view is not working anymore");
     EXPECT_FALSE(check_consistency(f, hv));
     EXPECT_TRUE(check_consistency(f, dv));
-#ifndef NDEBUG
-    std::cout << "Execute death tests.\n";
-    ASSERT_DEATH((f.reactivate_host_write_views()), "device views are in write mode");
-#endif
     mul2<<< 1, 1 >>>(dv);
 
     // create a host read view for 0,0 and 0,1
@@ -150,14 +146,6 @@ TEST(DataStoreFieldTest, GetSet) {
     // create unallocated data_store_field
     data_store_field_t f;
     f.allocate(si);
-#ifndef NDEBUG
-    storage_info_t si1(5, 5, 5);
-    data_store< cuda_storage< double >, storage_info_t > ds1;
-    ASSERT_DEATH((f.set< 0, 0 >(ds1)), "Passed invalid data store.");
-    ds1.allocate(si1);
-    ASSERT_DEATH((f.set< 0, 0 >(ds1)),
-        "Passed data store cannot be inserted into data store field because storage infos.*");
-#endif
 
     // get a storage and compare ptrs
     data_store_t st = f.get< 1, 0 >();

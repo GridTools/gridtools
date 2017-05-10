@@ -71,13 +71,6 @@ TEST(DataViewTest, Simple) {
 
     // check if the user protections are working
     static_assert(si.index(1, 0, 0) == 1, "constexpr index method call failed");
-#ifndef NDEBUG
-    std::cout << "Execute death tests.\n";
-    ASSERT_DEATH(si.index(0, 0, 3), "Assertion `false' failed");
-    ASSERT_DEATH(si.index(0, 3, 0), "Assertion `false' failed");
-    ASSERT_DEATH(si.index(3, 0, 0), "Assertion `false' failed");
-    ASSERT_DEATH(si.index(5, 5, 5), "Assertion `false' failed");
-#endif
     ASSERT_TRUE(si.index(1, 0, 1) == 97);
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
@@ -136,35 +129,4 @@ TEST(DataViewTest, Simple) {
     ds.reset();
     EXPECT_FALSE(check_consistency(ds, dv));
     EXPECT_FALSE(check_consistency(ds, dvro));
-}
-
-TEST(DataViewTest, InvalidState) {
-    typedef cuda_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
-    typedef data_store< cuda_storage< double >, storage_info_t > data_store_t;
-    // create and allocate a data_store
-    constexpr storage_info_t si(3, 3, 3);
-    data_store_t ds(si);
-
-#ifndef NDEBUG
-    // create both host and device view -> invalid
-    make_host_view(ds);
-    ASSERT_DEATH(make_device_view(ds),
-        "There is already an active read-write host view. Synchronization is needed before constructing the view.");
-
-    // reset state
-    ds.sync();
-
-    // create both device and host view -> invalid
-    make_device_view(ds);
-    ASSERT_DEATH(make_host_view(ds),
-        "There is already an active read-write device view. Synchronization is needed before constructing the view.");
-
-    // reset state
-    ds.sync();
-
-    // correct behavior
-    make_host_view(ds);
-    ds.sync();
-    make_device_view(ds);
-#endif
 }

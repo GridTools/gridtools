@@ -45,16 +45,6 @@ using namespace gridtools;
 
 typedef cuda_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
 
-void invalid_copy() {
-    data_store< cuda_storage< double >, storage_info_t > ds1;
-    data_store< cuda_storage< double >, storage_info_t > ds2 = ds1;
-}
-
-void invalid_copy_ctor() {
-    data_store< cuda_storage< double >, storage_info_t > ds1;
-    data_store< cuda_storage< double >, storage_info_t > ds3(ds1);
-}
-
 __global__ void mul2(double *s) {
     s[0] *= 2.0;
     s[1] *= 2.0;
@@ -125,20 +115,6 @@ TEST(DataStoreTest, Simple) {
 
     // create unallocated data_store
     data_store_t ds;
-#ifndef NDEBUG
-    std::cout << "Execute death tests.\n";
-    // try to copy and get_storage -> should fail
-    data_store< cuda_storage< double >, storage_info_t > ds_tmp;
-    ds_tmp.allocate(si);
-    // death tests that call cudaMalloc, etc. do not work
-    ASSERT_DEATH(invalid_copy(), "Cannot copy a non-initialized data_store.");
-    ASSERT_DEATH(invalid_copy_ctor(), "Cannot copy a non-initialized data_store.");
-
-    ASSERT_DEATH(ds_tmp.allocate(si), "This data store has already been allocated.");
-    ASSERT_DEATH(ds.get_storage_info_ptr(), "data_store is in a non-initialized state.");
-    ASSERT_DEATH(ds.get_storage_ptr(), "data_store is in a non-initialized state.");
-    ASSERT_DEATH(ds.get_storage_info_ptr(), "data_store is in a non-initialized state.");
-#endif
     // allocate space
     ds.allocate(si);
     data_store_t ds_tmp_1(si);
@@ -147,10 +123,6 @@ TEST(DataStoreTest, Simple) {
     data_store_t ds1;
     ds1.allocate(si);
     ds1.reset(); // destroy the data_store
-#ifndef NDEBUG
-    std::cout << "Execute death tests.\n";
-    ASSERT_DEATH(ds1.get_storage_ptr(), "data_store is in a non-initialized state.");
-#endif
 
     // create a copy of a data_store and check equivalence
     data_store_t datast;
