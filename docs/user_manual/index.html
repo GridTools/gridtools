@@ -88,10 +88,10 @@
         <li><a href="#storage-with-halo">Storage with halo</a></li>
         <li><a href="#stencils">Stencils</a></li>
         <li><a href="#example-naive-2d-laplacian">Example: Naive 2D Laplacian</a></li>
-        <li><a href="#first-textitgridtoolsstencil">First <span class="math"><em>GridTools</em></span> stencil</a></li>
+        <li><a href="#first-textitgridtools-stencil">First <span class="math"><em>GridTools</em></span> stencil</a></li>
         <li><a href="#assembling-stencils-smoothing-filter">Assembling stencils: smoothing filter</a></li>
         <li><a href="#do-method-overload">Do-method overload</a></li>
-        <li><a href="#textitgridtoolstemporaries"><span class="math"><em>GridTools</em></span> temporaries</a></li>
+        <li><a href="#textitgridtools-temporaries"><span class="math"><em>GridTools</em></span> temporaries</a></li>
         <li><a href="#functor-calls">Functor calls</a></li>
         <li><a href="#mm">Full code listing</a></li>
         <li><a href="#how-to-pass-the-alpha-global-accessors">How to pass the <span class="math"><em>α</em></span>: Global accessors</a></li>
@@ -228,7 +228,7 @@ $(function() {
 <p>I'm here and I'm loving every minute of it</p>
 <h1 id="installation-and-configuration">Installation and Configuration</h1>
 <h1 id="sec:getting_started">Quick Start Guide</h1>
-<p>This chapter describes how to use <span class="math"><em>GridTools</em></span> to solve a (simple) PDE. We will use the fourth-order horizontal smoothing filter example from with small modifications to explain the necessary steps to assemble a stencil from scratch. We will not go into details in this chapter but refer to latter chapters for more details.</p>
+<p>This chapter describes how to use <span class="math"><em>GridTools</em></span> to solve a (simple) PDE. We will use the fourth-order horizontal smoothing filter example from with small modifications to explain the necessary steps to assemble a stencil from scratch. We will not go into details in this chapter but refer to latter chapters for more details.</p>
 <p>Our example PDE is given by <br /><span class="math">$$\label{eq:getting_started:examplepde}
 \frac{\partial \phi}{\partial t} =\begin{cases}
 - \alpha \nabla^4 \phi &amp; z \leq z_\text{max}\\
@@ -240,7 +240,7 @@ $(function() {
 <p>In the following we will walk through the following steps:</p>
 <ul>
 <li><p>The <span class="math"><em>GridTools</em></span> coordinate system and its notation.</p></li>
-<li><p>Storages: how does <span class="math"><em>GridTools</em></span> manage the input and output fields.</p></li>
+<li><p>Storages: how does <span class="math"><em>GridTools</em></span> manage the input and output fields.</p></li>
 <li><p>The first stencil: calculating <span class="math"><em>L</em></span>, the second order Laplacian of <span class="math"><em>ϕ</em></span>.</p></li>
 <li><p>The final stencil: function calls, Do-method overloads and temporaries</p></li>
 <li><p>MISSING: How to pass the <span class="math"><em>α</em></span>: Global accessors</p></li>
@@ -249,20 +249,20 @@ $(function() {
 </ul>
 <h2 id="coordinate-system">Coordinate System</h2>
 <p>For a finite difference discretization we restrict the field <span class="math"><em>ϕ</em> ∈ R<sup>3</sup></span> to a discrete grid. We use the notation <span class="math"><em>i</em> = <em>x</em><sub><em>i</em></sub></span> and <span class="math"><em>j</em> = <em>y</em><sub><em>j</em></sub></span> for the horizontal dimension and <span class="math"><em>k</em> = <em>z</em><sub><em>k</em></sub></span> for the vertical dimension, where <span class="math"><em>x</em><sub><em>i</em></sub>, <em>y</em><sub><em>j</em></sub>, <em>z</em><sub><em>k</em></sub></span> are the <span class="math"><em>x</em>, <em>y</em>, <em>z</em></span> coordinates restricted on the grid. The <em>computation domain</em> is defined by all grid points in our domain of interest <br /><span class="math">Λ = (<em>i</em>, <em>j</em>, <em>k</em>) with <em>i</em> ∈ {0…<em>N</em><sub><em>i</em></sub> − 1}, <em>j</em> ∈ {0…<em>N</em><sub><em>j</em></sub> − 1}, <em>k</em> ∈ {0…<em>N</em><sub><em>k</em></sub> − 1}</span><br /></p>
-<p><span class="math"><em>GridTools</em></span> supports any number of dimension, however it will treat one dimension, here the <span class="math"><em>k</em></span>, dimension differently: the <span class="math"><em>i</em><em>j</em></span>-plane is executed in parallel while the computation in <span class="math"><em>k</em></span> can be sequential. The consequence is that there must not be a dependency in <span class="math"><em>i</em><em>j</em></span> within a stencil while there can be a dependency in <span class="math"><em>k</em></span>. For now (this chapter) it is sufficient to just remember that the <span class="math"><em>i</em><em>j</em></span>-plane and the <span class="math"><em>k</em></span> dimension are treated differently by <span class="math"><em>GridTools</em></span>.</p>
-<p>The calculation domain is surrounded by a <em>boundary region</em> as depicted in [Fig. [fig:getting_started:coordinates]]{}. Computation happens only within the calculation domain but values might be read from grid points in the boundary region.</p>
+<p><span class="math"><em>GridTools</em></span> supports any number of dimension, however it will treat one dimension, here the <span class="math"><em>k</em></span>, dimension differently: the <span class="math"><em>i</em><em>j</em></span>-plane is executed in parallel while the computation in <span class="math"><em>k</em></span> can be sequential. The consequence is that there must not be a dependency in <span class="math"><em>i</em><em>j</em></span> within a stencil while there can be a dependency in <span class="math"><em>k</em></span>. For now (this chapter) it is sufficient to just remember that the <span class="math"><em>i</em><em>j</em></span>-plane and the <span class="math"><em>k</em></span> dimension are treated differently by <span class="math"><em>GridTools</em></span>.</p>
+<p>The calculation domain is surrounded by a <em>boundary region</em> as depicted in [Fig. [fig:getting_started:coordinates]]{}. Computation happens only within the calculation domain but values might be read from grid points in the boundary region.</p>
 <p><img src="figures/coordinates.png" alt="Coordinates system" />{width=&quot;0.6&quot;}</p>
 <h2 id="storages-1">Storages</h2>
 <p>In this section we will setup the fields for our example: we need a storage for the <span class="math"><em>ϕ</em></span>-field (<code>phi_in</code>) and a storage for the output (<code>phi_out</code>).</p>
-<p>Storages in <span class="math"><em>GridTools</em></span> are n-dimensional array-like objects with the following capabilities:</p>
+<p>Storages in <span class="math"><em>GridTools</em></span> are n-dimensional array-like objects with the following capabilities:</p>
 <ul>
 <li><p>access an element with <span class="math">(<em>i</em>, <em>j</em>, <em>k</em>)</span> syntax</p></li>
-<li><p>copying between CPU memory and a device (e.g. a CUDA capable GPU)</p></li>
+<li><p>copying between CPU memory and a device (e.g. a CUDA capable GPU)</p></li>
 </ul>
 <h2 id="backend">Backend</h2>
 <p>Since the storages (and other things later) depend on the architecture (CPU or GPU) our first step is to define a <em>backend</em> type which typically looks like</p>
 <pre class="cpp"><code>using backend_t = backend&lt; Cuda, structured, Block &gt;;</code></pre>
-<p>for the CUDA backed or for the CPU backend. The second argument defines the type of the grid, where <code>phi_in</code> refers to a Cartesian grid, see [Chapter [sec:grids]] for details. The last argument defines that blocking should be used in CPU mode (instead of <code>phi_out</code> without blocking). For the CUDA mode [``]{} is the only option.</p>
+<p>for the CUDA backed or for the CPU backend. The second argument defines the type of the grid, where <code>phi_in</code> refers to a Cartesian grid, see [Chapter [sec:grids]] for details. The last argument defines that blocking should be used in CPU mode (instead of <code>phi_out</code> without blocking). For the CUDA mode [``]{} is the only option.</p>
 <h2 id="memory-layout">Memory layout</h2>
 <p>For efficient memory access the index ordering has to be different for CPUs (<span class="math"><em>k</em></span> first) and GPUs (<span class="math"><em>i</em></span> first). This is defined with the [``]{}. For CUDA we use while we use on the host. We don’t go into more detail here, since this should probably be constructed by the backend (at least for standard use-cases). For now it is enough to know that the first line should be used in GPU mode and the second in CPU mode.</p>
 <h2 id="the-storage-type">The storage type</h2>
@@ -283,7 +283,7 @@ storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
 <table>
 <tbody>
 <tr class="odd">
-<td align="left"><img src="figures/hint.gif" alt="Tip" />{ width=20px height=20px }</td>
+<td align="left"><img src="figures/hintsmall.gif" alt="Tip" /></td>
 <td align="left"></td>
 </tr>
 <tr class="even">
@@ -300,7 +300,7 @@ storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">done at compile time via the index. Thus <span class="math"><em>GridTools</em></span> cannot</td>
+<td align="left">done at compile time via the index. Thus <span class="math"><em>GridTools</em></span> cannot</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
@@ -324,7 +324,7 @@ storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
 <h2 id="stencils">Stencils</h2>
 <p>A <em>stencil</em> is a kernel that updates array elements according to a fixed access pattern.</p>
 <h2 id="example-naive-2d-laplacian">Example: Naive 2D Laplacian</h2>
-<p>The simplest discretization of the 2D Laplacian is the finite difference five-point stencil as depicted in [Fig. [fig:getting_started:laplacian2D]]{}. For the calculation of the Laplacian at a given grid point we need the value at the grid point itself and its four direct neighbors along the Cartesian axis.</p>
+<p>The simplest discretization of the 2D Laplacian is the finite difference five-point stencil as depicted in [Fig. [fig:getting_started:laplacian2D]]{}. For the calculation of the Laplacian at a given grid point we need the value at the grid point itself and its four direct neighbors along the Cartesian axis.</p>
 <p><img src="figures/Laplacian2D.png" alt="Access pattern of a 2D Laplacian" />{width=&quot;0.49&quot;}</p>
 <p>A naive C++ implementation of the 2D Laplacian stencil is provided in</p>
 <pre class="cpp"><code>/*
@@ -653,23 +653,23 @@ int main(int argc, char **argv) {
 <li><p>Update-logic (blue): defines the update formula (here: the 2D Laplacian)</p></li>
 </ul>
 <p>Special care has to be taken at the boundary of the domain. Since the Laplacian needs the neighboring points we cannot calculate the Laplacian on the boundary layer and have to exclude them from the loop.</p>
-<h2 id="first-textitgridtoolsstencil">First <span class="math"><em>GridTools</em></span> stencil</h2>
-<p>In <span class="math"><em>GridTools</em></span> the loop logic and the storage order is implemented (and optimized) by the library while the update function is implemented by the user. The loop logic (for a given architecture) is combined with the user-defined update function at compile-time by template meta-programming (see [Sec. [sec:introduction:template_meta_programming]]{}).</p>
-<h3 id="update-logic-textitgridtools2d-laplacian">Update-logic: <span class="math"><em>GridTools</em></span> 2D Laplacian</h3>
-<p>The update-logic is implemented with state-less functors. A <span class="math"><em>GridTools</em></span> functor is a [<code>]{} or [</code>]{} providing a <em>static</em> method called [<code>]{}. The update-logic is implemented in these [</code>]{}-methods. As the functors are state-less (no member variables, static methods only) they can be passed by type, i.e. at compile-time, and therefore allow for compile-time optimizations.</p>
+<h2 id="first-textitgridtools-stencil">First <span class="math"><em>GridTools</em></span> stencil</h2>
+<p>In <span class="math"><em>GridTools</em></span> the loop logic and the storage order is implemented (and optimized) by the library while the update function is implemented by the user. The loop logic (for a given architecture) is combined with the user-defined update function at compile-time by template meta-programming (see [Sec. [sec:introduction:template_meta_programming]]{}).</p>
+<h3 id="update-logic-textitgridtools-2d-laplacian">Update-logic: <span class="math"><em>GridTools</em></span> 2D Laplacian</h3>
+<p>The update-logic is implemented with state-less functors. A <span class="math"><em>GridTools</em></span> functor is a [<code>]{} or [</code>]{} providing a <em>static</em> method called [<code>]{}. The update-logic is implemented in these [</code>]{}-methods. As the functors are state-less (no member variables, static methods only) they can be passed by type, i.e. at compile-time, and therefore allow for compile-time optimizations.</p>
 <p>In addition to the [<code>]{}-method, the functor contains [</code>]{}s. These two [<code>]{}s are parameters of the functor, i.e. they are mapped to fields passed to the functor. They contain compile-time information if they are only used as input parameters, like the [</code>]{} accessor in the example, or if we want to write into the associated field. Additionally, the [``]{} defines which grid-points are needed by the stencil relative to the current point. The format for the extent is</p>
 <p>extent<i_minus, i_plus, j_minus, j_plus, k_minus, k_plus></p>
-<p>where [<code>]{} and [</code>]{} define an interval on the <span class="math"><em>i</em></span>-axis relative to the current position; [<code>]{} is the negative offset, i.e. zero or a negative number, while [</code>]{} is the positive offset. Analogously for <span class="math"><em>j</em></span> and <span class="math"><em>k</em></span>. In the Laplacian example, [Listing [code:getting_started_gtlaplacian]]{}, the first two number in the extent of the [``]{} accessor define that we want to access the field at <span class="math"><em>i</em> − 1, <em>i</em>, <em>i</em> + 1</span>. The accessor type and the extent is needed for a dependency analysis in the compile-time optimizations for more complex stencils.</p>
-<p>The first template argument is an index defining the order of the parameters, i.e. the order in which the fields are passed to the functor. The [<code>]{} has to defined and stores all accessors in an [</code>]{}.</p>
+<p>where [<code>]{} and [</code>]{} define an interval on the <span class="math"><em>i</em></span>-axis relative to the current position; [<code>]{} is the negative offset, i.e. zero or a negative number, while [</code>]{} is the positive offset. Analogously for <span class="math"><em>j</em></span> and <span class="math"><em>k</em></span>. In the Laplacian example, [Listing [code:getting_started_gtlaplacian]]{}, the first two number in the extent of the [``]{} accessor define that we want to access the field at <span class="math"><em>i</em> − 1, <em>i</em>, <em>i</em> + 1</span>. The accessor type and the extent is needed for a dependency analysis in the compile-time optimizations for more complex stencils.</p>
+<p>The first template argument is an index defining the order of the parameters, i.e. the order in which the fields are passed to the functor. The [<code>]{} has to defined and stores all accessors in an [</code>]{}.</p>
 <p>A [<code>]{} method needs to have two parameters. The first one is a context object [</code>]{} that is created and passed to the method by the library on invocation. This object contains, among other things, the index of the active grid point and the mapping of data-pointers to the [<code>]{}s. The second argument is an interval on the $k$-axis where this implementation should be executed. This allows to apply a different update-logic on intervals by overloading the [</code>]{}-method. We will define this interval later.</p>
-<p>The body of the [<code>]{}-method looks quite similar to the one in the naive implementation [Listing \[code:getting\_started:cxx\_laplacian\]]{}, except that each field access has to be wrapped by a call to the context object [</code>]{}. This is necessary to map the compile-time parameter, the accessor, to the field, a run-time object.</p>
+<p>The body of the [<code>]{}-method looks quite similar to the one in the naive implementation [Listing \[code:getting\_started:cxx\_laplacian\]]{}, except that each field access has to be wrapped by a call to the context object [</code>]{}. This is necessary to map the compile-time parameter, the accessor, to the field, a run-time object.</p>
 <h3 id="calling-the-stencil">Calling the stencil</h3>
-<p>In the naive implementation, [Listing [code:getting_started:cxx_laplacian]]{}, the call to the [``]{} is as simple as</p>
+<p>In the naive implementation, [Listing [code:getting_started:cxx_laplacian]]{}, the call to the [``]{} is as simple as</p>
 <p>int boundary_size = 1; laplacian( lap, phi, boundary_size );</p>
 <p>since it contains already all the information: the update-logic <em>and</em> the loop-logic.</p>
-<p>The <span class="math"><em>GridTools</em></span> stencil, [Listing [code:getting_started_gtlaplacian]]{}, does not contain the information about the loop-logic. We have to specify it in an abstract platform-independent syntax, a <em>domain specific embedded language</em> (DSEL), such that the backend can decide on the specific implementation.</p>
-<p>For our example it looks as in [Listing [code:getting_started:gtlaplacian:make_computation]]{}.</p>
-<p>In line [gt_laplacian_setup:arg_phi] and [gt_laplacian_setup:arg_lap] we define placeholders for the fields. In the lines [gt_laplacian_setup:domain:start]-[gt_laplacian_setup:domain:end] the fields, i.e. the storages, are attached to these placeholders in the [``]{}.</p>
+<p>The <span class="math"><em>GridTools</em></span> stencil, [Listing [code:getting_started_gtlaplacian]]{}, does not contain the information about the loop-logic. We have to specify it in an abstract platform-independent syntax, a <em>domain specific embedded language</em> (DSEL), such that the backend can decide on the specific implementation.</p>
+<p>For our example it looks as in [Listing [code:getting_started:gtlaplacian:make_computation]]{}.</p>
+<p>In line [gt_laplacian_setup:arg_phi] and [gt_laplacian_setup:arg_lap] we define placeholders for the fields. In the lines [gt_laplacian_setup:domain:start]-[gt_laplacian_setup:domain:end] the fields, i.e. the storages, are attached to these placeholders in the [``]{}.</p>
 <p>In lines [gt_laplacian_setup:grid:start] to [gt_laplacian_setup:grid:end] we setup the physical dimension of the problem. First we define which points on the <span class="math"><em>i</em></span> and the <span class="math"><em>j</em></span>-axis belong to the computational domain and which points belong to the boundary (or a padding region). For now it is enough to know that these lines define an axis with a boundary of size 1 surrounding the <span class="math"><em>i</em><em>j</em></span>-plane. In the next lines the layers in <span class="math"><em>k</em></span> are defined. In this case we have only one interval. We will discuss the details later.</p>
 <p>In lines [gt_laplacian_setup:computation:start] to [gt_laplacian_setup:computation:end] we create the stencil object. We pass the domain (the mapping between placeholders and storages), the grid (the information about the loop bounds) and a [<code>]{}. The [</code>]{} contains a [``]{}, our Laplacian functor.</p>
 <p>In more complex codes we can combine multiple <span class="math"><em>k</em></span>-independent stages in a [<code>]{}. If we have a $k$-dependency we have to split the computation in multiple [</code>]{}s.</p>
@@ -678,20 +678,20 @@ int main(int argc, char **argv) {
 <p>Line [gt_laplacian_setup:run] is self-explanatory: the stencil is executed.</p>
 <p>In the last line we free temporary storages and copy modified fields back to the host.</p>
 <p>In a more realistic application the [<code>]{} will be called multiple times. If one wants to inspect the fields between runs (and before the [</code>]{}) one has to manually copy the data back from device.</p>
-<h3 id="full-textitgridtoolslaplacian">Full <span class="math"><em>GridTools</em></span> Laplacian</h3>
+<h3 id="full-textitgridtools-laplacian">Full <span class="math"><em>GridTools</em></span> Laplacian</h3>
 <h2 id="assembling-stencils-smoothing-filter">Assembling stencils: smoothing filter</h2>
-<p>In the preceding section we saw how a first simple <span class="math"><em>GridTools</em></span> stencil is defined and executed. In this section we will use this stencil to compute the example PDE . A naive implementation could look as in [Listing [code:getting_started:naive_smoothing]]{}.</p>
-<p>For the <span class="math"><em>GridTools</em></span> implementation we will learn three things in this section: how to define special regions in the <span class="math"><em>k</em></span>-direction; how to use <span class="math"><em>GridTools</em></span> temporaries and how to call functors from functors.</p>
+<p>In the preceding section we saw how a first simple <span class="math"><em>GridTools</em></span> stencil is defined and executed. In this section we will use this stencil to compute the example PDE . A naive implementation could look as in [Listing [code:getting_started:naive_smoothing]]{}.</p>
+<p>For the <span class="math"><em>GridTools</em></span> implementation we will learn three things in this section: how to define special regions in the <span class="math"><em>k</em></span>-direction; how to use <span class="math"><em>GridTools</em></span> temporaries and how to call functors from functors.</p>
 <h2 id="do-method-overload">Do-method overload</h2>
-<p>Our first <span class="math"><em>GridTools</em></span> implementation will be very close to the naive implementation: we will call two times the Laplacian functor from the previous section and store the result in two extra fields. Then we will call a third functor to compute the final result. This functor, see [Listing [code:getting_started:gt_smoothing_version1]]{} shows how we can specialize the computation in the <span class="math"><em>k</em></span>-direction. We define two intervals, the [<code>]{} and the [</code>]{}, and provide an overload of the [``]{}-method for each interval.</p>
+<p>Our first <span class="math"><em>GridTools</em></span> implementation will be very close to the naive implementation: we will call two times the Laplacian functor from the previous section and store the result in two extra fields. Then we will call a third functor to compute the final result. This functor, see [Listing [code:getting_started:gt_smoothing_version1]]{} shows how we can specialize the computation in the <span class="math"><em>k</em></span>-direction. We define two intervals, the [<code>]{} and the [</code>]{}, and provide an overload of the [``]{}-method for each interval.</p>
 <p>The intervals are defined as</p>
 <p>Since we are working currently on a nicer API to define the intervals we don’t want to describe the (non-trivial) details now. In short: the first entry in the level is a so-called [<code>]{}, an abstraction to tell that we want to split the axis here. The second entry is an offset relative to the splitter. At runtime we assign an index of the k-axis to the splitters. Then the [</code>]{} corresponds to the index in the [<code>]{} entry. Additionally we have to define an [</code>]{} such that all intervals are a strict subset of the [``]{}.</p>
 <p>Finally, the call to [``]{} looks as follows[^3]</p>
-<p>In this version we needed to explicitly allocate the temporary fields [<code>]{} and [</code>]{}. In the next section we will learn about <span class="math"><em>GridTools</em></span> temporaries.</p>
-<h2 id="textitgridtoolstemporaries"><span class="math"><em>GridTools</em></span> temporaries</h2>
-<p><em><span class="math"><em>GridTools</em></span> temporary storages</em> are storages with the lifetime of the [<code>]{}, i.e. they can be used by different stages assembled in one [</code>]{} call. This is exactly what we need for the [<code>]{} and [</code>]{} fields.</p>
+<p>In this version we needed to explicitly allocate the temporary fields [<code>]{} and [</code>]{}. In the next section we will learn about <span class="math"><em>GridTools</em></span> temporaries.</p>
+<h2 id="textitgridtools-temporaries"><span class="math"><em>GridTools</em></span> temporaries</h2>
+<p><em><span class="math"><em>GridTools</em></span> temporary storages</em> are storages with the lifetime of the [<code>]{}, i.e. they can be used by different stages assembled in one [</code>]{} call. This is exactly what we need for the [<code>]{} and [</code>]{} fields.</p>
 <p>Note that we did not allocate the temporaries explicitly and we cannot access them from outside of the computation. Therefore it might be necessary sometimes to replace a temporary with a normal storage for debugging.</p>
-<p>To use temporary storages we don’t need to change the functors or the [<code>]{}. We just have to replace the type of the *arg* from a normal storage type to a temporary storage type. We don’t need the explicit instantiations any more and we can leave out pointers to storages when we build the domain. The new code looks as follows The temporary storages are allocated in the [</code>]{} call and freed in [``]{}. Besides the simplifications in the code (no explicit storage needed), the concept of temporaries allows <span class="math"><em>GridTools</em></span> to apply optimization. Since the temporaries, by definition, are only visible inside a computation, <span class="math"><em>GridTools</em></span> is free to remove them if it does not break the semantics of the algorithm.</p>
+<p>To use temporary storages we don’t need to change the functors or the [<code>]{}. We just have to replace the type of the *arg* from a normal storage type to a temporary storage type. We don’t need the explicit instantiations any more and we can leave out pointers to storages when we build the domain. The new code looks as follows The temporary storages are allocated in the [</code>]{} call and freed in [``]{}. Besides the simplifications in the code (no explicit storage needed), the concept of temporaries allows <span class="math"><em>GridTools</em></span> to apply optimization. Since the temporaries, by definition, are only visible inside a computation, <span class="math"><em>GridTools</em></span> is free to remove them if it does not break the semantics of the algorithm.</p>
 <h2 id="functor-calls">Functor calls</h2>
 <p>The next feature we want to use is the <em>function call</em>. This will allow us to get rid of the temporaries. In a first step we remove only one of the temporaries. Instead of calling the Laplacian twice from the [<code>]{} we will move one of the calls into the smoothing functor. The new smoothing functor looks as follows In [</code>]{} we specify the functor and the [<code>]{}-method overload we want to apply. In [</code>]{} the [<code>]{} is passed forward followed by all the input arguments for the functor. The functor in the call is required to have exactly one [</code>]{} which will be the return value of the call.</p>
 <p>The new setup looks as follows</p>
