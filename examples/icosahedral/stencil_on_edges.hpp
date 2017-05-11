@@ -94,9 +94,6 @@ namespace soe {
         auto in_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in");
         auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("out");
         auto ref_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("ref");
-        in_edges.allocate();
-        out_edges.allocate();
-        ref_edges.allocate();
         auto inv = make_host_view(in_edges);
         auto outv = make_host_view(out_edges);
         auto refv = make_host_view(ref_edges);

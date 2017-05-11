@@ -131,8 +131,8 @@ namespace copy_stencil {
         parallel_storage_info< storage_info_t, partitioner_t > meta_(part, d1, d2, d3);
         auto &metadata_ = meta_.get_metadata();
 
-        storage_t in(metadata_, 0.);
-        storage_t out(metadata_, 0.);
+        storage_t in(metadata_, [](int i, int j, int k) { return (i + j + k) * (gridtools::PID + 1); }, "in");
+        storage_t out(metadata_, 0., "out");
 
         he.add_halo< 0 >(meta_.template get_halo_gcl< 0 >());
         he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
@@ -143,12 +143,6 @@ namespace copy_stencil {
 #ifdef VERBOSE
         printf("halo set up\n");
 #endif
-        auto inv = make_host_view(in);
-        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
-            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
-                for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
-                    inv(i, j, k) = (i + j + k) * (gridtools::PID + 1);
-                }
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -196,7 +190,7 @@ namespace copy_stencil {
 #ifdef VERBOSE
         printf("computation finalized\n");
 #endif
-
+        auto inv = make_host_view(in);
         auto outv = make_host_view(out);
         std::vector< float_type * > vec(2);
         vec[0] = &inv(0, 0, 0);

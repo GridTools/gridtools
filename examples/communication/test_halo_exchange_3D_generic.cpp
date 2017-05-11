@@ -43,7 +43,7 @@ std::ostream *filep;
 #include <communication/halo_exchange.hpp>
 #include <string>
 #include <stdlib.h>
-#include <storage-facility.hpp>
+#include <storage/storage-facility.hpp>
 #include <common/boollist.hpp>
 #include <sys/time.h>
 

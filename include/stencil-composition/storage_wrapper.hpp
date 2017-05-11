@@ -42,8 +42,7 @@
 #include <boost/mpl/transform_view.hpp>
 #include <boost/mpl/filter_view.hpp>
 
-#include "common/data_field_view.hpp"
-#include "common/data_view.hpp"
+#include "../storage/storage-facility.hpp"
 
 #include "../common/pointer.hpp"
 #include "arg.hpp"
@@ -64,6 +63,11 @@ namespace gridtools {
      */
     template < typename Arg, typename View, typename TileI, typename TileJ >
     struct storage_wrapper {
+        // checks
+        GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_data_view< View >::value || is_data_field_view< View >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), GT_INTERNAL_ERROR);
+
         // some type information
         using derived_t = storage_wrapper< Arg, View, TileI, TileJ >;
         using arg_t = Arg;
@@ -76,24 +80,24 @@ namespace gridtools {
         using storage_info_t = typename storage_t::storage_info_t;
 
         // some more information
-        constexpr static uint_t storage_size = view_t::N;
+        constexpr static uint_t num_of_storages = view_t::num_of_storages;
         constexpr static bool is_temporary = arg_t::is_temporary;
-        constexpr static bool is_read_only = view_t::read_only;
+        constexpr static bool is_read_only = (view_t::mode == access_mode::ReadOnly);
 
         // assign the data ptrs to some other ptrs
         template < typename T >
         void assign(T &d) const {
-            std::copy(this->m_data_ptrs, this->m_data_ptrs + storage_size, d);
+            std::copy(this->m_data_ptrs, this->m_data_ptrs + num_of_storages, d);
         }
 
         // tell me how I should initialize the ptr_t member called m_data_ptrs
         void initialize(view_t v) {
-            for (unsigned i = 0; i < storage_size; ++i)
+            for (unsigned i = 0; i < num_of_storages; ++i)
                 this->m_data_ptrs[i] = v.m_raw_ptrs[i];
         }
 
         // data ptrs
-        data_t *m_data_ptrs[storage_size];
+        data_t *m_data_ptrs[num_of_storages];
     };
 
     /* Storage Wrapper metafunctions */
@@ -113,9 +117,9 @@ namespace gridtools {
     };
 
     template < typename T >
-    struct storage_size_from_storage_wrapper {
-        typedef boost::mpl::int_< T::storage_size > type;
-        static const int value = T::storage_size;
+    struct num_of_storages_from_storage_wrapper {
+        typedef boost::mpl::int_< T::num_of_storages > type;
+        static const int value = T::num_of_storages;
     };
 
     template < typename T >
@@ -130,7 +134,7 @@ namespace gridtools {
 
     template < typename T >
     struct data_ptr_from_storage_wrapper {
-        typedef typename T::data_t *type[T::storage_size];
+        typedef typename T::data_t *type[T::num_of_storages];
     };
 
     template < typename T >

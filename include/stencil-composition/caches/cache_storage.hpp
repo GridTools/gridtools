@@ -40,10 +40,10 @@
 #include "../../common/array.hpp"
 #include "../block_size.hpp"
 #include "../extent.hpp"
-#include "../iteration_policy_fwd.hpp"
 #include "../../common/offset_tuple.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../iterate_domain_aux.hpp"
+#include "../offset_computation.hpp"
 
 #include "meta_storage_cache.hpp"
 #include "cache_storage_metafunctions.hpp"
@@ -56,22 +56,6 @@ namespace gridtools {
     template < typename Cache, typename BlockSize, typename Extent, typename StorageWrapper >
     struct cache_storage;
 
-    namespace impl_ {
-
-        /** helper function (base case) computing sum(offset*stride ...)*/
-        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From == To), int_t >::type get_offset(Accessor acc) {
-            return 0;
-        }
-
-        /** helper function (step case) computing sum(offset*stride ...)*/
-        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From < To), int_t >::type get_offset(Accessor acc) {
-            return StorageInfo::template stride< From >() * acc.template get< Accessor::n_dimensions - 1 - From >() +
-                   get_offset< From + 1, To, StorageInfo, Accessor >(acc);
-        }
-    }
-
     /**
      * @struct cache_storage
      * simple storage class for storing caches. Current version is multidimensional, but allows the user only to cache
@@ -83,7 +67,6 @@ namespace gridtools {
      * in future version we need to support K and IJK storages. Data is allocated on the stack.
      * The size of the storage is determined by the block size and the extension to this block sizes required for
      *  halo regions (determined by a extent type)
-     * @tparam Cache a cache
      * @tparam Value value type being stored
      * @tparam BlockSize physical domain block size
      * @tparam Extend extent
@@ -102,7 +85,17 @@ namespace gridtools {
 
         typedef typename StorageWrapper::data_t value_type;
 
-        using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
+// TODO ICO_STORAGE in irregular grids we have one more dim for color		
+#ifndef STRUCTURED_GRIDS		
+        static constexpr int extra_dims = 1;
+#else 
+        static constexpr int extra_dims = 0;
+#endif
+
+        typedef typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t,
+            sizeof...(Tiles) + (extra_dims) >::type >::type layout_t;
+
+       using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
         using jminus_t = typename boost::mpl::at_c< typename minus_t::type, 1 >::type;
         using kminus_t = typename boost::mpl::at_c< typename minus_t::type, 2 >::type;
         using iplus_t = typename boost::mpl::at_c< typename plus_t::type, 0 >::type;
@@ -115,15 +108,6 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value != IJ) || (kminus_t::value == 0 && kplus_t::value == 0),
             "Only KCaches can be accessed with a non null extent in K");
-
-        typedef typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t,
-            sizeof...(Tiles)
-// TODO ICO_STORAGE in irregular grids we have one more dim for color
-#ifndef STRUCTURED_GRIDS
-                +
-                1
-#endif
-            >::type >::type layout_t;
 
         template < typename Accessor >
         struct is_acc_k_cache : is_k_cache< cache_t > {};
@@ -147,19 +131,14 @@ namespace gridtools {
             typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
 
             // manually aligning the storage
-            const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template stride< 0 >() +
-// TODO ICO_STORAGE
-#ifdef STRUCTURED_GRIDS
-                                  (thread_pos[1] - jminus_t::value) * meta_t::template stride< 1 >() +
-#else
-                                  Color * meta_t::template stride< 1 >() +
-                                  (thread_pos[1] - jminus_t::value) * meta_t::template stride< 2 >() +
-#endif
-                                  size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                  impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
-            assert((extra_) < size() * StorageWrapper::storage_size);
+            const uint_t extra_ =
+                (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
+                (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (extra_dims) >() +
+                (extra_dims) * Color * meta_t::template stride< 1 >() +
+                size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                _impl::get_cache_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
             assert((extra_) >= 0);
-
+            assert((extra_) < (size() * StorageWrapper::num_of_storages));
             return m_values[extra_];
         }
 
@@ -223,7 +202,7 @@ namespace gridtools {
         }
 
       private:
-        value_type m_values[size() * StorageWrapper::storage_size];
+        value_type m_values[size() * StorageWrapper::num_of_storages];
     };
 
 } // namespace gridtools

@@ -109,10 +109,12 @@ namespace ico_operators {
             float_type,
             typename repository::halo_5d_t,
             selector< 1, 1, 1, 1, 1 > >("l_over_A", 2);
+        typedef decltype(out_cells) out_cells_storage;
+        typedef decltype(l_over_A) l_over_A_storage;
 
-        out_cells = decltype(out_cells)(*out_cells.get_storage_info_ptr(), 0.0);
-        div_weights = decltype(div_weights)(*div_weights.get_storage_info_ptr(), 0.0);
-        l_over_A = decltype(l_over_A)(*l_over_A.get_storage_info_ptr(), 0.0);
+        out_cells = out_cells_storage(*out_cells.get_storage_info_ptr(), 0.0);
+        div_weights = cells_4d_storage_type(*div_weights.get_storage_info_ptr(), 0.0);
+        l_over_A = l_over_A_storage(*l_over_A.get_storage_info_ptr(), 0.0);
 
         {
             typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;

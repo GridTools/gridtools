@@ -111,10 +111,8 @@ namespace reduction {
         meta_data_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
-        storage_t in(meta_data_);
-        storage_t out(meta_data_);
-        in.allocate();
-        out.allocate();
+        storage_t in(meta_data_, "in");
+        storage_t out(meta_data_, "out");
 
         auto inv = make_host_view(in);
 

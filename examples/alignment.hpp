@@ -124,16 +124,11 @@ namespace aligned_copy_stencil {
         meta_data_t meta_data_(d1, d2, d3);
 
         // Definition of the actual data fields that are used for input/output
-        storage_t in(meta_data_, (float_type)0.);
-        storage_t out(meta_data_, (float_type)-1.);
+        storage_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
+        storage_t out(meta_data_, (float_type)-1., "out");
 
         auto inv = make_host_view(in);
         auto outv = make_host_view(out);
-        for (uint_t i = 0; i < d1 + halo_t::at< 0 >(); ++i)
-            for (uint_t j = 0; j < d2 + halo_t::at< 1 >(); ++j)
-                for (uint_t k = 0; k < d3 + halo_t::at< 2 >(); ++k) {
-                    inv(i, j, k) = i + j + k;
-                }
 
         typedef arg< 0, storage_t > p_in;
         typedef arg< 1, storage_t > p_out;
@@ -171,6 +166,13 @@ namespace aligned_copy_stencil {
         std::cout << copy->print_meter() << std::endl;
 #endif
 
+        // check view consistency
+        out.reactivate_host_write_views();
+        in.reactivate_host_write_views();
+        assert(check_consistency(out, outv) && "view cannot be used safely.");
+        assert(check_consistency(in, inv) && "view cannot be used safely.");
+
+        // check values
         bool success = true;
         for (uint_t i = halo_t::at< 0 >(); i < d1 + halo_t::at< 0 >(); ++i)
             for (uint_t j = halo_t::at< 1 >(); j < d2 + halo_t::at< 1 >(); ++j)

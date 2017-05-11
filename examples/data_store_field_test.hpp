@@ -96,9 +96,6 @@ namespace data_store_field_test {
         data_store_field_t dsf_in(si);
         data_store_field_t dsf_out(si);
 
-        dsf_in.allocate();
-        dsf_out.allocate();
-
         auto hv_in = make_field_host_view(dsf_in);
         auto hv_out = make_field_host_view(dsf_out);
 

@@ -56,6 +56,6 @@ namespace gridtools {
     template < typename Layout >
     class cell_topology< topology::cartesian< Layout > > {
       public:
-        static const ushort_t space_dimensions = Layout::length;
+        static const ushort_t space_dimensions = Layout::masked_length;
     };
 } // namespace gridtools

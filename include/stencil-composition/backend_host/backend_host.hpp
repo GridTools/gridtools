@@ -40,8 +40,7 @@
 #include <omp.h>
 #endif
 
-#include "storage-facility.hpp"
-
+#include "../../storage/storage-facility.hpp"
 #include "../backend_fwd.hpp"
 #include "../execution_policy.hpp"
 #include "../iteration_policy.hpp"

@@ -104,7 +104,7 @@ namespace gridtools {
                     (*(m_dom_full.template get_arg_storage_pair< placeholder_t, placeholder_t >()).ptr);
                 data_store_field_t *ptr = new data_store_field_t(*(expandable_param[0].get_storage_info_ptr()));
                 // fill in the first bunch of ptrs
-                for (unsigned i = 0; i < data_store_field_t::size; ++i) {
+                for (unsigned i = 0; i < data_store_field_t::num_of_storages; ++i) {
                     ptr->set(0, i, expandable_param[i]);
                 }
                 boost::fusion::at< static_ushort< ID > >(m_vec_to) =

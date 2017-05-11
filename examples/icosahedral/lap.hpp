@@ -120,7 +120,6 @@ namespace ico_operators {
             float_type,
             typename repository::halo_5d_t,
             selector< 1, 1, 1, 1, 1 > >("weights", 3);
-        div_weights.allocate();
         // for curl
         auto &dual_area_reciprocal = repository.dual_area_reciprocal();
         auto &dual_edge_length = repository.dual_edge_length();
@@ -130,7 +129,6 @@ namespace ico_operators {
                                               float_type,
                                               typename repository::halo_5d_t,
                                               selector< 1, 1, 1, 1, 1 > >("curl_weights", 6));
-        curl_weights.allocate();
         // for lap
         auto &dual_edge_length_reciprocal = repository.dual_edge_length_reciprocal();
         auto &edge_length_reciprocal = repository.edge_length_reciprocal();
@@ -139,7 +137,6 @@ namespace ico_operators {
         auto out_edges =
             icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type, typename repository::halo_t >(
                 "out");
-        out_edges.allocate();
         auto &ref_edges = repository.lap_ref();
 
         bool result = true;

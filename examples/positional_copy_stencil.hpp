@@ -135,8 +135,8 @@ namespace positional_copy_stencil {
 
         // Definition of the actual data fields that are used for input/output
         meta_data_t meta_(d1, d2, d3);
-        storage_t in(meta_, -3.5);
-        storage_t out(meta_, 1.5);
+        storage_t in(meta_, -3.5, "in");
+        storage_t out(meta_, 1.5, "out");
 
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
@@ -177,15 +177,7 @@ namespace positional_copy_stencil {
         copy->run();
         copy->finalize();
 
-        storage_t ref(meta_, 1.5);
-        auto refv = make_host_view(ref);
-        for (uint_t i = 0; i < d1; ++i) {
-            for (uint_t j = 0; j < d2; ++j) {
-                for (uint_t k = 0; k < d3; ++k) {
-                    refv(i, j, k) = static_cast< double >(_value_) * (i + j + k);
-                }
-            }
-        }
+        storage_t ref(meta_, [](int i, int j, int k) { return static_cast< double >(_value_) * (i + j + k); });
 
 #ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4

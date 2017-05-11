@@ -1,0 +1,9 @@
+# collect test cases
+fetch_host_tests(.)
+fetch_gpu_tests(.)
+fetch_host_tests(common)
+fetch_gpu_tests(common)
+fetch_host_tests(storage_cuda)
+fetch_gpu_tests(storage_cuda)
+fetch_host_tests(storage_host)
+fetch_gpu_tests(storage_host)
