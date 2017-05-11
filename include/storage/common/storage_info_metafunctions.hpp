@@ -45,25 +45,13 @@
 #include "../../common/array.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/layout_map.hpp"
+#include "../../common/gt_math.hpp"
 
 namespace gridtools {
 
     /* forward declaration */
     template < typename T >
     struct is_alignment;
-
-    namespace {
-        /*
-         * @brief helper function that provides a static version of std::ceil
-         * @param num value to ceil
-         * @return ceiled value
-         */
-        constexpr static int ceil(float num) {
-            return (static_cast< float >(static_cast< int >(num)) == num)
-                       ? static_cast< int >(num)
-                       : static_cast< int >(num) + ((num > 0) ? 1 : 0);
-        }
-    }
 
     /*
      * @brief struct used to extend a given number of dimensions with a given halo
@@ -91,7 +79,7 @@ namespace gridtools {
     constexpr unsigned align_dimensions(unsigned dimension) {
         static_assert(is_alignment< Alignment >::value, "Passed type is no alignment type");
         return ((Alignment::value > 1) && (LayoutArg == Length - 1))
-                   ? ceil((float)dimension / (float)Alignment::value) * Alignment::value
+                   ? gt_ceil((float)dimension / (float)Alignment::value) * Alignment::value
                    : dimension;
     }
 
@@ -124,12 +112,12 @@ namespace gridtools {
 
         // if the alignment is >1 we have to calculate an initial offset.
         // e.g., alignment<32>, layout_map<0,1,2>, halo<0,2,2>. the function
-        // ceil(2/32) * 32 - 2 = 1 * 32 - 2 = 30. This means the initial offset
+        // gt_ceil(2/32) * 32 - 2 = 1 * 32 - 2 = 30. This means the initial offset
         // is 30, followed by 2 halo points, followed by an aligned non-halo point.
         constexpr static unsigned compute() {
             return ((Alignment::value > 1u) && (get_first_stride_dim_halo() > 0))
                        ? static_cast< unsigned >(
-                             ceil((float)get_first_stride_dim_halo() / (float)Alignment::value) * Alignment::value -
+                             gt_ceil((float)get_first_stride_dim_halo() / (float)Alignment::value) * Alignment::value -
                              get_first_stride_dim_halo())
                        : 0;
         }
