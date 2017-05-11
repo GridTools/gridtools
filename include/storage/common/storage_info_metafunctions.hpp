@@ -63,8 +63,9 @@ namespace gridtools {
         template < typename Dim >
         static constexpr unsigned extend(Dim d) {
             static_assert(boost::is_integral< Dim >::value, "Dimensions has to be integral type.");
-            return (d <= 0) ? error::trigger("Tried to instantiate storage info with zero or negative dimensions")
-                            : ((LayoutArg == -1) ? 1 : d + 2 * HaloVal);
+            return error_or_return((d > 0),
+                ((LayoutArg == -1) ? 1 : d + 2 * HaloVal),
+                "Tried to instantiate storage info with zero or negative dimensions");
         }
     };
 

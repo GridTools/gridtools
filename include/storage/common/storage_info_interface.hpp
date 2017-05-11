@@ -151,7 +151,7 @@ namespace gridtools {
         template < unsigned N, typename... Ints >
         GT_FUNCTION constexpr typename boost::enable_if_c< (N < layout_t::masked_length), int >::type index_part(
             int first, Ints... ints) const {
-            return first * m_strides.template get<N>() + index_part< N + 1 >(ints..., first);
+            return first * m_strides.template get< N >() + index_part< N + 1 >(ints..., first);
         }
 
         /*
@@ -200,7 +200,7 @@ namespace gridtools {
          */
         template < unsigned From = layout_t::masked_length - 1 >
         GT_FUNCTION constexpr typename boost::enable_if_c< (From > 0), unsigned >::type size_part() const {
-            return m_dims.template get<From>() * size_part< From - 1 >();
+            return m_dims.template get< From >() * size_part< From - 1 >();
         }
 
         /*
@@ -209,7 +209,7 @@ namespace gridtools {
          */
         template < unsigned From = layout_t::masked_length - 1 >
         GT_FUNCTION constexpr typename boost::enable_if_c< (From == 0), unsigned >::type size_part() const {
-            return m_dims.template get<0>();
+            return m_dims.template get< 0 >();
         }
 
       public:
@@ -226,8 +226,8 @@ namespace gridtools {
               m_strides(get_strides< layout_t >::get_stride_array(
                   align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                       extend_by_halo< Halos, LayoutArgs >::extend(dims_))...)),
-              m_alignment(array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(
-                              dims_)...},
+              m_alignment(
+                  array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(dims_)...},
                   get_strides< layout_t >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
             static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                               typename is_all_integral< Dims... >::type >::value,
@@ -258,7 +258,7 @@ namespace gridtools {
         template < int Coord >
         GT_FUNCTION constexpr int dim() const {
             static_assert((Coord < layout_t::masked_length), "Out of bounds access in storage info dimension call.");
-            return m_dims.template get<Coord>();
+            return m_dims.template get< Coord >();
         }
 
         /*
@@ -269,7 +269,7 @@ namespace gridtools {
         template < int Coord >
         GT_FUNCTION constexpr int stride() const {
             static_assert((Coord < layout_t::masked_length), "Out of bounds access in storage info stride call.");
-            return m_strides.template get<Coord>();
+            return m_strides.template get< Coord >();
         }
 
         /*
@@ -319,8 +319,9 @@ namespace gridtools {
 #ifdef NDEBUG
             return index_part< 0 >(idx...) + get_initial_offset();
 #else
-            return (check_bounds< 0 >(idx...)) ? index_part< 0 >(idx...) + get_initial_offset()
-                                               : error::trigger("Storage out of bounds access");
+            return error_or_return(check_bounds< 0 >(idx...),
+                index_part< 0 >(idx...) + get_initial_offset(),
+                "Storage out of bounds access");
 #endif
         }
 

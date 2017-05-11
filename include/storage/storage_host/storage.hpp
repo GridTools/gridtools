@@ -80,7 +80,10 @@ namespace gridtools {
          * @param own ownership information (in this case only externalCPU is valid)
          */
         explicit constexpr host_storage(unsigned size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
-            : m_cpu_ptr(external_ptr), m_ownership(_impl::check_ownership_type(own, ownership::ExternalCPU)) {}
+            : m_cpu_ptr(external_ptr),
+              m_ownership(error_or_return(
+                  (own == ownership::ExternalCPU), own, "ownership type must be ExternalCPU when using host_storage")) {
+        }
 
         /*
          * @brief host_storage constructor. Allocate memory on Host and initialize the memory according to the given
