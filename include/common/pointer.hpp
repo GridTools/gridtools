@@ -36,6 +36,8 @@
 #pragma once
 #include <boost/mpl/bool.hpp>
 
+#include "host_device.hpp"
+
 /**
 @file
 @brief dummy pointer object

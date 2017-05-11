@@ -37,11 +37,11 @@
 #include <boost/mpl/for_each.hpp>
 
 #include "../backend_traits_fwd.hpp"
-#include "run_esf_functor_host.hpp"
 #include "../block_size.hpp"
-#include "iterate_domain_host.hpp"
-#include "strategy_host.hpp"
 #include "empty_iterate_domain_cache.hpp"
+#include "iterate_domain_host.hpp"
+#include "run_esf_functor_host.hpp"
+#include "strategy_host.hpp"
 
 #ifdef ENABLE_METERS
 #include "timer_host.hpp"
@@ -59,13 +59,60 @@ namespace gridtools {
         struct run_functor_host;
     }
 
-    /**forward declaration*/
-    template < typename T, bool Array >
-    struct wrap_pointer;
-
     /**Traits struct, containing the types which are specific for the host backend*/
     template <>
     struct backend_traits_from_id< enumtype::Host > {
+
+        /** This is the function used to extract a pointer out of a given storage info.
+            In the case of Host backend we have to return the CPU pointer.
+        */
+        template < typename StorageInfoPtr >
+        static StorageInfoPtr extract_storage_info_ptr(StorageInfoPtr t) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename boost::decay< decltype(*t) >::type >::value), GT_INTERNAL_ERROR);
+            return t;
+        }
+
+        /** This is the functor used to generate view instances. According to the given storage (data_store,
+           data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
+        */
+        template < typename AggregatorType >
+        struct instantiate_view {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+
+            AggregatorType &m_agg;
+            instantiate_view(AggregatorType &agg) : m_agg(agg) {}
+
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
+            arg_storage_pair< Arg, typename Arg::storage_t > get_arg_storage_pair() const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
+                return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::storage_t > >(
+                    m_agg.get_arg_storage_pairs()));
+            }
+
+            // specialization for creating view instance for data stores
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
+            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(
+                ViewFusionMapElem &t) const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
+                // make a view
+                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
+                    t = make_host_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
+            }
+
+            // specialization for creating view instance for data store fields
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
+            typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
+                ViewFusionMapElem &t) const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
+                // make a view
+                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
+                    t = make_field_host_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
+            }
+        };
 
         template < typename Arguments >
         struct execute_traits {
@@ -123,6 +170,48 @@ namespace gridtools {
         };
 
         /**
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage. In addition to this each OpenMP thread stores an integer that indicates the offset of this
+           pointer. For temporaries we use an oversized storage in order to have private halo
+           regions for each thread. This method calculates the offset for temporaries and takes the private halo and
+           alignment information into account.
+        */
+        template < typename LocalDomain,
+            typename PEBlockSize,
+            typename Arg,
+            typename CurrentExtent,
+            typename GridTraits,
+            typename StorageInfo >
+        static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+            typedef GridTraits grid_traits_t;
+            // get the thread ID
+            const uint_t i = processing_element_i();
+            // halo in I direction
+            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
+            // compute the blocksize
+            constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
+            // return the field offset
+            return StorageInfo::get_initial_offset() +
+                   sinfo->template stride< grid_traits_t::dim_i_t::value >() * i * blocksize;
+        }
+
+        /**
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage in the shared memory. In addition to this each OpenMP thread stores an integer that indicates
+           the offset of this pointer. This function computes the field offset for non temporary storages.
+        */
+        template < typename LocalDomain,
+            typename PEBlockSize,
+            typename Arg,
+            typename CurrentExtent,
+            typename GridTraits,
+            typename StorageInfo >
+        static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+            // return the field offset
+            return StorageInfo::get_initial_offset();
+        }
+
+        /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
          * and sequentially executes all the functors in the mss
          * @tparam RunFunctorArgs run functor arguments
@@ -164,19 +253,6 @@ namespace gridtools {
         struct select_strategy {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_host< BackendIds::s_strategy_id > type;
-        };
-
-        /*
-         * @brief metafunction that determines whether this backend requires redundant computations at halo points
-         * of each block, given the strategy Id
-         * @tparam StrategyId the strategy id
-         * @return always false for Host
-         */
-        template < enumtype::strategy StrategyId >
-        struct requires_temporary_redundant_halos {
-            typedef
-                typename boost::mpl::if_c< StrategyId == enumtype::Naive, boost::mpl::false_, boost::mpl::true_ >::type
-                    type;
         };
 
         template < enumtype::strategy StrategyId >

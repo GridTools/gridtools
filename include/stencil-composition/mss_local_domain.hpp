@@ -42,14 +42,15 @@
 
 #pragma once
 #include <boost/mpl/at.hpp>
-#include <boost/mpl/set.hpp>
 #include <boost/mpl/has_key.hpp>
+#include <boost/mpl/set.hpp>
 
 #include "aggregator_type.hpp"
-#include "local_domain.hpp"
 #include "backend_traits_fwd.hpp"
-#include "mss_components.hpp"
+#include "local_domain.hpp"
 #include "local_domain_metafunctions.hpp"
+#include "mss_components.hpp"
+#include "storage_wrapper.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -58,38 +59,47 @@ namespace gridtools {
          * @name Few short and obvious metafunctions
          * @{
          * */
-        template < typename StoragePointers, typename MetaStoragePointers, bool IsStateful >
+        template < typename StorageWrapperList, typename ExtentMap, bool IsStateful >
         struct get_local_domain {
             template < typename Esf >
             struct apply {
                 GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
-                typedef local_domain< StoragePointers, MetaStoragePointers, typename Esf::args_t, IsStateful > type;
+                // filter out the view wrappers that are used by the esf
+                typedef
+                    typename boost::mpl::fold< typename Esf::args_t,
+                        boost::mpl::vector0<>,
+                        boost::mpl::push_back< boost::mpl::_1,
+                                                   storage_wrapper_elem< boost::mpl::_2, StorageWrapperList > > >::
+                        type local_view_wrapper_list;
+
+                // create a local_domain type specialized with the  local view wrapper list and a
+                // single Esf (vector is needed because local_domains (esfs) might be fusioned later on)
+                typedef local_domain< local_view_wrapper_list, typename Esf::args_t, ExtentMap, IsStateful > type;
             };
         };
     } // namespace _impl
 
     template < enumtype::platform BackendId,
         typename MssComponents,
-        typename DomainType,
-        typename ActualArgListType,
-        typename MetaStorageListType,
+        typename StorageWrapperList,
+        typename ExtentMap,
         bool IsStateful >
     struct mss_local_domain {
         GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
 
         /**
          * Create a fusion::vector of domains for each functor
          *
          */
         typedef typename boost::mpl::transform< typename MssComponents::linear_esf_t,
-            _impl::get_local_domain< ActualArgListType, MetaStorageListType, IsStateful > >::type mpl_local_domain_list;
+            _impl::get_local_domain< StorageWrapperList, ExtentMap, IsStateful > >::type mpl_local_domain_list;
 
         typedef
             typename boost::fusion::result_of::as_vector< mpl_local_domain_list >::type unfused_local_domain_sequence_t;
 
-        typedef typename fuse_mss_local_domains< BackendId, unfused_local_domain_sequence_t >::type
+        typedef typename fuse_mss_local_domains< BackendId, mpl_local_domain_list, MssComponents, IsStateful >::type
             fused_local_domain_sequence_t;
+
         typedef typename generate_args_lookup_map< BackendId,
             unfused_local_domain_sequence_t,
             fused_local_domain_sequence_t >::type fused_local_domain_args_map;
@@ -102,12 +112,10 @@ namespace gridtools {
 
     template < enumtype::platform BackendId,
         typename MssType,
-        typename DomainType,
-        typename ActualArgListType,
-        typename MetaStorageListType,
+        typename StorageWrapperList,
+        typename ExtentMap,
         bool IsStateful >
-    struct is_mss_local_domain<
-        mss_local_domain< BackendId, MssType, DomainType, ActualArgListType, MetaStorageListType, IsStateful > >
+    struct is_mss_local_domain< mss_local_domain< BackendId, MssType, StorageWrapperList, ExtentMap, IsStateful > >
         : boost::mpl::true_ {};
 
     template < typename T >

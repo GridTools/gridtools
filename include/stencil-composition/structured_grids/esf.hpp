@@ -37,13 +37,14 @@
 
 #include <boost/type_traits/is_const.hpp>
 
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../aggregator_type.hpp"
+#include "../esf_aux.hpp"
+#include "../esf_fwd.hpp"
+#include "../expandable_parameters/vector_accessor.hpp"
+#include "../sfinae.hpp"
 #include "accessor.hpp"
 #include "accessor_mixed.hpp"
-#include "../expandable_parameters/vector_accessor.hpp"
-#include "../aggregator_type.hpp"
-#include "../../common/generic_metafunctions/is_sequence_of.hpp"
-#include "../esf_fwd.hpp"
-#include "../esf_aux.hpp"
 
 /**
    @file
@@ -60,7 +61,7 @@ namespace gridtools {
         struct check_arg_list {
             template < typename Reduced, typename Element >
             struct _check {
-                typedef typename boost::mpl::if_c< (Element::index_type::value == Reduced::value + 1),
+                typedef typename boost::mpl::if_c< (Element::index_t::value == Reduced::value + 1),
                     boost::mpl::int_< Reduced::value + 1 >,
                     boost::mpl::int_< -Reduced::value - 1 > >::type type;
             };
