@@ -47,19 +47,6 @@ namespace gridtools {
 
     struct state_machine;
 
-    namespace _impl {
-        /*
-         * @brief Internal helper function to check if the passed ownership information is correct.
-         * E.g., A host storage that keeps an external pointer cannot be set to ownership::Full
-         * because this would end in double frees.
-         * @param actual Actual ownership type.
-         * @param expected Expected ownership type.
-         */
-        constexpr ownership check_ownership_type(ownership actual, ownership expected) {
-            return (actual == expected) ? actual : error::trigger< ownership >("Wrong ownership type passed.");
-        }
-    }
-
     /*
      * @brief The storage interface. This struct defines a set of methods that should be
      * available in the actual storage class.

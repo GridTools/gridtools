@@ -52,9 +52,9 @@ namespace gridtools {
 
         template < typename T >
         GT_FUNCTION static T get(char const *msg) {
-#ifdef __CUDACC__
+#ifdef __CUDA_ARCH__
             assert(false);
-            return *((T volatile*)(0x0));
+            return *((T volatile *)(0x0));
 #else
             throw std::runtime_error(msg);
             assert(false);
@@ -66,4 +66,17 @@ namespace gridtools {
             return get< T >(msg);
         }
     };
+
+    /**
+     * @brief Helper struct used to throw an error if the condition is not met.
+     * Otherwise the provided result is returned. This method can be used in constexprs.
+     * @tparam T return type
+     * @param cond condition that should be true
+     * @param res result value
+     * @param msg error message if condition is not met
+     */
+    template < typename T >
+    constexpr T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
+        return cond ? res : error::trigger< T >(msg);
+    }
 }
