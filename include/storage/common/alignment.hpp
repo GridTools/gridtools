@@ -36,7 +36,6 @@
 
 #pragma once
 
-
 #include "definitions.hpp"
 #include "../../common/array.hpp"
 #include "storage_info_metafunctions.hpp"
@@ -82,12 +81,12 @@ namespace gridtools {
 
         template < unsigned Coord >
         GT_FUNCTION constexpr unsigned unaligned_dim() const {
-            return m_unaligned_dims.template get<Coord>();
+            return m_unaligned_dims.template get< Coord >();
         }
 
         template < unsigned Coord >
         GT_FUNCTION constexpr unsigned unaligned_stride() const {
-            return m_unaligned_strides.template get<Coord>();
+            return m_unaligned_strides.template get< Coord >();
         }
     };
 

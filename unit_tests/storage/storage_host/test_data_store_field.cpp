@@ -52,7 +52,7 @@ TEST(DataStoreFieldTest, InstantiateAllocateFree) {
     // check if valid
     EXPECT_FALSE(f.valid());
     // get a const ref of a data store field member
-    auto const& ds1 = f.get<0,0>();
+    auto const &ds1 = f.get< 0, 0 >();
     // allocate field and make it valid
     f.allocate(si);
     EXPECT_TRUE((f.get< 0, 0 >().valid()));
@@ -79,7 +79,7 @@ TEST(DataStoreFieldTest, FillAndReadData) {
     data_store< host_storage< double >, storage_info_t > partial_1 = f.get_field()[0];
     data_store< host_storage< double >, storage_info_t > partial_2 = f.get_field()[1];
     auto hv1 = make_host_view< access_mode::ReadOnly >(partial_1); // read only view
-    auto hv2 = make_host_view(partial_2);         // read write view (just for fun)
+    auto hv2 = make_host_view(partial_2);                          // read write view (just for fun)
     EXPECT_EQ(hv1(0, 0, 0), 5);
     EXPECT_EQ(hv2(0, 0, 0), -5);
     EXPECT_TRUE(check_consistency(f, hv));
@@ -105,9 +105,10 @@ TEST(DataStoreFieldTest, GetSet) {
 #ifndef NDEBUG
     storage_info_t si1(5, 5, 5);
     data_store< host_storage< double >, storage_info_t > ds1;
-    ASSERT_DEATH((f.set<0,0>(ds1)), "Passed invalid data store.");
+    ASSERT_DEATH((f.set< 0, 0 >(ds1)), "Passed invalid data store.");
     ds1.allocate(si1);
-    ASSERT_DEATH((f.set<0,0>(ds1)), "Passed data store cannot be inserted into data store field because storage infos.*");
+    ASSERT_DEATH(
+        (f.set< 0, 0 >(ds1)), "Passed data store cannot be inserted into data store field because storage infos.*");
 #endif
     // get a storage and compare ptrs
     data_store< host_storage< double >, storage_info_t > st = f.get< 1, 0 >();

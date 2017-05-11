@@ -94,8 +94,8 @@ namespace adv_prepare_tracers {
         std::vector< storage_t > list_out_(vec_size, storage_t(meta_data_, 0.0, "out"));
         std::vector< storage_t > list_in_(vec_size, storage_t(meta_data_, 0.0, "in"));
 
-        /* 
-        // TODO: Should be tested like this, otherwise we use the same data 
+        /*
+        // TODO: Should be tested like this, otherwise we use the same data
         // for all expandable parameter elements.
         for (unsigned i = 0; i < vec_size; ++i) {
             list_out_.push_back(storage_t(meta_data_, 0.0, "out"));

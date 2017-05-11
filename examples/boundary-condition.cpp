@@ -163,7 +163,7 @@ int main(int argc, char **argv) {
     // sync the data stores if needed
     in_s.sync();
     out_s.sync();
-    
+
     // reactivate views and check consistency
     in_s.reactivate_host_write_views();
     out_s.reactivate_host_write_views();

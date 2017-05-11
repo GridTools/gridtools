@@ -147,10 +147,10 @@ namespace gridtools {
     };
 
     /**
-     * @brief helper metafunction. when we create a layout_map with n-dimensions we 
+     * @brief helper metafunction. when we create a layout_map with n-dimensions we
      * have to fix the values when dimensions are masked.
      * E.g., layout_map<3,2,-1,0> has to be fixed to layout_map<2,1,-1,0>
-     * @tparam Vec selector 
+     * @tparam Vec selector
      * @tparam T the layout_map type
      */
     template < typename Vec, typename T >
@@ -160,9 +160,9 @@ namespace gridtools {
     struct fix_values< ValueVec, layout_map< D... > > {
         typedef layout_map< boost::mpl::if_< boost::is_same< boost::mpl::int_< -1 >, boost::mpl::int_< D > >,
             boost::mpl::int_< -1 >,
-            boost::mpl::int_< (int)(D - (int)boost::mpl::count_if< ValueVec,
-                                            boost::mpl::less< boost::mpl::_, boost::mpl::int_< D > > >::type::
-                                            value) > >::type::value... >
+            boost::mpl::int_< (int)(
+                D - (int)boost::mpl::count_if< ValueVec,
+                        boost::mpl::less< boost::mpl::_, boost::mpl::int_< D > > >::type::value) > >::type::value... >
             type;
     };
 

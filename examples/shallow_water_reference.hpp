@@ -105,7 +105,8 @@ struct shallow_water_reference {
 
     shallow_water_reference()
         : solution_meta(DimI, DimJ, static_cast< uint_t >(1)), solution(solution_meta),
-          u(solution_meta, u_array, ownership::ExternalCPU, "u"), v(solution_meta, v_array, ownership::ExternalCPU, "v"),
+          u(solution_meta, u_array, ownership::ExternalCPU, "u"),
+          v(solution_meta, v_array, ownership::ExternalCPU, "v"),
           h(solution_meta, h_array, ownership::ExternalCPU, "h"),
           ux(solution_meta, ux_array, ownership::ExternalCPU, "ux"),
           vx(solution_meta, vx_array, ownership::ExternalCPU, "vx"),

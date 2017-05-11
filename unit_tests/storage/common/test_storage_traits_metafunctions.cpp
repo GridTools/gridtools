@@ -42,67 +42,154 @@ using namespace gridtools;
 
 TEST(StorageTraitsMetafunctions, CudaLayout) {
     // 3D
-    static_assert(boost::is_same<typename get_special_layout<layout_map<2,1,0>, selector<1,0,0> >::type, layout_map<0,-1,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<2,1,0>, selector<0,1,0> >::type, layout_map<-1,0,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<2,1,0>, selector<0,0,1> >::type, layout_map<-1,-1,0> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 2, 1, 0 >, selector< 1, 0, 0 > >::type,
+                      layout_map< 0, -1, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 2, 1, 0 >, selector< 0, 1, 0 > >::type,
+                      layout_map< -1, 0, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 2, 1, 0 >, selector< 0, 0, 1 > >::type,
+                      layout_map< -1, -1, 0 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<2,1,0>, selector<1,1,0> >::type, layout_map<1,0,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<2,1,0>, selector<0,1,1> >::type, layout_map<-1,1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<2,1,0>, selector<1,0,1> >::type, layout_map<1,-1,0> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 2, 1, 0 >, selector< 1, 1, 0 > >::type,
+                      layout_map< 1, 0, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 2, 1, 0 >, selector< 0, 1, 1 > >::type,
+                      layout_map< -1, 1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 2, 1, 0 >, selector< 1, 0, 1 > >::type,
+                      layout_map< 1, -1, 0 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<2,1,0>, selector<1,1,1> >::type, layout_map<2,1,0> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 2, 1, 0 >, selector< 1, 1, 1 > >::type,
+                      layout_map< 2, 1, 0 > >::type::value,
+        "");
 
     // 4D
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<0,0,0,1> >::type, layout_map<-1,-1,-1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<0,0,1,0> >::type, layout_map<-1,-1,0,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<0,1,0,0> >::type, layout_map<-1,0,-1,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<1,0,0,0> >::type, layout_map<0,-1,-1,-1> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 0, 0, 0, 1 > >::type,
+                      layout_map< -1, -1, -1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 0, 0, 1, 0 > >::type,
+                      layout_map< -1, -1, 0, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 0, 1, 0, 0 > >::type,
+                      layout_map< -1, 0, -1, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 0, 0, 0 > >::type,
+                      layout_map< 0, -1, -1, -1 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<0,0,1,1> >::type, layout_map<-1,-1,1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<0,1,1,0> >::type, layout_map<-1,1,0,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<1,1,0,0> >::type, layout_map<1,0,-1,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<1,0,0,1> >::type, layout_map<1,-1,-1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<0,1,0,1> >::type, layout_map<-1,1,-1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<1,0,1,0> >::type, layout_map<1,-1,0,-1> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 0, 0, 1, 1 > >::type,
+                      layout_map< -1, -1, 1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 0, 1, 1, 0 > >::type,
+                      layout_map< -1, 1, 0, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 1, 0, 0 > >::type,
+                      layout_map< 1, 0, -1, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 0, 0, 1 > >::type,
+                      layout_map< 1, -1, -1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 0, 1, 0, 1 > >::type,
+                      layout_map< -1, 1, -1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 0, 1, 0 > >::type,
+                      layout_map< 1, -1, 0, -1 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<0,1,1,1> >::type, layout_map<-1,2,1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<1,1,1,0> >::type, layout_map<2,1,0,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<1,1,0,1> >::type, layout_map<2,1,-1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<1,0,1,1> >::type, layout_map<2,-1,1,0> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 0, 1, 1, 1 > >::type,
+                      layout_map< -1, 2, 1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 1, 1, 0 > >::type,
+                      layout_map< 2, 1, 0, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 1, 0, 1 > >::type,
+                      layout_map< 2, 1, -1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 0, 1, 1 > >::type,
+                      layout_map< 2, -1, 1, 0 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<3,2,1,0>, selector<1,1,1,1> >::type, layout_map<3,2,1,0> >::type::value, "");    
-} 
-
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 3, 2, 1, 0 >, selector< 1, 1, 1, 1 > >::type,
+                      layout_map< 3, 2, 1, 0 > >::type::value,
+        "");
+}
 
 TEST(StorageTraitsMetafunctions, HostLayout) {
     // 3D
-    static_assert(boost::is_same<typename get_special_layout<layout_map<0,1,2>, selector<1,0,0> >::type, layout_map<0,-1,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<0,1,2>, selector<0,1,0> >::type, layout_map<-1,0,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<0,1,2>, selector<0,0,1> >::type, layout_map<-1,-1,0> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 0, 1, 2 >, selector< 1, 0, 0 > >::type,
+                      layout_map< 0, -1, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 0, 1, 2 >, selector< 0, 1, 0 > >::type,
+                      layout_map< -1, 0, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 0, 1, 2 >, selector< 0, 0, 1 > >::type,
+                      layout_map< -1, -1, 0 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<0,1,2>, selector<1,1,0> >::type, layout_map<0,1,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<0,1,2>, selector<0,1,1> >::type, layout_map<-1,0,1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<0,1,2>, selector<1,0,1> >::type, layout_map<0,-1,1> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 0, 1, 2 >, selector< 1, 1, 0 > >::type,
+                      layout_map< 0, 1, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 0, 1, 2 >, selector< 0, 1, 1 > >::type,
+                      layout_map< -1, 0, 1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 0, 1, 2 >, selector< 1, 0, 1 > >::type,
+                      layout_map< 0, -1, 1 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<0,1,2>, selector<1,1,1> >::type, layout_map<0,1,2> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 0, 1, 2 >, selector< 1, 1, 1 > >::type,
+                      layout_map< 0, 1, 2 > >::type::value,
+        "");
 
     // 4D
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<0,0,0,1> >::type, layout_map<-1,-1,-1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<0,0,1,0> >::type, layout_map<-1,-1,0,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<0,1,0,0> >::type, layout_map<-1,0,-1,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<1,0,0,0> >::type, layout_map<0,-1,-1,-1> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 0, 0, 0, 1 > >::type,
+                      layout_map< -1, -1, -1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 0, 0, 1, 0 > >::type,
+                      layout_map< -1, -1, 0, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 0, 1, 0, 0 > >::type,
+                      layout_map< -1, 0, -1, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 1, 0, 0, 0 > >::type,
+                      layout_map< 0, -1, -1, -1 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<0,0,1,1> >::type, layout_map<-1,-1,1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<0,1,1,0> >::type, layout_map<-1,0,1,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<1,1,0,0> >::type, layout_map<0,1,-1,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<1,0,0,1> >::type, layout_map<1,-1,-1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<0,1,0,1> >::type, layout_map<-1,1,-1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<1,0,1,0> >::type, layout_map<0,-1,1,-1> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 0, 0, 1, 1 > >::type,
+                      layout_map< -1, -1, 1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 0, 1, 1, 0 > >::type,
+                      layout_map< -1, 0, 1, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 1, 1, 0, 0 > >::type,
+                      layout_map< 0, 1, -1, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 1, 0, 0, 1 > >::type,
+                      layout_map< 1, -1, -1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 0, 1, 0, 1 > >::type,
+                      layout_map< -1, 1, -1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 1, 0, 1, 0 > >::type,
+                      layout_map< 0, -1, 1, -1 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<0,1,1,1> >::type, layout_map<-1,1,2,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<1,1,1,0> >::type, layout_map<0,1,2,-1> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<1,1,0,1> >::type, layout_map<1,2,-1,0> >::type::value, "");
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<1,0,1,1> >::type, layout_map<1,-1,2,0> >::type::value, "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 0, 1, 1, 1 > >::type,
+                      layout_map< -1, 1, 2, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 1, 1, 1, 0 > >::type,
+                      layout_map< 0, 1, 2, -1 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 1, 1, 0, 1 > >::type,
+                      layout_map< 1, 2, -1, 0 > >::type::value,
+        "");
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 1, 0, 1, 1 > >::type,
+                      layout_map< 1, -1, 2, 0 > >::type::value,
+        "");
 
-    static_assert(boost::is_same<typename get_special_layout<layout_map<1,2,3,0>, selector<1,1,1,1> >::type, layout_map<1,2,3,0> >::type::value, "");    
+    static_assert(boost::is_same< typename get_special_layout< layout_map< 1, 2, 3, 0 >, selector< 1, 1, 1, 1 > >::type,
+                      layout_map< 1, 2, 3, 0 > >::type::value,
+        "");
 }
