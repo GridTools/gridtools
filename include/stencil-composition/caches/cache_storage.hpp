@@ -48,6 +48,7 @@
 #include "meta_storage_cache.hpp"
 #include "cache_storage_metafunctions.hpp"
 #include "cache_traits.hpp"
+#include "../iteration_policy_fwd.hpp"
 
 namespace gridtools {
     template < typename T, typename U >
@@ -85,17 +86,17 @@ namespace gridtools {
 
         typedef typename StorageWrapper::data_t value_type;
 
-// TODO ICO_STORAGE in irregular grids we have one more dim for color		
-#ifndef STRUCTURED_GRIDS		
+// TODO ICO_STORAGE in irregular grids we have one more dim for color
+#ifndef STRUCTURED_GRIDS
         static constexpr int extra_dims = 1;
-#else 
+#else
         static constexpr int extra_dims = 0;
 #endif
 
-        typedef typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t,
-            sizeof...(Tiles) + (extra_dims) >::type >::type layout_t;
+        typedef typename _impl::generate_layout_map<
+            typename make_gt_integer_sequence< uint_t, sizeof...(Tiles) + (extra_dims) >::type >::type layout_t;
 
-       using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
+        using iminus_t = typename boost::mpl::at_c< typename minus_t::type, 0 >::type;
         using jminus_t = typename boost::mpl::at_c< typename minus_t::type, 1 >::type;
         using kminus_t = typename boost::mpl::at_c< typename minus_t::type, 2 >::type;
         using iplus_t = typename boost::mpl::at_c< typename plus_t::type, 0 >::type;
@@ -131,12 +132,11 @@ namespace gridtools {
             typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
 
             // manually aligning the storage
-            const uint_t extra_ =
-                (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
-                (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (extra_dims) >() +
-                (extra_dims) * Color * meta_t::template stride< 1 >() +
-                size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                _impl::get_cache_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
+            const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template stride< 0 >() +
+                                  (thread_pos[1] - jminus_t::value) * meta_t::template stride< 1 + (extra_dims) >() +
+                                  (extra_dims)*Color * meta_t::template stride< 1 >() +
+                                  size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                                  _impl::get_cache_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
             assert((extra_) >= 0);
             assert((extra_) < (size() * StorageWrapper::num_of_storages));
             return m_values[extra_];
@@ -168,7 +168,7 @@ namespace gridtools {
             check_kcache_access(accessor_);
 
             const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                  impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
+                                  _impl::get_cache_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
 
             return m_values[index_ - kminus_t::value];
         }
@@ -179,7 +179,7 @@ namespace gridtools {
             check_kcache_access(accessor_);
 
             const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                  impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
+                                  _impl::get_cache_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
 
             return m_values[index_];
         }
