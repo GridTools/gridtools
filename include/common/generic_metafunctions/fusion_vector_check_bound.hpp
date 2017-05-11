@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -47,6 +47,6 @@ namespace gridtools {
     template < typename IndexType, typename FusionVector >
     struct fusion_vector_check_bound {
         static const bool value =
-            IndexType::value>=0 && IndexType::value < boost::fusion::result_of::size< FusionVector >::type::value;
+            IndexType::value >= 0 && IndexType::value < boost::fusion::result_of::size< FusionVector >::type::value;
     };
 } // namespace gridtools

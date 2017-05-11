@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -109,9 +109,14 @@ namespace gridtools {
         T *data() const { return _array; }
 
         GT_FUNCTION
-        constexpr T const &operator[](size_t i) const {
-            // assert((i < _size));
+        constexpr T const& operator[](size_t i) const {
             return _array[i];
+        }
+
+        template < size_t I >
+        GT_FUNCTION constexpr T get() const {
+            static_assert((I < n_dimensions), "Array out of bounds access.");
+            return _array[I];
         }
 
         GT_FUNCTION

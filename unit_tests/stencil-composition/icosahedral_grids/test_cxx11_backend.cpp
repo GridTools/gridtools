@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -56,9 +56,9 @@ TEST(bakend, select_layout) {
         (boost::is_same< BACKEND::select_layout< selector< 1, 1, 1, 1 > >::type, layout_map< 3, 2, 1, 0 > >::value),
         "ERROR");
     static_assert(
-        (boost::is_same< BACKEND::select_layout< selector< 1, -1, 1, 1 > >::type, layout_map< 2, -1, 1, 0 > >::value),
+        (boost::is_same< BACKEND::select_layout< selector< 1, 0, 1, 1 > >::type, layout_map< 2, -1, 1, 0 > >::value),
         "ERROR");
-    static_assert((boost::is_same< BACKEND::select_layout< selector< 1, 1, -1, 1, 1 > >::type,
+    static_assert((boost::is_same< BACKEND::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
                       layout_map< 3, 2, -1, 1, 0 > >::value),
         "ERROR");
 
@@ -67,9 +67,9 @@ TEST(bakend, select_layout) {
         (boost::is_same< BACKEND::select_layout< selector< 1, 1, 1, 1 > >::type, layout_map< 0, 1, 2, 3 > >::value),
         "ERROR");
     static_assert(
-        (boost::is_same< BACKEND::select_layout< selector< 1, -1, 1, 1 > >::type, layout_map< 0, -1, 1, 2 > >::value),
+        (boost::is_same< BACKEND::select_layout< selector< 1, 0, 1, 1 > >::type, layout_map< 0, -1, 1, 2 > >::value),
         "ERROR");
-    static_assert((boost::is_same< BACKEND::select_layout< selector< 1, 1, -1, 1, 1 > >::type,
+    static_assert((boost::is_same< BACKEND::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
                       layout_map< 1, 2, -1, 3, 0 > >::value),
         "ERROR");
 #endif

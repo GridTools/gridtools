@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,12 +38,15 @@
 #include <boost/mpl/fold.hpp>
 #include <boost/mpl/find.hpp>
 #include "defs.hpp"
+#include "array.hpp"
 #include "dimension.hpp"
-#include "generic_metafunctions/logical_ops.hpp"
-#include "generic_metafunctions/variadic_to_vector.hpp"
+#include "generic_metafunctions/binary_ops.hpp"
 #include "generic_metafunctions/accumulate.hpp"
 #include "generic_metafunctions/is_variadic_pack_of.hpp"
-#include "array.hpp"
+#include "generic_metafunctions/variadic_to_vector.hpp"
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/fold.hpp>
+#include <boost/mpl/or.hpp>
 
 namespace gridtools {
 
@@ -139,9 +142,10 @@ namespace gridtools {
     //                              Multidimensional Fields
     //################################################################################
 
-    /**@brief this is a decorator of the arg_type, which is matching the extra dimensions
+    /**@brief implementation of a tuple of indices (integers) that can be constexpr constructed and provde
+       multifunctional API, for example setting only the indices of certain dimensions via dimension objects.
        \param n_args is the current ID of the extra dimension
-       \param index_type is the index of the storage type
+       \param index_t is the index of the storage type
 
        EXAMPLE:
 
@@ -162,7 +166,7 @@ namespace gridtools {
     */
     template < int_t Index, int_t NDim >
     struct offset_tuple : public offset_tuple< Index - 1, NDim > {
-        static const int_t n_dim = NDim;
+        static const int_t n_dimensions = NDim;
 
         typedef offset_tuple< Index - 1, NDim > super;
         static const short_t n_args = super::n_args + 1;
@@ -187,7 +191,7 @@ namespace gridtools {
             typename Dummy = typename all_dimensions< Dimensions... >::type >
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d)
             : super(pos + 1, offsets, d...),
-              m_offset(_impl::assign_offset(pos, offsets) + initialize< super::n_dim - n_args >(d...)) {
+              m_offset(_impl::assign_offset(pos, offsets) + initialize< super::n_dimensions - n_args >(d...)) {
             static_assert(
                 (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
         }
@@ -212,11 +216,10 @@ namespace gridtools {
             typename... GenericElements,
             typename Dummy = typename all_dimensions< dimension< Idx >, GenericElements... >::type >
         GT_FUNCTION constexpr offset_tuple(dimension< Idx > const &t, GenericElements const &... x)
-            : super(t, x...), m_offset(initialize< super::n_dim - n_args + 1 >(t, x...)) {
+            : super(t, x...), m_offset(initialize< super::n_dimensions - n_args + 1 >(t, x...)) {
             GRIDTOOLS_STATIC_ASSERT(
-                (Index <= n_dim), "overflow in offset_tuple. Check that the accessor dimension is valid.");
+                (Idx <= n_dimensions), "overflow in offset_tuple. Check that the accessor dimension is valid.");
         }
-
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
            The integer gets assigned to the current extra dimension and the other arguments are passed to the base
@@ -239,7 +242,7 @@ namespace gridtools {
             dimension< Idx2 > const &u,
             dimension< Idx3 > const &v,
             dimension< Idx4 > const &h)
-            : super(t, u, v, h), m_offset(initialize< super::n_dim - n_args + 1 >(t, u, v, h)) {}
+            : super(t, u, v, h), m_offset(initialize< super::n_dimensions - n_args + 1 >(t, u, v, h)) {}
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'enumtype::dimension' is a
@@ -247,7 +250,7 @@ namespace gridtools {
         */
         template < ushort_t Idx1, ushort_t Idx2, ushort_t Idx3 >
         GT_FUNCTION offset_tuple(dimension< Idx1 > const &t, dimension< Idx2 > const &u, dimension< Idx3 > const &v)
-            : super(t, u, v), m_offset(initialize< super::n_dim - n_args + 1 >(t, u, v)) {}
+            : super(t, u, v), m_offset(initialize< super::n_dimensions - n_args + 1 >(t, u, v)) {}
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -255,7 +258,7 @@ namespace gridtools {
         */
         template < ushort_t Idx1, ushort_t Idx2 >
         GT_FUNCTION offset_tuple(dimension< Idx1 > const &t, dimension< Idx2 > const &u)
-            : super(t, u), m_offset(initialize< super::n_dim - n_args + 1 >(t, u)) {}
+            : super(t, u), m_offset(initialize< super::n_dimensions - n_args + 1 >(t, u)) {}
 
         /**@brief constructor taking the Dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'dimension' is a
@@ -263,7 +266,7 @@ namespace gridtools {
         */
         template < ushort_t Idx >
         GT_FUNCTION offset_tuple(dimension< Idx > const &t)
-            : super(t), m_offset(initialize< super::n_dim - n_args + 1 >(t)) {}
+            : super(t), m_offset(initialize< super::n_dimensions - n_args + 1 >(t)) {}
 #endif
 
         // initializes recursively all the offsets to 0
@@ -312,7 +315,7 @@ namespace gridtools {
     // specialization
     template < int_t NDim >
     struct offset_tuple< 0, NDim > {
-        static const int_t n_dim = NDim;
+        static const int_t n_dimensions = NDim;
 
 #ifdef CXX11_ENABLED
         template < size_t ArrayDim,

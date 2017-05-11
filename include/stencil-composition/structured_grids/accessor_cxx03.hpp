@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -81,7 +81,7 @@ namespace gridtools {
         ushort_t Number = 3 >
     struct accessor : public accessor_base< ID, Intend, Extent, Number > {
         typedef accessor_base< ID, Intend, Extent, Number > super;
-        typedef typename super::index_type index_type;
+        typedef typename super::index_t index_t;
         typedef typename super::offset_tuple_t offset_tuple_t;
 
 #ifdef CXX11_ENABLED

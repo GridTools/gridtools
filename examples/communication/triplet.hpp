@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <common/generic_metafunctions/pack_get_elem.hpp>
+
 #define USE_DOUBLE false
 
 #ifndef USE_DOUBLE
@@ -48,18 +50,21 @@ struct array {
     int n, m, l;
 
     array(T *_p, int _n, int _m, int _l)
-        : ptr(_p), n(lmap::template find< 0 >(_n, _m, _l)), m(lmap::template find< 1 >(_n, _m, _l)),
-          l(lmap::template find< 2 >(_n, _m, _l)) {}
+        : ptr(_p), n(gridtools::pack_get_elem< lmap::template find< 0 >() >::apply(_n, _m, _l)),
+          m(gridtools::pack_get_elem< lmap::template find< 1 >() >::apply(_n, _m, _l)),
+          l(gridtools::pack_get_elem< lmap::template find< 2 >() >::apply(_n, _m, _l)) {}
 
     T &operator()(int i, int j, int k) {
         // a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj]
-        return ptr[l * m * lmap::template find< 0 >(i, j, k) + l * lmap::template find< 1 >(i, j, k) +
-                   lmap::template find< 2 >(i, j, k)];
+        return ptr[l * m * gridtools::pack_get_elem< lmap::template find< 0 >() >::apply(i, j, k) +
+                   l * gridtools::pack_get_elem< lmap::template find< 1 >() >::apply(i, j, k) +
+                   gridtools::pack_get_elem< lmap::template find< 2 >() >::apply(i, j, k)];
     }
 
     T const &operator()(int i, int j, int k) const {
-        return ptr[l * m * lmap::template find< 0 >(i, j, k) + l * lmap::template find< 1 >(i, j, k) +
-                   lmap::template find< 2 >(i, j, k)];
+        return ptr[l * m * gridtools::pack_get_elem< lmap::template find< 0 >() >::apply(i, j, k) +
+                   l * gridtools::pack_get_elem< lmap::template find< 1 >() >::apply(i, j, k) +
+                   gridtools::pack_get_elem< lmap::template find< 2 >() >::apply(i, j, k)];
     }
 
     operator void *() const { return reinterpret_cast< void * >(ptr); }

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,15 @@
 #pragma once
 
 #include "../icosahedral_grids/accessor.hpp"
+#include "../global_accessor.hpp"
+#include "../expandable_parameters/expandable_fwd.hpp"
 
 namespace gridtools {
 
     template < typename Accessor >
     struct accessor_index {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
-        typedef typename Accessor::index_type type;
+        typedef typename Accessor::index_t type;
     };
 
     template < typename Accessor >
@@ -77,11 +79,11 @@ namespace gridtools {
                 int >::value),
             GT_INTERNAL_ERROR);
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        typedef typename boost::mpl::integral_c< int, (int)ID > index_t;
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), GT_INTERNAL_ERROR);
 
-        typedef accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value,
+        typedef accessor< boost::mpl::at< ArgsMap, index_t >::type::value,
             Intend,
             LocationType,
             Extent,
@@ -99,11 +101,11 @@ namespace gridtools {
                 int >::value),
             GT_INTERNAL_ERROR);
 
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_type_t;
+        typedef typename boost::mpl::integral_c< int, (int)ID > index_t;
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), GT_INTERNAL_ERROR);
 
-        typedef global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, Intend > type;
+        typedef global_accessor< boost::mpl::at< ArgsMap, index_t >::type::value, Intend > type;
     };
 
 } // namespace gridtools

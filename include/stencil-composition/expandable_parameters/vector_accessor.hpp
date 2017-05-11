@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         using super = accessor< ID, Intent, Extent, NDim >;
         using super::accessor;
-        static const ushort_t n_dim = NDim;
+        static const ushort_t n_dimensions = NDim;
 #else
         GRIDTOOLS_STATIC_ASSERT(
             NDim > 0, "EYou are using a vector_accessor and compiling with C++03, switch to C++11 (-DENABLE_CXX11=ON)");

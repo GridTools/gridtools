@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -75,10 +75,8 @@ using namespace rw_test;
 
 TEST(esf, read_write) {
 
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t;
-    typedef backend_t::storage_info< 0, layout_t > storage_info_t;
-
-    using cell_storage_type = typename backend_t::storage_type< double, storage_info_t >;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< double, meta_data_t > cell_storage_type;
 
     typedef arg< 0, cell_storage_type > pi0;
     typedef arg< 1, cell_storage_type > po0;

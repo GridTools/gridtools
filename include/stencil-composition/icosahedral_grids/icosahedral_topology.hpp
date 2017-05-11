@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -63,8 +63,8 @@
 #include "../location_type.hpp"
 #include "../../common/array_addons.hpp"
 #include "../../common/gpu_clone.hpp"
-#include "../../common/selector.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
+#include "../../common/generic_metafunctions/all_integrals.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 #include "icosahedral_topology_metafunctions.hpp"
@@ -77,6 +77,24 @@ namespace gridtools {
         using cells = location_type< 0, 2 >;
         using edges = location_type< 1, 3 >;
         using vertices = location_type< 2, 1 >;
+    }
+
+    namespace impl {
+        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
+        constexpr typename boost::enable_if_c< (N == 0), StorageInfo >::type get_storage_info_from_array(
+            Array arr, Rest... r) {
+            static_assert(is_array< Array >::value, "Passed type is not an array type.");
+            return StorageInfo(r...);
+        }
+
+        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
+        constexpr typename boost::enable_if_c< (N > 0), StorageInfo >::type get_storage_info_from_array(
+            Array arr, Rest... r) {
+            static_assert(is_array< Array >::value, "Passed type is not an array type.");
+            typedef typename StorageInfo::halo_t halo_t;
+            return get_storage_info_from_array< StorageInfo, Array, N - 1 >(
+                arr, arr[N - 1] - 2 * halo_t::template at< N - 1 >(), r...);
+        }
     }
 
     template < typename T, typename ValueType >
@@ -726,18 +744,20 @@ namespace gridtools {
         template < typename Selector >
         using layout_t = typename Backend::template select_layout< Selector >::type;
 
-        template < typename LocationType, typename Selector = selector< 1, 1, 1, 1 > >
-        // TODO ICO_STORAGE do we need this unique id of the storage info with the new storage?
+        template < typename LocationType,
+            typename Halo = halo< 0, 0, 0, 0 >,
+            typename Selector = selector< 1, 1, 1, 1 > >
         using meta_storage_t =
             typename Backend::template storage_info_t< impl::compute_uuid< LocationType::value, Selector >::value,
-                typename Backend::template select_layout< Selector >::type >;
+                layout_t< Selector >,
+                Halo >;
 
-        template < typename LocationType, typename ValueType, typename Selector = selector< 1, 1, 1, 1 > >
-        using storage_t = typename Backend::template storage_t< ValueType, meta_storage_t< LocationType, Selector > >;
-
-        template < typename LocationType, typename ValueType, typename Selector = selector< 1, 1, 1, 1 > >
-        using temporary_storage_t =
-            typename Backend::template temporary_storage_t< ValueType, meta_storage_t< LocationType, Selector > >;
+        template < typename LocationType,
+            typename ValueType,
+            typename Halo = halo< 0, 0, 0, 0 >,
+            typename Selector = selector< 1, 1, 1, 1 > >
+        using storage_t =
+            typename Backend::template storage_t< ValueType, meta_storage_t< LocationType, Halo, Selector > >;
 
         const array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
@@ -746,6 +766,7 @@ namespace gridtools {
 
       public:
         template < typename... UInt >
+
         GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
             : m_dims{idim, jdim, kdim} {}
 
@@ -753,6 +774,7 @@ namespace gridtools {
 
         template < typename LocationType,
             typename ValueType,
+            typename Halo = halo< 0, 0, 0, 0 >,
             typename Selector = selector< 1, 1, 1, 1 >,
             typename... IntTypes
 #if defined(CUDA8) || !defined(__CUDACC__)
@@ -760,55 +782,25 @@ namespace gridtools {
             typename Dummy = all_integers< IntTypes... >
 #endif
             >
-        storage_t< LocationType, ValueType, Selector > make_storage(char const *name, IntTypes... extra_dims) const {
+        storage_t< LocationType, ValueType, Halo, Selector > make_storage(
+            char const *name, IntTypes... extra_dims) const {
             GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
             GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
 
             GRIDTOOLS_STATIC_ASSERT(
-                (Selector::length == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
+                (Selector::size == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
 
-            using meta_storage_type = meta_storage_t< LocationType, Selector >;
-            GRIDTOOLS_STATIC_ASSERT((Selector::length == meta_storage_type::space_dimensions),
+            using meta_storage_type = meta_storage_t< LocationType, Halo, Selector >;
+            GRIDTOOLS_STATIC_ASSERT((Selector::size == meta_storage_type::layout_t::masked_length),
                 "ERROR: Mismatch between Selector and space dimensions");
 
-            array< uint_t, meta_storage_type::space_dimensions > metastorage_sizes =
-                impl::array_dim_initializers< uint_t, meta_storage_type::space_dimensions, LocationType, Selector >::
-                    apply(m_dims, extra_dims...);
-
-            auto ameta = meta_storage_type(metastorage_sizes);
-            return storage_t< LocationType, ValueType, Selector >(ameta, name);
-        }
-
-        // TODO ICO_STORAGE this is a hacked until the new storage fixes the problems with the ownership of the storage,
-        // since currently we can not move nor copy storages
-        template < typename LocationType,
-            typename ValueType,
-            typename Selector = selector< 1, 1, 1, 1 >,
-            typename... IntTypes
-#if defined(CUDA8) || !defined(__CUDACC__)
-            ,
-            typename Dummy = all_integers< IntTypes... >
-#endif
-            >
-        void make_storage(storage_t< LocationType, ValueType, Selector > *&storage_ptr,
-            char const *name,
-            IntTypes... extra_dims) const {
-            GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
-            GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
-
-            GRIDTOOLS_STATIC_ASSERT(
-                (Selector::length == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
-
-            using meta_storage_type = meta_storage_t< LocationType, Selector >;
-            GRIDTOOLS_STATIC_ASSERT((Selector::length == meta_storage_type::space_dimensions),
-                "ERROR: Mismatch between Selector and space dimensions");
-
-            array< uint_t, meta_storage_type::space_dimensions > metastorage_sizes =
-                impl::array_dim_initializers< uint_t, meta_storage_type::space_dimensions, LocationType, Selector >::
-                    apply(m_dims, extra_dims...);
-
-            auto ameta = meta_storage_type(metastorage_sizes);
-            storage_ptr = new storage_t< LocationType, ValueType, Selector >(ameta, name);
+            array< uint_t, meta_storage_type::layout_t::masked_length > metastorage_sizes =
+                impl::array_dim_initializers< uint_t,
+                    meta_storage_type::layout_t::masked_length,
+                    LocationType,
+                    Selector >::apply(m_dims, extra_dims...);
+            auto ameta = impl::get_storage_info_from_array< meta_storage_type >(metastorage_sizes);
+            return storage_t< LocationType, ValueType, Halo, Selector >(ameta, name);
         }
 
         template < typename LocationType >

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,48 +33,50 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
-#include "../common/defs.hpp"
-#include "storage.hpp"
-#include "base_storage.hpp"
-#include "meta_storage.hpp"
-#include "meta_storage_aligned.hpp"
-#include "meta_storage_base.hpp"
+
+#include "common/definitions.hpp"
+#include "common/storage_traits_metafunctions.hpp"
+#include "../common/selector.hpp"
+#include "storage_cuda/data_field_view_helpers.hpp"
+#include "storage_cuda/data_view_helpers.hpp"
+#include "storage_cuda/storage.hpp"
+#include "storage_cuda/storage_info.hpp"
 
 namespace gridtools {
     template < enumtype::platform T >
     struct storage_traits_from_id;
 
-    /** @brief traits struct defining the storage and metastorage types which are specific to the CUDA backend*/
+    /** @brief storage traits for the CUDA backend*/
     template <>
     struct storage_traits_from_id< enumtype::Cuda > {
 
-        template < typename T >
-        struct pointer {
-            typedef hybrid_pointer< T, true > type;
-        };
-
-        template < typename ValueType, typename MetaData, short_t SpaceDim = 1 >
+        template < typename ValueType >
         struct select_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_meta_storage< MetaData >::value, "wrong type for the storage_info");
-            typedef storage< base_storage< typename pointer< ValueType >::type, MetaData, SpaceDim > > type;
+            typedef cuda_storage< ValueType > type;
         };
 
-        struct default_alignment {
-            typedef aligned< 32 > type;
+        template < unsigned Id, unsigned Dims, typename Halo >
+        struct select_storage_info {
+            static_assert(is_halo< Halo >::value, "Given type is not a Halo type.");
+            typedef typename get_layout< Dims, false >::type layout;
+            typedef cuda_storage_info< Id, layout, Halo > type;
         };
 
-        /**
-           @brief storage info type associated to the cuda backend
-           the storage info type is meta_storage.
-         */
-        template < typename IndexType, typename Layout, bool Temp, typename Halo, typename Alignment >
-        struct select_meta_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_aligned< Alignment >::type::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::type::value, "wrong type");
-            // GRIDTOOLS_STATIC_ASSERT((is_layout<Layout>::value), "wrong type for the storage_info");
-            typedef meta_storage<
-                meta_storage_aligned< meta_storage_base< IndexType, Layout, Temp >, Alignment, Halo > > type;
+        template < unsigned Id, typename Layout, typename Halo >
+        struct select_custom_layout_storage_info {
+            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
+            static_assert(is_layout_map< Layout >::value, "Given type is not a layout map type.");
+            typedef cuda_storage_info< Id, Layout, Halo > type;
+        };
+
+        template < unsigned Id, typename Selector, typename Halo >
+        struct select_special_storage_info {
+            static_assert(is_halo< Halo >::value, "Given type is not a Halo type.");
+            static_assert(is_selector< Selector >::value, "Given type is not a selector type.");
+            typedef typename get_layout< Selector::size, false >::type layout;
+            typedef cuda_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo > type;
         };
     };
 }

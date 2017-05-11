@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,12 +41,12 @@ using namespace gridtools;
 
 TEST(icosahedral_topology_metafunctions, selector_uuid) {
     // 0(cells) + 4+8+ /*(16)*/ + 32
-    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, -1, 1 > >::value ==
+    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, 0, 1 > >::value ==
                                 enumtype::cells::value + 44 + enumtype::metastorage_library_indices_limit),
         "ERROR");
 
     // 0(cells) + 4+8+ /*(16)*/ + 32 //the rest of dimensions are ignored
-    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, -1, 1, 1, 1 > >::value ==
+    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, 0, 1, 1, 1 > >::value ==
                                 enumtype::cells::value + 44 + enumtype::metastorage_library_indices_limit),
         "ERROR");
 
@@ -56,7 +56,7 @@ TEST(icosahedral_topology_metafunctions, selector_uuid) {
         "ERROR");
 
     // 1(edges) + 4+/*8*/+ 16 + 32 //the rest of dimensions are ignored
-    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::edges::value, selector< 1, -1, 1, 1, 1, 1 > >::value ==
+    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::edges::value, selector< 1, 0, 1, 1, 1, 1 > >::value ==
                                 enumtype::edges::value + 52 + enumtype::metastorage_library_indices_limit),
         "ERROR");
 }
@@ -73,7 +73,7 @@ TEST(icosahedral_topology_metafunctions, array_dim_initializer) {
     static_assert((array_[3] == 5), "error");
 
     constexpr auto array2_ =
-        impl::array_dim_initializers< uint_t, 6, location_type< 0, 1 >, selector< 1, 1, -1, 1, 1, 1 > >::apply(
+        impl::array_dim_initializers< uint_t, 6, location_type< 0, 1 >, selector< 1, 1, 0, 1, 1, 1 > >::apply(
             array< uint_t, 3 >{3, 4, 5}, 7, 8);
     static_assert((array2_.n_dimensions == 6), "error");
     static_assert((array2_[0] == 3), "error");

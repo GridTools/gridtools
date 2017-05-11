@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,9 @@
 */
 #pragma once
 #include "accumulate.hpp"
-#include "logical_ops.hpp"
+#include "binary_ops.hpp"
+
+#include "../defs.hpp"
 
 namespace gridtools {
 

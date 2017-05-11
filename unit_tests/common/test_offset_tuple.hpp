@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <stencil-composition/stencil-composition.hpp>
+#include <common/defs.hpp>
+#include <common/offset_tuple.hpp>
+#include <common/offset_tuple_mixed.hpp>
 
 template < int Arg1, int Arg2 >
 struct pair_ {

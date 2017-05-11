@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,19 +33,93 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #include "gtest/gtest.h"
-#include "test_layout_map.hpp"
+
+#include "common/layout_map.hpp"
 
 using namespace gridtools;
 
-TEST(layout_map, accessors) {
-    bool result = true;
-    test_layout_accessors(&result);
-    ASSERT_TRUE(result);
+template <typename T>
+constexpr unsigned get_length() {
+    return T::masked_length;
 }
 
-TEST(layout_map, find_val) {
-    bool result = true;
-    test_layout_find_val(&result);
-    ASSERT_TRUE(result);
+TEST(LayoutMap, SimpleLayout) {
+    typedef layout_map<0,1,2> layout1;
+
+    // test length
+    static_assert(layout1::masked_length==3, "layout_map length is wrong");
+    static_assert(layout1::unmasked_length==3, "layout_map length is wrong");
+    
+    // test find method
+    static_assert(layout1::find<0>()==0, "wrong result in layout_map find method");
+    static_assert(layout1::find<1>()==1, "wrong result in layout_map find method");
+    static_assert(layout1::find<2>()==2, "wrong result in layout_map find method");
+    static_assert(layout1::find(0)==0, "wrong result in layout_map find method");
+    static_assert(layout1::find(1)==1, "wrong result in layout_map find method");
+    static_assert(layout1::find(2)==2, "wrong result in layout_map find method");
+    
+    // test at method
+    static_assert(layout1::at<0>()==0, "wrong result in layout_map at method");
+    static_assert(layout1::at<1>()==1, "wrong result in layout_map at method");
+    static_assert(layout1::at<2>()==2, "wrong result in layout_map at method");
+    static_assert(layout1::at(0)==0, "wrong result in layout_map at method");
+    static_assert(layout1::at(1)==1, "wrong result in layout_map at method");
+    static_assert(layout1::at(2)==2, "wrong result in layout_map at method");
+
+}
+ 
+TEST(LayoutMap, ExtendedLayout) {
+    typedef layout_map<3,2,1,0> layout2;
+
+    // test length
+    static_assert(layout2::masked_length==4, "layout_map length is wrong");
+    static_assert(layout2::unmasked_length==4, "layout_map length is wrong");
+
+    // test find method
+    static_assert(layout2::find<0>()==3, "wrong result in layout_map find method");
+    static_assert(layout2::find<1>()==2, "wrong result in layout_map find method");
+    static_assert(layout2::find<2>()==1, "wrong result in layout_map find method");
+    static_assert(layout2::find<3>()==0, "wrong result in layout_map find method");
+    static_assert(layout2::find(0)==3, "wrong result in layout_map find method");
+    static_assert(layout2::find(1)==2, "wrong result in layout_map find method");
+    static_assert(layout2::find(2)==1, "wrong result in layout_map find method");
+    static_assert(layout2::find(3)==0, "wrong result in layout_map find method");
+
+    // test at method
+    static_assert(layout2::at<0>()==3, "wrong result in layout_map at method");
+    static_assert(layout2::at<1>()==2, "wrong result in layout_map at method");
+    static_assert(layout2::at<2>()==1, "wrong result in layout_map at method");
+    static_assert(layout2::at<3>()==0, "wrong result in layout_map at method");
+    static_assert(layout2::at(0)==3, "wrong result in layout_map at method");
+    static_assert(layout2::at(1)==2, "wrong result in layout_map at method");
+    static_assert(layout2::at(2)==1, "wrong result in layout_map at method");
+    static_assert(layout2::at(3)==0, "wrong result in layout_map at method");
+}
+
+TEST(LayoutMap, MaskedLayout) {
+    typedef layout_map<2,-1,1,0> layout3;
+
+    // test length
+    static_assert(layout3::masked_length==4, "layout_map length is wrong");
+    static_assert(layout3::unmasked_length==3, "layout_map length is wrong");;
+
+    // test find method
+    static_assert(layout3::find<0>()==3, "wrong result in layout_map find method");
+    static_assert(layout3::find<1>()==2, "wrong result in layout_map find method");
+    static_assert(layout3::find<2>()==0, "wrong result in layout_map find method");
+    static_assert(layout3::find(0)==3, "wrong result in layout_map find method");
+    static_assert(layout3::find(1)==2, "wrong result in layout_map find method");
+    static_assert(layout3::find(2)==0, "wrong result in layout_map find method");
+
+    // test at method
+    static_assert(layout3::at<0>()==2, "wrong result in layout_map at method");
+    static_assert(layout3::at<1>()==-1, "wrong result in layout_map at method");
+    static_assert(layout3::at<2>()==1, "wrong result in layout_map at method");
+    static_assert(layout3::at<3>()==0, "wrong result in layout_map at method");
+    static_assert(layout3::at(0)==2, "wrong result in layout_map at method");
+    static_assert(layout3::at(1)==-1, "wrong result in layout_map at method");
+    static_assert(layout3::at(2)==1, "wrong result in layout_map at method");
+    static_assert(layout3::at(3)==0, "wrong result in layout_map at method");
 }

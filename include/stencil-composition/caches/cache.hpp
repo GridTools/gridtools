@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@
 #include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
 #include "../../stencil-composition/caches/cache_definitions.hpp"
 #include "../../stencil-composition/accessor.hpp"
+#include "../../stencil-composition/interval.hpp"
 #include "../../stencil-composition/location_type.hpp"
 
 namespace gridtools {
@@ -71,8 +72,9 @@ namespace gridtools {
          * @tparam  cacheType type of cache
          * @tparam Arg argument with parameter being cached
          * @tparam CacheIOPolicy IO policy for cache
+         * @tparam Interval vertical interval of validity of the cache
          */
-        template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy >
+        template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
         struct cache_impl {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_arg< Arg >::value), "argument passed to ij cache is not of the right arg<> type");
@@ -80,7 +82,7 @@ namespace gridtools {
 // TODO ICO_STORAGE
 #ifndef STRUCTURED_GRIDS
             GRIDTOOLS_STATIC_ASSERT(
-                (!boost::is_same< typename Arg::location_type_t, enumtype::default_location_type >::value),
+                (!boost::is_same< typename Arg::location_t, enumtype::default_location_type >::value),
                 "args in irregular grids require a location type");
 #endif
             typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;
@@ -89,11 +91,11 @@ namespace gridtools {
         /**
         * @brief helper metafunction class that is used to force the resolution of an mpl placeholder type
         */
-        template < cache_type cacheType, cache_io_policy cacheIOPolicy >
+        template < cache_type cacheType, cache_io_policy cacheIOPolicy, typename Interval >
         struct force_arg_resolution {
             template < typename T >
             struct apply {
-                typedef cache_impl< cacheType, T, cacheIOPolicy > type;
+                typedef cache_impl< cacheType, T, cacheIOPolicy, Interval > type;
             };
         };
     }
@@ -107,13 +109,24 @@ namespace gridtools {
      *	@tparam Args arbitrary number of storages that should be cached
      *	@return vector of caches
      */
-    template < cache_type cacheType, cache_io_policy cacheIOPolicy, typename... Args >
+    template < cache_type cacheType,
+        cache_io_policy cacheIOPolicy,
+        typename Interval = boost::mpl::void_,
+        typename... Args >
     constexpr typename boost::mpl::transform< boost::mpl::vector< Args... >,
-        detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type
+        detail::force_arg_resolution< cacheType, cacheIOPolicy, Interval > >::type
     cache(Args &&...) {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
+        static_assert(((boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType == K),
+            "Passing an interval to the cache<> construct is only allowed and required by the K caches");
+        static_assert(
+            (!(boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType != K || cacheIOPolicy == local),
+            "cache<K, ... > construct requires an interval (unless the IO policy is local)");
+
+        static_assert((boost::is_same< Interval, boost::mpl::void_ >::value || is_interval< Interval >::value),
+            "Invalid Interval type passed to cache construct");
         typedef typename boost::mpl::transform< boost::mpl::vector< Args... >,
-            detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type res_ty;
+            detail::force_arg_resolution< cacheType, cacheIOPolicy, Interval > >::type res_ty;
         return res_ty();
     }
 #else
@@ -122,18 +135,18 @@ namespace gridtools {
  * This macro is providing the same functionality as the cache(Args&&) function above.
  * Just used because of c++03 compatibility.
  */
-#define _CREATE_CACHE(z, n, nil)                                                                                     \
-    template < cache_type cacheType,                                                                                 \
-        cache_io_policy cacheIOPolicy,                                                                               \
-        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename T) >                                                          \
-    typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >,                  \
-        detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type cache(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), \
-        T)) {                                                                                                        \
-        typedef typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >,      \
-            detail::force_arg_resolution< cacheType, cacheIOPolicy > >::type res_type;                               \
-        GRIDTOOLS_STATIC_ASSERT(                                                                                     \
-            (boost::mpl::size< res_type >::value > 0), "Cannot build cache sequence without argument");              \
-        return res_type();                                                                                           \
+#define _CREATE_CACHE(z, n, nil)                                                                                \
+    template < cache_type cacheType,                                                                            \
+        cache_io_policy cacheIOPolicy,                                                                          \
+        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename T) >                                                     \
+    typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >,             \
+        detail::force_arg_resolution< cacheType, cacheIOPolicy, boost::mpl::void_ > >::type                     \
+        cache(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T)) {                                                       \
+        typedef typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >, \
+            detail::force_arg_resolution< cacheType, cacheIOPolicy, boost::mpl::void_ > >::type res_type;       \
+        GRIDTOOLS_STATIC_ASSERT(                                                                                \
+            (boost::mpl::size< res_type >::value > 0), "Cannot build cache sequence without argument");         \
+        return res_type();                                                                                      \
     }
     BOOST_PP_REPEAT(GT_MAX_ARGS, _CREATE_CACHE, _)
 #undef _CREATE_CACHE

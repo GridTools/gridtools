@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,11 @@
  */
 
 #pragma once
-#include "stencil-composition/backend_host/iterate_domain_host.hpp"
-#include "stencil-composition/loop_hierarchy.hpp"
-#include "../../iteration_policy.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
+#include "../../iteration_policy.hpp"
+#include "stencil-composition/backend_host/iterate_domain_host.hpp"
+#include "stencil-composition/loop_hierarchy.hpp"
 
 namespace gridtools {
 
@@ -173,7 +173,7 @@ namespace gridtools {
                 }
 #endif
 
-                typename iterate_domain_t::data_pointer_array_t data_pointer;
+                typename iterate_domain_t::data_ptr_cached_t data_pointer;
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
                 strides_t strides;
 

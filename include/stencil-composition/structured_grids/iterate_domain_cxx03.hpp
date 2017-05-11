@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -373,7 +373,7 @@ namespace gridtools {
         template < typename LocalD, typename Accessor >
         struct current_storage< false, LocalD, Accessor > {
             static const uint_t value =
-                (total_storages< typename LocalD::local_args_type, Accessor::index_type::value >::value);
+                (total_storages< typename LocalD::local_args_type, Accessor::index_t::value >::value);
         };
 
         /** @brief method returning the data pointer of an accessor
@@ -391,7 +391,7 @@ namespace gridtools {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Using EVAL is only allowed for an accessor type");
             return (data_pointer())
-                [current_storage< (acc_t::index_type::value == 0), local_domain_t, typename acc_t::type >::value];
+                [current_storage< (acc_t::index_t::value == 0), local_domain_t, typename acc_t::type >::value];
         }
 
 #ifdef CXX11_ENABLED
@@ -403,7 +403,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return (
-                data_pointer())[current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value];
+                data_pointer())[current_storage< (Accessor::index_t::value == 0), local_domain_t, Accessor >::value];
         }
 #endif
 
@@ -426,14 +426,15 @@ namespace gridtools {
 
             // if the following assertion fails you have specified a dimension for the extended storage
             // which does not correspond to the size of the extended placeholder for that storage
-            GRIDTOOLS_STATIC_ASSERT(storage_type::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dim,
+            GRIDTOOLS_STATIC_ASSERT(
+                storage_type::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dimensions,
                 "the dimension of the accessor exceeds the data field dimension");
 
             // for the moment the extra dimensionality of the storage is limited to max 2
-            //(3 space dim + 2 extra= 5, which gives n_dim==4)
+            //(3 space dim + 2 extra= 5, which gives n_dimensions==4)
             GRIDTOOLS_STATIC_ASSERT(
                 N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_type::storage_info_type::space_dimensions,
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_type::storage_info_type::space_dimensions,
                 "access out of bound in the storage placeholder (accessor). increase the number of dimensions when "
                 "defining the placeholder.");
 
@@ -446,15 +447,16 @@ namespace gridtools {
 
             // dimension/snapshot offsets must be non negative
             GTASSERT(accessor.template get< 0 >() >= 0);
-            GTASSERT((Accessor::n_dim <= storage_type::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
+            GTASSERT(
+                (Accessor::n_dimensions <= storage_type::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
             // std::cout<<" offsets: "<<arg.template get<0>()<<" , "<<arg.template get<1>()<<" , "<<arg.template
             // get<2>()<<" , "<<std::endl;
 
             return (data_pointer())
-                [(Accessor::n_dim <= storage_type::space_dimensions + 1 ? // static if
+                [(Accessor::n_dimensions <= storage_type::space_dimensions + 1 ? // static if
                          accessor.template get< 0 >()
-                                                                        : // offset for the current dimension
-                         accessor.template get< 1 >()                     // offset for the current snapshot
+                                                                               : // offset for the current dimension
+                         accessor.template get< 1 >()                            // offset for the current snapshot
                              // limitation to "rectangular" vector fields for non-static fields dimensions
                              +
                              accessor.template get< 0 >() // select the dimension
@@ -464,7 +466,7 @@ namespace gridtools {
                      )
                     //+ the offset of the other extra dimension
                     +
-                    current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value];
+                    current_storage< (Accessor::index_t::value == 0), local_domain_t, Accessor >::value];
         }
 
         /** @brief method called in the Do methods of the functors.
@@ -476,7 +478,7 @@ namespace gridtools {
             global_accessor< I, Intend > const &accessor) const {
 
             // getting information about the storage
-            typedef typename global_accessor< I, Intend >::index_type index_t;
+            typedef typename global_accessor< I, Intend >::index_t index_t;
 
             typedef
                 typename get_storage_accessor< local_domain_t, global_accessor< I, Intend > >::type storage_ptr_type;
@@ -506,7 +508,7 @@ namespace gridtools {
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
-            typedef typename Accessor::index_type index_t;
+            typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
             // getting information about the metadata
             typedef
@@ -547,7 +549,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             GRIDTOOLS_STATIC_ASSERT(
-                (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+                (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
             return get_value(accessor, get_data_pointer(accessor));
         }
 
@@ -558,7 +560,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             GRIDTOOLS_STATIC_ASSERT(
-                (Accessor::n_dim > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+                (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
             return static_cast< IterateDomainImpl const * >(this)
                 ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor_);
         }
@@ -623,7 +625,7 @@ namespace gridtools {
         Accessor const &accessor, StoragePointer const &RESTRICT storage_pointer) const {
 
         // getting information about the storage
-        typedef typename Accessor::index_type index_t;
+        typedef typename Accessor::index_t index_t;
 
         typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
         typedef typename get_storage_pointer_accessor< local_domain_t, Accessor >::type storage_pointer_t;
@@ -645,7 +647,7 @@ namespace gridtools {
         // Most probably this is due to you specifying a positive offset which is larger than expected,
         // or maybe you did a mistake when specifying the ranges in the placehoders definition
         GTASSERT(metadata_->size() >
-                 m_index[ // Accessor::index_type::value
+                 m_index[ // Accessor::index_t::value
                      metadata_index_t::value] +
                      metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()));
 
@@ -657,8 +659,8 @@ namespace gridtools {
         // in the placehoders definition.
         // If you are running a parallel simulation another common reason for this to happen is
         // the definition of an halo region which is too small in one direction
-        // std::cout<<"Storage Index: "<<Accessor::index_type::value<<" + "<<(boost::fusion::at<typename
-        // Accessor::index_type>(local_domain.local_args))->_index(arg.template n<Accessor::n_dim>())<<std::endl;
+        // std::cout<<"Storage Index: "<<Accessor::index_t::value<<" + "<<(boost::fusion::at<typename
+        // Accessor::index_t>(local_domain.local_args))->_index(arg.template n<Accessor::n_dimensions>())<<std::endl;
         GTASSERT((int_t)(m_index[metadata_index_t::value]) +
                      metadata_->_index(strides().template get< metadata_index_t::value >(), accessor.offsets()) >=
                  0);
@@ -696,22 +698,22 @@ namespace gridtools {
 
 #ifdef PEDANTIC // storages may have less than 3 dimensions in non pedantic mode
         GRIDTOOLS_STATIC_ASSERT(
-            (Accessor::n_dim >= 4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+            (Accessor::n_dimensions >= 4), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
 #endif
 
         // getting information about the storage
-        typedef typename Accessor::index_type index_t;
+        typedef typename Accessor::index_t index_t;
 
         typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
 
         typedef typename storage_t::storage_info_type metadata_t;
         // if the following assertion fails you have specified a dimension for the extended storage
         // which does not correspond to the size of the extended placeholder for that storage
-        GRIDTOOLS_STATIC_ASSERT(metadata_t::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dim,
+        GRIDTOOLS_STATIC_ASSERT(metadata_t::space_dimensions + 2 /*max. extra dimensions*/ >= Accessor::n_dimensions,
             "the dimension of the accessor exceeds the data field dimension");
 
         // for the moment the extra dimensionality of the storage is limited to max 2
-        //(3 space dim + 2 extra= 5, which gives n_dim==4)
+        //(3 space dim + 2 extra= 5, which gives n_dimensions==4)
         GRIDTOOLS_STATIC_ASSERT(
             N_DATA_POINTERS > 0, "the total number of snapshots must be larger than 0 in each functor");
 
@@ -728,26 +730,26 @@ namespace gridtools {
 
         // dimension/snapshot offsets must be non negative
         GTASSERT(accessor.template get< 0 >() >= 0);
-        GTASSERT((Accessor::n_dim <= metadata_t::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
+        GTASSERT((Accessor::n_dimensions <= metadata_t::space_dimensions + 1) || (accessor.template get< 1 >() >= 0));
 
         // snapshot access out of bounds
-        GTASSERT((Accessor::n_dim > metadata_t::space_dimensions + 1) ||
+        GTASSERT((Accessor::n_dimensions > metadata_t::space_dimensions + 1) ||
                  accessor.template get< 0 >() < storage_t::traits::n_width);
         // snapshot access out of bounds
-        GTASSERT((Accessor::n_dim <= metadata_t::space_dimensions + 1) ||
+        GTASSERT((Accessor::n_dimensions <= metadata_t::space_dimensions + 1) ||
                  accessor.template get< 1 >() < storage_t::traits::n_width);
         // dimension access out of bounds
-        GTASSERT((Accessor::n_dim <= metadata_t::space_dimensions + 1) ||
+        GTASSERT((Accessor::n_dimensions <= metadata_t::space_dimensions + 1) ||
                  accessor.template get< 0 >() < storage_t::traits::n_dimensions);
 
-        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dim <= storage_t::space_dimensions + 2,
+        GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_t::space_dimensions + 2,
             "requested accessor index lower than zero. Check that when you define the accessor you specify the "
             "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has 5 "
             "dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings you "
             "here.");
 
         return get_value(accessor,
-            (data_pointer())[(Accessor::n_dim <= metadata_t::space_dimensions + 1
+            (data_pointer())[(Accessor::n_dimensions <= metadata_t::space_dimensions + 1
                                      ?                              // static if
                                      accessor.template get< 0 >()   // offset for the current dimension
                                      : accessor.template get< 1 >() // offset for the current snapshot
@@ -760,7 +762,7 @@ namespace gridtools {
                                  )
                              //+ the offset of the other extra dimension
                              +
-                             current_storage< (Accessor::index_type::value == 0), local_domain_t, Accessor >::value]);
+                             current_storage< (Accessor::index_t::value == 0), local_domain_t, Accessor >::value]);
     }
 
     /** @brief method called in the Do methods of the functors.
@@ -776,7 +778,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
         // getting information about the storage
-        typedef typename Accessor::index_type index_t;
+        typedef typename Accessor::index_t index_t;
 
         typedef typename local_domain_t::template get_storage< index_t >::type::value_type storage_t;
 

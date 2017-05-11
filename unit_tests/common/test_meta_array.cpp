@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,13 @@
 */
 #define BOOST_NO_CXX11_RVALUE_REFERENCES
 
-#include "gtest/gtest.h"
+#include "boost/mpl/equal.hpp"
 #include "boost/mpl/quote.hpp"
 #include "boost/mpl/vector.hpp"
 #include "boost/type_traits/is_integral.hpp"
 #include "common/defs.hpp"
-#include <stencil-composition/stencil-composition.hpp>
 #include "common/meta_array.hpp"
+#include "gtest/gtest.h"
 
 using namespace gridtools;
 template < typename T >

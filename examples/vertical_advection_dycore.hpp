@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,11 +36,11 @@
 #pragma once
 #include <gridtools.hpp>
 
-#include <stencil-composition/stencil-composition.hpp>
-#include "vertical_advection_repository.hpp"
-#include <tools/verifier.hpp>
-#include "defs.hpp"
 #include "benchmarker.hpp"
+#include "defs.hpp"
+#include "vertical_advection_repository.hpp"
+#include <stencil-composition/stencil-composition.hpp>
+#include <tools/verifier.hpp>
 
 /*
   This file shows an implementation of the "vertical advection" stencil used in COSMO for U field
@@ -73,7 +73,7 @@ namespace vertical_advection_dycore {
         typedef accessor< 5 > dtr_stage;
         typedef accessor< 6, enumtype::inout > acol;
         typedef accessor< 7, enumtype::inout > bcol;
-        typedef accessor< 8, enumtype::inout > ccol;
+        typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, 0, -1 > > ccol;
         typedef accessor< 9, enumtype::inout > dcol;
 
         typedef boost::mpl::vector< utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol >
@@ -206,12 +206,8 @@ namespace vertical_advection_dycore {
 
         const int halo_size = 3;
 
-        typedef gridtools::layout_map< 0, 1, 2 > layout_ijk;
-        typedef gridtools::layout_map< 0 > layout_scalar;
-
         typedef vertical_advection::repository::storage_type storage_type;
         typedef vertical_advection::repository::scalar_storage_type scalar_storage_type;
-        typedef vertical_advection::repository::tmp_storage_type tmp_storage_type;
 
         vertical_advection::repository repository(d1, d2, d3, halo_size);
         repository.init_fields();
@@ -226,11 +222,11 @@ namespace vertical_advection_dycore {
         typedef arg< 3, storage_type > p_u_pos;
         typedef arg< 4, storage_type > p_utens;
         typedef arg< 5, scalar_storage_type > p_dtr_stage;
-        typedef arg< 6, tmp_storage_type > p_acol;
-        typedef arg< 7, tmp_storage_type > p_bcol;
-        typedef arg< 8, tmp_storage_type > p_ccol;
-        typedef arg< 9, tmp_storage_type > p_dcol;
-        typedef arg< 10, tmp_storage_type > p_data_col;
+        typedef tmp_arg< 6, storage_type > p_acol;
+        typedef tmp_arg< 7, storage_type > p_bcol;
+        typedef tmp_arg< 8, storage_type > p_ccol;
+        typedef tmp_arg< 9, storage_type > p_dcol;
+        typedef tmp_arg< 10, storage_type > p_data_col;
 
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
@@ -246,28 +242,12 @@ namespace vertical_advection_dycore {
             p_dcol,
             p_data_col > accessor_list;
 
-// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
-// used, temporary and not
-// It must be noted that the only fields to be passed to the constructor are the non-temporary.
-// The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
-// don't particularly like this)
-
-#ifdef CXX11_ENABLE
-        gridtools::aggregator_type< accessor_list > domain((p_utens_stage() = repository.utens_stage()),
-            (p_u_stage() = repository.u_stage()),
-            (p_wcon() = repository.wcon()),
-            (p_u_pos() = repository.u_pos()),
-            (p_utens() = repository.utens()),
-            (p_dtr_stage() = repository.dtr_stage()));
-#else
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&repository.utens_stage(),
-            &repository.u_stage(),
-            &repository.wcon(),
-            &repository.u_pos(),
-            &repository.utens(),
-            &repository.dtr_stage()));
-
-#endif
+        gridtools::aggregator_type< accessor_list > domain(repository.utens_stage(),
+            repository.u_stage(),
+            repository.wcon(),
+            repository.u_pos(),
+            repository.utens(),
+            repository.dtr_stage());
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -294,6 +274,7 @@ namespace vertical_advection_dycore {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
+                    define_caches(cache< K, flush, kbody >(p_ccol())),
                     gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
@@ -313,13 +294,10 @@ namespace vertical_advection_dycore {
         vertical_advection->ready();
 
         vertical_advection->steady();
-        domain.clone_to_device();
 
         vertical_advection->run();
 
-#ifdef __CUDACC__
-        repository.update_cpu();
-#endif
+        repository.utens_stage().sync();
 
         bool result = true;
         if (verify) {

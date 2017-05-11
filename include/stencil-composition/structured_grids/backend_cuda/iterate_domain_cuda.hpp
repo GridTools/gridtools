@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,12 +35,12 @@
 */
 #pragma once
 
-#include <boost/type_traits/is_arithmetic.hpp>
-#include "../../iterate_domain.hpp"
-#include "../../iterate_domain_metafunctions.hpp"
+#include "../../../common/cuda_type_traits.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
-#include "../../../common/cuda_type_traits.hpp"
+#include "../../iterate_domain.hpp"
+#include "../../iterate_domain_metafunctions.hpp"
+#include <boost/type_traits/is_arithmetic.hpp>
 
 namespace gridtools {
 
@@ -70,7 +70,7 @@ namespace gridtools {
             typedef typename super::template accessor_return_type< Accessor >::type type;
         };
 
-        typedef typename super::data_pointer_array_t data_pointer_array_t;
+        typedef typename super::data_ptr_cached_t data_ptr_cached_t;
         typedef typename super::strides_cached_t strides_cached_t;
 
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
@@ -78,12 +78,13 @@ namespace gridtools {
 
       private:
         // TODO there are two instantiations of these type.. Fix this
-        typedef shared_iterate_domain< data_pointer_array_t,
+        typedef shared_iterate_domain< data_ptr_cached_t,
             strides_cached_t,
             typename IterateDomainArguments::max_extent_t,
             typename iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
 
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
+        typedef typename iterate_domain_cache_t::k_caches_map_t k_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
         typedef typename super::reduction_type_t reduction_type_t;
 
@@ -153,13 +154,13 @@ namespace gridtools {
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
 
         GT_FUNCTION
-        data_pointer_array_t const &RESTRICT data_pointer_impl() const {
+        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
             //        assert(m_pshared_iterate_domain);
             return m_pshared_iterate_domain->data_pointer();
         }
 
         GT_FUNCTION
-        data_pointer_array_t &RESTRICT data_pointer_impl() {
+        data_ptr_cached_t &RESTRICT data_pointer_impl() {
             //        assert(m_pshared_iterate_domain);
             return m_pshared_iterate_domain->data_pointer();
         }
@@ -205,7 +206,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::at< local_domain_args_t,
-                boost::mpl::integral_c< int, Accessor::index_type::value > >::type arg_t;
+                boost::mpl::integral_c< int, Accessor::index_t::value > >::type arg_t;
 
             typedef typename boost::mpl::has_key< readonly_args_indices_t,
                 boost::mpl::integral_c< int, arg_index< arg_t >::value > >::type type;
@@ -220,28 +221,45 @@ namespace gridtools {
             typedef typename boost::mpl::and_<
                 typename boost::mpl::and_< typename accessor_points_to_readonly_arg< Accessor >::type,
                     typename boost::mpl::not_< typename boost::mpl::has_key< bypass_caches_set_t,
-                        static_uint< Accessor::index_type::value > >::type                        // mpl::has_key
+                        static_uint< Accessor::index_t::value > >::type                           // mpl::has_key
                                                >::type                                            // mpl::not,
                     >::type,                                                                      // mpl::(inner)and_
                 typename is_texture_type< typename accessor_return_type< Accessor >::type >::type // is_texture_type
                 >::type type;
         };
 
+        /**
+        * @brief metafunction that determines if an accessor is accessed via shared memory
+        */
+        template < typename Accessor >
+        struct accessor_from_shared_mem {
+            typedef typename boost::remove_reference< Accessor >::type acc_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
+            typedef static_uint< acc_t::index_t::value > index_t;
+            typedef typename boost::mpl::has_key< ij_caches_map_t, index_t >::type type;
+            static const bool value = type::value;
+        };
+
+        /**
+        * @brief metafunction that determines if an accessor is accessed via kcache register set
+        */
+        template < typename Accessor >
+        struct accessor_from_kcache_reg {
+            typedef typename boost::remove_reference< Accessor >::type acc_t;
+
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
+            typedef static_uint< acc_t::index_t::value > index_t;
+            typedef typename boost::mpl::has_key< k_caches_map_t, index_t >::type type;
+            static const bool value = type::value;
+        };
+
         /** @brief return a value that was cached
-        * specialization where cache is not explicitly disabled by user
+        * specialization where cache goes via shared memory
         */
         template < typename ReturnType, typename Accessor >
-        GT_FUNCTION typename boost::disable_if<
-            boost::mpl::has_key< bypass_caches_set_t,
-                static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
-            ReturnType >::type
-        get_cache_value_impl(Accessor
-#ifdef CXX11_ENABLED
-                &&
-#else
-            const &
-#endif
-                    accessor_) const {
+        GT_FUNCTION typename boost::enable_if< accessor_from_shared_mem< Accessor >, ReturnType >::type
+        get_cache_value_impl(Accessor const &accessor_) const {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
 
@@ -249,7 +267,7 @@ namespace gridtools {
             // retrieve the ij cache from the fusion tuple and access the element required give the current thread
             // position within
             // the block and the offsets of the accessor
-            return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_type::value > >().at< 0 >(
+            return m_pshared_iterate_domain->template get_ij_cache< static_uint< acc_t::index_t::value > >().at< 0 >(
                 m_thread_pos, accessor_);
         }
 
@@ -257,17 +275,24 @@ namespace gridtools {
         * specialization where cache is explicitly disabled by user
         */
         template < typename ReturnType, typename Accessor >
-        GT_FUNCTION typename boost::enable_if<
-            boost::mpl::has_key< bypass_caches_set_t,
-                static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
-            ReturnType >::type
-        get_cache_value_impl(Accessor
-#ifdef CXX11_ENABLED
-                &&
-#else
-            const &
-#endif
-                    accessor_) const {
+        GT_FUNCTION
+            typename boost::enable_if< boost::mpl::has_key< bypass_caches_set_t,
+                                           static_uint< boost::remove_reference< Accessor >::type::index_t::value > >,
+                ReturnType >::type
+            get_cache_value_impl(Accessor const &accessor_) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
+            return super::template get_value< Accessor, void * RESTRICT >(
+                accessor_, super::template get_data_pointer< Accessor >(accessor_));
+        }
+
+        /** @brief return a value that was cached
+        * specialization where cache goes via kcache register set
+        *
+        */
+        template < typename ReturnType, typename Accessor >
+        GT_FUNCTION typename boost::enable_if< accessor_from_kcache_reg< Accessor >, ReturnType >::type
+        get_cache_value_impl(Accessor const &accessor_) const {
+            // Actual Kcache needs to be implemented
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
             return super::template get_value< Accessor, void * RESTRICT >(
                 accessor_, super::template get_data_pointer< Accessor >(accessor_));

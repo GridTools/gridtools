@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,5 @@
 #include "common/defs.hpp"
 #include "common/host_device.hpp"
 #include "common/array.hpp"
-#include "common/layout_map.hpp"
 #include "common/pointer.hpp"
 #include "common/pointer_metafunctions.hpp"

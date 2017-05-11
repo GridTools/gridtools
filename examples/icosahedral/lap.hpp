@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -80,9 +80,9 @@ namespace ico_operators {
         repository.generate_lap_ref();
 
         icosahedral_topology_t &icosahedral_grid = repository.icosahedral_grid();
-        uint_t d1 = repository.idim();
-        uint_t d2 = repository.jdim();
-        uint_t d3 = repository.kdim();
+        uint_t d1 = x;
+        uint_t d2 = y;
+        uint_t d3 = z;
 
         const uint_t halo_nc = repository.halo_nc;
         const uint_t halo_mc = repository.halo_mc;
@@ -98,6 +98,8 @@ namespace ico_operators {
         grid_.value_list[1] = d3 - 1;
 
         using edge_storage_type = repository::edge_storage_type;
+        using vertex_storage_type = repository::vertex_storage_type;
+        using cell_storage_type = repository::cell_storage_type;
 
         using edge_2d_storage_type = repository::edge_2d_storage_type;
         using cell_2d_storage_type = repository::cell_2d_storage_type;
@@ -109,34 +111,32 @@ namespace ico_operators {
         using edges_of_cells_storage_type = repository::edges_of_cells_storage_type;
         using edges_of_vertices_storage_type = repository::edges_of_vertices_storage_type;
 
-        using tmp_edge_storage_type = repository::tmp_edge_storage_type;
-        using tmp_vertex_storage_type = repository::tmp_vertex_storage_type;
-        using tmp_cell_storage_type = repository::tmp_cell_storage_type;
-
         // for div
         auto &cell_area_reciprocal = repository.cell_area_reciprocal();
         auto &edge_length = repository.edge_length();
         // for div weights
         auto &orientation_of_normal = repository.orientation_of_normal();
-        auto div_weights =
-            icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "weights", 3);
-
+        auto div_weights = icosahedral_grid.make_storage< icosahedral_topology_t::cells,
+            float_type,
+            typename repository::halo_5d_t,
+            selector< 1, 1, 1, 1, 1 > >("weights", 3);
         // for curl
         auto &dual_area_reciprocal = repository.dual_area_reciprocal();
         auto &dual_edge_length = repository.dual_edge_length();
         // for curl weights
         auto &edge_orientation = repository.edge_orientation();
-        vertices_4d_storage_type curl_weights(
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "curl_weights", 6));
-
+        vertices_4d_storage_type curl_weights(icosahedral_grid.make_storage< icosahedral_topology_t::vertices,
+                                              float_type,
+                                              typename repository::halo_5d_t,
+                                              selector< 1, 1, 1, 1, 1 > >("curl_weights", 6));
         // for lap
         auto &dual_edge_length_reciprocal = repository.dual_edge_length_reciprocal();
         auto &edge_length_reciprocal = repository.edge_length_reciprocal();
 
         auto &in_edges = repository.u();
-        auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type >("out");
+        auto out_edges =
+            icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type, typename repository::halo_t >(
+                "out");
         auto &ref_edges = repository.lap_ref();
 
         bool result = true;
@@ -174,14 +174,14 @@ namespace ico_operators {
                 p_curl_weights,
                 p_edge_orientation > accessor_list_t;
 
-            gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&edge_length,
-                &cell_area_reciprocal,
-                &orientation_of_normal,
-                &div_weights,
-                &dual_area_reciprocal,
-                &dual_edge_length,
-                &curl_weights,
-                &edge_orientation));
+            gridtools::aggregator_type< accessor_list_t > domain(edge_length,
+                cell_area_reciprocal,
+                orientation_of_normal,
+                div_weights,
+                dual_area_reciprocal,
+                dual_edge_length,
+                curl_weights,
+                edge_orientation);
 
             auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
@@ -197,17 +197,6 @@ namespace ico_operators {
             stencil_->ready();
             stencil_->steady();
             stencil_->run();
-#ifdef __CUDACC__
-            orientation_of_normal.d2h_update();
-            edge_length.d2h_update();
-            cell_area_reciprocal.d2h_update();
-            div_weights.d2h_update();
-
-            dual_area_reciprocal.d2h_update();
-            dual_edge_length.d2h_update();
-            curl_weights.d2h_update();
-            edge_orientation.d2h_update();
-#endif
             stencil_->finalize();
         }
 
@@ -220,11 +209,11 @@ namespace ico_operators {
 
             // fields for div
             typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
-            typedef arg< 2, tmp_cell_storage_type, enumtype::cells > p_div_on_cells;
+            typedef tmp_arg< 2, cell_storage_type, enumtype::cells > p_div_on_cells;
 
             // fields for curl
             typedef arg< 3, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
-            typedef arg< 4, tmp_vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
+            typedef tmp_arg< 4, vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
 
             // fields for lap
             typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;
@@ -242,12 +231,8 @@ namespace ico_operators {
                 p_edge_length_reciprocal,
                 p_out_edges > accessor_list_t;
 
-            gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_edges,
-                &div_weights,
-                &curl_weights,
-                &dual_edge_length_reciprocal,
-                &edge_length_reciprocal,
-                &out_edges));
+            gridtools::aggregator_type< accessor_list_t > domain(
+                in_edges, div_weights, curl_weights, dual_edge_length_reciprocal, edge_length_reciprocal, out_edges);
 
             auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
@@ -269,12 +254,10 @@ namespace ico_operators {
             stencil_->steady();
             stencil_->run();
 
-#ifdef __CUDACC__
-            in_edges.d2h_update();
-            dual_edge_length_reciprocal.d2h_update();
-            edge_length_reciprocal.d2h_update();
-            out_edges.d2h_update();
-#endif
+            in_edges.sync();
+            dual_edge_length_reciprocal.sync();
+            edge_length_reciprocal.sync();
+            out_edges.sync();
 
             result = ver.verify(grid_, ref_edges, out_edges, halos) && result;
 
@@ -294,12 +277,12 @@ namespace ico_operators {
             // fields for div
             typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
             typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef arg< 3, tmp_cell_storage_type, enumtype::cells > p_div_on_cells;
+            typedef tmp_arg< 3, cell_storage_type, enumtype::cells > p_div_on_cells;
 
             // fields for curl
             typedef arg< 4, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
             typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
-            typedef arg< 6, tmp_vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
+            typedef tmp_arg< 6, vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
 
             // fields for lap
             typedef arg< 7, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;
@@ -319,14 +302,14 @@ namespace ico_operators {
                 p_edge_length_reciprocal,
                 p_out_edges > accessor_list_t;
 
-            gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_edges,
-                &edge_length,
-                &cell_area_reciprocal,
-                &dual_area_reciprocal,
-                &dual_edge_length,
-                &dual_edge_length_reciprocal,
-                &edge_length_reciprocal,
-                &out_edges));
+            gridtools::aggregator_type< accessor_list_t > domain(in_edges,
+                edge_length,
+                cell_area_reciprocal,
+                dual_area_reciprocal,
+                dual_edge_length,
+                dual_edge_length_reciprocal,
+                edge_length_reciprocal,
+                out_edges);
 
             auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
@@ -352,10 +335,8 @@ namespace ico_operators {
             stencil_->steady();
             stencil_->run();
 
-#ifdef __CUDACC__
-            in_edges.d2h_update();
-            out_edges.d2h_update();
-#endif
+            in_edges.sync();
+            out_edges.sync();
 
             result = ver.verify(grid_, ref_edges, out_edges, halos) && result;
 

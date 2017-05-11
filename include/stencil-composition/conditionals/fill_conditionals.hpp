@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -127,7 +127,7 @@ namespace gridtools {
     /**@brief metafunction to retrieve the @ref gridtools::conditional type from the @ref gridtools::condition*/
     template < typename Condition >
     struct condition_to_conditional {
-        GRIDTOOLS_STATIC_ASSERT(is_condition< Condition >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_condition< Condition >::value, GT_INTERNAL_ERROR);
         typedef conditional< Condition::index_t::index_t::value > type;
     };
 

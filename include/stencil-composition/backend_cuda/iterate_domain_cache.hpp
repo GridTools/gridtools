@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -42,17 +42,17 @@
 
 #pragma once
 
-#include "common/defs.hpp"
-#include <boost/fusion/container/map/convert.hpp>
-#include <boost/fusion/include/as_map.hpp>
-#include <boost/fusion/support/pair.hpp>
-#include <boost/fusion/include/pair.hpp>
-#include <boost/mpl/copy_if.hpp>
-#include "common/generic_metafunctions/vector_to_map.hpp"
-#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
-#include "stencil-composition/iterate_domain_fwd.hpp"
 #include "../caches/cache_metafunctions.hpp"
 #include "../caches/extract_extent_caches.hpp"
+#include "common/defs.hpp"
+#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "common/generic_metafunctions/vector_to_map.hpp"
+#include "stencil-composition/iterate_domain_fwd.hpp"
+#include <boost/fusion/container/map/convert.hpp>
+#include <boost/fusion/include/as_map.hpp>
+#include <boost/fusion/include/pair.hpp>
+#include <boost/fusion/support/pair.hpp>
+#include <boost/mpl/copy_if.hpp>
 
 namespace gridtools {
 
@@ -94,18 +94,31 @@ namespace gridtools {
         // extract a sequence of extents for each cache
         typedef typename extract_extents_for_caches< IterateDomainArguments >::type cache_extents_map_t;
 
-        // compute the fusion vector of pair<index_type, cache_storage>
+        // compute the fusion vector of pair<index_t, cache_storage>
         typedef typename get_cache_storage_tuple< IJ,
             caches_t,
             cache_extents_map_t,
             typename IterateDomainArguments::physical_domain_block_size_t,
             typename IterateDomainArguments::local_domain_t >::type ij_caches_vector_t;
 
+        // compute the fusion vector of pair<index_t, cache_storage>
+        typedef typename get_cache_storage_tuple< K,
+            caches_t,
+            cache_extents_map_t,
+            typename IterateDomainArguments::physical_domain_block_size_t,
+            typename IterateDomainArguments::local_domain_t >::type k_caches_vector_t;
+
         // extract a fusion map from the fusion vector of pairs
         typedef typename boost::fusion::result_of::as_map< ij_caches_vector_t >::type ij_caches_tuple_t;
 
+        // extract a fusion map from the fusion vector of pairs
+        typedef typename boost::fusion::result_of::as_map< k_caches_vector_t >::type k_caches_tuple_t;
+
         // compute an mpl from the previous fusion vector, to be used for compile time meta operations
         typedef typename fusion_map_to_mpl_map< ij_caches_tuple_t >::type ij_caches_map_t;
+
+        // compute an mpl from the previous fusion vector, to be used for compile time meta operations
+        typedef typename fusion_map_to_mpl_map< k_caches_tuple_t >::type k_caches_map_t;
 
         typedef
             typename get_cache_set_for_type< bypass, caches_t, typename IterateDomainArguments::local_domain_t >::type
