@@ -60,17 +60,15 @@ namespace gridtools {
         using storage_t = typename gridtools::storage_traits_from_id< T >::template select_storage< ValueType >::type;
 
       public:
-        template < unsigned Id, unsigned Dims, typename Halo = typename zero_halo< Dims >::type >
+        template < unsigned Id, unsigned Dims, typename Halo = zero_halo< Dims > >
         using storage_info_t =
             typename gridtools::storage_traits_from_id< T >::template select_storage_info< Id, Dims, Halo >::type;
 
-        template < unsigned Id,
-            typename LayoutMap,
-            typename Halo = typename zero_halo< LayoutMap::masked_length >::type >
+        template < unsigned Id, typename LayoutMap, typename Halo = zero_halo< LayoutMap::masked_length > >
         using custom_layout_storage_info_t = typename gridtools::storage_traits_from_id<
             T >::template select_custom_layout_storage_info< Id, LayoutMap, Halo >::type;
 
-        template < unsigned Id, typename Selector, typename Halo = typename zero_halo< Selector::size >::type >
+        template < unsigned Id, typename Selector, typename Halo = zero_halo< Selector::size > >
         using special_storage_info_t = typename gridtools::storage_traits_from_id<
             T >::template select_special_storage_info< Id, Selector, Halo >::type;
 

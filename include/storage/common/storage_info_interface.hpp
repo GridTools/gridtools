@@ -94,7 +94,7 @@ namespace gridtools {
      */
     template < unsigned Id,
         typename Layout,
-        typename Halo = typename zero_halo< Layout::masked_length >::type,
+        typename Halo = zero_halo< Layout::masked_length >,
         typename Alignment = alignment< 1 > >
     struct storage_info_interface;
 
