@@ -50,6 +50,7 @@
 #include "stencil-composition/grid_traits.hpp"
 
 #ifndef STRUCTURED_GRIDS
-#include "stencil-composition/icosahedral_grids/grid.hpp"
-#endif
+#include "icosahedral_grids/grid.hpp"
+#else
 #include "structured_grids/call_interfaces.hpp"
+#endif
