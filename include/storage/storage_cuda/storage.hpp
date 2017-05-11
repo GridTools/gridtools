@@ -178,11 +178,12 @@ namespace gridtools {
          * @brief synchronization implementation for cuda_storage.
          */
         void sync_impl() {
-            if (!m_state.m_hnu && !m_state.m_dnu)
-                return;
             assert((m_state.m_hnu ^ m_state.m_dnu) && "invalid state detected.");
-            // clone either to host or device
-            (m_state.m_hnu) ? this->clone_from_device() : this->clone_to_device();
+            if (m_state.m_hnu) { // if host needs update clone the data from the device
+                this->clone_from_device();
+            } else if(m_state.m_dnu) { // if device needs update clone the data to the device
+                this->clone_to_device();
+            }
         }
 
         /*
