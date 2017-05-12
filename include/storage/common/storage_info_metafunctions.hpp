@@ -79,7 +79,7 @@ namespace gridtools {
     template < typename Alignment, unsigned Length, int LayoutArg >
     constexpr unsigned align_dimensions(unsigned dimension) {
         static_assert(is_alignment< Alignment >::value, "Passed type is no alignment type");
-        return ((Alignment::value > 1) && (LayoutArg == Length - 1))
+        return ((Alignment::value > 1) && (LayoutArg == (int)Length - 1))
                    ? gt_ceil((float)dimension / (float)Alignment::value) * Alignment::value
                    : dimension;
     }
