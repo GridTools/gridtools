@@ -37,42 +37,55 @@
 #include "stencil-composition/grid_base.hpp"
 #include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
 #include "../../common/gpu_clone.hpp"
+#include "unstructured_mesh.hpp"
 
 namespace gridtools {
 
-    template < typename Axis, typename GridTopology >
-    struct grid : public grid_base< Axis >, public clonable_to_gpu< grid< Axis, GridTopology > > {
+    template < typename Axis, typename GridTopology, typename UnstructuredMesh = trivial_umesh >
+    struct grid : public grid_base< Axis >, public clonable_to_gpu< grid< Axis, GridTopology, UnstructuredMesh > > {
         GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), GT_INTERNAL_ERROR);
 
         typedef GridTopology grid_topology_t;
 
       private:
-        GridTopology m_grid_topology;
+        UnstructuredMesh &m_umesh;
 
       public:
         GT_FUNCTION
         // TODO make grid const
         // TODO should be removed (use ctor with halo_descriptor)
-        explicit grid(GridTopology &grid_topology, const array< uint_t, 5 > &i, const array< uint_t, 5 > &j)
+        explicit grid(const array< uint_t, 5 > &i,
+            const array< uint_t, 5 > &j,
+            UnstructuredMesh &umesh = std::move(UnstructuredMesh()))
             : grid_base< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
                   halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
-              m_grid_topology(grid_topology) {}
+              m_umesh(umesh) {}
 
         GT_FUNCTION
-        explicit grid(
-            GridTopology &grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : grid_base< Axis >(direction_i, direction_j), m_grid_topology(grid_topology) {}
+        explicit grid(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            UnstructuredMesh &&umesh = UnstructuredMesh())
+            : grid_base< Axis >(direction_i, direction_j), m_umesh(umesh) {}
 
-        __device__ grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
+        void clone_to_device() {
+            m_umesh->clone_to_device();
+            m_umesh = m_umesh->gpu_object_ptr;
+            clonable_to_gpu< grid< Axis, GridTopology, UnstructuredMesh > >::clone_to_device();
+        }
 
         GT_FUNCTION
-        GridTopology const &grid_topology() const { return m_grid_topology; }
+        UnstructuredMesh &umesh() {
+            assert(m_umesh);
+            return *m_umesh;
+        }
+
+        __device__ grid(grid const &other) : grid_base< Axis >(other), m_umesh(other.m_umesh) {}
     };
 
     template < typename Grid >
     struct is_grid : boost::mpl::false_ {};
 
-    template < typename Axis, typename GridTopology >
-    struct is_grid< grid< Axis, GridTopology > > : boost::mpl::true_ {};
+    template < typename Axis, typename GridTopology, typename UnstructuredMesh >
+    struct is_grid< grid< Axis, GridTopology, UnstructuredMesh > > : boost::mpl::true_ {};
 }

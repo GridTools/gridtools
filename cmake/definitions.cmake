@@ -76,6 +76,18 @@ else()
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCXX11_DISABLE")
 endif()
 
+if( ENABLE_ATLAS )
+  find_package(Atlas REQUIRED)
+  add_definitions(-DENABLE_ATLAS)
+  include_directories(${ATLAS_INCLUDE_DIR})
+ 
+  find_package( Eckit REQUIRED) 
+  set(ATLAS_LIBRARIES ${ATLAS_LIB} ${ECKIT_LIB})
+
+  add_definitions(-DATLAS_HAVE_GRIDTOOLS_STORAGE)
+
+endif(ENABLE_ATLAS)
+
 ## cuda support ##
 if( USE_GPU )
   message(STATUS "Using GPU")
