@@ -1,3 +1,12 @@
+# Documentation
+
+```include
+Installation.md Quick_Start_Guide.md
+```
+
+```include
+Quick_Start_Guide.md
+```
 
 Storages
 ========
@@ -20,13 +29,17 @@ Detailed storage configuration
 DSL introduction
 ================
 
-Syntax for User Operators
--------------------------
+```include
+./stencil_operators.md
+```
 
-### Detailed syntax: , (), dimensions, expressions, offsets of accessors
+```include
+./accessor.md
+```
 
-Parallelization Model: Stages and MultiStages
----------------------------------------------
+```include
+./ExecutionModel.md
+```
 
 Preparing arguments: storage placeholders
 -----------------------------------------
@@ -37,8 +50,9 @@ Vertical regions and vertical boundary conditions
 Use of temporaries
 ------------------
 
-Composing Stencils
-------------------
+```include
+./stencil_composition.md
+```
 
 Irregular Grids Syntax
 ----------------------
@@ -46,8 +60,9 @@ Irregular Grids Syntax
 Stencil Functions
 =================
 
-Conditional Stencils
-====================
+```include
+conditional_switches.md
+```
 
 Reductions
 ==========
@@ -65,8 +80,9 @@ Fusion and organization of stages
 Alignment: halo of storages
 ---------------------------
 
-Expandable parameters
----------------------
+```include
+./expandable_parameters.md
+```
 
 Halo Updates
 ============
@@ -88,4 +104,8 @@ Benchmarking stencils
 
 ```include
 ./serialbox_and_porting.md
+```
+
+```include
+./Concepts.md
 ```

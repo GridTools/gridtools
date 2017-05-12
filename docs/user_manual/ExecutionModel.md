@@ -13,3 +13,6 @@ are three different ways of executing on the `K` dimension
 - `forward`: Index `k` in the vertical dimension is executed after index `k-1`, `0` is the first
 - `backward`: Index `k` in the vertical dimension is executed after index `k+1`. `0` is the last
 - `parallel`: No order is specified and execution can happen concurrently
+
+An execution strategy for a computation is idicated a `execute< policy
+>`, where `policy` is one of the `K` dimension execution orders.

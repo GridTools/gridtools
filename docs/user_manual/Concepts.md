@@ -1,4 +1,4 @@
-## CONCEPTS
+# CONCEPTS
 
 `IterationPoint`: A tuple of indices. 
 

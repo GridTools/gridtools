@@ -44,6 +44,46 @@
         <div class="well toc">
 
         <ul>
+        <li><a href="#documentation">Documentation</a></li>
+        <li><a href="#installation-and-configuration">Installation and Configuration</a></li>
+        <li><a href="#sec:getting_started">Quick Start Guide</a><ul>
+        <li><a href="#coordinate-system">Coordinate System</a></li>
+        <li><a href="#storages">Storages</a></li>
+        <li><a href="#backend">Backend</a></li>
+        <li><a href="#memory-layout">Memory layout</a></li>
+        <li><a href="#the-storage-type">The storage type</a></li>
+        <li><a href="#storage-with-halo">Storage with halo</a></li>
+        <li><a href="#stencils">Stencils</a></li>
+        <li><a href="#example-naive-2d-laplacian">Example: Naive 2D Laplacian</a></li>
+        <li><a href="#first-textitgridtools-stencil">First <span class="math inline"><em>GridTools</em></span> stencil</a></li>
+        <li><a href="#assembling-stencils-smoothing-filter">Assembling stencils: smoothing filter</a></li>
+        <li><a href="#do-method-overload">Do-method overload</a></li>
+        <li><a href="#textitgridtools-temporaries"><span class="math inline"><em>GridTools</em></span> temporaries</a></li>
+        <li><a href="#functor-calls">Functor calls</a></li>
+        <li><a href="#mm">Full code listing</a></li>
+        <li><a href="#how-to-pass-the-alpha-global-accessors">How to pass the <span class="math inline"><em>α</em></span>: Global accessors</a></li>
+        <li><a href="#distributing-the-work-gcl">Distributing the work: GCL</a></li>
+        <li><a href="#boundary-conditions">Boundary conditions</a></li>
+        </ul></li>
+        <li><a href="#sec:getting_started">Quick Start Guide</a><ul>
+        <li><a href="#coordinate-system">Coordinate System</a></li>
+        <li><a href="#storages">Storages</a></li>
+        <li><a href="#backend">Backend</a></li>
+        <li><a href="#memory-layout">Memory layout</a></li>
+        <li><a href="#the-storage-type">The storage type</a></li>
+        <li><a href="#storage-with-halo">Storage with halo</a></li>
+        <li><a href="#stencils">Stencils</a></li>
+        <li><a href="#example-naive-2d-laplacian">Example: Naive 2D Laplacian</a></li>
+        <li><a href="#first-textitgridtools-stencil">First <span class="math inline"><em>GridTools</em></span> stencil</a></li>
+        <li><a href="#assembling-stencils-smoothing-filter">Assembling stencils: smoothing filter</a></li>
+        <li><a href="#do-method-overload">Do-method overload</a></li>
+        <li><a href="#textitgridtools-temporaries"><span class="math inline"><em>GridTools</em></span> temporaries</a></li>
+        <li><a href="#functor-calls">Functor calls</a></li>
+        <li><a href="#mm">Full code listing</a></li>
+        <li><a href="#how-to-pass-the-alpha-global-accessors">How to pass the <span class="math inline"><em>α</em></span>: Global accessors</a></li>
+        <li><a href="#distributing-the-work-gcl">Distributing the work: GCL</a></li>
+        <li><a href="#boundary-conditions">Boundary conditions</a></li>
+        </ul></li>
         <li><a href="#storages">Storages</a><ul>
         <li><a href="#simple-use-and-multidimensional-fields">Simple use and multidimensional fields</a></li>
         <li><a href="#ghost-dimensions">Ghost dimensions</a></li>
@@ -51,24 +91,27 @@
         <li><a href="#gpu-storages">GPU storages</a></li>
         <li><a href="#detailed-storage-configuration">Detailed storage configuration</a></li>
         </ul></li>
-        <li><a href="#dsl-introduction">DSL introduction</a><ul>
-        <li><a href="#syntax-for-user-operators">Syntax for User Operators</a></li>
-        <li><a href="#parallelization-model-stages-and-multistages">Parallelization Model: Stages and MultiStages</a></li>
+        <li><a href="#dsl-introduction">DSL introduction</a></li>
+        <li><a href="#stencil-operators">Stencil Operators</a><ul>
+        <li><a href="#stencil-operator-interface">Stencil Operator Interface</a></li>
+        <li><a href="#example">Example</a></li>
+        <li><a href="#implementation">Implementation</a></li>
+        </ul></li>
+        <li><a href="#gridtools-execution-model">GridTools Execution Model</a><ul>
         <li><a href="#preparing-arguments-storage-placeholders">Preparing arguments: storage placeholders</a></li>
         <li><a href="#vertical-regions-and-vertical-boundary-conditions">Vertical regions and vertical boundary conditions</a></li>
         <li><a href="#use-of-temporaries">Use of temporaries</a></li>
-        <li><a href="#composing-stencils">Composing Stencils</a></li>
+        </ul></li>
+        <li><a href="#stencil-composition">Stencil Composition</a><ul>
         <li><a href="#irregular-grids-syntax">Irregular Grids Syntax</a></li>
         </ul></li>
         <li><a href="#stencil-functions">Stencil Functions</a></li>
-        <li><a href="#conditional-stencils">Conditional Stencils</a></li>
         <li><a href="#reductions">Reductions</a></li>
         <li><a href="#details-for-performance">Details for performance</a><ul>
         <li><a href="#fusion-and-organization-of-stages">Fusion and organization of stages</a></li>
         </ul></li>
         <li><a href="#software-managed-caches">Software Managed Caches</a><ul>
         <li><a href="#alignment-halo-of-storages">Alignment: halo of storages</a></li>
-        <li><a href="#expandable-parameters">Expandable parameters</a></li>
         </ul></li>
         <li><a href="#halo-updates">Halo Updates</a><ul>
         <li><a href="#boundary-conditions">Boundary Conditions</a></li>
@@ -78,26 +121,8 @@
         <li><a href="#interfacing-to-other-programming-languages">Interfacing to other programming languages</a></li>
         <li><a href="#benchmarking-stencils">Benchmarking stencils</a></li>
         <li><a href="#serialbox-and-porting-your-reference-application">SerialBox and porting your reference application</a></li>
-        <li><a href="#installation-and-configuration">Installation and Configuration</a></li>
-        <li><a href="#sec:getting_started">Quick Start Guide</a><ul>
-        <li><a href="#coordinate-system">Coordinate System</a></li>
-        <li><a href="#storages-1">Storages</a></li>
-        <li><a href="#backend">Backend</a></li>
-        <li><a href="#memory-layout">Memory layout</a></li>
-        <li><a href="#the-storage-type">The storage type</a></li>
-        <li><a href="#storage-with-halo">Storage with halo</a></li>
-        <li><a href="#stencils">Stencils</a></li>
-        <li><a href="#example-naive-2d-laplacian">Example: Naive 2D Laplacian</a></li>
-        <li><a href="#first-textitgridtools-stencil">First <span class="math"><em>GridTools</em></span> stencil</a></li>
-        <li><a href="#assembling-stencils-smoothing-filter">Assembling stencils: smoothing filter</a></li>
-        <li><a href="#do-method-overload">Do-method overload</a></li>
-        <li><a href="#textitgridtools-temporaries"><span class="math"><em>GridTools</em></span> temporaries</a></li>
-        <li><a href="#functor-calls">Functor calls</a></li>
-        <li><a href="#mm">Full code listing</a></li>
-        <li><a href="#how-to-pass-the-alpha-global-accessors">How to pass the <span class="math"><em>α</em></span>: Global accessors</a></li>
-        <li><a href="#distributing-the-work-gcl">Distributing the work: GCL</a></li>
-        <li><a href="#boundary-conditions-1">Boundary conditions</a></li>
-        </ul></li>
+        <li><a href="#concepts">CONCEPTS</a></li>
+        <li><a href="#refinement">Refinement</a></li>
         </ul>
 
         </div>
@@ -107,7 +132,6 @@
 <script src="highlight.js/highlight.min.js"></script>
 <script src="highlight.js/jquery-2.1.3.min.js"></script>
 <script src="highlight.js/cpp_gt.js"></script>
-
 <script>
 $(function() {
     $("pre > code").each(function(i, block) {
@@ -127,144 +151,49 @@ $(function() {
     });
 });
 </script>
-
-
-<h1 id="storages">Storages</h1>
-<h2 id="simple-use-and-multidimensional-fields">Simple use and multidimensional fields</h2>
-<h2 id="ghost-dimensions">Ghost dimensions</h2>
-<h2 id="fields">Fields</h2>
-<h2 id="gpu-storages">GPU storages</h2>
-<h2 id="detailed-storage-configuration">Detailed storage configuration</h2>
-<h1 id="dsl-introduction">DSL introduction</h1>
-<h2 id="syntax-for-user-operators">Syntax for User Operators</h2>
-<h3 id="detailed-syntax-dimensions-expressions-offsets-of-accessors">Detailed syntax: , (), dimensions, expressions, offsets of accessors</h3>
-<h2 id="parallelization-model-stages-and-multistages">Parallelization Model: Stages and MultiStages</h2>
-<h2 id="preparing-arguments-storage-placeholders">Preparing arguments: storage placeholders</h2>
-<h2 id="vertical-regions-and-vertical-boundary-conditions">Vertical regions and vertical boundary conditions</h2>
-<h2 id="use-of-temporaries">Use of temporaries</h2>
-<h2 id="composing-stencils">Composing Stencils</h2>
-<h2 id="irregular-grids-syntax">Irregular Grids Syntax</h2>
-<h1 id="stencil-functions">Stencil Functions</h1>
-<h1 id="conditional-stencils">Conditional Stencils</h1>
-<h1 id="reductions">Reductions</h1>
-<h1 id="details-for-performance">Details for performance</h1>
-<h2 id="fusion-and-organization-of-stages">Fusion and organization of stages</h2>
-<h1 id="software-managed-caches">Software Managed Caches</h1>
-<p>Software managed caches are provide significant optimization since they provide increased data locality for multi-stage stencils in architectures with user-managed address spaces with different performance tradeoffs. For instance, they allow the stencil algorithms to exploit texture memory, shared memory, and register files on GPUs in cases in which a compiler could not provide such optimizations.</p>
-<p>The user is responsible for detecting data reuse patterns and caching the corresponding fields in order to fully utilize the hardware resources essential for a good performance. The syntax provided by <span class="math">$\GT$</span> is independent of the type of hardware resources used by the library to store data and depends only on the access patterns of the fields by the stencil methods. An example of the syntax for caching certain fields of a <code>computation</code> is shown below</p>
-<pre class="cpp"><code>auto comp = make_computation&lt; BACKEND &gt;(
-    domain,
-    grid,
-    make_multistage(
-        execute&lt; forward &gt;(),
-        define_caches(cache&lt; IJ, local &gt;(p_f1(), p_f2())),
-        make_stage&lt; lap_function &gt;(p_f1(), p_f2(), p_in()),
-        make_stage&lt; lap_function &gt;(p_out(), p_f1(), p_f2())
-    )
-);</code></pre>
-<p>The cache DSL elements are enclosed into a <code>define_caches</code> construct, that accept any number of <code>cache</code> constructs. At the same time, each <code>cache</code> construct can specify multiple fields that shared the same access pattern.</p>
-<table>
-<tbody>
-<tr class="odd">
-<td align="left"><img src="figures/hint.gif" alt="Tip" />{ width=20px height=20px }</td>
-<td align="left"></td>
-</tr>
-<tr class="even">
-<td align="left"></td>
-<td align="left">It is important to note that the <code>cache</code> specifications</td>
-</tr>
-<tr class="odd">
-<td align="left"></td>
-<td align="left">are prescribing the behavior of the library: if a cache</td>
-</tr>
-<tr class="even">
-<td align="left"></td>
-<td align="left">is specified a cache will be used. Using too many caches</td>
-</tr>
-<tr class="odd">
-<td align="left"></td>
-<td align="left">may cause over-use of hardware resources that may lead</td>
-</tr>
-<tr class="even">
-<td align="left"></td>
-<td align="left">to decrease in performance.</td>
-</tr>
-</tbody>
-</table>
-<p>The <code>cache</code> construct adheres to the following syntax:</p>
-<pre><code>cache&lt; cache_type, io_policy, [interval] &gt;( p_args... ) </code></pre>
-<p>We now describe the details of each element of the cache constructs.</p>
-<h3 id="cache-type">Cache Type</h3>
-<p><code>cache_type</code> depends on the reuse pattern of the data fields. It's value can be one of the following (where we indicate the basic mean of implementation on the GPUs, so that the user can understand the amount of resources involved):</p>
-<ol style="list-style-type: decimal">
-<li><p><code>IJ_caches</code>: cache data fields whose access pattern lies in the IJ-plane (Implemented using the shared memory</p></li>
-<li><p><code>K_caches</code>: cache data field whose access pattern is restricted to the K-direction (implemented using the register file of GPUs)</p></li>
-<li><p><code>IJK_caches</code>: for data fields that are accessed in a three dimensions (not fully supported yet)</p></li>
-<li><p><code>Pointr_caches</code>: for data fields accessed multiple times in the point of evaluation only (not fully supported yet)</p></li>
-<li><p><code>bypass</code>: Special cache-type that express null or very little reuse within the stencil. This can be specified to disable the default use of texture memory for read only data fields that the library would use.</p></li>
-</ol>
-<p>Additionally the cache</p>
-<h3 id="cache-policy">Cache policy</h3>
-<p><code>cache_policy</code> specify what is the relation between the data in the cache and the data in the data fields. The possible values are:</p>
-<ol style="list-style-type: decimal">
-<li><p><code>fetch</code>: Before starting executing the stencil operators the data to be cached has to be fetched from the corresponding data fields into the corresponding cache</p></li>
-<li><p><code>flush</code>: After the execution of the stencil operators the data in the cache has to be written back into the data fields.</p></li>
-<li><p><code>fetch_and_flush</code>: The combination of <code>fetch</code> and <code>flush</code></p></li>
-<li><p><code>local</code>: The data will be produced by the stencil opertators and consumed by other operators of the multi-stage stencil.</p></li>
-</ol>
-<h3 id="interval">Interval</h3>
-<p>Not sure what to write here</p>
-<h3 id="p_args">p_args</h3>
-<p>The <code>p_args...</code> indicate a list of placeholders corresponding to the data fields for which the specified caching type and policy has been requested.</p>
-<h2 id="alignment-halo-of-storages">Alignment: halo of storages</h2>
-<h2 id="expandable-parameters">Expandable parameters</h2>
-<h1 id="halo-updates">Halo Updates</h1>
-<h2 id="boundary-conditions">Boundary Conditions</h2>
-<h2 id="halo-exchanges">Halo Exchanges</h2>
-<h1 id="data-management">Data management</h1>
-<h1 id="interfacing-to-other-programming-languages">Interfacing to other programming languages</h1>
-<h1 id="benchmarking-stencils">Benchmarking stencils</h1>
-<h1 id="serialbox-and-porting-your-reference-application">SerialBox and porting your reference application</h1>
-<p>I'm here and I'm loving every minute of it</p>
+<h1 id="documentation">Documentation</h1>
 <h1 id="installation-and-configuration">Installation and Configuration</h1>
 <h1 id="sec:getting_started">Quick Start Guide</h1>
-<p>This chapter describes how to use <span class="math"><em>GridTools</em></span> to solve a (simple) PDE. We will use the fourth-order horizontal smoothing filter example from with small modifications to explain the necessary steps to assemble a stencil from scratch. We will not go into details in this chapter but refer to latter chapters for more details.</p>
-<p>Our example PDE is given by <br /><span class="math">$$\label{eq:getting_started:examplepde}
+<p>This chapter describes how to use <span class="math inline"><em>GridTools</em></span> to solve a (simple) PDE. We will use the fourth-order horizontal smoothing filter example from with small modifications to explain the necessary steps to assemble a stencil from scratch. We will not go into details in this chapter but refer to latter chapters for more details.</p>
+<p>Our example PDE is given by <br /><span class="math display">$$\label{eq:getting_started:examplepde}
 \frac{\partial \phi}{\partial t} =\begin{cases}
 - \alpha \nabla^4 \phi &amp; z \leq z_\text{max}\\
 0 &amp; z &gt; z_0
-\end{cases}$$</span><br /> where <span class="math">∇<sup>4</sup></span> is the squared two dimensional horizontal Laplacian and we apply the filter only up to some maximal <span class="math"><em>z</em><sub>0</sub></span> (to make the example more interesting). The filter is calculated in two steps: first we calculate the Laplacian of <span class="math"><em>ϕ</em></span></p>
-<p><br /><span class="math">$$L = \Delta \phi = \left( \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2}\right) \phi$$</span><br /></p>
-<p>then we calculate the Laplacian of <span class="math"><em>L</em></span></p>
-<p><br /><span class="math"> − <em>α</em>∇<sup>4</sup><em>ϕ</em> =  − <em>α</em>Δ<em>L</em></span><br /></p>
+\end{cases}$$</span><br /> where <span class="math inline">∇<sup>4</sup></span> is the squared two dimensional horizontal Laplacian and we apply the filter only up to some maximal <span class="math inline"><em>z</em><sub>0</sub></span> (to make the example more interesting). The filter is calculated in two steps: first we calculate the Laplacian of <span class="math inline"><em>ϕ</em></span></p>
+<p><br /><span class="math display">$$L = \Delta \phi = \left( \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2}\right) \phi$$</span><br /></p>
+<p>then we calculate the Laplacian of <span class="math inline"><em>L</em></span></p>
+<p><br /><span class="math display">−<em>α</em>∇<sup>4</sup><em>ϕ</em> = −<em>α</em><em>Δ</em><em>L</em></span><br /></p>
 <p>In the following we will walk through the following steps:</p>
 <ul>
-<li><p>The <span class="math"><em>GridTools</em></span> coordinate system and its notation.</p></li>
-<li><p>Storages: how does <span class="math"><em>GridTools</em></span> manage the input and output fields.</p></li>
-<li><p>The first stencil: calculating <span class="math"><em>L</em></span>, the second order Laplacian of <span class="math"><em>ϕ</em></span>.</p></li>
+<li><p>The <span class="math inline"><em>GridTools</em></span> coordinate system and its notation.</p></li>
+<li><p>Storages: how does <span class="math inline"><em>GridTools</em></span> manage the input and output fields.</p></li>
+<li><p>The first stencil: calculating <span class="math inline"><em>L</em></span>, the second order Laplacian of <span class="math inline"><em>ϕ</em></span>.</p></li>
 <li><p>The final stencil: function calls, Do-method overloads and temporaries</p></li>
-<li><p>MISSING: How to pass the <span class="math"><em>α</em></span>: Global accessors</p></li>
+<li><p>MISSING: How to pass the <span class="math inline"><em>α</em></span>: Global accessors</p></li>
 <li><p>MISSING: Distributing the work over multiple nodes: GCL</p></li>
 <li><p>MISSING: Boundaries</p></li>
 </ul>
 <h2 id="coordinate-system">Coordinate System</h2>
-<p>For a finite difference discretization we restrict the field <span class="math"><em>ϕ</em> ∈ R<sup>3</sup></span> to a discrete grid. We use the notation <span class="math"><em>i</em> = <em>x</em><sub><em>i</em></sub></span> and <span class="math"><em>j</em> = <em>y</em><sub><em>j</em></sub></span> for the horizontal dimension and <span class="math"><em>k</em> = <em>z</em><sub><em>k</em></sub></span> for the vertical dimension, where <span class="math"><em>x</em><sub><em>i</em></sub>, <em>y</em><sub><em>j</em></sub>, <em>z</em><sub><em>k</em></sub></span> are the <span class="math"><em>x</em>, <em>y</em>, <em>z</em></span> coordinates restricted on the grid. The <em>computation domain</em> is defined by all grid points in our domain of interest <br /><span class="math">Λ = (<em>i</em>, <em>j</em>, <em>k</em>) with <em>i</em> ∈ {0…<em>N</em><sub><em>i</em></sub> − 1}, <em>j</em> ∈ {0…<em>N</em><sub><em>j</em></sub> − 1}, <em>k</em> ∈ {0…<em>N</em><sub><em>k</em></sub> − 1}</span><br /></p>
-<p><span class="math"><em>GridTools</em></span> supports any number of dimension, however it will treat one dimension, here the <span class="math"><em>k</em></span>, dimension differently: the <span class="math"><em>i</em><em>j</em></span>-plane is executed in parallel while the computation in <span class="math"><em>k</em></span> can be sequential. The consequence is that there must not be a dependency in <span class="math"><em>i</em><em>j</em></span> within a stencil while there can be a dependency in <span class="math"><em>k</em></span>. For now (this chapter) it is sufficient to just remember that the <span class="math"><em>i</em><em>j</em></span>-plane and the <span class="math"><em>k</em></span> dimension are treated differently by <span class="math"><em>GridTools</em></span>.</p>
-<p>The calculation domain is surrounded by a <em>boundary region</em> as depicted in [Fig. [fig:getting_started:coordinates]]{}. Computation happens only within the calculation domain but values might be read from grid points in the boundary region.</p>
-<p><img src="figures/coordinates.png" alt="Coordinates system" />{width=&quot;0.6&quot;}</p>
-<h2 id="storages-1">Storages</h2>
-<p>In this section we will setup the fields for our example: we need a storage for the <span class="math"><em>ϕ</em></span>-field (<code>phi_in</code>) and a storage for the output (<code>phi_out</code>).</p>
-<p>Storages in <span class="math"><em>GridTools</em></span> are n-dimensional array-like objects with the following capabilities:</p>
+<p>For a finite difference discretization we restrict the field <span class="math inline"><em>ϕ</em> ∈ ℝ<sup>3</sup></span> to a discrete grid. We use the notation <span class="math inline"><em>i</em> = <em>x</em><sub><em>i</em></sub></span> and <span class="math inline"><em>j</em> = <em>y</em><sub><em>j</em></sub></span> for the horizontal dimension and <span class="math inline"><em>k</em> = <em>z</em><sub><em>k</em></sub></span> for the vertical dimension, where <span class="math inline"><em>x</em><sub><em>i</em></sub>, <em>y</em><sub><em>j</em></sub>, <em>z</em><sub><em>k</em></sub></span> are the <span class="math inline"><em>x</em>, <em>y</em>, <em>z</em></span> coordinates restricted on the grid. The <em>computation domain</em> is defined by all grid points in our domain of interest <br /><span class="math display"><em>Λ</em> = (<em>i</em>, <em>j</em>, <em>k</em>) with <em>i</em> ∈ {0…<em>N</em><sub><em>i</em></sub> − 1},<em>j</em> ∈ {0…<em>N</em><sub><em>j</em></sub> − 1},<em>k</em> ∈ {0…<em>N</em><sub><em>k</em></sub> − 1}</span><br /></p>
+<p><span class="math inline"><em>GridTools</em></span> supports any number of dimension, however it will treat one dimension, here the <span class="math inline"><em>k</em></span>, dimension differently: the <span class="math inline"><em>i</em><em>j</em></span>-plane is executed in parallel while the computation in <span class="math inline"><em>k</em></span> can be sequential. The consequence is that there must not be a dependency in <span class="math inline"><em>i</em><em>j</em></span> within a stencil while there can be a dependency in <span class="math inline"><em>k</em></span>. For now (this chapter) it is sufficient to just remember that the <span class="math inline"><em>i</em><em>j</em></span>-plane and the <span class="math inline"><em>k</em></span> dimension are treated differently by <span class="math inline"><em>GridTools</em></span>.</p>
+<p>The calculation domain is surrounded by a <em>boundary region</em> as depicted in <span>Fig. [fig:getting_started:coordinates]</span>. Computation happens only within the calculation domain but values might be read from grid points in the boundary region.</p>
+<div class="figure">
+<img src="figures/coordinates.png" alt="Coordinates system" />
+<p class="caption">Coordinates system</p>
+</div>
+<h2 id="storages">Storages</h2>
+<p>In this section we will setup the fields for our example: we need a storage for the <span class="math inline"><em>ϕ</em></span>-field (<code>phi_in</code>) and a storage for the output (<code>phi_out</code>).</p>
+<p>Storages in <span class="math inline"><em>GridTools</em></span> are n-dimensional array-like objects with the following capabilities:</p>
 <ul>
-<li><p>access an element with <span class="math">(<em>i</em>, <em>j</em>, <em>k</em>)</span> syntax</p></li>
+<li><p>access an element with <span class="math inline">(<em>i</em>, <em>j</em>, <em>k</em>)</span> syntax</p></li>
 <li><p>copying between CPU memory and a device (e.g. a CUDA capable GPU)</p></li>
 </ul>
 <h2 id="backend">Backend</h2>
 <p>Since the storages (and other things later) depend on the architecture (CPU or GPU) our first step is to define a <em>backend</em> type which typically looks like</p>
 <pre class="cpp"><code>using backend_t = backend&lt; Cuda, structured, Block &gt;;</code></pre>
-<p>for the CUDA backed or for the CPU backend. The second argument defines the type of the grid, where <code>phi_in</code> refers to a Cartesian grid, see [Chapter [sec:grids]] for details. The last argument defines that blocking should be used in CPU mode (instead of <code>phi_out</code> without blocking). For the CUDA mode [``]{} is the only option.</p>
+<p>for the CUDA backed or for the CPU backend. The second argument defines the type of the grid, where <code>phi_in</code> refers to a Cartesian grid, see [Chapter [sec:grids]] for details. The last argument defines that blocking should be used in CPU mode (instead of <code>phi_out</code> without blocking). For the CUDA mode <span>``</span> is the only option.</p>
 <h2 id="memory-layout">Memory layout</h2>
-<p>For efficient memory access the index ordering has to be different for CPUs (<span class="math"><em>k</em></span> first) and GPUs (<span class="math"><em>i</em></span> first). This is defined with the [``]{}. For CUDA we use while we use on the host. We don’t go into more detail here, since this should probably be constructed by the backend (at least for standard use-cases). For now it is enough to know that the first line should be used in GPU mode and the second in CPU mode.</p>
+<p>For efficient memory access the index ordering has to be different for CPUs (<span class="math inline"><em>k</em></span> first) and GPUs (<span class="math inline"><em>i</em></span> first). This is defined with the <span>``</span>. For CUDA we use while we use on the host. We don’t go into more detail here, since this should probably be constructed by the backend (at least for standard use-cases). For now it is enough to know that the first line should be used in GPU mode and the second in CPU mode.</p>
 <h2 id="the-storage-type">The storage type</h2>
 <p>For each storage type we need to define the type of the data we want to store in the field, e.g. <code>double</code>, and a <code>storage_info</code> type which will hold information about size, alignment, strides etc. The <code>storage_info</code> needs a unique index and a <code>layout_map</code> as defined before. These information are all C++ types, i.e. known at compile-time.</p>
 <pre class="cpp"><code>using storage_info_t = backend_t::storage_info&lt; 0, layout_t &gt;;
@@ -284,34 +213,35 @@ storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
 <tbody>
 <tr class="odd">
 <td align="left"><img src="figures/hintsmall.gif" alt="Tip" /></td>
-<td align="left"></td>
+<td></td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">For each <code>meta_storage</code> type you should use only one</td>
+<td>For each <code>meta_storage</code> type you should use only one</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">instantiation. The mapping between a storage and the</td>
+<td>instantiation. The mapping between a storage and the</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">run-time information in the <code>meta_storage</code> has to be</td>
+<td>run-time information in the <code>meta_storage</code> has to be</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">done at compile time via the index. Thus <span class="math"><em>GridTools</em></span> cannot</td>
+<td>done at compile time via the index. Thus <span class="math inline"><em>GridTools</em></span> cannot</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">distinguish the storages by the run-time sizes passed</td>
+<td>distinguish the storages by the run-time sizes passed</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">to the <code>meta_storage</code>.</td>
+<td>to the <code>meta_storage</code>.</td>
 </tr>
 </tbody>
 </table>
+<hr />
 <hr />
 <p>We can now</p>
 <ul>
@@ -324,380 +254,64 @@ storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
 <h2 id="stencils">Stencils</h2>
 <p>A <em>stencil</em> is a kernel that updates array elements according to a fixed access pattern.</p>
 <h2 id="example-naive-2d-laplacian">Example: Naive 2D Laplacian</h2>
-<p>The simplest discretization of the 2D Laplacian is the finite difference five-point stencil as depicted in [Fig. [fig:getting_started:laplacian2D]]{}. For the calculation of the Laplacian at a given grid point we need the value at the grid point itself and its four direct neighbors along the Cartesian axis.</p>
-<p><img src="figures/Laplacian2D.png" alt="Access pattern of a 2D Laplacian" />{width=&quot;0.49&quot;}</p>
+<p>The simplest discretization of the 2D Laplacian is the finite difference five-point stencil as depicted in <span>Fig. [fig:getting_started:laplacian2D]</span>. For the calculation of the Laplacian at a given grid point we need the value at the grid point itself and its four direct neighbors along the Cartesian axis.</p>
+<div class="figure">
+<img src="figures/Laplacian2D.png" alt="Access pattern of a 2D Laplacian" />
+<p class="caption">Access pattern of a 2D Laplacian</p>
+</div>
 <p>A naive C++ implementation of the 2D Laplacian stencil is provided in</p>
-<pre class="cpp"><code>/*
-  GridTools Libraries
-
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
-  All rights reserved.
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are
-  met:
-
-  1. Redistributions of source code must retain the above copyright
-  notice, this list of conditions and the following disclaimer.
-
-  2. Redistributions in binary form must reproduce the above copyright
-  notice, this list of conditions and the following disclaimer in the
-  documentation and/or other materials provided with the distribution.
-
-  3. Neither the name of the copyright holder nor the names of its
-  contributors may be used to endorse or promote products derived from
-  this software without specific prior written permission.
-
-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-  &quot;AS IS&quot; AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-  For information: http://eth-cscs.github.io/gridtools/
-*/
-#include &quot;gtest/gtest.h&quot;
-#include &lt;stdio.h&gt;
-#include &lt;stdlib.h&gt;
-#include &lt;fstream&gt;
-
-#include &lt;gridtools.hpp&gt;
-#include &lt;stencil-composition/stencil-composition.hpp&gt;
-#include &lt;tools/verifier.hpp&gt;
-#include &quot;Options.hpp&quot;
-
-/*! @file
-  @brief  This file shows an implementation of the &quot;laplace&quot; stencil, similar to the one used in COSMO
-*/
-// [namespaces]
-using namespace gridtools;
-// [namespaces]
-
-// [intervals]
-/*!
-  @brief This is the definition of the special regions in the &quot;vertical&quot; direction for the laplacian functor
-  @tparam level is a struct containing two integers (a splitter and an offset) which identify a point on the vertical
-  axis
-*/
-typedef gridtools::interval&lt; level&lt; 0, -1 &gt;, level&lt; 1, -1 &gt; &gt; x_lap;
-/*!
-  @brief This is the definition of the whole vertical axis
-*/
-typedef gridtools::interval&lt; level&lt; 0, -1 &gt;, level&lt; 1, 1 &gt; &gt; axis;
-
-// [intervals]
-// [functor]
-/**
-   @brief structure containing the Laplacian-specific information.
-
-Contains the stencil operators that compose the multistage stencil in this test
-*/
-struct lap_function {
-    /**
-       @brief placeholder for the output field, index 0. accessor contains a vector of 3 offsets and defines a plus
-       method summing values to the offsets
-    */
-    typedef accessor&lt; 0, enumtype::inout, extent&lt;&gt;, 3 &gt; out;
-    /**
-           @brief  placeholder for the input field, index 1
-        */
-    typedef accessor&lt; 1, enumtype::in, extent&lt; -1, 1, -1, 1 &gt;, 3 &gt; in;
-    /**
-       @brief MPL vector of the out and in types
-    */
-    typedef boost::mpl::vector&lt; out, in &gt; arg_list;
-
-    /**
-       @brief Do method, overloaded. t_domain specifies the policy, x_lapl is a dummy argument here \todo should it be
-       removed?
-    */
-    template &lt; typename t_domain &gt;
-    GT_FUNCTION static void Do(t_domain const &amp;dom, x_lap) {
-
-        dom(out()) = 4 * dom(in()) - (dom(in(1, 0, 0)) + dom(in(0, 1, 0)) + dom(in(-1, 0, 0)) + dom(in(0, -1, 0)));
-    }
-};
-
-// [functor]
-
-/*!
- * @brief This operator is used for debugging only
- */
-
-std::ostream &amp;operator&lt;&lt;(std::ostream &amp;s, lap_function const) { return s &lt;&lt; &quot;lap_function&quot;; }
-
-// [start_main]
-/// \brief  Main function
-/// \param  argc An integer argument count of the command line arguments
-/// \param  argv An argument vector of the command line arguments
-/// \return an integer 0 upon exit success
-TEST(Laplace, test) {
-
-    uint_t d1 = Options::getInstance().m_size[0];
-    uint_t d2 = Options::getInstance().m_size[1];
-    uint_t d3 = Options::getInstance().m_size[2];
-
-    uint_t halo_size = 2;
-
-    using namespace gridtools;
-    using namespace enumtype;
-// [start_main]
-
-// [backend]
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend&lt; Cuda, GRIDBACKEND, Block &gt;
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend&lt; Host, GRIDBACKEND, Block &gt;
-#else
-#define BACKEND backend&lt; Host, GRIDBACKEND, Naive &gt;
-#endif
-#endif
-    // [backend]
-
-    // [layout_map]
-    typedef gridtools::layout_map&lt; 2, 1, 0 &gt; layout_t;
-    // [layout_map]
-
-    // [storage_type]
-    /**
-       - definition of the storage type, depending on the BACKEND which is set as a macro. \todo find another strategy
-       for the backend (policy pattern)?
-    */
-    typedef BACKEND::storage_info&lt; 0, layout_t &gt; storage_info_t;
-    typedef BACKEND::storage_type&lt; float_type, storage_info_t &gt;::type storage_type;
-    // [storage_type]
-
-    // [storage_initialization]
-    /**
-        - Instantiation of the actual data fields that are used for input/output
-    */
-    storage_info_t metadata_(d1, d2, d3);
-    storage_type in(metadata_, -1., &quot;in&quot;);
-    storage_type out(metadata_, -7.3, &quot;out&quot;);
-    // [storage_initialization]
-
-    // [placeholders]
-    /**
-       - Definition of placeholders. The order of them reflect the order the user will deal with them
-       especially the non-temporary ones, in the construction of the domain.
-       A placeholder only contains a static const index and a storage type
-    */
-    typedef arg&lt; 0, storage_type &gt; p_in;
-    typedef arg&lt; 1, storage_type &gt; p_out;
-
-    /**
-       - Creation of an array of placeholders to be passed to the domain
-       \todo I&#39;m using mpl::vector, but the final API should look slightly simpler
-    */
-    typedef boost::mpl::vector&lt; p_in, p_out &gt; accessor_list;
-    // [placeholders]
-
-    // [aggregator_type]
-    /**
-       - Construction of the domain. The domain is the physical domain of the problem, with all the physical fields that
-       are used, temporary and not
-       It must be noted that the only fields to be passed to the constructor are the non-temporary.
-       The order in which they have to be passed is the order in which they appear scanning the placeholders in order
-       (i.e. the order in the accessor_list?). \todo (I don&#39;t particularly like this).
-       \note aggregator_type implements the CRTP pattern in order to do static polymorphism (?) Because all what is
-       &#39;clonable to gpu&#39; must derive from the CRTP base class.
-    */
-    gridtools::aggregator_type&lt; accessor_list &gt; domain(boost::fusion::make_vector(&amp;in, &amp;out));
-    // [aggregator_type]
-
-    // [grid]
-    /**
-       - Definition of the physical dimensions of the problem.
-       The grid constructor takes the horizontal plane dimensions,
-       while the vertical ones are set according the the axis property soon after
-    */
-    uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-    uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
-
-    gridtools::grid&lt; axis &gt; grid(di, dj);
-    grid.value_list[0] = 0;
-    grid.value_list[1] = d3 - 1;
-// [grid]
-
-// [computation]
-/*!
-  - Here we do lot of stuff:
-
-  1) We pass to the intermediate representation ::run function the description
-  of the stencil, which is a multi-stage stencil (mss)
-  The mss includes (in order of execution) a laplacian, two fluxes which are independent
-  and a final step that is the out_function
-
-  2) The logical physical domain with the fields to use
-
-  3) The actual domain dimensions
-
-  \note in reality this call does nothing at runtime (besides assigning the runtime variables domain and grid), it only
-  calls the constructor of the intermediate struct which is empty. the work done at compile time is documented in the
-  \ref gridtools::intermediate &quot;intermediate&quot; class.
-  \todo why is this function even called? It just needs to be compiled, in order to get the return type (use a typedef).
-*/
-#ifdef CXX11_ENABLED
-    auto
-#else
-#ifdef __CUDACC__
-    stencil *
-#else
-    boost::shared_ptr&lt; gridtools::stencil &gt;
-#endif
-#endif
-        laplace = make_computation&lt; gridtools::BACKEND &gt;(
-            domain,
-            grid,
-            make_multistage        //! \todo all the arguments in the call to make_multistage are actually dummy.
-            (execute&lt; forward &gt;(), //!\todo parameter used only for overloading purpose?
-                make_stage&lt; lap_function &gt;(
-                    p_out(), p_in()) //!  \todo elementary stencil function, also here the arguments are dummy.
-                ));
-    // [computation]
-
-    // [ready_steady_run_finalize]
-    /**
-       @brief This method allocates on the heap the temporary variables
-       this method calls heap_allocated_temps::prepare_temporaries(...). It allocates the memory for the list of extents
-       defined in the temporary placeholders (none).
-     */
-    laplace-&gt;ready();
-
-    /**
-       @brief calls setup_computation and creates the local domains
-       the constructors of the local domains get called (\ref gridtools::intermediate::instantiate_local_domain, which
-       only initializes the dom public pointer variable)
-       @note the local domains are allocated in the public scope of the \ref gridtools::intermediate struct, only the
-       pointer is passed to the instantiate_local_domain struct
-     */
-    laplace-&gt;steady();
-
-    /**
-       Call to gridtools::intermediate::run, which calls Backend::run, does the actual stencil operations on the
-       backend.
-     */
-    laplace-&gt;run();
-
-    laplace-&gt;finalize();
-
-    // [ready_steady_run_finalize]
-
-    // [generate reference]
-
-    storage_type ref(metadata_, -7.3, &quot;ref&quot;);
-
-    for (uint_t i = halo_size; i != d1 - halo_size; ++i) {
-        for (uint_t j = halo_size; j != d2 - halo_size; ++j) {
-            for (uint_t k = 0; k != d3; ++k) {
-                ref(i, j, k) =
-                    4 * in(i, j, k) - (in(i + 1, j, k) + in(i, j + 1, k) + in(i - 1, j, k) + in(i, j - 1, k));
-            }
-        }
-    }
-
-#ifdef CXX11_ENABLED
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6);
-#else
-    verifier verif(1e-12);
-#endif
-    array&lt; array&lt; uint_t, 2 &gt;, 3 &gt; halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
-    bool result = verif.verify(grid, ref, out, halos);
-#else
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6, halo_size);
-#else
-    verifier verif(1e-12, halo_size);
-#endif
-    bool result = verif.verify(grid, out, ref);
-#endif
-
-#ifdef BENCHMARK
-    std::cout &lt;&lt; laplace-&gt;print_meter() &lt;&lt; std::endl;
-#endif
-
-    ASSERT_TRUE(result);
-}
-
-int main(int argc, char **argv) {
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&amp;argc, argv);
-
-    if (argc != 4) {
-        printf(&quot;Usage: laplace_&lt;whatever&gt; dimx dimy dimz\n where args are integer sizes of the data fields\n&quot;);
-        return 1;
-    }
-
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
-    }
-
-    return RUN_ALL_TESTS();
-}
-
-/**
-@}
-*/
-</code></pre>
+<pre class="include" lang="cpp"><code>../../examples/laplacian.cpp</code></pre>
 <p>Apart from the initialization (orange) the stencil implementation consists of 2 main components:</p>
 <ul>
 <li><p>Loop-logic (green): defines the stencil application domain and loop order</p></li>
 <li><p>Update-logic (blue): defines the update formula (here: the 2D Laplacian)</p></li>
 </ul>
 <p>Special care has to be taken at the boundary of the domain. Since the Laplacian needs the neighboring points we cannot calculate the Laplacian on the boundary layer and have to exclude them from the loop.</p>
-<h2 id="first-textitgridtools-stencil">First <span class="math"><em>GridTools</em></span> stencil</h2>
-<p>In <span class="math"><em>GridTools</em></span> the loop logic and the storage order is implemented (and optimized) by the library while the update function is implemented by the user. The loop logic (for a given architecture) is combined with the user-defined update function at compile-time by template meta-programming (see [Sec. [sec:introduction:template_meta_programming]]{}).</p>
-<h3 id="update-logic-textitgridtools-2d-laplacian">Update-logic: <span class="math"><em>GridTools</em></span> 2D Laplacian</h3>
-<p>The update-logic is implemented with state-less functors. A <span class="math"><em>GridTools</em></span> functor is a [<code>]{} or [</code>]{} providing a <em>static</em> method called [<code>]{}. The update-logic is implemented in these [</code>]{}-methods. As the functors are state-less (no member variables, static methods only) they can be passed by type, i.e. at compile-time, and therefore allow for compile-time optimizations.</p>
-<p>In addition to the [<code>]{}-method, the functor contains [</code>]{}s. These two [<code>]{}s are parameters of the functor, i.e. they are mapped to fields passed to the functor. They contain compile-time information if they are only used as input parameters, like the [</code>]{} accessor in the example, or if we want to write into the associated field. Additionally, the [``]{} defines which grid-points are needed by the stencil relative to the current point. The format for the extent is</p>
+<h2 id="first-textitgridtools-stencil">First <span class="math inline"><em>GridTools</em></span> stencil</h2>
+<p>In <span class="math inline"><em>GridTools</em></span> the loop logic and the storage order is implemented (and optimized) by the library while the update function is implemented by the user. The loop logic (for a given architecture) is combined with the user-defined update function at compile-time by template meta-programming (see <span>Sec. [sec:introduction:template_meta_programming]</span>).</p>
+<h3 id="update-logic-textitgridtools-2d-laplacian">Update-logic: <span class="math inline"><em>GridTools</em></span> 2D Laplacian</h3>
+<p>The update-logic is implemented with state-less functors. A <span class="math inline"><em>GridTools</em></span> functor is a <span><code>]{} or [</code></span> providing a <em>static</em> method called <span><code>]{}. The update-logic is implemented in these [</code></span>-methods. As the functors are state-less (no member variables, static methods only) they can be passed by type, i.e. at compile-time, and therefore allow for compile-time optimizations.</p>
+<p>In addition to the <span><code>]{}-method, the functor contains [</code></span>s. These two <span><code>]{}s are parameters of the functor, i.e. they are mapped to fields passed to the functor. They contain compile-time information if they are only used as input parameters, like the [</code></span> accessor in the example, or if we want to write into the associated field. Additionally, the <span>``</span> defines which grid-points are needed by the stencil relative to the current point. The format for the extent is</p>
 <p>extent<i_minus, i_plus, j_minus, j_plus, k_minus, k_plus></p>
-<p>where [<code>]{} and [</code>]{} define an interval on the <span class="math"><em>i</em></span>-axis relative to the current position; [<code>]{} is the negative offset, i.e. zero or a negative number, while [</code>]{} is the positive offset. Analogously for <span class="math"><em>j</em></span> and <span class="math"><em>k</em></span>. In the Laplacian example, [Listing [code:getting_started_gtlaplacian]]{}, the first two number in the extent of the [``]{} accessor define that we want to access the field at <span class="math"><em>i</em> − 1, <em>i</em>, <em>i</em> + 1</span>. The accessor type and the extent is needed for a dependency analysis in the compile-time optimizations for more complex stencils.</p>
-<p>The first template argument is an index defining the order of the parameters, i.e. the order in which the fields are passed to the functor. The [<code>]{} has to defined and stores all accessors in an [</code>]{}.</p>
-<p>A [<code>]{} method needs to have two parameters. The first one is a context object [</code>]{} that is created and passed to the method by the library on invocation. This object contains, among other things, the index of the active grid point and the mapping of data-pointers to the [<code>]{}s. The second argument is an interval on the $k$-axis where this implementation should be executed. This allows to apply a different update-logic on intervals by overloading the [</code>]{}-method. We will define this interval later.</p>
-<p>The body of the [<code>]{}-method looks quite similar to the one in the naive implementation [Listing \[code:getting\_started:cxx\_laplacian\]]{}, except that each field access has to be wrapped by a call to the context object [</code>]{}. This is necessary to map the compile-time parameter, the accessor, to the field, a run-time object.</p>
+<p>where <span><code>]{} and [</code></span> define an interval on the <span class="math inline"><em>i</em></span>-axis relative to the current position; <span><code>]{} is the negative offset, i.e. zero or a negative number, while [</code></span> is the positive offset. Analogously for <span class="math inline"><em>j</em></span> and <span class="math inline"><em>k</em></span>. In the Laplacian example, <span>Listing [code:getting_started_gtlaplacian]</span>, the first two number in the extent of the <span>``</span> accessor define that we want to access the field at <span class="math inline"><em>i</em> − 1, <em>i</em>, <em>i</em> + 1</span>. The accessor type and the extent is needed for a dependency analysis in the compile-time optimizations for more complex stencils.</p>
+<p>The first template argument is an index defining the order of the parameters, i.e. the order in which the fields are passed to the functor. The <span><code>]{} has to defined and stores all accessors in an [</code></span>.</p>
+<p>A <span><code>]{} method needs to have two parameters. The first one is a context object [</code></span> that is created and passed to the method by the library on invocation. This object contains, among other things, the index of the active grid point and the mapping of data-pointers to the <span><code>]{}s. The second argument is an interval on the $k$-axis where this implementation should be executed. This allows to apply a different update-logic on intervals by overloading the [</code></span>-method. We will define this interval later.</p>
+<p>The body of the <span><code>]{}-method looks quite similar to the one in the naive implementation [Listing \[code:getting\_started:cxx\_laplacian\]]{}, except that each field access has to be wrapped by a call to the context object [</code></span>. This is necessary to map the compile-time parameter, the accessor, to the field, a run-time object.</p>
 <h3 id="calling-the-stencil">Calling the stencil</h3>
-<p>In the naive implementation, [Listing [code:getting_started:cxx_laplacian]]{}, the call to the [``]{} is as simple as</p>
+<p>In the naive implementation, <span>Listing [code:getting_started:cxx_laplacian]</span>, the call to the <span>``</span> is as simple as</p>
 <p>int boundary_size = 1; laplacian( lap, phi, boundary_size );</p>
 <p>since it contains already all the information: the update-logic <em>and</em> the loop-logic.</p>
-<p>The <span class="math"><em>GridTools</em></span> stencil, [Listing [code:getting_started_gtlaplacian]]{}, does not contain the information about the loop-logic. We have to specify it in an abstract platform-independent syntax, a <em>domain specific embedded language</em> (DSEL), such that the backend can decide on the specific implementation.</p>
-<p>For our example it looks as in [Listing [code:getting_started:gtlaplacian:make_computation]]{}.</p>
-<p>In line [gt_laplacian_setup:arg_phi] and [gt_laplacian_setup:arg_lap] we define placeholders for the fields. In the lines [gt_laplacian_setup:domain:start]-[gt_laplacian_setup:domain:end] the fields, i.e. the storages, are attached to these placeholders in the [``]{}.</p>
-<p>In lines [gt_laplacian_setup:grid:start] to [gt_laplacian_setup:grid:end] we setup the physical dimension of the problem. First we define which points on the <span class="math"><em>i</em></span> and the <span class="math"><em>j</em></span>-axis belong to the computational domain and which points belong to the boundary (or a padding region). For now it is enough to know that these lines define an axis with a boundary of size 1 surrounding the <span class="math"><em>i</em><em>j</em></span>-plane. In the next lines the layers in <span class="math"><em>k</em></span> are defined. In this case we have only one interval. We will discuss the details later.</p>
-<p>In lines [gt_laplacian_setup:computation:start] to [gt_laplacian_setup:computation:end] we create the stencil object. We pass the domain (the mapping between placeholders and storages), the grid (the information about the loop bounds) and a [<code>]{}. The [</code>]{} contains a [``]{}, our Laplacian functor.</p>
-<p>In more complex codes we can combine multiple <span class="math"><em>k</em></span>-independent stages in a [<code>]{}. If we have a $k$-dependency we have to split the computation in multiple [</code>]{}s.</p>
-<p>The statement [<code>]{} defines that we want to iterate over $k$ in a forward manner, i.e. starting from the smallest $k$-value to the largest. Other options are [</code>]{} and [<code>]{}[^2]. For performance reason one should use [</code>]{} whenever possible.</p>
+<p>The <span class="math inline"><em>GridTools</em></span> stencil, <span>Listing [code:getting_started_gtlaplacian]</span>, does not contain the information about the loop-logic. We have to specify it in an abstract platform-independent syntax, a <em>domain specific embedded language</em> (DSEL), such that the backend can decide on the specific implementation.</p>
+<p>For our example it looks as in <span>Listing [code:getting_started:gtlaplacian:make_computation]</span>.</p>
+<p>In line [gt_laplacian_setup:arg_phi] and [gt_laplacian_setup:arg_lap] we define placeholders for the fields. In the lines [gt_laplacian_setup:domain:start]-[gt_laplacian_setup:domain:end] the fields, i.e. the storages, are attached to these placeholders in the <span>``</span>.</p>
+<p>In lines [gt_laplacian_setup:grid:start] to [gt_laplacian_setup:grid:end] we setup the physical dimension of the problem. First we define which points on the <span class="math inline"><em>i</em></span> and the <span class="math inline"><em>j</em></span>-axis belong to the computational domain and which points belong to the boundary (or a padding region). For now it is enough to know that these lines define an axis with a boundary of size 1 surrounding the <span class="math inline"><em>i</em><em>j</em></span>-plane. In the next lines the layers in <span class="math inline"><em>k</em></span> are defined. In this case we have only one interval. We will discuss the details later.</p>
+<p>In lines [gt_laplacian_setup:computation:start] to [gt_laplacian_setup:computation:end] we create the stencil object. We pass the domain (the mapping between placeholders and storages), the grid (the information about the loop bounds) and a <span><code>]{}. The [</code></span> contains a <span>``</span>, our Laplacian functor.</p>
+<p>In more complex codes we can combine multiple <span class="math inline"><em>k</em></span>-independent stages in a <span><code>]{}. If we have a $k$-dependency we have to split the computation in multiple [</code></span>s.</p>
+<p>The statement <span><code>]{} defines that we want to iterate over $k$ in a forward manner, i.e. starting from the smallest $k$-value to the largest. Other options are [</code></span> and <span><code>]{}[^2]. For performance reason one should use [</code></span> whenever possible.</p>
 <p>The next lines [gt_laplacian_setup:ready] and [gt_laplacian_setup:steady] are mandatory: we allocate temporary storages (in our case we don’t use any) and copy the fields to the device (if we use the CUDA backend).</p>
 <p>Line [gt_laplacian_setup:run] is self-explanatory: the stencil is executed.</p>
 <p>In the last line we free temporary storages and copy modified fields back to the host.</p>
-<p>In a more realistic application the [<code>]{} will be called multiple times. If one wants to inspect the fields between runs (and before the [</code>]{}) one has to manually copy the data back from device.</p>
-<h3 id="full-textitgridtools-laplacian">Full <span class="math"><em>GridTools</em></span> Laplacian</h3>
+<p>In a more realistic application the <span><code>]{} will be called multiple times. If one wants to inspect the fields between runs (and before the [</code></span>) one has to manually copy the data back from device.</p>
+<h3 id="full-textitgridtools-laplacian">Full <span class="math inline"><em>GridTools</em></span> Laplacian</h3>
 <h2 id="assembling-stencils-smoothing-filter">Assembling stencils: smoothing filter</h2>
-<p>In the preceding section we saw how a first simple <span class="math"><em>GridTools</em></span> stencil is defined and executed. In this section we will use this stencil to compute the example PDE . A naive implementation could look as in [Listing [code:getting_started:naive_smoothing]]{}.</p>
-<p>For the <span class="math"><em>GridTools</em></span> implementation we will learn three things in this section: how to define special regions in the <span class="math"><em>k</em></span>-direction; how to use <span class="math"><em>GridTools</em></span> temporaries and how to call functors from functors.</p>
+<p>In the preceding section we saw how a first simple <span class="math inline"><em>GridTools</em></span> stencil is defined and executed. In this section we will use this stencil to compute the example PDE . A naive implementation could look as in <span>Listing [code:getting_started:naive_smoothing]</span>.</p>
+<p>For the <span class="math inline"><em>GridTools</em></span> implementation we will learn three things in this section: how to define special regions in the <span class="math inline"><em>k</em></span>-direction; how to use <span class="math inline"><em>GridTools</em></span> temporaries and how to call functors from functors.</p>
 <h2 id="do-method-overload">Do-method overload</h2>
-<p>Our first <span class="math"><em>GridTools</em></span> implementation will be very close to the naive implementation: we will call two times the Laplacian functor from the previous section and store the result in two extra fields. Then we will call a third functor to compute the final result. This functor, see [Listing [code:getting_started:gt_smoothing_version1]]{} shows how we can specialize the computation in the <span class="math"><em>k</em></span>-direction. We define two intervals, the [<code>]{} and the [</code>]{}, and provide an overload of the [``]{}-method for each interval.</p>
+<p>Our first <span class="math inline"><em>GridTools</em></span> implementation will be very close to the naive implementation: we will call two times the Laplacian functor from the previous section and store the result in two extra fields. Then we will call a third functor to compute the final result. This functor, see <span>Listing [code:getting_started:gt_smoothing_version1]</span> shows how we can specialize the computation in the <span class="math inline"><em>k</em></span>-direction. We define two intervals, the <span><code>]{} and the [</code></span>, and provide an overload of the <span>``</span>-method for each interval.</p>
 <p>The intervals are defined as</p>
-<p>Since we are working currently on a nicer API to define the intervals we don’t want to describe the (non-trivial) details now. In short: the first entry in the level is a so-called [<code>]{}, an abstraction to tell that we want to split the axis here. The second entry is an offset relative to the splitter. At runtime we assign an index of the k-axis to the splitters. Then the [</code>]{} corresponds to the index in the [<code>]{} entry. Additionally we have to define an [</code>]{} such that all intervals are a strict subset of the [``]{}.</p>
-<p>Finally, the call to [``]{} looks as follows[^3]</p>
-<p>In this version we needed to explicitly allocate the temporary fields [<code>]{} and [</code>]{}. In the next section we will learn about <span class="math"><em>GridTools</em></span> temporaries.</p>
-<h2 id="textitgridtools-temporaries"><span class="math"><em>GridTools</em></span> temporaries</h2>
-<p><em><span class="math"><em>GridTools</em></span> temporary storages</em> are storages with the lifetime of the [<code>]{}, i.e. they can be used by different stages assembled in one [</code>]{} call. This is exactly what we need for the [<code>]{} and [</code>]{} fields.</p>
+<p>Since we are working currently on a nicer API to define the intervals we don’t want to describe the (non-trivial) details now. In short: the first entry in the level is a so-called <span><code>]{}, an abstraction to tell that we want to split the axis here. The second entry is an offset relative to the splitter. At runtime we assign an index of the k-axis to the splitters. Then the [</code></span> corresponds to the index in the <span><code>]{} entry. Additionally we have to define an [</code></span> such that all intervals are a strict subset of the <span>``</span>.</p>
+<p>Finally, the call to <span>``</span> looks as follows[^3]</p>
+<p>In this version we needed to explicitly allocate the temporary fields <span><code>]{} and [</code></span>. In the next section we will learn about <span class="math inline"><em>GridTools</em></span> temporaries.</p>
+<h2 id="textitgridtools-temporaries"><span class="math inline"><em>GridTools</em></span> temporaries</h2>
+<p><em><span class="math inline"><em>GridTools</em></span> temporary storages</em> are storages with the lifetime of the <span><code>]{}, i.e. they can be used by different stages assembled in one [</code></span> call. This is exactly what we need for the <span><code>]{} and [</code></span> fields.</p>
 <p>Note that we did not allocate the temporaries explicitly and we cannot access them from outside of the computation. Therefore it might be necessary sometimes to replace a temporary with a normal storage for debugging.</p>
-<p>To use temporary storages we don’t need to change the functors or the [<code>]{}. We just have to replace the type of the *arg* from a normal storage type to a temporary storage type. We don’t need the explicit instantiations any more and we can leave out pointers to storages when we build the domain. The new code looks as follows The temporary storages are allocated in the [</code>]{} call and freed in [``]{}. Besides the simplifications in the code (no explicit storage needed), the concept of temporaries allows <span class="math"><em>GridTools</em></span> to apply optimization. Since the temporaries, by definition, are only visible inside a computation, <span class="math"><em>GridTools</em></span> is free to remove them if it does not break the semantics of the algorithm.</p>
+<p>To use temporary storages we don’t need to change the functors or the <span><code>]{}. We just have to replace the type of the *arg* from a normal storage type to a temporary storage type. We don’t need the explicit instantiations any more and we can leave out pointers to storages when we build the domain. The new code looks as follows The temporary storages are allocated in the [</code></span> call and freed in <span>``</span>. Besides the simplifications in the code (no explicit storage needed), the concept of temporaries allows <span class="math inline"><em>GridTools</em></span> to apply optimization. Since the temporaries, by definition, are only visible inside a computation, <span class="math inline"><em>GridTools</em></span> is free to remove them if it does not break the semantics of the algorithm.</p>
 <h2 id="functor-calls">Functor calls</h2>
-<p>The next feature we want to use is the <em>function call</em>. This will allow us to get rid of the temporaries. In a first step we remove only one of the temporaries. Instead of calling the Laplacian twice from the [<code>]{} we will move one of the calls into the smoothing functor. The new smoothing functor looks as follows In [</code>]{} we specify the functor and the [<code>]{}-method overload we want to apply. In [</code>]{} the [<code>]{} is passed forward followed by all the input arguments for the functor. The functor in the call is required to have exactly one [</code>]{} which will be the return value of the call.</p>
+<p>The next feature we want to use is the <em>function call</em>. This will allow us to get rid of the temporaries. In a first step we remove only one of the temporaries. Instead of calling the Laplacian twice from the <span><code>]{} we will move one of the calls into the smoothing functor. The new smoothing functor looks as follows In [</code></span> we specify the functor and the <span><code>]{}-method overload we want to apply. In [</code></span> the <span><code>]{} is passed forward followed by all the input arguments for the functor. The functor in the call is required to have exactly one [</code></span> which will be the return value of the call.</p>
 <p>The new setup looks as follows</p>
-<p>The attentive reader may have noticed that our first versions did more work than needed: we calculated the Laplacian of the Laplacian of phi (<span class="math">ΔΔ<em>ϕ</em></span>) for all <span class="math"><em>k</em></span>-levels, however we used it only for <span class="math"><em>k</em> &lt; <em>k</em><sub>max</sub></span>. In this version we do a bit better: we still calculate the Laplacian (<span class="math"><em>L</em> = Δ<em>ϕ</em></span>) for all levels but we only calculate <span class="math">Δ<em>L</em></span> for the levels where we need it.</p>
+<p>The attentive reader may have noticed that our first versions did more work than needed: we calculated the Laplacian of the Laplacian of phi (<span class="math inline"><em>Δ</em><em>Δ</em><em>ϕ</em></span>) for all <span class="math inline"><em>k</em></span>-levels, however we used it only for <span class="math inline"><em>k</em> &lt; <em>k</em><sub>max</sub></span>. In this version we do a bit better: we still calculate the Laplacian (<span class="math inline"><em>L</em> = <em>Δ</em><em>ϕ</em></span>) for all levels but we only calculate <span class="math inline"><em>Δ</em><em>L</em></span> for the levels where we need it.</p>
 <h4 id="outlook">Outlook</h4>
-<p>Eventually we would like to get rid of this problem (and the last temporary) in an elegant way with nested function calls as follows Unfortunately, this is currently not supported in <span class="math"><em>GridTools</em></span>[^4].</p>
+<p>Eventually we would like to get rid of this problem (and the last temporary) in an elegant way with nested function calls as follows Unfortunately, this is currently not supported in <span class="math inline"><em>GridTools</em></span>[^4].</p>
 <h2 id="mm">Full code listing</h2>
 <p>The full compilable version of the code is given in <a href="#full_lap">Full code listing</a></p>
 <pre id="full_lap" class="cpp numberLines"><code>#include &lt;common/defs.hpp&gt;
@@ -819,71 +433,473 @@ int main() {
 
     smoothing-&gt;finalize();
 }</code></pre>
-<h2 id="how-to-pass-the-alpha-global-accessors">How to pass the <span class="math"><em>α</em></span>: Global accessors</h2>
+<h2 id="how-to-pass-the-alpha-global-accessors">How to pass the <span class="math inline"><em>α</em></span>: Global accessors</h2>
 <h2 id="distributing-the-work-gcl">Distributing the work: GCL</h2>
-<h2 id="boundary-conditions-1">Boundary conditions</h2>
+<h2 id="boundary-conditions">Boundary conditions</h2>
+<h1 id="sec:getting_started">Quick Start Guide</h1>
+<p>This chapter describes how to use <span class="math inline"><em>GridTools</em></span> to solve a (simple) PDE. We will use the fourth-order horizontal smoothing filter example from with small modifications to explain the necessary steps to assemble a stencil from scratch. We will not go into details in this chapter but refer to latter chapters for more details.</p>
+<p>Our example PDE is given by <br /><span class="math display">$$\label{eq:getting_started:examplepde}
+\frac{\partial \phi}{\partial t} =\begin{cases}
+- \alpha \nabla^4 \phi &amp; z \leq z_\text{max}\\
+0 &amp; z &gt; z_0
+\end{cases}$$</span><br /> where <span class="math inline">∇<sup>4</sup></span> is the squared two dimensional horizontal Laplacian and we apply the filter only up to some maximal <span class="math inline"><em>z</em><sub>0</sub></span> (to make the example more interesting). The filter is calculated in two steps: first we calculate the Laplacian of <span class="math inline"><em>ϕ</em></span></p>
+<p><br /><span class="math display">$$L = \Delta \phi = \left( \frac{\partial^2}{\partial x^2} + \frac{\partial^2}{\partial y^2}\right) \phi$$</span><br /></p>
+<p>then we calculate the Laplacian of <span class="math inline"><em>L</em></span></p>
+<p><br /><span class="math display">−<em>α</em>∇<sup>4</sup><em>ϕ</em> = −<em>α</em><em>Δ</em><em>L</em></span><br /></p>
+<p>In the following we will walk through the following steps:</p>
+<ul>
+<li><p>The <span class="math inline"><em>GridTools</em></span> coordinate system and its notation.</p></li>
+<li><p>Storages: how does <span class="math inline"><em>GridTools</em></span> manage the input and output fields.</p></li>
+<li><p>The first stencil: calculating <span class="math inline"><em>L</em></span>, the second order Laplacian of <span class="math inline"><em>ϕ</em></span>.</p></li>
+<li><p>The final stencil: function calls, Do-method overloads and temporaries</p></li>
+<li><p>MISSING: How to pass the <span class="math inline"><em>α</em></span>: Global accessors</p></li>
+<li><p>MISSING: Distributing the work over multiple nodes: GCL</p></li>
+<li><p>MISSING: Boundaries</p></li>
+</ul>
+<h2 id="coordinate-system">Coordinate System</h2>
+<p>For a finite difference discretization we restrict the field <span class="math inline"><em>ϕ</em> ∈ ℝ<sup>3</sup></span> to a discrete grid. We use the notation <span class="math inline"><em>i</em> = <em>x</em><sub><em>i</em></sub></span> and <span class="math inline"><em>j</em> = <em>y</em><sub><em>j</em></sub></span> for the horizontal dimension and <span class="math inline"><em>k</em> = <em>z</em><sub><em>k</em></sub></span> for the vertical dimension, where <span class="math inline"><em>x</em><sub><em>i</em></sub>, <em>y</em><sub><em>j</em></sub>, <em>z</em><sub><em>k</em></sub></span> are the <span class="math inline"><em>x</em>, <em>y</em>, <em>z</em></span> coordinates restricted on the grid. The <em>computation domain</em> is defined by all grid points in our domain of interest <br /><span class="math display"><em>Λ</em> = (<em>i</em>, <em>j</em>, <em>k</em>) with <em>i</em> ∈ {0…<em>N</em><sub><em>i</em></sub> − 1},<em>j</em> ∈ {0…<em>N</em><sub><em>j</em></sub> − 1},<em>k</em> ∈ {0…<em>N</em><sub><em>k</em></sub> − 1}</span><br /></p>
+<p><span class="math inline"><em>GridTools</em></span> supports any number of dimension, however it will treat one dimension, here the <span class="math inline"><em>k</em></span>, dimension differently: the <span class="math inline"><em>i</em><em>j</em></span>-plane is executed in parallel while the computation in <span class="math inline"><em>k</em></span> can be sequential. The consequence is that there must not be a dependency in <span class="math inline"><em>i</em><em>j</em></span> within a stencil while there can be a dependency in <span class="math inline"><em>k</em></span>. For now (this chapter) it is sufficient to just remember that the <span class="math inline"><em>i</em><em>j</em></span>-plane and the <span class="math inline"><em>k</em></span> dimension are treated differently by <span class="math inline"><em>GridTools</em></span>.</p>
+<p>The calculation domain is surrounded by a <em>boundary region</em> as depicted in <span>Fig. [fig:getting_started:coordinates]</span>. Computation happens only within the calculation domain but values might be read from grid points in the boundary region.</p>
+<div class="figure">
+<img src="figures/coordinates.png" alt="Coordinates system" />
+<p class="caption">Coordinates system</p>
+</div>
+<h2 id="storages">Storages</h2>
+<p>In this section we will setup the fields for our example: we need a storage for the <span class="math inline"><em>ϕ</em></span>-field (<code>phi_in</code>) and a storage for the output (<code>phi_out</code>).</p>
+<p>Storages in <span class="math inline"><em>GridTools</em></span> are n-dimensional array-like objects with the following capabilities:</p>
+<ul>
+<li><p>access an element with <span class="math inline">(<em>i</em>, <em>j</em>, <em>k</em>)</span> syntax</p></li>
+<li><p>copying between CPU memory and a device (e.g. a CUDA capable GPU)</p></li>
+</ul>
+<h2 id="backend">Backend</h2>
+<p>Since the storages (and other things later) depend on the architecture (CPU or GPU) our first step is to define a <em>backend</em> type which typically looks like</p>
+<pre class="cpp"><code>using backend_t = backend&lt; Cuda, structured, Block &gt;;</code></pre>
+<p>for the CUDA backed or for the CPU backend. The second argument defines the type of the grid, where <code>phi_in</code> refers to a Cartesian grid, see [Chapter [sec:grids]] for details. The last argument defines that blocking should be used in CPU mode (instead of <code>phi_out</code> without blocking). For the CUDA mode <span>``</span> is the only option.</p>
+<h2 id="memory-layout">Memory layout</h2>
+<p>For efficient memory access the index ordering has to be different for CPUs (<span class="math inline"><em>k</em></span> first) and GPUs (<span class="math inline"><em>i</em></span> first). This is defined with the <span>``</span>. For CUDA we use while we use on the host. We don’t go into more detail here, since this should probably be constructed by the backend (at least for standard use-cases). For now it is enough to know that the first line should be used in GPU mode and the second in CPU mode.</p>
+<h2 id="the-storage-type">The storage type</h2>
+<p>For each storage type we need to define the type of the data we want to store in the field, e.g. <code>double</code>, and a <code>storage_info</code> type which will hold information about size, alignment, strides etc. The <code>storage_info</code> needs a unique index and a <code>layout_map</code> as defined before. These information are all C++ types, i.e. known at compile-time.</p>
+<pre class="cpp"><code>using storage_info_t = backend_t::storage_info&lt; 0, layout_t &gt;;
+using storage_t = backend_t::storage_type&lt; double, storage_info_t &gt;::type;</code></pre>
+<p>At run-time a <code>storage_info</code> is initialized with the sizes of the field. Then a field can be instantiated with the <code>info</code> object.</p>
+<pre class="cpp numberLines"><code>uint_t Ni = 10;
+uint_t Nj = 12;
+uint_t Nk = 20;
+
+storage_info_t info(Ni, Nj, Nk);
+
+storage_t phi(info, -1., &quot;phi&quot;);
+storage_t lap(info, -1., &quot;lap&quot;);</code></pre>
+<p>The first argument, the <code>meta</code> object, is mandatory, while the other arguments are optional: a name for the field and an initial value.</p>
+<hr />
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hintsmall.gif" alt="Tip" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>For each <code>meta_storage</code> type you should use only one</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>instantiation. The mapping between a storage and the</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>run-time information in the <code>meta_storage</code> has to be</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>done at compile time via the index. Thus <span class="math inline"><em>GridTools</em></span> cannot</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>distinguish the storages by the run-time sizes passed</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>to the <code>meta_storage</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<hr />
+<p>We can now</p>
+<ul>
+<li><p>retrieve the name of the field,</p></li>
+<li><p>read and write values in the field using the parenthesis syntax,</p></li>
+<li><p>copy the data to device or back to host (in Cuda mode)[^1].</p></li>
+</ul>
+<h2 id="storage-with-halo">Storage with halo</h2>
+<p>It is usually beneficial to align the storage to the location of the first element of the calculation domain. Therefore it is possible to tell the storage about the halo region. Since this will probably change in the new storage design we will leave the documentation of this advanced feature for later.</p>
+<h2 id="stencils">Stencils</h2>
+<p>A <em>stencil</em> is a kernel that updates array elements according to a fixed access pattern.</p>
+<h2 id="example-naive-2d-laplacian">Example: Naive 2D Laplacian</h2>
+<p>The simplest discretization of the 2D Laplacian is the finite difference five-point stencil as depicted in <span>Fig. [fig:getting_started:laplacian2D]</span>. For the calculation of the Laplacian at a given grid point we need the value at the grid point itself and its four direct neighbors along the Cartesian axis.</p>
+<div class="figure">
+<img src="figures/Laplacian2D.png" alt="Access pattern of a 2D Laplacian" />
+<p class="caption">Access pattern of a 2D Laplacian</p>
+</div>
+<p>A naive C++ implementation of the 2D Laplacian stencil is provided in</p>
+<pre class="include" lang="cpp"><code>../../examples/laplacian.cpp</code></pre>
+<p>Apart from the initialization (orange) the stencil implementation consists of 2 main components:</p>
+<ul>
+<li><p>Loop-logic (green): defines the stencil application domain and loop order</p></li>
+<li><p>Update-logic (blue): defines the update formula (here: the 2D Laplacian)</p></li>
+</ul>
+<p>Special care has to be taken at the boundary of the domain. Since the Laplacian needs the neighboring points we cannot calculate the Laplacian on the boundary layer and have to exclude them from the loop.</p>
+<h2 id="first-textitgridtools-stencil">First <span class="math inline"><em>GridTools</em></span> stencil</h2>
+<p>In <span class="math inline"><em>GridTools</em></span> the loop logic and the storage order is implemented (and optimized) by the library while the update function is implemented by the user. The loop logic (for a given architecture) is combined with the user-defined update function at compile-time by template meta-programming (see <span>Sec. [sec:introduction:template_meta_programming]</span>).</p>
+<h3 id="update-logic-textitgridtools-2d-laplacian">Update-logic: <span class="math inline"><em>GridTools</em></span> 2D Laplacian</h3>
+<p>The update-logic is implemented with state-less functors. A <span class="math inline"><em>GridTools</em></span> functor is a <span><code>]{} or [</code></span> providing a <em>static</em> method called <span><code>]{}. The update-logic is implemented in these [</code></span>-methods. As the functors are state-less (no member variables, static methods only) they can be passed by type, i.e. at compile-time, and therefore allow for compile-time optimizations.</p>
+<p>In addition to the <span><code>]{}-method, the functor contains [</code></span>s. These two <span><code>]{}s are parameters of the functor, i.e. they are mapped to fields passed to the functor. They contain compile-time information if they are only used as input parameters, like the [</code></span> accessor in the example, or if we want to write into the associated field. Additionally, the <span>``</span> defines which grid-points are needed by the stencil relative to the current point. The format for the extent is</p>
+<p>extent<i_minus, i_plus, j_minus, j_plus, k_minus, k_plus></p>
+<p>where <span><code>]{} and [</code></span> define an interval on the <span class="math inline"><em>i</em></span>-axis relative to the current position; <span><code>]{} is the negative offset, i.e. zero or a negative number, while [</code></span> is the positive offset. Analogously for <span class="math inline"><em>j</em></span> and <span class="math inline"><em>k</em></span>. In the Laplacian example, <span>Listing [code:getting_started_gtlaplacian]</span>, the first two number in the extent of the <span>``</span> accessor define that we want to access the field at <span class="math inline"><em>i</em> − 1, <em>i</em>, <em>i</em> + 1</span>. The accessor type and the extent is needed for a dependency analysis in the compile-time optimizations for more complex stencils.</p>
+<p>The first template argument is an index defining the order of the parameters, i.e. the order in which the fields are passed to the functor. The <span><code>]{} has to defined and stores all accessors in an [</code></span>.</p>
+<p>A <span><code>]{} method needs to have two parameters. The first one is a context object [</code></span> that is created and passed to the method by the library on invocation. This object contains, among other things, the index of the active grid point and the mapping of data-pointers to the <span><code>]{}s. The second argument is an interval on the $k$-axis where this implementation should be executed. This allows to apply a different update-logic on intervals by overloading the [</code></span>-method. We will define this interval later.</p>
+<p>The body of the <span><code>]{}-method looks quite similar to the one in the naive implementation [Listing \[code:getting\_started:cxx\_laplacian\]]{}, except that each field access has to be wrapped by a call to the context object [</code></span>. This is necessary to map the compile-time parameter, the accessor, to the field, a run-time object.</p>
+<h3 id="calling-the-stencil">Calling the stencil</h3>
+<p>In the naive implementation, <span>Listing [code:getting_started:cxx_laplacian]</span>, the call to the <span>``</span> is as simple as</p>
+<p>int boundary_size = 1; laplacian( lap, phi, boundary_size );</p>
+<p>since it contains already all the information: the update-logic <em>and</em> the loop-logic.</p>
+<p>The <span class="math inline"><em>GridTools</em></span> stencil, <span>Listing [code:getting_started_gtlaplacian]</span>, does not contain the information about the loop-logic. We have to specify it in an abstract platform-independent syntax, a <em>domain specific embedded language</em> (DSEL), such that the backend can decide on the specific implementation.</p>
+<p>For our example it looks as in <span>Listing [code:getting_started:gtlaplacian:make_computation]</span>.</p>
+<p>In line [gt_laplacian_setup:arg_phi] and [gt_laplacian_setup:arg_lap] we define placeholders for the fields. In the lines [gt_laplacian_setup:domain:start]-[gt_laplacian_setup:domain:end] the fields, i.e. the storages, are attached to these placeholders in the <span>``</span>.</p>
+<p>In lines [gt_laplacian_setup:grid:start] to [gt_laplacian_setup:grid:end] we setup the physical dimension of the problem. First we define which points on the <span class="math inline"><em>i</em></span> and the <span class="math inline"><em>j</em></span>-axis belong to the computational domain and which points belong to the boundary (or a padding region). For now it is enough to know that these lines define an axis with a boundary of size 1 surrounding the <span class="math inline"><em>i</em><em>j</em></span>-plane. In the next lines the layers in <span class="math inline"><em>k</em></span> are defined. In this case we have only one interval. We will discuss the details later.</p>
+<p>In lines [gt_laplacian_setup:computation:start] to [gt_laplacian_setup:computation:end] we create the stencil object. We pass the domain (the mapping between placeholders and storages), the grid (the information about the loop bounds) and a <span><code>]{}. The [</code></span> contains a <span>``</span>, our Laplacian functor.</p>
+<p>In more complex codes we can combine multiple <span class="math inline"><em>k</em></span>-independent stages in a <span><code>]{}. If we have a $k$-dependency we have to split the computation in multiple [</code></span>s.</p>
+<p>The statement <span><code>]{} defines that we want to iterate over $k$ in a forward manner, i.e. starting from the smallest $k$-value to the largest. Other options are [</code></span> and <span><code>]{}[^2]. For performance reason one should use [</code></span> whenever possible.</p>
+<p>The next lines [gt_laplacian_setup:ready] and [gt_laplacian_setup:steady] are mandatory: we allocate temporary storages (in our case we don’t use any) and copy the fields to the device (if we use the CUDA backend).</p>
+<p>Line [gt_laplacian_setup:run] is self-explanatory: the stencil is executed.</p>
+<p>In the last line we free temporary storages and copy modified fields back to the host.</p>
+<p>In a more realistic application the <span><code>]{} will be called multiple times. If one wants to inspect the fields between runs (and before the [</code></span>) one has to manually copy the data back from device.</p>
+<h3 id="full-textitgridtools-laplacian">Full <span class="math inline"><em>GridTools</em></span> Laplacian</h3>
+<h2 id="assembling-stencils-smoothing-filter">Assembling stencils: smoothing filter</h2>
+<p>In the preceding section we saw how a first simple <span class="math inline"><em>GridTools</em></span> stencil is defined and executed. In this section we will use this stencil to compute the example PDE . A naive implementation could look as in <span>Listing [code:getting_started:naive_smoothing]</span>.</p>
+<p>For the <span class="math inline"><em>GridTools</em></span> implementation we will learn three things in this section: how to define special regions in the <span class="math inline"><em>k</em></span>-direction; how to use <span class="math inline"><em>GridTools</em></span> temporaries and how to call functors from functors.</p>
+<h2 id="do-method-overload">Do-method overload</h2>
+<p>Our first <span class="math inline"><em>GridTools</em></span> implementation will be very close to the naive implementation: we will call two times the Laplacian functor from the previous section and store the result in two extra fields. Then we will call a third functor to compute the final result. This functor, see <span>Listing [code:getting_started:gt_smoothing_version1]</span> shows how we can specialize the computation in the <span class="math inline"><em>k</em></span>-direction. We define two intervals, the <span><code>]{} and the [</code></span>, and provide an overload of the <span>``</span>-method for each interval.</p>
+<p>The intervals are defined as</p>
+<p>Since we are working currently on a nicer API to define the intervals we don’t want to describe the (non-trivial) details now. In short: the first entry in the level is a so-called <span><code>]{}, an abstraction to tell that we want to split the axis here. The second entry is an offset relative to the splitter. At runtime we assign an index of the k-axis to the splitters. Then the [</code></span> corresponds to the index in the <span><code>]{} entry. Additionally we have to define an [</code></span> such that all intervals are a strict subset of the <span>``</span>.</p>
+<p>Finally, the call to <span>``</span> looks as follows[^3]</p>
+<p>In this version we needed to explicitly allocate the temporary fields <span><code>]{} and [</code></span>. In the next section we will learn about <span class="math inline"><em>GridTools</em></span> temporaries.</p>
+<h2 id="textitgridtools-temporaries"><span class="math inline"><em>GridTools</em></span> temporaries</h2>
+<p><em><span class="math inline"><em>GridTools</em></span> temporary storages</em> are storages with the lifetime of the <span><code>]{}, i.e. they can be used by different stages assembled in one [</code></span> call. This is exactly what we need for the <span><code>]{} and [</code></span> fields.</p>
+<p>Note that we did not allocate the temporaries explicitly and we cannot access them from outside of the computation. Therefore it might be necessary sometimes to replace a temporary with a normal storage for debugging.</p>
+<p>To use temporary storages we don’t need to change the functors or the <span><code>]{}. We just have to replace the type of the *arg* from a normal storage type to a temporary storage type. We don’t need the explicit instantiations any more and we can leave out pointers to storages when we build the domain. The new code looks as follows The temporary storages are allocated in the [</code></span> call and freed in <span>``</span>. Besides the simplifications in the code (no explicit storage needed), the concept of temporaries allows <span class="math inline"><em>GridTools</em></span> to apply optimization. Since the temporaries, by definition, are only visible inside a computation, <span class="math inline"><em>GridTools</em></span> is free to remove them if it does not break the semantics of the algorithm.</p>
+<h2 id="functor-calls">Functor calls</h2>
+<p>The next feature we want to use is the <em>function call</em>. This will allow us to get rid of the temporaries. In a first step we remove only one of the temporaries. Instead of calling the Laplacian twice from the <span><code>]{} we will move one of the calls into the smoothing functor. The new smoothing functor looks as follows In [</code></span> we specify the functor and the <span><code>]{}-method overload we want to apply. In [</code></span> the <span><code>]{} is passed forward followed by all the input arguments for the functor. The functor in the call is required to have exactly one [</code></span> which will be the return value of the call.</p>
+<p>The new setup looks as follows</p>
+<p>The attentive reader may have noticed that our first versions did more work than needed: we calculated the Laplacian of the Laplacian of phi (<span class="math inline"><em>Δ</em><em>Δ</em><em>ϕ</em></span>) for all <span class="math inline"><em>k</em></span>-levels, however we used it only for <span class="math inline"><em>k</em> &lt; <em>k</em><sub>max</sub></span>. In this version we do a bit better: we still calculate the Laplacian (<span class="math inline"><em>L</em> = <em>Δ</em><em>ϕ</em></span>) for all levels but we only calculate <span class="math inline"><em>Δ</em><em>L</em></span> for the levels where we need it.</p>
+<h4 id="outlook">Outlook</h4>
+<p>Eventually we would like to get rid of this problem (and the last temporary) in an elegant way with nested function calls as follows Unfortunately, this is currently not supported in <span class="math inline"><em>GridTools</em></span>[^4].</p>
+<h2 id="mm">Full code listing</h2>
+<p>The full compilable version of the code is given in <a href="#full_lap">Full code listing</a></p>
+<pre id="full_lap" class="cpp numberLines"><code>#include &lt;common/defs.hpp&gt;
+#include &lt;stencil-composition/stencil-composition.hpp&gt;
+
+using namespace gridtools;
+using namespace gridtools::enumtype;
+using namespace gridtools::expressions;
+
+constexpr static gridtools::dimension&lt; 1 &gt; i;
+constexpr static gridtools::dimension&lt; 2 &gt; j;
+constexpr static gridtools::dimension&lt; 3 &gt; k;
+
+#ifdef __CUDACC__
+using backend_t = backend&lt; Cuda, structured, Block &gt;;
+using layout_t = gridtools::layout_map&lt; 2, 1, 0 &gt;;
+#else
+using backend_t = backend&lt; Host, structured, Block &gt;;
+using layout_t = gridtools::layout_map&lt; 0, 1, 2 &gt;;
+#endif
+
+using storage_info_t = backend_t::storage_info&lt; 0, layout_t &gt;;
+using storage_t = backend_t::storage_type&lt; double, storage_info_t &gt;::type;
+/***/
+using lower_domain = interval&lt; level&lt; 0, -1 &gt;, level&lt; 1, -1 &gt; &gt;;
+using upper_domain = interval&lt; level&lt; 1, 1 &gt;, level&lt; 2, -1 &gt; &gt;;
+using full_domain = interval&lt; level&lt; 0, -1 &gt;, level&lt; 2, -1 &gt; &gt;;
+
+using axis = interval&lt; level&lt; 0, -2 &gt;, level&lt; 2, 1 &gt; &gt;;
+/***/
+struct lap_function {
+    using in = in_accessor&lt; 0, extent&lt; -1, 1, -1, 1 &gt; &gt;;
+    using lap = inout_accessor&lt; 1 &gt;;
+
+    using arg_list = boost::mpl::vector&lt; in, lap &gt;;
+
+    template &lt; typename Evaluation &gt;
+    GT_FUNCTION static void Do(Evaluation const &amp;eval, full_domain) {
+        eval(lap(i, j, k)) = -4. * eval(in(i, j, k)) /***/
+                             + eval(in(i + 1, j, k)) /***/
+                             + eval(in(i, j + 1, k)) /***/
+                             + eval(in(i - 1, j, k)) /***/
+                             + eval(in(i, j - 1, k));
+    }
+};
+/***/
+#include &lt;stencil-composition/structured_grids/call_interfaces.hpp&gt;
+struct smoothing_function_3 {
+    using phi = in_accessor&lt; 0 &gt;;
+    using lap = in_accessor&lt; 1, extent&lt; -1, 1, -1, 1 &gt; &gt;;
+    using out = inout_accessor&lt; 2 &gt;;
+
+    using arg_list = boost::mpl::vector&lt; phi, lap, out &gt;;
+
+    constexpr static double alpha = 0.5;
+
+    template &lt; typename Evaluation &gt;
+    GT_FUNCTION static void Do(Evaluation const &amp;eval, lower_domain) {
+        eval(out(i, j, k)) = eval(phi(i, j, k)) -
+                             alpha *                               /***/
+                                 call&lt; lap_function, full_domain &gt; /***/
+                                 ::with(eval, lap());
+    }
+
+    template &lt; typename Evaluation &gt;
+    GT_FUNCTION static void Do(Evaluation const &amp;eval, upper_domain) {
+        eval(out(i, j, k)) = eval(phi(i, j, k));
+    }
+};
+/***/
+int main() {
+
+    uint_t Ni = 10;
+    uint_t Nj = 12;
+    uint_t Nk = 20;
+    uint_t kmax = 10;
+
+    storage_info_t info(Ni, Nj, Nk);
+
+    int bs = 2; // boundary size
+    halo_descriptor boundary_i(bs, bs, bs, Ni - bs - 1, Ni);
+    halo_descriptor boundary_j(bs, bs, bs, Nj - bs - 1, Nj);
+    /***/
+    using temp_storage_t = /***/
+        backend_t::temporary_storage_type&lt; double, storage_info_t &gt;::type;
+
+    storage_t phi(info);
+    storage_t phi_new(info);
+
+    using arg_phi = arg&lt; 0, storage_t &gt;;
+    using arg_phi_new = arg&lt; 1, storage_t &gt;;
+    using arg_lap = arg&lt; 2, temp_storage_t &gt;;
+
+    using arg_list = boost::mpl::vector&lt; arg_phi, arg_phi_new, arg_lap &gt;;
+    aggregator_type&lt; arg_list &gt; /** */
+        domain(boost::fusion::make_vector(&amp;phi, &amp;phi_new));
+
+    grid&lt; axis &gt; my_grid(boundary_i, boundary_j);
+    my_grid.value_list[0] = 0;
+    my_grid.value_list[1] = kmax;
+    my_grid.value_list[2] = Nk - 1;
+
+    auto smoothing = make_computation&lt; backend_t &gt;(           /***/
+        domain,                                               /***/
+        my_grid,                                              /***/
+        make_multistage(                                      /***/
+            execute&lt; forward &gt;(),                             /***/
+            make_stage&lt; lap_function &gt;(arg_phi(), arg_lap()), /***/
+            make_stage&lt; smoothing_function_3 &gt;(               /***/
+                arg_phi(),                                    /***/
+                arg_lap(),                                    /***/
+                arg_phi_new())                                /***/
+            ));                                               /***/
+    /***/
+    smoothing-&gt;ready();
+    smoothing-&gt;steady();
+
+    smoothing-&gt;run();
+
+    smoothing-&gt;finalize();
+}</code></pre>
+<h2 id="how-to-pass-the-alpha-global-accessors">How to pass the <span class="math inline"><em>α</em></span>: Global accessors</h2>
+<h2 id="distributing-the-work-gcl">Distributing the work: GCL</h2>
+<h2 id="boundary-conditions">Boundary conditions</h2>
+<h1 id="storages">Storages</h1>
+<h2 id="simple-use-and-multidimensional-fields">Simple use and multidimensional fields</h2>
+<h2 id="ghost-dimensions">Ghost dimensions</h2>
+<h2 id="fields">Fields</h2>
+<h2 id="gpu-storages">GPU storages</h2>
+<h2 id="detailed-storage-configuration">Detailed storage configuration</h2>
+<h1 id="dsl-introduction">DSL introduction</h1>
+<h1 id="stencil-operators">Stencil Operators</h1>
+<p><em>Stencil operators</em> are the equivalent of <em>functors</em> in regular C++ code, or they may be considered to be the <em>GridTools functions</em>. They are assumed to have no side-effects and no status (this is why they are marked as <code>static</code>). As fuctions they have an <em>interface</em> and an <em>implementation</em>. The interface informs both the caller, on the order and types of arguments that have to be passed to it, and the implementation, on the names and types of the symbols available to it.</p>
+<p>The stencil operator specifies the computation to be performed in each point of the <a href="iteration%20space">Iteration Space</a> of the stencil computation (see [stencil composition documentation]). In the implementation, a point of the <a href="iteration%20space">Iteration Space</a> at which the stencil operator is called is referred to as <em>point of evaluation</em>.</p>
+<p>A stencil operator is a <code>class</code>, or a <code>struct</code>, with the following public properties:</p>
+<ul>
+<li>A list of <em>accessors types</em> that are associated to the <a href="data%20field">Data Field</a>s the stencil operator will access in its implementation.</li>
+<li>An <code>arg_list</code> listing all the accessors types defined above</li>
+<li>A set of <em>static template member functions</em> named <code>Do</code>, also referred to as <em><code>Do</code> methods</em>. To run on GPUs the function should also be a <a href="%60GT_FUNCTION%60">GT_FUNCTION</a>.</li>
+</ul>
+<p>See the <a href="#example">end of this Section for an example</a>.</p>
+<h2 id="stencil-operator-interface">Stencil Operator Interface</h2>
+<h3 id="accessor-type">Accessor type</h3>
+<p>There are three kinds of accessor: regular, <em>vector</em> and <em>global</em>. Regular accessors, or simply <em>accessors</em>, indicate an access to a regular <a href="data%20field">Data Field</a> of a grid. Vector accessors are used when accessing an <a href="expandable%20parameters%20data%20field">Expandable Parameters</a>, <em>global accessors</em> indicates that the data to be referred does not participate in the iteration and always <em>point</em> to a same <em>read only</em> datum to be used in the operator.</p>
+<p>An <em>accessor type</em> is a <code>using</code> statement with this form</p>
+<pre class="cpp"><code>using name = accessor&lt;I, intent, [location_type,] extent, N&gt;;</code></pre>
+<p>or</p>
+<pre class="cpp"><code>using name = global_accessor&lt;I&gt;;</code></pre>
+<ul>
+<li><p><code>name</code> is the name associated to the accessor and will be used in the implementation of the stencil operator. <em>Note:</em> <em>accessors names are technically optional, since their types can be substituted in all occurrences of their names. It is anyway part of the GridTools syntax, since a version not using them would be largely unreadable and very difficult to manage.</em></p></li>
+<li><p><code>I</code> is an integer index. The indices of the accessors in a given stencil operartors <em>must</em> be ranging from 0 to N-1, where N is the number of accessors used by the stencil operator. No index can be replicated. If these rules are not followed the compilation fails. This is the last argument provided to global accessors.</p></li>
+<li><p><code>intent</code> indicates the type of access the stencil operator makes to the data associated to the accessor. Possible extents are -- <code>enumtype::in</code> to specify <em>read-only</em> access -- <code>enumtyoe::inout</code> to specify <em>read-write</em> access. The <code>extent</code> for <code>inout</code>must be made of all zeros (see next points)</p></li>
+<li><p><code>location_type</code> indicate in which location the accessor is assumed to access data. This is only needed when using <em>irregular grids</em> and cannot be specified for regular grids. Reference to <a href="irregular%20grids%20documentation">Irregular Grids</a> for further details.</p></li>
+<li><p><code>extent</code> defines the maximum offsets at which the implementation will access data around the point of evaluation. Extents are templates that takes a list of pairs of integer numbers. Every pair identify a dimension of the iteration space. The first number (&lt;=0) indicates the offset in the direction of <em>decreasing</em> indices (also called <em>minus direction</em>), while the second (&gt;=0) indicates the offset in the direction of <em>increasing</em> indices (also called <em>plus direction</em>). For example <code>extent&lt; -1,1, 0,2, -2,1 &gt;</code> specifies an access of one element in the direction of decreasing indices (-1) and one in the direction of increasing indices (+1) in the first dimension; two elements in the plus direction (+2) and no elements in the minus direction (0) in the second dimension, and finally two elements in the minus direction and one in the plus for the third dimension. All the numbers are <em>defaulted to 0</em>, so that <code>extent&lt;&gt;</code>is a valid extent. <code>extent&lt;&gt;</code> is also the default extent of an accessor and can be omitted if the last template argument takes also the default value (see next point). <em>Note:</em> <em>An extent with smaller offsets that the ones the implementation is using will result in a runtime error, while extents bigger that the one actually accessed by the implementation will result in performance loss.</em></p></li>
+<li><p><code>N</code> identifies the number of dimensions of the <a href="data%20field">Data Field</a>. By default this value is set to 3. <em>Note:</em> <em>See [Advanced Access Specification] For more techniques to access data into a data field, especially of there are more that 3 dimensions.</em></p></li>
+</ul>
+<h3 id="arg_list">arg_list</h3>
+<p>The <code>arg_list</code> is a <code>using</code> statement like the following</p>
+<pre class="cpp"><code>using arg_list = accessor_list&lt; _accessors_ &gt;;</code></pre>
+<p>where <code>_accessors_</code> is a comma separated list of all the accessors specified before. <em>Note:</em> <em>this is necessary since C++ cannot infer what types have been defined as accessors.</em></p>
+<h3 id="do-method">Do method</h3>
+<p>The <code>Do</code> methods takes at most two(2) arguments, the type of the first one is the template type and it is usually called <code>Eval</code>. The second argument of the <code>Do</code> is a <em>vertical region</em>, discussed in [Splitter and Axis]. Multiple versions of the <code>Do</code> can be defined in the same stencil operator with different vertical region. <em>Note:</em> <em>there cannot be a <em>gaps</em> in the vertical regions of a given stencil operator. If an operator is not defined in a given region, which is in the middle of other regions used, then it must be defined anyway and left empty.</em></p>
+<p>A <code>Do</code> method can be defined with a single template argument, so to skip the vertical region. In this case there could be <em>only one</em> <code>Do</code> method implementation in the stencil operator that will be called for each point of the iteration space.</p>
+<p>The return statement of the <code>Do</code> method is usually <code>void</code>. In case of reduction a <code>Do</code> method should return a value that can be used in the reduction (i.e., the value returned should be convertible to the arguments of the reduction operator).</p>
+<h2 id="example">Example</h2>
+<pre class="cpp"><code>    struct flx_function {
+
+        using out = accessor&lt; 0, enumtype::inout &gt;;
+        using in  = accessor&lt; 1, enumtype::in, extent&lt; 0, 1, 0, 0 &gt; &gt;;
+        using lap = accessor&lt; 2, enumtype::in, extent&lt; 0, 1, 0, 0 &gt; &gt;;
+
+        using arg_list = accessor_list&lt; out, in, lap &gt; arg_list;
+
+        template &lt; typename Evaluation &gt;
+        GT_FUNCTION static void Do(Evaluation const &amp;eval, x_flx) {
+            eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
+            if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) &gt; 0) {
+                eval(out()) = 0.;
+            }
+        }
+    };</code></pre>
+<h2 id="implementation">Implementation</h2>
+<p>The implementation is specified in the body of the <code>Do</code> methods. The stencil operators can have other member functions that can be called from the <code>Do</code> methods. <a href="#do-method">The interface of the <code>Do</code> methods</a> has been already discussed in the previous section. In this Section we describe <a href="#using-eval-for-regular-grids">how data can be accessed</a> and <a href="#calling-other-operators">how other operators can be called</a> from within the <code>Do</code>'s body to perform a computation.</p>
+<h3 id="using-eval-for-regular-grids">Using eval For Regular Grids</h3>
+<p>Let us assume the <code>Do</code> methods has the following signature:</p>
+<pre class="cpp"><code>template &lt;typename Eval&gt;
+GT_FUNCTION static
+void Do(Eval const&amp; eval, region);</code></pre>
+<p>The way to access data corresponding to a certain data field passed to it, is to indicate the corresponding accessor as argument to the <code>eval</code> argument, as follow:</p>
+<pre class="cpp"><code>eval(accessor_name())</code></pre>
+<p><em>Note:</em> <em>The parentheses after <code>accessor_name</code> indicate the default constructor of the accessor. This is a technicality necessary to make the syntax legal in C++</em></p>
+<p>The previous syntax is said to <em>evaluate the accessor at the evaluation point</em>.</p>
+<p>For [Regular Grids] values can be accessed at offsets (relative to the evaluation point) passing to the constructor of the accessor a sequence of integer indices, as follows:</p>
+<pre class="cpp"><code>eval(accessor_name(1,0,-1))</code></pre>
+<p>This means to access an element at an offset of 1 in the first dimension (plus direction) of the iteration space, and an offset of 1 in the minus direction in the third dimension. A way to think of it is to consider the point of evaluation as a triplet <code>i</code>, <code>j</code> and <code>k</code>, and those offsets are added to the current index coordinates to identifying the actual value to access.</p>
+<p>The evaluation returns a reference to the value for accessors with <code>inout</code> intent, and a value for accessors with <code>in</code> intent. See <a href="#accessor-type">Intent section for more information on the intents</a>.</p>
+<p>The next example takes the difference between two value in the first dimension and assign it to the output field:</p>
+<pre class="cpp"><code>eval(out()) = eval(in()) - eval(in(1,0,0));</code></pre>
+<p>When using expressions, the previous example can be simplified to read:</p>
+<pre class="cpp"><code>eval(out()) = eval( in() -in(1,0,0) );</code></pre>
+<p>To use expressions and other more advanced techniques to access data and specifying offsets refer to [Advanced Access Specification].</p>
+<h3 id="using-eval-for-irregular-grids">Using eval For Irregular Grids</h3>
+<h3 id="calling-other-operators">Calling other operators</h3>
 <h4 id="regular-accessors">Regular Accessors</h4>
 <p>Regular accessors are proxy objects used to access <a href="data%20fields">Data Field</a> with any dimension. The access is performed by specifying increments (offsets) with respect to the current position of the stencil (iteration point).</p>
 <p>As described in the <a href="storage">Storage</a> documentation, a data field can be a contiguous array with arbitrary dimension, a vector of multidimensional arrays, or a kind of <em>matrix</em> of multidimensional arrays (possibly with empty elements). In order to avoid ambiguities we called <a href="space%20dimension">Space Dimension</a> the dimension of each multidimensional array (or <em>snapshot</em>), and <a href="field%20dimensions">Field Dimension</a> the dimensions identifying the position of the snapshot inside the vector (or matrix). Since the field dimensions are atmost two, we will identify them as <em>component dimension</em> and <em>snapshot dimension</em>, in line with their most intuitive use case, i.e. a vector representation of a time discretization.</p>
 <p>We introduce the accessors syntax with progressively more complex examples to explain how the different dimensions can be accessed.</p>
 <h5 id="space-dimensions">Space Dimensions</h5>
-<p>Let's start with an arbitrary dimensional array (a single <em>snapshot</em>). The API exposed is very intuitive. Suppose you have as first argument of the functor a 5 (space) dimentional snapshot as an input with null extent called <code>acc</code>. Then the accessor to use is the following: <code>c++ using acc = accessor&lt;0, enumtype::in, extent&lt;&gt;, 5&gt;;</code> We can access the 2 extra dimensions by specifying all the offsets <code>c++ acc(0,0,-1,2,2)</code> We can also assign a name to a dimension, and increment it using the following syntax, where we ignore the first two <code>0</code>s: <code>c++ dimension&lt;3&gt; k; dimension&lt;4&gt; c; dimension&lt;5&gt; t; acc(k-1, c+2, t+2)</code> In the latter API the order of the arguments is irrelevant <code>c++ dimension&lt;3&gt; k; dimension&lt;4&gt; c; dimension&lt;5&gt; t; acc(k-1, t+2, c+2) == acc(c+2, k-1, t+2)</code> Note that the second notation may greatly improve the readibility of the user functor body by exposing a matlab-like API, especially when high dimensionality is used.</p>
+<p>Let's start with an arbitrary dimensional array (a single <em>snapshot</em>). The API exposed is very intuitive. Suppose you have as first argument of the functor a 5 (space) dimentional snapshot as an input with null extent called <code>acc</code>. Then the accessor to use is the following:</p>
+<pre class="cpp"><code>using acc = accessor&lt;0, enumtype::in, extent&lt;&gt;, 5&gt;;</code></pre>
+<p>We can access the 2 extra dimensions by specifying all the offsets</p>
+<pre class="cpp"><code>acc(0,0,-1,2,2)</code></pre>
+<p>We can also assign a name to a dimension, and increment it using the following syntax, where we ignore the first two <code>0</code>s:</p>
+<pre class="cpp"><code>dimension&lt;3&gt; k; dimension&lt;4&gt; c; dimension&lt;5&gt; t;
+acc(k-1, c+2, t+2)</code></pre>
+<p>In the latter API the order of the arguments is irrelevant</p>
+<pre class="cpp"><code>dimension&lt;3&gt; k; dimension&lt;4&gt; c; dimension&lt;5&gt; t;
+acc(k-1, t+2, c+2) == acc(c+2, k-1, t+2)</code></pre>
+<p>Note that the second notation may greatly improve the readibility of the user functor body by exposing a matlab-like API, especially when high dimensionality is used.</p>
 <h5 id="field-dimensions">Field Dimensions</h5>
-<p>Specifying an offset for a field dimension works exactly as for the space dimension. So there is no way to distinguish the two only based on the user functor. Whether we are accessing a space dimension or a field dimension will depend only on the storage type which will be bound to the accessor, and not on the accessor itself. So in the example <code>c++ dimension&lt;3&gt; k; dimension&lt;4&gt; c; dimension&lt;5&gt; t; acc(k-1, c+2, t+2)</code> <code>c+2</code> may refer to an offset to the 4th dimension or the third components (the indices are zero based) of a vector field, while <code>t+2</code> may refer to the third snapshot of that component. Alternatively, if the storage passed in had 4 space dimensions, the <code>t+2</code> would have indicated the third component.</p>
+<p>Specifying an offset for a field dimension works exactly as for the space dimension. So there is no way to distinguish the two only based on the user functor. Whether we are accessing a space dimension or a field dimension will depend only on the storage type which will be bound to the accessor, and not on the accessor itself. So in the example</p>
+<pre class="cpp"><code>dimension&lt;3&gt; k; dimension&lt;4&gt; c; dimension&lt;5&gt; t;
+acc(k-1, c+2, t+2)</code></pre>
+<p><code>c+2</code> may refer to an offset to the 4th dimension or the third components (the indices are zero based) of a vector field, while <code>t+2</code> may refer to the third snapshot of that component. Alternatively, if the storage passed in had 4 space dimensions, the <code>t+2</code> would have indicated the third component.</p>
 <h5 id="accessor-alias">Accessor Alias</h5>
-<p>An accessor alias is a regular accessor which has an offset set at compile-time. For instance, say you have a vector field in <span class="math">$\mathbb R^3$</span> with components h, v, w. This vector field is accessed via an accessor called <code>vec</code> <code>c++ using vec = accessor&lt;0, enumtype::in, extent&lt;&gt;, 4&gt;;</code> However you may want to be able to refer to the third element of the vector with <code>w</code> sometimes in some expressions. You can do this defining an alias to the third component of the accessor: <code>c++ using w = alias&lt;vec, dimension&lt;4&gt; &gt;::set&lt;2&gt;;</code> The line above sets at compile-time the fourth offset to the value 2, so that we have the following equivalency: <code>c++ w() == vec(0,0,0,2)</code> which may contribute to considerably lighten the notation in complicated expressions. Note that you can still access the other dimensions with an offset, by using the alias. So that</p>
+<p>An accessor alias is a regular accessor which has an offset set at compile-time. For instance, say you have a vector field in <span class="math inline">$\mathbb R^3$</span> with components h, v, w. This vector field is accessed via an accessor called <code>vec</code></p>
+<pre class="cpp"><code>using vec = accessor&lt;0, enumtype::in, extent&lt;&gt;, 4&gt;;</code></pre>
+<p>However you may want to be able to refer to the third element of the vector with <code>w</code> sometimes in some expressions. You can do this defining an alias to the third component of the accessor:</p>
+<pre class="cpp"><code>using w = alias&lt;vec, dimension&lt;4&gt; &gt;::set&lt;2&gt;;</code></pre>
+<p>The line above sets at compile-time the fourth offset to the value 2, so that we have the following equivalency:</p>
+<pre class="cpp"><code>w() == vec(0,0,0,2)</code></pre>
+<p>which may contribute to considerably lighten the notation in complicated expressions. Note that you can still access the other dimensions with an offset, by using the alias. So that</p>
 <pre><code>dimension&lt;1&gt; i;
 dimension&lt;4&gt; q;
 w(i+1) == vel(i+1, q+2)</code></pre>
 <h5 id="expressions">Expressions</h5>
 <p>The Do method example provided in [Example] showed the basic syntax to access data.</p>
-<p><code>c++ template &lt; typename Evaluation &gt;         GT_FUNCTION static void Do(Evaluation &amp;eval) {             eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));             if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) &gt; 0) {                 eval(out()) = 0.;             }</code></p>
-<p>We can notice that the <code>eval</code> keyword is repeated several times, which is somehow tedious, especially when the expression is complicated it becaomes quickly very hard to read. It is possible to embed the expressions in a single eval, i.e. <code>c++ using namespace expressions; template &lt; typename Evaluation &gt;         GT_FUNCTION static void Do(Evaluation &amp;eval) {             eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));             if (eval(out() * (in(1, 0, 0) - in(0, 0, 0)) &gt; 0) {                 eval(out()) = 0.;             }</code> This is achieved by using the expressions namespace, in which the operations <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>pow&lt;2&gt;</code> are overloaded, and generate an expression to be evaluated. An example of its usage, demonstrating its effectiveness, can be found in the <a href="shallow%20water">Shallow Water</a> example.</p>
-<p>It is possible also to instantiate a compile time expression to be lazily evaluated, useful for instance if we want to evaluate it multiple times <code>c++ using namespace expressions; constexpr auto cond = out() * (in(1, 0, 0) - in(0, 0, 0); template &lt; typename Evaluation &gt;         GT_FUNCTION static void Do(Evaluation &amp;eval) {             eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));             if (eval(cond) &gt; 0) {                 eval(out()) = 0.;             }</code></p>
+<pre class="cpp"><code>template &lt; typename Evaluation &gt;
+        GT_FUNCTION static void Do(Evaluation &amp;eval) {
+            eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
+            if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) &gt; 0) {
+                eval(out()) = 0.;
+            }</code></pre>
+<p>We can notice that the <code>eval</code> keyword is repeated several times, which is somehow tedious, especially when the expression is complicated it becaomes quickly very hard to read. It is possible to embed the expressions in a single eval, i.e.</p>
+<pre class="cpp"><code>using namespace expressions;
+template &lt; typename Evaluation &gt;
+        GT_FUNCTION static void Do(Evaluation &amp;eval) {
+            eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
+            if (eval(out() * (in(1, 0, 0) - in(0, 0, 0)) &gt; 0) {
+                eval(out()) = 0.;
+            }</code></pre>
+<p>This is achieved by using the expressions namespace, in which the operations <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>pow&lt;2&gt;</code> are overloaded, and generate an expression to be evaluated. An example of its usage, demonstrating its effectiveness, can be found in the <a href="shallow%20water">Shallow Water</a> example.</p>
+<p>It is possible also to instantiate a compile time expression to be lazily evaluated, useful for instance if we want to evaluate it multiple times</p>
+<pre class="cpp"><code>using namespace expressions;
+constexpr auto cond = out() * (in(1, 0, 0) - in(0, 0, 0);
+template &lt; typename Evaluation &gt;
+        GT_FUNCTION static void Do(Evaluation &amp;eval) {
+            eval(out()) = eval(lap(1, 0, 0) - lap(0, 0, 0));
+            if (eval(cond) &gt; 0) {
+                eval(out()) = 0.;
+            }</code></pre>
 <h4 id="vector-accessors">Vector Accessors</h4>
 <p>Vector accessors are used when dealing with <a href="expandandable%20parameters">Expandable Parameters</a>, which are sequences of storages on which we want to perform the same operations. They implement a &quot;single stencil multiple storages&quot; pattern, as if the same stencil was applied to all the elements of the vector concurrently.</p>
 <p>This &quot;loop&quot; or &quot;vector operation&quot; is completely abstracted away from the API of the user function. The user has to define a <em>vector_accessor</em> as if it was a regular accessor, and the corresponding stencil will be executed multiple times, each time considering different elements in the vector.</p>
 <table>
 <tbody>
 <tr class="odd">
-<td align="left"><img src="figures/hint.gif" alt="Tip" />{ width=20px height=20px }</td>
-<td align="left"></td>
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">If multiple vector accessors are used in the same</td>
+<td>If multiple vector accessors are used in the same</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">stage, the corresponding expandable parameters</td>
+<td>stage, the corresponding expandable parameters</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">storage vectors must have the same length</td>
+<td>storage vectors must have the same length</td>
 </tr>
 </tbody>
 </table>
 <table>
 <tbody>
 <tr class="odd">
-<td align="left"><img src="figures/hint.gif" alt="Tip" />{ width=20px height=20px }</td>
-<td align="left"></td>
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">We can mix vector accessors with regular accessors.</td>
+<td>We can mix vector accessors with regular accessors.</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">In that case the regular accessor will be the same for</td>
+<td>In that case the regular accessor will be the same for</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">all the stage invocations, while the vector accessor</td>
+<td>all the stage invocations, while the vector accessor</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">will iterate over its components.</td>
+<td>will iterate over its components.</td>
 </tr>
 </tbody>
 </table>
@@ -891,101 +907,394 @@ w(i+1) == vel(i+1, q+2)</code></pre>
 <h4 id="global-accessors">Global Accessors</h4>
 <p>Global accessors are accessing read-only data which is independent of the current iteration point. For this reason <a href="intents">Intent</a>, <a href="extents">Extent</a> and <a href="offsets">Offset</a> cannot be specified for a global accessor. Here the term &quot;global&quot; means that the data is the same for the whole grid. An example can be a constant scalar parameter that you want to pass to the functor, or a user defined struct containing various configuration options.</p>
 <p>The API allows the user to define an arbitrary object deriving from <a href="global%20parameter">Global Parameter</a>, and pass it to the computation. The accessor associated with this global parameter must be a global accessor</p>
-<p><code>c++     using global_accessor&lt; 0 &gt; global_boundary;</code> Calling <code>eval</code> on the global accessor returns the user defined data structure. Supposing that this data structure contains a user function called <code>ordinal</code> returning an integer, we can write in the do method <code>c++     auto ordinal_ = eval(global_boundary()).ordinal();</code></p>
+<pre class="cpp"><code>    using global_accessor&lt; 0 &gt; global_boundary;</code></pre>
+<p>Calling <code>eval</code> on the global accessor returns the user defined data structure. Supposing that this data structure contains a user function called <code>ordinal</code> returning an integer, we can write in the do method</p>
+<pre class="cpp"><code>    auto ordinal_ = eval(global_boundary()).ordinal();</code></pre>
 <table>
 <tbody>
 <tr class="odd">
-<td align="left"><img src="figures/hint.gif" alt="Tip" />{ width=20px height=20px }</td>
-<td align="left"></td>
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">All the member functions defined in the user-defined</td>
+<td>All the member functions defined in the user-defined</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">data structure must be labeled with GT_FUNCTION, in</td>
+<td>data structure must be labeled with GT_FUNCTION, in</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">order for them to be callable from devices.</td>
+<td>order for them to be callable from devices.</td>
 </tr>
 </tbody>
 </table>
-<p>There is a special case for which we have a dedicated API: i.e. when the user defined object (the global parameter) defines parenthesis operator <code>operator()</code>, and we want to call that operator from the Do method. In that case the accessor's parenthesis operator can be used and the arguments will be automatically forwarded to the global parameter. An example is the case in which we want to pass a small matrix as a global parameter: <code>c++     using global_accessor&lt; 0 &gt; matrix;     auto elem = eval(matrix(i,j));</code> A useful example to understand this use case can be found in the <a href="extended4D%20example">Extended4D</a>.</p>
-<h4 id="expandable-parameters-1">Expandable Parameters</h4>
-<p>Expandable parameters implement a &quot;single stencil multiple storages&quot; pattern. They are useful when we have a vector of storages which have the same storage info, and we want to perform the same operation with all of them (a typical situation when implementing e.g. time differentiation schemes). Normally this could be achieved by creating a loop and running multiple computations, but this solution would be inefficient. Another possibility would be to create a storage_list, and use the <a href="vector%20accessors">Vector Accessor</a> inside the Do method to manually unroll the loop. This second option is tedious, does not allow dynamic vector length, i.e. it forces the size of the vector to be compile-time known. The expandable parameters API solves this problem elegantly, with a minimal code overhead.</p>
-<p>The user must collect the storage pointers in a <code>std::vector</code> <code>c++         using exp_param_t = std::vector&lt; pointer&lt; storage_t &gt; &gt;;         exp_param_t list_ = {             &amp;storage1, &amp;storage2, &amp;storage3, &amp;storage4, &amp;storage5, &amp;storage6, &amp;storage7, &amp;storage8};</code> This <code>std::vector</code> is then used as a storage type <code>exp_param_t</code> with no differences with respect to the regular storages.</p>
-<p>The implementation requires the user to specify an integer <code>expand_factor</code> when defining the computation:</p>
-<p><code>c++ auto comp_ = make_computation&lt; BACKEND &gt;(         expand_factor&lt;4&gt;,         domain_,         grid_,         make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor &gt;(p())));</code></p>
-<p>The vector of storages is then partitioned into chuncks of <code>expand_factor</code> size (with a remainder). Each chunck is unrolled whithin a computation, and for each chunck a different computation is instantiated. The remainder elements are then processed one by one. More information on how to access the expandable parameter storages inside a computation is given in the <a href="Vector%20Accessors">Vector Accessors</a> session (where also some of the constraints are reported).</p>
-<p>Summing up, the only differences with respect to the case without expandable parameters are: - an <code>expand_factor</code> has to be passed to the make_computation, defining the size of the chuncks of expandable parameters we want to unroll in each computation. - a <a href="vector%20accessor">Vector Accessor</a> has to be used instead of a regular one in the Do method - a <code>std::vector</code> of storage pointers has to be used instead of a single storage.</p>
-<p>All the rest is managed by <span class="math"><em>GridTools</em></span>, so that the user is not exposed to the complexity of the unrolling, he can reuse the code when the expand factor changes, and he can resize dynamically the expandable paramenters vector, for instance by adding or removing elements.</p>
+<p>There is a special case for which we have a dedicated API: i.e. when the user defined object (the global parameter) defines parenthesis operator <code>operator()</code>, and we want to call that operator from the Do method. In that case the accessor's parenthesis operator can be used and the arguments will be automatically forwarded to the global parameter. An example is the case in which we want to pass a small matrix as a global parameter:</p>
+<pre class="cpp"><code>    using global_accessor&lt; 0 &gt; matrix;
+    auto elem = eval(matrix(i,j));</code></pre>
+<p>A useful example to understand this use case can be found in the <a href="extended4D%20example">Extended4D</a>.</p>
+<h1 id="gridtools-execution-model">GridTools Execution Model</h1>
+<p>Stencil operations are executed in a three dimensional index space. This means that the iteration space (see <a href="CONCEPTS">Concepts</a>) is three dimensional. The first two dimensions of the iteration space, usually referred to as <code>I</code> and <code>J</code> dimensions identify the <code>IJ</code> plane. There is no prescription on how the stencil operators in different points of the <code>IJ</code> plane will be executed. Stencil operators in the third dimension of the iteration space, usually referred as <code>K</code> or vertical dimension, can have prescribe order of executions. There are three different ways of executing on the <code>K</code> dimension</p>
+<ul>
+<li><code>forward</code>: Index <code>k</code> in the vertical dimension is executed after index <code>k-1</code>, <code>0</code> is the first</li>
+<li><code>backward</code>: Index <code>k</code> in the vertical dimension is executed after index <code>k+1</code>. <code>0</code> is the last</li>
+<li><code>parallel</code>: No order is specified and execution can happen concurrently</li>
+</ul>
+<p>An execution strategy for a computation is idicated a <code>execute&lt; policy &gt;</code>, where <code>policy</code> is one of the <code>K</code> dimension execution orders.</p>
+<h2 id="preparing-arguments-storage-placeholders">Preparing arguments: storage placeholders</h2>
+<h2 id="vertical-regions-and-vertical-boundary-conditions">Vertical regions and vertical boundary conditions</h2>
+<h2 id="use-of-temporaries">Use of temporaries</h2>
+<h1 id="stencil-composition">Stencil Composition</h1>
+<p>The main component of <span class="math inline"><em>GridTools</em></span> provide the capability of composing different <em>elementary stencils</em>. An <em>elementary stencil</em> is the application of a single <a href="#stencil-operators">stencil operator</a> to an <a href="#concepts">iteration space</a>. The ability to fuse multiple elementary stencils allows the <span class="math inline"><em>GridTools</em></span> library to improve the memory locality of the computation by taking advantage of the produce consumer relations. In <span class="math inline"><em>GridTools</em></span> terminology we use the term <em>stage</em> to refer to an elementary stencil i when it is composed with other operations.</p>
+<p>The result of a composition is a <em>multi-stage computation</em>, also called <em>multi-stage stencil</em> or simply <em>stencil</em>. For reason of uniformity, a multi-stage computation with a singe stage, is still called a multi-stage, since the composition is generally assumed to take a list of stages, even if the stage is just one.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hintsmall.gif" alt="Tip" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>This decision put the emphasis on the fact that composition</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>is considered the main feature of <span class="math inline"><em>GridTools</em></span>. If your application</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>is made of a simple stencil, or stencils that cannot be</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>composed (see below), then <span class="math inline"><em>GridTools</em></span> may be not the right solution</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>for you.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><span class="math inline"><em>GridTools</em></span> allows multi-stage computations to be composed. The final composition, with the addition of a <a href="#concepts">grid and an aggregator</a> is simply called a <span class="math inline"><em>GridTools</em></span> <em>computation</em>, or simply <em>computation</em>.</p>
+<p>Before entering the details of what can be composed and what not, let us show first an example of a stencil composition: a simple horizontal diffusion stencil.</p>
+<p>First we need to specify the stages. A stage is specified by indicating a <a href="#stencil-operator">stencil operator</a> and some <a href="#placeholders">placeholders</a> to its arguments. The placeholders are alias to the actual arguments and are used to compute the data dependencies of the computation independently of the actual data fields that will be accessed by the computation. The syntax for specifying a stage uses an helper function called <code>make_stage</code>:</p>
+<pre class="cpp"><code>auto stage = make_stage&lt; operator &gt;(plc0(), plc1(), ...);</code></pre>
+<p>Where the <code>operator</code> is the stencil operator of the stage and the <code>plc</code>s are the placeholders. The number and the intent of the placeholders depend on the <a href="stencil-operator">stencil operator interface</a>.</p>
+<p>A multi-stage computation is a concatenation of stages, plus the indication of the <a href="#gridtools-execution-model">execution strategy</a> to be used for all the stages as in the following example for a diffusion operator.</p>
+<pre class="cpp"><code>auto multi_stage = make_multistage(
+    execute&lt; forward &gt;(),
+    make_stage&lt; lap_operator &gt;(p_lap(), p_in()),
+    make_stage&lt; flx_operator &gt;(p_flx(), p_in(), p_lap()),
+    make_stage&lt; fly_operator &gt;(p_fly(), p_in(), p_lap()),
+    make_stage&lt; out_operator &gt;(p_out(), p_in(), p_flx(), p_fly())
+);</code></pre>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hintsmall.gif" alt="Tip" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>It is not possible to make a multi-stage</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>computation with stages of different execution orders.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p>The data-dependence analysis of $ will determine the producer consumer relations and the extents at which each data field will be accessed. This information is then passed to the architecture specific backend for the execution.</p>
+<p>Before the computation can be executed, an aggregator, containing the references to the actual data to be processed and the grid, specifying the iteration space, must be provided. The final example is:</p>
+<pre class="cpp"><code>horizontal_diffusion = make_computation&lt; BACKEND &gt;(
+    aggregator, grid,
+    make_multistage(
+        execute&lt; forward &gt;(),
+        make_stage&lt; lap_operator &gt;(p_lap(), p_in()),
+        make_stage&lt; flx_operator &gt;(p_flx(), p_in(), p_lap()),
+        make_stage&lt; fly_operator &gt;(p_fly(), p_in(), p_lap()),
+        make_stage&lt; out_operator &gt;(p_out(), p_in(), p_flx(), p_fly())
+    )
+);</code></pre>
+<p>where <code>BACKEND</code> specifies the backend that will execute the computation.</p>
+<p>The execution of the stages are assumed to happen one after the other in the program order. This is quite important, since the data dependence is performed with this assumption. Some architectures provide different types of synchronization, and a user may gain a little more performance if they are more specific in the expression of the dependencies. For instance, we can assume the the <code>flx_operator</code> and <code>fly_operator</code> do not have producer-consumer dependencies the user can specify that they are independent:</p>
+<pre class="cpp"><code>horizontal_diffusion = make_computation&lt; BACKEND &gt;(
+    aggregator, grid,
+    make_multistage(
+        execute&lt; forward &gt;(),
+        make_stage&lt; lap_operator &gt;(p_lap(), p_in()),
+        make_independent(
+            make_stage&lt; flx_operator &gt;(p_flx(), p_in(), p_lap()),
+            make_stage&lt; fly_operator &gt;(p_fly(), p_in(), p_lap())),
+        make_stage&lt; out_operator &gt;(p_out(), p_in(), p_flx(), p_fly())
+    )
+);</code></pre>
+<p><code>make_independent</code> does not have impact on the data-dependence analysis but, potentially, only on the execution schedule.</p>
+<p>In general <code>make_computation</code> has the following signature:</p>
+<pre class="cpp"><code>make_computation&lt; BACKEND &gt;(aggregator, grid, multi_stage0[, other_multi_stages]);</code></pre>
+<p>A computation can then incorporate multiple multi-stage computations and they may have different execution policies. This is very useful for implementing computations that require two vertical swipes, one ascending and one descending, but has to be used with care. Before explaining the rules for using this feature, we provide a simple example of the syntax in this vertical advenction example:</p>
+<pre class="cpp"><code>vertical_advection = make_computation&lt; BACKEND &gt;
+    ( domain, grid,
+      make_multistage( execute&lt; forward &gt;(),
+                       make_stage&lt; forward_op &gt;(p_utens_stage(), p_wcon()),
+    ),
+    make_multistage( execute&lt; backward &gt;(),
+                     make_stage &lt; backward_op &gt;(p_utens_stage(), p_u_pos())
+    )
+);</code></pre>
+<p>This option is particularly useful on multi-core machines with caches, since the backend there can actively pass information between the two stages thus improving substantially the performance.</p>
+<p>Again the multi-stages in the same computation will be executed,logically in program order. Two multi-stage computations can be concatenated if the outputs of the stages that are used as input of the following obey the following rule: Let <code>u</code> be the output of a stage <code>S0</code> that is input the stage <code>S1</code>. The extent at which <code>u</code> is accessed by <code>S1</code> must be the point-extent, that is the access of <code>u</code> is point-wise, so no offsets of <code>u</code> can be accessed. This is because the parallel execution of the stages can produce non deterministic results otherwise. Certain backends do not fuse multiple multi-stage computations, so this effect could be not visible, but for portability, it is important that this rule is understood.</p>
+<p>There are other details that pertains <a href="#placeholders">placeholders</a>, <a href="#grid">grids</a>, <a href="#aggregator">aggregators</a> and also other <span class="math inline"><em>GridTools</em></span> constructs that can greatly improve performance of the computations, especially <a href="#software-managed-caches">caches</a></p>
+<h2 id="irregular-grids-syntax">Irregular Grids Syntax</h2>
+<h1 id="stencil-functions">Stencil Functions</h1>
 <h4 id="conditionals">Conditionals</h4>
 <p>Conditionals introduce two new syntactic elements in the <a href="computation%20grammar">Grammar</a>, namely <code>if_</code> and <code>switch_</code>. These implement run-time branches in the computation tree, i.e. one computation or another can be chosen based on the value of a runtime variable. Note that this is just syntactic sugar, as you could instantiate all the possible combinations of the computation tree and then choose which one to execute by querying the value of a runtime condition. This would work in the same way as the solution we will describe next, but it would create a code of an unmanageable size most of the time: suppose that inside a computation with 10 stages you want to choose among 5 possible versions of the last stage. You would have to create 5 different computations, in which the only difference is in the last stage, while the rest is repeated. This would be tedious and error-prone.</p>
 <p>The syntax we expose for <code>if_</code> statements is reported in the following example</p>
-<p><code>c++    auto cond = new_cond([&amp;flag]() { return flag; });    auto comp_ = make_computation&lt; BACKEND &gt;(                 domain_,                 grid_,                 if_(cond,                     make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor0 &gt;(p())),                     make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor1 &gt;(p()))));</code> In this example <code>cond</code> is defined as a predicate using the <code>new_cond</code> <span class="math"><em>GridTools</em></span> keyword. Note that this code will always only be executed on the host, so the predicate can access values which are available on the host, so captures by reference can be used. The correct way to interpret this syntax is that the call to <code>if_</code> returns one multistage o the other based on the return value of the predicate attached to <code>cond</code>.</p>
+<pre class="cpp"><code>   auto cond = new_cond([&amp;flag]() { return flag; });
+   auto comp_ = make_computation&lt; BACKEND &gt;(
+                domain_,
+                grid_,
+                if_(cond,
+                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor0 &gt;(p())),
+                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor1 &gt;(p()))));</code></pre>
+<p>In this example <code>cond</code> is defined as a predicate using the <code>new_cond</code> <span class="math inline"><em>GridTools</em></span> keyword. Note that this code will always only be executed on the host, so the predicate can access values which are available on the host, so captures by reference can be used. The correct way to interpret this syntax is that the call to <code>if_</code> returns one multistage o the other based on the return value of the predicate attached to <code>cond</code>.</p>
 <p>The value of <code>cond</code> is evaluated at every execution of the <code>comp_.run()</code> function.</p>
 <p>The conditionals can also be nested</p>
-<p><code>c++    auto cond = new_cond([]() { return false; });    auto cond2 = new_cond([]() { return true; });    auto comp_ = make_computation&lt; BACKEND &gt;(                 domain_,                 grid_,                 if_(cond,                     make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor0 &gt;(p())),                     if_(cond2,                         make_multistage(                             enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor1 &gt;(p())),                         make_multistage(                             enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor2 &gt;(p())))));</code></p>
-<p>The other syntactic element we introduce is a <code>switch_</code>, and its use is exemplified in the following snippet <code>c++    auto cond_ = new_switch_variable([&amp;p]() { return p ? 0 : 5; });    auto comp_ = make_computation&lt; BACKEND &gt;(        domain_,        grid_,        make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),            make_stage&lt; functor0 &gt;(p(), p_tmp()),            make_stage&lt; functor1 &gt;(p(), p_tmp())),        switch_(cond_,            case_(0,                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),                        make_stage&lt; functor1 &gt;(p(), p_tmp()),                        make_stage&lt; functor2 &gt;(p(), p_tmp()))),            case_(1,                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),                        make_stage&lt; functor1 &gt;(p(), p_tmp()),                        make_stage&lt; functor2 &gt;(p(), p_tmp()))),            case_(2,                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),                        make_stage&lt; functor1 &gt;(p(), p_tmp()),                        make_stage&lt; functor2 &gt;(p(), p_tmp()))),            case_(3,                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),                        make_stage&lt; functor1 &gt;(p(), p_tmp()),                        make_stage&lt; functor2 &gt;(p(), p_tmp()))),            case_(4,                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),                        make_stage&lt; functor1 &gt;(p(), p_tmp()),                        make_stage&lt; functor2 &gt;(p(), p_tmp())))))</code></p>
+<pre class="cpp"><code>   auto cond = new_cond([]() { return false; });
+   auto cond2 = new_cond([]() { return true; });
+   auto comp_ = make_computation&lt; BACKEND &gt;(
+                domain_,
+                grid_,
+                if_(cond,
+                    make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor0 &gt;(p())),
+                    if_(cond2,
+                        make_multistage(
+                            enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor1 &gt;(p())),
+                        make_multistage(
+                            enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor2 &gt;(p())))));</code></pre>
+<p>The other syntactic element we introduce is a <code>switch_</code>, and its use is exemplified in the following snippet</p>
+<pre class="cpp"><code>   auto cond_ = new_switch_variable([&amp;p]() { return p ? 0 : 5; });
+   auto comp_ = make_computation&lt; BACKEND &gt;(
+       domain_,
+       grid_,
+       make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+           make_stage&lt; functor0 &gt;(p(), p_tmp()),
+           make_stage&lt; functor1 &gt;(p(), p_tmp())),
+       switch_(cond_,
+           case_(0,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp()))),
+           case_(1,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp()))),
+           case_(2,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp()))),
+           case_(3,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp()))),
+           case_(4,
+                   make_multistage(enumtype::execute&lt; enumtype::forward &gt;(),
+                       make_stage&lt; functor1 &gt;(p(), p_tmp()),
+                       make_stage&lt; functor2 &gt;(p(), p_tmp())))))</code></pre>
 <p>As for the <code>if_</code> statement, <code>cond_</code> is evaluated at every call to <code>comp_-&gt;run()</code>, and the multistage executed in the two calls will be different.</p>
 <table>
 <tbody>
 <tr class="odd">
-<td align="left"><img src="figures/hint.gif" alt="Tip" />{ width=20px height=20px }</td>
-<td align="left"></td>
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">Also <code>switch_</code> can be nested, as the <code>if_</code>.</td>
+<td>Also <code>switch_</code> can be nested, as the <code>if_</code>.</td>
 </tr>
 </tbody>
 </table>
 <table>
 <tbody>
 <tr class="odd">
-<td align="left"><img src="figures/hint.gif" alt="Tip" />{ width=20px height=20px }</td>
-<td align="left"></td>
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">The effect of having different branches is that all the</td>
+<td>The effect of having different branches is that all the</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">possibilities get compiled, and only one gets chosen at</td>
+<td>possibilities get compiled, and only one gets chosen at</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">each run. Therefore having lot of branches can increase</td>
+<td>each run. Therefore having lot of branches can increase</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">dramatically the compilation times, you should not abuse</td>
+<td>dramatically the compilation times, you should not abuse</td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">of this feature.</td>
+<td>of this feature.</td>
 </tr>
 </tbody>
 </table>
 <table>
 <tbody>
 <tr class="odd">
-<td align="left"><img src="figures/hint.gif" alt="Tip" />{ width=20px height=20px }</td>
-<td align="left"></td>
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
 </tr>
 <tr class="even">
 <td align="left"></td>
-<td align="left">Currently there is a limitation. The different branches</td>
+<td>Currently there is a limitation. The different branches</td>
 </tr>
 <tr class="odd">
 <td align="left"></td>
-<td align="left">in the computation must use the same placeholders.</td>
+<td>in the computation must use the same placeholders.</td>
 </tr>
 </tbody>
 </table>
+<h1 id="reductions">Reductions</h1>
+<h1 id="details-for-performance">Details for performance</h1>
+<h2 id="fusion-and-organization-of-stages">Fusion and organization of stages</h2>
+<h1 id="software-managed-caches">Software Managed Caches</h1>
+<p>Software managed caches are provide significant optimization since they provide increased data locality for multi-stage stencils in architectures with user-managed address spaces with different performance tradeoffs. For instance, they allow the stencil algorithms to exploit texture memory, shared memory, and register files on GPUs in cases in which a compiler could not provide such optimizations.</p>
+<p>The user is responsible for detecting data reuse patterns and caching the corresponding fields in order to fully utilize the hardware resources essential for a good performance. The syntax provided by <span class="math inline"><em>GridTools</em></span> is independent of the type of hardware resources used by the library to store data and depends only on the access patterns of the fields by the stencil methods. An example of the syntax for caching certain fields of a <code>computation</code> is shown below</p>
+<pre class="cpp"><code>auto comp = make_computation&lt; BACKEND &gt;(
+    domain,
+    grid,
+    make_multistage(
+        execute&lt; forward &gt;(),
+        define_caches(cache&lt; IJ, local &gt;(p_f1(), p_f2())),
+        make_stage&lt; lap_function &gt;(p_f1(), p_f2(), p_in()),
+        make_stage&lt; lap_function &gt;(p_out(), p_f1(), p_f2())
+    )
+);</code></pre>
+<p>The cache DSL elements are enclosed into a <code>define_caches</code> construct, that accept any number of <code>cache</code> constructs. At the same time, each <code>cache</code> construct can specify multiple fields that shared the same access pattern.</p>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left"><img src="figures/hint.gif" alt="Tip" width="20" height="20" /></td>
+<td></td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>It is important to note that the <code>cache</code> specifications</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>are prescribing the behavior of the library: if a cache</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>is specified a cache will be used. Using too many caches</td>
+</tr>
+<tr class="odd">
+<td align="left"></td>
+<td>may cause over-use of hardware resources that may lead</td>
+</tr>
+<tr class="even">
+<td align="left"></td>
+<td>to decrease in performance.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>cache</code> construct adheres to the following syntax:</p>
+<pre><code>cache&lt; cache_type, io_policy, [interval] &gt;( p_args... ) </code></pre>
+<p>We now describe the details of each element of the cache constructs.</p>
+<h3 id="cache-type">Cache Type</h3>
+<p><code>cache_type</code> depends on the reuse pattern of the data fields. It's value can be one of the following (where we indicate the basic mean of implementation on the GPUs, so that the user can understand the amount of resources involved):</p>
+<ol style="list-style-type: decimal">
+<li><p><code>IJ_caches</code>: cache data fields whose access pattern lies in the IJ-plane (Implemented using the shared memory</p></li>
+<li><p><code>K_caches</code>: cache data field whose access pattern is restricted to the K-direction (implemented using the register file of GPUs)</p></li>
+<li><p><code>IJK_caches</code>: for data fields that are accessed in a three dimensions (not fully supported yet)</p></li>
+<li><p><code>Pointr_caches</code>: for data fields accessed multiple times in the point of evaluation only (not fully supported yet)</p></li>
+<li><p><code>bypass</code>: Special cache-type that express null or very little reuse within the stencil. This can be specified to disable the default use of texture memory for read only data fields that the library would use.</p></li>
+</ol>
+<p>Additionally the cache</p>
+<h3 id="cache-policy">Cache policy</h3>
+<p><code>cache_policy</code> specify what is the relation between the data in the cache and the data in the data fields. The possible values are:</p>
+<ol style="list-style-type: decimal">
+<li><p><code>fetch</code>: Before starting executing the stencil operators the data to be cached has to be fetched from the corresponding data fields into the corresponding cache</p></li>
+<li><p><code>flush</code>: After the execution of the stencil operators the data in the cache has to be written back into the data fields.</p></li>
+<li><p><code>fetch_and_flush</code>: The combination of <code>fetch</code> and <code>flush</code></p></li>
+<li><p><code>local</code>: The data will be produced by the stencil opertators and consumed by other operators of the multi-stage stencil.</p></li>
+</ol>
+<h3 id="interval">Interval</h3>
+<p>Not sure what to write here</p>
+<h3 id="p_args">p_args</h3>
+<p>The <code>p_args...</code> indicate a list of placeholders corresponding to the data fields for which the specified caching type and policy has been requested.</p>
+<h2 id="alignment-halo-of-storages">Alignment: halo of storages</h2>
+<h4 id="expandable-parameters">Expandable Parameters</h4>
+<p>Expandable parameters implement a &quot;single stencil multiple storages&quot; pattern. They are useful when we have a vector of storages which have the same storage info, and we want to perform the same operation with all of them (a typical situation when implementing e.g. time differentiation schemes). Normally this could be achieved by creating a loop and running multiple computations, but this solution would be inefficient. Another possibility would be to create a storage_list, and use the <a href="vector%20accessors">Vector Accessor</a> inside the Do method to manually unroll the loop. This second option is tedious, does not allow dynamic vector length, i.e. it forces the size of the vector to be compile-time known. The expandable parameters API solves this problem elegantly, with a minimal code overhead.</p>
+<p>The user must collect the storage pointers in a <code>std::vector</code></p>
+<pre class="cpp"><code>        using exp_param_t = std::vector&lt; pointer&lt; storage_t &gt; &gt;;
+        exp_param_t list_ = {
+            &amp;storage1, &amp;storage2, &amp;storage3, &amp;storage4, &amp;storage5, &amp;storage6, &amp;storage7, &amp;storage8};</code></pre>
+<p>This <code>std::vector</code> is then used as a storage type <code>exp_param_t</code> with no differences with respect to the regular storages.</p>
+<p>The implementation requires the user to specify an integer <code>expand_factor</code> when defining the computation:</p>
+<pre class="cpp"><code>auto comp_ = make_computation&lt; BACKEND &gt;(
+        expand_factor&lt;4&gt;,
+        domain_,
+        grid_,
+        make_multistage(enumtype::execute&lt; enumtype::forward &gt;(), make_stage&lt; functor &gt;(p())));</code></pre>
+<p>The vector of storages is then partitioned into chuncks of <code>expand_factor</code> size (with a remainder). Each chunck is unrolled whithin a computation, and for each chunck a different computation is instantiated. The remainder elements are then processed one by one. More information on how to access the expandable parameter storages inside a computation is given in the <a href="Vector%20Accessors">Vector Accessors</a> session (where also some of the constraints are reported).</p>
+<p>Summing up, the only differences with respect to the case without expandable parameters are: - an <code>expand_factor</code> has to be passed to the make_computation, defining the size of the chuncks of expandable parameters we want to unroll in each computation. - a <a href="vector%20accessor">Vector Accessor</a> has to be used instead of a regular one in the Do method - a <code>std::vector</code> of storage pointers has to be used instead of a single storage.</p>
+<p>All the rest is managed by <span class="math inline"><em>GridTools</em></span>, so that the user is not exposed to the complexity of the unrolling, he can reuse the code when the expand factor changes, and he can resize dynamically the expandable paramenters vector, for instance by adding or removing elements.</p>
+<h1 id="halo-updates">Halo Updates</h1>
+<h2 id="boundary-conditions">Boundary Conditions</h2>
+<h2 id="halo-exchanges">Halo Exchanges</h2>
+<h1 id="data-management">Data management</h1>
+<h1 id="interfacing-to-other-programming-languages">Interfacing to other programming languages</h1>
+<h1 id="benchmarking-stencils">Benchmarking stencils</h1>
+<h1 id="serialbox-and-porting-your-reference-application">SerialBox and porting your reference application</h1>
+<p>I'm here and I'm loving every minute of it</p>
+<h1 id="concepts">CONCEPTS</h1>
+<p><code>IterationPoint</code>: A tuple of indices.</p>
+<p><em>Note</em>: Usually generated by the backend</p>
+<p><code>IterationSpace</code>: A set <code>IterationPoint</code>s. An <code>IterationSpace</code> can be <em>tagged</em>, which means that the set of IterationPoints can be partitioned into sub-sets each of which associated with a tag. The tags are compile time <em>names</em> of the sub-iteration spaces that will be used to dispatch the proper computation in the right sub-set of the iteration space. In GridTools the iteration spaces are three-dimensional, so the IterationPoints are made of tuples of three elements.</p>
+<p><code>ExecutionOrder</code>: A partial order on an iteration space. This will be specified with keywords, like <code>forward</code>, <code>backward</code>, <code>parallel</code> that represent the <em>attributes</em> of the <code>ExecutionOrder</code> according to GridTools execution model (2 Dims are always parallel and the third may be sequential).</p>
+<p><code>LocationType</code>: A set of points called Locations (see the note below). Locations are associated with <code>IterationPoints</code> and unique integer IDs (<em>Note</em>: usually through affine isomorphism), not necessarily contiguous. <code>LocationTypes</code> specifies the interfaces to refer to <code>Locations</code>, usually using <code>LocationID operator()(...)</code>, which takes <code>IterationPoints</code> and returns Location IDs. The map between IDs and <code>IterationPoints</code> is bijective.</p>
+<p><em>Note</em>: The Location concept is not defined explicitly, and in many ways they are never really constructed. A LocationType represents the different entities of grid, for instance an edge, a vertex, and a center of a cell. The Locations are the actual edges, vertices, and centers.</p>
+<p><code>GridTopology</code>: A data structure representing the discretized (geometric) domain. A Grid is made of one or more <code>LocationType</code>s. The <code>GridTopology</code> specifies the maps between Locations in one <code>LocationType</code> to Locations in the other <code>Locationtype</code>s, using both Location IDs and <code>IterationPints</code>. (<em>Note</em>: Not all the mapping are necessary/needed, it depends on the operations requested by the application).</p>
+<p><code>Grid</code>: Given size information and <code>GridTopology</code>, a <code>Grid</code> provides the loop bounds for the executing a computation on specific <code>LocationTypes</code>.</p>
+<p><em>Note</em>: For example an iteration on the <code>LocationType</code> <code>edges</code> has different bounds than one on <code>vertices</code>.</p>
+<p><code>LayoutMap</code>: A (compile time) sequence of <code>N</code> integer values from <code>-1</code> to <code>k &lt;= N-1</code>. It is used to indicate the order of the dimensions in a affine-layout multidimensional array. A value <code>j</code> in position <code>i</code> indicates that dimension <code>i</code> has the <code>j</code>th stride (all ordinals and indices are 0-based) when strides are listed in descending order. A value of <code>-1</code> indicates that the dimension has a special treatment: any index used to access an element in that dimension and any size associated to it is ignored, and the associated stride is <code>0</code>.</p>
+<p><em>Note</em> : This can be used to implement logical fields that are constant along certain directions, or to implement lower dimensional arrays that have to be <em>oriented</em> with respect to a coordinate systems. A dimension with <code>-1</code> is called either <em>killed</em>, <em>masked</em> or <em>ghost</em>.</p>
+<p><code>StorageInfo</code>: This concept describes the dimensions, alignment and layout of a multidimensional array (the layout is assumed to be affine).</p>
+<p><code>DataStore</code>: Manages a logical array of values (<em>Note</em>: The values will be associated to locations of a specific location type <code>data_store</code> is created for). A <code>DataStore</code> is associated to a <code>StorageInfo</code>. A <code>DataStore</code> manages multiple address spaces and keeps track of the consistency of it (WE WOULD NEED TO DISCUSS WHAT KIND OF CONSISTENCY WE HAVE) (for instance keeping the state of a GPU storage), thus allowing the user to avoid common pitfalls when dealing with synchronization issues and the GridTools library to manage automatically the storage consistency. <code>DataStore</code>s are shallow copied, following a <em>shared pointer</em> semantics.</p>
+<p><code>DataStoreList</code>: A fixed length cyclic list of <code>DataStore</code>s with the same <code>StorageInfo</code>. Each element of the list may be referred to as Snapshot. A <code>StorageList</code> supports random access to the elements and shift_fwd and shift_bwd operations. A <code>DataStore</code> can be seen as a trivial <code>DataStoreList</code> with a single element. An element of a <code>DataStoreList</code> is also called <em>Snapshot</em>, since the concept is often used to keep solution of stencil applications in different time-steps. <em>Note</em>: <code>DataStoreList</code>s are never directly handled by the user. This is an intermediate concept to introduce the <code>DataStoreField</code>.</p>
+<p><code>DataStoreField</code>: A fixed length sequence of <code>DataStoreList</code>s or <code>DataStore</code>s, all associated to the same <code>StorageInfo</code>. Each element of the sequence is also called <em>component</em></p>
+<p><code>StorageView</code>: A <code>storage_view</code> class allows to access and modify the elements of a <code>DataStore</code> through tuple of indices. A <code>storage_view</code> can access the data in a specific address space managed by a <code>DataStore</code>. For instance, for a GPU enabled <code>DataStore</code>, a <code>storage_view</code> can be constructed to access data on the host, and another one to access data from the GPU, but not both simultaneously.</p>
+<p><code>Extent</code>: A class matching the Extent concept is specifying the size and shape of a neighborhood</p>
+<p><code>DataFieldAccessor</code>: An object with an interface to access one element of a data field and its neighbors. A data field may have multiple accessors with different interfaces. Depending on the Grid, the interface may comprise ways to access neighbors in other <code>LocationType</code>s.</p>
+<p><code>AccessorPack</code>: (from the C++ standard use of &quot;parameter pack&quot;) A list of <code>DataFieldAccessor</code>s.</p>
+<p><code>Splitter</code>: (See [[Splitters]]) A <code>Splitter</code> serves to split cells in two subsets. A splitter has an integer index.</p>
+<p><code>Level</code>: (See [[Splitters]]) A <code>Level</code> plus an integer value different than '0' indicating a cell around a <code>Splitter</code>.</p>
+<p><code>Intereval</code>: (See [[Splitters]]) A pair of <code>Level</code>s</p>
+<p><code>Axis</code>: (See [[Splitters]]) A <code>Level</code> that includes all the <code>Interval</code>s in a given computation.</p>
+<p><code>OperatorFunction</code>: A decorated class, also referred to as functor (improperly so), which provides <code>Do</code> methods each accepting two arguments: an template argument matching an <code>AccessorPack</code> and an <code>Interval</code>. The <code>Interval</code>s of the different <code>Do</code> overloads must define a contiguous and not overlapping <code>Axis</code>.</p>
+<p><em>Note</em>: The named accessors are not strictly necessary for the <code>OperatorFunction</code> to be well defined, they are useful shortcuts and they define mnemonics.</p>
+<p><em>Note</em>: The OperatorFunction is executed by calling a <code>static void void Do(...)</code> method. This was necessary in pre-C++11 versions, but now we can depart from requiring <code>static</code> (even though it may be useful to enforce it to prevent stateful classes).</p>
+<p><code>DataFieldPack</code>: An sequence of references to <code>DataField</code>s.</p>
+<p><code>Placeholder</code>:</p>
+<p><code>BoundOperator</code>: The association of an <code>OperatorFunction</code> to placeholders.</p>
+<p><code>MutliStageComputation</code>: A multi-stage computation is a partial order (DAG) on <code>BoundOperator</code>s associated with an <code>ExecutionOrder</code>.</p>
+<p><code>Computation</code>: A sequence of <code>MutliStageComputations</code> associated with a <code>DataFieldAggregator</code> and a <code>Grid</code>.</p>
+<p><em>Note</em>: The <code>Computation</code> deduces the <code>IterationSpace</code> from the <code>Grid</code> and the <code>ExecutionOrder</code> defined in the <code>MultiStageCompuptation</code>. The <code>Interval</code>s from the <code>OperatorFunction</code>s from which the <code>MultiStageComputation</code> is composed are taken into accoun to select the proper overloads of the <code>Do</code> member functions. The data is taken from the <code>DataFieldAggregator</code> and the <code>Placeholder</code>s. This specifies all the information needed to execute the computation.</p>
+<h1 id="refinement">Refinement</h1>
+<p><code>StructuredGrid</code>: <code>Grid</code></p>
+<p><code>IcosahedralGrid</code>: <code>Grid</code></p>
+<p><code>StructuredOperator</code>: <code>OperatorFuncion</code></p>
+<p><code>StructuredExtent</code>: <code>Extent</code></p>
+<p><code>UnstructuredExtent</code>: <code>Extent</code></p>
             </div>
     </div>
   </div>

@@ -15,7 +15,7 @@ if ! [[ $PYTHONPATH =~ .*pandocfilters.* ]]; then
 fi
 
 #GT_doc_structure.md 
-list_md_files="defines.md GT_doc_structure.md Installation.md Quick_Start_Guide.md accessor.md expandable_parameters.md conditional_switches.md"
+list_md_files="defines.md GT_doc_structure.md"
 
 
 ## How to generate html with highgligh.js in order to highgligh GT keywords
