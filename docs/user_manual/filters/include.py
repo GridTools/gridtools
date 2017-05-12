@@ -59,9 +59,9 @@ def code_include(key, value, format, meta):
                     raise ValueError("Only one file at a time can be included")
 
 
-                (v, out) = cm.getstatusoutput('pandoc ' + code + ' --from markdown --to json ')
+                (v, out) = cm.getstatusoutput('pandoc defines.md ' + code + ' --from markdown --to json ')
                 if v != 0:
-                    raise ValueError("Something went wrong: maybe included file was not found")
+                    raise ValueError("Something went wrong: maybe included file " + code + " GTwas not found")
 
                 source = out.decode('utf-8')
 
