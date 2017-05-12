@@ -43,7 +43,7 @@
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../interval.hpp"           // to check if region is valid
 #include "../iterate_domain_fwd.hpp" // to statically check arguments
-#include "./accessor.hpp"
+#include "../accessor.hpp"
 #include "./call_interfaces_metafunctions.hpp"
 #include "../functor_decorator.hpp"
 
