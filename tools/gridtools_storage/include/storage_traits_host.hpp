@@ -38,7 +38,7 @@
 
 #include "common/definitions.hpp"
 #include "common/storage_traits_metafunctions.hpp"
-#include "common/selector.hpp"
+#include "../common/selector.hpp"
 #include "storage_host/data_field_view_helpers.hpp"
 #include "storage_host/data_view_helpers.hpp"
 #include "storage_host/storage.hpp"
@@ -48,7 +48,7 @@ namespace gridtools {
     template < enumtype::platform T >
     struct storage_traits_from_id;
 
-    /** @brief traits for the Host backend*/
+    /** @brief storage traits for the Host backend*/
     template <>
     struct storage_traits_from_id< enumtype::Host > {
 

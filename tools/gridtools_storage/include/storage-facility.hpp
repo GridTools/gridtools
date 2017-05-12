@@ -33,44 +33,28 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
 
-#include "common/definitions.hpp"
-#include "common/layout_map.hpp"
-#include "common/data_store.hpp"
-#include "common/data_store_field.hpp"
+#include <boost/mpl/bool.hpp>
 
-#ifdef __CUDACC__
-#include "storage_traits_cuda.hpp"
-#endif
-#include "storage_traits_host.hpp"
+#include "defs.hpp"
 
 namespace gridtools {
 
-    template < enumtype::platform T >
-    struct storage_traits : gridtools::storage_traits_from_id< T > {
-      private:
-        template < typename ValueType >
-        using storage_t = typename gridtools::storage_traits_from_id< T >::template select_storage< ValueType >::type;
-
-      public:
-        template < unsigned Id, unsigned Dims, typename Halo = typename zero_halo< Dims >::type >
-        using storage_info_t =
-            typename gridtools::storage_traits_from_id< T >::template select_storage_info< Id, Dims, Halo >::type;
-
-        template < unsigned Id, typename LayoutMap, typename Halo = typename zero_halo< LayoutMap::length >::type >
-        using custom_layout_storage_info_t = typename gridtools::storage_traits_from_id<
-            T >::template select_custom_layout_storage_info< Id, LayoutMap, Halo >::type;
-
-        template < unsigned Id, typename Selector, typename Halo = typename zero_halo< Selector::size >::type >
-        using special_storage_info_t = typename gridtools::storage_traits_from_id<
-            T >::template select_special_storage_info< Id, Selector, Halo >::type;
-
-        template < typename ValueType, typename StorageInfo >
-        using data_store_t = data_store< storage_t< ValueType >, StorageInfo >;
-
-        template < typename ValueType, typename StorageInfo, unsigned... N >
-        using data_store_field_t = data_store_field< data_store_t< ValueType, StorageInfo >, N... >;
+    /**
+     *  @brief A class that is used as a selector when selecting which dimensions should be masked.
+     *  E.g., Lets say we want to have a 3-dimensional storage but second dimension should be masked
+     *  we have to pass following selector selector<1,0,1> to the storage-facility.
+     *  @tparam Bitmask bitmask defining the masked and unmasked dimensions
+     */
+    template < bool... Bitmask >
+    struct selector {
+        static constexpr unsigned size = sizeof...(Bitmask);
     };
+
+    template < typename T >
+    struct is_selector : boost::mpl::false_ {};
+
+    template < bool... Bitmask >
+    struct is_selector< selector< Bitmask... > > : boost::mpl::true_ {};
 }

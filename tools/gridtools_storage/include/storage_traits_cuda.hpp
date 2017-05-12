@@ -38,7 +38,7 @@
 
 #include "common/definitions.hpp"
 #include "common/storage_traits_metafunctions.hpp"
-#include "common/selector.hpp"
+#include "../common/selector.hpp"
 #include "storage_cuda/data_field_view_helpers.hpp"
 #include "storage_cuda/data_view_helpers.hpp"
 #include "storage_cuda/storage.hpp"
@@ -48,7 +48,7 @@ namespace gridtools {
     template < enumtype::platform T >
     struct storage_traits_from_id;
 
-    /** @brief traits for the CUDA backend*/
+    /** @brief storage traits for the CUDA backend*/
     template <>
     struct storage_traits_from_id< enumtype::Cuda > {
 

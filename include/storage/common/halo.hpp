@@ -43,35 +43,53 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/plus.hpp>
 
+#include "../../common/variadic_pack_metafunctions.hpp"
+#include "../../common/generic_metafunctions/repeat_template.hpp"
+
 namespace gridtools {
 
+    /**
+     *  @brief A class that is used to pass halo information to the storage info.
+     *  E.g., Lets say we want to retrieve a storage_info instance with a halo
+     *  of 2 in I and J direction. We have to pass following type to the storage-facility
+     *  halo<2,2,0>. The I and J dimensions of the storage will be extended by 2
+     *  in + and - direction.
+     *  @tparam N variadic list of halo sizes
+     */
     template < unsigned... N >
     struct halo {
-        static constexpr unsigned value[sizeof...(N)] = {N...};
 
+        /**
+         * @brief member function used to query the halo size of a given dimension
+         * @tparam V Dimension or coordinate to query
+         * @return halo size
+         */
         template < unsigned V >
         static constexpr unsigned at() {
             static_assert((V < sizeof...(N)), "Out of bounds access in halo type discovered.");
-            return value[V];
+            return get_value_from_pack(V, N...);
         }
 
-        static constexpr unsigned at(unsigned V) { return value[V]; }
+        /**
+         * @brief member function used to query the halo size of a given dimension
+         * @param V Dimension or coordinate to query
+         * @return halo size
+         */
+        static constexpr unsigned at(unsigned V) { return get_value_from_pack(V, N...); }
 
+        /**
+         * @brief member function used to query the number of dimensions. E.g., a halo
+         * type with 3 entries cannot be passed to a <3 or >3 dimensional storage_info.
+         * @return number of dimensions
+         */
         static constexpr unsigned size() { return sizeof...(N); }
     };
 
-    /* used to generate a zero initialzed halo. Used as a default value for storage info halo. */
-    template < unsigned Cnt, unsigned... Vals >
-    struct zero_halo : zero_halo< Cnt - 1, 0, Vals... > {};
-
-    template < unsigned... Vals >
-    struct zero_halo< 0, Vals... > {
-        typedef typename boost::mpl::accumulate< boost::mpl::vector< boost::mpl::int_< Vals >... >,
-            boost::mpl::int_< 0 >,
-            boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 > >::type sum;
-        static_assert((sum::value == 0), "Failed to create a zero halo type");
-        typedef halo< Vals... > type;
-    };
+    /**
+     *  @brief Used to generate a zero initialzed halo. Used as a default value for storage info halo.
+     */
+    template < unsigned Cnt >
+    using zero_halo = typename repeat_template_c< 0, Cnt, halo >::type;
 
     /* used to check if a given type is a halo type */
     template < typename T >

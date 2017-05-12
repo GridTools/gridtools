@@ -74,7 +74,7 @@ namespace gridtools {
         verify_helper(StorageType const &exp_field,
             StorageType const &actual_field,
             uint_t field_id,
-            array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::length > const &halos,
+            array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > const &halos,
             double precision)
             : m_exp_field(exp_field), m_actual_field(actual_field), m_field_id(field_id), m_precision(precision),
               m_halos(halos) {}
@@ -104,7 +104,7 @@ namespace gridtools {
         StorageType const &m_actual_field;
         double m_precision;
         uint_t m_field_id;
-        array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::length > const &m_halos;
+        array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > const &m_halos;
     };
 
     template < uint_t NCoord, typename StorageType >
@@ -112,7 +112,7 @@ namespace gridtools {
         verify_helper(StorageType const &exp_field,
             StorageType const &actual_field,
             uint_t field_id,
-            array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::length > const &halos,
+            array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > const &halos,
             double precision)
             : m_exp_field(exp_field), m_actual_field(actual_field), m_field_id(field_id), m_precision(precision),
               m_halos(halos) {}
@@ -143,7 +143,7 @@ namespace gridtools {
         StorageType const &m_actual_field;
         uint_t m_field_id;
         double m_precision;
-        array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::length > const &m_halos;
+        array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > const &m_halos;
     };
 
     template < uint_t NDim, typename Grid, typename StorageType >
@@ -151,7 +151,7 @@ namespace gridtools {
         StorageType const &exp_field,
         StorageType const &actual_field,
         uint_t field_id,
-        array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::length > halos,
+        array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > halos,
         double precision) {
         typename StorageType::storage_info_t const &meta = *(exp_field.get_storage_info_ptr());
 
@@ -182,12 +182,12 @@ namespace gridtools {
         bool verify(Grid const &grid_,
             StorageType const &field1,
             StorageType const &field2,
-            const array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::length > halos) {
+            const array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > halos) {
 
             bool verified = true;
 
             for (gridtools::uint_t f = 0; f < 1; ++f) {
-                verified = verify_functor< StorageType::storage_info_t::layout_t::length >(
+                verified = verify_functor< StorageType::storage_info_t::layout_t::masked_length >(
                     grid_, field1, field2, f, halos, m_precision);
             }
             return verified;

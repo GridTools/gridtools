@@ -33,46 +33,21 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 
-#include "gtest/gtest.h"
+#include <boost/noncopyable.hpp>
 
-#include "common/storage_interface.hpp"
+namespace gridtools {
 
-using namespace gridtools;
-
-// storage that implements the storage_interface
-struct host_storage : storage_interface< host_storage > {
-    int a;
-    host_storage(unsigned i) : a(i) {}
-    void clone_to_device_impl() { a *= 2; }
-};
-
-// another storage that implements the storage_interface
-struct cuda_storage : storage_interface< cuda_storage > {
-    int a;
-    cuda_storage(unsigned i) : a(i) {}
-    void clone_to_device_impl() { a *= 3; }
-};
-
-TEST(StorageInterface, Simple) {
-    host_storage h(10);
-    cuda_storage c(10);
-
-    EXPECT_EQ(h.a, 10);
-    EXPECT_EQ(c.a, 10);
-
-    h.clone_to_device();
-    c.clone_to_device();
-
-    EXPECT_EQ(h.a, 20);
-    EXPECT_EQ(c.a, 30);
-}
-
-TEST(StorageInterface, Sizes) {
-    cuda_storage c(10);
-    host_storage h(10);
-    // the sizes should stay 1, because the idea is that the
-    // storage interface is only providing a set of methods
-    EXPECT_EQ(sizeof(storage_interface< host_storage >), 1);
-    EXPECT_EQ(sizeof(storage_interface< cuda_storage >), 1);
+    /**
+     *  @brief A class that represents the state machine that is used to determine
+     *  if a storage is currently on the host or on the device and if the
+     *  data on the host or the device is outdated and needs to be updated.
+     *  Instances of this class are noncopyable.
+     */
+    struct state_machine : boost::noncopyable {
+        bool m_hnu; // hnu = host needs update, set to true if a non-read-only device view is instantiated.
+        bool m_dnu; // dnu = device needs update, set to true if a non-read-only host view is instantiated.
+        state_machine() : m_hnu(false), m_dnu(false) {}
+    };
 }

@@ -33,32 +33,50 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
 
-#ifndef DEFS_GUARD
+#include <assert.h>
+#include <stdexcept>
 
-#ifndef GT_FUNCTION
-#ifdef __CUDACC__
-#define GT_FUNCTION __host__ __device__
+#include "host_device.hpp"
+
+namespace gridtools {
+
+    /**
+     * @brief This struct is used to trigger runtime errors. The reason
+     * for having a struct is simply that this element can be used in
+     * constexpr functions while a simple call to e.g., std::runtime_error
+     * would not compile.
+     */
+    struct error {
+
+        template < typename T >
+        GT_FUNCTION static T get(char const *msg) {
+#ifdef __CUDA_ARCH__
+            assert(false);
+            return *((T volatile *)(0x0));
 #else
-#define GT_FUNCTION
+            throw std::runtime_error(msg);
+            assert(false);
 #endif
-#endif
+        }
 
-namespace gridtools {
-    namespace enumtype {
-        enum platform { Cuda, Host };
-    }
-}
+        template < typename T = unsigned >
+        GT_FUNCTION static constexpr T trigger(char const *msg = "Error triggered") {
+            return get< T >(msg);
+        }
+    };
 
-#define PLATFORM_GUARD
-
-#endif
-
-namespace gridtools {
-    namespace enumtype {
-        enum access_mode { ReadWrite = 0, ReadOnly = 1 };
-        enum ownership { Full = 0, ExternalGPU = 1, ExternalCPU = 2 };
+    /**
+     * @brief Helper struct used to throw an error if the condition is not met.
+     * Otherwise the provided result is returned. This method can be used in constexprs.
+     * @tparam T return type
+     * @param cond condition that should be true
+     * @param res result value
+     * @param msg error message if condition is not met
+     */
+    template < typename T >
+    constexpr T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
+        return cond ? res : error::trigger< T >(msg);
     }
 }

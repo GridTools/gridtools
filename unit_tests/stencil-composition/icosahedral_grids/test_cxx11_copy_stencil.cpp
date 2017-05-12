@@ -93,6 +93,9 @@ TEST(test_copy_stencil, run) {
     auto inv = make_host_view(in_cells);
     auto outv = make_host_view(out_cells);
 
+    auto inv = make_host_view(in_cells);
+    auto outv = make_host_view(out_cells);
+
     for (int i = 0; i < d1; ++i) {
         for (int c = 0; c < 2; ++c) {
             for (int j = 0; j < d2; ++j) {

@@ -451,10 +451,10 @@ namespace gridtools {
         }
 
         virtual reduction_type_t run() {
-            // check if all views are still valid, otherwise we have to call steady again
-            _impl::check_view_validity< DomainType > check_views(m_domain);
+            // check if all views are still consistent, otherwise we have to call steady again
+            _impl::check_view_consistency< DomainType > check_views(m_domain);
             boost::fusion::for_each(m_view_list, check_views);
-            if (!check_views.is_valid()) {
+            if (!check_views.is_consistent()) {
                 steady();
             }
 

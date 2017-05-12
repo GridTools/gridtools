@@ -281,7 +281,6 @@ namespace gridtools {
                 auto storage_info = Backend::template instantiate_storage_info< MaxExtent, T >(m_grid);
                 // create a storage and fill the aggregator
                 auto ptr = gridtools::pointer< typename T::storage_t >(new typename T::storage_t(storage_info));
-                ptr.get()->allocate();
                 m_agg.template set_arg_storage_pair< typename T::arg_t >(ptr);
             }
 
@@ -319,21 +318,21 @@ namespace gridtools {
         /** @brief Metafunction class used to get the view type */
         // TODO: ReadOnly support...
         struct get_view_t {
-            template < typename Elem, bool ReadOnly = false, typename Enable = void >
+            template < typename Elem, access_mode AccessMode = access_mode::ReadWrite, typename Enable = void >
             struct apply;
 
-            template < typename Elem, bool ReadOnly >
-            struct apply< Elem, ReadOnly, typename boost::enable_if< is_data_store< Elem > >::type > {
+            template < typename Elem, access_mode AccessMode >
+            struct apply< Elem, AccessMode, typename boost::enable_if< is_data_store< Elem > >::type > {
                 // we can use make_host_view here because the type is the
                 // same for make_device_view and make_host_view.
-                typedef decltype(make_host_view< ReadOnly, Elem >(std::declval< Elem & >())) type;
+                typedef decltype(make_host_view< AccessMode, Elem >(std::declval< Elem & >())) type;
             };
 
-            template < typename Elem, bool ReadOnly >
-            struct apply< Elem, ReadOnly, typename boost::enable_if< is_data_store_field< Elem > >::type > {
+            template < typename Elem, access_mode AccessMode >
+            struct apply< Elem, AccessMode, typename boost::enable_if< is_data_store_field< Elem > >::type > {
                 // we can use make_field_host_view here because the type is the
                 // same for make_field_device_view and make_field_host_view.
-                typedef decltype(make_field_host_view< ReadOnly, Elem >(std::declval< Elem & >())) type;
+                typedef decltype(make_field_host_view< AccessMode, Elem >(std::declval< Elem & >())) type;
             };
         };
 
@@ -357,13 +356,13 @@ namespace gridtools {
             };
         };
 
-        /** @brief Functor used to check the validity of all views */
+        /** @brief Functor used to check the consistency of all views */
         template < typename AggregatorType >
-        struct check_view_validity {
+        struct check_view_consistency {
             AggregatorType const &m_aggregator;
             mutable bool m_valid;
 
-            check_view_validity(AggregatorType const &aggregator) : m_aggregator(aggregator), m_valid(true) {}
+            check_view_consistency(AggregatorType const &aggregator) : m_aggregator(aggregator), m_valid(true) {}
 
             template < typename T,
                 typename boost::disable_if< is_tmp_arg< typename boost::fusion::result_of::first< T >::type >,
@@ -371,7 +370,7 @@ namespace gridtools {
             void operator()(T const &v) const {
                 auto ds =
                     m_aggregator.template get_arg_storage_pair< typename boost::fusion::result_of::first< T >::type >();
-                m_valid &= valid(*(ds.ptr), v.second);
+                m_valid &= check_consistency(*(ds.ptr), v.second);
             }
 
             template < typename T,
@@ -379,7 +378,7 @@ namespace gridtools {
                     int >::type = 0 >
             void operator()(T const &v) const {}
 
-            bool is_valid() const { return m_valid; }
+            bool is_consistent() const { return m_valid; }
         };
 
         /** @brief Functor used to instantiate the storage_wrappers */

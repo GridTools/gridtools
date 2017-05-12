@@ -1,4 +1,3 @@
-
 /*
   GridTools Libraries
 
@@ -68,7 +67,7 @@ namespace data_store_field_test {
         typedef boost::mpl::vector< pin, pout > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             // copy first component elements
             eval(pout(comp(0), snap(0))) = eval(pin(comp(0), snap(0)));
             // copy second component elements
@@ -95,9 +94,6 @@ namespace data_store_field_test {
         storage_info_ty si(d1, d2, d3);
         data_store_field_t dsf_in(si);
         data_store_field_t dsf_out(si);
-
-        dsf_in.allocate();
-        dsf_out.allocate();
 
         auto hv_in = make_field_host_view(dsf_in);
         auto hv_out = make_field_host_view(dsf_out);

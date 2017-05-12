@@ -80,8 +80,6 @@ namespace test_copy_stencil_icosahedral {
 
         auto storage1 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage1");
         auto storage10 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage10");
-        storage1.allocate();
-        storage10.allocate();
 
         auto icv = make_host_view(storage1);
         auto ocv = make_host_view(storage10);

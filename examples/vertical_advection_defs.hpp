@@ -37,7 +37,6 @@
 #pragma once
 #include <stencil-composition/stencil-composition.hpp>
 #include <gridtools.hpp>
-#include <storage-facility.hpp>
 
 namespace vertical_advection {
 

@@ -526,13 +526,16 @@ namespace shallow_water {
 #ifndef NDEBUG
 #ifndef __CUDACC__
             auto view = make_field_host_view(sol);
+            auto view00 = view.get< 0, 0 >();
+            auto view10 = view.get< 1, 0 >();
+            auto view20 = view.get< 2, 0 >();
             myfile << "INITIALIZED VALUES" << std::endl;
             for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
                 for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
                     for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
-                        myfile << view.get_value< 0, 0 >(i, j, k) << std::endl;
-                        myfile << view.get_value< 1, 0 >(i, j, k) << std::endl;
-                        myfile << view.get_value< 2, 0 >(i, j, k) << std::endl;
+                        myfile << view00(i, j, k) << std::endl;
+                        myfile << view10(i, j, k) << std::endl;
+                        myfile << view20(i, j, k) << std::endl;
                     }
                 }
             }
@@ -559,12 +562,15 @@ namespace shallow_water {
 #ifndef __CUDACC__
         myfile << "############## SOLUTION ################" << std::endl;
         auto view = make_field_host_view(sol);
+        auto view00 = view.get< 0, 0 >();
+        auto view10 = view.get< 1, 0 >();
+        auto view20 = view.get< 2, 0 >();
         for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
             for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
                 for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
-                    myfile << view.get_value< 0, 0 >(i, j, k) << std::endl;
-                    myfile << view.get_value< 1, 0 >(i, j, k) << std::endl;
-                    myfile << view.get_value< 2, 0 >(i, j, k) << std::endl;
+                    myfile << view00(i, j, k) << std::endl;
+                    myfile << view10(i, j, k) << std::endl;
+                    myfile << view20(i, j, k) << std::endl;
                 }
             }
         }
@@ -577,19 +583,22 @@ namespace shallow_water {
         for (uint_t t = 0; t < total_time; ++t) {
             reference.iterate();
         }
-        for (int i = 0; i < sol_type::size; ++i) {
+        for (int i = 0; i < sol_type::num_of_storages; ++i) {
             retval &= check_result.verify(grid, sol.get_field()[i], reference.solution.get_field()[i], halos);
         }
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;
         view = make_field_host_view(reference.solution);
+        view00 = view.get< 0, 0 >();
+        view10 = view.get< 1, 0 >();
+        view20 = view.get< 2, 0 >();
         for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
             for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
                 for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
-                    myfile << view.get_value< 0, 0 >(i, j, k) << std::endl;
-                    myfile << view.get_value< 1, 0 >(i, j, k) << std::endl;
-                    myfile << view.get_value< 2, 0 >(i, j, k) << std::endl;
+                    myfile << view00(i, j, k) << std::endl;
+                    myfile << view10(i, j, k) << std::endl;
+                    myfile << view20(i, j, k) << std::endl;
                 }
             }
         }
