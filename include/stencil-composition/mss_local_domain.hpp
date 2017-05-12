@@ -69,8 +69,8 @@ namespace gridtools {
                     typename boost::mpl::fold< typename Esf::args_t,
                         boost::mpl::vector0<>,
                         boost::mpl::push_back< boost::mpl::_1,
-                                                   storage_wrapper_elem< boost::mpl::_2, StorageWrapperList > > >::
-                        type local_view_wrapper_list;
+                                                   storage_wrapper_elem< boost::mpl::_2, StorageWrapperList > > >::type
+                        local_view_wrapper_list;
 
                 // create a local_domain type specialized with the  local view wrapper list and a
                 // single Esf (vector is needed because local_domains (esfs) might be fusioned later on)

@@ -88,7 +88,7 @@ namespace aligned_copy_stencil {
             \param alignment ordinal number identifying the alignment
         */
         template < unsigned Index, typename ItDomain >
-        GT_FUNCTION static bool check_pointer_alignment(ItDomain const &it_domain, uint_t alignment) {
+        GT_FUNCTION static bool check_pointer_alignment(ItDomain &it_domain, uint_t alignment) {
             bool result_ = true;
             if (threadIdx.x == 0) {
                 auto ptr = (static_cast< float_type * >(it_domain.get().data_pointer().template get< Index >()[0]) +

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@
 */
 
 #pragma once
-
 
 #include "definitions.hpp"
 #include "../../common/array.hpp"
@@ -82,12 +81,12 @@ namespace gridtools {
 
         template < unsigned Coord >
         GT_FUNCTION constexpr unsigned unaligned_dim() const {
-            return m_unaligned_dims.template get<Coord>();
+            return m_unaligned_dims.template get< Coord >();
         }
 
         template < unsigned Coord >
         GT_FUNCTION constexpr unsigned unaligned_stride() const {
-            return m_unaligned_strides.template get<Coord>();
+            return m_unaligned_strides.template get< Coord >();
         }
     };
 

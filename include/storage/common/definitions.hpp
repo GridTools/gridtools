@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,6 @@
 #include "../../common/host_device.hpp"
 
 namespace gridtools {
-        enum class access_mode { ReadWrite = 0, ReadOnly = 1 };
-        enum class ownership { Full = 0, ExternalGPU = 1, ExternalCPU = 2 };
+    enum class access_mode { ReadWrite = 0, ReadOnly = 1 };
+    enum class ownership { Full = 0, ExternalGPU = 1, ExternalCPU = 2 };
 }

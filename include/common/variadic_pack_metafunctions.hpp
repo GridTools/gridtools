@@ -83,7 +83,7 @@ namespace gridtools {
     struct get_index_of_element_in_pack_functor< 0 > {
         template < typename First, typename... Dims >
         GT_FUNCTION static constexpr unsigned apply(unsigned Index, First needle, Dims... d) {
-            return (get_value_from_pack(Index, d...) == needle) ? Index : error::trigger();
+            return error_or_return((get_value_from_pack(Index, d...) == needle), Index, "Element not found");
         }
     };
 

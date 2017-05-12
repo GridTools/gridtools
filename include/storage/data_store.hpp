@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -97,7 +97,7 @@ namespace gridtools {
         template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
         typename boost::enable_if_c< (sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void >::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (unsigned i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) { 
+            for (unsigned i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
                 ptr[si.index(args..., i)] = init(args..., i);
             }
         }

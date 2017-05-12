@@ -163,7 +163,13 @@ int main(int argc, char **argv) {
     // sync the data stores if needed
     in_s.sync();
     out_s.sync();
-    
+
+    // reactivate views and check consistency
+    in_s.reactivate_host_write_views();
+    out_s.reactivate_host_write_views();
+    assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
+    assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+
     // reactivate views and check consistency
     in_s.reactivate_host_write_views();
     out_s.reactivate_host_write_views();

@@ -1,4 +1,3 @@
-
 /*
   GridTools Libraries
 
@@ -68,7 +67,7 @@ namespace data_store_field_test {
         typedef boost::mpl::vector< pin, pout > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
             // copy first component elements
             eval(pout(comp(0), snap(0))) = eval(pin(comp(0), snap(0)));
             // copy second component elements

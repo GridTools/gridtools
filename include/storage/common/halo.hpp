@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@
 #include <boost/mpl/plus.hpp>
 
 #include "../../common/variadic_pack_metafunctions.hpp"
+#include "../../common/generic_metafunctions/repeat_template.hpp"
 
 namespace gridtools {
 
@@ -87,17 +88,8 @@ namespace gridtools {
     /**
      *  @brief Used to generate a zero initialzed halo. Used as a default value for storage info halo.
      */
-    template < unsigned Cnt, unsigned... Vals >
-    struct zero_halo : zero_halo< Cnt - 1, 0, Vals... > {};
-
-    template < unsigned... Vals >
-    struct zero_halo< 0, Vals... > {
-        typedef typename boost::mpl::accumulate< boost::mpl::vector< boost::mpl::int_< Vals >... >,
-            boost::mpl::int_< 0 >,
-            boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 > >::type sum;
-        static_assert((sum::value == 0), "Failed to create a zero halo type");
-        typedef halo< Vals... > type;
-    };
+    template < unsigned Cnt >
+    using zero_halo = typename repeat_template_c< 0, Cnt, halo >::type;
 
     /* used to check if a given type is a halo type */
     template < typename T >

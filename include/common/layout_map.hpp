@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -45,24 +45,16 @@
 #include <boost/mpl/vector_c.hpp>
 
 #include "variadic_pack_metafunctions.hpp"
+#include "generic_metafunctions/variadic_to_vector.hpp"
 
 namespace gridtools {
-
-    template < typename T, int First, int... Vals >
-    struct get_mpl_vector
-        : get_mpl_vector< typename boost::mpl::push_back< T, boost::mpl::int_< First > >::type, Vals... > {};
-
-    template < typename T, int First >
-    struct get_mpl_vector< T, First > {
-        typedef typename boost::mpl::push_back< T, boost::mpl::int_< First > >::type type;
-    };
 
     template < int... Args >
     struct layout_map {
         static_assert(sizeof...(Args) > 0, "Zero-dimensional layout makes no sense.");
 
         static constexpr int masked_length = sizeof...(Args);
-        typedef typename get_mpl_vector< boost::mpl::vector_c< int >, Args... >::type static_layout_vector;
+        typedef typename variadic_to_vector< boost::mpl::int_< Args >... >::type static_layout_vector;
         static constexpr unsigned unmasked_length = boost::mpl::count_if< static_layout_vector,
             boost::mpl::greater< boost::mpl::_, boost::mpl::int_< -1 > > >::value;
 

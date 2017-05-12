@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ namespace gridtools {
      */
     template < unsigned Id,
         typename Layout,
-        typename Halo = typename zero_halo< Layout::masked_length >::type,
+        typename Halo = zero_halo< Layout::masked_length >,
         typename Alignment = alignment< 32 > >
     struct cuda_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
       private:
