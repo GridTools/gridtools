@@ -37,7 +37,7 @@
 #pragma once
 #include <boost/fusion/adapted/mpl.hpp>
 #include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/filter_if.hpp> 
+#include <boost/fusion/include/filter_if.hpp>
 
 #include "../storage/storage-facility.hpp"
 #include "../intermediate.hpp"

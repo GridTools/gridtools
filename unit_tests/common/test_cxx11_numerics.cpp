@@ -33,11 +33,35 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-// This file contains all header files required by the cuda backend
-#include "../execution_policy.hpp"
-#include "../backend_fwd.hpp"
-#include "../../storage/storage-facility.hpp"
-#include "backend_traits_cuda.hpp"
-#include "strategy_cuda.hpp"
+#include <cmath>
+
+#include "gtest/gtest.h"
+#include <common/numerics.hpp>
+
+using namespace gridtools;
+
+TEST(numerics, pow3) {
+    constexpr int x0 = _impl::static_pow3< 0 >::value;
+    constexpr int x1 = _impl::static_pow3< 1 >::value;
+    constexpr int x2 = _impl::static_pow3< 2 >::value;
+    constexpr int x3 = _impl::static_pow3< 3 >::value;
+    constexpr int x4 = _impl::static_pow3< 4 >::value;
+    EXPECT_EQ(x0, 1);
+    EXPECT_EQ(x1, 3);
+    EXPECT_EQ(x2, 9);
+    EXPECT_EQ(x3, 27);
+    EXPECT_EQ(x4, 81);
+}
+
+TEST(numerics, static_ceil) {
+    constexpr float x = 3.1415;
+    constexpr auto r1 = _impl::static_ceil(x / 1.0);
+    constexpr auto r2 = _impl::static_ceil(x / -1.0);
+    constexpr auto r3 = _impl::static_ceil(x / -2.0);
+    constexpr auto r4 = _impl::static_ceil(x / 2.0);
+    EXPECT_EQ(r1, std::ceil(x / 1.0));
+    EXPECT_EQ(r2, std::ceil(x / -1.0));
+    EXPECT_EQ(r3, std::ceil(x / -2.0));
+    EXPECT_EQ(r4, std::ceil(x / 2.0));
+}
