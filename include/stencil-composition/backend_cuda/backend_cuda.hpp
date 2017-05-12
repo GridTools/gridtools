@@ -38,6 +38,6 @@
 // This file contains all header files required by the cuda backend
 #include "../execution_policy.hpp"
 #include "../backend_fwd.hpp"
-#include "storage-facility.hpp"
+#include "../../storage-facility.hpp"
 #include "backend_traits_cuda.hpp"
 #include "strategy_cuda.hpp"

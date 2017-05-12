@@ -61,7 +61,6 @@
 #include "./storage_wrapper.hpp"
 #include "./tile.hpp"
 #include "../storage/storage-facility.hpp"
-#include "./conditionals/condition.hpp"
 
 /**
    @file
@@ -145,19 +144,30 @@ namespace gridtools {
         typedef uint_t (*query_i_threads_f)(uint_t);
         typedef uint_t (*query_j_threads_f)(uint_t);
 
-        template < typename ValueType, typename MetaDataType >
-        struct storage_type {
-            typedef typename storage_traits< BackendId >::storage_traits_aux::template select_storage<
-                ValueType,
-                typename storage_traits< BackendId >::storage_traits_aux::template select_meta_storage<
-                    typename MetaDataType::index_type,
-                    typename MetaDataType::layout,
-                    false,
-                    typename MetaDataType::halo_t,
-                    typename MetaDataType::alignment_t >::type >::type type;
-        };
+        /**
+            Method to retrieve a global parameter
+         */
+        template < typename T >
+        static typename storage_traits_t::template data_store_t< T,
+            typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > >
+        make_global_parameter(T const &t) {
+            typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > si(1);
+            typename storage_traits_t::template data_store_t< T, decltype(si) > ds(si);
+            make_host_view(ds)(0) = t;
+            return ds;
+        }
 
-#ifdef CXX11_ENABLED
+        /**
+            Method to update a global parameter
+         */
+        template < typename T, typename V >
+        static void update_global_parameter(T &gp, V const &new_val) {
+            gp.sync();
+            auto view = make_host_view(gp);
+            assert(check_consistency(gp, view) && "Cannot create a valid view to a global parameter. Properly synced?");
+            view(0) = new_val;
+            gp.sync();
+        }
 
         /**
             Method to instantiate the views (according to the given backend)

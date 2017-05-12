@@ -132,9 +132,7 @@ namespace copy_stencil {
             (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
         copy->ready();
-
         copy->steady();
-
         copy->run();
 
         out.sync();

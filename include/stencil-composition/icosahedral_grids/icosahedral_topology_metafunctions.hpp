@@ -44,8 +44,6 @@
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../storage/storage-facility.hpp"
 
-#include "storage-facility.hpp"
-
 namespace gridtools {
     namespace impl {
 
