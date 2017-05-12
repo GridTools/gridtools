@@ -188,8 +188,6 @@ namespace gridtools {
             StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
             typedef typename LocalDomain::max_i_extent_t max_i_t;
-            // get the halo size in I direction
-            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
             // calculate the blocksize in I and J direction
             constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
             constexpr int block_size_j =
