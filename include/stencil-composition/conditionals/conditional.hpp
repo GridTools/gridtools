@@ -66,7 +66,7 @@ namespace gridtools {
     class conditional {
 
         // weak pointer, viewing the boolean condition
-        BOOL_FUNC(m_value);
+        std::function< bool() > m_value;
 
       public:
         typedef static_uint< Tag > index_t;

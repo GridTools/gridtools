@@ -57,6 +57,16 @@ namespace gridtools {
         }
     };
 
+    /*
+     * @brief helper function that provides a static version of std::ceil
+     * @param num value to ceil
+     * @return ceiled value
+     */
+    constexpr static int gt_ceil(float num) {
+        return (static_cast< float >(static_cast< int >(num)) == num) ? static_cast< int >(num)
+                                                                      : static_cast< int >(num) + ((num > 0) ? 1 : 0);
+    }
+
     namespace math {
 
         template < typename Value >

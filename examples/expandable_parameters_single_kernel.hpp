@@ -38,14 +38,6 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
-namespace test_expandable_parameters {
-
-    using namespace gridtools;
-    using namespace expressions;
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
 #else
@@ -55,6 +47,14 @@ namespace test_expandable_parameters {
 #define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
 #endif
+
+namespace test_expandable_parameters {
+
+    using namespace gridtools;
+    using namespace expressions;
+
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct functor_single_kernel {
 
@@ -109,17 +109,8 @@ namespace test_expandable_parameters {
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
-#ifdef CUDA_EXAMPLE
-        typedef layout_map< 2, 1, 0 > layout_t;
-#else
-        typedef layout_map< 0, 1, 2 > layout_t;
-#endif
-
-        typedef BACKEND::storage_info< 23, layout_t > meta_data_t;
-        typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
-        typedef BACKEND::temporary_storage_type< float_type, meta_data_t >::type tmp_storage_t;
-
-        typedef storage_t storage_t;
+        typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         meta_data_t meta_data_(d1, d2, d3);
 
@@ -141,10 +132,10 @@ namespace test_expandable_parameters {
         storage_t storage70(meta_data_, -7., "storage70");
         storage_t storage80(meta_data_, -8., "storage80");
 
-        std::vector< pointer< storage_t > > list_out_ = {
-            &storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7, &storage8};
-        std::vector< pointer< storage_t > > list_in_ = {
-            &storage10, &storage20, &storage30, &storage40, &storage50, &storage60, &storage70, &storage80};
+        std::vector< storage_t > list_out_ = {
+            storage1, storage2, storage3, storage4, storage5, storage6, storage7, storage8};
+        std::vector< storage_t > list_in_ = {
+            storage10, storage20, storage30, storage40, storage50, storage60, storage70, storage80};
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
@@ -171,14 +162,14 @@ namespace test_expandable_parameters {
         typedef arg< 14, storage_t > p_6_in;
         typedef arg< 15, storage_t > p_7_in;
 
-        typedef arg< 16, tmp_storage_t > p_0_tmp;
-        typedef arg< 17, tmp_storage_t > p_1_tmp;
-        typedef arg< 18, tmp_storage_t > p_2_tmp;
-        typedef arg< 19, tmp_storage_t > p_3_tmp;
-        typedef arg< 20, tmp_storage_t > p_4_tmp;
-        typedef arg< 21, tmp_storage_t > p_5_tmp;
-        typedef arg< 22, tmp_storage_t > p_6_tmp;
-        typedef arg< 23, tmp_storage_t > p_7_tmp;
+        typedef tmp_arg< 16, storage_t > p_0_tmp;
+        typedef tmp_arg< 17, storage_t > p_1_tmp;
+        typedef tmp_arg< 18, storage_t > p_2_tmp;
+        typedef tmp_arg< 19, storage_t > p_3_tmp;
+        typedef tmp_arg< 20, storage_t > p_4_tmp;
+        typedef tmp_arg< 21, storage_t > p_5_tmp;
+        typedef tmp_arg< 22, storage_t > p_6_tmp;
+        typedef tmp_arg< 23, storage_t > p_7_tmp;
 
         typedef boost::mpl::vector< p_0_out,
             p_1_out,
@@ -205,22 +196,22 @@ namespace test_expandable_parameters {
             p_6_tmp,
             p_7_tmp > args_t;
 
-        aggregator_type< args_t > domain_(boost::fusion::make_vector(&storage1,
-            &storage2,
-            &storage3,
-            &storage4,
-            &storage5,
-            &storage6,
-            &storage7,
-            &storage8,
-            &storage10,
-            &storage20,
-            &storage30,
-            &storage40,
-            &storage50,
-            &storage60,
-            &storage70,
-            &storage80));
+        aggregator_type< args_t > domain_(storage1,
+            storage2,
+            storage3,
+            storage4,
+            storage5,
+            storage6,
+            storage7,
+            storage8,
+            storage10,
+            storage20,
+            storage30,
+            storage40,
+            storage50,
+            storage60,
+            storage70,
+            storage80);
         auto comp_ = make_computation< BACKEND >(
             domain_,
             grid_,
@@ -266,17 +257,21 @@ namespace test_expandable_parameters {
         comp_->finalize();
 
         bool success = true;
-        for (uint_t l = 0; l < list_in_.size(); ++l)
+        for (uint_t l = 0; l < list_in_.size(); ++l) {
+            auto inv = make_host_view(list_in_[l]);
+            auto outv = make_host_view(list_out_[l]);
+            assert(check_consistency(list_out_[l], outv) && "view cannot be used safely.");
+            assert(check_consistency(list_in_[l], inv) && "view cannot be used safely.");
             for (uint_t i = 0; i < d1; ++i)
                 for (uint_t j = 0; j < d2; ++j)
                     for (uint_t k = 0; k < d3; ++k) {
-                        if ((*list_in_[l])(i, j, k) != (*list_out_[l])(i, j, k)) {
+                        if (inv(i, j, k) != outv(i, j, k)) {
                             std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                      << "in = " << (*list_in_[l])(i, j, k) << ", out = " << (*list_out_[l])(i, j, k)
-                                      << std::endl;
+                                      << "in = " << inv(i, j, k) << ", out = " << outv(i, j, k) << std::endl;
                             success = false;
                         }
                     }
+        }
 
         return success;
     }

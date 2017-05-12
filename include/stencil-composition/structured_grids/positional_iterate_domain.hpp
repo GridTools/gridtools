@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
 #include "iterate_domain.hpp"
 
 namespace gridtools {

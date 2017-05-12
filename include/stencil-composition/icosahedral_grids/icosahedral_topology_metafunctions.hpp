@@ -35,13 +35,14 @@
 */
 
 #pragma once
+
 #include "../../common/defs.hpp"
 #include "../../common/gt_math.hpp"
-#include "../../common/selector.hpp"
 #include "../../common/array.hpp"
 #include "../location_type.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../../storage/storage-facility.hpp"
 
 namespace gridtools {
     namespace impl {
@@ -74,10 +75,10 @@ namespace gridtools {
         template < int_t LocationTypeIndex, typename Selector >
         struct compute_uuid {};
 
-        template < int_t LocationTypeIndex, int_t... Int >
-        struct compute_uuid< LocationTypeIndex, selector< Int... > > {
+        template < int_t LocationTypeIndex, bool... B >
+        struct compute_uuid< LocationTypeIndex, selector< B... > > {
             static constexpr ushort_t value =
-                enumtype::metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector< 2 >(0, Int...);
+                enumtype::metastorage_library_indices_limit + LocationTypeIndex + compute_uuid_selector< 2 >(0, B...);
         };
 
         /**
@@ -125,8 +126,8 @@ namespace gridtools {
         template < typename Uint, size_t ArraySize, typename LocationType, typename Selector >
         struct array_dim_initializers;
 
-        template < typename UInt, size_t ArraySize, typename LocationType, int_t... Ints >
-        struct array_dim_initializers< UInt, ArraySize, LocationType, selector< Ints... > > {
+        template < typename UInt, size_t ArraySize, typename LocationType, bool... B >
+        struct array_dim_initializers< UInt, ArraySize, LocationType, selector< B... > > {
             GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: expected a location type");
 
             template < typename... ExtraInts >
