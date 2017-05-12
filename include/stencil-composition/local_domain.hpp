@@ -64,7 +64,7 @@ namespace gridtools {
 
     namespace {
         template < class T, size_t N >
-        constexpr size_t get_size(T(&)[N]) {
+        GT_FUNCTION constexpr size_t get_size(T(&)[N]) {
             return N;
         }
 
