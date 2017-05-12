@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@
 #include "../../common/offset_tuple.hpp"
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../iterate_domain_aux.hpp"
+#include "../offset_computation.hpp"
 
 #ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"
@@ -54,37 +55,6 @@ namespace gridtools {
 
     template < typename BlockSize, typename Extent, typename StorageWrapper >
     struct cache_storage;
-
-    namespace impl_ {
-
-        template < typename T >
-        struct get_storage_offset {
-            template < typename Acc >
-            GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-                return 0;
-            }
-        };
-
-        template < typename T, unsigned... N >
-        struct get_storage_offset< data_store_field< T, N... > > {
-            template < typename Acc >
-            GT_FUNCTION static constexpr uint_t get(Acc const &a) {
-                return get_accumulated_data_field_index(a.template get< 1 >(), N...) + a.template get< 0 >();
-            }
-        };
-
-        /** helper function computing sum(offset*stride ...)*/
-        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From == To), int_t >::type get_offset(Accessor acc) {
-            return 0;
-        }
-
-        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From < To), int_t >::type get_offset(Accessor acc) {
-            return StorageInfo::template stride< From >() * acc.template get< Accessor::n_dimensions - 1 - From >() +
-                   get_offset< From + 1, To, StorageInfo, Accessor >(acc);
-        }
-    }
 
     /**
      * @struct cache_storage
@@ -113,10 +83,15 @@ namespace gridtools {
 
         typedef typename StorageWrapper::data_t value_type;
 
-        typedef typename boost::is_same< enumtype::default_location_type,
-            typename StorageWrapper::arg_t::location_t >::type is_default_location_t;
-        typedef typename _impl::generate_layout_map< typename make_gt_integer_sequence< uint_t,
-            sizeof...(Tiles) + (!is_default_location_t::value) >::type >::type layout_t;
+// TODO ICO_STORAGE in irregular grids we have one more dim for color
+#ifndef STRUCTURED_GRIDS
+        static constexpr int extra_dims = 1;
+#else
+        static constexpr int extra_dims = 0;
+#endif
+
+        typedef typename _impl::generate_layout_map<
+            typename make_gt_integer_sequence< uint_t, sizeof...(Tiles) + (extra_dims) >::type >::type layout_t;
 
         GT_FUNCTION
         explicit constexpr cache_storage() {}
@@ -140,19 +115,18 @@ namespace gridtools {
             typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
 
             // manually aligning the storage
-            const uint_t extra_ =
-                (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
-                (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (!is_default_location_t::value) >() +
-                (!is_default_location_t::value) * Color * meta_t::template stride< 1 >() +
-                size() * impl_::get_storage_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                impl_::get_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
+            const uint_t extra_ = (thread_pos[0] - iminus::value) * meta_t::template stride< 0 >() +
+                                  (thread_pos[1] - jminus::value) * meta_t::template stride< 1 + (extra_dims) >() +
+                                  (extra_dims)*Color * meta_t::template stride< 1 >() +
+                                  size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                                  _impl::get_cache_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
             assert((extra_) >= 0);
-            assert((extra_) < (size() * StorageWrapper::storage_size));
+            assert((extra_) < (size() * StorageWrapper::num_of_storages));
             return m_values[extra_];
         }
 
       private:
-        value_type m_values[size() * StorageWrapper::storage_size];
+        value_type m_values[size() * StorageWrapper::num_of_storages];
     };
 
 } // namespace gridtools

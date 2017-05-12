@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@
 #include "arg_fwd.hpp"
 #include "arg_metafunctions.hpp"
 #include "arg_metafunctions_fwd.hpp"
-#include "storage-facility.hpp"
+#include "../storage/storage-facility.hpp"
 
 namespace gridtools {
 
@@ -61,7 +61,7 @@ namespace gridtools {
     struct is_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::true_ {};
 
     template < typename T >
-    struct is_tmp_arg;
+    struct is_tmp_arg : boost::mpl::false_ {};
 
     template < uint_t I, typename Storage, typename Location, bool Temporary >
     struct is_tmp_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::bool_< Temporary > {};
@@ -134,6 +134,10 @@ namespace gridtools {
 #endif
         }
     };
+
+    /** alias template that provides convenient tmp arg declaration. */
+    template < uint_t I, typename Storage, typename Location = enumtype::default_location_type >
+    using tmp_arg = arg< I, Storage, Location, true >;
 
     template < typename T >
     struct arg_index;

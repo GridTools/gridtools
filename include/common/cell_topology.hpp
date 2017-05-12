@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -50,14 +50,12 @@ namespace gridtools {
         struct cartesian {};
     } // namespace topology
 
-    using namespace topology;
-
     template < typename TopologyType >
     class cell_topology {};
 
     template < typename Layout >
-    class cell_topology< cartesian< Layout > > {
+    class cell_topology< topology::cartesian< Layout > > {
       public:
-        static const ushort_t space_dimensions = Layout::length;
+        static const ushort_t space_dimensions = Layout::masked_length;
     };
 } // namespace gridtools

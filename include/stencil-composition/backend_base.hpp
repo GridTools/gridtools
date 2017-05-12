@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -60,7 +60,7 @@
 #include "./mss_metafunctions.hpp"
 #include "./storage_wrapper.hpp"
 #include "./tile.hpp"
-#include "storage-facility.hpp"
+#include "../storage/storage-facility.hpp"
 
 /**
    @file
@@ -117,6 +117,14 @@ namespace gridtools {
     */
     template < enumtype::platform BackendId, enumtype::grid_type GridId, enumtype::strategy StrategyId >
     struct backend_base {
+
+#ifdef __CUDACC__
+        GRIDTOOLS_STATIC_ASSERT(BackendId == enumtype::Cuda,
+            "Beware: you are compiling with nvcc, and most probably "
+            "want to use the cuda backend, but the backend you are "
+            "instantiating is another one!!");
+#endif
+
         typedef backend_base< BackendId, GridId, StrategyId > this_type;
 
         typedef backend_ids< BackendId, GridId, StrategyId > backend_ids_t;
@@ -145,7 +153,6 @@ namespace gridtools {
         make_global_parameter(T const &t) {
             typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > si(1);
             typename storage_traits_t::template data_store_t< T, decltype(si) > ds(si);
-            ds.allocate();
             make_host_view(ds)(0) = t;
             return ds;
         }
@@ -157,7 +164,7 @@ namespace gridtools {
         static void update_global_parameter(T &gp, V const &new_val) {
             gp.sync();
             auto view = make_host_view(gp);
-            assert(valid(gp, view) && "Cannot create a valid view to a global parameter. Properly synced?");
+            assert(check_consistency(gp, view) && "Cannot create a valid view to a global parameter. Properly synced?");
             view(0) = new_val;
             gp.sync();
         }
@@ -167,6 +174,7 @@ namespace gridtools {
          */
         template < typename AggregatorType, typename ViewFusionMap >
         static void instantiate_views(AggregatorType &aggregator, ViewFusionMap &viewmap) {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
             boost::fusion::for_each(
                 viewmap, typename backend_traits_t::template instantiate_view< AggregatorType >(aggregator));
         }
@@ -174,21 +182,25 @@ namespace gridtools {
         /**
             Method to extract a storage_info pointer from a metadata_set
          */
-        template < typename T, typename AggregatorType >
-        static typename T::value_type *extract_storage_info_ptrs(AggregatorType const &aggregator) {
+        template < typename StorageInfoPtr, typename AggregatorType >
+        static typename StorageInfoPtr::value_type *extract_storage_info_ptrs(AggregatorType const &aggregator) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename boost::decay< typename StorageInfoPtr::value_type >::type >::value),
+                GT_INTERNAL_ERROR);
             return backend_traits_t::template extract_storage_info_ptr(
-                aggregator.get_metadata_set().template get< T >().get());
+                aggregator.metadata_set_view().template get< StorageInfoPtr >().get());
         }
 
         /**
             Method to extract get a storage_info for a temporary storage (could either be a icosahedral or a standard
            storage info)
          */
-        template < typename T, typename StorageWrapper, typename Grid >
-        static T instantiate_storage_info(Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT((is_storage_info< T >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_storage_wrapper< StorageWrapper >::value), "Internal Error: wrong type");
-            return grid_traits_t::template instantiate_storage_info< T, this_type, StorageWrapper >(grid);
+        template < typename MaxExtent, typename StorageWrapper, typename Grid >
+        static typename StorageWrapper::storage_info_t instantiate_storage_info(Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename StorageWrapper::storage_info_t >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_storage_wrapper< StorageWrapper >::value), GT_INTERNAL_ERROR);
+            return grid_traits_t::template instantiate_storage_info< MaxExtent, this_type, StorageWrapper >(grid);
         }
 
         /**

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -68,8 +68,8 @@ namespace gridtools {
     template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence = boost::mpl::vector0<> >
     struct mss_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfDescrSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
-
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_execution_engine< ExecutionEngine >::value), GT_INTERNAL_ERROR);
         typedef ExecutionEngine execution_engine_t;
         typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;

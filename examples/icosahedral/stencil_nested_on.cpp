@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -124,15 +124,6 @@ TEST(test_stencil_nested_on, run) {
     edge_storage_type c_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("c");
     edge_storage_type k_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("k");
     edge_storage_type ref_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("ref");
-
-    in_cells.allocate();
-    in_edges.allocate();
-    out_edges.allocate();
-    i_edges.allocate();
-    j_edges.allocate();
-    c_edges.allocate();
-    k_edges.allocate();
-    ref_edges.allocate();
 
     auto incv = make_host_view(in_cells);
     auto inev = make_host_view(in_edges);

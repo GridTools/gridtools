@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -47,11 +47,10 @@
 #include <boost/type_traits/remove_pointer.hpp>
 
 #include "../gridtools.hpp"
-#include "../common/is_vector.hpp"
+#include "../common/vector_traits.hpp"
 #include "accessor.hpp"
 #include "arg.hpp"
-
-#include <storage-facility.hpp>
+#include "../storage/storage-facility.hpp"
 
 template < typename RegularStorageType >
 struct no_storage_type_yet;
@@ -106,6 +105,43 @@ namespace gridtools {
 
     namespace _impl {
 
+        // metafunction that checks if argument is a suitable aggregator element (only arg_storage_pair)
+        template < typename... Args >
+        struct aggregator_arg_storage_pair_check;
+
+        template < typename ArgStoragePair, typename... Rest >
+        struct aggregator_arg_storage_pair_check< ArgStoragePair, Rest... > {
+            typedef typename boost::decay< ArgStoragePair >::type arg_storage_pair_t;
+            typedef typename is_arg_storage_pair< arg_storage_pair_t >::type is_suitable;
+            typedef typename boost::mpl::and_< is_suitable,
+                typename aggregator_arg_storage_pair_check< Rest... >::type > type;
+        };
+
+        template <>
+        struct aggregator_arg_storage_pair_check<> {
+            typedef boost::mpl::true_ type;
+        };
+
+        // metafunction that checks if argument is a suitable aggregator element (only data_store, data_store_field,
+        // std::vector)
+        template < typename... Args >
+        struct aggregator_storage_check;
+
+        template < typename Storage, typename... Rest >
+        struct aggregator_storage_check< Storage, Rest... > {
+            typedef typename boost::decay< Storage >::type storage_t;
+            typedef typename is_data_store< storage_t >::type c1;
+            typedef typename is_data_store_field< storage_t >::type c2;
+            typedef typename is_vector< storage_t >::type c3;
+            typedef typename boost::mpl::or_< c1, c2, c3 >::type is_suitable;
+            typedef typename boost::mpl::and_< is_suitable, typename aggregator_storage_check< Rest... >::type > type;
+        };
+
+        template <>
+        struct aggregator_storage_check<> {
+            typedef boost::mpl::true_ type;
+        };
+
         // metafunction that replaces the ID of a storage_info type
         template < typename T, typename NewId >
         struct replace_storage_info_index;
@@ -122,10 +158,10 @@ namespace gridtools {
 
         // metafunction class that extracts the storage_info ID of a given arg
         struct extract_storage_info_id_from_arg {
-            template < typename T >
+            template < typename Arg >
             struct apply {
-                static_assert(is_arg< T >::value, "given type is no arg type");
-                typedef typename get_storage_from_arg< T >::type storage_t;
+                static_assert(is_arg< Arg >::value, "given type is no arg type");
+                typedef typename get_storage_from_arg< Arg >::type storage_t;
                 typedef typename storage_t::storage_info_t storage_info_t;
                 static_assert(is_storage_info< storage_info_t >::value, "given type is no arg type");
                 typedef boost::mpl::int_< storage_info_t::id > type;
@@ -219,22 +255,22 @@ the continuous_indices_check template argument must be an MPL vector of placehol
         struct l_get_it_type {
             template < typename U >
             struct apply {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< U >::type::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_arg< U >::type::value), GT_INTERNAL_ERROR);
                 typedef typename U::iterator type;
             };
         };
 
         struct l_get_arg_storage_pair_type {
-            template < typename U, typename Dummy = void >
+            template < typename Arg, typename Dummy = void >
             struct apply {
-                typedef arg_storage_pair< U, typename U::storage_t > type;
+                typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
             };
         };
 
-        template < typename T >
-        struct get_arg_storage_pair_type {
-            static_assert(is_arg< T >::value, "The given type is not an arg type");
-            typedef arg_storage_pair< T, typename T::storage_t > type;
+        template < typename Arg >
+        struct create_arg_storage_pair_type {
+            static_assert(is_arg< Arg >::value, "The given type is not an arg type");
+            typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
         };
 
         struct moveto_functor {
@@ -371,7 +407,8 @@ the continuous_indices_check template argument must be an MPL vector of placehol
         };
 
         /** Metafunction class.
-         *  This class is filling a storage_info_set with pointers from given data_stores
+         *  This class is filling a storage_info_set with pointers from given storages (data_store, data_store_field,
+         * std::vector)
          */
         template < typename MetaDataSet >
         struct fill_metadata_set {
@@ -381,36 +418,74 @@ the continuous_indices_check template argument must be an MPL vector of placehol
           public:
             fill_metadata_set(MetaDataSet &storageinfo) : m_storageinfo_set(storageinfo) {}
 
-            template < typename T, typename boost::enable_if< is_pointer< T >, int >::type = 0 >
-            void operator()(T &ds) const {
+            // unwrap an recursive call if given type is a pointer type
+            template < typename PointerType, typename boost::enable_if< is_pointer< PointerType >, int >::type = 0 >
+            void operator()(PointerType &ds) const {
                 this->operator()(*ds.get());
             }
 
-            template < typename T, typename boost::enable_if< is_vector< T >, int >::type = 0 >
-            void operator()(T &ds) const {
-                typedef typename T::value_type::storage_info_t storage_info_t;
+            // specialization for std::vector (expandable param)
+            template < typename VectorType, typename boost::enable_if< is_vector< VectorType >, int >::type = 0 >
+            void operator()(VectorType &ds) const {
+                typedef typename VectorType::value_type::storage_info_t storage_info_t;
+                GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_t;
                 m_storageinfo_set.insert(ptr_t(ds[0].get_storage_info_ptr()));
             }
 
-            template < typename T, typename boost::enable_if< is_data_store< T >, int >::type = 0 >
-            void operator()(T &ds) const {
-                typedef typename T::storage_info_t storage_info_t;
+            // specialization for data store type
+            template < typename DataStoreType,
+                typename boost::enable_if< is_data_store< DataStoreType >, int >::type = 0 >
+            void operator()(DataStoreType &ds) const {
+                typedef typename DataStoreType::storage_info_t storage_info_t;
+                GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_ty;
                 m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr()));
             }
 
-            template < typename T, typename boost::enable_if< is_data_store_field< T >, int >::type = 0 >
-            void operator()(T &ds) const {
-                typedef typename T::storage_info_t storage_info_t;
+            // specialization for data store field type
+            template < typename DataStoreFieldType,
+                typename boost::enable_if< is_data_store_field< DataStoreFieldType >, int >::type = 0 >
+            void operator()(DataStoreFieldType &ds) const {
+                typedef typename DataStoreFieldType::storage_info_t storage_info_t;
+                GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_ty;
                 m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr()));
             }
 
-            template < typename DataStore, typename... Rest >
-            void reassign(DataStore first, Rest... stores) {
+            // reset metadata_set with fresh storage info ptrs contained in storages (either data_store,
+            // data_store_field, std::vector)
+            template < typename Storage, typename... Rest >
+            void reassign(Storage first, Rest... stores) {
                 this->operator()(first);
                 reassign(stores...);
+            }
+            void reassign() {}
+        };
+
+        /** Metafunction class.
+         *  This class is filling a fusion::vector of pointers to storages with pointers from given arg_storage_pairs
+         */
+        template < typename FusionVector >
+        struct fill_arg_storage_pair_list {
+          private:
+            FusionVector &m_fusion_vec;
+
+          public:
+            fill_arg_storage_pair_list(FusionVector &fusion_vec) : m_fusion_vec(fusion_vec) {}
+
+            template < typename ArgStoragePair,
+                typename boost::enable_if< is_arg_storage_pair< ArgStoragePair >, int >::type = 0 >
+            void operator()(ArgStoragePair arg_storage_pair) const {
+                boost::fusion::at< typename ArgStoragePair::arg_t::index_t >(m_fusion_vec) = arg_storage_pair;
+            }
+
+            // reset fusion::vector of pointers to storages with fresh pointers from given storages (either data_store,
+            // data_store_field, std::vector)
+            template < typename ArgStoragePair, typename... Rest >
+            void reassign(ArgStoragePair first, Rest... pairs) {
+                this->operator()(first);
+                reassign(pairs...);
             }
             void reassign() {}
         };

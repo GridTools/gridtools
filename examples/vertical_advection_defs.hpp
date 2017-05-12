@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
 #pragma once
 #include <stencil-composition/stencil-composition.hpp>
 #include <gridtools.hpp>
-#include <storage-facility.hpp>
+#include <storage/storage-facility.hpp>
 
 namespace vertical_advection {
 
@@ -55,13 +55,11 @@ namespace vertical_advection {
 #ifdef BACKEND_BLOCK
     typedef gridtools::backend< gridtools::enumtype::Host,
         gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block >
-        va_backend;
+        gridtools::enumtype::Block > va_backend;
 #else
     typedef gridtools::backend< gridtools::enumtype::Host,
         gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive >
-        va_backend;
+        gridtools::enumtype::Naive > va_backend;
 #endif
     typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
 #endif

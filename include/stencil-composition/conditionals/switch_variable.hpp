@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -72,7 +72,7 @@ namespace gridtools {
         static const uint_t index_value = index_t::value;
 
         std::unique_ptr< std::vector< std::function< bool() > > > m_conditions; // generated conditions
-        std::unique_ptr< std::vector< T > > m_cases;                // all possible cases (redundant)
+        std::unique_ptr< std::vector< T > > m_cases;                            // all possible cases (redundant)
 
         constexpr switch_variable() // try to avoid this?
             : m_value(),
@@ -83,11 +83,8 @@ namespace gridtools {
 
            @param c the value assigned for the comparisons
          */
-        constexpr switch_variable(
-            std::function< T() > c
-            )
-            : m_value(c), m_conditions(new std::vector< std::function< bool() > >()), m_cases(new std::vector< T >()) {
-        }
+        constexpr switch_variable(std::function< T() > c)
+            : m_value(c), m_conditions(new std::vector< std::function< bool() > >()), m_cases(new std::vector< T >()) {}
 
         switch_variable(switch_variable const &other) : m_value(other.m_value), m_num_cases(other.m_num_cases) {}
 

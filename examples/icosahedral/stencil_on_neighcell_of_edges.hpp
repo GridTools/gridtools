@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -95,9 +95,6 @@ namespace soncoe {
         auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
         auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("out");
         auto ref_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("ref");
-        in_cells.allocate();
-        out_edges.allocate();
-        ref_edges.allocate();
         auto inv = make_host_view(in_cells);
         auto outv = make_host_view(out_edges);
         auto refv = make_host_view(ref_edges);

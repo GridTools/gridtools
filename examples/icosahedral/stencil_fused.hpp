@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -119,10 +119,11 @@ namespace sf {
         auto ref_on_cells_tmp =
             icosahedral_grid.make_storage< icosahedral_topology_t::cells, double /* , halo<2,0,2,0> */ >(
                 "ref_on_cells_tmp");
-        in_edges.allocate();
-        out_cells.allocate();
-        ref_on_cells.allocate();
-        ref_on_cells_tmp.allocate();
+
+        typedef decltype(in_edges) in_edges_storage_t;
+        typedef decltype(out_cells) out_cells_storage_t;
+        typedef decltype(ref_on_cells_tmp) ref_on_cells_tmp_storage_t;
+        typedef decltype(ref_on_cells) ref_on_cells_storage_t;
 
         auto iev = make_host_view(in_edges);
         for (int i = 1; i < d1 - 1; ++i) {
@@ -135,15 +136,15 @@ namespace sf {
             }
         }
 
-        out_cells = decltype(out_cells)(*out_cells.get_storage_info_ptr(), 0.0);
-        ref_on_cells = decltype(ref_on_cells)(*ref_on_cells.get_storage_info_ptr(), 0.0);
-        ref_on_cells_tmp = decltype(ref_on_cells_tmp)(*ref_on_cells_tmp.get_storage_info_ptr(), 0.0);
+        out_cells = out_cells_storage_t(*out_cells.get_storage_info_ptr(), 0.0);
+        ref_on_cells = ref_on_cells_storage_t(*ref_on_cells.get_storage_info_ptr(), 0.0);
+        ref_on_cells_tmp = ref_on_cells_tmp_storage_t(*ref_on_cells_tmp.get_storage_info_ptr(), 0.0);
         auto roctv = make_host_view(ref_on_cells_tmp);
         auto ocv = make_host_view(out_cells);
         auto rocv = make_host_view(ref_on_cells);
 
         typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-        typedef arg< 1, cell_storage_type, enumtype::cells, true > p_tmp_cells;
+        typedef tmp_arg< 1, cell_storage_type, enumtype::cells > p_tmp_cells;
         typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
 
         typedef boost::mpl::vector< p_in_edges, p_tmp_cells, p_out_cells > accessor_list_cells_t;

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,8 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/fold.hpp>
 
-#include "storage-facility.hpp"
+#include "layout_map.hpp"
+#include "selector.hpp"
 #include "generic_metafunctions/gt_integer_sequence.hpp"
 #include "generic_metafunctions/replace.hpp"
 #include "generic_metafunctions/sequence_unpacker.hpp"
@@ -141,7 +142,7 @@ namespace gridtools {
         typedef boost::mpl::vector_c< bool, Bitmask... > dim_selector_vec_t;
         GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), "Error: need a layout map type");
         GRIDTOOLS_STATIC_ASSERT(
-            (sizeof...(Bitmask) >= Layout::length), "Error: need to specifiy at least 4 dimensions");
+            (sizeof...(Bitmask) >= Layout::masked_length), "Error: need to specifiy at least 4 dimensions");
 
         template < uint_t NumNullDims, typename Seq_ >
         struct data_ {
@@ -174,12 +175,12 @@ namespace gridtools {
                     typename insert_a_pos_index< Data, position_t >::type >::type type;
         };
 
-        typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, Layout::length >,
+        typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, Layout::masked_length >,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1, static_int< 0 > > >::type initial_vector;
 
         typedef data_< 0, initial_vector > initial_data;
-        typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, Layout::length >,
+        typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, Layout::masked_length >,
             initial_data,
             insert_index_at_pos< boost::mpl::_1, boost::mpl::_2 > >::type new_layout_indices_data_t;
 

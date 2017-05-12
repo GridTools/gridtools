@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "../../common/is_vector.hpp"
+#include "../../common/vector_traits.hpp"
 
 /** @file metafunctions used in @ref gridtools::intermediate_expand*/
 

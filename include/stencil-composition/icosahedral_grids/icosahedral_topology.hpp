@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -791,14 +791,16 @@ namespace gridtools {
                 (Selector::size == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
 
             using meta_storage_type = meta_storage_t< LocationType, Halo, Selector >;
-            GRIDTOOLS_STATIC_ASSERT((Selector::size == meta_storage_type::layout_t::length),
+            GRIDTOOLS_STATIC_ASSERT((Selector::size == meta_storage_type::layout_t::masked_length),
                 "ERROR: Mismatch between Selector and space dimensions");
 
-            array< uint_t, meta_storage_type::layout_t::length > metastorage_sizes =
-                impl::array_dim_initializers< uint_t, meta_storage_type::layout_t::length, LocationType, Selector >::
-                    apply(m_dims, extra_dims...);
+            array< uint_t, meta_storage_type::layout_t::masked_length > metastorage_sizes =
+                impl::array_dim_initializers< uint_t,
+                    meta_storage_type::layout_t::masked_length,
+                    LocationType,
+                    Selector >::apply(m_dims, extra_dims...);
             auto ameta = impl::get_storage_info_from_array< meta_storage_type >(metastorage_sizes);
-            return storage_t< LocationType, ValueType, Halo, Selector >(ameta);
+            return storage_t< LocationType, ValueType, Halo, Selector >(ameta, name);
         }
 
         template < typename LocationType >

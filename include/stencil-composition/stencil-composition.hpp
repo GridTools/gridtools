@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,7 @@
 #include "make_computation.hpp"
 #include "make_stage.hpp"
 #include "make_stencils.hpp"
+#include "../storage/storage-facility.hpp"
 #ifdef CXX11_ENABLED
 #include "expandable_parameters/make_computation_expandable.hpp"
 #else

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <cstdint>
 
 #include <stencil-composition/stencil-composition.hpp>
 #include "benchmarker.hpp"
@@ -80,15 +82,18 @@ namespace aligned_copy_stencil {
 #ifdef __CUDACC__
         /** @brief checking all storages alignment using a specific storage_info
 
-            \param storage_id ordinal number identifying the storage_info checked
-            \param boundary ordinal number identifying the alignment
+            \tparam Index index of the storage which alignment should be checked
+            \tparam ItDomain iterate domain type
+            \param it_domain iterate domain, used to get the pointers and offsets
+            \param alignment ordinal number identifying the alignment
         */
-        template < unsigned I, typename ItDomain >
-        GT_FUNCTION static bool check_pointer_alignment(ItDomain const &it_domain, uint_t boundary) {
+        template < unsigned Index, typename ItDomain >
+        GT_FUNCTION static bool check_pointer_alignment(ItDomain const &it_domain, uint_t alignment) {
             bool result_ = true;
             if (threadIdx.x == 0) {
-                auto ptr = (static_cast<float_type*>(it_domain.get().data_pointer().template get<I>()[0])+it_domain.get().index()[0]);
-                result_ = (((unsigned long)ptr & (boundary-1)) == 0);
+                auto ptr = (static_cast< float_type * >(it_domain.get().data_pointer().template get< Index >()[0]) +
+                            it_domain.get().index()[0]);
+                result_ = (((uintptr_t)ptr & (alignment - 1)) == 0);
             }
             return result_;
         }
@@ -103,8 +108,8 @@ namespace aligned_copy_stencil {
 
 #ifdef __CUDACC__
 #ifndef NDEBUG
-            if (!check_pointer_alignment<0>(eval, meta_data_t::alignment_t::value) || 
-                !check_pointer_alignment<1>(eval, meta_data_t::alignment_t::value)) {
+            if (!check_pointer_alignment< 0 >(eval, meta_data_t::alignment_t::value) ||
+                !check_pointer_alignment< 1 >(eval, meta_data_t::alignment_t::value)) {
                 printf("alignment error in some storages with first meta_storage \n");
                 assert(false);
             }
@@ -119,16 +124,11 @@ namespace aligned_copy_stencil {
         meta_data_t meta_data_(d1, d2, d3);
 
         // Definition of the actual data fields that are used for input/output
-        storage_t in(meta_data_, (float_type)0.);
-        storage_t out(meta_data_, (float_type)-1.);
-        
+        storage_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
+        storage_t out(meta_data_, (float_type)-1., "out");
+
         auto inv = make_host_view(in);
         auto outv = make_host_view(out);
-        for (uint_t i = halo_t::at< 0 >(); i < d1 + halo_t::at< 0 >(); ++i)
-            for (uint_t j = halo_t::at< 1 >(); j < d2 + halo_t::at< 1 >(); ++j)
-                for (uint_t k = halo_t::at< 2 >(); k < d3 + halo_t::at< 2 >(); ++k) {
-                    inv(i, j, k) = i + j + k;
-                }
 
         typedef arg< 0, storage_t > p_in;
         typedef arg< 1, storage_t > p_out;
@@ -145,19 +145,17 @@ namespace aligned_copy_stencil {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {
-            halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + halo_t::at< 0 >()};
-        uint_t dj[5] = {
-            halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + halo_t::at< 1 >()};
+        uint_t di[5] = {halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + halo_t::at< 0 >()};
+        uint_t dj[5] = {halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + halo_t::at< 1 >()};
 
         gridtools::grid< axis > grid(di, dj);
 
         grid.value_list[0] = halo_t::at< 2 >();
         grid.value_list[1] = d3 + halo_t::at< 2 >() - 1;
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain, grid,
-                gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out()))
-        );
+        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
         copy->ready();
         copy->steady();
@@ -168,6 +166,13 @@ namespace aligned_copy_stencil {
         std::cout << copy->print_meter() << std::endl;
 #endif
 
+        // check view consistency
+        out.reactivate_host_write_views();
+        in.reactivate_host_write_views();
+        assert(check_consistency(out, outv) && "view cannot be used safely.");
+        assert(check_consistency(in, inv) && "view cannot be used safely.");
+
+        // check values
         bool success = true;
         for (uint_t i = halo_t::at< 0 >(); i < d1 + halo_t::at< 0 >(); ++i)
             for (uint_t j = halo_t::at< 1 >(); j < d2 + halo_t::at< 1 >(); ++j)

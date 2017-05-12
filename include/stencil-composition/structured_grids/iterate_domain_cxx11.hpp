@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -340,7 +340,7 @@ namespace gridtools {
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::storage_info_t storage_info_t;
 
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::length,
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions <= storage_info_t::layout_t::masked_length,
                 "requested accessor index lower than zero. Check that when you define the accessor you specify the "
                 "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
                 "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
@@ -379,20 +379,19 @@ namespace gridtools {
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-            typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+            typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
             typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
             typedef typename storage_wrapper_t::data_t data_t;
 
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions == storage_info_t::layout_t::length + 2,
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions == storage_info_t::layout_t::masked_length + 2,
                 "The dimension of the data_store_field accessor must be equals to storage dimension + 2 (component and "
                 "snapshot)");
 
-            const uint_t idx = get_accumulated_data_field_index_h< storage_t >::apply(accessor.template get< 1 >()) +
-                               accessor.template get< 0 >();
+            const int_t idx = get_datafield_offset< storage_t >::get(accessor);
 #ifdef CUDA8
-            assert(idx < storage_t::size && "Out of bounds access when accessing data store field element.");
+            assert(idx < storage_t::num_of_storages && "Out of bounds access when accessing data store field element.");
 #endif
             return data_pointer().template get< index_t::value >()[idx];
         }
@@ -521,7 +520,7 @@ namespace gridtools {
         typedef typename Accessor::index_t index_t;
         typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-        typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+        typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
             storage_wrapper_t;
         typedef typename storage_wrapper_t::storage_t storage_t;
         typedef typename storage_wrapper_t::storage_info_t storage_info_t;
@@ -555,17 +554,7 @@ namespace gridtools {
         // i+offset_i or j+offset_j or k+offset_k is too large.
         // Most probably this is due to you specifying a positive offset which is larger than expected,
         // or maybe you did a mistake when specifying the ranges in the placehoders definition
-        // GTASSERT(storage_info->size() > pointer_offset);
-
-        // the following assert fails when an out of bound access is observed,
-        // i.e. when some offset is negative and either one of
-        // i+offset_i or j+offset_j or k+offset_k is too small.
-        // Most probably this is due to you specifying a negative offset which is
-        // smaller than expected, or maybe you did a mistake when specifying the ranges
-        // in the placehoders definition.
-        // If you are running a parallel simulation another common reason for this to happen is
-        // the definition of an halo region which is too small in one direction
-        // GTASSERT(pointer_offset >= 0);
+        GTASSERT(storage_info->size() > pointer_offset);
 
         return static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<
@@ -590,7 +579,7 @@ namespace gridtools {
         typedef typename Accessor::index_t index_t;
         typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-        typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+        typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
             storage_wrapper_t;
         typedef typename storage_wrapper_t::storage_t storage_t;
         typedef typename storage_wrapper_t::storage_info_t storage_info_t;
@@ -623,17 +612,7 @@ namespace gridtools {
         // i+offset_i or j+offset_j or k+offset_k is too large.
         // Most probably this is due to you specifying a positive offset which is larger than expected,
         // or maybe you did a mistake when specifying the ranges in the placehoders definition
-        // GTASSERT(storage_info->size() > pointer_offset);
-
-        // the following assert fails when an out of bound access is observed,
-        // i.e. when some offset is negative and either one of
-        // i+offset_i or j+offset_j or k+offset_k is too small.
-        // Most probably this is due to you specifying a negative offset which is
-        // smaller than expected, or maybe you did a mistake when specifying the ranges
-        // in the placehoders definition.
-        // If you are running a parallel simulation another common reason for this to happen is
-        // the definition of an halo region which is too small in one direction
-        // GTASSERT(pointer_offset >= 0);
+        GTASSERT(storage_info->size() > pointer_offset);
 
         return static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,7 +38,7 @@
 #include "../location_type.hpp"
 #include "stencil-composition/backend_base.hpp"
 #include "icosahedral_grid_traits.hpp"
-#include "common/selector.hpp"
+#include "../../common/selector.hpp"
 #include "../../common/generic_metafunctions/shorten.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 

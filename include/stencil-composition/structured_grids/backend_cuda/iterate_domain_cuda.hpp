@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -235,7 +235,7 @@ namespace gridtools {
         struct accessor_from_shared_mem {
             typedef typename boost::remove_reference< Accessor >::type acc_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
             typedef static_uint< acc_t::index_t::value > index_t;
             typedef typename boost::mpl::has_key< ij_caches_map_t, index_t >::type type;
             static const bool value = type::value;
@@ -248,7 +248,7 @@ namespace gridtools {
         struct accessor_from_kcache_reg {
             typedef typename boost::remove_reference< Accessor >::type acc_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
             typedef static_uint< acc_t::index_t::value > index_t;
             typedef typename boost::mpl::has_key< k_caches_map_t, index_t >::type type;
             static const bool value = type::value;

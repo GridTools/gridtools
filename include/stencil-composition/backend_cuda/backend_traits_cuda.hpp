@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -63,36 +63,55 @@ namespace gridtools {
     template <>
     struct backend_traits_from_id< enumtype::Cuda > {
 
-        template < typename T >
-        static T extract_storage_info_ptr(T t) {
+        /** This is the function used to extract a pointer out of a given storage info.
+            In the case of CUDA we have to retrieve the GPU pointer.
+        */
+        template < typename StorageInfoPtr >
+        static StorageInfoPtr extract_storage_info_ptr(StorageInfoPtr t) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename boost::decay< decltype(*t) >::type >::value), GT_INTERNAL_ERROR);
             return t->get_gpu_ptr();
         }
 
+        /** This is the functor used to generate view instances. According to the given storage (data_store,
+           data_store_field) an appropriate view is returned. When using the CUDA backend we return device view
+           instances.
+        */
         template < typename AggregatorType >
         struct instantiate_view {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             AggregatorType &m_agg;
             instantiate_view(AggregatorType &agg) : m_agg(agg) {}
 
-            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
             arg_storage_pair< Arg, typename Arg::storage_t > get_arg_storage_pair() const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
                 return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::storage_t > >(
                     m_agg.get_arg_storage_pairs()));
             }
 
-            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
-            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(T &t) const {
+            // specialization for creating view instance for data stores
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
+            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(
+                ViewFusionMapElem &t) const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
                 // make a view
-                if (get_arg_storage_pair< T >().ptr.get())
-                    t = make_device_view(*(get_arg_storage_pair< T >().ptr));
+                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
+                    t = make_device_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
             }
 
-            template < typename T, typename Arg = typename boost::fusion::result_of::first< T >::type >
+            // specialization for creating view instance for data store fields
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
             typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
-                T &t) const {
+                ViewFusionMapElem &t) const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
                 // make a view
-                if (get_arg_storage_pair< T >().ptr.get())
-                    t = make_field_device_view(*(get_arg_storage_pair< T >().ptr));
+                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
+                    t = make_field_device_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
             }
         };
 
@@ -153,7 +172,11 @@ namespace gridtools {
         };
 
         /**
-           Static method in order to calculate the field offset.
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
+           the offset of this pointer. For temporaries we use an oversized storage in order to have private halo
+           regions for each block. This method calculates the offset for temporaries and takes the private halo and
+           alignment information into account.
         */
         template < typename LocalDomain,
             typename PEBlockSize,
@@ -161,35 +184,46 @@ namespace gridtools {
             typename CurrentExtent,
             typename GridTraits,
             typename StorageInfo >
-        GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+        GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(
+            StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
-            constexpr int block_size_i =
-                2 * StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >() + PEBlockSize::i_size_t::value;
+            typedef typename LocalDomain::max_i_extent_t max_i_t;
+            // get the halo size in I direction
+            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
+            // calculate the blocksize in I and J direction
+            constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
             constexpr int block_size_j =
                 2 * StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >() + PEBlockSize::j_size_t::value;
-            // protect against div. by 0
+
+            // protect against div. by 0 and compute the distance between two blocks
             constexpr int diff_between_blocks =
-                ((StorageInfo::alignment_t::value)
-                    ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
-                          StorageInfo::alignment_t::value
-                    : PEBlockSize::i_size_t::value);
-            // compute position in i and j
+                ((StorageInfo::alignment_t::value > 1)
+                        ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
+                              StorageInfo::alignment_t::value
+                        : block_size_i);
+
+            // compute offset in I and J
             const uint_t i = processing_element_i() * diff_between_blocks;
-            const uint_t j = Arg::location_t::n_colors::value * diff_between_blocks * 
-                gridDim.x * processing_element_j() * block_size_j;
-            // get_initial_offset will deliver (alignment<N> - max. iminus halo). But in order to be
-            // aligned we have to add a value to this offset if we have an extent in iminus that is
-            // smaller than the maximum extent in iminus.
-            return StorageInfo::get_initial_offset() + CurrentExtent::iminus::value + i + j;
+            const uint_t j = Arg::location_t::n_colors::value *
+                             (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
+            // return field offset (Initial storage offset + Alignment correction value + I offset + J offset)
+            return StorageInfo::get_initial_offset() - CurrentExtent::iminus::value + i + j;
         }
 
+        /**
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
+           the offset of this pointer. This function computes the field offset for non temporary storages.
+        */
         template < typename LocalDomain,
             typename PEBlockSize,
             typename Arg,
             typename CurrentExtent,
             typename GridTraits,
             typename StorageInfo >
-        GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+        GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
+            StorageInfo const *sinfo) {
+            // return field offset (Initial storage offset in order to be aligned)
             return StorageInfo::get_initial_offset();
         }
 

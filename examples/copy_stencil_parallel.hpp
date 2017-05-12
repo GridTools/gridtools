@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -57,10 +57,10 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND_V Cuda
+#define BACKEND_ARCH Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
-#define BACKEND_V Host
+#define BACKEND_ARCH Host
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
@@ -93,8 +93,8 @@ namespace copy_stencil {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_t > storage_t;
+        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > storage_t;
 
         typedef gridtools::halo_exchange_dynamic_ut< typename storage_info_t::layout_t,
             gridtools::layout_map< 0, 1, 2 >,
@@ -129,10 +129,10 @@ namespace copy_stencil {
             pattern_type::grid_type > partitioner_t;
         partitioner_t part(he.comm(), halo, padding);
         parallel_storage_info< storage_info_t, partitioner_t > meta_(part, d1, d2, d3);
-        auto& metadata_ = meta_.get_metadata();
+        auto &metadata_ = meta_.get_metadata();
 
-        storage_t in(metadata_, 0.);
-        storage_t out(metadata_, 0.);
+        storage_t in(metadata_, [](int i, int j, int k) { return (i + j + k) * (gridtools::PID + 1); }, "in");
+        storage_t out(metadata_, 0., "out");
 
         he.add_halo< 0 >(meta_.template get_halo_gcl< 0 >());
         he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
@@ -143,12 +143,6 @@ namespace copy_stencil {
 #ifdef VERBOSE
         printf("halo set up\n");
 #endif
-        auto inv = make_host_view(in);
-        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i)
-            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j)
-                for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
-                    inv(i, j, k) = (i + j + k) * (gridtools::PID + 1);
-                }
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -165,12 +159,10 @@ namespace copy_stencil {
         // order. (I don't particularly like this)
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< copy_functor >(p_in(), p_out())));
+        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 #ifdef VERBOSE
         printf("computation instantiated\n");
 #endif
@@ -198,11 +190,11 @@ namespace copy_stencil {
 #ifdef VERBOSE
         printf("computation finalized\n");
 #endif
-
+        auto inv = make_host_view(in);
         auto outv = make_host_view(out);
         std::vector< float_type * > vec(2);
-        vec[0] = &inv(0,0,0);
-        vec[1] = &outv(0,0,0);
+        vec[0] = &inv(0, 0, 0);
+        vec[1] = &outv(0, 0, 0);
 
         he.pack(vec);
 

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -102,10 +102,8 @@ computation->finalize();
         // ID is unique
         typedef conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value > conditional_t;
 
-        auto lam = [&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); };
-        cond_.push_back_condition(lam);
-
-        return if_(conditional_t(lam), first_.mss(), recursive_switch(0u, cond_, cases_...));
+        cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
+        return if_(conditional_t((*cond_.m_conditions)[0]), first_.mss(), recursive_switch(0, cond_, cases_...));
     }
 
     template < typename Condition, typename First, typename... Cases >
@@ -125,10 +123,11 @@ computation->finalize();
         // choose an ID which should be unique: to pick a very large number we cast a negative number to an unsigned
         typedef conditional< (uint_t) - (sizeof...(Cases)), Condition::index_value > conditional_t;
 
-        auto lam = [&cond_, &first_]() { return (short_t)cond_.value()() == (short_t)first_.value(); };
-        cond_.push_back_condition(lam);
+        cond_.push_back_condition(condition_functor(cond_.value(), first_.value()));
 
-        return if_(conditional_t(lam), first_.mss(), recursive_switch(recursion_depth_ + 1, cond_, cases_...));
+        return if_(conditional_t((*cond_.m_conditions)[recursion_depth_ + 1]),
+            first_.mss(),
+            recursive_switch(recursion_depth_ + 1, cond_, cases_...));
     }
 
     /**@brief recursion anchor*/

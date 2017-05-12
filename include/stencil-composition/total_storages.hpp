@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -49,19 +49,18 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(EndIndex <= boost::fusion::result_of::size< StorageWrapperList >::type::value,
             "the index must not exceed the number of storages");
 
-        typedef typename boost::mpl::if_c<
-            (EndIndex < 0),
-            boost::mpl::vector0<>,
-            typename boost::mpl::fold< typename reversed_range< uint_t, 0, EndIndex >::type,
+        typedef
+            typename boost::mpl::if_c< (EndIndex < 0),
                 boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1, boost::mpl::at< StorageWrapperList, boost::mpl::_2 > > 
-            >::type 
-        >::type storages_wrappers_t;
+                typename boost::mpl::fold< typename reversed_range< uint_t, 0, EndIndex >::type,
+                                           boost::mpl::vector0<>,
+                                           boost::mpl::push_back< boost::mpl::_1,
+                                               boost::mpl::at< StorageWrapperList, boost::mpl::_2 > > >::type >::type
+                storages_wrappers_t;
 
-        typedef typename boost::mpl::fold<storages_wrappers_t,
-            boost::mpl::int_<0>,
-            boost::mpl::plus<boost::mpl::_1, get_storage_size_from_storage_wrapper<boost::mpl::_2> >
-        >::type type;
+        typedef typename boost::mpl::fold< storages_wrappers_t,
+            boost::mpl::int_< 0 >,
+            boost::mpl::plus< boost::mpl::_1, num_of_storages_from_storage_wrapper< boost::mpl::_2 > > >::type type;
 
         static const uint_t value = type::value;
 

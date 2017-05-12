@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -101,23 +101,25 @@ namespace test_expandable_parameters_icosahedral {
         auto storage70 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage70");
         auto storage80 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage80");
 
-        storage1 = decltype(storage1)(*storage1.get_storage_info_ptr(), 1.);
-        storage2 = decltype(storage2)(*storage2.get_storage_info_ptr(), 2.);
-        storage3 = decltype(storage3)(*storage3.get_storage_info_ptr(), 3.);
-        storage4 = decltype(storage4)(*storage4.get_storage_info_ptr(), 4.);
-        storage5 = decltype(storage5)(*storage5.get_storage_info_ptr(), 5.);
-        storage6 = decltype(storage6)(*storage6.get_storage_info_ptr(), 6.);
-        storage7 = decltype(storage7)(*storage7.get_storage_info_ptr(), 7.);
-        storage8 = decltype(storage8)(*storage8.get_storage_info_ptr(), 8.);
+        auto sinfo = *storage1.get_storage_info_ptr();
 
-        storage10 = decltype(storage10)(*storage10.get_storage_info_ptr(), 10.);
-        storage20 = decltype(storage20)(*storage20.get_storage_info_ptr(), 20.);
-        storage30 = decltype(storage30)(*storage30.get_storage_info_ptr(), 30.);
-        storage40 = decltype(storage40)(*storage40.get_storage_info_ptr(), 40.);
-        storage50 = decltype(storage50)(*storage50.get_storage_info_ptr(), 50.);
-        storage60 = decltype(storage60)(*storage60.get_storage_info_ptr(), 60.);
-        storage70 = decltype(storage70)(*storage70.get_storage_info_ptr(), 70.);
-        storage80 = decltype(storage80)(*storage80.get_storage_info_ptr(), 80.);
+        storage1 = cell_storage_type(sinfo, 1.);
+        storage2 = cell_storage_type(sinfo, 2.);
+        storage3 = cell_storage_type(sinfo, 3.);
+        storage4 = cell_storage_type(sinfo, 4.);
+        storage5 = cell_storage_type(sinfo, 5.);
+        storage6 = cell_storage_type(sinfo, 6.);
+        storage7 = cell_storage_type(sinfo, 7.);
+        storage8 = cell_storage_type(sinfo, 8.);
+
+        storage10 = cell_storage_type(sinfo, 10.);
+        storage20 = cell_storage_type(sinfo, 20.);
+        storage30 = cell_storage_type(sinfo, 30.);
+        storage40 = cell_storage_type(sinfo, 40.);
+        storage50 = cell_storage_type(sinfo, 50.);
+        storage60 = cell_storage_type(sinfo, 60.);
+        storage70 = cell_storage_type(sinfo, 70.);
+        storage80 = cell_storage_type(sinfo, 80.);
 
         std::vector< decltype(storage1) > list_out_ = {
             storage1, storage2, storage3, storage4, storage5, storage6, storage7, storage8};

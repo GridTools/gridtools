@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -84,8 +84,8 @@ TEST(test_make_reduction, make_reduction) {
 
     using namespace gridtools;
 
-    typedef BACKEND::storage_traits_t::storage_info_t<0, 6 > storage_info_t;
-    typedef BACKEND::storage_traits_t::data_store_t<float_type, storage_info_t> storage_t;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
+    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;

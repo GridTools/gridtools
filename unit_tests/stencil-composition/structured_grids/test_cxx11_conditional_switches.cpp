@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -102,7 +102,7 @@ namespace test_conditional_switches {
         storage_info_t meta_data_(8, 8, 8);
         data_store_t dummy(meta_data_, 0.);
         typedef arg< 0, data_store_t > p_dummy;
-        typedef arg< 1, data_store_t, enumtype::default_location_type, true > p_dummy_tmp;
+        typedef tmp_arg< 1, data_store_t > p_dummy_tmp;
 
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
         aggregator_type< arg_list > domain_(dummy);

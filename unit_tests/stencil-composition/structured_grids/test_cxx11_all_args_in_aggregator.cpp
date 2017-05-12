@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -57,16 +57,16 @@ namespace all_args_in_aggregator {
 
     TEST(testdomain, testindices) {
 #ifdef __CUDACC__
-#define BACKEND_V Cuda
+#define BACKEND_ARCH Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
-#define BACKEND_V Host
+#define BACKEND_ARCH Host
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
-        typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_V >::data_store_t< float_type, storage_info_t > data_store_t;
+        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
         typedef arg< 0, data_store_t > p_in;
-        typedef arg< 2, data_store_t, default_location_type, true > p_tmp;
+        typedef tmp_arg< 2, data_store_t > p_tmp;
         typedef arg< 1, data_store_t > p_out;
         typedef arg< 3, data_store_t > p_err;
 

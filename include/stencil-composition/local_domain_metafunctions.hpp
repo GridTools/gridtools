@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -73,7 +73,7 @@ namespace gridtools {
         // retrieve all the args
         typedef typename boost::mpl::fold< merged_storage_wrappers,
             boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, get_arg_from_storage_wrapper< boost::mpl::_2 > > >::type new_args_t;
+            boost::mpl::push_back< boost::mpl::_1, arg_from_storage_wrapper< boost::mpl::_2 > > >::type new_args_t;
 
         // return the new local domain type
         typedef boost::mpl::vector< local_domain< merged_storage_wrappers, new_args_t, extents_map_t, IsStateful > >

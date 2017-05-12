@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -77,21 +77,8 @@ namespace test_staggered_keyword {
         typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         meta_data_t meta_((uint_t)30, (uint_t)20, (uint_t)1);
-        storage_t i_data(meta_);
-        storage_t j_data(meta_);
-        i_data.allocate();
-        j_data.allocate();
-
-        auto iv = make_host_view(i_data);
-        auto jv = make_host_view(j_data);
-        for(unsigned i=0; i<30; ++i) {
-            for(unsigned j=0; j<20; ++j) {
-                for(unsigned k=0; k<1; ++k) {
-                    iv(i,j,k) = i;
-                    jv(i,j,k) = j;
-                }
-            }
-        }
+        storage_t i_data(meta_, [](int i, int j, int k) { return i; });
+        storage_t j_data(meta_, [](int i, int j, int k) { return j; });
 
         uint_t di[5] = {0, 0, 5, 30 - 1, 30};
         uint_t dj[5] = {0, 0, 5, 20 - 1, 20};

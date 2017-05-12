@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -95,9 +95,6 @@ namespace sov {
         auto in_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double >("in");
         auto out_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double >("out");
         auto ref_vertices = icosahedral_grid.make_storage< icosahedral_topology_t::vertices, double >("ref");
-        in_vertices.allocate();
-        out_vertices.allocate();
-        ref_vertices.allocate();
         auto inv = make_host_view(in_vertices);
         auto outv = make_host_view(out_vertices);
         auto refv = make_host_view(ref_vertices);

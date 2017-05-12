@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,38 @@
 
 #pragma once
 
-#include "common/data_field_view.hpp"
-#include "common/data_view.hpp"
+#include <boost/mpl/max_element.hpp>
+#include <boost/mpl/min_element.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/mpl/transform_view.hpp>
+#include <boost/mpl/filter_view.hpp>
+
+#include "../storage/storage-facility.hpp"
 
 #include "../common/pointer.hpp"
 #include "arg.hpp"
+#include "tile.hpp"
 
 namespace gridtools {
 
+    /**
+     * @brief The StorageWrapper class is used to keep together information about storages (data_store,
+     * data_store_fields)
+     * that are mapped to an arg and a corresponding view type. The contained information is a collection of types
+     * (view type, arg type, storage type, data type, storage_info type, etc.) and information about temporary, size
+     * read_only, etc.
+     * @tparam Arg arg type
+     * @tparam View view type associated to the arg type
+     * @tparam TileI tiling information in I direction (important for temporaries)
+     * @tparam TileJ tiling information in J direction (important for temporaries)
+     */
     template < typename Arg, typename View, typename TileI, typename TileJ >
     struct storage_wrapper {
+        // checks
+        GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_data_view< View >::value || is_data_field_view< View >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_tile< TileI >::value && is_tile< TileJ >::value), GT_INTERNAL_ERROR);
+
         // some type information
         using derived_t = storage_wrapper< Arg, View, TileI, TileJ >;
         using arg_t = Arg;
@@ -58,25 +80,27 @@ namespace gridtools {
         using storage_info_t = typename storage_t::storage_info_t;
 
         // some more information
-        constexpr static uint_t storage_size = view_t::N;
+        constexpr static uint_t num_of_storages = view_t::num_of_storages;
         constexpr static bool is_temporary = arg_t::is_temporary;
-        constexpr static bool is_read_only = view_t::read_only;
+        constexpr static bool is_read_only = (view_t::mode == access_mode::ReadOnly);
 
         // assign the data ptrs to some other ptrs
         template < typename T >
         void assign(T &d) const {
-            std::copy(this->m_data_ptrs, this->m_data_ptrs + storage_size, d);
+            std::copy(this->m_data_ptrs, this->m_data_ptrs + num_of_storages, d);
         }
 
         // tell me how I should initialize the ptr_t member called m_data_ptrs
         void initialize(view_t v) {
-            for (unsigned i = 0; i < storage_size; ++i)
+            for (unsigned i = 0; i < num_of_storages; ++i)
                 this->m_data_ptrs[i] = v.m_raw_ptrs[i];
         }
 
         // data ptrs
-        data_t *m_data_ptrs[storage_size];
+        data_t *m_data_ptrs[num_of_storages];
     };
+
+    /* Storage Wrapper metafunctions */
 
     template < typename T >
     struct is_storage_wrapper : boost::mpl::false_ {};
@@ -85,62 +109,85 @@ namespace gridtools {
     struct is_storage_wrapper< storage_wrapper< Arg, View, TileI, TileJ > > : boost::mpl::true_ {};
 
     template < typename T >
-    struct get_temporary_info_from_storage_wrapper : boost::mpl::bool_< T::is_temporary > {};
+    struct temporary_info_from_storage_wrapper : boost::mpl::bool_< T::is_temporary > {};
 
     template < typename T >
-    struct get_arg_from_storage_wrapper {
+    struct arg_from_storage_wrapper {
         typedef typename T::arg_t type;
     };
 
     template < typename T >
-    struct get_storage_size_from_storage_wrapper {
-        typedef boost::mpl::int_< T::storage_size > type;
-        static const int value = T::storage_size;
+    struct num_of_storages_from_storage_wrapper {
+        typedef boost::mpl::int_< T::num_of_storages > type;
+        static const int value = T::num_of_storages;
     };
 
     template < typename T >
-    struct get_storage_info_from_storage_wrapper {
+    struct storage_info_from_storage_wrapper {
         typedef typename T::storage_info_t type;
     };
 
     template < typename T >
-    struct get_storage_from_storage_wrapper {
+    struct storage_from_storage_wrapper {
         typedef typename T::storage_t type;
     };
 
     template < typename T >
-    struct get_data_ptr_from_storage_wrapper {
-        typedef typename T::data_t *type[T::storage_size];
+    struct data_ptr_from_storage_wrapper {
+        typedef typename T::data_t *type[T::num_of_storages];
     };
 
     template < typename T >
-    struct get_arg_index_from_storage_wrapper : T::index_t {};
+    struct arg_index_from_storage_wrapper : T::index_t {};
 
     template < typename EsfArg, typename StorageWrapperList >
-    struct get_storage_wrapper_elem {
+    struct storage_wrapper_elem {
         typedef typename boost::mpl::fold< StorageWrapperList,
             boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, get_arg_from_storage_wrapper< boost::mpl::_2 > > >::type ArgVec;
+            boost::mpl::push_back< boost::mpl::_1, arg_from_storage_wrapper< boost::mpl::_2 > > >::type ArgVec;
         typedef typename boost::mpl::at_c< StorageWrapperList,
             boost::mpl::find< ArgVec, EsfArg >::type::pos::value >::type type;
     };
 
+    /** @brief get tiling information out of a given storage wrapper.
+     *  @tparam Coord coordinate (I --> 0, J --> 1)
+     */
     template < unsigned Coord >
-    struct get_tile_from_storage_wrapper;
+    struct tile_from_storage_wrapper;
 
     template <>
-    struct get_tile_from_storage_wrapper< 0 > {
-        template < typename T >
+    struct tile_from_storage_wrapper< 0 > {
+        template < typename StorageWrapper >
         struct apply {
-            typedef typename T::tileI_t type;
+            typedef typename StorageWrapper::tileI_t type;
         };
     };
 
     template <>
-    struct get_tile_from_storage_wrapper< 1 > {
-        template < typename T >
+    struct tile_from_storage_wrapper< 1 > {
+        template < typename StorageWrapper >
         struct apply {
-            typedef typename T::tileJ_t type;
+            typedef typename StorageWrapper::tileJ_t type;
         };
+    };
+
+    /** @brief get the maximum extent in I direction from a given storage wrapper list.
+     *  This information is needed when using temporary storages.
+     *  @tparam StorageWrapperList given storage wrapper list
+     */
+    template < typename StorageWrapperList >
+    struct max_i_extent_from_storage_wrapper_list {
+        typedef
+            typename boost::mpl::transform< StorageWrapperList, tile_from_storage_wrapper< 1 > >::type all_i_tiles_t;
+        typedef typename boost::mpl::transform< all_i_tiles_t, get_minus_t_from_tile< boost::mpl::_ > >::type
+            all_i_minus_tiles_t;
+        typedef typename boost::mpl::transform< all_i_tiles_t, get_plus_t_from_tile< boost::mpl::_ > >::type
+            all_i_plus_tiles_t;
+        typedef typename boost::mpl::deref< typename boost::mpl::max_element< all_i_minus_tiles_t >::type >::type
+            min_i_minus_t;
+        typedef typename boost::mpl::deref< typename boost::mpl::max_element< all_i_plus_tiles_t >::type >::type
+            max_i_plus_t;
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::max_element< boost::mpl::vector< max_i_plus_t, min_i_minus_t > >::type >::type type;
     };
 }

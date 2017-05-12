@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -58,6 +58,8 @@ namespace gridtools {
     };
 }
 
+#define BOOL_FUNC(val) std::function< bool() > val
+
 namespace gridtools {
 
     template < uint_t Tag, uint_t SwitchId = 0 >
@@ -74,18 +76,17 @@ namespace gridtools {
            @brief default constructor
          */
         conditional() // try to avoid this?
-            : m_value(
-                  []() {
-                      assert(false);
-                      return false;
-                  }
-                  ) {
-        }
+            : m_value([]() {
+                assert(false);
+                return false;
+            }) {}
 
         /**
-           @brief constructor from a std::function
-         */
-        conditional(std::function< bool() > c) : m_value(c) {}
+           @brief constructor for switch variables (for GCC53 bug)
+
+           This constructor should not be needed
+        */
+        conditional(BOOL_FUNC(c)) : m_value(c) {}
 
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -102,10 +102,6 @@ namespace soem {
         auto in_edges2 = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in2");
         auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("out");
         auto ref_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("ref");
-        in_edges1.allocate();
-        in_edges2.allocate();
-        out_edges.allocate();
-        ref_edges.allocate();
         auto inv1 = make_host_view(in_edges1);
         auto inv2 = make_host_view(in_edges2);
         auto outv = make_host_view(out_edges);

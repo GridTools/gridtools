@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -51,10 +51,10 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND_V Cuda
+#define BACKEND_ARCH Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
-#define BACKEND_V Host
+#define BACKEND_ARCH Host
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
@@ -93,19 +93,20 @@ namespace copy_stencil {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef storage_traits< BACKEND_V >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_V >::data_store_field_t< float_type, storage_info_t, 2 > data_store_field_t;
-        storage_info_t meta_data_(x,y,z);
+        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< BACKEND_ARCH >::data_store_field_t< float_type, storage_info_t, 2 > data_store_field_t;
+        storage_info_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
         data_store_field_t in(meta_data_);
-        in.allocate();
         auto inv = make_field_host_view(in);
+        auto inv00 = inv.get< 0, 0 >();
+        auto inv01 = inv.get< 0, 1 >();
         for (uint_t i = 0; i < d1; ++i) {
             for (uint_t j = 0; j < d2; ++j) {
                 for (uint_t k = 0; k < d3; ++k) {
-                    inv.template get_value< 0, 1 >(i, j, k) = i + j + k;
-                    inv.template get_value< 0, 0 >(i, j, k) = 0.;
+                    inv00(i, j, k) = i + j + k;
+                    inv01(i, j, k) = 0.;
                 }
             }
         }
@@ -131,10 +132,9 @@ namespace copy_stencil {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in())));
+        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in())));
 
         copy->ready();
 
@@ -152,10 +152,9 @@ namespace copy_stencil {
         for (uint_t i = 0; i < d1; ++i) {
             for (uint_t j = 0; j < d2; ++j) {
                 for (uint_t k = 0; k < d3; ++k) {
-                    if (inv.template get_value< 0, 0 >(i, j, k) != inv.template get_value< 0, 1 >(i, j, k)) {
+                    if (inv00(i, j, k) != inv01(i, j, k)) {
                         std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                  << "in = " << (inv.template get_value< 0, 0 >(i, j, k))
-                                  << ", out = " << (inv.template get_value< 0, 1 >(i, j, k)) << std::endl;
+                                  << "in = " << (inv00(i, j, k)) << ", out = " << (inv01(i, j, k)) << std::endl;
                         success = false;
                     }
                 }

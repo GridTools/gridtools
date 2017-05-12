@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@
 #include "../common/is_temporary_storage.hpp"
 #include "../gridtools.hpp"
 
-#include "storage-facility.hpp"
+#include "../storage/storage-facility.hpp"
 
 #include "../common/offset_tuple_mixed.hpp"
 #include "extent.hpp"

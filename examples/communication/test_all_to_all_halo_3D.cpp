@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
 #include <fstream>
 #include <common/array.hpp>
 #include <common/boollist.hpp>
-#include <storage-facility.hpp>
+#include <storage/storage-facility.hpp>
 #include "gtest/gtest.h"
 #include "../../unit_tests/communication/device_binding.hpp"
 

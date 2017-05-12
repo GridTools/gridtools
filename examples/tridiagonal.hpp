@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -184,38 +184,17 @@ namespace tridiagonal {
 
         // Definition of the actual data fields that are used for input/output
         meta_t meta_(d1, d2, d3);
-        storage_type out(meta_);
-        storage_type inf(meta_);
-        storage_type diag(meta_);
-        storage_type sup(meta_);
-        storage_type rhs(meta_);
-        storage_type solution(meta_);
-        out.allocate();
-        inf.allocate();
-        diag.allocate();
-        sup.allocate();
-        rhs.allocate();
-        solution.allocate();
+        storage_type out(meta_, 0.0, "out");
+        storage_type inf(meta_, -1.0, "inf");
+        storage_type diag(meta_, 3.0, "diag");
+        storage_type sup(meta_, 1.0, "sup");
+        storage_type rhs(meta_, 3.0, "rhs");
+        storage_type solution(meta_, 1.0, "solution");
 
-        // create views
-        auto outv = make_host_view(out);
-        auto infv = make_host_view(inf);
-        auto diagv = make_host_view(diag);
-        auto supv = make_host_view(sup);
+        // special field initalizations
         auto rhsv = make_host_view(rhs);
-        auto solv = make_host_view(solution);
-
-        // init fields
         for (int_t i = 0; i < d1; ++i) {
             for (int_t j = 0; j < d2; ++j) {
-                for (int_t k = 0; k < d3; ++k) {
-                    rhsv(i,j,k) = 3.0;
-                    supv(i,j,k) = 1.0;
-                    diagv(i,j,k) = 3.0;
-                    infv(i,j,k) = -1.0;
-                    outv(i,j,k) = 0.0;
-                    solv(i,j,k) = 1.0;
-                }
                 rhsv(i, j, 0) = 4.;
                 rhsv(i, j, 5) = 2.;
             }
@@ -252,29 +231,27 @@ namespace tridiagonal {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-/*
-  Here we do lot of stuff
-  1) We pass to the intermediate representation ::run function the description
-  of the stencil, which is a multi-stage stencil (mss)
-  The mss includes (in order of execution) a laplacian, two fluxes which are independent
-  and a final step that is the out_function
-  2) The logical physical domain with the fields to use
-  3) The actual domain dimensions
- */
+        /*
+          Here we do lot of stuff
+          1) We pass to the intermediate representation ::run function the description
+          of the stencil, which is a multi-stage stencil (mss)
+          The mss includes (in order of execution) a laplacian, two fluxes which are independent
+          and a final step that is the out_function
+          2) The logical physical domain with the fields to use
+          3) The actual domain dimensions
+         */
 
         auto solver = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< forward_thomas >(
-                        p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
-                    ),
-                gridtools::make_multistage // mss_descriptor
-                (execute< backward >(),
-                    gridtools::make_stage< backward_thomas >(
-                        p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
-                    ));
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_stage< forward_thomas >(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
+                ),
+            gridtools::make_multistage // mss_descriptor
+            (execute< backward >(),
+                gridtools::make_stage< backward_thomas >(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
+                ));
 
         solver->ready();
         solver->steady();

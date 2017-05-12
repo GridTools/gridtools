@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,6 @@
 #pragma once
 
 #define DEFS_GUARD
-#define GCC_53_BUG __GNUC__ == 5 && __GNUC_MINOR__ == 3
 
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE

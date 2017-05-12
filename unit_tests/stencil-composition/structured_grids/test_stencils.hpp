@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -104,16 +104,16 @@ namespace copy_stencils_3D_2D_1D_0D {
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
-typedef gridtools::cuda_storage_info< 0, DstLayout > meta_dst_t;
-typedef gridtools::cuda_storage_info< 0, SrcLayout > meta_src_t;
+        typedef gridtools::cuda_storage_info< 0, DstLayout > meta_dst_t;
+        typedef gridtools::cuda_storage_info< 0, SrcLayout > meta_src_t;
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #else
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
-typedef gridtools::host_storage_info< 0, DstLayout > meta_dst_t;
-typedef gridtools::host_storage_info< 0, SrcLayout > meta_src_t;
+        typedef gridtools::host_storage_info< 0, DstLayout > meta_dst_t;
+        typedef gridtools::host_storage_info< 0, SrcLayout > meta_src_t;
 #endif
 
         typedef BACKEND::storage_traits_t::data_store_t< T, meta_dst_t > storage_t;
@@ -122,15 +122,8 @@ typedef gridtools::host_storage_info< 0, SrcLayout > meta_src_t;
         meta_dst_t meta_dst_(d1, d2, d3);
         meta_src_t meta_src_(d1, d2, d3);
         // Definition of the actual data fields that are used for input/output
-        src_storage_t in(meta_src_);
-        in.allocate();
-        auto inv = make_host_view(in);
-        for (int i = 0; i < d1; ++i)
-            for (int j = 0; j < d2; ++j)
-                for (int k = 0; k < d3; ++k) {
-                    inv(i, j, k) = (T)(i + j + k);
-                }
-
+        std::function< T(int, int, int)> init_lambda = [](int i, int j, int k) { return (T)(i + j + k); };
+        src_storage_t in(meta_src_, init_lambda);
         storage_t out(meta_dst_, (T)1.5);
 
         // in.print();
@@ -195,10 +188,10 @@ typedef gridtools::host_storage_info< 0, SrcLayout > meta_src_t;
 #endif
 
         auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
-                grid_,
-                gridtools::make_multistage                                                    // mss_descriptor
-                (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out()) // esf_descriptor
-                                                                         ));
+            grid_,
+            gridtools::make_multistage                                                    // mss_descriptor
+            (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out()) // esf_descriptor
+                                                                          ));
 
         copy->ready();
         copy->steady();
@@ -240,6 +233,7 @@ typedef gridtools::host_storage_info< 0, SrcLayout > meta_src_t;
 
         bool ok = true;
         auto outv = make_host_view(out);
+        auto inv = make_host_view(in);
         for (int i = 0; i < d1; ++i)
             for (int j = 0; j < d2; ++j)
                 for (int k = 0; k < d3; ++k) {

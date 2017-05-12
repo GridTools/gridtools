@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,8 @@
 #include "stencil-composition/local_domain.hpp"
 #include "stencil-composition/run_functor_arguments.hpp"
 
-#ifndef CXX11_ENABLED
-#include "iterate_domain_cxx03.hpp"
-#else
+#ifdef CXX11_ENABLED
 #include "iterate_domain_cxx11.hpp"
+#else
+#include "iterate_domain_cxx03.hpp"
 #endif

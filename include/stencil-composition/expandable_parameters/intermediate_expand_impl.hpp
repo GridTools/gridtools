@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,28 +36,49 @@
 #pragma once
 #include <boost/utility.hpp>
 
-#include "../../common/is_vector.hpp"
+#include "../../common/vector_traits.hpp"
 
 namespace gridtools {
     namespace _impl {
 
-        template < typename R, typename Vec, typename... T >
-        typename boost::enable_if_c< sizeof...(T) == boost::mpl::size< Vec >::value,
-            R * >::type get_aggregator(Vec &v, T &... t) {
-            return new R(t...);
+        /**
+           @brief function is used to retrieve an aggregator type isntance when given a boost fusion
+           vector containing data_stores, etc. (base case)
+           @tparam AggregatorType the result type (aggregator_type)
+           @tparam DataStoreFieldVec the fusion vector type
+           @tparam DataStoreFields variadic pack of data_store_fields
+           @param dsf_vec fusion vector containing the data_store_fields
+           @param dsf variadic list of data_store_fields
+        */
+        template < typename AggregatorType, typename DataStoreFieldVec, typename... DataStoreFields >
+        typename boost::enable_if_c< sizeof...(DataStoreFields) == boost::mpl::size< DataStoreFieldVec >::value,
+            AggregatorType * >::type
+        make_aggregator(DataStoreFieldVec &dsf_vec, DataStoreFields &... dsf) {
+            return new AggregatorType(dsf...);
         }
 
-        template < typename R, typename Vec, typename... T >
-        typename boost::enable_if_c< sizeof...(T) < boost::mpl::size< Vec >::value,
-            R * >::type get_aggregator(Vec &v, T &... t) {
-            return get_aggregator< R >(v,
-                t...,
-                *(boost::fusion::deref(boost::fusion::advance_c< sizeof...(T) >(boost::fusion::begin(v))).ptr));
+        /**
+           @brief function is used to retrieve an aggregator type isntance when given a boost fusion
+           vector containing data_stores, etc. (step case)
+           @tparam AggregatorType the result type (aggregator_type)
+           @tparam DataStoreFieldVec the fusion vector type
+           @tparam DataStoreFields variadic pack of data_store_fields
+           @param dsf_vec fusion vector containing the data_store_fields
+           @param dsf variadic list of data_store_fields
+        */
+        template < typename AggregatorType, typename DataStoreFieldVec, typename... DataStoreFields >
+        typename boost::enable_if_c< sizeof...(DataStoreFields) < boost::mpl::size< DataStoreFieldVec >::value,
+            AggregatorType * >::type
+        make_aggregator(DataStoreFieldVec &dsf_vec, DataStoreFields &... dsf) {
+            return make_aggregator< AggregatorType >(dsf_vec,
+                dsf...,
+                *(boost::fusion::deref(boost::fusion::advance_c< sizeof...(DataStoreFields) >(boost::fusion::begin(
+                                           dsf_vec))).ptr));
         }
 
         /**
            @brief functor used to initialize the storage in a boost::fusion::vector full an
-           instance of gridtools::domain_type
+           instance of gridtools::aggregator_type
         */
         template < typename DomainFull, typename Vec >
         struct initialize_storage {
@@ -83,7 +104,7 @@ namespace gridtools {
                     (*(m_dom_full.template get_arg_storage_pair< placeholder_t, placeholder_t >()).ptr);
                 data_store_field_t *ptr = new data_store_field_t(*(expandable_param[0].get_storage_info_ptr()));
                 // fill in the first bunch of ptrs
-                for (unsigned i = 0; i < data_store_field_t::size; ++i) {
+                for (unsigned i = 0; i < data_store_field_t::num_of_storages; ++i) {
                     ptr->set(0, i, expandable_param[i]);
                 }
                 boost::fusion::at< static_ushort< ID > >(m_vec_to) =

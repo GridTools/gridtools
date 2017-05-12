@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -118,8 +118,9 @@ namespace gridtools {
     struct setup_computation< enumtype::Host > {
         template < typename AggregatorType, typename Grid >
         static uint_t apply(AggregatorType &aggregator, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT(is_aggregator_type< AggregatorType >::value, "wrong domain type");
-            GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, "wrong grid type");
+            GRIDTOOLS_STATIC_ASSERT(
+                is_aggregator_type< AggregatorType >::value, GT_INTERNAL_ERROR_MSG("wrong domain type"));
+            GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
                                         is_arg_storage_pair >::type::value),
                 "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
@@ -212,7 +213,7 @@ namespace gridtools {
                 boost::mpl::_1,
                 boost::mpl::if_<
                     is_tmp_arg< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 > >,
-                    get_storage_wrapper_elem< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
+                    storage_wrapper_elem< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
                         all_tmps >,
                     storage_wrapper< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
                         boost::mpl::at< ViewList, boost::mpl::_2 >,
@@ -301,38 +302,6 @@ namespace gridtools {
         typedef typename extract_mss_domains< Vec1 >::type type;
     };
 
-    // function that checks if the given extents (I+- and J+-)
-    // are within the halo that was defined when creating the grid.
-    template < typename ExtentsVec, typename Grid >
-    void check_grid_against_extents(Grid const &grid) {
-        typedef ExtentsVec all_extents_vecs_t;
-        // get smallest i_minus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 0 > > >::type >::type >::type >::
-            type IM_t;
-        // get smallest j_minus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 2 > > >::type >::type >::type >::
-            type JM_t;
-        // get largest i_plus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 1 > > >::type >::type >::type >::
-            type IP_t;
-        // get largest j_plus extent
-        typedef typename boost::mpl::deref<
-            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
-                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 3 > > >::type >::type >::type >::
-            type JP_t;
-        const bool check = (IM_t::value >= -static_cast< int >(grid.direction_i().minus())) &&
-                           (IP_t::value <= static_cast< int >(grid.direction_i().plus())) &&
-                           (JM_t::value >= -static_cast< int >(grid.direction_j().minus())) &&
-                           (JP_t::value <= static_cast< int >(grid.direction_j().plus()));
-        assert(check && "One of the stencil accessor extents is exceeding the halo region.");
-    }
-
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -397,7 +366,8 @@ namespace gridtools {
         typedef typename build_mss_components_array< backend_id< Backend >::value,
             MssDescriptorArray,
             extent_sizes_t,
-            static_int< RepeatFunctor > >::type mss_components_array_t;
+            static_int< RepeatFunctor >,
+            typename Grid::axis_type >::type mss_components_array_t;
 
         // creates a fusion sequence of views
         typedef typename create_view_fusion_map< DomainType >::type view_list_fusion_t;
@@ -411,6 +381,9 @@ namespace gridtools {
         // create storage_wrapper_fusion_list
         typedef
             typename boost::fusion::result_of::as_vector< storage_wrapper_list_t >::type storage_wrapper_fusion_list_t;
+
+        // get the maximum extent (used to retrieve the size of the temporaries)
+        typedef typename max_i_extent_from_storage_wrapper_list< storage_wrapper_fusion_list_t >::type max_i_extent_t;
 
         // creates an mpl sequence of local domains
         typedef typename create_mss_local_domains< backend_id< Backend >::value,
@@ -426,7 +399,7 @@ namespace gridtools {
         // member fields
         mss_local_domain_list_t m_mss_local_domain_list;
 
-        DomainType &m_domain;
+        DomainType m_domain;
         const Grid &m_grid;
 
         bool is_storage_ready;
@@ -448,7 +421,7 @@ namespace gridtools {
         virtual void ready() {
             // instantiate all the temporaries
             boost::mpl::for_each< storage_wrapper_fusion_list_t >(
-                _impl::instantiate_tmps< DomainType, Grid, Backend >(m_domain, m_grid));
+                _impl::instantiate_tmps< max_i_extent_t, DomainType, Grid, Backend >(m_domain, m_grid));
         }
 
         virtual void steady() {
@@ -478,10 +451,10 @@ namespace gridtools {
         }
 
         virtual reduction_type_t run() {
-            // check if all views are still valid, otherwise we have to call steady again
-            _impl::check_view_validity< DomainType > check_views(m_domain);
+            // check if all views are still consistent, otherwise we have to call steady again
+            _impl::check_view_consistency< DomainType > check_views(m_domain);
             boost::fusion::for_each(m_view_list, check_views);
-            if (!check_views.is_valid()) {
+            if (!check_views.is_consistent()) {
                 steady();
             }
 
@@ -505,9 +478,18 @@ namespace gridtools {
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
-        template < typename... DataStores >
+        template < typename... DataStores,
+            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
+                0 >
         void reassign(DataStores &... stores) {
-            m_domain.reassign_impl(stores...);
+            m_domain.reassign_storages_impl(stores...);
+        }
+
+        template < typename... ArgStoragePairs,
+            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+                int >::type = 0 >
+        void reassign(ArgStoragePairs... pairs) {
+            m_domain.reassign_arg_storage_pairs_impl(pairs...);
         }
 
         void reassign_aggregator(DomainType &new_domain) { m_domain = new_domain; }

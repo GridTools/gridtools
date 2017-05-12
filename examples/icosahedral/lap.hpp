@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -120,7 +120,6 @@ namespace ico_operators {
             float_type,
             typename repository::halo_5d_t,
             selector< 1, 1, 1, 1, 1 > >("weights", 3);
-        div_weights.allocate();
         // for curl
         auto &dual_area_reciprocal = repository.dual_area_reciprocal();
         auto &dual_edge_length = repository.dual_edge_length();
@@ -130,7 +129,6 @@ namespace ico_operators {
                                               float_type,
                                               typename repository::halo_5d_t,
                                               selector< 1, 1, 1, 1, 1 > >("curl_weights", 6));
-        curl_weights.allocate();
         // for lap
         auto &dual_edge_length_reciprocal = repository.dual_edge_length_reciprocal();
         auto &edge_length_reciprocal = repository.edge_length_reciprocal();
@@ -139,7 +137,6 @@ namespace ico_operators {
         auto out_edges =
             icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type, typename repository::halo_t >(
                 "out");
-        out_edges.allocate();
         auto &ref_edges = repository.lap_ref();
 
         bool result = true;
@@ -212,11 +209,11 @@ namespace ico_operators {
 
             // fields for div
             typedef arg< 1, cells_4d_storage_type, enumtype::cells > p_div_weights;
-            typedef arg< 2, cell_storage_type, enumtype::cells, true > p_div_on_cells;
+            typedef tmp_arg< 2, cell_storage_type, enumtype::cells > p_div_on_cells;
 
             // fields for curl
             typedef arg< 3, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
-            typedef arg< 4, vertex_storage_type, enumtype::vertices, true > p_curl_on_vertices;
+            typedef tmp_arg< 4, vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
 
             // fields for lap
             typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;
@@ -280,12 +277,12 @@ namespace ico_operators {
             // fields for div
             typedef arg< 1, edge_2d_storage_type, enumtype::edges > p_edge_length;
             typedef arg< 2, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef arg< 3, cell_storage_type, enumtype::cells, true > p_div_on_cells;
+            typedef tmp_arg< 3, cell_storage_type, enumtype::cells > p_div_on_cells;
 
             // fields for curl
             typedef arg< 4, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
             typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
-            typedef arg< 6, vertex_storage_type, enumtype::vertices, true > p_curl_on_vertices;
+            typedef tmp_arg< 6, vertex_storage_type, enumtype::vertices > p_curl_on_vertices;
 
             // fields for lap
             typedef arg< 7, edge_2d_storage_type, enumtype::edges > p_dual_edge_length_reciprocal;

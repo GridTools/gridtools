@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -282,22 +282,11 @@ namespace multi_types_test {
         storage_info2_t si2(x, y, z);
         storage_info3_t si3(x, y, z);
 
-        data_store1_t field1 = data_store1_t(si1, type1());
+        data_store1_t field1 = data_store1_t(si1, [](int i, int j, int k) { return type1(i, j, k); });
         data_store2_t field2 = data_store2_t(si2, type2());
         data_store3_t field3 = data_store3_t(si3, type3());
 
-        auto f1v = make_host_view(field1);
-        auto f2v = make_host_view(field2);
-        auto f3v = make_host_view(field3);
-        for (int i = 0; i < x; ++i) {
-            for (int j = 0; j < y; ++j) {
-                for (int k = 0; k < z; ++k) {
-                    f1v(i, j, k) = type1(i, j, k);
-                }
-            }
-        }
-
-        typedef arg< 3, data_store1_t, enumtype::default_location_type, true > p_temp;
+        typedef tmp_arg< 3, data_store1_t > p_temp;
         typedef arg< 0, data_store1_t > p_field1;
         typedef arg< 1, data_store2_t > p_field2;
         typedef arg< 2, data_store3_t > p_field3;
@@ -333,8 +322,14 @@ namespace multi_types_test {
 
         test_computation->finalize();
 
-        bool result = true;
+        auto f1v = make_host_view(field1);
+        auto f2v = make_host_view(field2);
+        auto f3v = make_host_view(field3);
+        assert(check_consistency(field1, f1v) && "view cannot be used safely.");
+        assert(check_consistency(field2, f2v) && "view cannot be used safely.");
+        assert(check_consistency(field3, f3v) && "view cannot be used safely.");
 
+        bool result = true;
         for (int i = 0; i < x; ++i) {
             for (int j = 0; j < y; ++j) {
                 for (int k = 0; k < z; ++k) {

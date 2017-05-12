@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -334,13 +334,13 @@ namespace gridtools {
                 (is_accessor< accessor_t >::value), "Using EVAL is only allowed for an accessor type");
             typedef typename accessor_t::index_t index_t;
             typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
-            typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+            typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
             typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
             typedef typename storage_wrapper_t::data_t data_t;
 
-            GRIDTOOLS_STATIC_ASSERT(accessor_t::n_dimensions <= storage_info_t::layout_t::length,
+            GRIDTOOLS_STATIC_ASSERT(accessor_t::n_dimensions <= storage_info_t::layout_t::masked_length,
                 "Requested accessor index lower than zero. Check that when you define the accessor you specify the "
                 "dimenisons which you actually access. e.g. suppose that a storage linked to the accessor ```in``` has "
                 "5 dimensions, and thus can be called with in(Dimensions<5>(-1)). Calling in(Dimensions<6>(-1)) brings "
@@ -359,24 +359,23 @@ namespace gridtools {
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-            typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+            typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
             typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
             typedef typename storage_wrapper_t::data_t data_t;
 
-            GRIDTOOLS_STATIC_ASSERT(storage_info_t::layout_t::length + 2 >= Accessor::n_dimensions,
+            GRIDTOOLS_STATIC_ASSERT(storage_info_t::layout_t::masked_length + 2 >= Accessor::n_dimensions,
                 "the dimension of the accessor exceeds the data field dimension");
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions != storage_info_t::layout_t::length,
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions != storage_info_t::layout_t::masked_length,
                 "The dimension of the data_store_field accessor must be bigger than the storage dimension, you "
                 "specified it "
                 "equal to the storage dimension");
-            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions > storage_info_t::layout_t::length,
+            GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions > storage_info_t::layout_t::masked_length,
                 "You specified a too small dimension for the data_store_field");
 
-            const uint_t idx = get_accumulated_data_field_index_h< storage_t >::apply(accessor.template get< 1 >()) +
-                               accessor.template get< 0 >();
-            assert(idx < storage_t::size && "Out of bounds access when accessing data store field element.");
+            const uint_t idx = get_datafield_offset< storage_t >::get(accessor);
+            assert(idx < storage_t::num_of_storages && "Out of bounds access when accessing data store field element.");
             return data_pointer().template get< index_t::value >()[idx];
         }
 
@@ -430,7 +429,7 @@ namespace gridtools {
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-            typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+            typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
             typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
@@ -461,7 +460,7 @@ namespace gridtools {
             // i+offset_i or j+offset_j or k+offset_k is too large.
             // Most probably this is due to you specifying a positive offset which is larger than expected,
             // or maybe you did a mistake when specifying the ranges in the placehoders definition
-            GTASSERT(static_cast<int>(storage_info->size()) > static_cast<int>(pointer_offset));
+            GTASSERT(static_cast< int >(storage_info->size()) > static_cast< int >(pointer_offset));
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
                     typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
@@ -479,7 +478,7 @@ namespace gridtools {
             typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-            typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+            typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
             typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
@@ -495,7 +494,7 @@ namespace gridtools {
             const storage_info_t *storage_info =
                 boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
 
-            GTASSERT(static_cast<int>(storage_info->size()) > static_cast<int>(offset));
+            GTASSERT(static_cast< int >(storage_info->size()) > static_cast< int >(offset));
 #endif
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
@@ -524,7 +523,7 @@ namespace gridtools {
             typedef typename accessor_t::index_t index_t;
             typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
 
-            typedef typename get_storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
+            typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
             typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;

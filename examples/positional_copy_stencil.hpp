@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -135,14 +135,8 @@ namespace positional_copy_stencil {
 
         // Definition of the actual data fields that are used for input/output
         meta_data_t meta_(d1, d2, d3);
-        storage_t in(meta_, -3.5);
-        storage_t out(meta_, 1.5);
-
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I don't particularly like this)
+        storage_t in(meta_, -3.5, "in");
+        storage_t out(meta_, 1.5, "out");
 
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
@@ -158,12 +152,12 @@ namespace positional_copy_stencil {
         grid.value_list[1] = d3 - 1;
 
         auto init = gridtools::make_positional_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
-                        )));
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_stage< init_functor< _value_ > >(p_in(), p_out() // esf_descriptor
+                    )));
 
         init->ready();
         init->steady();
@@ -171,27 +165,19 @@ namespace positional_copy_stencil {
         init->finalize();
 
         auto copy = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
-                        ,
-                        p_out())));
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
+                    ,
+                    p_out())));
         copy->ready();
         copy->steady();
         copy->run();
         copy->finalize();
 
-        storage_t ref(meta_, 1.5);
-        auto refv = make_host_view(ref);
-        for (uint_t i = 0; i < d1; ++i) {
-            for (uint_t j = 0; j < d2; ++j) {
-                for (uint_t k = 0; k < d3; ++k) {
-                    refv(i, j, k) = static_cast< double >(_value_) * (i + j + k);
-                }
-            }
-        }
+        storage_t ref(meta_, [](int i, int j, int k) { return static_cast< double >(_value_) * (i + j + k); });
 
 #ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4

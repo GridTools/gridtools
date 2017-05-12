@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -103,18 +103,17 @@ struct shallow_water_reference {
 #endif
     }
 
-    shallow_water_reference() : solution_meta(DimI, DimJ, static_cast< uint_t >(1)), solution(solution_meta),
-        u(solution_meta, u_array, enumtype::ExternalCPU),
-        v(solution_meta, v_array, enumtype::ExternalCPU),
-        h(solution_meta, h_array, enumtype::ExternalCPU),
-        ux(solution_meta, ux_array, enumtype::ExternalCPU),
-        vx(solution_meta, vx_array, enumtype::ExternalCPU),
-        hx(solution_meta, hx_array, enumtype::ExternalCPU),
-        uy(solution_meta, uy_array, enumtype::ExternalCPU),
-        vy(solution_meta, vy_array, enumtype::ExternalCPU),
-        hy(solution_meta, hy_array, enumtype::ExternalCPU) { 
-            solution.allocate();
-        }
+    shallow_water_reference()
+        : solution_meta(DimI, DimJ, static_cast< uint_t >(1)), solution(solution_meta),
+          u(solution_meta, u_array, ownership::ExternalCPU, "u"),
+          v(solution_meta, v_array, ownership::ExternalCPU, "v"),
+          h(solution_meta, h_array, ownership::ExternalCPU, "h"),
+          ux(solution_meta, ux_array, ownership::ExternalCPU, "ux"),
+          vx(solution_meta, vx_array, ownership::ExternalCPU, "vx"),
+          hx(solution_meta, hx_array, ownership::ExternalCPU, "hx"),
+          uy(solution_meta, uy_array, ownership::ExternalCPU, "uy"),
+          vy(solution_meta, vy_array, ownership::ExternalCPU, "vy"),
+          hy(solution_meta, hy_array, ownership::ExternalCPU, "hy") {}
 
     void setup() {
         for (uint_t i = 0; i < DimI; ++i)
@@ -150,60 +149,62 @@ struct shallow_water_reference {
         for (uint_t i = 0; i < DimI - 1; ++i)
             for (uint_t j = 0; j < DimJ - 2; ++j) {
                 uint_t id = i * strides[0] + j * strides[1];
-                hxp[id] =
-                    (hp[id + ip1 + jp1] + hp[id + jp1]) / 2. - (up[id + ip1 + jp1] - up[id + jp1]) * (dt() / (2 * dx()));
+                hxp[id] = (hp[id + ip1 + jp1] + hp[id + jp1]) / 2. -
+                          (up[id + ip1 + jp1] - up[id + jp1]) * (dt() / (2 * dx()));
 
-                uxp[id] = (up[id + ip1 + jp1] + up[id + jp1]) / 2. -
-                         (((pow< 2 >(up[id + ip1 + jp1])) / hp[id + ip1 + jp1] + pow< 2 >(hp[id + ip1 + jp1]) * g() / 2.) -
-                             (pow< 2 >(up[id + jp1]) / hp[id + jp1] + pow< 2 >(hp[id + jp1]) * (g() / 2.))) *
-                             (dt() / (2. * dx()));
+                uxp[id] =
+                    (up[id + ip1 + jp1] + up[id + jp1]) / 2. -
+                    (((pow< 2 >(up[id + ip1 + jp1])) / hp[id + ip1 + jp1] + pow< 2 >(hp[id + ip1 + jp1]) * g() / 2.) -
+                        (pow< 2 >(up[id + jp1]) / hp[id + jp1] + pow< 2 >(hp[id + jp1]) * (g() / 2.))) *
+                        (dt() / (2. * dx()));
 
                 vxp[id] = (vp[id + ip1 + jp1] + vp[id + jp1]) / 2. -
-                         (up[id + ip1 + jp1] * vp[id + ip1 + jp1] / hp[id + ip1 + jp1] -
-                             up[id + jp1] * vp[id + jp1] / hp[id + jp1]) *
-                             (dt() / (2 * dx()));
+                          (up[id + ip1 + jp1] * vp[id + ip1 + jp1] / hp[id + ip1 + jp1] -
+                              up[id + jp1] * vp[id + jp1] / hp[id + jp1]) *
+                              (dt() / (2 * dx()));
             }
 
         for (uint_t i = 0; i < DimI - 2; ++i)
             for (uint_t j = 0; j < DimJ - 1; ++j) {
                 uint_t id = i * strides[0] + j * strides[1];
-                hyp[id] =
-                    (hp[id + ip1 + jp1] + hp[id + ip1]) / 2. - (vp[id + ip1 + jp1] - vp[id + ip1]) * (dt() / (2 * dy()));
+                hyp[id] = (hp[id + ip1 + jp1] + hp[id + ip1]) / 2. -
+                          (vp[id + ip1 + jp1] - vp[id + ip1]) * (dt() / (2 * dy()));
 
                 uyp[id] = (up[id + ip1 + jp1] + up[id + ip1]) / 2. -
-                         (vp[id + ip1 + jp1] * up[id + ip1 + jp1] / hp[id + ip1 + jp1] -
-                             vp[id + ip1] * up[id + ip1] / hp[id + ip1]) *
-                             (dt() / (2 * dy()));
+                          (vp[id + ip1 + jp1] * up[id + ip1 + jp1] / hp[id + ip1 + jp1] -
+                              vp[id + ip1] * up[id + ip1] / hp[id + ip1]) *
+                              (dt() / (2 * dy()));
 
-                vyp[id] = (vp[id + ip1 + jp1] + vp[id + ip1]) / 2. -
-                         ((pow< 2 >(vp[id + ip1 + jp1]) / hp[id + ip1 + jp1] + pow< 2 >(hp[id + ip1 + jp1]) * g() / 2.) -
-                             (pow< 2 >(vp[id + ip1]) / hp[id + ip1] + pow< 2 >(hp[id + ip1]) * (g() / 2.))) *
-                             (dt() / (2. * dy()));
+                vyp[id] =
+                    (vp[id + ip1 + jp1] + vp[id + ip1]) / 2. -
+                    ((pow< 2 >(vp[id + ip1 + jp1]) / hp[id + ip1 + jp1] + pow< 2 >(hp[id + ip1 + jp1]) * g() / 2.) -
+                        (pow< 2 >(vp[id + ip1]) / hp[id + ip1] + pow< 2 >(hp[id + ip1]) * (g() / 2.))) *
+                        (dt() / (2. * dy()));
             }
 
         for (uint_t i = 1; i < DimI - 2; ++i)
             for (uint_t j = 1; j < DimJ - 2; ++j) {
                 uint_t id = i * strides[0] + j * strides[1];
                 hp[id] = hp[id] - (uxp[id + jm1] - uxp[id + im1 + jm1]) * (dt() / dx()) -
-                        (vyp[id + im1] - vyp[id + im1 + jm1]) * (dt() / dy());
+                         (vyp[id + im1] - vyp[id + im1 + jm1]) * (dt() / dy());
 
                 up[id] = up[id] -
-                        (pow< 2 >(uxp[id + jm1]) / hxp[id + jm1] + hxp[id + jm1] * hxp[id + jm1] * ((g() / 2.)) -
-                            (pow< 2 >(uxp[id + im1 + jm1]) / hxp[id + im1 + jm1] +
-                                pow< 2 >(hxp[id + im1 + jm1]) * ((g() / 2.)))) *
-                            ((dt() / dx())) -
-                        (vyp[id + im1] * uyp[id + im1] / hyp[id + im1] -
-                            vyp[id + im1 + jm1] * uyp[id + im1 + jm1] / hyp[id + im1 + jm1]) *
-                            (dt() / dy());
+                         (pow< 2 >(uxp[id + jm1]) / hxp[id + jm1] + hxp[id + jm1] * hxp[id + jm1] * ((g() / 2.)) -
+                             (pow< 2 >(uxp[id + im1 + jm1]) / hxp[id + im1 + jm1] +
+                                 pow< 2 >(hxp[id + im1 + jm1]) * ((g() / 2.)))) *
+                             ((dt() / dx())) -
+                         (vyp[id + im1] * uyp[id + im1] / hyp[id + im1] -
+                             vyp[id + im1 + jm1] * uyp[id + im1 + jm1] / hyp[id + im1 + jm1]) *
+                             (dt() / dy());
 
                 vp[id] = vp[id] -
-                        (uxp[id + jm1] * vxp[id + jm1] / hxp[id + jm1] -
-                            (uxp[id + im1 + jm1] * vxp[id + im1 + jm1]) / hxp[id + im1 + jm1]) *
-                            ((dt() / dx())) -
-                        (pow< 2 >(vyp[id + im1]) / hyp[id + im1] + pow< 2 >(hyp[id + im1]) * ((g() / 2.)) -
-                            (pow< 2 >(vyp[id + im1 + jm1]) / hyp[id + im1 + jm1] +
-                                pow< 2 >(hyp[id + im1 + jm1]) * ((g() / 2.)))) *
-                            ((dt() / dy()));
+                         (uxp[id + jm1] * vxp[id + jm1] / hxp[id + jm1] -
+                             (uxp[id + im1 + jm1] * vxp[id + im1 + jm1]) / hxp[id + im1 + jm1]) *
+                             ((dt() / dx())) -
+                         (pow< 2 >(vyp[id + im1]) / hyp[id + im1] + pow< 2 >(hyp[id + im1]) * ((g() / 2.)) -
+                             (pow< 2 >(vyp[id + im1 + jm1]) / hyp[id + im1 + jm1] +
+                                 pow< 2 >(hyp[id + im1 + jm1]) * ((g() / 2.)))) *
+                             ((dt() / dy()));
             }
     }
 };

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -99,9 +99,9 @@ namespace test_cache_stencil {
 
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
-    typedef arg< 2, storage_t, enumtype::default_location_type, true > p_buff;
-    typedef arg< 3, storage_t, enumtype::default_location_type, true > p_buff_2;
-    typedef arg< 4, storage_t, enumtype::default_location_type, true > p_buff_3;
+    typedef tmp_arg< 2, storage_t > p_buff;
+    typedef tmp_arg< 3, storage_t > p_buff_2;
+    typedef tmp_arg< 4, storage_t > p_buff_3;
 }
 
 using namespace gridtools;

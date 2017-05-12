@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,7 @@
 #include "../location_type.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
-
-#include "storage-facility.hpp"
+#include "../../storage/storage-facility.hpp"
 
 namespace gridtools {
     namespace impl {

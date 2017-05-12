@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -105,7 +105,6 @@ namespace soeov {
 
         // instantiate a input field with location type cells
         auto cell_area = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("cell_area");
-        cell_area.allocate();
         // for the output storage we need to extend the storage with location type cells with an extra dimension
         // of length 3 (edges of a cell)
         auto weight_edges_meta = storage_info_extender()(cell_area.get_storage_info_ptr(), 3);

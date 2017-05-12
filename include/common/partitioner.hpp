@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "common/defs.hpp"
-#include "common/halo_descriptor.hpp"
+#include "defs.hpp"
+#include "halo_descriptor.hpp"
 #include "cell_topology.hpp"
 #include "gt_math.hpp"
 

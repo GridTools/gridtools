@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
 
 #include "vertical_advection_defs.hpp"
 #include <gridtools.hpp>
-#include <storage-facility.hpp>
+#include <storage/storage-facility.hpp>
 
 using gridtools::uint_t;
 using gridtools::int_t;
@@ -59,30 +59,20 @@ namespace vertical_advection {
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
             : m_storage_info(idim - (2 * halo_size), jdim - (2 * halo_size), kdim),
               m_scalar_storage_info(1, 1, 1), // fake 3D
-              utens_stage_(m_storage_info), utens_stage_ref_(m_storage_info), u_stage_(m_storage_info),
-              wcon_(m_storage_info), u_pos_(m_storage_info), utens_(m_storage_info), ipos_(m_storage_info),
-              jpos_(m_storage_info), kpos_(m_storage_info),
-              // dtr_stage_(0,0,0, -1, "dtr_stage"),
-              dtr_stage_(m_scalar_storage_info), halo_size_(halo_size), idim_(idim), jdim_(jdim), kdim_(kdim) {
-            utens_stage_.allocate();
+              utens_stage_(m_storage_info, "utens_stage"), utens_stage_ref_(m_storage_info, "u_stage_ref"),
+              u_stage_(m_storage_info, "u_stage"), wcon_(m_storage_info, "wcon"), u_pos_(m_storage_info, "upos"),
+              utens_(m_storage_info, "utens"), ipos_(m_storage_info, "ipos"), jpos_(m_storage_info, "jpos"),
+              kpos_(m_storage_info, "kpos"), dtr_stage_(m_scalar_storage_info, "dtr_stage"), halo_size_(halo_size),
+              idim_(idim), jdim_(jdim), kdim_(kdim) {
             init_field_to_value(utens_stage_, -1.);
-            utens_stage_ref_.allocate();
             init_field_to_value(utens_stage_ref_, -1.);
-            u_stage_.allocate();
             init_field_to_value(u_stage_, -1.);
-            wcon_.allocate();
             init_field_to_value(wcon_, -1.);
-            u_pos_.allocate();
             init_field_to_value(u_pos_, -1.);
-            utens_.allocate();
             init_field_to_value(utens_, -1.);
-            ipos_.allocate();
             init_field_to_value(ipos_, -1.);
-            jpos_.allocate();
             init_field_to_value(jpos_, -1.);
-            kpos_.allocate();
             init_field_to_value(kpos_, -1.);
-            dtr_stage_.allocate();
             init_field_to_value(dtr_stage_, -1.);
         }
 
@@ -90,8 +80,8 @@ namespace vertical_advection {
             // set the fields to advect
             const double PI = std::atan(1.) * 4.;
 
-            const uint_t i_begin = 3;
-            const uint_t i_end = idim_ + 3;
+            const uint_t i_begin = 0;
+            const uint_t i_end = idim_;
             const uint_t j_begin = 0;
             const uint_t j_end = jdim_;
             const uint_t k_begin = 0;
@@ -116,7 +106,7 @@ namespace vertical_advection {
             double dz = 1. / (double)(k_end - k_begin);
 
             for (int j = j_begin; j < j_end; j++) {
-                for (int i = i_begin; i < i_end - 3; i++) {
+                for (int i = i_begin; i < i_end; i++) {
                     double x = dx * (double)(i - i_begin);
                     double y = dy * (double)(j - j_begin);
                     for (int k = k_begin; k < k_end; k++) {
@@ -166,12 +156,9 @@ namespace vertical_advection {
 
             storage_info_ij_t storage_info_ij(idim_ - (2 * halo_size_), jdim_ - (2 * halo_size_), (uint_t)1);
             ij_storage_type datacol(storage_info_ij);
-            datacol.allocate();
             storage_info_ijk_t storage_info_(idim_ - (2 * halo_size_), jdim_ - (2 * halo_size_), kdim_);
             storage_type ccol(storage_info_);
             storage_type dcol(storage_info_);
-            ccol.allocate();
-            dcol.allocate();
 
             init_field_to_value(ccol, 0.0);
             init_field_to_value(dcol, 0.0);

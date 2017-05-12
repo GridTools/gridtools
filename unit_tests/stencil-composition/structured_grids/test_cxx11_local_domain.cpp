@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -85,9 +85,8 @@ TEST(test_local_domain, merge_mss_local_domains) {
     typedef gridtools::layout_map< 0, 1, 2 > layout_kji_t;
     typedef gridtools::host_storage_info< 0, layout_ijk_t > meta_ijk_t;
     typedef gridtools::host_storage_info< 0, layout_kji_t > meta_kji_t;
-    typedef gridtools::storage_traits< backend_t::s_backend_id>::data_store_t< float_type, meta_ijk_t > storage_t;
-    typedef gridtools::storage_traits< backend_t::s_backend_id>::data_store_t< float_type, meta_kji_t > storage_buff_t;
-
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, meta_ijk_t > storage_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, meta_kji_t > storage_buff_t;
 
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_buff_t > p_buff;

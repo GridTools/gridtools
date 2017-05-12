@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -222,11 +222,11 @@ namespace vertical_advection_dycore {
         typedef arg< 3, storage_type > p_u_pos;
         typedef arg< 4, storage_type > p_utens;
         typedef arg< 5, scalar_storage_type > p_dtr_stage;
-        typedef arg< 6, storage_type, enumtype::default_location_type, true > p_acol;
-        typedef arg< 7, storage_type, enumtype::default_location_type, true > p_bcol;
-        typedef arg< 8, storage_type, enumtype::default_location_type, true > p_ccol;
-        typedef arg< 9, storage_type, enumtype::default_location_type, true > p_dcol;
-        typedef arg< 10, storage_type, enumtype::default_location_type, true > p_data_col;
+        typedef tmp_arg< 6, storage_type > p_acol;
+        typedef tmp_arg< 7, storage_type > p_bcol;
+        typedef tmp_arg< 8, storage_type > p_ccol;
+        typedef tmp_arg< 9, storage_type > p_dcol;
+        typedef tmp_arg< 10, storage_type > p_data_col;
 
         // An array of placeholders to be passed to the domain
         // I'm using mpl::vector, but the final API should look slightly simpler
@@ -241,14 +241,6 @@ namespace vertical_advection_dycore {
             p_ccol,
             p_dcol,
             p_data_col > accessor_list;
-
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are
-        // used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I
-        // don't particularly like this)
 
         gridtools::aggregator_type< accessor_list > domain(repository.utens_stage(),
             repository.u_stage(),

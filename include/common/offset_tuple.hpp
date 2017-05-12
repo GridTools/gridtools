@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -142,7 +142,8 @@ namespace gridtools {
     //                              Multidimensional Fields
     //################################################################################
 
-    /**@brief this is a decorator of the arg_type, which is matching the extra dimensions
+    /**@brief implementation of a tuple of indices (integers) that can be constexpr constructed and provde
+       multifunctional API, for example setting only the indices of certain dimensions via dimension objects.
        \param n_args is the current ID of the extra dimension
        \param index_t is the index of the storage type
 

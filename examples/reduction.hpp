@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -111,10 +111,8 @@ namespace reduction {
         meta_data_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
-        storage_t in(meta_data_);
-        storage_t out(meta_data_);
-        in.allocate();
-        out.allocate();
+        storage_t in(meta_data_, "in");
+        storage_t out(meta_data_, "out");
 
         auto inv = make_host_view(in);
 
@@ -150,9 +148,9 @@ namespace reduction {
         grid.value_list[1] = d3 - 1;
 
         auto sum_red_ = make_computation< gridtools::BACKEND >(domain,
-                grid,
-                make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
-                make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
+            grid,
+            make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
+            make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
 
         sum_red_->ready();
         sum_red_->steady();
