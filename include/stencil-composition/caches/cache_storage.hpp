@@ -44,6 +44,8 @@
 #include "../../common/generic_metafunctions/accumulate.hpp"
 #include "../iterate_domain_aux.hpp"
 #include "../offset_computation.hpp"
+#include "cache_traits.hpp"
+#include "../iteration_policy_fwd.hpp"
 
 #ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"
