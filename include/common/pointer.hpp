@@ -126,7 +126,6 @@ namespace gridtools {
         /**
           @brief destroy pointer
          */
-        GT_FUNCTION
         void destroy() {
             assert(m_t);
             delete m_t;
