@@ -35,20 +35,24 @@
 */
 #pragma once
 
-#include "intermediate_metafunctions.hpp"
-#include "stencil-composition/esf.hpp"
-#include "stencil-composition/make_stage.hpp"
-#include "stencil-composition/make_stencils.hpp"
-#include "stencil-composition/make_computation.hpp"
+#include "../common/defs.hpp"
+#include "../common/host_device.hpp"
+#include "esf.hpp"
+#include "intermediate_impl.hpp"
+#include "make_computation.hpp"
+#include "make_stage.hpp"
+#include "make_stencils.hpp"
+#include "../storage/storage-facility.hpp"
 #ifdef CXX11_ENABLED
-#include "stencil-composition/expandable_parameters/make_computation_expandable.hpp"
+#include "expandable_parameters/make_computation_expandable.hpp"
 #else
-#include "stencil-composition/make_computation.hpp"
+#include "make_computation.hpp"
 #endif
-#include "stencil-composition/stencil.hpp"
-#include "stencil-composition/grid.hpp"
-#include "stencil-composition/grid_traits.hpp"
+#include "grid.hpp"
+#include "grid_traits.hpp"
+#include "stencil.hpp"
+#include "storage_info_extender.hpp"
 
 #ifndef STRUCTURED_GRIDS
-#include "stencil-composition/icosahedral_grids/grid.hpp"
+#include "icosahedral_grids/grid.hpp"
 #endif

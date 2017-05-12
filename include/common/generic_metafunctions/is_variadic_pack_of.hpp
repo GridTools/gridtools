@@ -37,6 +37,8 @@
 #include "accumulate.hpp"
 #include "binary_ops.hpp"
 
+#include "../defs.hpp"
+
 namespace gridtools {
 
 #ifdef CXX11_ENABLED

@@ -80,29 +80,30 @@ namespace local_domain_stencil {
 TEST(test_local_domain, merge_mss_local_domains) {
     using namespace local_domain_stencil;
 
-    typedef layout_map< 2, 1, 0 > layout_ijk_t;
-    typedef layout_map< 0, 1, 2 > layout_kji_t;
-    typedef backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_ijk_t > meta_ijk_t;
-    typedef backend< Host, GRIDBACKEND, Naive >::storage_info< 0, layout_kji_t > meta_kji_t;
-    typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type, meta_ijk_t >::type storage_type;
-    typedef backend< Host, GRIDBACKEND, Naive >::storage_type< float_type, meta_kji_t >::type storage_buff_type;
+    typedef gridtools::backend< enumtype::Host, GRIDBACKEND, enumtype::Naive > backend_t;
+    typedef gridtools::layout_map< 2, 1, 0 > layout_ijk_t;
+    typedef gridtools::layout_map< 0, 1, 2 > layout_kji_t;
+    typedef gridtools::host_storage_info< 0, layout_ijk_t > meta_ijk_t;
+    typedef gridtools::host_storage_info< 0, layout_kji_t > meta_kji_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, meta_ijk_t > storage_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, meta_kji_t > storage_buff_t;
 
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_buff_type > p_buff;
-    typedef arg< 2, storage_type > p_out;
+    typedef arg< 0, storage_t > p_in;
+    typedef arg< 1, storage_buff_t > p_buff;
+    typedef arg< 2, storage_t > p_out;
     typedef boost::mpl::vector< p_in, p_buff, p_out > accessor_list;
 
     uint_t d1 = 1;
     uint_t d2 = 1;
     uint_t d3 = 1;
 
-    meta_ijk_t meta_ijk(gridtools::array< uint_t, 3 >{d1, d2, d3});
-    storage_type in(meta_ijk, -3.5, "in");
-    meta_kji_t meta_kji(gridtools::array< uint_t, 3 >{d1, d2, d3});
-    storage_buff_type buff(meta_kji, 1.5, "buff");
-    storage_type out(meta_ijk, 1.5, "out");
+    meta_ijk_t meta_ijk(d1, d2, d3);
+    storage_t in(meta_ijk, -3.5);
+    meta_kji_t meta_kji(d1, d2, d3);
+    storage_buff_t buff(meta_kji, 1.5);
+    storage_t out(meta_ijk, 1.5);
 
-    gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_buff() = buff), (p_out() = out));
+    gridtools::aggregator_type< accessor_list > domain(in, buff, out);
 
     uint_t di[5] = {0, 0, 0, d1 - 1, d1};
     uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
