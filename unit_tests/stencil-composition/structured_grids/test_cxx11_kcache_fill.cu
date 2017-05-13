@@ -124,13 +124,9 @@ TEST(kcache, fill_forward) {
     storage_info_t meta_data_(d1, d2, d3);
 
     // Definition of the actual data fields that are used for input/output
-    data_store_t in(meta_data_);
-    data_store_t ref(meta_data_);
-    data_store_t out(meta_data_);
-
-    in.allocate();
-    out.allocate();
-    ref.allocate();
+    data_store_t in(meta_data_, -1, "in");
+    data_store_t ref(meta_data_, -1, "ref");
+    data_store_t out(meta_data_, -1, "out");
 
     auto in_v = make_host_view(in);
     auto out_v = make_host_view(out);
@@ -231,13 +227,9 @@ TEST(kcache, fill_backward) {
     storage_info_t meta_data_(d1, d2, d3);
 
     // Definition of the actual data fields that are used for input/output
-    data_store_t in(meta_data_);
-    data_store_t ref(meta_data_);
-    data_store_t out(meta_data_);
-
-    in.allocate();
-    out.allocate();
-    ref.allocate();
+    data_store_t in(meta_data_, -1, "in");
+    data_store_t ref(meta_data_, -1, "ref");
+    data_store_t out(meta_data_, -1, "out");
 
     auto in_v = make_host_view(in);
     auto out_v = make_host_view(out);
