@@ -166,7 +166,8 @@ namespace gridtools {
         struct get_cache_storage {
             GRIDTOOLS_STATIC_ASSERT(is_cache< Cache >::value, GT_INTERNAL_ERROR);
             typedef typename LocalDomain::template get_storage_wrapper< IndexT >::type storage_wrapper_t;
-            using block_size_t = typename boost::mpl::if_< is_k_cache< Cache >, block_size< 1, 1, 1 >, BlockSize >::type;
+            using block_size_t =
+                typename boost::mpl::if_< is_k_cache< Cache >, block_size< 1, 1, 1 >, BlockSize >::type;
 
             typedef typename boost::mpl::if_< is_storage_wrapper< storage_wrapper_t >,
                 cache_storage< Cache,

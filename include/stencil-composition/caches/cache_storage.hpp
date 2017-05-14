@@ -86,6 +86,10 @@ namespace gridtools {
         typedef typename unzip< variadic_to_vector< static_short< ExtentBounds >... > >::second plus_t;
         typedef variadic_to_vector< static_int< Tiles >... > tiles_t;
 
+        static constexpr int tiles_block = accumulate(multiplies(), Tiles...);
+
+        GRIDTOOLS_STATIC_ASSERT(((tiles_block == 1) || !is_k_cache< cache_t >::value), GT_INTERNAL_ERROR);
+
         typedef typename StorageWrapper::data_t value_type;
 
 // TODO ICO_STORAGE in irregular grids we have one more dim for color
@@ -183,7 +187,7 @@ namespace gridtools {
             const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                                   _impl::get_cache_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
 
-            return m_values[index_];
+            return m_values[index_ - kminus_t::value];
         }
 
         template < typename IterationPolicy >
