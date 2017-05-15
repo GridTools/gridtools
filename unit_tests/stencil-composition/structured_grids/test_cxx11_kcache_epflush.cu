@@ -165,7 +165,7 @@ TEST_F(kcachef, epflush_backward) {
         make_computation< BACKEND >(domain,
             m_gridb,
             make_multistage // mss_descriptor
-            (execute< forward >(),
+            (execute< backward >(),
                                         define_caches(cache< K, epflush, kfull_b >(p_out())),
                                         make_stage< shift_acc_backward_epflush >(p_in() // esf_descriptor
                                             ,
@@ -184,14 +184,14 @@ TEST_F(kcachef, epflush_backward) {
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             for (uint_t k = 0; k < 2; ++k) {
-                if (m_refv(i, j, k) == m_outv(i, j, k)) {
+                if (m_refv(i, j, k) != m_outv(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
                               << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
                     success = false;
                 }
             }
             for (uint_t k = 2; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
+                if (m_refv(i, j, k) == m_outv(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
                               << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
                     success = false;
