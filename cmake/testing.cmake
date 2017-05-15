@@ -32,6 +32,7 @@ function(fetch_host_tests subfolder)
     file(GLOB test_sources_cxx03 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx03_*.cpp" )
     file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
     file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
+    file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
 
     # remove files that should not be there
     if(ENABLE_CXX11)
@@ -52,7 +53,7 @@ function(fetch_host_tests subfolder)
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
         # create the test
-        add_executable (${unit_test} ${test_source})
+        add_executable (${unit_test} ${test_source} ${test_headers})
         target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
         add_test (NAME ${unit_test} COMMAND ${exe} )
         gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
@@ -69,6 +70,7 @@ function(fetch_gpu_tests subfolder)
         file(GLOB test_sources_cxx03 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx03_*.cu" )
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cu" )
         file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cu" )
+        file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
 
         # remove files that should not be there
         if(ENABLE_CXX11)
@@ -91,7 +93,7 @@ function(fetch_gpu_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the gpu test
             set(CUDA_SEPARABLE_COMPILATION OFF)
-            cuda_add_executable (${unit_test} ${test_source} OPTIONS ${GPU_SPECIFIC_FLAGS})
+            cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS ${GPU_SPECIFIC_FLAGS})
             target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} )
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added gpu test " ${unit_test} )

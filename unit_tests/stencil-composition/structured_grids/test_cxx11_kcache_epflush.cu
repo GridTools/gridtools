@@ -35,25 +35,13 @@
 */
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
+#include "kcache_fixture.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
-// This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
-
-typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > kfull;
-
-typedef gridtools::interval< level< 0, 2 >, level< 1, -1 > > kbody_high;
-typedef gridtools::interval< level< 0, -1 >, level< 0, 1 > > kminimum;
-
-typedef gridtools::interval< level< 0, -1 >, level< 2, 1 > > axis_b;
-typedef gridtools::interval< level< 1, 1 >, level< 2, -1 > > kmaximum_b;
-typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > kbody_low_b;
-typedef gridtools::interval< level< 0, -1 >, level< 2, -1 > > kfull_b;
-
 // These are the stencil operators that compose the multistage stencil in this test
-struct shift_acc_forward {
+struct shift_acc_forward_epflush {
 
     typedef accessor< 0, enumtype::in, extent<> > in;
     typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0, -2, 0 > > out;
@@ -71,7 +59,7 @@ struct shift_acc_forward {
     }
 };
 
-struct shift_acc_backward {
+struct shift_acc_backward_epflush {
 
     typedef accessor< 0, enumtype::in, extent<> > in;
     typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0, 0, 2 > > out;
@@ -89,89 +77,36 @@ struct shift_acc_backward {
     }
 };
 
-/*
- * The following operators and structs are for debugging only
- */
-std::ostream &operator<<(std::ostream &s, shift_acc_forward const) { return s << "shift_acc_forward"; }
+TEST_F(kcachef, epflush_forward) {
 
-TEST(kcache, epflush_forward) {
+    init_fields();
 
-    uint_t d1 = 6;
-    uint_t d2 = 6;
-    uint_t d3 = 10;
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
+            m_refv(i, j, 0) = m_inv(i, j, 0);
+            m_refv(i, j, 1) = m_inv(i, j, 1);
 
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#define BACKEND_ARCH Host
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-    typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
-    typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
-
-    storage_info_t meta_data_(d1, d2, d3);
-
-    // Definition of the actual data fields that are used for input/output
-    data_store_t in(meta_data_, -1, "in");
-    data_store_t ref(meta_data_, -1, "ref");
-    data_store_t out(meta_data_, -1, "out");
-
-    auto in_v = make_host_view(in);
-    auto out_v = make_host_view(out);
-    auto ref_v = make_host_view(ref);
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in_v(i, j, k) = i + j + k;
-            }
-
-            ref_v(i, j, 0) = in_v(i, j, 0);
-            ref_v(i, j, 1) = in_v(i, j, 1);
-
-            for (uint_t k = 2; k < d3; ++k) {
-                ref_v(i, j, k) = ref_v(i, j, k - 1) + ref_v(i, j, k - 2) + in_v(i, j, k);
+            for (uint_t k = 2; k < m_d3; ++k) {
+                m_refv(i, j, k) = m_refv(i, j, k - 1) + m_refv(i, j, k - 2) + m_inv(i, j, k);
             }
         }
     }
 
-    typedef arg< 0, data_store_t > p_in;
-    typedef arg< 1, data_store_t > p_out;
+    typedef arg< 0, storage_t > p_in;
+    typedef arg< 1, storage_t > p_out;
 
     typedef boost::mpl::vector< p_in, p_out > accessor_list;
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-    // that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-    // order. (I don't particularly like this)
-    gridtools::aggregator_type< accessor_list > domain((p_out() = out), (p_in() = in));
+    aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
 
-    // Definition of the physical dimensions of the problem.
-    // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon after
-    // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-    uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-    uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-    gridtools::grid< axis > grid(di, dj);
-    grid.value_list[0] = 0;
-    grid.value_list[1] = d3 - 1;
-
-    auto kcache_stencil = gridtools::make_computation< gridtools::BACKEND >(
-        domain,
-        grid,
-        gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
-            define_caches(cache< K, epflush, kfull >(p_out())),
-            gridtools::make_stage< shift_acc_forward >(p_in() // esf_descriptor
-                ,
-                p_out())));
+    auto kcache_stencil =
+        make_computation< BACKEND >(domain,
+            m_grid,
+            make_multistage // mss_descriptor
+            (execute< forward >(),
+                                        define_caches(cache< K, epflush, kfull >(p_out())),
+                                        make_stage< shift_acc_forward_epflush >(p_in() // esf_descriptor
+                                            ,
+                                            p_out())));
 
     kcache_stencil->ready();
 
@@ -179,23 +114,23 @@ TEST(kcache, epflush_forward) {
 
     kcache_stencil->run();
 
-    out.sync();
-    out.reactivate_host_write_views();
+    m_out.sync();
+    m_out.reactivate_host_write_views();
 
     bool success = true;
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3 - 2; ++k) {
-                if (ref_v(i, j, k) == out_v(i, j, k)) {
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
+            for (uint_t k = 0; k < m_d3 - 2; ++k) {
+                if (m_refv(i, j, k) == m_outv(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << ref_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
+                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
                     success = false;
                 }
             }
-            for (uint_t k = d3 - 2; k < d3; ++k) {
-                if (ref_v(i, j, k) != out_v(i, j, k)) {
+            for (uint_t k = m_d3 - 2; k < m_d3; ++k) {
+                if (m_refv(i, j, k) != m_outv(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << ref_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
+                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
                     success = false;
                 }
             }
@@ -206,85 +141,35 @@ TEST(kcache, epflush_forward) {
     ASSERT_TRUE(success);
 }
 
-TEST(kcache, epflush_backward) {
+TEST_F(kcachef, epflush_backward) {
 
-    uint_t d1 = 6;
-    uint_t d2 = 6;
-    uint_t d3 = 10;
+    init_fields();
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
+            m_refv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);
+            m_refv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2);
 
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#define BACKEND_ARCH Host
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-    typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
-    typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
-
-    storage_info_t meta_data_(d1, d2, d3);
-
-    // Definition of the actual data fields that are used for input/output
-    data_store_t in(meta_data_, -1, "in");
-    data_store_t ref(meta_data_, -1, "ref");
-    data_store_t out(meta_data_, -1, "out");
-
-    auto in_v = make_host_view(in);
-    auto out_v = make_host_view(out);
-    auto ref_v = make_host_view(ref);
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (int_t k = 0; k < d3; ++k) {
-                in_v(i, j, k) = i + j + k;
-            }
-
-            ref_v(i, j, d3 - 1) = in_v(i, j, d3 - 1);
-            ref_v(i, j, d3 - 2) = in_v(i, j, d3 - 2);
-
-            for (int_t k = d3 - 3; k >= 0; --k) {
-                ref_v(i, j, k) = ref_v(i, j, k + 1) + ref_v(i, j, k + 2) + in_v(i, j, k);
+            for (int_t k = m_d3 - 3; k >= 0; --k) {
+                m_refv(i, j, k) = m_refv(i, j, k + 1) + m_refv(i, j, k + 2) + m_inv(i, j, k);
             }
         }
     }
 
-    typedef arg< 0, data_store_t > p_in;
-    typedef arg< 1, data_store_t > p_out;
+    typedef arg< 0, storage_t > p_in;
+    typedef arg< 1, storage_t > p_out;
 
     typedef boost::mpl::vector< p_in, p_out > accessor_list;
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-    // that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-    // order. (I don't particularly like this)
-    gridtools::aggregator_type< accessor_list > domain((p_out() = out), (p_in() = in));
+    aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
 
-    // Definition of the physical dimensions of the problem.
-    // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon after
-    // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-    uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-    uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-    gridtools::grid< axis_b > grid(di, dj);
-    grid.value_list[0] = 0;
-    grid.value_list[1] = d3 - 3;
-    grid.value_list[2] = d3 - 1;
-
-    auto kcache_stencil = gridtools::make_computation< gridtools::BACKEND >(
-        domain,
-        grid,
-        gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
-            define_caches(cache< K, epflush, kfull_b >(p_out())),
-            gridtools::make_stage< shift_acc_backward >(p_in() // esf_descriptor
-                ,
-                p_out())));
+    auto kcache_stencil =
+        make_computation< BACKEND >(domain,
+            m_gridb,
+            make_multistage // mss_descriptor
+            (execute< forward >(),
+                                        define_caches(cache< K, epflush, kfull_b >(p_out())),
+                                        make_stage< shift_acc_backward_epflush >(p_in() // esf_descriptor
+                                            ,
+                                            p_out())));
 
     kcache_stencil->ready();
 
@@ -292,23 +177,23 @@ TEST(kcache, epflush_backward) {
 
     kcache_stencil->run();
 
-    out.sync();
-    out.reactivate_host_write_views();
+    m_out.sync();
+    m_out.reactivate_host_write_views();
 
     bool success = true;
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
             for (uint_t k = 0; k < 2; ++k) {
-                if (ref_v(i, j, k) == out_v(i, j, k)) {
+                if (m_refv(i, j, k) == m_outv(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << ref_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
+                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
                     success = false;
                 }
             }
-            for (uint_t k = 2; k < d3; ++k) {
-                if (ref_v(i, j, k) != out_v(i, j, k)) {
+            for (uint_t k = 2; k < m_d3; ++k) {
+                if (m_refv(i, j, k) != m_outv(i, j, k)) {
                     std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << ref_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
+                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
                     success = false;
                 }
             }

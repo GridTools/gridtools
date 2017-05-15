@@ -185,7 +185,7 @@ namespace gridtools {
             check_kcache_access(accessor_);
 
             const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                  _impl::get_cache_offset< 0, meta_t::layout_t::length, meta_t >(accessor_);
+                                  _impl::get_cache_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
 
             return m_values[index_ - kminus_t::value];
         }
