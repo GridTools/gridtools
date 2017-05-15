@@ -200,6 +200,7 @@ namespace gridtools {
             constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;
             if (ksize <= 1)
                 return;
+
             constexpr uint_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : ksize - 1;
             constexpr uint_t kend = (IterationPolicy::value == enumtype::backward) ? ksize - 2 : 1;
             for (int_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
