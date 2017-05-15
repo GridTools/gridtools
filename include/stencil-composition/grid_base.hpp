@@ -36,7 +36,8 @@
 #pragma once
 #include "../common/halo_descriptor.hpp"
 #include "../common/array.hpp"
-#include "../storage/partitioner.hpp"
+#include "../common/partitioner.hpp"
+#include "../common/gpu_clone.hpp"
 #include "interval.hpp"
 
 namespace gridtools {

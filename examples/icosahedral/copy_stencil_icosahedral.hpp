@@ -78,29 +78,21 @@ namespace test_copy_stencil_icosahedral {
 
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
-        auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
-        auto ref_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref");
+        auto storage1 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage1");
+        auto storage10 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage10");
 
-        for (int i = 1; i < d1 - 1; ++i) {
+        auto icv = make_host_view(storage1);
+        auto ocv = make_host_view(storage10);
+        for (int i = 0; i < d1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
-                for (int j = 1; j < d2 - 1; ++j) {
+                for (int j = 0; j < d2; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        in_cells(i, c, j, k) =
-                            in_cells.meta_data().index(array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
+                        icv(i, c, j, k) = storage1.get_storage_info_ptr()->index(i, c, j, k);
+                        ocv(i, c, j, k) = 10.;
                     }
                 }
             }
         }
-        out_cells.initialize(0.0);
-        ref_cells.initialize(0.0);
-        auto storage1 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage1");
-
-        auto storage10 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage10");
-
-        storage1.initialize(1.);
-
-        storage10.initialize(10.);
 
         array< uint_t, 5 > di = {0, 0, 0, d1 - 1, d1};
         array< uint_t, 5 > dj = {0, 0, 0, d2 - 1, d2};
@@ -114,7 +106,7 @@ namespace test_copy_stencil_icosahedral {
 
         typedef boost::mpl::vector< p_out, p_in > args_t;
 
-        aggregator_type< args_t > domain_((p_out() = storage1), (p_in() = storage10));
+        aggregator_type< args_t > domain_(storage1, storage10);
 
         auto comp_ = make_computation< BACKEND >(
             domain_,

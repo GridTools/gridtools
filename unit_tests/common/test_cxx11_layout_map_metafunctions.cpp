@@ -42,12 +42,12 @@ TEST(layout_map_metafunctions, filter_layout) {
 
     {
         using layout_map_t = layout_map< 0, 1, 2, 3 >;
-        using filtered_layout_map_t = filter_layout< layout_map_t, selector< 1, 1, -1, 1 > >::type;
+        using filtered_layout_map_t = filter_layout< layout_map_t, selector< 1, 1, 0, 1 > >::type;
         static_assert((boost::is_same< filtered_layout_map_t, layout_map< 0, 1, -1, 2 > >::value), "Error");
     }
     {
         using layout_map_t = layout_map< 3, 1, 2, 0 >;
-        using filtered_layout_map_t = filter_layout< layout_map_t, selector< 1, -1, -1, 1 > >::type;
+        using filtered_layout_map_t = filter_layout< layout_map_t, selector< 1, 0, 0, 1 > >::type;
         static_assert((boost::is_same< filtered_layout_map_t, layout_map< 1, -1, -1, 0 > >::value), "Error");
     }
 }
