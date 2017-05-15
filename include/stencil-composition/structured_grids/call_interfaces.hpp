@@ -189,7 +189,7 @@ namespace gridtools {
             typedef typename boost::fusion::result_of::as_vector< PassedAccessors >::type accessors_list_t;
             CallerAggregator &m_caller_aggregator;
             ReturnType *__restrict__ m_result;
-            accessors_list_t const &m_accessors_list;
+            accessors_list_t const m_accessors_list;
 
             template < typename Accessor >
             struct accessor_return_type {
@@ -498,7 +498,7 @@ namespace gridtools {
                 typename mpl_sequence_to_fusion_vector< PassedArguments >::type >::type accessors_list_t;
 
             CallerAggregator &m_caller_aggregator;
-            accessors_list_t const &m_accessors_list;
+            accessors_list_t const m_accessors_list;
 
             template < typename Accessor >
             struct accessor_return_type {
@@ -575,7 +575,7 @@ namespace gridtools {
                 typename mpl_sequence_to_fusion_vector< PassedArguments >::type >::type accessors_list_t;
 
             CallerAggregator &m_caller_aggregator;
-            accessors_list_t const &m_accessors_list;
+            accessors_list_t const m_accessors_list;
 
             template < typename Accessor >
             struct accessor_return_type {
