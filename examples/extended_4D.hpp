@@ -43,7 +43,7 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
 template < unsigned Id, typename Layout >
 using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;

@@ -36,9 +36,19 @@ using namespace enumtype;
 using namespace expressions;
 
 #ifdef __CUDACC__
-#define BACKEND backend< Cuda, enumtype::GRIDBACKEND, Block >
+#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
+template < unsigned Id, typename Layout >
+using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
+typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
+typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< 3, 2, 1, 0 > > metadata_local_quad_t;
 #else
-#define BACKEND backend< Host, enumtype::GRIDBACKEND, Block >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
+template < unsigned Id, typename Layout >
+using special_metadata_t = gridtools::host_storage_info< Id, Layout >;
+typedef special_metadata_t< 0, gridtools::layout_map< 3, 4, 5, 0, 1, 2 > > metadata_t;
+typedef special_metadata_t< 1, gridtools::layout_map< 1, 2, 3, 0 > > metadata_global_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< -1, -1, -1, 1, 2, 3, 0 > > metadata_local_quad_t;
 #endif
 
 //                      dims  x y z  qp
@@ -47,12 +57,9 @@ typedef layout_map< -1, -1, -1, 3, 2, 1, 0 > layoutphi_t;
 typedef layout_map< 3, 2, 1, 0 > layout4_t;
 typedef layout_map< 2, 1, 0, 3, 4, 5 > layout_t;
 
-typedef BACKEND::storage_info< __COUNTER__, layout_t > metadata_t;
-typedef BACKEND::storage_info< __COUNTER__, layout4_t > metadata_global_quad_t;
-typedef BACKEND::storage_info< __COUNTER__, layoutphi_t > metadata_local_quad_t;
-typedef BACKEND::storage_type< float_type, metadata_t >::type storage_type;
-typedef BACKEND::storage_type< float_type, metadata_global_quad_t >::type storage_global_quad_t;
-typedef BACKEND::storage_type< float_type, metadata_local_quad_t >::type storage_local_quad_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_t > storage_type;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_global_quad_t > storage_global_quad_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad_t > storage_local_quad_t;
 
 /**
   @file
@@ -94,33 +101,40 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
     uint_t b2 = 2;
     uint_t b3 = 2;
 
-    typename storage_local_quad_t::storage_info_type meta_local_(1, 1, 1, b1, b2, b3, nbQuadPt);
-    storage_local_quad_t phi(meta_local_, 0., "phi");
-    storage_local_quad_t psi(meta_local_, 0., "psi");
+    metadata_local_quad_t local_metadata(1, 1, 1, b1, b2, b3, nbQuadPt);
+
+    storage_local_quad_t phi(local_metadata, 0., "phi");
+    storage_local_quad_t psi(local_metadata, 0., "psi");
 
     // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
     // Or alternatively computing the values on the quadrature points on the GPU
-    typename storage_global_quad_t::storage_info_type meta_global_(d1, d2, d3, nbQuadPt);
-    storage_global_quad_t jac(meta_global_, 0., "jac");
+    metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
+    storage_global_quad_t jac(integration_metadata, 0., "jac");
+
+    auto jacv = make_host_view(jac);
+    auto phiv = make_host_view(phi);
+    auto psiv = make_host_view(psi);
 
     for (uint_t i = 0; i < d1; ++i)
         for (uint_t j = 0; j < d2; ++j)
             for (uint_t k = 0; k < d3; ++k)
                 for (uint_t q = 0; q < nbQuadPt; ++q) {
-                    jac(i, j, k, q) = 1. + q;
+                    jacv(i, j, k, q) = 1. + q;
                 }
     for (uint_t i = 0; i < b1; ++i)
         for (uint_t j = 0; j < b2; ++j)
             for (uint_t k = 0; k < b3; ++k)
                 for (uint_t q = 0; q < nbQuadPt; ++q) {
-                    phi(1, 1, 1, i, j, k, q) = 10.;
-                    psi(1, 1, 1, i, j, k, q) = 11.;
+                    phiv(0, 0, 0, i, j, k, q) = 10.;
+                    psiv(0, 0, 0, i, j, k, q) = 11.;
                 }
 
-    typename storage_t::storage_info_type meta_(d1, d2, d3, b1, b2, b3);
+    metadata_t meta_(d1, d2, d3, b1, b2, b3);
     storage_t f(meta_, (float_type)1.3, "f");
+    auto fv = make_host_view(f);
 
     storage_t reference(meta_, (float_type)0., "result");
+    auto referencev = make_host_view(reference);
 
     for (int_t i = 1; i < d1 - 2; ++i)
         for (int_t j = 1; j < d2 - 2; ++j)
@@ -131,23 +145,24 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
                             // check the initialization to 0
                             assert(reference(i, j, k, I, J, K) == 0.);
                             for (short_t q = 0; q < 2; ++q) {
-                                reference(i, j, k, I, J, K) += (phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 0, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 0, 0, 0) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 0, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 1, 0, 0) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 1, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 0, 1, 0) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 0, 1, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 0, 0, 1) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 1, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 1, 1, 0) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 1, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 1, 0, 1) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 1, 1, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 0, 1, 1) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 1, 1, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 1, 1, 1)) /
-                                                               8;
+                                referencev(i, j, k, I, J, K) +=
+                                    (phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 0, 0, 0, q) * jacv(i, j, k, q) *
+                                            fv(i, j, k, 0, 0, 0) +
+                                        phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 1, 0, 0, q) * jacv(i, j, k, q) *
+                                            fv(i, j, k, 1, 0, 0) +
+                                        phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 0, 1, 0, q) * jacv(i, j, k, q) *
+                                            fv(i, j, k, 0, 1, 0) +
+                                        phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 0, 0, 1, q) * jacv(i, j, k, q) *
+                                            fv(i, j, k, 0, 0, 1) +
+                                        phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 1, 1, 0, q) * jacv(i, j, k, q) *
+                                            fv(i, j, k, 1, 1, 0) +
+                                        phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 1, 1, 0, q) * jacv(i, j, k, q) *
+                                            fv(i, j, k, 1, 0, 1) +
+                                        phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 0, 1, 1, q) * jacv(i, j, k, q) *
+                                            fv(i, j, k, 0, 1, 1) +
+                                        phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 1, 1, 1, q) * jacv(i, j, k, q) *
+                                            fv(i, j, k, 1, 1, 1)) /
+                                    8;
                             }
                         }
 
@@ -251,25 +266,29 @@ namespace assembly {
         metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
         storage_global_quad_t jac(integration_metadata, 0., "jac");
 
+        auto jacv = make_host_view(jac);
+        auto phiv = make_host_view(phi);
+        auto psiv = make_host_view(psi);
+
         for (uint_t i = 0; i < d1; ++i)
             for (uint_t j = 0; j < d2; ++j)
                 for (uint_t k = 0; k < d3; ++k)
                     for (uint_t q = 0; q < nbQuadPt; ++q) {
-                        jac(i, j, k, q) = 1. + q;
+                        jacv(i, j, k, q) = 1. + q;
                     }
         for (uint_t i = 0; i < b1; ++i)
             for (uint_t j = 0; j < b2; ++j)
                 for (uint_t k = 0; k < b3; ++k)
                     for (uint_t q = 0; q < nbQuadPt; ++q) {
-                        phi(0, 0, 0, i, j, k, q) = 10.;
-                        psi(0, 0, 0, i, j, k, q) = 11.;
+                        phiv(0, 0, 0, i, j, k, q) = 10.;
+                        psiv(0, 0, 0, i, j, k, q) = 11.;
                     }
 
         metadata_t meta_(d1, d2, d3, b1, b2, b3);
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 
-        aggregator_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
+        aggregator_type< accessor_list > domain(phi, psi, jac, f, result);
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
