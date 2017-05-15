@@ -147,9 +147,8 @@ namespace gridtools {
             template < typename IterateDomain, typename CacheStorage >
             GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
 
-                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset - 1, Offset + 1 > >
-                    acc_t;
-                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -Offset - 1 : Offset + 1);
+                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset, Offset > > acc_t;
+                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -Offset : Offset);
 
                 it_domain.gmem_access(acc_) = cache_st.at(acc_);
                 return 0;
@@ -441,7 +440,7 @@ namespace gridtools {
                     (IterationPolicy::value == enumtype::forward && CacheIOPolicy == flush) ||
                             (IterationPolicy::value == enumtype::backward && CacheIOPolicy == fill)
                         ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value - 1
-                        : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value - 1;
+                        : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value + 1;
 
                 // compute the sequence of all offsets that we need to prefill or final flush
                 using seq = gridtools::apply_gt_integer_sequence<
