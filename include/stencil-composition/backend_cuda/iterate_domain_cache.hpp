@@ -100,31 +100,6 @@ namespace gridtools {
                                            boost::mpl::_1 > >::type type;
     };
 
-    template < typename AccIndex, enumtype::execution ExecutionPolicy >
-    struct sync_mem_accessor2 {
-        /**
-         * @struct apply struct of the functor
-         * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
-         */
-        template < int_t Offset >
-        struct apply_t {
-            /**
-             * @brief apply the functor
-             * @param it_domain iterate domain
-             * @param cache_st cache storage
-             */
-            template < typename IterateDomain, typename CacheStorage >
-            GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
-
-                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset, Offset > > acc_t;
-                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -Offset : Offset);
-
-                it_domain.gmem_access(acc_) = cache_st.at(acc_);
-                return 0;
-            }
-        };
-    };
-
     /**
      * @struct sync_mem_accessor
      * functor that will synchronize a cache with main memory
@@ -163,7 +138,7 @@ namespace gridtools {
      * \tparam ExecutionPolicy : forward, backward
      */
     template < typename AccIndex, enumtype::execution ExecutionPolicy >
-    struct prefill_cache2 {
+    struct prefill_cache {
         /**
          * @struct apply struct of the functor
          * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
@@ -187,30 +162,6 @@ namespace gridtools {
         };
     };
 
-    template < typename AccIndex, enumtype::execution ExecutionPolicy >
-    struct prefill_cache {
-        /**
-         * @struct apply struct of the functor
-         * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
-         */
-        template < int_t Offset >
-        struct apply_t {
-            /**
-             * @brief apply the functor
-             * @param it_domain iterate domain
-             * @param cache_st cache storage
-             */
-            template < typename IterateDomain, typename CacheStorage >
-            GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage &cache_st) {
-
-                typedef accessor< AccIndex::value, enumtype::in, extent< 0, 0, 0, 0, -Offset, Offset > > acc_t;
-                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::backward) ? -Offset + 1 : Offset - 1);
-                cache_st.at(acc_) = it_domain.gmem_access(acc_);
-                return 0;
-            }
-        };
-    };
-
     template < typename AccIndex, enumtype::execution ExecutionPolicy, cache_io_policy CacheIOPolicy >
     struct io_operator;
 
@@ -222,19 +173,6 @@ namespace gridtools {
     template < typename AccIndex, enumtype::execution ExecutionPolicy >
     struct io_operator< AccIndex, ExecutionPolicy, flush > {
         using type = sync_mem_accessor< AccIndex, ExecutionPolicy >;
-    };
-
-    template < typename AccIndex, enumtype::execution ExecutionPolicy, cache_io_policy CacheIOPolicy >
-    struct io_operator2;
-
-    template < typename AccIndex, enumtype::execution ExecutionPolicy >
-    struct io_operator2< AccIndex, ExecutionPolicy, fill > {
-        using type = prefill_cache2< AccIndex, ExecutionPolicy >;
-    };
-
-    template < typename AccIndex, enumtype::execution ExecutionPolicy >
-    struct io_operator2< AccIndex, ExecutionPolicy, flush > {
-        using type = sync_mem_accessor2< AccIndex, ExecutionPolicy >;
     };
 
     /**
@@ -396,7 +334,7 @@ namespace gridtools {
                               m_klevel;
 
                 if (koffset_abs <= limit_lev) {
-                    using io_op_t = typename io_operator2< Idx, IterationPolicy::value, CacheIOPolicy >::type;
+                    using io_op_t = typename io_operator< Idx, IterationPolicy::value, CacheIOPolicy >::type;
 
                     io_op_t::template apply_t< koffset_abs >::apply(
                         m_it_domain, boost::fusion::at_key< Idx >(m_kcaches));
@@ -437,8 +375,8 @@ namespace gridtools {
                 constexpr uint_t koffset =
                     (IterationPolicy::value == enumtype::forward && CacheIOPolicy == flush) ||
                             (IterationPolicy::value == enumtype::backward && CacheIOPolicy == fill)
-                        ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value + 1
-                        : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value + 1;
+                        ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
+                        : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
 
                 // compute the sequence of all offsets that we need to prefill or final flush
                 using seq = gridtools::apply_gt_integer_sequence<
