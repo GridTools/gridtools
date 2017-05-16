@@ -205,8 +205,6 @@ namespace gridtools {
 
                 typedef accessor< AccIndex::value, enumtype::in, extent< 0, 0, 0, 0, -Offset, Offset > > acc_t;
                 constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::backward) ? -Offset + 1 : Offset - 1);
-                if (threadIdx.x == 0 && threadIdx.y == 0)
-                    printf("PREFILL %d \n", (ExecutionPolicy == enumtype::backward) ? -Offset + 1 : Offset - 1);
                 cache_st.at(acc_) = it_domain.gmem_access(acc_);
                 return 0;
             }
@@ -439,7 +437,7 @@ namespace gridtools {
                 constexpr uint_t koffset =
                     (IterationPolicy::value == enumtype::forward && CacheIOPolicy == flush) ||
                             (IterationPolicy::value == enumtype::backward && CacheIOPolicy == fill)
-                        ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value - 1
+                        ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value + 1
                         : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value + 1;
 
                 // compute the sequence of all offsets that we need to prefill or final flush
@@ -552,7 +550,6 @@ namespace gridtools {
         template < typename IterationPolicy, typename IterateDomain >
         GT_FUNCTION void begin_fill(IterateDomain const &it_domain) {
             typedef typename kcache_begin_fill_indexes< IterationPolicy >::type k_begin_filling_caches_indexes_t;
-
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             boost::mpl::for_each< k_begin_filling_caches_indexes_t >(
                 endpoint_io_cache_functor< IterateDomain, IterationPolicy, fill >(it_domain, m_k_caches_tuple));
