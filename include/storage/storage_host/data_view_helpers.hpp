@@ -64,7 +64,7 @@ namespace gridtools {
     make_host_view(DataStore const &ds) {
         assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
         return data_view< DecayedDS, AccessMode >(ds.get_storage_ptr()->get_cpu_ptr(),
-            ds.get_storage_info_ptr(),
+            ds.get_storage_info_ptr().get(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             false);
     }
@@ -86,6 +86,6 @@ namespace gridtools {
     check_consistency(DataStore const &ds, DataView const &dv) {
         static_assert(is_data_view< DecayedDV >::value, "Passed type is no data_view type");
         return ds.valid() && (dv.m_raw_ptrs[0] == ds.get_storage_ptr()->get_cpu_ptr()) &&
-               (dv.m_storage_info && ds.get_storage_info_ptr());
+               (dv.m_storage_info && ds.get_storage_info_ptr().get());
     }
 }

@@ -71,7 +71,7 @@ namespace gridtools {
             offsets[i] = offsets[i - 1] + ds.get_dim_sizes()[i - 1];
         }
         for (uint_t i = 0; i < DecayedDSF::num_of_components; ++i) {
-            info_ptrs[i] = ds.get_field()[offsets[i]].get_storage_info_ptr();
+            info_ptrs[i] = ds.get_field()[offsets[i]].get_storage_info_ptr().get();
         }
         for (uint_t i = 0; i < DecayedDSF::num_of_storages; ++i) {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_cpu_ptr();

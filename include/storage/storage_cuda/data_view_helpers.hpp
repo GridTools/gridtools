@@ -72,7 +72,7 @@ namespace gridtools {
             ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu = true;
         }
         return data_view< DecayedCDS, AccessMode >(ds.get_storage_ptr()->get_cpu_ptr(),
-            ds.get_storage_info_ptr(),
+            ds.get_storage_info_ptr().get(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             false);
     }

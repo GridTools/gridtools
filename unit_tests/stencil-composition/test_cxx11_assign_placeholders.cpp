@@ -196,13 +196,13 @@ TEST(assign_placeholders, test) {
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 1u, 1u, 1u >,
                     gridtools::alignment< 1u > > > >()
-                .get() == in.get_storage_info_ptr()));
+                .get() == in.get_storage_info_ptr().get()));
     assert((domain.metadata_set_view()
                 .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 2u, 2u, 2u >,
                     gridtools::alignment< 1u > > > >()
-                .get() == out.get_storage_info_ptr()));
+                .get() == out.get_storage_info_ptr().get()));
 
     // lets do a reassign
     storage_info1_t meta_1_new(d1, d2, d3);
@@ -251,13 +251,13 @@ TEST(assign_placeholders, test) {
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 1u, 1u, 1u >,
                     gridtools::alignment< 1u > > > >()
-                .get() == in_new.get_storage_info_ptr()));
+                .get() == in_new.get_storage_info_ptr().get()));
     assert((domain.metadata_set_view()
                 .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
                     gridtools::layout_map< 0, 1, 2 >,
                     gridtools::halo< 2u, 2u, 2u >,
                     gridtools::alignment< 1u > > > >()
-                .get() == coeff_new.get_storage_info_ptr()));
+                .get() == coeff_new.get_storage_info_ptr().get()));
 
     // test the reassign using arg_storage_pairs
     data_store1_t in_new_2(meta_1_new);

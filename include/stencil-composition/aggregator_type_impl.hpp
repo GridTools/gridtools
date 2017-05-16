@@ -82,7 +82,7 @@ namespace gridtools {
                 std::cout << t.ptr.get() << std::endl;
                 if (t.ptr.get())
                     for (unsigned i = 0; i < t.ptr.get()->size(); ++i) {
-                        std::cout << "\t" << &(*t.ptr.get())[i] << " -> " << (*t.ptr.get())[i].get_storage_ptr()
+                        std::cout << "\t" << &(*t.ptr.get())[i] << " -> " << (*t.ptr.get())[i].get_storage_ptr().get()
                                   << std::endl;
                     }
             }
@@ -96,7 +96,7 @@ namespace gridtools {
                 std::cout << t.ptr.get() << std::endl;
                 if (t.ptr.get())
                     for (auto &e : t.ptr->get_field()) {
-                        auto *ptr = (e.valid() ? e.get_storage_ptr() : 0x0);
+                        auto *ptr = (e.valid() ? e.get_storage_ptr().get() : 0x0);
                         std::cout << "\t" << &e << " -> " << ptr << std::endl;
                     }
             }
@@ -430,7 +430,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 typedef typename VectorType::value_type::storage_info_t storage_info_t;
                 GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_t;
-                m_storageinfo_set.insert(ptr_t(ds[0].get_storage_info_ptr()));
+                m_storageinfo_set.insert(ptr_t(ds[0].get_storage_info_ptr().get()));
             }
 
             // specialization for data store type
@@ -440,7 +440,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 typedef typename DataStoreType::storage_info_t storage_info_t;
                 GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_ty;
-                m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr()));
+                m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr().get()));
             }
 
             // specialization for data store field type
@@ -450,7 +450,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 typedef typename DataStoreFieldType::storage_info_t storage_info_t;
                 GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_ty;
-                m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr()));
+                m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr().get()));
             }
 
             // reset metadata_set with fresh storage info ptrs contained in storages (either data_store,

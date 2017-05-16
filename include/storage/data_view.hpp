@@ -148,6 +148,16 @@ namespace gridtools {
         }
 
         /*
+         * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
+         * @tparam Coord queried coordinate
+         * @return size of dimension
+         */
+        template < int Coord >
+        GT_FUNCTION constexpr int unaligned_dim() const {
+            return m_storage_info->template unaligned_dim< Coord >();
+        }
+
+        /*
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset).
          * @return total size
          */

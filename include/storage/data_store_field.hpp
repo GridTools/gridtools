@@ -254,8 +254,8 @@ namespace gridtools {
             static_assert(
                 is_data_store_field< data_store_field< T, N... > >::value, "Passed type is no data_store_field type.");
             typedef typename std::remove_pointer< decltype(
-                std::declval< typename data_store_field< T, N... >::data_store_t >().get_storage_ptr()) >::type::ptrs_t
-                ptrs_t;
+                std::declval< typename data_store_field< T, N... >::data_store_t >().get_storage_ptr().get()) >::type::
+                ptrs_t ptrs_t;
             auto &src = data_field.template get< Dim_S, Snapshot_S >();
             auto &trg = data_field.template get< Dim_T, Snapshot_T >();
             auto tmp_ptrs = src.get_storage_ptr()->template get_ptrs< ptrs_t >();
@@ -278,7 +278,7 @@ namespace gridtools {
                 is_data_store_field< data_store_field< T, N... > >::value, "Passed type is no data_store_field type.");
             typedef typename data_store_field< T, N... >::data_store_t data_store_t;
             typedef typename std::remove_pointer< decltype(
-                std::declval< data_store_t >().get_storage_ptr()) >::type::ptrs_t ptrs_t;
+                std::declval< data_store_t >().get_storage_ptr().get()) >::type::ptrs_t ptrs_t;
             int size = get_value_from_pack(Dim, N...);
             uint_t cnt = 0;
             uint_t src = 0;

@@ -128,8 +128,8 @@ TEST(DataStoreTest, Simple) {
     data_store_t datast;
     datast.allocate(si);
     data_store_t datast_cpy(datast);
-    EXPECT_EQ(datast.get_storage_info_ptr(), datast_cpy.get_storage_info_ptr());
-    EXPECT_EQ(datast.get_storage_ptr(), datast_cpy.get_storage_ptr());
+    EXPECT_EQ(datast.get_storage_info_ptr().get(), datast_cpy.get_storage_info_ptr().get());
+    EXPECT_EQ(datast.get_storage_ptr().get(), datast_cpy.get_storage_ptr().get());
 
     // modify the data and check if the copy can see the changes
     datast.get_storage_ptr()->get_cpu_ptr()[0] = 100;
