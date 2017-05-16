@@ -46,7 +46,11 @@
 
 namespace gridtools {
 
-    /* get a value from a variadic pack */
+    /**
+     *  @brief helper metafunction class that is used to retrieve a value
+     *  at a given index of a variadic pack. (step case)
+     *  @tparam Size size of the variadic pack
+     */
     template < unsigned Size >
     struct get_value_from_pack_functor {
         template < typename First, typename... Dims >
@@ -55,6 +59,10 @@ namespace gridtools {
         }
     };
 
+    /**
+     *  @brief helper metafunction class that is used to retrieve a value
+     *  at a given index of a variadic pack. (base case)
+     */
     template <>
     struct get_value_from_pack_functor< 0 > {
         template < typename First, typename... Dims >
@@ -63,12 +71,26 @@ namespace gridtools {
         }
     };
 
-    template < typename First, typename... Dims >
-    GT_FUNCTION constexpr First get_value_from_pack(unsigned v, First f, Dims... d) {
-        return get_value_from_pack_functor< sizeof...(Dims) >::apply(v, f, d...);
+    /**
+     *  @brief constexpr function that returns the n-th value from
+     *  a given variadic pack.
+     *  @tparam First type of the first variadic pack element
+     *  @tparam Rest type of the remaining variadic pack elements
+     *  @param v The index of the value that should be returned (starting with 0)
+     *  @param f first variadic pack element
+     *  @param r variadic pack remainders
+     *  @return the value of the queried index
+     */
+    template < typename First, typename... Rest >
+    GT_FUNCTION constexpr First get_value_from_pack(unsigned v, First f, Rest... r) {
+        return get_value_from_pack_functor< sizeof...(Rest) >::apply(v, f, r...);
     }
 
-    /* get a value index from a variadic pack */
+    /**
+     *  @brief helper metafunction class that is used to retrieve the index
+     *  of a variadic pack element. (step case)
+     *  @tparam Size size of the variadic pack
+     */
     template < unsigned Size >
     struct get_index_of_element_in_pack_functor {
         template < typename First, typename... Dims >
@@ -79,6 +101,10 @@ namespace gridtools {
         }
     };
 
+    /**
+     *  @brief helper metafunction class that is used to retrieve the index
+     *  of a variadic pack element. (base case)
+     */
     template <>
     struct get_index_of_element_in_pack_functor< 0 > {
         template < typename First, typename... Dims >
@@ -87,9 +113,19 @@ namespace gridtools {
         }
     };
 
-    template < typename First, typename... Dims >
-    GT_FUNCTION constexpr unsigned get_index_of_element_in_pack(unsigned Index, First needle, Dims... d) {
-        return get_index_of_element_in_pack_functor< sizeof...(Dims) >::apply(Index, needle, d...);
+    /**
+     *  @brief constexpr function that returns the index of a value
+     *  that is part of a variadic pack or fails if the element does not exist.
+     *  @tparam First type of the first variadic pack element
+     *  @tparam Rest type of the remaining variadic pack elements
+     *  @param index the starting index
+     *  @param needle The value that should be found
+     *  @param r other variadic pack elements
+     *  @return the index of the queried element
+     */
+    template < typename First, typename... Rest >
+    GT_FUNCTION constexpr unsigned get_index_of_element_in_pack(unsigned start_index, First needle, Rest... r) {
+        return get_index_of_element_in_pack_functor< sizeof...(Rest) >::apply(start_index, needle, r...);
     }
 
     /* check if all given types are integral types */
