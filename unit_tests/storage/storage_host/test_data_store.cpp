@@ -135,8 +135,8 @@ TEST(DataStoreTest, Simple) {
     // create a copy of a data_store and check equivalence
     data_store< host_storage< double >, storage_info_t > datast(si, 5.3);
     data_store< host_storage< double >, storage_info_t > datast_cpy(datast);
-    EXPECT_EQ(datast.get_storage_info_ptr(), datast_cpy.get_storage_info_ptr());
-    EXPECT_EQ(datast.get_storage_ptr(), datast_cpy.get_storage_ptr());
+    EXPECT_EQ(datast.get_storage_info_ptr().get(), datast_cpy.get_storage_info_ptr().get());
+    EXPECT_EQ(datast.get_storage_ptr().get(), datast_cpy.get_storage_ptr().get());
     // modify the data and check if the copy can see the changes
     EXPECT_EQ((datast.get_storage_ptr()->get_cpu_ptr()[0]), 5.3);
     EXPECT_EQ((datast.get_storage_ptr()->get_cpu_ptr()[1]), 5.3);

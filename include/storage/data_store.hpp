@@ -306,20 +306,20 @@ namespace gridtools {
 
         /**
          * @brief retrieve a pointer to the underlying storage instance.
-         * @return pointer to the underlying storage instance
+         * @return shared pointer to the underlying storage instance
          */
-        storage_t *get_storage_ptr() const {
+        std::shared_ptr< storage_t > get_storage_ptr() const {
             assert(m_shared_storage.get() && "data_store is in a non-initialized state.");
-            return m_shared_storage.get();
+            return m_shared_storage;
         }
 
         /**
          * @brief retrieve a pointer to the underlying storage_info instance.
-         * @return pointer to the underlying storage_info instance
+         * @return shared pointer to the underlying storage_info instance
          */
-        storage_info_t const *get_storage_info_ptr() const {
+        std::shared_ptr< storage_info_t const > get_storage_info_ptr() const {
             assert(m_shared_storage_info.get() && "data_store is in a non-initialized state.");
-            return m_shared_storage_info.get();
+            return m_shared_storage_info;
         }
 
         /**
