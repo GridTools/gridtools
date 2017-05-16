@@ -56,7 +56,7 @@ namespace gridtools {
      *  in + and - direction.
      *  @tparam N variadic list of halo sizes
      */
-    template < unsigned... N >
+    template < uint_t... N >
     struct halo {
 
         /**
@@ -64,8 +64,8 @@ namespace gridtools {
          * @tparam V Dimension or coordinate to query
          * @return halo size
          */
-        template < unsigned V >
-        static constexpr unsigned at() {
+        template < uint_t V >
+        static constexpr uint_t at() {
             static_assert((V < sizeof...(N)), "Out of bounds access in halo type discovered.");
             return get_value_from_pack(V, N...);
         }
@@ -75,26 +75,26 @@ namespace gridtools {
          * @param V Dimension or coordinate to query
          * @return halo size
          */
-        static constexpr unsigned at(unsigned V) { return get_value_from_pack(V, N...); }
+        static constexpr uint_t at(uint_t V) { return get_value_from_pack(V, N...); }
 
         /**
          * @brief member function used to query the number of dimensions. E.g., a halo
          * type with 3 entries cannot be passed to a <3 or >3 dimensional storage_info.
          * @return number of dimensions
          */
-        static constexpr unsigned size() { return sizeof...(N); }
+        static constexpr uint_t size() { return sizeof...(N); }
     };
 
     /**
      *  @brief Used to generate a zero initialzed halo. Used as a default value for storage info halo.
      */
-    template < unsigned Cnt >
+    template < uint_t Cnt >
     using zero_halo = typename repeat_template_c< 0, Cnt, halo >::type;
 
     /* used to check if a given type is a halo type */
     template < typename T >
     struct is_halo : boost::mpl::false_ {};
 
-    template < unsigned... N >
+    template < uint_t... N >
     struct is_halo< halo< N... > > : boost::mpl::true_ {};
 }

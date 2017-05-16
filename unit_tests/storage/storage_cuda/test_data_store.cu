@@ -52,9 +52,9 @@ __global__ void mul2(double *s) {
 
 template < typename StorageInfo >
 __global__ void check_vals(double *s, StorageInfo const *si) {
-    for (unsigned i = 0; i < 128; ++i)
-        for (unsigned j = 0; j < 128; ++j)
-            for (unsigned k = 0; k < 80; ++k) {
+    for (uint_t i = 0; i < 128; ++i)
+        for (uint_t j = 0; j < 128; ++j)
+            for (uint_t k = 0; k < 80; ++k) {
                 int x = si->index(i, j, k);
                 if (s[x] > 3.141499 && s[x] < 3.141501) {
                     s[x] = 1.0;
@@ -196,18 +196,18 @@ TEST(DataStoreTest, Initializer) {
     data_store< cuda_storage< double >, storage_info_t > ds(si, 3.1415);
     check_vals<<< 1, 1 >>>(ds.get_storage_ptr()->get_gpu_ptr(), ds.get_storage_info_ptr()->get_gpu_ptr());
     ds.clone_from_device();
-    for (unsigned i = 0; i < 128; ++i)
-        for (unsigned j = 0; j < 128; ++j)
-            for (unsigned k = 0; k < 80; ++k)
+    for (uint_t i = 0; i < 128; ++i)
+        for (uint_t j = 0; j < 128; ++j)
+            for (uint_t k = 0; k < 80; ++k)
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 1.0);
 }
 
 TEST(DataStoreTest, LambdaInitializer) {
     storage_info_t si(10, 11, 12);
     data_store< cuda_storage< double >, storage_info_t > ds(si, [](int i, int j, int k) { return i + j + k; });
-    for (unsigned i = 0; i < 10; ++i)
-        for (unsigned j = 0; j < 11; ++j)
-            for (unsigned k = 0; k < 12; ++k)
+    for (uint_t i = 0; i < 10; ++i)
+        for (uint_t j = 0; j < 11; ++j)
+            for (uint_t k = 0; k < 12; ++k)
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), (i + j + k));
 }
 
@@ -252,9 +252,9 @@ TEST(DataStoreTest, ExternalPointer) {
     // create a copy (double free checks)
     data_store< cuda_storage< double >, storage_info_t > ds_cpy = ds;
     // check values
-    for (unsigned i = 0; i < 10; ++i)
-        for (unsigned j = 0; j < 10; ++j)
-            for (unsigned k = 0; k < 10; ++k) {
+    for (uint_t i = 0; i < 10; ++i)
+        for (uint_t j = 0; j < 10; ++j)
+            for (uint_t k = 0; k < 10; ++k) {
                 external_ptr[si.index(i, j, k)] = 3.1415;
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
                 EXPECT_EQ((ds_cpy.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
@@ -278,7 +278,7 @@ TEST(DataStoreTest, ExternalGPUPointer) {
     double *external_gpu_ptr;
     double *external_cpu_ptr = new double[si.size()];
     // initialize CPU ptr
-    for (unsigned i = 0; i < si.size(); ++i) {
+    for (uint_t i = 0; i < si.size(); ++i) {
         external_cpu_ptr[i] = 3.1415;
     }
     // create a GPU ptr
@@ -299,9 +299,9 @@ TEST(DataStoreTest, ExternalGPUPointer) {
     // create a copy (double free checks)
     data_store< cuda_storage< double >, storage_info_t > ds_cpy = ds;
     // check values
-    for (unsigned i = 0; i < 10; ++i)
-        for (unsigned j = 0; j < 10; ++j)
-            for (unsigned k = 0; k < 10; ++k) {
+    for (uint_t i = 0; i < 10; ++i)
+        for (uint_t j = 0; j < 10; ++j)
+            for (uint_t k = 0; k < 10; ++k) {
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
                 EXPECT_EQ((ds_cpy.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
             }

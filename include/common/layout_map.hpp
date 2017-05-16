@@ -45,6 +45,7 @@
 #include <boost/mpl/vector_c.hpp>
 
 #include "variadic_pack_metafunctions.hpp"
+#include "defs.hpp"
 #include "generic_metafunctions/variadic_to_vector.hpp"
 
 namespace gridtools {
@@ -55,7 +56,7 @@ namespace gridtools {
 
         static constexpr int masked_length = sizeof...(Args);
         typedef typename variadic_to_vector< boost::mpl::int_< Args >... >::type static_layout_vector;
-        static constexpr unsigned unmasked_length = boost::mpl::count_if< static_layout_vector,
+        static constexpr uint_t unmasked_length = boost::mpl::count_if< static_layout_vector,
             boost::mpl::greater< boost::mpl::_, boost::mpl::int_< -1 > > >::value;
 
         typedef typename boost::mpl::fold< static_layout_vector,

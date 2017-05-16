@@ -61,7 +61,7 @@ namespace gridtools {
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
         const static access_mode mode = AccessMode;
-        const static unsigned num_of_storages = 1;
+        const static uint_t num_of_storages = 1;
 
         data_t *m_raw_ptrs[1];
         state_machine_t *m_state_machine_ptr;
@@ -108,7 +108,7 @@ namespace gridtools {
          * @param arr array of indices
          * @return reference to the queried value
          */
-        template < typename T, unsigned N >
+        template < typename T, uint_t N >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(std::array< T, N > const &arr) const {
             static_assert(boost::mpl::and_< boost::mpl::bool_< (N > 0) >, typename is_all_integral< T >::type >::value,

@@ -161,18 +161,18 @@ TEST(DataStoreTest, Simple) {
 TEST(DataStoreTest, Initializer) {
     storage_info_t si(128, 128, 80);
     data_store< host_storage< double >, storage_info_t > ds(si, 3.1415);
-    for (unsigned i = 0; i < 128; ++i)
-        for (unsigned j = 0; j < 128; ++j)
-            for (unsigned k = 0; k < 80; ++k)
+    for (uint_t i = 0; i < 128; ++i)
+        for (uint_t j = 0; j < 128; ++j)
+            for (uint_t k = 0; k < 80; ++k)
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);
 }
 
 TEST(DataStoreTest, LambdaInitializer) {
     storage_info_t si(10, 11, 12);
     data_store< host_storage< double >, storage_info_t > ds(si, [](int i, int j, int k) { return i + j + k; });
-    for (unsigned i = 0; i < 10; ++i)
-        for (unsigned j = 0; j < 11; ++j)
-            for (unsigned k = 0; k < 12; ++k)
+    for (uint_t i = 0; i < 10; ++i)
+        for (uint_t j = 0; j < 11; ++j)
+            for (uint_t k = 0; k < 12; ++k)
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), (i + j + k));
 }
 
@@ -238,9 +238,9 @@ TEST(DataStoreTest, ExternalPointer) {
     data_store< host_storage< double >, storage_info_t > ds_cpy = ds;
     // check values
     int z = 0;
-    for (unsigned i = 0; i < 10; ++i)
-        for (unsigned j = 0; j < 10; ++j)
-            for (unsigned k = 0; k < 10; ++k) {
+    for (uint_t i = 0; i < 10; ++i)
+        for (uint_t j = 0; j < 10; ++j)
+            for (uint_t k = 0; k < 10; ++k) {
                 external_ptr[z] = 3.1415;
                 z++;
                 EXPECT_EQ((ds.get_storage_ptr()->get_cpu_ptr()[si.index(i, j, k)]), 3.1415);

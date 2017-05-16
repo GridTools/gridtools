@@ -50,22 +50,22 @@
 namespace gridtools {
 
     /* Layout map extender, takes a given layout and extends it by n dimensions (ascending and descending version) */
-    template < unsigned Dim, unsigned Current, typename Layout >
+    template < uint_t Dim, uint_t Current, typename Layout >
     struct layout_map_ext_asc;
 
-    template < unsigned Dim, unsigned Current, int... Dims >
+    template < uint_t Dim, uint_t Current, int... Dims >
     struct layout_map_ext_asc< Dim, Current, layout_map< Dims... > >
         : layout_map_ext_asc< Dim - 1, Current + 1, layout_map< Dims..., Current > > {};
 
-    template < unsigned Current, int... Dims >
+    template < uint_t Current, int... Dims >
     struct layout_map_ext_asc< 0, Current, layout_map< Dims... > > {
         typedef layout_map< Dims... > type;
     };
 
-    template < unsigned Ext, typename Layout >
+    template < uint_t Ext, typename Layout >
     struct layout_map_ext_dsc;
 
-    template < unsigned Ext, int... Dims >
+    template < uint_t Ext, int... Dims >
     struct layout_map_ext_dsc< Ext, layout_map< Dims... > >
         : layout_map_ext_dsc< Ext - 1, layout_map< Dims..., Ext - 1 > > {};
 
@@ -75,7 +75,7 @@ namespace gridtools {
     };
 
     /* get a standard layout_map (either 3 or n-dimensional and ascending or descending) */
-    template < unsigned Dim, bool Asc >
+    template < uint_t Dim, bool Asc >
     struct get_layout;
 
     template <>
@@ -109,14 +109,14 @@ namespace gridtools {
     };
 
     // get a multidimensional layout in ascending order (e.g., host backend)
-    template < unsigned Dim >
+    template < uint_t Dim >
     struct get_layout< Dim, true > {
         static_assert(Dim > 0, "Zero dimensional layout makes no sense.");
         typedef typename layout_map_ext_asc< Dim - 3, 0, layout_map< Dim - 3, Dim - 2, Dim - 1 > >::type type;
     };
 
     // get a multidimensional layout in descending order (e.g., gpu backend)
-    template < unsigned Dim >
+    template < uint_t Dim >
     struct get_layout< Dim, false > {
         static_assert(Dim > 0, "Zero dimensional layout makes no sense.");
         typedef typename layout_map_ext_dsc< Dim - 1, layout_map< Dim - 1 > >::type type;

@@ -41,7 +41,7 @@
 using namespace gridtools;
 
 template < typename T >
-constexpr unsigned get_length() {
+constexpr uint_t get_length() {
     return T::masked_length;
 }
 

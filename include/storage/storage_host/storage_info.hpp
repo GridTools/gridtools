@@ -50,7 +50,7 @@ namespace gridtools {
      * @tparam Halo information about the halo sizes (by default no halo is set)
      * @tparam Alignment information about the alignment (host_storage_info is not aligned by default)
      */
-    template < unsigned Id,
+    template < uint_t Id,
         typename Layout,
         typename Halo = zero_halo< Layout::masked_length >,
         typename Alignment = alignment< 1 > >
@@ -73,6 +73,6 @@ namespace gridtools {
     template < typename T >
     struct is_host_storage_info : boost::mpl::false_ {};
 
-    template < unsigned Id, typename Layout, typename Halo, typename Alignment >
+    template < uint_t Id, typename Layout, typename Halo, typename Alignment >
     struct is_host_storage_info< host_storage_info< Id, Layout, Halo, Alignment > > : boost::mpl::true_ {};
 }

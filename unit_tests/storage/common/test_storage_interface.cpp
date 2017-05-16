@@ -43,14 +43,14 @@ using namespace gridtools;
 // storage that implements the storage_interface
 struct host_storage : storage_interface< host_storage > {
     int a;
-    host_storage(unsigned i) : a(i) {}
+    host_storage(uint_t i) : a(i) {}
     void clone_to_device_impl() { a *= 2; }
 };
 
 // another storage that implements the storage_interface
 struct cuda_storage : storage_interface< cuda_storage > {
     int a;
-    cuda_storage(unsigned i) : a(i) {}
+    cuda_storage(uint_t i) : a(i) {}
     void clone_to_device_impl() { a *= 3; }
 };
 
