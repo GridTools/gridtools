@@ -432,9 +432,9 @@ namespace shallow_water {
         auto view1 = make_host_view(ds1);
         auto view2 = make_host_view(ds2);
 #ifdef __CUDACC__
-        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+        for (int i = 0; i < ds0.template dim< 0 >(); ++i) {
+            for (int j = 0; j < ds0.template dim< 1 >(); ++j) {
+                for (int k = 0; k < ds0.template dim< 2 >(); ++k) {
                     view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
                     view1(i, j, k) = 0.0;
                     view2(i, j, k) = 0.0;
@@ -442,9 +442,9 @@ namespace shallow_water {
             }
         }
 #else
-        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+        for (int i = 0; i < ds0.template dim< 0 >(); ++i) {
+            for (int j = 0; j < ds0.template dim< 1 >(); ++j) {
+                for (int k = 0; k < ds0.template dim< 2 >(); ++k) {
                     if (PID == 1) {
                         view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
                     } else {
@@ -530,9 +530,9 @@ namespace shallow_water {
             auto view10 = view.get< 1, 0 >();
             auto view20 = view.get< 2, 0 >();
             myfile << "INITIALIZED VALUES" << std::endl;
-            for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-                for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                    for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+            for (int i = 0; i < ds0.template dim< 0 >(); ++i) {
+                for (int j = 0; j < ds0.template dim< 1 >(); ++j) {
+                    for (int k = 0; k < ds0.template dim< 2 >(); ++k) {
                         myfile << view00(i, j, k) << std::endl;
                         myfile << view10(i, j, k) << std::endl;
                         myfile << view20(i, j, k) << std::endl;
@@ -565,9 +565,9 @@ namespace shallow_water {
         auto view00 = view.get< 0, 0 >();
         auto view10 = view.get< 1, 0 >();
         auto view20 = view.get< 2, 0 >();
-        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+        for (int i = 0; i < ds0.template dim< 0 >(); ++i) {
+            for (int j = 0; j < ds0.template dim< 1 >(); ++j) {
+                for (int k = 0; k < ds0.template dim< 2 >(); ++k) {
                     myfile << view00(i, j, k) << std::endl;
                     myfile << view10(i, j, k) << std::endl;
                     myfile << view20(i, j, k) << std::endl;
@@ -593,9 +593,9 @@ namespace shallow_water {
         view00 = view.get< 0, 0 >();
         view10 = view.get< 1, 0 >();
         view20 = view.get< 2, 0 >();
-        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+        for (int i = 0; i < ds0.template dim< 0 >(); ++i) {
+            for (int j = 0; j < ds0.template dim< 1 >(); ++j) {
+                for (int k = 0; k < ds0.template dim< 2 >(); ++k) {
                     myfile << view00(i, j, k) << std::endl;
                     myfile << view10(i, j, k) << std::endl;
                     myfile << view20(i, j, k) << std::endl;
