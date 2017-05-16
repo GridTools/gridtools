@@ -133,7 +133,7 @@ TEST(StorageFacility, ViewTests) {
     auto hv = make_host_view(ds);
 
     // fill with values
-    unsigned x = 0;
+    uint_t x = 0;
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)
@@ -160,7 +160,7 @@ TEST(StorageFacility, ViewTests) {
     auto hrv = make_host_view< access_mode::ReadOnly >(ds);
 
     // validate
-    unsigned z = 0;
+    uint_t z = 0;
     for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
             for (int k = 0; k < 3; ++k)

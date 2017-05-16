@@ -64,16 +64,16 @@ namespace gridtools {
         typename DecayedDSF::data_t *ptrs[DecayedDSF::num_of_storages];
         typename DecayedDSF::state_machine_t *state_ptrs[DecayedDSF::num_of_storages];
         typename DecayedDSF::storage_info_t const *info_ptrs[DecayedDSF::num_of_components];
-        unsigned offsets[DecayedDSF::num_of_components] = {
+        uint_t offsets[DecayedDSF::num_of_components] = {
             0,
         };
-        for (unsigned i = 1; i < DecayedDSF::num_of_components; ++i) {
+        for (uint_t i = 1; i < DecayedDSF::num_of_components; ++i) {
             offsets[i] = offsets[i - 1] + ds.get_dim_sizes()[i - 1];
         }
-        for (unsigned i = 0; i < DecayedDSF::num_of_components; ++i) {
+        for (uint_t i = 0; i < DecayedDSF::num_of_components; ++i) {
             info_ptrs[i] = ds.get_field()[offsets[i]].get_storage_info_ptr();
         }
-        for (unsigned i = 0; i < DecayedDSF::num_of_storages; ++i) {
+        for (uint_t i = 0; i < DecayedDSF::num_of_storages; ++i) {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_cpu_ptr();
             state_ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr();
         }
@@ -97,9 +97,9 @@ namespace gridtools {
     check_consistency(DataStoreField const &ds, DataFieldView const &dv) {
         static_assert(is_data_field_view< DecayedDFV >::value, "Passed type is no data_field_view type");
         bool res = true;
-        unsigned i = 0;
-        for (unsigned dim = 0; dim < DecayedDSF::num_of_components; ++dim) {
-            for (unsigned pos = 0; pos < ds.get_dim_sizes()[dim]; ++pos) {
+        uint_t i = 0;
+        for (uint_t dim = 0; dim < DecayedDSF::num_of_components; ++dim) {
+            for (uint_t pos = 0; pos < ds.get_dim_sizes()[dim]; ++pos) {
                 res &= check_consistency(ds.get_field()[i], dv.get(dim, pos));
                 i++;
             }

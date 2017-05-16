@@ -70,7 +70,7 @@ namespace gridtools {
         data_t *m_gpu_ptr;
         data_t *m_cpu_ptr;
         state_machine m_state;
-        unsigned m_size;
+        uint_t m_size;
         ownership m_ownership = ownership::Full;
 
       public:
@@ -78,7 +78,7 @@ namespace gridtools {
          * @brief cuda_storage constructor. Just allocates enough memory on Host and Device.
          * @param size defines the size of the storage and the allocated space.
          */
-        cuda_storage(unsigned size) : m_cpu_ptr(new data_t[size]), m_size(size) {
+        cuda_storage(uint_t size) : m_cpu_ptr(new data_t[size]), m_size(size) {
             cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(data_t));
             assert((err == cudaSuccess) && "failed to allocate GPU memory.");
         }
@@ -91,7 +91,7 @@ namespace gridtools {
          * @param external_ptr a pointer to the external data
          * @param own ownership information (external CPU pointer, or external GPU pointer)
          */
-        explicit cuda_storage(unsigned size, data_t *external_ptr, ownership own) : m_size(size), m_ownership(own) {
+        explicit cuda_storage(uint_t size, data_t *external_ptr, ownership own) : m_size(size), m_ownership(own) {
             assert(((own == ownership::ExternalGPU) || (own == ownership::ExternalCPU)) &&
                    "external pointer cuda_storage ownership must be either ExternalGPU or ExternalCPU.");
             if (own == ownership::ExternalGPU) {
@@ -113,8 +113,8 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        cuda_storage(unsigned size, data_t initializer) : m_cpu_ptr(new data_t[size]), m_size(size) {
-            for (unsigned i = 0; i < size; ++i) {
+        cuda_storage(uint_t size, data_t initializer) : m_cpu_ptr(new data_t[size]), m_size(size) {
+            for (uint_t i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer;
             }
             cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(data_t));

@@ -70,7 +70,7 @@ namespace gridtools {
          * @brief host_storage constructor. Just allocates enough memory on the Host.
          * @param size defines the size of the storage and the allocated space.
          */
-        constexpr host_storage(unsigned size) : m_cpu_ptr(new data_t[size]) {}
+        constexpr host_storage(uint_t size) : m_cpu_ptr(new data_t[size]) {}
 
         /*
          * @brief host_storage constructor. Does not allocate memory but uses an external pointer.
@@ -79,7 +79,7 @@ namespace gridtools {
          * @param external_ptr a pointer to the external data
          * @param own ownership information (in this case only externalCPU is valid)
          */
-        explicit constexpr host_storage(unsigned size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
+        explicit constexpr host_storage(uint_t size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
             : m_cpu_ptr(external_ptr),
               m_ownership(error_or_return(
                   (own == ownership::ExternalCPU), own, "ownership type must be ExternalCPU when using host_storage")) {
@@ -91,8 +91,8 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        host_storage(unsigned size, data_t initializer) : m_cpu_ptr(new data_t[size]) {
-            for (unsigned i = 0; i < size; ++i) {
+        host_storage(uint_t size, data_t initializer) : m_cpu_ptr(new data_t[size]) {
+            for (uint_t i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer;
             }
         }

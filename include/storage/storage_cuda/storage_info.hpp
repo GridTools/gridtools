@@ -49,7 +49,7 @@ namespace gridtools {
      * @tparam Halo information about the halo sizes (by default no halo is set)
      * @tparam Alignment information about the alignment (cuda_storage_info is aligned to 32 by default)
      */
-    template < unsigned Id,
+    template < uint_t Id,
         typename Layout,
         typename Halo = zero_halo< Layout::masked_length >,
         typename Alignment = alignment< 32 > >
@@ -99,6 +99,6 @@ namespace gridtools {
     template < typename T >
     struct is_cuda_storage_info : boost::mpl::false_ {};
 
-    template < unsigned Id, typename Layout, typename Halo, typename Alignment >
+    template < uint_t Id, typename Layout, typename Halo, typename Alignment >
     struct is_cuda_storage_info< cuda_storage_info< Id, Layout, Halo, Alignment > > : boost::mpl::true_ {};
 }

@@ -46,15 +46,15 @@ namespace gridtools {
      * @brief This struct is used to pass alignment information to storage info types.
      * @tparam alignment value
      */
-    template < unsigned N >
+    template < uint_t N >
     struct alignment {
-        const static unsigned value = N;
+        const static uint_t value = N;
     };
 
     template < typename T >
     struct is_alignment : boost::mpl::false_ {};
 
-    template < unsigned N >
+    template < uint_t N >
     struct is_alignment< alignment< N > > : boost::mpl::true_ {};
 
     /**
@@ -67,25 +67,25 @@ namespace gridtools {
     template < typename Alignment, typename Layout, typename Halo >
     struct alignment_impl;
 
-    template < unsigned M, typename Layout, typename Halo >
+    template < uint_t M, typename Layout, typename Halo >
     struct alignment_impl< alignment< M >, Layout, Halo > {
         static_assert((M > 1), "Wrong alignment value passed.");
-        static constexpr unsigned N = Layout::masked_length;
-        static constexpr unsigned InitialOffset = get_initial_offset< Layout, alignment< M >, Halo >::compute();
+        static constexpr uint_t N = Layout::masked_length;
+        static constexpr uint_t InitialOffset = get_initial_offset< Layout, alignment< M >, Halo >::compute();
 
-        array< unsigned, N > m_unaligned_dims;
-        array< unsigned, N > m_unaligned_strides;
+        array< uint_t, N > m_unaligned_dims;
+        array< uint_t, N > m_unaligned_strides;
 
-        GT_FUNCTION constexpr alignment_impl(array< unsigned, N > dims, array< unsigned, N > strides)
+        GT_FUNCTION constexpr alignment_impl(array< uint_t, N > dims, array< uint_t, N > strides)
             : m_unaligned_dims(dims), m_unaligned_strides(strides) {}
 
-        template < unsigned Coord >
-        GT_FUNCTION constexpr unsigned unaligned_dim() const {
+        template < uint_t Coord >
+        GT_FUNCTION constexpr uint_t unaligned_dim() const {
             return m_unaligned_dims.template get< Coord >();
         }
 
-        template < unsigned Coord >
-        GT_FUNCTION constexpr unsigned unaligned_stride() const {
+        template < uint_t Coord >
+        GT_FUNCTION constexpr uint_t unaligned_stride() const {
             return m_unaligned_strides.template get< Coord >();
         }
     };
@@ -93,17 +93,17 @@ namespace gridtools {
     /* specialization for unaligned storage infos */
     template < typename Layout, typename Halo >
     struct alignment_impl< alignment< 1 >, Layout, Halo > {
-        static constexpr unsigned InitialOffset = 0;
+        static constexpr uint_t InitialOffset = 0;
         template < typename... T >
         GT_FUNCTION constexpr alignment_impl(T... t) {}
 
-        template < unsigned Coord >
-        GT_FUNCTION constexpr unsigned unaligned_dim() const {
+        template < uint_t Coord >
+        GT_FUNCTION constexpr uint_t unaligned_dim() const {
             return 0;
         }
 
-        template < unsigned Coord >
-        GT_FUNCTION constexpr unsigned unaligned_stride() const {
+        template < uint_t Coord >
+        GT_FUNCTION constexpr uint_t unaligned_stride() const {
             return 0;
         }
     };
