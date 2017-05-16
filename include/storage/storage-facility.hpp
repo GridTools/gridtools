@@ -41,7 +41,7 @@
 #include "data_store.hpp"
 #include "data_store_field.hpp"
 
-#ifdef __CUDACC__
+#ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
 #endif
 #include "storage_traits_host.hpp"
