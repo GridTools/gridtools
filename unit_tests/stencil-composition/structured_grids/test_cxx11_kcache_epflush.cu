@@ -54,7 +54,12 @@ struct shift_acc_forward_epflush {
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
+    GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
+        eval(out()) = eval(in()) + eval(out(0, 0, -1));
+    }
+
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, kbody_highp1) {
         eval(out()) = eval(out(0, 0, -1)) + eval(out(0, 0, -2)) + eval(in());
     }
 };
@@ -84,7 +89,7 @@ TEST_F(kcachef, epflush_forward) {
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, 0) = m_inv(i, j, 0);
-            m_refv(i, j, 1) = m_inv(i, j, 1);
+            m_refv(i, j, 1) = m_inv(i, j, 1) + m_refv(i, j, 0);
 
             for (uint_t k = 2; k < m_d3; ++k) {
                 m_refv(i, j, k) = m_refv(i, j, k - 1) + m_refv(i, j, k - 2) + m_inv(i, j, k);

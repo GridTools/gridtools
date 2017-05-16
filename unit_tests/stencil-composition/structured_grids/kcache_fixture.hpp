@@ -8,7 +8,10 @@ typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 
 
 typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 1, -1 > > kbody_high;
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 0, -1 > > kminimum;
+typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 0, 1 > > kminimump1;
+typedef gridtools::interval< gridtools::level< 0, 2 >, gridtools::level< 1, -1 > > kbody_highp1;
 typedef gridtools::interval< gridtools::level< 1, -1 >, gridtools::level< 1, -1 > > kmaximum;
+typedef gridtools::interval< gridtools::level< 1, -2 >, gridtools::level< 1, -2 > > kmaximumm1;
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -2 > > kbody_low;
 typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 1, -2 > > kbody;
 

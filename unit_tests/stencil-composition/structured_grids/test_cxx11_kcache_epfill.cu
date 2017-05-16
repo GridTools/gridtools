@@ -42,7 +42,7 @@ using namespace enumtype;
 
 struct shift_acc_forward_epfill {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, -1, 0 > > in;
+    typedef accessor< 0, in, extent< 0, 0, 0, 0, -2, 0 > > in;
     typedef accessor< 1, inout, extent<> > out;
 
     typedef boost::mpl::vector< in, out > arg_list;
@@ -53,14 +53,19 @@ struct shift_acc_forward_epfill {
     }
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, kbody_high) {
-        eval(out()) = eval(in(0, 0, -1)) + eval(in(0, 0, -2));
+    GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
+        eval(out()) = eval(in()) + eval(out(0, 0, -1));
+    }
+
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, kbody_highp1) {
+        eval(out()) = eval(in()) + eval(out(0, 0, -1)) + eval(out(0, 0, -2));
     }
 };
 
 struct shift_acc_backward_epfill {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, 1 > > in;
+    typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, 2 > > in;
     typedef accessor< 1, inout, extent<> > out;
 
     typedef boost::mpl::vector< in, out > arg_list;
@@ -72,7 +77,7 @@ struct shift_acc_backward_epfill {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low_b) {
-        eval(out()) = eval(in(0, 0, 1)) + eval(in());
+        eval(out()) = eval(in()) + eval(out(0, 0, 1)) + eval(out(0, 0, 2));
     }
 };
 
@@ -82,10 +87,10 @@ TEST_F(kcachef, epfill_forward) {
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, 0) = m_inv(i, j, 0);
-            m_refv(i, j, 1) = m_inv(i, j, 1);
+            m_refv(i, j, 1) = m_inv(i, j, 1) + m_refv(i, j, 0);
 
             for (uint_t k = 1; k < m_d3; ++k) {
-                m_refv(i, j, k) = m_refv(i, j, k - 1) + m_refv(i, j, k - 2);
+                m_refv(i, j, k) = m_inv(i, j, k) + m_refv(i, j, k - 1) + m_refv(i, j, k - 2);
             }
         }
     }
@@ -141,7 +146,7 @@ TEST_F(kcachef, epfill_backward) {
             m_refv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2);
 
             for (int_t k = m_d3 - 2; k >= 0; --k) {
-                m_refv(i, j, k) = m_refv(i, j, k + 1) + m_refv(i, j, k + 2);
+                m_refv(i, j, k) = m_inv(i, j, k) + m_refv(i, j, k + 1) + m_refv(i, j, k + 2);
             }
         }
     }
