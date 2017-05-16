@@ -63,7 +63,7 @@ namespace gridtools {
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
         template < typename... Dims >
-        explicit constexpr cuda_storage_info(Dims... dims_)
+        explicit cuda_storage_info(Dims... dims_)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
             static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
             static_assert(is_alignment< Alignment >::value, "Given type is not an alignment type.");
@@ -75,7 +75,12 @@ namespace gridtools {
         /*
          * @brief cuda_storage_info destructor.
          */
-        ~cuda_storage_info() = default;
+        ~cuda_storage_info() {
+            if (m_gpu_ptr) {
+                cudaFree(m_gpu_ptr);
+                m_gpu_ptr = nullptr;
+            }
+        }
 
         /*
          * @brief retrieve the device pointer. This information is needed when the storage information should be passed

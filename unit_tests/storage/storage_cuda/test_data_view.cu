@@ -55,7 +55,7 @@ TEST(DataViewTest, Simple) {
     typedef cuda_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
     typedef data_store< cuda_storage< double >, storage_info_t > data_store_t;
     // create and allocate a data_store
-    constexpr storage_info_t si(3, 3, 3);
+    storage_info_t si(3, 3, 3);
     data_store_t ds(si);
     // create a rw view and fill with some data
     data_view< data_store_t > dv = make_host_view(ds);
@@ -70,7 +70,7 @@ TEST(DataViewTest, Simple) {
     ASSERT_TRUE((si.size() == dv.size()));
 
     // check if the user protections are working
-    static_assert(si.index(1, 0, 0) == 1, "constexpr index method call failed");
+    ASSERT_TRUE(si.index(1, 0, 0) == 1);
     ASSERT_TRUE(si.index(1, 0, 1) == 97);
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
