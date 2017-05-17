@@ -175,12 +175,12 @@ namespace gridtools {
     struct io_operator;
 
     template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset >
-    struct io_operator< AccIndex, ExecutionPolicy, fill, InitialOffset > {
+    struct io_operator< AccIndex, ExecutionPolicy, cache_io_policy::fill, InitialOffset > {
         using type = prefill_cache< AccIndex, ExecutionPolicy, InitialOffset >;
     };
 
     template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset >
-    struct io_operator< AccIndex, ExecutionPolicy, flush, InitialOffset > {
+    struct io_operator< AccIndex, ExecutionPolicy, cache_io_policy::flush, InitialOffset > {
         using type = sync_mem_accessor< AccIndex, ExecutionPolicy, InitialOffset >;
     };
 
@@ -316,8 +316,8 @@ namespace gridtools {
 
                 // compute the offset values that we will fill/flush from/to memory
                 constexpr int_t koffset =
-                    ((IterationPolicy::value == enumtype::backward) && CacheIOPolicy == fill) ||
-                            ((IterationPolicy::value == enumtype::forward) && CacheIOPolicy == flush)
+                    ((IterationPolicy::value == enumtype::backward) && CacheIOPolicy == cache_io_policy::fill) ||
+                            ((IterationPolicy::value == enumtype::forward) && CacheIOPolicy == cache_io_policy::flush)
                         ? boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
                         : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
 
@@ -334,8 +334,8 @@ namespace gridtools {
                 // produce an out of bounds when accessing main memory. This limit level is defined by the interval
                 // associated to the kcache
                 const int_t limit_lev =
-                    (IterationPolicy::value == enumtype::backward && CacheIOPolicy == fill) ||
-                            (IterationPolicy::value == enumtype::forward && CacheIOPolicy == flush)
+                    (IterationPolicy::value == enumtype::backward && CacheIOPolicy == cache_io_policy::fill) ||
+                            (IterationPolicy::value == enumtype::forward && CacheIOPolicy == cache_io_policy::flush)
                         ? m_klevel -
                               m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::FromLevel >()
                         : m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::ToLevel >() -
@@ -382,18 +382,21 @@ namespace gridtools {
 
                 // compute the maximum offset of all levels that we need to prefill or final flush
                 constexpr uint_t koffset =
-                    (IterationPolicy::value == enumtype::forward && CacheIOPolicy == flush) ||
-                            (IterationPolicy::value == enumtype::backward && CacheIOPolicy == fill)
+                    (IterationPolicy::value == enumtype::forward && CacheIOPolicy == cache_io_policy::flush) ||
+                            (IterationPolicy::value == enumtype::backward && CacheIOPolicy == cache_io_policy::fill)
                         ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
                         : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
                 // compute the sequence of all offsets that we need to prefill or final flush
-                using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int_t,
-                    (kcache_t::ccacheIOPolicy == bpfill || kcache_t::ccacheIOPolicy == epflush) ? koffset + 1
-                                                                                                : koffset >::type >;
+                using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence<
+                    int_t,
+                    (kcache_t::ccacheIOPolicy == cache_io_policy::bpfill ||
+                        kcache_t::ccacheIOPolicy == cache_io_policy::epflush)
+                        ? koffset + 1
+                        : koffset >::type >;
                 using io_op_t = typename io_operator< Idx,
                     IterationPolicy::value,
                     CacheIOPolicy,
-                    (CacheIOPolicy == flush) ? (int_t)1 : (int_t)0 >::type;
+                    (CacheIOPolicy == cache_io_policy::flush) ? (int_t)1 : (int_t)0 >::type;
 
                 auto &cache_st = boost::fusion::at_key< Idx >(m_kcaches);
                 seq::template apply_void_lambda< io_op_t::apply_t >(m_it_domain, cache_st);
@@ -407,7 +410,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
 
             boost::mpl::for_each< k_filling_caches_indexes_t >(
-                io_cache_functor< IterateDomain, IterationPolicy, Grid, fill >(
+                io_cache_functor< IterateDomain, IterationPolicy, Grid, cache_io_policy::fill >(
                     it_domain, m_k_caches_tuple, klevel, grid));
         }
 
@@ -418,7 +421,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
 
             boost::mpl::for_each< k_flushing_caches_indexes_t >(
-                io_cache_functor< IterateDomain, IterationPolicy, Grid, flush >(
+                io_cache_functor< IterateDomain, IterationPolicy, Grid, cache_io_policy::flush >(
                     it_domain, m_k_caches_tuple, klevel, grid));
         }
 
@@ -501,7 +504,8 @@ namespace gridtools {
             typedef typename kcache_begin_fill_indexes< IterationPolicy >::type k_begin_filling_caches_indexes_t;
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             boost::mpl::for_each< k_begin_filling_caches_indexes_t >(
-                endpoint_io_cache_functor< IterateDomain, IterationPolicy, fill >(it_domain, m_k_caches_tuple));
+                endpoint_io_cache_functor< IterateDomain, IterationPolicy, cache_io_policy::fill >(
+                    it_domain, m_k_caches_tuple));
         }
 
         // apply a final flush at the end of the interval iteration
@@ -511,7 +515,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
             boost::mpl::for_each< k_final_flushing_caches_indexes_t >(
-                endpoint_io_cache_functor< IterateDomain, IterationPolicy, flush >(it_domain, m_k_caches_tuple));
+                endpoint_io_cache_functor< IterateDomain, IterationPolicy, cache_io_policy::flush >(
+                    it_domain, m_k_caches_tuple));
         }
 
       private:

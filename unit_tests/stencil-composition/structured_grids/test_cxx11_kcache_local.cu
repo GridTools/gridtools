@@ -117,7 +117,7 @@ TEST_F(kcachef, local_forward) {
         m_grid,
         gridtools::make_multistage // mss_descriptor
         (execute< forward >(),
-            define_caches(cache< K, local, kfull >(p_buff())),
+            define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
             gridtools::make_stage< shif_acc_forward >(p_in() // esf_descriptor
                 ,
                 p_out(),
@@ -179,7 +179,7 @@ TEST_F(kcachef, local_backward) {
         m_grid,
         gridtools::make_multistage // mss_descriptor
         (execute< backward >(),
-            define_caches(cache< K, local, kfull >(p_buff())),
+            define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
             gridtools::make_stage< shif_acc_backward >(p_in() // esf_descriptor
                 ,
                 p_out(),

@@ -121,8 +121,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
         static_assert(((boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType == K),
             "Passing an interval to the cache<> construct is only allowed and required by the K caches");
-        static_assert(
-            (!(boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType != K || cacheIOPolicy == local),
+        static_assert((!(boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType != K ||
+                          cacheIOPolicy == cache_io_policy::local),
             "cache<K, ... > construct requires an interval (unless the IO policy is local)");
 
         static_assert((boost::is_same< Interval, boost::mpl::void_ >::value || is_interval< Interval >::value),

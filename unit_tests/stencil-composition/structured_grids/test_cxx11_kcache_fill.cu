@@ -128,7 +128,7 @@ TEST_F(kcachef, fill_forward) {
         m_grid,
         gridtools::make_multistage // mss_descriptor
         (execute< forward >(),
-            define_caches(cache< K, fill, kfull >(p_in())),
+            define_caches(cache< K, cache_io_policy::fill, kfull >(p_in())),
             gridtools::make_stage< shift_acc_forward_fill >(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -182,7 +182,7 @@ TEST_F(kcachef, fill_backward) {
         m_grid,
         gridtools::make_multistage // mss_descriptor
         (execute< backward >(),
-            define_caches(cache< K, fill, kfull >(p_in())),
+            define_caches(cache< K, cache_io_policy::fill, kfull >(p_in())),
             gridtools::make_stage< shift_acc_backward_fill >(p_in() // esf_descriptor
                 ,
                 p_out())));
@@ -235,7 +235,7 @@ TEST_F(kcachef, fill_copy_forward) {
         m_grid,
         gridtools::make_multistage // mss_descriptor
         (execute< forward >(),
-            define_caches(cache< K, fill, kfull >(p_in())),
+            define_caches(cache< K, cache_io_policy::fill, kfull >(p_in())),
             gridtools::make_stage< copy_fill >(p_in() // esf_descriptor
                 ,
                 p_out())));

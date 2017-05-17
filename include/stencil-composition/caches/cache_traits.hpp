@@ -82,7 +82,8 @@ namespace gridtools {
     struct is_flushing_cache : boost::mpl::false_ {};
 
     template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_flushing_cache< detail::cache_impl< cacheType, Arg, flush, Interval > > : boost::mpl::true_ {};
+    struct is_flushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::flush, Interval > >
+        : boost::mpl::true_ {};
 
     /**
      * @struct is_epflushing_cache
@@ -92,7 +93,8 @@ namespace gridtools {
     struct is_epflushing_cache : boost::mpl::false_ {};
 
     template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_epflushing_cache< detail::cache_impl< cacheType, Arg, epflush, Interval > > : boost::mpl::true_ {};
+    struct is_epflushing_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::epflush, Interval > >
+        : boost::mpl::true_ {};
 
     /**
      * @struct is_filling_cache
@@ -102,7 +104,8 @@ namespace gridtools {
     struct is_filling_cache : boost::mpl::false_ {};
 
     template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_filling_cache< detail::cache_impl< cacheType, Arg, fill, Interval > > : boost::mpl::true_ {};
+    struct is_filling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::fill, Interval > >
+        : boost::mpl::true_ {};
 
     /**
      * @struct is_bpfilling_cache
@@ -112,7 +115,8 @@ namespace gridtools {
     struct is_bpfilling_cache : boost::mpl::false_ {};
 
     template < cache_type cacheType, typename Arg, typename Interval >
-    struct is_bpfilling_cache< detail::cache_impl< cacheType, Arg, bpfill, Interval > > : boost::mpl::true_ {};
+    struct is_bpfilling_cache< detail::cache_impl< cacheType, Arg, cache_io_policy::bpfill, Interval > >
+        : boost::mpl::true_ {};
 
     /**
      * @struct cache_parameter

@@ -55,8 +55,7 @@ struct shift_acc_forward_epfill {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
         eval(out()) = eval(out(0, 0, -1));
-    
-}
+    }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody_highp1) {
@@ -77,7 +76,7 @@ struct shift_acc_backward_epfill {
     }
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
-        eval(out()) = eval(out(0,0,1));
+        eval(out()) = eval(out(0, 0, 1));
     }
 
     template < typename Evaluation >
@@ -95,19 +94,19 @@ struct self_update_forward_epfill {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
-eval(out()) = eval(in());
+        eval(out()) = eval(in());
     }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
-    
-eval(out()) = eval(in());
+
+        eval(out()) = eval(in());
     }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody_highp1) {
         eval(in()) = eval(in(0, 0, -1)) + eval(in(0, 0, -2));
-eval(out()) = eval(in());
+        eval(out()) = eval(in());
     }
 };
 
@@ -120,23 +119,21 @@ struct self_update_backward_epfill {
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum_b) {
-eval(out()) = eval(in());
+        eval(out()) = eval(in());
     }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
-    
-eval(out()) = eval(in());
+
+        eval(out()) = eval(in());
     }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low_b) {
         eval(in()) = eval(in(0, 0, 1)) + eval(in(0, 0, 2));
-eval(out()) = eval(in());
+        eval(out()) = eval(in());
     }
 };
-
-
 
 TEST_F(kcachef, epfill_forward) {
 
@@ -163,7 +160,7 @@ TEST_F(kcachef, epfill_forward) {
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                        define_caches(cache< K, bpfill, kfull >(p_in())),
+                                        define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_in())),
                                         make_stage< shift_acc_forward_epfill >(p_in() // esf_descriptor
                                             ,
                                             p_out())));
@@ -219,7 +216,7 @@ TEST_F(kcachef, epfill_backward) {
             m_gridb,
             make_multistage // mss_descriptor
             (execute< backward >(),
-                                        define_caches(cache< K, bpfill, kfull_b >(p_in())),
+                                        define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_in())),
                                         make_stage< shift_acc_backward_epfill >(p_in() // esf_descriptor
                                             ,
                                             p_out())));
@@ -260,7 +257,7 @@ TEST_F(kcachef, epfill_selfupdate_forward) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, 0) = m_inv(i, j, 0);
             m_refv(i, j, 1) = m_inv(i, j, 1);
-            buffv(i,j,0) = m_inv(i, j, 0);
+            buffv(i, j, 0) = m_inv(i, j, 0);
             buffv(i, j, 1) = m_inv(i, j, 1);
 
             for (uint_t k = 2; k < m_d3; ++k) {
@@ -272,7 +269,7 @@ TEST_F(kcachef, epfill_selfupdate_forward) {
     typedef arg< 0, storage_t > p_out;
     typedef arg< 1, storage_t > p_buff;
 
-    typedef boost::mpl::vector<p_out, p_buff > accessor_list;
+    typedef boost::mpl::vector< p_out, p_buff > accessor_list;
     aggregator_type< accessor_list > domain((p_buff() = buff), (p_out() = m_out));
 
     auto kcache_stencil =
@@ -280,7 +277,7 @@ TEST_F(kcachef, epfill_selfupdate_forward) {
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                        define_caches(cache< K, bpfill, kfull >(p_buff())),
+                                        define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_buff())),
                                         make_stage< self_update_forward_epfill >(p_buff(), p_out())));
 
     kcache_stencil->ready();
@@ -318,12 +315,12 @@ TEST_F(kcachef, epfill_selfupdate_backward) {
 
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
-            m_refv(i, j, m_d3-1) = m_inv(i, j, m_d3-1);
-            m_refv(i, j, m_d3-2) = m_inv(i, j, m_d3-2);
-            buffv(i,j,m_d3-1) = m_inv(i, j, m_d3-1);
-            buffv(i, j, m_d3-2) = m_inv(i, j, m_d3-2);
+            m_refv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);
+            m_refv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2);
+            buffv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);
+            buffv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2);
 
-            for (int_t k = m_d3-3; k >= 0; --k) {
+            for (int_t k = m_d3 - 3; k >= 0; --k) {
                 m_refv(i, j, k) = m_refv(i, j, k + 1) + m_refv(i, j, k + 2);
             }
         }
@@ -332,7 +329,7 @@ TEST_F(kcachef, epfill_selfupdate_backward) {
     typedef arg< 0, storage_t > p_out;
     typedef arg< 1, storage_t > p_buff;
 
-    typedef boost::mpl::vector<p_out, p_buff > accessor_list;
+    typedef boost::mpl::vector< p_out, p_buff > accessor_list;
     aggregator_type< accessor_list > domain((p_buff() = buff), (p_out() = m_out));
 
     auto kcache_stencil =
@@ -340,7 +337,7 @@ TEST_F(kcachef, epfill_selfupdate_backward) {
             m_gridb,
             make_multistage // mss_descriptor
             (execute< backward >(),
-                                        define_caches(cache< K, bpfill, kfull_b >(p_buff())),
+                                        define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_buff())),
                                         make_stage< self_update_backward_epfill >(p_buff(), p_out())));
 
     kcache_stencil->ready();
@@ -368,4 +365,3 @@ TEST_F(kcachef, epfill_selfupdate_backward) {
 
     ASSERT_TRUE(success);
 }
-

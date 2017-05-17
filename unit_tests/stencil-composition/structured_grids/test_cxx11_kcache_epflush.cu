@@ -77,7 +77,7 @@ struct shift_acc_backward_epflush {
     }
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
-        eval(out()) = eval(in())+eval(out(0,0,1));
+        eval(out()) = eval(in()) + eval(out(0, 0, 1));
     }
 
     template < typename Evaluation >
@@ -112,7 +112,7 @@ TEST_F(kcachef, epflush_forward) {
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                        define_caches(cache< K, epflush, kfull >(p_out())),
+                                        define_caches(cache< K, cache_io_policy::epflush, kfull >(p_out())),
                                         make_stage< shift_acc_forward_epflush >(p_in() // esf_descriptor
                                             ,
                                             p_out())));
@@ -156,7 +156,7 @@ TEST_F(kcachef, epflush_backward) {
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);
-            m_refv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2) + m_refv(i,j,m_d3-1);
+            m_refv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2) + m_refv(i, j, m_d3 - 1);
 
             for (int_t k = m_d3 - 3; k >= 0; --k) {
                 m_refv(i, j, k) = m_refv(i, j, k + 1) + m_refv(i, j, k + 2) + m_inv(i, j, k);
@@ -175,7 +175,7 @@ TEST_F(kcachef, epflush_backward) {
             m_gridb,
             make_multistage // mss_descriptor
             (execute< backward >(),
-                                        define_caches(cache< K, epflush, kfull_b >(p_out())),
+                                        define_caches(cache< K, cache_io_policy::epflush, kfull_b >(p_out())),
                                         make_stage< shift_acc_backward_epflush >(p_in() // esf_descriptor
                                             ,
                                             p_out())));
