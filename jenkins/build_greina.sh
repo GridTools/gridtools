@@ -29,6 +29,7 @@ function help {
 
 INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
+ABSOLUTEPATH_SCRIPT=${INITPATH}/${BASEPATH_SCRIPT#$INITPATH}
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
@@ -93,8 +94,8 @@ fi
 
 echo $@
 
-source ${BASEPATH_SCRIPT}/machine_env.sh
-source ${BASEPATH_SCRIPT}/env_${myhost}.sh
+source ${ABSOLUTEPATH_SCRIPT}/machine_env.sh
+source ${ABSOLUTEPATH_SCRIPT}/env_${myhost}.sh
 if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
     test -e build
@@ -182,9 +183,13 @@ exit_if_error $?
 #some object files, probably related to parallel make compilation, but we dont know yet how to solve this.
 #Workaround here is to try multiple times the compilation step
 num_make_rep=2
-
 error_code=0
 log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${MPI}_${RANDOM}.log"
+
+if [[ -z ${MAKE_THREADS} ]]; then
+    MAKE_THREADS=5
+fi
+
 if [[ "$SILENT_BUILD" == "ON" ]]; then
     echo "Log file ${log_file}"
     for i in `seq 1 $num_make_rep`;
@@ -193,7 +198,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
       if [ ${i} -eq ${num_make_rep} ]; then
           make  >& ${log_file};
       else
-          make -j5  >& ${log_file};
+          make -j${MAKE_THREADS}  >& ${log_file};
       fi
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
@@ -205,7 +210,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
         cat ${log_file};
     fi
 else
-    make -j10
+    make -j${MAKE_THREADS}
     error_code=$?
 fi
 
@@ -225,9 +230,9 @@ fi
 
 
 if [[ "$RUN_MPI_TESTS" == "ON" ]]; then
-    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $USE_GPU
+    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $USE_GPU
 else
-    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
+    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str}
 fi
 
 exit_if_error $?
