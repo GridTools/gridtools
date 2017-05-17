@@ -10,15 +10,20 @@ typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 1, -1 >
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 0, -1 > > kminimum;
 typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 0, 1 > > kminimump1;
 typedef gridtools::interval< gridtools::level< 0, 2 >, gridtools::level< 1, -1 > > kbody_highp1;
+typedef gridtools::interval< gridtools::level< 0, 2 >, gridtools::level< 1, -2 > > kbody_highp1m1;
 typedef gridtools::interval< gridtools::level< 1, -1 >, gridtools::level< 1, -1 > > kmaximum;
 typedef gridtools::interval< gridtools::level< 1, -2 >, gridtools::level< 1, -2 > > kmaximumm1;
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -2 > > kbody_low;
 typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 1, -2 > > kbody;
 
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 2, 1 > > axis_b;
+typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 0, -1 > > kminimum_b;
+typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 0, 1 > > kminimump1_b;
 typedef gridtools::interval< gridtools::level< 2, -1 >, gridtools::level< 2, -1 > > kmaximum_b;
 typedef gridtools::interval< gridtools::level< 1, 1 >, gridtools::level< 2, -2 > > kmaximumm1_b;
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > kbody_low_b;
+typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 1, -1 > > kbody_lowp1_b;
+typedef gridtools::interval< gridtools::level< 1, 2 >, gridtools::level< 1, -1 > > kbody_b;
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 2, -1 > > kfull_b;
 
 #ifdef __CUDACC__
@@ -61,9 +66,7 @@ class kcachef : public ::testing::Test {
         m_gridb.value_list[2] = m_d3 - 1;
     }
 
-    storage_t create_new_field(std::string name) {
-        return storage_t(m_meta, -1,name);
-    }
+    storage_t create_new_field(std::string name) { return storage_t(m_meta, -1, name); }
 
     void init_fields() {
         for (gridtools::uint_t i = 0; i < m_d1; ++i) {
