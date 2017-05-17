@@ -35,8 +35,9 @@
 */
 #pragma once
 
-namespace gridtools {
+#include "location_type.hpp"
 
-    template < uint_t I, typename T, typename LocationType, typename Cond >
+namespace gridtools {
+    template < uint_t I, typename T, typename LocationType = enumtype::default_location_type, bool Temporary = false >
     struct arg;
 }

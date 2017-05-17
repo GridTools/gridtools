@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../storage/meta_storage_base.hpp"
+
 #include "../../common/generic_metafunctions/unzip.hpp"
 
 namespace gridtools {
@@ -42,33 +42,23 @@ namespace gridtools {
     template < typename Layout, uint_t... Dims >
     struct meta_storage_cache {
 
-        typedef meta_storage_base< static_int< 0 >, Layout, false > meta_storage_t;
-
-      private:
-        const meta_storage_t m_value;
+        typedef storage_info_interface< 0, Layout > meta_storage_t;
+        typedef Layout layout_t;
+        static_assert(
+            layout_t::masked_length == sizeof...(Dims), "Mismatch in layout length and passed number of dimensions.");
 
       public:
         GT_FUNCTION
-        constexpr meta_storage_cache(meta_storage_cache const &other) : m_value{other.m_value} {};
-
-        /**NOTE: the last 2 dimensions are Component and FD by convention*/
-        GT_FUNCTION
-        constexpr meta_storage_cache() : m_value{Dims...} {};
-
-        GT_FUNCTION
-        constexpr meta_storage_t value() const { return m_value; }
-
-        GT_FUNCTION
-        constexpr uint_t size() const { return m_value.size(); }
+        static constexpr uint_t size() { return meta_storage_t(Dims...).size(); }
 
         template < ushort_t Id >
-        GT_FUNCTION constexpr int_t const &strides() const {
-            return m_value.template strides< Id >();
+        GT_FUNCTION static constexpr int_t stride() {
+            return meta_storage_t(Dims...).template stride< Id >();
         }
 
-        template < typename Accessor >
-        GT_FUNCTION constexpr int_t index(Accessor const &arg_) const {
-            return m_value._index(arg_.offsets());
+        template < ushort_t Id >
+        GT_FUNCTION static constexpr int_t dim() {
+            return meta_storage_t(Dims...).template dim< Id >();
         }
     };
 } // namespace gridtools

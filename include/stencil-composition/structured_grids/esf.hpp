@@ -37,14 +37,14 @@
 
 #include <boost/type_traits/is_const.hpp>
 
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
+#include "../aggregator_type.hpp"
+#include "../esf_aux.hpp"
+#include "../esf_fwd.hpp"
+#include "../expandable_parameters/vector_accessor.hpp"
+#include "../sfinae.hpp"
 #include "accessor.hpp"
 #include "accessor_mixed.hpp"
-#include "../expandable_parameters/vector_accessor.hpp"
-#include "../aggregator_type.hpp"
-#include "../../common/generic_metafunctions/is_sequence_of.hpp"
-#include "../esf_fwd.hpp"
-#include "../esf_aux.hpp"
-#include "../sfinae.hpp"
 
 /**
    @file
@@ -61,7 +61,7 @@ namespace gridtools {
         struct check_arg_list {
             template < typename Reduced, typename Element >
             struct _check {
-                typedef typename boost::mpl::if_c< (Element::index_type::value == Reduced::value + 1),
+                typedef typename boost::mpl::if_c< (Element::index_t::value == Reduced::value + 1),
                     boost::mpl::int_< Reduced::value + 1 >,
                     boost::mpl::int_< -Reduced::value - 1 > >::type type;
             };
@@ -97,20 +97,12 @@ namespace gridtools {
         typedef Staggering staggering_t;
 
         //////////////////////Compile time checks ////////////////////////////////////////////////////////////
-
-        /**@brief Macro defining a sfinae metafunction
-
-           defines a metafunction has_extent_type, which returns true if its template argument
-           defines a type called arg_list. It also defines a get_arg_list metafunction, which
-           can be used to return the arg_list only when it is present, without giving compilation
-           errors in case it is not defined.
-        */
-        HAS_TYPE_SFINAE(arg_list, has_arg_list, get_arg_list)
+        BOOST_MPL_HAS_XXX_TRAIT_DEF(arg_list)
         GRIDTOOLS_STATIC_ASSERT(has_arg_list< esf_function >::type::value,
             "The type arg_list was not found in a user functor definition. All user functors must have a type alias "
             "called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor "
             "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
-            "using v2=generic_accessor<1, enumtype::in>; \n using v3=accessor<2>; \n using "
+            "using v2=global_accessor<1, enumtype::in>; \n using v3=accessor<2>; \n using "
             "arg_list=boost::mpl::vector<v1, v3>;");
 
         GRIDTOOLS_STATIC_ASSERT(_impl::check_arg_list< typename esf_function::arg_list >::value,

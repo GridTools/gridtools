@@ -51,33 +51,25 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
     uint_t b2 = 2;
     uint_t b3 = 2;
 
-    typename storage_local_quad_t::storage_info_type meta_local_(1, 1, 1, b1, b2, b3, nbQuadPt);
-    storage_local_quad_t phi(meta_local_, 0., "phi");
-    storage_local_quad_t psi(meta_local_, 0., "psi");
+    typename storage_local_quad_t::storage_info_t meta_local_(b1, b2, b3, nbQuadPt);
+    storage_local_quad_t phi(meta_local_, 10.);
+    storage_local_quad_t psi(meta_local_, 11.);
 
     // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
     // Or alternatively computing the values on the quadrature points on the GPU
-    typename storage_global_quad_t::storage_info_type meta_global_(d1, d2, d3, nbQuadPt);
-    storage_global_quad_t jac(meta_global_, 0., "jac");
+    typename storage_global_quad_t::storage_info_t meta_global_(d1, d2, d3, nbQuadPt);
+    storage_global_quad_t jac(meta_global_, [](int i, int j, int k, int q) { return 1. + q; });
 
-    for (uint_t i = 0; i < d1; ++i)
-        for (uint_t j = 0; j < d2; ++j)
-            for (uint_t k = 0; k < d3; ++k)
-                for (uint_t q = 0; q < nbQuadPt; ++q) {
-                    jac(i, j, k, q) = 1. + q;
-                }
-    for (uint_t i = 0; i < b1; ++i)
-        for (uint_t j = 0; j < b2; ++j)
-            for (uint_t k = 0; k < b3; ++k)
-                for (uint_t q = 0; q < nbQuadPt; ++q) {
-                    phi(1, 1, 1, i, j, k, q) = 10.;
-                    psi(1, 1, 1, i, j, k, q) = 11.;
-                }
+    auto jacv = make_host_view(jac);
+    auto phiv = make_host_view(phi);
+    auto psiv = make_host_view(psi);
 
-    typename storage_t::storage_info_type meta_(d1, d2, d3, b1, b2, b3);
-    storage_t f(meta_, (float_type)1.3, "f");
+    typename storage_t::storage_info_t meta_(d1, d2, d3, b1, b2, b3);
+    storage_t f(meta_, (float_type)1.3);
+    auto fv = make_host_view(f);
 
-    storage_t reference(meta_, (float_type)0., "result");
+    storage_t reference(meta_, (float_type)0.);
+    auto referencev = make_host_view(reference);
 
     for (int_t i = 1; i < d1 - 2; ++i)
         for (int_t j = 1; j < d2 - 2; ++j)
@@ -86,25 +78,18 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
                     for (short_t J = 0; J < 2; ++J)
                         for (short_t K = 0; K < 2; ++K) {
                             // check the initialization to 0
-                            assert(reference(i, j, k, I, J, K) == 0.);
+                            assert(referencev(i, j, k, I, J, K) == 0.);
                             for (short_t q = 0; q < 2; ++q) {
-                                reference(i, j, k, I, J, K) += (phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 0, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 0, 0, 0) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 0, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 1, 0, 0) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 1, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 0, 1, 0) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 0, 1, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 0, 0, 1) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 1, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 1, 1, 0) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 1, 0, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 1, 0, 1) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 0, 1, 1, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 0, 1, 1) +
-                                                                   phi(1, 1, 1, I, J, K, q) * psi(1, 1, 1, 1, 1, 1, q) *
-                                                                       jac(i, j, k, q) * f(i, j, k, 1, 1, 1)) /
-                                                               8;
+                                referencev(i, j, k, I, J, K) +=
+                                    (phiv(I, J, K, q) * psiv(0, 0, 0, q) * jacv(i, j, k, q) * fv(i, j, k, 0, 0, 0) +
+                                        phiv(I, J, K, q) * psiv(1, 0, 0, q) * jacv(i, j, k, q) * fv(i, j, k, 1, 0, 0) +
+                                        phiv(I, J, K, q) * psiv(0, 1, 0, q) * jacv(i, j, k, q) * fv(i, j, k, 0, 1, 0) +
+                                        phiv(I, J, K, q) * psiv(0, 0, 1, q) * jacv(i, j, k, q) * fv(i, j, k, 0, 0, 1) +
+                                        phiv(I, J, K, q) * psiv(1, 1, 0, q) * jacv(i, j, k, q) * fv(i, j, k, 1, 1, 0) +
+                                        phiv(I, J, K, q) * psiv(1, 1, 0, q) * jacv(i, j, k, q) * fv(i, j, k, 1, 0, 1) +
+                                        phiv(I, J, K, q) * psiv(0, 1, 1, q) * jacv(i, j, k, q) * fv(i, j, k, 0, 1, 1) +
+                                        phiv(I, J, K, q) * psiv(1, 1, 1, q) * jacv(i, j, k, q) * fv(i, j, k, 1, 1, 1)) /
+                                    8;
                             }
                         }
 

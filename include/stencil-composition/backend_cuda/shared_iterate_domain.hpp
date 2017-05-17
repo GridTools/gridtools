@@ -38,13 +38,13 @@
    that will be allocated in shared memory
  */
 #pragma once
+#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "stencil-composition/accessor.hpp"
+#include <boost/fusion/include/at_key.hpp>
+#include <boost/fusion/sequence/intrinsic/at_key.hpp>
+#include <boost/mpl/at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/map.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/fusion/sequence/intrinsic/at_key.hpp>
-#include <boost/fusion/include/at_key.hpp>
-#include "stencil-composition/accessor.hpp"
-#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 
 namespace gridtools {
 
@@ -53,7 +53,7 @@ namespace gridtools {
      * data structure that holds data members of the iterate domain that must be stored in shared memory.
      * @tparam DataPointerArray array of data pointers
      * @tparam StridesType strides cached type
-     * @tparam IJCachesTuple fusion map of <index_type, cache_storage>
+     * @tparam IJCachesTuple fusion map of <index_t, cache_storage>
      */
     template < typename DataPointerArray, typename StridesType, typename MaxExtent, typename IJCachesTuple >
     class shared_iterate_domain {
@@ -64,7 +64,9 @@ namespace gridtools {
       private:
         DataPointerArray m_data_pointer;
         StridesType m_strides;
-        IJCachesTuple m_ij_caches_tuple;
+        // TODO: This trick is used to prevent a race condition reported in cuda-memcheck. Should be investigated.
+        typename boost::mpl::if_< boost::mpl::empty< IJCachesTuple >, boost::mpl::void_, IJCachesTuple >::type
+            m_ij_caches_tuple;
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
         // constructed with the result_of::as_map from a fusion vector.

@@ -35,7 +35,6 @@
 */
 
 #include <gridtools.hpp>
-#include <storage/meta_storage.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include "gtest/gtest.h"
 
@@ -46,6 +45,8 @@ namespace check_grid_bounds {
     typedef gridtools::backend< gridtools::enumtype::Host,
         gridtools::enumtype::GRIDBACKEND,
         gridtools::enumtype::Block > the_backend;
+
+    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
 
     /**
        Testing the check of bounds for iteration spaces.
@@ -70,15 +71,13 @@ namespace check_grid_bounds {
         gridtools::uint_t gz,
         bool expected) {
 
-        typedef gridtools::layout_map< 0, 1, 2 > layout_type; // stride 1 on k
+        using storage_info1_t = storage_tr::storage_info_t< 0, 3, gridtools::halo< 2, 2, 0 > >;
+        using storage_info2_t = storage_tr::storage_info_t< 1, 3, gridtools::halo< 2, 2, 0 > >;
+        using storage_info3_t = storage_tr::storage_info_t< 2, 3, gridtools::halo< 2, 2, 0 > >;
 
-        typedef the_backend::storage_info< 0, layout_type > storage_info1_t;
-        typedef the_backend::storage_info< 1, layout_type > storage_info2_t;
-        typedef the_backend::storage_info< 2, layout_type > storage_info3_t;
-
-        typedef the_backend::storage_type< double, storage_info1_t >::type storage_type1;
-        typedef the_backend::storage_type< int, storage_info2_t >::type storage_type2;
-        typedef the_backend::storage_type< float, storage_info3_t >::type storage_type3;
+        using storage_type1 = storage_tr::data_store_t< double, storage_info1_t >;
+        using storage_type2 = storage_tr::data_store_t< int, storage_info2_t >;
+        using storage_type3 = storage_tr::data_store_t< float, storage_info3_t >;
 
         // TODO: Use storage_info as unnamed object - lifetime issues on GPUs
         storage_info1_t si1(x + 3, y, z);
