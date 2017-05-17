@@ -218,7 +218,7 @@ TEST_F(kcachef, fill_copy_forward) {
     init_fields();
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 1; k < m_d3 - 1; ++k) {
+            for (uint_t k = 0; k < m_d3; ++k) {
                 m_refv(i, j, k) = m_inv(i, j, k);
             }
         }

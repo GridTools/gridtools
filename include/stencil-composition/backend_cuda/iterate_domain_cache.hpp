@@ -106,7 +106,7 @@ namespace gridtools {
      * \tparam AccIndex index of the accessor
      * \tparam ExecutionPolicy : forward, backward
      */
-    template < typename AccIndex, enumtype::execution ExecutionPolicy >
+    template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset=0 >
     struct sync_mem_accessor {
         /**
          * @struct apply struct of the functor
@@ -122,9 +122,9 @@ namespace gridtools {
             template < typename IterateDomain, typename CacheStorage >
             GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
 
-                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -Offset, Offset > > acc_t;
-                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -Offset : Offset);
-
+                typedef accessor< AccIndex::value, enumtype::inout, extent< 0, 0, 0, 0, -(Offset+InitialOffset), (Offset+InitialOffset) > > acc_t;
+                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::forward) ? -(Offset+InitialOffset) : (Offset+InitialOffset));
+if(threadIdx.x==0 && threadIdx.y==0) printf("SYNC %d \n", (ExecutionPolicy == enumtype::forward) ? -Offset : Offset);
                 it_domain.gmem_access(acc_) = cache_st.at(acc_);
                 return 0;
             }
@@ -137,7 +137,7 @@ namespace gridtools {
      * \tparam AccIndex index of the accessor
      * \tparam ExecutionPolicy : forward, backward
      */
-    template < typename AccIndex, enumtype::execution ExecutionPolicy >
+    template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0>
     struct prefill_cache {
         /**
          * @struct apply struct of the functor
@@ -153,26 +153,26 @@ namespace gridtools {
             template < typename IterateDomain, typename CacheStorage >
             GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage &cache_st) {
 
-                typedef accessor< AccIndex::value, enumtype::in, extent< 0, 0, 0, 0, -Offset, Offset > > acc_t;
-                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::backward) ? -Offset : Offset);
-
+                typedef accessor< AccIndex::value, enumtype::in, extent< 0, 0, 0, 0, -(Offset + InitialOffset), (Offset + InitialOffset) > > acc_t;
+                constexpr acc_t acc_(0, 0, (ExecutionPolicy == enumtype::backward) ? -(Offset + InitialOffset): (Offset + InitialOffset));
+if(threadIdx.x==0 && threadIdx.y==0) printf("PREFILL %d %d \n", Offset,InitialOffset);
                 cache_st.at(acc_) = it_domain.gmem_access(acc_);
                 return 0;
             }
         };
     };
 
-    template < typename AccIndex, enumtype::execution ExecutionPolicy, cache_io_policy CacheIOPolicy >
+    template < typename AccIndex, enumtype::execution ExecutionPolicy, cache_io_policy CacheIOPolicy, int_t InitialOffset=0 >
     struct io_operator;
 
-    template < typename AccIndex, enumtype::execution ExecutionPolicy >
-    struct io_operator< AccIndex, ExecutionPolicy, fill > {
-        using type = prefill_cache< AccIndex, ExecutionPolicy >;
+    template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset >
+    struct io_operator< AccIndex, ExecutionPolicy, fill, InitialOffset > {
+        using type = prefill_cache< AccIndex, ExecutionPolicy, InitialOffset >;
     };
 
-    template < typename AccIndex, enumtype::execution ExecutionPolicy >
-    struct io_operator< AccIndex, ExecutionPolicy, flush > {
-        using type = sync_mem_accessor< AccIndex, ExecutionPolicy >;
+    template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset >
+    struct io_operator< AccIndex, ExecutionPolicy, flush, InitialOffset > {
+        using type = sync_mem_accessor< AccIndex, ExecutionPolicy, InitialOffset >;
     };
 
     /**
@@ -333,6 +333,8 @@ namespace gridtools {
                         : m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::ToLevel >() -
                               m_klevel;
 
+if(threadIdx.x==0 && threadIdx.y==0)
+printf("INIOCACHE_ F %d %d \n", koffset_abs, limit_lev);
                 if (koffset_abs <= limit_lev) {
                     using io_op_t = typename io_operator< Idx, IterationPolicy::value, CacheIOPolicy >::type;
 
@@ -377,12 +379,13 @@ namespace gridtools {
                             (IterationPolicy::value == enumtype::backward && CacheIOPolicy == fill)
                         ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
                         : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
-
+if(threadIdx.x==0 && threadIdx.y==0) 
+printf(" IN ENP %d \n", koffset); 
                 // compute the sequence of all offsets that we need to prefill or final flush
                 using seq = gridtools::apply_gt_integer_sequence<
                     typename gridtools::make_gt_integer_sequence< int_t, koffset >::type >;
 
-                using io_op_t = typename io_operator< Idx, IterationPolicy::value, CacheIOPolicy >::type;
+                using io_op_t = typename io_operator< Idx, IterationPolicy::value, CacheIOPolicy, (CacheIOPolicy == flush) ? (int_t)1 : (int_t)0 >::type;
 
                 auto &cache_st = boost::fusion::at_key< Idx >(m_kcaches);
                 seq::template apply_void_lambda< io_op_t::apply_t >(m_it_domain, cache_st);
