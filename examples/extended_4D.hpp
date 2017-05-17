@@ -131,7 +131,7 @@ namespace assembly {
         typedef in_accessor< 2, extent<>, 4 > jac;
         typedef in_accessor< 3, extent<>, 6 > f;
         typedef inout_accessor< 4, extent<>, 6 > result;
-        typedef boost::mpl::vector< jac, f, result > arg_list;
+        typedef boost::mpl::vector< phi_t, psi_t, jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
@@ -151,25 +151,27 @@ namespace assembly {
                 for (short_t J = 0; J < 2; ++J)
                     for (short_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
-                        assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
+                        assert(eval(result(i, j, k, di + I, dj + J, dk + K)) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
-                            eval(result{di + I, dj + J, dk + K, qp}) +=
-                                eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
-                                     phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} *
-                                         f{i, j, k, di + 1, dj, dk} +
-                                     phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
-                                         f{i, j, k, di, dj + 1, dk} +
-                                     phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
-                                         f{i, k, k, di, dj, dk + 1} +
-                                     phi(I, J, K, q) * psi(1, 1, 0, q) * jac{i, j, k, qp + q} *
-                                         f{i, j, k, di + 1, dj + 1, dk} +
-                                     phi(I, J, K, q) * psi(1, 0, 1, q) * jac{i, j, k, qp + q} *
-                                         f{i, j, k, di + 1, dj, dk + 1} +
-                                     phi(I, J, K, q) * psi(0, 1, 1, q) * jac{i, j, k, qp + q} *
-                                         f{i, j, k, di, dj + 1, dk + 1} +
-                                     phi(I, J, K, q) * psi(1, 1, 1, q) * jac{i, j, k, qp + q} *
-                                         f{i, j, k, di + 1, dj + 1, dk + 1}) /
-                                8;
+                            eval(result(di + I, dj + J, dk + K, qp)) += eval(
+                                phi(I, J, K, q) //* psi(0, 0, 0, q)) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
+                                                // phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} *
+                                                //     f{i, j, k, di + 1, dj, dk} +
+                                                // phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
+                                                //     f{i, j, k, di, dj + 1, dk} +
+                                                // phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
+                                                //     f{i, k, k, di, dj, dk + 1} +
+                                                // phi(I, J, K, q) * psi(1, 1, 0, q) * jac{i, j, k, qp + q} *
+                                                //     f{i, j, k, di + 1, dj + 1, dk} +
+                                                // phi(I, J, K, q) * psi(1, 0, 1, q) * jac{i, j, k, qp + q} *
+                                                //     f{i, j, k, di + 1, dj, dk + 1} +
+                                                // phi(I, J, K, q) * psi(0, 1, 1, q) * jac{i, j, k, qp + q} *
+                                                //     f{i, j, k, di, dj + 1, dk + 1} +
+                                                // phi(I, J, K, q) * psi(1, 1, 1, q) * jac{i, j, k, qp + q} *
+                                                //     f{i, j, k, di + 1, dj + 1, dk + 1}
+                                );
+                            // /
+                            //     8;
                         }
                     }
         }
@@ -192,8 +194,8 @@ namespace assembly {
         metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
         storage_global_quad_t jac(integration_metadata, [](int i, int j, int k, int q) { return 1. + q; }, "jac");
 
-        auto g_phi = make_global_parameter(phi);
-        auto g_psi = make_global_parameter(psi);
+        auto g_phi = BACKEND::make_global_parameter(phi);
+        auto g_psi = BACKEND::make_global_parameter(psi);
 
         metadata_t meta_(d1, d2, d3, b1, b2, b3);
         storage_t f(meta_, (float_type)1.3, "f");
@@ -207,7 +209,8 @@ namespace assembly {
 
         typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
 
-        gridtools::aggregator_type< accessor_list > domain(g_phi, g_psi, jac, f, result));
+        gridtools::aggregator_type< accessor_list > domain(
+            (p_phi() = g_phi), (p_psi() = g_psi), (p_jac() = jac), (p_f() = f), (p_result() = result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,

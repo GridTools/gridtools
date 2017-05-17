@@ -153,8 +153,8 @@ namespace gridtools {
                 int >::value),
             "Internal Error");
 
-        typedef typename GlobalAcc::index_type index_type_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), "Internal Error");
+        typedef typename boost::mpl::integral_c< int, GlobalAcc::index_t::value > index_type_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), GT_INTERNAL_ERROR);
         typedef global_accessor_with_arguments<
             global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, GlobalAcc::intent >,
             Args... > type;

@@ -397,10 +397,10 @@ namespace gridtools {
         }
 
         template < typename Acc, typename... Args >
-        using ret_t = typename boost::remove_reference< decltype(
-            tuple_to_container(std::declval< typename get_storage_accessor< local_domain_t, Acc >::type::value_type >(),
-                std::declval< global_accessor_with_arguments< Acc, Args... > >().get_arguments(),
-                make_gt_integer_sequence< uint_t, sizeof...(Args) >())) >::type;
+        using ret_t = typename boost::remove_reference< decltype(tuple_to_container(
+            std::declval< typename get_storage_accessor< local_domain_t, Acc >::type::storage_t::data_t >(),
+            std::declval< global_accessor_with_arguments< Acc, Args... > >().get_arguments(),
+            make_gt_integer_sequence< uint_t, sizeof...(Args) >())) >::type;
 
         /** @brief method called in the Do methods of the functors.
 
@@ -408,20 +408,15 @@ namespace gridtools {
         */
         template < typename Acc, typename... Args >
         GT_FUNCTION auto operator()(global_accessor_with_arguments< Acc, Args... > const &accessor) const
-
             -> ret_t< Acc, Args... >
 
         {
 
-            // getting information about the storage
-            typedef typename Acc::index_type index_t;
-
-            typedef typename get_storage_accessor< local_domain_t, Acc >::type storage_ptr_type;
-
-            storage_ptr_type storage_ = boost::fusion::at< index_t >(local_domain.m_local_args);
+            typedef typename Acc::index_t index_t;
+            auto storage_ = boost::fusion::at< index_t >(local_domain.m_local_data_ptrs).second;
 
             return tuple_to_container(
-                *storage_, accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
+                **storage_, accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
         }
 
         /**@brief returns the dimension of the storage corresponding to the given accessor

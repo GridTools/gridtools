@@ -59,7 +59,7 @@ namespace gridtools {
 
       public:
         typedef GlobalAccessor super;
-        typedef typename super::index_type index_type;
+        typedef typename super::index_t index_t;
 
         GT_FUNCTION
         global_accessor_with_arguments(Args &&... args_) : m_arguments(std::forward< Args >(args_)...) {}
