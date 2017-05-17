@@ -87,6 +87,7 @@ namespace gridtools {
 #endif
             typedef Interval interval_t;
             typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;
+            static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
         };
 
         /**
