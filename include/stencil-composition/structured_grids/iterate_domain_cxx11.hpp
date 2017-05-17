@@ -311,8 +311,10 @@ namespace gridtools {
         }
 
         /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
-           \param arg placeholder containing the storage ID and the offsets
+           \param accessor Accessor pass to the evaluator
            \param storage_pointer pointer to the first element of the specific data field used
+           \tparam DirectGMemAccess selects a direct access to main memory for the given accessor, ignoring if the
+           parameter is being cached using software managed cache syntax
         */
         template < typename Accessor, typename StoragePointer, bool DirectGMemAccess = false >
         GT_FUNCTION typename accessor_return_type< Accessor >::type get_value(
@@ -410,7 +412,9 @@ namespace gridtools {
                 ->template dim< Coordinate >();
         }
 
-        /** @brief return a the value in gmem pointed to by an accessor
+        /** @brief return a the value in gmem pointed to by a base storage pointer and an offset
+         * \param storage_pointer base address to gmem
+         * \param offset to compose the address being access
         */
         template < typename ReturnType, typename StoragePointer >
         GT_FUNCTION ReturnType get_gmem_value(StoragePointer RESTRICT &storage_pointer
@@ -453,6 +457,9 @@ namespace gridtools {
                 ->template get_cache_value_impl< typename accessor_return_type< Accessor >::type >(accessor_);
         }
 
+        /**
+         * @brief direct access for an accessor to main memory. No dispatch to a corresponding scratch-pad is performed
+         */
         template < typename Accessor >
         GT_FUNCTION typename accessor_return_type< Accessor >::type gmem_access(Accessor const &accessor) const {
             GRIDTOOLS_STATIC_ASSERT(
@@ -463,6 +470,11 @@ namespace gridtools {
             return get_value< Accessor, void *, true >(accessor, get_data_pointer(accessor));
         }
 
+        /**
+         * @brief returns the value pointed by an accessor in case the value is a normal accessor (not global accessor
+         * nor expression)
+         * and is not cached (i.e. is accessing main memory)
+         */
         template < typename Accessor >
         GT_FUNCTION typename boost::disable_if<
             boost::mpl::or_< cached< Accessor >, boost::mpl::not_< is_accessor< Accessor > > >,
@@ -514,8 +526,10 @@ namespace gridtools {
     //    ################## IMPLEMENTATION ##############################
 
     /**@brief returns the value of the memory at the given address, plus the offset specified by the arg placeholder
-       \param arg placeholder containing the storage ID and the offsets
+       \param accessor Accessor pass to the evaluator
        \param storage_pointer pointer to the first element of the specific data field used
+       \tparam DirectGMemAccess selects a direct access to main memory for the given accessor, ignoring if the
+           parameter is being cached using software managed cache syntax
     */
     template < typename IterateDomainImpl >
     template < typename Accessor, typename StoragePointer, bool DirectGMemAccess >
