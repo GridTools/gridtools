@@ -73,23 +73,34 @@ struct shift_acc_backward_fill {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in()) + eval(in(0, 0, -1));
-if(threadIdx.x==0 && threadIdx.y==0)
-printf("FFUN %f %f %f \n", eval(out()), eval(in()), eval(in(0, 0, -1)));
+        if (threadIdx.x == 0 && threadIdx.y == 0)
+            printf("FFUN %f %f %f \n", eval(out()), eval(in()), eval(in(0, 0, -1)));
     }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody) {
         eval(out()) = eval(in(0, 0, 1)) + eval(in()) + eval(in(0, 0, -1));
-if(threadIdx.x==0 && threadIdx.y==0)
-printf("FFUN %f %f %f %f \n", eval(out()), eval(in(0,0,1)), eval(in()), eval(in(0, 0, -1)));
-
+        if (threadIdx.x == 0 && threadIdx.y == 0)
+            printf("FFUN %f %f %f %f \n", eval(out()), eval(in(0, 0, 1)), eval(in()), eval(in(0, 0, -1)));
     }
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
         eval(out()) = eval(in()) + eval(in(0, 0, 1));
-if(threadIdx.x==0 && threadIdx.y==0)
-printf("FFUN %f %f \n", eval(out()), eval(in()), eval(in(0, 0, 0)));
+        if (threadIdx.x == 0 && threadIdx.y == 0)
+            printf("FFUN %f %f \n", eval(out()), eval(in()), eval(in(0, 0, 0)));
+    }
+};
 
+struct copy_fill {
+
+    typedef accessor< 0, enumtype::in > in;
+    typedef accessor< 1, enumtype::inout, extent<> > out;
+
+    typedef boost::mpl::vector< in, out > arg_list;
+
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, kfull) {
+        eval(out()) = eval(in());
     }
 };
 
@@ -173,6 +184,59 @@ TEST_F(kcachef, fill_backward) {
         (execute< backward >(),
             define_caches(cache< K, fill, kfull >(p_in())),
             gridtools::make_stage< shift_acc_backward_fill >(p_in() // esf_descriptor
+                ,
+                p_out())));
+
+    kcache_stencil->ready();
+
+    kcache_stencil->steady();
+
+    kcache_stencil->run();
+
+    m_out.sync();
+    m_out.reactivate_host_write_views();
+
+    bool success = true;
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
+            for (uint_t k = 0; k < m_d3; ++k) {
+                if (m_refv(i, j, k) != m_outv(i, j, k)) {
+                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
+                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
+                    success = false;
+                }
+            }
+        }
+    }
+    kcache_stencil->finalize();
+
+    ASSERT_TRUE(success);
+}
+
+TEST_F(kcachef, fill_copy_forward) {
+
+    init_fields();
+    for (uint_t i = 0; i < m_d1; ++i) {
+        for (uint_t j = 0; j < m_d2; ++j) {
+            for (uint_t k = 1; k < m_d3 - 1; ++k) {
+                m_refv(i, j, k) = m_inv(i, j, k);
+            }
+        }
+    }
+
+    typedef arg< 0, storage_t > p_in;
+    typedef arg< 1, storage_t > p_out;
+
+    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+    gridtools::aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
+
+    auto kcache_stencil = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        m_grid,
+        gridtools::make_multistage // mss_descriptor
+        (execute< forward >(),
+            define_caches(cache< K, fill, kfull >(p_in())),
+            gridtools::make_stage< copy_fill >(p_in() // esf_descriptor
                 ,
                 p_out())));
 
