@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,10 +38,12 @@
 
 TEST(StorageFacility, TestInCudaFile) {
     // just a small test that instantiates storage_info_t, data_store_t, and data_store_field_t
-    typedef gridtools::storage_traits<gridtools::enumtype::Cuda>::storage_info_t<0, 1 > storage_info_ty;
+    typedef gridtools::storage_traits< gridtools::enumtype::Cuda >::storage_info_t< 0, 1 > storage_info_ty;
     storage_info_ty a(3);
-    typedef gridtools::storage_traits<gridtools::enumtype::Cuda>::data_store_t<double, storage_info_ty> data_store_t;
+    typedef gridtools::storage_traits< gridtools::enumtype::Cuda >::data_store_t< double, storage_info_ty >
+        data_store_t;
     data_store_t b(a);
-    typedef gridtools::storage_traits<gridtools::enumtype::Cuda>::data_store_field_t<double, storage_info_ty, 2> data_store_field_t;
+    typedef gridtools::storage_traits< gridtools::enumtype::Cuda >::data_store_field_t< double, storage_info_ty, 2 >
+        data_store_field_t;
     data_store_field_t c(a);
 }

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,26 +38,23 @@
 
 #include "storage/storage_cuda/storage.hpp"
 
-__global__
-void initial_check_s1(int* s) {
+__global__ void initial_check_s1(int *s) {
     assert(s[0] == 10);
     assert(s[1] == 10);
-    if(s[0] != 10 || s[1] != 10) {
+    if (s[0] != 10 || s[1] != 10) {
         s[0] = -1;
         s[1] = -1;
     }
 }
 
-__global__
-void check_s1(int* s) {
+__global__ void check_s1(int *s) {
     assert(s[0] == 10);
     assert(s[1] == 20);
     s[0] = 30;
     s[1] = 40;
 }
 
-__global__
-void check_s2(int* s) {
+__global__ void check_s2(int *s) {
     assert(s[0] == 100);
     assert(s[1] == 200);
     s[0] = 300;
@@ -66,11 +63,11 @@ void check_s2(int* s) {
 
 TEST(StorageHostTest, Simple) {
     // create two storages
-    gridtools::cuda_storage<int> s1(2);
-    gridtools::cuda_storage<int> s2(2);
+    gridtools::cuda_storage< int > s1(2);
+    gridtools::cuda_storage< int > s2(2);
     // test the is_storage check
-    static_assert(gridtools::is_storage<decltype(s1)>::type::value, "is_storage check is not working anymore");
-    static_assert(!gridtools::is_storage<int>::type::value, "is_storage check is not working anymore");
+    static_assert(gridtools::is_storage< decltype(s1) >::type::value, "is_storage check is not working anymore");
+    static_assert(!gridtools::is_storage< int >::type::value, "is_storage check is not working anymore");
     // write some values
     s1.get_cpu_ptr()[0] = 10;
     s1.get_cpu_ptr()[1] = 20;
@@ -86,25 +83,25 @@ TEST(StorageHostTest, Simple) {
     s1.clone_to_device();
     s2.clone_to_device();
     // assert if the values were not copied correctly and reset values
-    check_s1<<<1,1>>>(s1.get_gpu_ptr());
-    check_s2<<<1,1>>>(s2.get_gpu_ptr());
+    check_s1<<< 1, 1 >>>(s1.get_gpu_ptr());
+    check_s2<<< 1, 1 >>>(s2.get_gpu_ptr());
     // clone_back
     s1.clone_from_device();
     s2.clone_from_device();
-    //check values
+    // check values
     EXPECT_EQ(s1.get_cpu_ptr()[1], 40);
     EXPECT_EQ(s1.get_cpu_ptr()[0], 30);
     EXPECT_EQ(s2.get_cpu_ptr()[1], 400);
     EXPECT_EQ(s2.get_cpu_ptr()[0], 300);
- 
+
     // ptr ref should be equal to the cpu ptr
-    EXPECT_EQ(s1.get_cpu_ptr(), s1.get_ptrs<gridtools::cuda_storage<int>::ptrs_t>()[0]);
-    EXPECT_EQ(s2.get_cpu_ptr(), s2.get_ptrs<gridtools::cuda_storage<int>::ptrs_t>()[0]);
-    EXPECT_EQ(s1.get_gpu_ptr(), s1.get_ptrs<gridtools::cuda_storage<int>::ptrs_t>()[1]);
-    EXPECT_EQ(s2.get_gpu_ptr(), s2.get_ptrs<gridtools::cuda_storage<int>::ptrs_t>()[1]);
+    EXPECT_EQ(s1.get_cpu_ptr(), s1.get_ptrs< gridtools::cuda_storage< int >::ptrs_t >()[0]);
+    EXPECT_EQ(s2.get_cpu_ptr(), s2.get_ptrs< gridtools::cuda_storage< int >::ptrs_t >()[0]);
+    EXPECT_EQ(s1.get_gpu_ptr(), s1.get_ptrs< gridtools::cuda_storage< int >::ptrs_t >()[1]);
+    EXPECT_EQ(s2.get_gpu_ptr(), s2.get_ptrs< gridtools::cuda_storage< int >::ptrs_t >()[1]);
     // manually exchange the ptrs
-    std::array<int*,2> tmp = { s1.get_cpu_ptr(), s1.get_gpu_ptr() };
-    s1.set_ptrs(s2.get_ptrs<gridtools::cuda_storage<int>::ptrs_t>());
+    std::array< int *, 2 > tmp = {s1.get_cpu_ptr(), s1.get_gpu_ptr()};
+    s1.set_ptrs(s2.get_ptrs< gridtools::cuda_storage< int >::ptrs_t >());
     s2.set_ptrs(tmp);
     // check if changes are there
     EXPECT_EQ(s2.get_cpu_ptr()[1], 40);
@@ -115,12 +112,11 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s2.get_cpu_ptr(), tmp[0]);
 }
 
-
 TEST(StorageHostTest, InitializedStorage) {
     // create two storages
     gridtools::cuda_storage< int > s1(2, 10);
     // initial check
-    initial_check_s1<<<1,1>>>(s1.get_gpu_ptr());
+    initial_check_s1<<< 1, 1 >>>(s1.get_gpu_ptr());
     s1.clone_from_device();
     // check values
     EXPECT_EQ(s1.get_cpu_ptr()[0], 10);
@@ -132,7 +128,7 @@ TEST(StorageHostTest, InitializedStorage) {
     EXPECT_EQ(s1.get_cpu_ptr()[1], 20);
     // some device things
     s1.clone_to_device();
-    check_s1<<<1,1>>>(s1.get_gpu_ptr());
+    check_s1<<< 1, 1 >>>(s1.get_gpu_ptr());
     s1.clone_from_device();
     // check again
     EXPECT_EQ(s1.get_cpu_ptr()[0], 30);

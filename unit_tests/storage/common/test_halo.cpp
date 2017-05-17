@@ -36,43 +36,19 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/common/storage_interface.hpp"
+#include "storage/common/halo.hpp"
 
 using namespace gridtools;
 
-// storage that implements the storage_interface
-struct host_storage : storage_interface< host_storage > {
-    int a;
-    host_storage(unsigned i) : a(i) {}
-    void clone_to_device_impl() { a *= 2; }
-};
+TEST(Halo, HaloTest) {
+    // test zero halo getter
+    static_assert(boost::is_same< zero_halo< 4 >, halo< 0, 0, 0, 0 > >::value, "get zero halo failed");
+    static_assert(boost::is_same< zero_halo< 3 >, halo< 0, 0, 0 > >::value, "get zero halo failed");
+    static_assert(boost::is_same< zero_halo< 2 >, halo< 0, 0 > >::value, "get zero halo failed");
+    static_assert(boost::is_same< zero_halo< 1 >, halo< 0 > >::value, "get zero halo failed");
 
-// another storage that implements the storage_interface
-struct cuda_storage : storage_interface< cuda_storage > {
-    int a;
-    cuda_storage(unsigned i) : a(i) {}
-    void clone_to_device_impl() { a *= 3; }
-};
-
-TEST(StorageInterface, Simple) {
-    host_storage h(10);
-    cuda_storage c(10);
-
-    EXPECT_EQ(h.a, 10);
-    EXPECT_EQ(c.a, 10);
-
-    h.clone_to_device();
-    c.clone_to_device();
-
-    EXPECT_EQ(h.a, 20);
-    EXPECT_EQ(c.a, 30);
-}
-
-TEST(StorageInterface, Sizes) {
-    cuda_storage c(10);
-    host_storage h(10);
-    // the sizes should stay 1, because the idea is that the
-    // storage interface is only providing a set of methods
-    EXPECT_EQ(sizeof(storage_interface< host_storage >), 1);
-    EXPECT_EQ(sizeof(storage_interface< cuda_storage >), 1);
+    // test value correctness
+    static_assert(halo< 2, 3, 4 >::at< 0 >() == 2, "halo value is wrong");
+    static_assert(halo< 2, 3, 4 >::at< 1 >() == 3, "halo value is wrong");
+    static_assert(halo< 2, 3, 4 >::at< 2 >() == 4, "halo value is wrong");
 }

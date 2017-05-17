@@ -86,7 +86,9 @@ namespace gridtools {
 
     namespace impl {
         template < typename... U >
-        GT_FUNCTION void void_lambda(U... args) {}
+        GT_FUNCTION constexpr uint_t void_lambda(U... args) {
+            return 0;
+        }
     }
 
     /**
@@ -178,8 +180,8 @@ namespace gridtools {
         }
 
         template < template < UInt T > class MetaFunctor, typename... ExtraTypes >
-        GT_FUNCTION static void apply_void_lambda(ExtraTypes &... args_) {
-            impl::void_lambda(MetaFunctor< Indices >::apply(args_...)...);
+        GT_FUNCTION static constexpr uint_t apply_void_lambda(ExtraTypes &... args_) {
+            return impl::void_lambda(MetaFunctor< Indices >::apply(args_...)...);
         }
 
         /**
