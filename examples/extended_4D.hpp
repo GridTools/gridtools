@@ -44,27 +44,29 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, enumtype::GRIDBACKEND, Block >
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
+template < unsigned Id, typename Layout >
+using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
+typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
+typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< 3, 2, 1, 0 > > metadata_local_quad_t;
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, enumtype::GRIDBACKEND, Block >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend< Host, enumtype::GRIDBACKEND, Naive >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
+template < unsigned Id, typename Layout >
+using special_metadata_t = gridtools::host_storage_info< Id, Layout >;
+typedef special_metadata_t< 0, gridtools::layout_map< 3, 4, 5, 0, 1, 2 > > metadata_t;
+typedef special_metadata_t< 1, gridtools::layout_map< 1, 2, 3, 0 > > metadata_global_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< 1, 2, 3, 0 > > metadata_local_quad_t;
 #endif
 
-//                      dims  x y z  qp
-//                   strides  1 x xy xyz
-typedef gridtools::layout_map< 3, 2, 1, 0 > layout4_t;
-typedef gridtools::layout_map< 2, 1, 0, 3, 4, 5 > layout_t;
-
-typedef BACKEND::storage_info< __COUNTER__, layout_t > metadata_t;
-typedef BACKEND::storage_info< __COUNTER__, layout4_t > metadata_global_quad_t;
-typedef BACKEND::storage_info< __COUNTER__, layout4_t > metadata_local_quad_t;
-typedef BACKEND::storage_type< float_type, metadata_t >::type storage_type;
-typedef BACKEND::storage_type< float_type, metadata_global_quad_t >::type storage_global_quad_t;
-typedef BACKEND::storage_type< float_type, metadata_local_quad_t >::type storage_local_quad_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_t > storage_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_global_quad_t > storage_global_quad_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad_t > storage_local_quad_t;
 
 /**
   @file
@@ -124,11 +126,11 @@ namespace assembly {
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct integration {
-        typedef in_accessor< 0, extent<>, 4 > jac;
-        typedef in_accessor< 1, extent<>, 6 > f;
-        typedef inout_accessor< 2, extent<>, 6 > result;
-        typedef global_accessor< 3 > phi_t;
-        typedef global_accessor< 4 > psi_t;
+        typedef global_accessor< 0 > phi_t;
+        typedef global_accessor< 1 > psi_t;
+        typedef in_accessor< 2, extent<>, 4 > jac;
+        typedef in_accessor< 3, extent<>, 6 > f;
+        typedef inout_accessor< 4, extent<>, 6 > result;
         typedef boost::mpl::vector< jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
@@ -188,28 +190,14 @@ namespace assembly {
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU
         metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
-        storage_global_quad_t jac(integration_metadata, 0., "jac");
-
-        for (uint_t i = 0; i < d1; ++i)
-            for (uint_t j = 0; j < d2; ++j)
-                for (uint_t k = 0; k < d3; ++k)
-                    for (uint_t q = 0; q < nbQuadPt; ++q) {
-                        jac(i, j, k, q) = 1. + q;
-                    }
-        for (uint_t i = 0; i < b1; ++i)
-            for (uint_t j = 0; j < b2; ++j)
-                for (uint_t k = 0; k < b3; ++k)
-                    for (uint_t q = 0; q < nbQuadPt; ++q) {
-                        phi(i, j, k, q) = 10.;
-                        psi(i, j, k, q) = 11.;
-                    }
+        storage_global_quad_t jac(integration_metadata, [](int i, int j, int k, int q) { return 1. + q; }, "jac");
 
         auto g_phi = make_global_parameter(phi);
         auto g_psi = make_global_parameter(psi);
 
         metadata_t meta_(d1, d2, d3, b1, b2, b3);
-        storage_type f(meta_, (float_type)1.3, "f");
-        storage_type result(meta_, (float_type)0., "result");
+        storage_t f(meta_, (float_type)1.3, "f");
+        storage_t result(meta_, (float_type)0., "result");
 
         typedef arg< 0, decltype(g_phi) > p_phi;
         typedef arg< 1, decltype(g_psi) > p_psi;
@@ -219,8 +207,7 @@ namespace assembly {
 
         typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
 
-        gridtools::aggregator_type< accessor_list > domain(
-            boost::fusion::make_vector(&g_phi, &g_psi, &jac, &f, &result));
+        gridtools::aggregator_type< accessor_list > domain(g_phi, g_psi, jac, f, result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
@@ -232,21 +219,12 @@ namespace assembly {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 2;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            fe_comp = make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
-                (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                    make_stage< integration >(p_jac(), p_f(), p_result(), p_phi(), p_psi())));
+        auto fe_comp = make_computation< gridtools::BACKEND >(
+            domain,
+            grid,
+            make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
+            (execute< forward >(), //!\todo parameter used only for overloading purpose?
+                make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp->ready();
         fe_comp->steady();

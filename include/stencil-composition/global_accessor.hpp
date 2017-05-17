@@ -84,8 +84,7 @@ namespace gridtools {
 
         typedef global_accessor< I, Intend > type;
 
-        // TODO: I want to put here a uint...
-        typedef static_short< I > index_type;
+        typedef static_uint< I > index_t;
 
         typedef empty_extent extent_t;
 

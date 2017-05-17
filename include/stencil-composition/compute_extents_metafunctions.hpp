@@ -34,21 +34,21 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/reverse.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/fold.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/range_c.hpp>
+#include <boost/mpl/reverse.hpp>
 
-#include "./esf_metafunctions.hpp"
-#include "./wrap_type.hpp"
-#include "./mss.hpp"
 #include "./amss_descriptor.hpp"
+#include "./conditionals/condition.hpp"
+#include "./esf_metafunctions.hpp"
+#include "./grid_traits_metafunctions.hpp"
+#include "./linearize_mss_functions.hpp"
+#include "./mss.hpp"
 #include "./mss_metafunctions.hpp"
 #include "./reductions/reduction_descriptor.hpp"
-#include "./linearize_mss_functions.hpp"
-#include "./grid_traits_metafunctions.hpp"
-#include "./conditionals/condition.hpp"
+#include "./wrap_type.hpp"
 
 /** @file This file implements the metafunctions to perform data dependency analysis on a
     multi-stage computation (MSS). The idea is to assign to each placeholder used in the
@@ -58,9 +58,6 @@
  */
 
 namespace gridtools {
-
-    template < typename Storage, uint_t >
-    struct expandable_parameters;
 
     /**substituting the std::vector type in the args<> with a correspondent
        expandable_parameter placeholder*/
@@ -72,15 +69,9 @@ namespace gridtools {
             typedef Placeholder type;
         };
 
-        template < ushort_t ID, typename Storage >
-        struct apply< arg< ID, std::vector< pointer< storage< Storage > > > > > {
-            typedef arg< ID, storage< expandable_parameters< typename Storage::basic_type, Size > > > type;
-        };
-
-        template < ushort_t ID, typename Storage >
-        struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< storage< Storage > > > > > > {
-            typedef arg< ID,
-                no_storage_type_yet< storage< expandable_parameters< typename Storage::basic_type, Size > > > > type;
+        template < ushort_t ID, typename Storage, typename Location, bool Temporary >
+        struct apply< arg< ID, std::vector< Storage >, Location, Temporary > > {
+            typedef arg< ID, data_store_field< Storage, Size >, Location, Temporary > type;
         };
 
         template < typename Arg, typename Extent >

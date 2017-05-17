@@ -35,13 +35,10 @@
 */
 #pragma once
 
-#include "storage/storage.hpp"
-#include "storage/meta_storage.hpp"
 #include "../location_type.hpp"
 #include "stencil-composition/backend_base.hpp"
-#include "storage/wrap_pointer.hpp"
 #include "icosahedral_grid_traits.hpp"
-#include "common/selector.hpp"
+#include "../../common/selector.hpp"
 #include "../../common/generic_metafunctions/shorten.hpp"
 #include "../../common/layout_map_metafunctions.hpp"
 
@@ -63,20 +60,19 @@ namespace gridtools {
         template < typename DimSelector >
         struct select_layout {
 
-            using dim_selector_4d_t = typename shorten< int_t, DimSelector, 4 >::type;
+            using dim_selector_4d_t = typename shorten< bool, DimSelector, 4 >::type;
             using filtered_layout = typename filter_layout< layout_map_t, dim_selector_4d_t >::type;
 
-            using type = typename boost::mpl::eval_if_c< (DimSelector::length > 4),
-                extend_layout_map< filtered_layout, DimSelector::length - 4 >,
+            using type = typename boost::mpl::eval_if_c< (DimSelector::size > 4),
+                extend_layout_map< filtered_layout, DimSelector::size - 4 >,
                 boost::mpl::identity< filtered_layout > >::type;
         };
-        template < uint_t Index, typename LayoutMap >
-        using storage_info_t = typename base_t::template storage_info< Index, LayoutMap >;
+
+        template < unsigned Index, typename LayoutMap = layout_map_t, typename Halo = halo< 0, 0, 0, 0 > >
+        using storage_info_t =
+            typename base_t::storage_traits_t::template custom_layout_storage_info_t< Index, LayoutMap, Halo >;
 
         template < typename ValueType, typename StorageInfo >
-        using storage_t = typename base_t::template storage_type< ValueType, StorageInfo >::type;
-
-        template < typename ValueType, typename StorageInfo >
-        using temporary_storage_t = typename base_t::template temporary_storage_type< ValueType, StorageInfo >::type;
+        using storage_t = typename base_t::storage_traits_t::template data_store_t< ValueType, StorageInfo >;
     };
 } // namespace gridtools
