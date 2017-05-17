@@ -145,16 +145,11 @@ namespace gridtools {
            \tparam Lambda the lambda template callable
            \tparam ExtraTypes the types of the input arguments to the lambda
          */
-        template < typename T >
-        struct printk {
-            BOOST_MPL_ASSERT_MSG((false), KKKKKKKKKKKKKKKKKKKKK, (T));
-        };
         template < typename Container,
             template < UInt T > class Lambda,
             typename... ExtraTypes,
             typename boost::disable_if< typename is_aggregate< Container >::type, int >::type = 0 >
         GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
-            printk< Lambda > oo;
             return Container(Lambda< Indices >::apply(args_...)...);
         }
 

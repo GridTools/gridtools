@@ -128,8 +128,6 @@ namespace gridtools {
                 constexpr acc_t acc_(0,
                     0,
                     (ExecutionPolicy == enumtype::forward) ? -(Offset + InitialOffset) : (Offset + InitialOffset));
-                if (threadIdx.x == 0 && threadIdx.y == 0)
-                    printf("SYNC %d \n", (ExecutionPolicy == enumtype::forward) ? -Offset : Offset);
                 it_domain.gmem_access(acc_) = cache_st.at(acc_);
                 return 0;
             }
@@ -164,8 +162,6 @@ namespace gridtools {
                 constexpr acc_t acc_(0,
                     0,
                     (ExecutionPolicy == enumtype::backward) ? -(Offset + InitialOffset) : (Offset + InitialOffset));
-                if (threadIdx.x == 0 && threadIdx.y == 0)
-                    printf("PREFILL %d %d \n", Offset, InitialOffset);
                 cache_st.at(acc_) = it_domain.gmem_access(acc_);
                 return 0;
             }
@@ -287,7 +283,6 @@ namespace gridtools {
         template < typename IterationPolicy >
         GT_FUNCTION void slide_caches() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
-
             boost::fusion::for_each(m_k_caches_tuple, slide_cache_functor< IterationPolicy >());
         }
 
@@ -346,8 +341,6 @@ namespace gridtools {
                         : m_grid.template value_at< typename k_cache_storage_t::cache_t::interval_t::ToLevel >() -
                               m_klevel;
 
-                if (threadIdx.x == 0 && threadIdx.y == 0)
-                    printf("INIOCACHE_ F %d %d \n", koffset_abs, limit_lev);
                 if (koffset_abs <= limit_lev) {
                     using io_op_t = typename io_operator< Idx, IterationPolicy::value, CacheIOPolicy >::type;
 
@@ -393,8 +386,6 @@ namespace gridtools {
                             (IterationPolicy::value == enumtype::backward && CacheIOPolicy == fill)
                         ? -boost::mpl::at_c< typename k_cache_storage_t::minus_t::type, 2 >::type::value
                         : boost::mpl::at_c< typename k_cache_storage_t::plus_t::type, 2 >::type::value;
-                if (threadIdx.x == 0 && threadIdx.y == 0)
-                    printf(" IN ENP %d \n", koffset);
                 // compute the sequence of all offsets that we need to prefill or final flush
                 using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int_t,
                     (kcache_t::ccacheIOPolicy == bpfill || kcache_t::ccacheIOPolicy == epflush) ? koffset + 1

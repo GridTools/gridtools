@@ -68,16 +68,11 @@ struct shift_acc_backward_flush {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in());
-if(threadIdx.x==0 && threadIdx.y==0)
-printf("FFUN %f %f %f \n", eval(out()), eval(in()));
     }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low) {
         eval(out()) = eval(out(0, 0, 1)) + eval(in());
-if(threadIdx.x==0 && threadIdx.y==0)
-printf("FFUN %f %f %f \n", eval(out()), eval(out(0, 0, 1)), eval(in()));
-
     }
 };
 

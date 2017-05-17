@@ -75,6 +75,10 @@ struct shift_acc_backward_epflush {
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum_b) {
         eval(out()) = eval(in());
     }
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
+        eval(out()) = eval(in())+eval(out(0,0,1));
+    }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody_low_b) {
@@ -152,7 +156,7 @@ TEST_F(kcachef, epflush_backward) {
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);
-            m_refv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2);
+            m_refv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2) + m_refv(i,j,m_d3-1);
 
             for (int_t k = m_d3 - 3; k >= 0; --k) {
                 m_refv(i, j, k) = m_refv(i, j, k + 1) + m_refv(i, j, k + 2) + m_inv(i, j, k);
