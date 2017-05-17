@@ -80,7 +80,7 @@ struct biside_large_kcache_forward {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimump1) {
         eval(buff(0, 0, 1)) = eval(in()) * (float_type)0.5;
-        eval(out()) = eval(buff()) + eval(buff(0, 0, -1));
+        eval(out()) = eval(buff()) + eval(buff(0, 0, -1)) * (float_type)0.25;
     }
 
     template < typename Evaluation >
@@ -99,7 +99,7 @@ struct biside_large_kcache_backward {
 
     typedef accessor< 0, ::in, extent<> > in;
     typedef accessor< 1, ::inout, extent<> > out;
-    typedef accessor< 2, ::inout, extent< 0, 0, 0, 0, 2, 2 > > buff;
+    typedef accessor< 2, ::inout, extent< 0, 0, 0, 0, -1, 2 > > buff;
 
     typedef boost::mpl::vector< in, out, buff > arg_list;
 
@@ -113,7 +113,7 @@ struct biside_large_kcache_backward {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximumm1_b) {
         eval(buff(0, 0, -1)) = eval(in()) * (float_type)0.5;
-        eval(out()) = eval(buff()) + eval(buff(0, 0, 1));
+        eval(out()) = eval(buff()) + eval(buff(0, 0, 1)) * (float_type)0.25;
     }
 
     template < typename Evaluation >
@@ -290,8 +290,7 @@ TEST_F(kcachef, biside_forward) {
 
             buffv(i, j, 2) = m_inv(i, j, 1) * (float_type)0.5;
             m_refv(i, j, 1) = buffv(i, j, 1) + (float_type)0.25 * buffv(i, j, 0);
-
-            for (uint_t k = 1; k < m_d3; ++k) {
+            for (uint_t k = 2; k < m_d3; ++k) {
                 if (k != m_d3 - 1)
                     buffv(i, j, k + 1) = m_inv(i, j, k) * (float_type)0.5;
                 m_refv(i, j, k) =
@@ -398,7 +397,7 @@ TEST_F(kcachef, biside_backward) {
         domain,
         m_gridb,
         gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
+        (execute< backward >(),
             define_caches(cache< K, cache_io_policy::local, kfull >(p_buff())),
             gridtools::make_stage< biside_large_kcache_backward >(p_in() // esf_descriptor
                 ,
