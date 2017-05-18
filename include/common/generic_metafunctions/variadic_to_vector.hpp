@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/mpl/push_front.hpp>
 #include <boost/mpl/vector.hpp>
-#include <boost/mpl/push_back.hpp>
+
+#include "../defs.hpp"
 
 namespace gridtools {
 

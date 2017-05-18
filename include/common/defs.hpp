@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#define GCC_53_BUG __GNUC__ == 5 && __GNUC_MINOR__ == 3
+#define DEFS_GUARD
 
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
@@ -62,21 +62,21 @@
 #define FUSION_MAX_MAP_SIZE 20
 #endif
 
-#include <vector>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/vector.hpp>
+#include <vector>
 
 /**
    @file
    @brief global definitions
 */
 #include <boost/mpl/bool.hpp>
-#include <boost/utility/enable_if.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/type_traits/is_same.hpp>
+#include <boost/utility/enable_if.hpp>
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
@@ -143,12 +143,14 @@ namespace gridtools {
     /** \namespace enumtype
        @brief enumeration types*/
     namespace enumtype {
-        /**
-           @section enumtypes Gridtools enumeration types
-           @{
-         */
-        /** enum specifying the type of backend we use */
+/**
+   @section enumtypes Gridtools enumeration types
+   @{
+ */
+/** enum specifying the type of backend we use */
+#ifndef PLATFORM_GUARD
         enum platform { Cuda, Host };
+#endif
 
         enum strategy { Naive, Block };
 

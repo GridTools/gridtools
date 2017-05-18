@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@
 #include "gcl_parameters.hpp"
 #include "../../common/numerics.hpp"
 #include "empty_field_base.hpp"
-#include "../../common/layout_map.hpp"
+#include "../../common/layout_map_metafunctions.hpp"
 
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -514,9 +514,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                            const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                            const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
@@ -542,9 +542,9 @@ namespace gridtools {
             for (int jj = -1; jj <= 1; ++jj) {                                                                        \
                 for (int kk = -1; kk <= 1; ++kk) {                                                                    \
                     typedef proc_layout map_type;                                                                     \
-                    const int ii_P = map_type().template select< 0 >(ii, jj, kk);                                     \
-                    const int jj_P = map_type().template select< 1 >(ii, jj, kk);                                     \
-                    const int kk_P = map_type().template select< 2 >(ii, jj, kk);                                     \
+                    const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);                \
+                    const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);                \
+                    const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);                \
                     if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) { \
                         DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);                                 \
                         hm.halo.pack_all(                                                                             \
@@ -574,9 +574,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                            const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                            const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
@@ -602,9 +602,9 @@ namespace gridtools {
             for (int jj = -1; jj <= 1; ++jj) {                                                                        \
                 for (int kk = -1; kk <= 1; ++kk) {                                                                    \
                     typedef proc_layout map_type;                                                                     \
-                    const int ii_P = map_type().template select< 0 >(ii, jj, kk);                                     \
-                    const int jj_P = map_type().template select< 1 >(ii, jj, kk);                                     \
-                    const int kk_P = map_type().template select< 2 >(ii, jj, kk);                                     \
+                    const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);                \
+                    const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);                \
+                    const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);                \
                     if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) { \
                         DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);                                 \
                         hm.halo.unpack_all(                                                                           \
@@ -633,9 +633,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                            const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                            const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
@@ -661,9 +661,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                            const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                            const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
@@ -813,9 +813,9 @@ namespace gridtools {
                             // recv_buffer_size[translate()(i,j,k)]);
 
                             typedef typename layout_transform< layomap, proc_layout_abs >::type proc_layout;
-                            const int i_P = proc_layout().template select< 0 >(i, j, k);
-                            const int j_P = proc_layout().template select< 1 >(i, j, k);
-                            const int k_P = proc_layout().template select< 2 >(i, j, k);
+                            const int i_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(i, j, k);
+                            const int j_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(i, j, k);
+                            const int k_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(i, j, k);
 
                             base_type::m_haloexch.register_send_to_buffer(
                                 &(send_buffer[translate()(i, j, k)][0]), S * max_fields_n * typesize, i_P, j_P, k_P);
@@ -851,9 +851,9 @@ namespace gridtools {
                             recv_buffer_size[translate()(i, j, k)] = (buffer_size_list[translate()(i, j, k)]);
 
                             typedef typename layout_transform< layomap, proc_layout_abs >::type proc_layout;
-                            const int i_P = proc_layout().template select< 0 >(i, j, k);
-                            const int j_P = proc_layout().template select< 1 >(i, j, k);
-                            const int k_P = proc_layout().template select< 2 >(i, j, k);
+                            const int i_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(i, j, k);
+                            const int j_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(i, j, k);
+                            const int k_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(i, j, k);
 
                             base_type::m_haloexch.register_send_to_buffer(&(send_buffer[translate()(i, j, k)][0]),
                                 buffer_size_list[translate()(i, j, k)],
@@ -987,9 +987,9 @@ namespace gridtools {
                 const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
                 const {
                 typedef typename layout_transform< typename FIRST::inner_layoutmap, proc_layout_abs >::type proc_layout;
-                const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);
-                const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);
-                const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     first.pack(make_array(ii, jj, kk), first.ptr, it);
                     operator()(hm, ii, jj, kk, it, _fields...);
@@ -1009,9 +1009,9 @@ namespace gridtools {
         iterator &it,                                                                                             \
         BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {                          \
         typedef typename layout_transform< typename FIELD0::inner_layoutmap, proc_layout_abs >::type proc_layout; \
-        const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);                                          \
-        const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);                                          \
-        const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);                                          \
+        const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);                     \
+        const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);                     \
+        const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);                     \
         if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {         \
             _field0.pack(make_array(ii, jj, kk), _field0.ptr, it);                                                \
             operator()(hm, ii, jj, kk, it CALLNEXT_INST(n));                                                      \
@@ -1040,9 +1040,9 @@ namespace gridtools {
                 const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
                 const {
                 typedef typename layout_transform< typename FIRST::inner_layoutmap, proc_layout_abs >::type proc_layout;
-                const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);
-                const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);
-                const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     first.unpack(make_array(ii, jj, kk), first.ptr, it);
                     operator()(hm, ii, jj, kk, it, _fields...);
@@ -1062,9 +1062,9 @@ namespace gridtools {
         iterator &it,                                                                                             \
         BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {                          \
         typedef typename layout_transform< typename FIELD0::inner_layoutmap, proc_layout_abs >::type proc_layout; \
-        const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);                                          \
-        const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);                                          \
-        const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);                                          \
+        const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);                     \
+        const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);                     \
+        const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);                     \
         if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {         \
             _field0.unpack(make_array(ii, jj, kk), _field0.ptr, it);                                              \
             operator()(hm, ii, jj, kk, it CALLNEXT_INST(n));                                                      \
@@ -1089,9 +1089,9 @@ namespace gridtools {
             void operator()(const T &hm, int ii, int jj, int kk, iterator &it, array_of_fotf const &_fields) const {
                 typedef typename layout_transform< typename array_of_fotf::value_type::inner_layoutmap,
                     proc_layout_abs >::type proc_layout;
-                const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);
-                const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);
-                const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     for (unsigned int fi = 0; fi < _fields.size(); ++fi) {
                         _fields[fi].pack(make_array(ii, jj, kk), _fields[fi].ptr, it);
@@ -1110,9 +1110,9 @@ namespace gridtools {
             void operator()(const T &hm, int ii, int jj, int kk, iterator &it, array_of_fotf const &_fields) const {
                 typedef typename layout_transform< typename array_of_fotf::value_type::inner_layoutmap,
                     proc_layout_abs >::type proc_layout;
-                const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);
-                const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);
-                const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     for (unsigned int fi = 0; fi < _fields.size(); ++fi) {
                         _fields[fi].unpack(make_array(ii, jj, kk), _fields[fi].ptr, it);

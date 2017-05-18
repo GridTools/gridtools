@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,7 @@ namespace gridtools {
      */
     template < typename T, typename Mss >
     case_type< T, Mss > case_(T val_, Mss mss_) {
-        GRIDTOOLS_STATIC_ASSERT((is_computation_token< Mss >::value), "wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_computation_token< Mss >::value), GT_INTERNAL_ERROR);
         return case_type< T, Mss >(val_, mss_);
     }
 
@@ -50,7 +50,7 @@ namespace gridtools {
      */
     template < typename Mss >
     default_type< Mss > default_(Mss mss_) {
-        GRIDTOOLS_STATIC_ASSERT((is_computation_token< Mss >::value), "wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_computation_token< Mss >::value), GT_INTERNAL_ERROR);
         return default_type< Mss >(mss_);
     }
 } // namespace gridtools

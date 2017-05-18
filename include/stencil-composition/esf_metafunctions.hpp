@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,17 +36,20 @@
 #pragma once
 
 #include <boost/mpl/contains.hpp>
-#include "stencil-composition/esf.hpp"
-#include "stencil-composition/independent_esf.hpp"
+
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/accumulate_tparams_until.hpp"
-#include "common/generic_metafunctions/is_predicate.hpp"
-#include "common/generic_metafunctions/copy_into_set.hpp"
-#include <common/generic_metafunctions/binary_ops.hpp>
+#include "../common/generic_metafunctions/copy_into_set.hpp"
+#include "../common/generic_metafunctions/is_predicate.hpp"
+#include "../common/generic_metafunctions/binary_ops.hpp"
+#include "esf.hpp"
+#include "independent_esf.hpp"
 
 #ifdef STRUCTURED_GRIDS
+#include "structured_grids//accessor_metafunctions.hpp"
 #include "structured_grids/esf_metafunctions.hpp"
 #else
+#include "icosahedral_grids/accessor_metafunctions.hpp"
 #include "icosahedral_grids/esf_metafunctions.hpp"
 #endif
 
@@ -105,7 +108,7 @@ namespace gridtools {
         struct apply {
             typedef typename esf_arg_list< Esf >::type arg_list_t;
             typedef typename boost::mpl::if_<
-                is_plchldr_to_temp< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
+                is_tmp_arg< typename boost::mpl::at< typename Esf::args_t, Index >::type >,
                 typename boost::mpl::if_< is_accessor_readonly< typename boost::mpl::at< arg_list_t, Index >::type >,
                     boost::false_type,
                     boost::true_type >::type,
@@ -257,7 +260,7 @@ namespace gridtools {
             typedef typename boost::mpl::fold< typename Esf::args_t,
                 Acc,
                 boost::mpl::if_< boost::mpl::or_< boost::mpl::has_key< ReadWriteArgs, boost::mpl::_2 >,
-                                     is_plchldr_to_temp< boost::mpl::_2 > >,
+                                     is_tmp_arg< boost::mpl::_2 > >,
                                                    boost::mpl::_1,
                                                    boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > >::type type;
         };

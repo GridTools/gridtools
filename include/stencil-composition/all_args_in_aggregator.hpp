@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ namespace gridtools {
                 template < typename CR, typename Plc >
                 struct apply {
                     using type = typename boost::mpl::and_< CR,
-                        typename boost::mpl::contains< typename Agg::placeholders, Plc >::type >::type;
+                        typename boost::mpl::contains< typename Agg::sorted_placeholders_t, Plc >::type >::type;
                 };
             };
 

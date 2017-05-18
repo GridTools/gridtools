@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,16 @@ namespace gridtools {
             return 1.;
         }
     };
+
+    /*
+     * @brief helper function that provides a static version of std::ceil
+     * @param num value to ceil
+     * @return ceiled value
+     */
+    constexpr static int gt_ceil(float num) {
+        return (static_cast< float >(static_cast< int >(num)) == num) ? static_cast< int >(num)
+                                                                      : static_cast< int >(num) + ((num > 0) ? 1 : 0);
+    }
 
     namespace math {
 

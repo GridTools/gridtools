@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@
 #include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
 #include "../../stencil-composition/caches/cache_definitions.hpp"
 #include "../../stencil-composition/accessor.hpp"
+#include "../../stencil-composition/interval.hpp"
 #include "../../stencil-composition/location_type.hpp"
 
 namespace gridtools {
@@ -81,7 +82,7 @@ namespace gridtools {
 // TODO ICO_STORAGE
 #ifndef STRUCTURED_GRIDS
             GRIDTOOLS_STATIC_ASSERT(
-                (!boost::is_same< typename Arg::location_type_t, enumtype::default_location_type >::value),
+                (!boost::is_same< typename Arg::location_t, enumtype::default_location_type >::value),
                 "args in irregular grids require a location type");
 #endif
             typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;

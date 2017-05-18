@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -53,6 +53,7 @@
 #define GT_FORCE_INLINE inline
 #endif
 
+#ifndef GT_FUNCTION
 #ifdef __CUDACC__
 #define GT_FUNCTION __host__ __device__ __forceinline__
 #define GT_FUNCTION_HOST __host__ __forceinline__
@@ -61,6 +62,7 @@
 #define GT_FUNCTION GT_FORCE_INLINE
 #define GT_FUNCTION_HOST GT_FORCE_INLINE
 #define GT_FUNCTION_DEVICE GT_FORCE_INLINE
+#endif
 #endif
 
 #define GT_FUNCTION_WARNING __host__ __device__

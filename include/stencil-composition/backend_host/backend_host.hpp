@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -40,11 +40,10 @@
 #include <omp.h>
 #endif
 
-#include "../execution_policy.hpp"
-#include "../heap_allocated_temps.hpp"
-#include "../iteration_policy.hpp"
-#include "../backend_fwd.hpp"
 #include "../../storage/storage-facility.hpp"
-#include "backend_traits_host.hpp"
+#include "../backend_fwd.hpp"
+#include "../execution_policy.hpp"
+#include "../iteration_policy.hpp"
 #include "../loop_hierarchy.hpp"
+#include "backend_traits_host.hpp"
 #include "strategy_host.hpp"

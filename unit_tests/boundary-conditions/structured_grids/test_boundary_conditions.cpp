@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -164,44 +164,34 @@ bool basic() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type< int_t,
-        gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > >::type storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
-
-    gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
-    storage_type in(meta_, 0., "in");
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = 0;
-            }
-        }
-    }
+    meta_data_t meta_(d1, d2, d3);
+    storage_t in(meta_, 0);
+    auto inv = make_host_view(in);
 
     gridtools::array< gridtools::halo_descriptor, 3 > halos;
     halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
+    in.sync();
 #ifdef __CUDACC__
-    in.h2d_update();
-    in.clone_to_device();
-
-    gridtools::boundary_apply_gpu< bc_basic >(halos, bc_basic()).apply(in);
-
-    in.d2h_update();
+    auto indv = make_device_view(in);
+    gridtools::boundary_apply_gpu< bc_basic >(halos, bc_basic()).apply(indv);
 #else
-    gridtools::boundary_apply< bc_basic >(halos, bc_basic()).apply(in);
+    gridtools::boundary_apply< bc_basic >(halos, bc_basic()).apply(inv);
 #endif
+    in.sync();
 
     bool result = true;
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < 1; ++k) {
-                if (in(i, j, k) != i + j + k) {
+                if (inv(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -211,7 +201,7 @@ bool basic() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = d3 - 1; k < d3; ++k) {
-                if (in(i, j, k) != i + j + k) {
+                if (inv(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -221,7 +211,7 @@ bool basic() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < 1; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != i + j + k) {
+                if (inv(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -231,7 +221,7 @@ bool basic() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = d2 - 1; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != i + j + k) {
+                if (inv(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -241,7 +231,7 @@ bool basic() {
     for (uint_t i = 0; i < 1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != i + j + k) {
+                if (inv(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -251,7 +241,7 @@ bool basic() {
     for (uint_t i = d1 - 1; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != i + j + k) {
+                if (inv(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -261,7 +251,7 @@ bool basic() {
     for (uint_t i = 1; i < d1 - 1; ++i) {
         for (uint_t j = 1; j < d2 - 1; ++j) {
             for (uint_t k = 1; k < d3 - 1; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -277,44 +267,35 @@ bool predicate() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type< int_t,
-        gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > >::type storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
-    gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
-    storage_type in(meta_, -1, "in");
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = 0;
-            }
-        }
-    }
+    meta_data_t meta_(d1, d2, d3);
+    storage_t in(meta_, 0);
+    auto inv = make_host_view(in);
 
     gridtools::array< gridtools::halo_descriptor, 3 > halos;
     halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
+    in.sync();
 #ifdef __CUDACC__
-    in.h2d_update();
-    in.clone_to_device();
-
-    gridtools::boundary_apply_gpu< bc_basic, minus_predicate >(halos, bc_basic(), minus_predicate()).apply(in);
-
-    in.d2h_update();
+    auto indv = make_device_view(in);
+    gridtools::boundary_apply_gpu< bc_basic, minus_predicate >(halos, bc_basic(), minus_predicate()).apply(indv);
 #else
-    gridtools::boundary_apply< bc_basic, minus_predicate >(halos, bc_basic(), minus_predicate()).apply(in);
+    gridtools::boundary_apply< bc_basic, minus_predicate >(halos, bc_basic(), minus_predicate()).apply(inv);
 #endif
+    in.sync();
 
     bool result = true;
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < 1; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -324,7 +305,7 @@ bool predicate() {
     for (uint_t i = 1; i < d1; ++i) {
         for (uint_t j = 1; j < d2; ++j) {
             for (uint_t k = d3 - 1; k < d3; ++k) {
-                if (in(i, j, k) != i + j + k) {
+                if (inv(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -334,7 +315,7 @@ bool predicate() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < 1; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -344,7 +325,7 @@ bool predicate() {
     for (uint_t i = 1; i < d1; ++i) {
         for (uint_t j = d2 - 1; j < d2; ++j) {
             for (uint_t k = 1; k < d3; ++k) {
-                if (in(i, j, k) != i + j + k) {
+                if (inv(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -354,7 +335,7 @@ bool predicate() {
     for (uint_t i = 0; i < 1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -364,7 +345,7 @@ bool predicate() {
     for (uint_t i = d1 - 1; i < d1; ++i) {
         for (uint_t j = 1; j < d2; ++j) {
             for (uint_t k = 1; k < d3; ++k) {
-                if (in(i, j, k) != i + j + k) {
+                if (inv(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -374,7 +355,7 @@ bool predicate() {
     for (uint_t i = 1; i < d1 - 1; ++i) {
         for (uint_t j = 1; j < d2 - 1; ++j) {
             for (uint_t k = 1; k < d3 - 1; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -390,44 +371,35 @@ bool twosurfaces() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type< int_t,
-        gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > >::type storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
-    gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
-    storage_type in(meta_, -1, "in");
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = 1;
-            }
-        }
-    }
+    meta_data_t meta_(d1, d2, d3);
+    storage_t in(meta_, 1);
+    auto inv = make_host_view(in);
 
     gridtools::array< gridtools::halo_descriptor, 3 > halos;
     halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
+    in.sync();
 #ifdef __CUDACC__
-    in.h2d_update();
-    in.clone_to_device();
-
-    gridtools::boundary_apply_gpu< bc_two >(halos, bc_two()).apply(in);
-
-    in.d2h_update();
+    auto indv = make_device_view(in);
+    gridtools::boundary_apply_gpu< bc_two >(halos, bc_two()).apply(indv);
 #else
-    gridtools::boundary_apply< bc_two >(halos, bc_two()).apply(in);
+    gridtools::boundary_apply< bc_two >(halos, bc_two()).apply(inv);
 #endif
+    in.sync();
 
     bool result = true;
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < 1; ++k) {
-                if (in(i, j, k) != i + j + k + 1) {
+                if (inv(i, j, k) != i + j + k + 1) {
                     result = false;
                 }
             }
@@ -437,7 +409,7 @@ bool twosurfaces() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 1; j < d2; ++j) {
             for (uint_t k = d3 - 1; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -447,7 +419,7 @@ bool twosurfaces() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < 1; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != i + j + k + 1) {
+                if (inv(i, j, k) != i + j + k + 1) {
                     result = false;
                 }
             }
@@ -457,7 +429,7 @@ bool twosurfaces() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = d2 - 1; j < d2; ++j) {
             for (uint_t k = 1; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -467,7 +439,7 @@ bool twosurfaces() {
     for (uint_t i = 0; i < 1; ++i) {
         for (uint_t j = 1; j < d2; ++j) {
             for (uint_t k = 1; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -477,7 +449,7 @@ bool twosurfaces() {
     for (uint_t i = d1 - 1; i < d1; ++i) {
         for (uint_t j = 1; j < d2; ++j) {
             for (uint_t k = 1; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -487,7 +459,7 @@ bool twosurfaces() {
     for (uint_t i = 1; i < d1 - 1; ++i) {
         for (uint_t j = 1; j < d2 - 1; ++j) {
             for (uint_t k = 1; k < d3 - 1; ++k) {
-                if (in(i, j, k) != 1) {
+                if (inv(i, j, k) != 1) {
                     result = false;
                 }
             }
@@ -503,44 +475,35 @@ bool usingzero_1() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type< int_t,
-        gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > >::type storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
-    gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
-    storage_type in(meta_, -1, "in");
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = -1;
-            }
-        }
-    }
+    meta_data_t meta_(d1, d2, d3);
+    storage_t in(meta_, -1);
+    auto inv = make_host_view(in);
 
     gridtools::array< gridtools::halo_descriptor, 3 > halos;
     halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
+    in.sync();
 #ifdef __CUDACC__
-    in.h2d_update();
-    in.clone_to_device();
-
-    gridtools::boundary_apply_gpu< gridtools::zero_boundary >(halos).apply(in);
-
-    in.d2h_update();
+    auto indv = make_device_view(in);
+    gridtools::boundary_apply_gpu< gridtools::zero_boundary >(halos).apply(indv);
 #else
-    gridtools::boundary_apply< gridtools::zero_boundary >(halos).apply(in);
+    gridtools::boundary_apply< gridtools::zero_boundary >(halos).apply(inv);
 #endif
+    in.sync();
 
     bool result = true;
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < 1; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -550,7 +513,7 @@ bool usingzero_1() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = d3 - 1; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -560,7 +523,7 @@ bool usingzero_1() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < 1; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -570,7 +533,7 @@ bool usingzero_1() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = d2 - 1; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -580,7 +543,7 @@ bool usingzero_1() {
     for (uint_t i = 0; i < 1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -590,7 +553,7 @@ bool usingzero_1() {
     for (uint_t i = d1 - 1; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -600,7 +563,7 @@ bool usingzero_1() {
     for (uint_t i = 1; i < d1 - 1; ++i) {
         for (uint_t j = 1; j < d2 - 1; ++j) {
             for (uint_t k = 1; k < d3 - 1; ++k) {
-                if (in(i, j, k) != -1) {
+                if (inv(i, j, k) != -1) {
                     result = false;
                 }
             }
@@ -616,52 +579,43 @@ bool usingzero_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type< int_t,
-        gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > >::type storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
-    gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
-    storage_type in(meta_, -1, "in");
-    storage_type out(meta_, -1, "out");
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = -1;
-                out(i, j, k) = -1;
-            }
-        }
-    }
+    meta_data_t meta_(d1, d2, d3);
+    storage_t in(meta_, -1);
+    storage_t out(meta_, -1);
+    auto inv = make_host_view(in);
+    auto outv = make_host_view(out);
 
     gridtools::array< gridtools::halo_descriptor, 3 > halos;
     halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
+    in.sync();
+    out.sync();
 #ifdef __CUDACC__
-    in.h2d_update();
-    out.h2d_update();
-    in.clone_to_device();
-    out.clone_to_device();
-
-    gridtools::boundary_apply_gpu< gridtools::zero_boundary >(halos).apply(in, out);
-
-    in.d2h_update();
-    out.d2h_update();
+    auto indv = make_device_view(in);
+    auto outdv = make_device_view(out);
+    gridtools::boundary_apply_gpu< gridtools::zero_boundary >(halos).apply(indv, outdv);
 #else
-    gridtools::boundary_apply< gridtools::zero_boundary >(halos).apply(in, out);
+    gridtools::boundary_apply< gridtools::zero_boundary >(halos).apply(inv, outv);
 #endif
+    in.sync();
+    out.sync();
 
     bool result = true;
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < 1; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
-                if (out(i, j, k) != 0) {
+                if (outv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -671,10 +625,10 @@ bool usingzero_2() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = d3 - 1; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
-                if (out(i, j, k) != 0) {
+                if (outv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -684,10 +638,10 @@ bool usingzero_2() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < 1; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
-                if (out(i, j, k) != 0) {
+                if (outv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -697,10 +651,10 @@ bool usingzero_2() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = d2 - 1; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
-                if (out(i, j, k) != 0) {
+                if (outv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -710,10 +664,10 @@ bool usingzero_2() {
     for (uint_t i = 0; i < 1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
-                if (out(i, j, k) != 0) {
+                if (outv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -723,10 +677,10 @@ bool usingzero_2() {
     for (uint_t i = d1 - 1; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
-                if (out(i, j, k) != 0) {
+                if (outv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -736,10 +690,10 @@ bool usingzero_2() {
     for (uint_t i = 1; i < d1 - 1; ++i) {
         for (uint_t j = 1; j < d2 - 1; ++j) {
             for (uint_t k = 1; k < d3 - 1; ++k) {
-                if (in(i, j, k) != -1) {
+                if (inv(i, j, k) != -1) {
                     result = false;
                 }
-                if (out(i, j, k) != -1) {
+                if (outv(i, j, k) != -1) {
                     result = false;
                 }
             }
@@ -755,52 +709,43 @@ bool usingzero_3_empty_halos() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type< int_t,
-        gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > >::type storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
-    gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
-    storage_type in(meta_, -1, "in");
-    storage_type out(meta_, -1, "out");
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = -1;
-                out(i, j, k) = -1;
-            }
-        }
-    }
+    meta_data_t meta_(d1, d2, d3);
+    storage_t in(meta_, -1);
+    storage_t out(meta_, -1);
+    auto inv = make_host_view(in);
+    auto outv = make_host_view(out);
 
     gridtools::array< gridtools::halo_descriptor, 3 > halos;
     halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
     halos[1] = gridtools::halo_descriptor(0, 0, 0, d2 - 1, d2);
     halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
+    in.sync();
+    out.sync();
 #ifdef __CUDACC__
-    in.h2d_update();
-    out.h2d_update();
-    in.clone_to_device();
-    out.clone_to_device();
-
-    gridtools::boundary_apply_gpu< gridtools::zero_boundary >(halos).apply(in, out);
-
-    in.d2h_update();
-    out.d2h_update();
+    auto indv = make_device_view(in);
+    auto outdv = make_device_view(out);
+    gridtools::boundary_apply_gpu< gridtools::zero_boundary >(halos).apply(indv, outdv);
 #else
-    gridtools::boundary_apply< gridtools::zero_boundary >(halos).apply(in, out);
+    gridtools::boundary_apply< gridtools::zero_boundary >(halos).apply(inv, outv);
 #endif
+    in.sync();
+    out.sync();
 
     bool result = true;
 
     for (uint_t i = 0; i < 1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
-                if (out(i, j, k) != 0) {
+                if (outv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -810,10 +755,10 @@ bool usingzero_3_empty_halos() {
     for (uint_t i = d1 - 1; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 0) {
+                if (inv(i, j, k) != 0) {
                     result = false;
                 }
-                if (out(i, j, k) != 0) {
+                if (outv(i, j, k) != 0) {
                     result = false;
                 }
             }
@@ -823,10 +768,10 @@ bool usingzero_3_empty_halos() {
     for (uint_t i = 1; i < d1 - 1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != -1) {
+                if (inv(i, j, k) != -1) {
                     result = false;
                 }
-                if (out(i, j, k) != -1) {
+                if (outv(i, j, k) != -1) {
                     result = false;
                 }
             }
@@ -842,54 +787,45 @@ bool usingvalue_2() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type< int_t,
-        gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > >::type storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
-    gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
-    storage_type in(meta_, -1, "in");
-    storage_type out(meta_, -1, "out");
-
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
-                in(i, j, k) = -1;
-                out(i, j, k) = -1;
-            }
-        }
-    }
+    meta_data_t meta_(d1, d2, d3);
+    storage_t in(meta_, -1);
+    storage_t out(meta_, -1);
+    auto inv = make_host_view(in);
+    auto outv = make_host_view(out);
 
     gridtools::array< gridtools::halo_descriptor, 3 > halos;
     halos[0] = gridtools::halo_descriptor(1, 1, 1, d1 - 2, d1);
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
+    in.sync();
+    out.sync();
 #ifdef __CUDACC__
-    in.h2d_update();
-    out.h2d_update();
-    in.clone_to_device();
-    out.clone_to_device();
-
+    auto indv = make_device_view(in);
+    auto outdv = make_device_view(out);
     gridtools::boundary_apply_gpu< gridtools::value_boundary< int_t > >(halos, gridtools::value_boundary< int_t >(101))
-        .apply(in, out);
-
-    in.d2h_update();
-    out.d2h_update();
+        .apply(indv, outdv);
 #else
     gridtools::boundary_apply< gridtools::value_boundary< int_t > >(halos, gridtools::value_boundary< int_t >(101))
-        .apply(in, out);
+        .apply(inv, outv);
 #endif
+    in.sync();
+    out.sync();
 
     bool result = true;
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < 1; ++k) {
-                if (in(i, j, k) != 101) {
+                if (inv(i, j, k) != 101) {
                     result = false;
                 }
-                if (out(i, j, k) != 101) {
+                if (outv(i, j, k) != 101) {
                     result = false;
                 }
             }
@@ -899,10 +835,10 @@ bool usingvalue_2() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = d3 - 1; k < d3; ++k) {
-                if (in(i, j, k) != 101) {
+                if (inv(i, j, k) != 101) {
                     result = false;
                 }
-                if (out(i, j, k) != 101) {
+                if (outv(i, j, k) != 101) {
                     result = false;
                 }
             }
@@ -912,10 +848,10 @@ bool usingvalue_2() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < 1; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 101) {
+                if (inv(i, j, k) != 101) {
                     result = false;
                 }
-                if (out(i, j, k) != 101) {
+                if (outv(i, j, k) != 101) {
                     result = false;
                 }
             }
@@ -925,10 +861,10 @@ bool usingvalue_2() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = d2 - 1; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 101) {
+                if (inv(i, j, k) != 101) {
                     result = false;
                 }
-                if (out(i, j, k) != 101) {
+                if (outv(i, j, k) != 101) {
                     result = false;
                 }
             }
@@ -938,10 +874,10 @@ bool usingvalue_2() {
     for (uint_t i = 0; i < 1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 101) {
+                if (inv(i, j, k) != 101) {
                     result = false;
                 }
-                if (out(i, j, k) != 101) {
+                if (outv(i, j, k) != 101) {
                     result = false;
                 }
             }
@@ -951,10 +887,10 @@ bool usingvalue_2() {
     for (uint_t i = d1 - 1; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (in(i, j, k) != 101) {
+                if (inv(i, j, k) != 101) {
                     result = false;
                 }
-                if (out(i, j, k) != 101) {
+                if (outv(i, j, k) != 101) {
                     result = false;
                 }
             }
@@ -964,10 +900,10 @@ bool usingvalue_2() {
     for (uint_t i = 1; i < d1 - 1; ++i) {
         for (uint_t j = 1; j < d2 - 1; ++j) {
             for (uint_t k = 1; k < d3 - 1; ++k) {
-                if (in(i, j, k) != -1) {
+                if (inv(i, j, k) != -1) {
                     result = false;
                 }
-                if (out(i, j, k) != -1) {
+                if (outv(i, j, k) != -1) {
                     result = false;
                 }
             }
@@ -983,22 +919,24 @@ bool usingcopy_3() {
     uint_t d2 = 5;
     uint_t d3 = 5;
 
-    typedef gridtools::BACKEND::storage_type< int_t,
-        gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > >::type storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
 
-    gridtools::BACKEND::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
-    storage_type src(meta_, -1, "src");
-    storage_type one(meta_, -1, "one");
-    storage_type two(meta_, -1, "two");
+    meta_data_t meta_(d1, d2, d3);
+    storage_t src(meta_, -1);
+    storage_t one(meta_, -1);
+    storage_t two(meta_, 0);
+
+    auto srcv = make_host_view(src);
+    auto onev = make_host_view(one);
+    auto twov = make_host_view(two);
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                src(i, j, k) = i + k + j;
-                one(i, j, k) = -1;
-                two(i, j, k) = 0;
+                srcv(i, j, k) = i + k + j;
             }
         }
     }
@@ -1008,31 +946,30 @@ bool usingcopy_3() {
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
+    src.sync();
+    one.sync();
+    two.sync();
 #ifdef __CUDACC__
-    one.h2d_update();
-    one.clone_to_device();
-    two.h2d_update();
-    two.clone_to_device();
-    src.h2d_update();
-    src.clone_to_device();
-
-    gridtools::boundary_apply_gpu< gridtools::copy_boundary >(halos).apply(one, two, src);
-
-    one.d2h_update();
-    two.d2h_update();
+    auto srcdv = make_device_view(src);
+    auto onedv = make_device_view(one);
+    auto twodv = make_device_view(two);
+    gridtools::boundary_apply_gpu< gridtools::copy_boundary >(halos).apply(onedv, twodv, srcdv);
 #else
-    gridtools::boundary_apply< gridtools::copy_boundary >(halos).apply(one, two, src);
+    gridtools::boundary_apply< gridtools::copy_boundary >(halos).apply(onev, twov, srcv);
 #endif
+    src.sync();
+    one.sync();
+    two.sync();
 
     bool result = true;
 
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < 1; ++k) {
-                if (one(i, j, k) != i + j + k) {
+                if (onev(i, j, k) != i + j + k) {
                     result = false;
                 }
-                if (two(i, j, k) != i + j + k) {
+                if (twov(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -1042,10 +979,10 @@ bool usingcopy_3() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = d3 - 1; k < d3; ++k) {
-                if (one(i, j, k) != i + j + k) {
+                if (onev(i, j, k) != i + j + k) {
                     result = false;
                 }
-                if (two(i, j, k) != i + j + k) {
+                if (twov(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -1055,10 +992,10 @@ bool usingcopy_3() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = 0; j < 1; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (one(i, j, k) != i + j + k) {
+                if (onev(i, j, k) != i + j + k) {
                     result = false;
                 }
-                if (two(i, j, k) != i + j + k) {
+                if (twov(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -1068,10 +1005,10 @@ bool usingcopy_3() {
     for (uint_t i = 0; i < d1; ++i) {
         for (uint_t j = d2 - 1; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (one(i, j, k) != i + j + k) {
+                if (onev(i, j, k) != i + j + k) {
                     result = false;
                 }
-                if (two(i, j, k) != i + j + k) {
+                if (twov(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -1081,10 +1018,10 @@ bool usingcopy_3() {
     for (uint_t i = 0; i < 1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (one(i, j, k) != i + j + k) {
+                if (onev(i, j, k) != i + j + k) {
                     result = false;
                 }
-                if (two(i, j, k) != i + j + k) {
+                if (twov(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -1094,10 +1031,10 @@ bool usingcopy_3() {
     for (uint_t i = d1 - 1; i < d1; ++i) {
         for (uint_t j = 0; j < d2; ++j) {
             for (uint_t k = 0; k < d3; ++k) {
-                if (one(i, j, k) != i + j + k) {
+                if (onev(i, j, k) != i + j + k) {
                     result = false;
                 }
-                if (two(i, j, k) != i + j + k) {
+                if (twov(i, j, k) != i + j + k) {
                     result = false;
                 }
             }
@@ -1107,10 +1044,10 @@ bool usingcopy_3() {
     for (uint_t i = 1; i < d1 - 1; ++i) {
         for (uint_t j = 1; j < d2 - 1; ++j) {
             for (uint_t k = 1; k < d3 - 1; ++k) {
-                if (one(i, j, k) != -1) {
+                if (onev(i, j, k) != -1) {
                     result = false;
                 }
-                if (two(i, j, k) != 0) {
+                if (twov(i, j, k) != 0) {
                     result = false;
                 }
             }

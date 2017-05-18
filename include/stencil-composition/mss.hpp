@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/map/map0.hpp>
-#include <boost/mpl/assert.hpp>
-#include "functor_do_methods.hpp"
-#include "esf.hpp"
 #include "../common/meta_array.hpp"
 #include "caches/cache_metafunctions.hpp"
+#include "esf.hpp"
+#include "functor_do_methods.hpp"
 #include "independent_esf.hpp"
+#include <boost/mpl/assert.hpp>
+#include <boost/mpl/map/map0.hpp>
+#include <boost/mpl/transform.hpp>
 // #include "stencil-composition/sfinae.hpp"
 
 /**
@@ -68,8 +68,9 @@ namespace gridtools {
     template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence = boost::mpl::vector0<> >
     struct mss_descriptor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfDescrSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
-
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_execution_engine< ExecutionEngine >::value), GT_INTERNAL_ERROR);
+        typedef ExecutionEngine execution_engine_t;
         typedef EsfDescrSequence esf_sequence_t;
         typedef CacheSequence cache_sequence_t;
         typedef static_bool< false > is_reduction_t;

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,12 @@
 #include "../gridtools.hpp"
 namespace gridtools {
 
+    template < ushort_t I, typename T, typename LocationType, bool Temporary >
+    struct arg;
+
+    template < typename T, typename V >
+    struct arg_storage_pair;
+
     /**
        @brief struct containing conditionals for several types.
 
@@ -49,11 +55,19 @@ namespace gridtools {
         /**specialization for storage pairs*/
         template < typename T1, typename T2, typename T3, typename T4 >
         struct apply< arg_storage_pair< T1, T2 >, arg_storage_pair< T3, T4 > >
-            : public boost::mpl::bool_< (T1::index_type::value < T3::index_type::value) > {};
+            : public boost::mpl::bool_< (T1::index_t::value < T3::index_t::value) > {};
 
         /**specialization for storage placeholders*/
-        template < ushort_t I1, typename T1, typename L1, ushort_t I2, typename T2, typename L2 >
-        struct apply< arg< I1, T1, L1 >, arg< I2, T2, L2 > > : public boost::mpl::bool_< (I1 < I2) > {};
+        template < ushort_t I1,
+            typename T1,
+            typename L1,
+            bool Temporary1,
+            ushort_t I2,
+            typename T2,
+            typename L2,
+            bool Temporary2 >
+        struct apply< arg< I1, T1, L1, Temporary1 >, arg< I2, T2, L2, Temporary2 > >
+            : public boost::mpl::bool_< (I1 < I2) > {};
 
         /**specialization for static integers*/
         template < typename T, T T1, T T2 >

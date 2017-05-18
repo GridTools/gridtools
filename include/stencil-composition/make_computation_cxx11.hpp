@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,10 @@
 #pragma once
 #include <memory>
 
-#include "conditionals/fill_conditionals.hpp"
 #include "../common/generic_metafunctions/vector_to_set.hpp"
 #include "computation_grammar.hpp"
+#include "conditionals/fill_conditionals.hpp"
+#include "intermediate.hpp"
 #include "make_computation_cxx11_impl.hpp"
 #include "make_computation_helper_cxx11.hpp"
 #include "all_args_in_aggregator.hpp"

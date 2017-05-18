@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,10 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
 #include <common/generic_metafunctions/repeat_template.hpp>
 
 using namespace gridtools;
+
+template < unsigned... N >
+struct halo {};
 
 TEST(test_common_metafunctions, test_repeat_template) {
     typedef repeat_template_v< static_int< 5 >, static_int< 3 >, uint_t, halo >::type test1;

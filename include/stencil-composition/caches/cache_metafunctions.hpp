@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -40,31 +40,32 @@
 
 #pragma once
 
-#include <boost/mpl/copy_if.hpp>
-#include <boost/mpl/pair.hpp>
-#include <boost/mpl/void.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/range_c.hpp>
+#include <boost/fusion/algorithm/transformation/push_back.hpp>
 #include <boost/fusion/container/map/convert.hpp>
-#include <boost/fusion/sequence/intrinsic/at_key.hpp>
+#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/container/vector/vector_fwd.hpp>
 #include <boost/fusion/include/at_key.hpp>
 #include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/support/pair.hpp>
 #include <boost/fusion/include/pair.hpp>
-#include <boost/fusion/algorithm/transformation/push_back.hpp>
 #include <boost/fusion/include/push_back.hpp>
-#include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/container/vector/vector_fwd.hpp>
 #include <boost/fusion/include/vector_fwd.hpp>
+#include <boost/fusion/sequence/intrinsic/at_key.hpp>
+#include <boost/fusion/support/pair.hpp>
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/copy_if.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/pair.hpp>
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/void.hpp>
 
-#include "stencil-composition/caches/cache.hpp"
-#include "stencil-composition/caches/cache_storage.hpp"
-#include "stencil-composition/esf_metafunctions.hpp"
+#include "../esf_metafunctions.hpp"
+#include "../local_domain.hpp"
+#include "./cache.hpp"
+#include "./cache_storage.hpp"
 
-#include "common/generic_metafunctions/is_there_in_sequence_if.hpp"
+#include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
 
 #include "../accessor_fwd.hpp"
 
@@ -170,10 +171,10 @@ namespace gridtools {
         /** metafunction extracting the storage type corresponding to an index from the local_domain*/
         template < typename LocDom, typename Index >
         struct get_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocDom >::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename LocDom::mpl_storages >::value > Index::value),
+            GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocDom >::value, GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename LocDom::storage_wrapper_list_t >::value > Index::value),
                 "accessing a storage which is not in the list");
-            typedef typename boost::mpl::at< typename LocDom::mpl_storages, Index >::type type;
+            typedef typename LocDom::template get_storage< Index >::type type;
         };
 
         // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
@@ -183,16 +184,13 @@ namespace gridtools {
         // here
         // mpl vector -> fusion vector -> fusion map (with result_of::as_map)
 
-        template < typename Cache, typename StoragePtr >
+        template < typename Cache, typename IndexT >
         struct get_cache_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_cache< Cache >::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_pointer< StoragePtr >::value, "wrong type");
-            GRIDTOOLS_STATIC_ASSERT(is_storage< typename StoragePtr::value_type >::value, "wrong type");
-
-            typedef cache_storage< BlockSize,
-                typename boost::mpl::at< CacheExtendsMap, Cache >::type,
-                cache_parameter< Cache >::type::location_type_t::n_colors::value,
-                StoragePtr > type;
+            GRIDTOOLS_STATIC_ASSERT(is_cache< Cache >::value, GT_INTERNAL_ERROR);
+            typedef typename LocalDomain::template get_storage_wrapper< IndexT >::type storage_wrapper_t;
+            typedef typename boost::mpl::if_< is_storage_wrapper< storage_wrapper_t >,
+                cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, storage_wrapper_t >,
+                boost::mpl::void_ >::type type;
         };
 
         // first we build an mpl vector of pairs
@@ -203,9 +201,14 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1,
                                      boost::mpl::pair< cache_to_index< boost::mpl::_2, LocalDomain >,
                                            get_cache_storage< boost::mpl::_2,
-                                                           get_storage< LocalDomain,
-                                                                  cache_to_index< boost::mpl::_2, LocalDomain > > > > >,
-                boost::mpl::identity< boost::mpl::_1 > > >::type mpl_type;
+                                                           cache_to_index< boost::mpl::_2, LocalDomain > > > >,
+                boost::mpl::identity< boost::mpl::_1 > > >::type mpl_t;
+        typedef typename boost::mpl::fold< mpl_t,
+            boost::mpl::vector<>,
+            boost::mpl::if_< boost::mpl::is_void_< boost::mpl::_2 >,
+                                               boost::mpl::_1,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type
+            filtered_mpl_t;
 
         // here we insert an mpl pair into a fusion vector. The mpl pair is converted into a fusion pair
         template < typename FusionSeq, typename Pair >
@@ -218,7 +221,7 @@ namespace gridtools {
         };
 
         // then we transform the mpl vector into a fusion vector
-        typedef typename boost::mpl::fold< mpl_type,
+        typedef typename boost::mpl::fold< filtered_mpl_t,
             boost::fusion::vector0<>,
             insert_pair_into_fusion_vector< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
@@ -254,7 +257,7 @@ namespace gridtools {
     struct get_cache_set {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocalDomain >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocalDomain >::value, GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::fold< CacheSequence,
             boost::mpl::set0<>,

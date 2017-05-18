@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -100,44 +100,56 @@ namespace sf {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
-        using edge_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double >;
-        using tmp_cell_storage_type =
-            typename icosahedral_topology_t::temporary_storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type =
+            typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double, halo< 2, 0, 2, 0 > >;
+        using edge_storage_type =
+            typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double, halo< 2, 0, 2, 0 > >;
 
         const uint_t halo_nc = 2;
         const uint_t halo_mc = 2;
         const uint_t halo_k = 0;
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
-        auto in_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in_edge");
-        auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
-        auto ref_on_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells");
+        auto in_edges =
+            icosahedral_grid.make_storage< icosahedral_topology_t::edges, double, halo< 2, 0, 2, 0 > >("in_edge");
+        auto out_cells =
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double, halo< 2, 0, 2, 0 > >("out");
+        auto ref_on_cells =
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double, halo< 2, 0, 2, 0 > >("ref_on_cells");
         auto ref_on_cells_tmp =
-            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells_tmp");
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, double /* , halo<2,0,2,0> */ >(
+                "ref_on_cells_tmp");
 
+        typedef decltype(in_edges) in_edges_storage_t;
+        typedef decltype(out_cells) out_cells_storage_t;
+        typedef decltype(ref_on_cells_tmp) ref_on_cells_tmp_storage_t;
+        typedef decltype(ref_on_cells) ref_on_cells_storage_t;
+
+        auto iev = make_host_view(in_edges);
         for (int i = 1; i < d1 - 1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                 for (int j = 1; j < d2 - 1; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        in_edges(i, c, j, k) =
-                            in_edges.meta_data().index(array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
+                        iev(i, c, j, k) = in_edges.get_storage_info_ptr()->index(i, c, j, k);
                     }
                 }
             }
         }
 
-        out_cells.initialize(0.0);
-        ref_on_cells.initialize(0.0);
-        ref_on_cells_tmp.initialize(0.0);
+        out_cells = out_cells_storage_t(*out_cells.get_storage_info_ptr(), 0.0);
+        ref_on_cells = ref_on_cells_storage_t(*ref_on_cells.get_storage_info_ptr(), 0.0);
+        ref_on_cells_tmp = ref_on_cells_tmp_storage_t(*ref_on_cells_tmp.get_storage_info_ptr(), 0.0);
+        auto roctv = make_host_view(ref_on_cells_tmp);
+        auto ocv = make_host_view(out_cells);
+        auto rocv = make_host_view(ref_on_cells);
 
         typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges;
-        typedef arg< 1, tmp_cell_storage_type, enumtype::cells > p_tmp_cells;
+        typedef tmp_arg< 1, cell_storage_type, enumtype::cells > p_tmp_cells;
         typedef arg< 2, cell_storage_type, enumtype::cells > p_out_cells;
 
         typedef boost::mpl::vector< p_in_edges, p_tmp_cells, p_out_cells > accessor_list_cells_t;
 
-        gridtools::aggregator_type< accessor_list_cells_t > domain(boost::fusion::make_vector(&in_edges, &out_cells));
+        gridtools::aggregator_type< accessor_list_cells_t > domain(in_edges, out_cells);
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
@@ -159,10 +171,8 @@ namespace sf {
         stencil_cells->steady();
         stencil_cells->run();
 
-#ifdef __CUDACC__
-        out_cells.d2h_update();
-        in_edges.d2h_update();
-#endif
+        out_cells.sync();
+        in_edges.sync();
 
         bool result = true;
         if (verify) {
@@ -175,7 +185,7 @@ namespace sf {
                                 ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::edges >(
                                     {i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                                ref_on_cells_tmp(i, c, j, k) += in_edges(*iter);
+                                roctv(i, c, j, k) += iev((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]);
                             }
                         }
                     }
@@ -190,7 +200,7 @@ namespace sf {
                                 ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
                                     {i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                                ref_on_cells(i, c, j, k) += ref_on_cells_tmp(*iter);
+                                rocv(i, c, j, k) += roctv((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]);
                             }
                         }
                     }

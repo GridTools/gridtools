@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,9 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtendSizes, is_extent >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtendSizes, is_extent >::value),
+            "There seems to be a stage in the computation which does not contain any output field. Check that at least "
+            "one accessor in each stage is defined as \'inout\'");
         GRIDTOOLS_STATIC_ASSERT((is_block_size< ProcessingElementsBlockSize >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PhysicalDomainBlockSize >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
@@ -83,6 +85,7 @@ namespace gridtools {
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
+        typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
         static const bool s_is_reduction = IsReduction::value;
         typedef IsReduction is_reduction_t;
         typedef FunctorReturnType functor_return_type_t;
@@ -163,8 +166,9 @@ namespace gridtools {
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
         typedef ExtendSizes extent_sizes_t;
+        typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
         typedef typename boost::mpl::fold< extent_sizes_t,
-            typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t,
+            typename grid_traits_t::null_extent_t,
             enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;
