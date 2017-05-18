@@ -286,21 +286,6 @@ namespace copy_stencil {
         printf("copy unpacked\n");
 #endif
 
-        {
-            std::stringstream ss;
-            ss << PID;
-            std::string filename = "out" + ss.str() + ".txt";
-            std::ofstream file(filename.c_str());
-            out.print(file);
-        }
-        {
-            std::stringstream ss;
-            ss << PID;
-            std::string filename = "in" + ss.str() + ".txt";
-            std::ofstream file(filename.c_str());
-            in.print(file);
-        }
-
         MPI_Barrier(GCL_WORLD);
 
         for (uint_t i = 1; i < metadata_.template dim< 0 >() - 1; ++i)
