@@ -422,7 +422,9 @@ namespace gridtools {
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
             ,
             const int_t pointer_offset) const {
+#ifdef CUDA8
             assert(storage_pointer);
+#endif
             return *(storage_pointer + pointer_offset);
         }
 
