@@ -73,21 +73,15 @@ struct shift_acc_backward_fill {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kmaximum) {
         eval(out()) = eval(in()) + eval(in(0, 0, -1));
-        if (threadIdx.x == 0 && threadIdx.y == 0)
-            printf("FFUN %f %f %f \n", eval(out()), eval(in()), eval(in(0, 0, -1)));
     }
 
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kbody) {
         eval(out()) = eval(in(0, 0, 1)) + eval(in()) + eval(in(0, 0, -1));
-        if (threadIdx.x == 0 && threadIdx.y == 0)
-            printf("FFUN %f %f %f %f \n", eval(out()), eval(in(0, 0, 1)), eval(in()), eval(in(0, 0, -1)));
     }
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, kminimum) {
         eval(out()) = eval(in()) + eval(in(0, 0, 1));
-        if (threadIdx.x == 0 && threadIdx.y == 0)
-            printf("FFUN %f %f \n", eval(out()), eval(in()), eval(in(0, 0, 0)));
     }
 };
 
