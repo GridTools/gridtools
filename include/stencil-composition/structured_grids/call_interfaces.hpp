@@ -199,14 +199,13 @@ namespace gridtools {
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value < OutArg), ReturnType >::type const
                 operator()(Accessor const &accessor) {
-                return m_caller_aggregator(
-                    typename boost::mpl::at_c< PassedAccessors, Accessor::index_type::value >::type(
-                        accessor.template get< 2 >() + Offi +
-                            boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 2 >(),
-                        accessor.template get< 1 >() + Offj +
-                            boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 1 >(),
-                        accessor.template get< 0 >() + Offk +
-                            boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 0 >()));
+                return m_caller_aggregator(typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type(
+                    accessor.template get< 2 >() + Offi +
+                        boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 2 >(),
+                    accessor.template get< 1 >() + Offj +
+                        boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 1 >(),
+                    accessor.template get< 0 >() + Offk +
+                        boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 0 >()));
             }
 
             template < typename Accessor >
@@ -214,7 +213,7 @@ namespace gridtools {
                 typename boost::enable_if_c< (Accessor::index_t::value > OutArg), ReturnType >::type const
                 operator()(Accessor const &accessor) {
                 return m_caller_aggregator(
-                    typename boost::mpl::at_c< PassedAccessors, Accessor::index_type::value - 1 >::type(
+                    typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value - 1 >::type(
                         accessor.template get< 2 >() + Offi +
                             boost::fusion::at_c< Accessor::index_t::value - 1 >(m_accessors_list).template get< 2 >(),
                         accessor.template get< 1 >() + Offj +

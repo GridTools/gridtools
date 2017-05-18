@@ -93,11 +93,6 @@ namespace copy_stencils_3D_2D_1D_0D {
     template < typename SrcLayout, typename DstLayout, typename T >
     bool test(int x, int y, int z) {
 
-#ifdef USE_PAPI_WRAP
-        int collector_init = pw_new_collector("Init");
-        int collector_execute = pw_new_collector("Execute");
-#endif
-
         uint_t d1 = x;
         uint_t d2 = y;
         uint_t d3 = z;
@@ -167,8 +162,6 @@ namespace copy_stencils_3D_2D_1D_0D {
         copy->run();
 
         copy->finalize();
-
-#endif
 
         bool ok = true;
         auto outv = make_host_view(out);
