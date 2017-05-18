@@ -366,6 +366,23 @@ namespace gridtools {
                 // Here we need to use the at_ interface instead of
                 // the at, since at_ does not assert out-of-bound
                 // queries, but actually returns -1.
+
+                // TODO: This check may be not accurate since there is
+                // an ongoing change in the convention for storage and
+                // grid. Before the storage had the conventions that
+                // there was not distinction between halo and core
+                // region in the storage. The distinction was made
+                // solely in the grid. Now the storage makes that
+                // distinction, ad when aqllocating the data the halo
+                // is also allocated. So for instance a stoage of
+                // 3x3x3 with halo of <1,1,1> will allocate a 5x5x5
+                // storage. The grid is the same as before. The first
+                // step will be to update the storage to point as
+                // first eleent the (1,1,1) element and then to get
+                // the grid to not specifying halos (at least in the
+                // simple cases). This is why the check is left as
+                // before here, but may be updated with more accurate
+                // ones when the convention is updated
                 if (MetaDataElem::value_type::layout_t::template at_< GridTraits::dim_k_t::value >::value >= 0) {
                     result = result && (grid.k_max() + 1 <= mde->template dim< GridTraits::dim_k_t::value >());
                 }
@@ -377,14 +394,7 @@ namespace gridtools {
                 if (MetaDataElem::value_type::layout_t::template at_< GridTraits::dim_i_t::value >::value >= 0) {
                     result = result && (grid.i_high_bound() + 1 <= mde->template dim< GridTraits::dim_i_t::value >());
                 }
-#define SHOW(x) std::cout << #x << ": " << x << "\n"
-                SHOW((grid.k_max() + 1));
-                SHOW((mde->template dim< GridTraits::dim_k_t::value >()));
-                SHOW((grid.j_high_bound() + 1));
-                SHOW((mde->template dim< GridTraits::dim_j_t::value >()));
-                SHOW((grid.i_high_bound() + 1));
-                SHOW((mde->template dim< GridTraits::dim_i_t::value >()));
-                std::cout << "-------------------------------\n";
+
                 return !result;
             }
         };

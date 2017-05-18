@@ -127,5 +127,5 @@ TEST(stencil_composition, check_grid_bounds2) { EXPECT_TRUE(check_grid_bounds::t
 // is catched
 TEST(stencil_composition, check_grid_bounds3) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 8, 5, 7, false)); }
 TEST(stencil_composition, check_grid_bounds4) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 4, 5, 7, false)); }
-TEST(stencil_composition, check_grid_bounds5) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 4, 7, 6, false)); }
-TEST(stencil_composition, check_grid_bounds6) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 7, 5, 6, false)); }
+TEST(stencil_composition, check_grid_bounds5) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 4, 12, 6, false)); }
+TEST(stencil_composition, check_grid_bounds6) { EXPECT_TRUE(check_grid_bounds::test(4, 5, 6, 9, 5, 6, false)); }
