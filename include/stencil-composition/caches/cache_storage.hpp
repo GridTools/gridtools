@@ -53,6 +53,16 @@
 #endif
 
 namespace gridtools {
+
+    namespace _impl {
+        template < uint TileI, uint TileJ, uint... Tiles >
+        struct check_cache_tile_sizes {
+            GRIDTOOLS_STATIC_ASSERT((TileI > 0 && TileJ > 0), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((accumulate(multiplies(), Tiles...) == 1), GT_INTERNAL_ERROR);
+            using type = int;
+        };
+    }
+
     template < typename T, typename U >
     struct get_storage_accessor;
 
@@ -79,6 +89,8 @@ namespace gridtools {
     template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper >
     struct cache_storage< Cache, block_size< Tiles... >, extent< ExtentBounds... >, StorageWrapper > {
         GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
+
+        using dumm = typename _impl::check_cache_tile_sizes< Tiles... >::type;
 
       public:
         using cache_t = Cache;
@@ -142,7 +154,8 @@ namespace gridtools {
                                   (thread_pos[1] - jminus_t::value) * meta_t::template stride< 1 + (extra_dims) >() +
                                   (extra_dims)*Color * meta_t::template stride< 1 >() +
                                   size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                  _impl::get_cache_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
+                                  _impl::get_cache_offset< meta_t >(accessor_);
+            _impl::check_bounds_cache_offset< meta_t >(accessor_);
             assert((extra_) >= 0);
             assert((extra_) < (size() * StorageWrapper::num_of_storages));
             return m_values[extra_];
@@ -157,15 +170,10 @@ namespace gridtools {
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
-#ifdef CUDA8
-            typedef static_int< s_storage_info.template strides< 0 >() > check_constexpr_1;
-            typedef static_int< s_storage_info.template strides< 1 >() > check_constexpr_2;
-#else
-            assert((_impl::compute_size< NColors, minus_t, plus_t, tiles_t, storage_t >::value == size()));
-#endif
+            typedef static_int< meta_t::template stride< 0 >() > check_constexpr_1;
+            typedef static_int< meta_t::template stride< 1 >() > check_constexpr_2;
 
-            assert(s_storage_info.index(accessor_) - kminus_t::value < size());
-            assert(s_storage_info.index(accessor_) - kminus_t::value >= 0);
+            _impl::check_bounds_cache_offset< meta_t >(accessor_);
         }
 
         template < typename Accessor >
@@ -174,7 +182,7 @@ namespace gridtools {
             check_kcache_access(accessor_);
 
             const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                  _impl::get_cache_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
+                                  _impl::get_cache_offset< meta_t >(accessor_);
 
             return m_values[index_ - kminus_t::value];
         }
@@ -185,7 +193,7 @@ namespace gridtools {
             check_kcache_access(accessor_);
 
             const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                  _impl::get_cache_offset< 0, meta_t::layout_t::masked_length, meta_t >(accessor_);
+                                  _impl::get_cache_offset< meta_t >(accessor_);
 
             return m_values[index_ - kminus_t::value];
         }
