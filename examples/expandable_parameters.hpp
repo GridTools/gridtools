@@ -127,7 +127,7 @@ namespace test_expandable_parameters {
             domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                                                     define_caches(cache< IJ, local >(p_list_tmp())),
+                                                     define_caches(cache< IJ, cache_io_policy::local >(p_list_tmp())),
                                                      make_stage< functor_exp >(p_list_tmp(), p_list_in()),
                                                      make_stage< functor_exp >(p_list_out(), p_list_tmp())));
 

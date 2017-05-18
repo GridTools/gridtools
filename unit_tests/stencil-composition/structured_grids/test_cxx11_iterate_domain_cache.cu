@@ -54,15 +54,25 @@ typedef gridtools::interval< level< 0, 1 >, level< 1, -1 > > krange1;
 typedef gridtools::interval< level< 1, 1 >, level< 2, -2 > > krange2;
 typedef gridtools::interval< level< 2, -1 >, level< 2, -1 > > kmaximum;
 
-typedef layout_map< 0, 1 > layout_ij_t;
-typedef backend< Cuda, GRIDBACKEND, Block >::storage_type< float_type,
-    backend< Cuda, GRIDBACKEND, Block >::storage_info< 0, layout_ij_t > >::type storage_type;
+typedef storage_traits< Host >::storage_info_t< 0, 2 > storage_info_ij_t;
+typedef storage_traits< Host >::data_store_t< float_type, storage_info_ij_t > storage_type;
 
 typedef arg< 0, storage_type > p_in1;
 typedef arg< 1, storage_type > p_in2;
 typedef arg< 2, storage_type > p_in3;
 typedef arg< 3, storage_type > p_in4;
 typedef arg< 4, storage_type > p_out;
+
+using st_wrapper_in1_t =
+    storage_wrapper< p_in1, data_view< storage_type, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
+using st_wrapper_in2_t =
+    storage_wrapper< p_in2, data_view< storage_type, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
+using st_wrapper_in3_t =
+    storage_wrapper< p_in3, data_view< storage_type, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
+using st_wrapper_in4_t =
+    storage_wrapper< p_in4, data_view< storage_type, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
+using st_wrapper_out_t =
+    storage_wrapper< p_out, data_view< storage_type, access_mode::ReadWrite >, tile< 0, 0, 0 >, tile< 0, 0, 0 > >;
 
 struct functor1 {
     typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0, -1, 0 > > in1;
@@ -105,23 +115,27 @@ typedef boost::mpl::vector2< esf1k_t, esf2k_t > esfk_sequence_t;
 
 TEST(iterate_domain_cache, flush) {
 
-    typedef detail::cache_impl< K, p_in1, flush, kminimum > cache1_t;
-    typedef detail::cache_impl< K, p_in2, flush, kmin_and_range1 > cache2_t;
-    typedef detail::cache_impl< K, p_in3, flush, krange2_and_max > cache3_t;
-    typedef detail::cache_impl< K, p_in4, local, kmaximum > cache4_t;
-    typedef detail::cache_impl< K, p_out, flush, kall > cache5_t;
+    typedef detail::cache_impl< K, p_in1, cache_io_policy::flush, kminimum > cache1_t;
+    typedef detail::cache_impl< K, p_in2, cache_io_policy::flush, kmin_and_range1 > cache2_t;
+    typedef detail::cache_impl< K, p_in3, cache_io_policy::flush, krange2_and_max > cache3_t;
+    typedef detail::cache_impl< K, p_in4, cache_io_policy::local, kmaximum > cache4_t;
+    typedef detail::cache_impl< K, p_out, cache_io_policy::flush, kall > cache5_t;
 
     typedef boost::mpl::vector5< cache1_t, cache2_t, cache3_t, cache4_t, cache5_t > caches_t;
 
-    typedef metadata_set< boost::mpl::vector1< pointer< storage_type::storage_info_type > > > metadata_vector_t;
-    typedef boost::mpl::vector5< pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type > > storages_t;
-    typedef boost::fusion::result_of::as_vector< storages_t >::type storages_tuple_t;
+    typedef boost::mpl::
+        vector5< st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t > storages_t;
+
     typedef boost::mpl::vector5< p_in1, p_in2, p_in3, p_in4, p_out > esf_args_t;
-    typedef local_domain< storages_tuple_t, metadata_vector_t, esf_args_t, false > local_domain_t;
+
+    typedef local_domain< storages_t,
+        esf_args_t,
+        boost::mpl::map5< boost::mpl::pair< p_in1, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in2, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in3, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in4, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
+        false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
 
@@ -214,23 +228,27 @@ TEST(iterate_domain_cache, flush) {
 
 TEST(iterate_domain_cache, fill) {
 
-    typedef detail::cache_impl< K, p_in1, fill, kminimum > cache1_t;
-    typedef detail::cache_impl< K, p_in2, flush, kmin_and_range1 > cache2_t;
-    typedef detail::cache_impl< K, p_in3, fill, krange2_and_max > cache3_t;
-    typedef detail::cache_impl< K, p_in4, local, kmaximum > cache4_t;
-    typedef detail::cache_impl< K, p_out, flush, kall > cache5_t;
+    typedef detail::cache_impl< K, p_in1, cache_io_policy::fill, kminimum > cache1_t;
+    typedef detail::cache_impl< K, p_in2, cache_io_policy::flush, kmin_and_range1 > cache2_t;
+    typedef detail::cache_impl< K, p_in3, cache_io_policy::fill, krange2_and_max > cache3_t;
+    typedef detail::cache_impl< K, p_in4, cache_io_policy::local, kmaximum > cache4_t;
+    typedef detail::cache_impl< K, p_out, cache_io_policy::flush, kall > cache5_t;
 
     typedef boost::mpl::vector5< cache1_t, cache2_t, cache3_t, cache4_t, cache5_t > caches_t;
 
-    typedef metadata_set< boost::mpl::vector1< pointer< storage_type::storage_info_type > > > metadata_vector_t;
-    typedef boost::mpl::vector5< pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type > > storages_t;
-    typedef boost::fusion::result_of::as_vector< storages_t >::type storages_tuple_t;
+    typedef boost::mpl::
+        vector5< st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t > storages_t;
+
     typedef boost::mpl::vector5< p_in1, p_in2, p_in3, p_in4, p_out > esf_args_t;
-    typedef local_domain< storages_tuple_t, metadata_vector_t, esf_args_t, false > local_domain_t;
+
+    typedef local_domain< storages_t,
+        esf_args_t,
+        boost::mpl::map5< boost::mpl::pair< p_in1, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in2, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in3, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in4, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
+        false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
 
@@ -320,15 +338,19 @@ TEST(iterate_domain_cache, fill) {
 
 TEST(iterate_domain_cache, ecflush) {
 
-    typedef metadata_set< boost::mpl::vector1< pointer< storage_type::storage_info_type > > > metadata_vector_t;
-    typedef boost::mpl::vector5< pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type > > storages_t;
-    typedef boost::fusion::result_of::as_vector< storages_t >::type storages_tuple_t;
+    typedef boost::mpl::
+        vector5< st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t > storages_t;
+
     typedef boost::mpl::vector5< p_in1, p_in2, p_in3, p_in4, p_out > esf_args_t;
-    typedef local_domain< storages_tuple_t, metadata_vector_t, esf_args_t, false > local_domain_t;
+
+    typedef local_domain< storages_t,
+        esf_args_t,
+        boost::mpl::map5< boost::mpl::pair< p_in1, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in2, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in3, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in4, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
+        false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
 
@@ -336,11 +358,11 @@ TEST(iterate_domain_cache, ecflush) {
         extent< 0, 0, 0, 0 >,
         enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type max_extent_t;
 
-    typedef detail::cache_impl< K, p_in1, flush, kminimum > cachef1_t;
-    typedef detail::cache_impl< K, p_in2, epflush, kmin_and_range1 > cachef2_t;
-    typedef detail::cache_impl< K, p_in3, epflush, krange2_and_max > cachef3_t;
-    typedef detail::cache_impl< K, p_in4, epflush, kmaximum > cachef4_t;
-    typedef detail::cache_impl< K, p_out, flush, kall > cachef5_t;
+    typedef detail::cache_impl< K, p_in1, cache_io_policy::flush, kminimum > cachef1_t;
+    typedef detail::cache_impl< K, p_in2, cache_io_policy::epflush, kmin_and_range1 > cachef2_t;
+    typedef detail::cache_impl< K, p_in3, cache_io_policy::epflush, krange2_and_max > cachef3_t;
+    typedef detail::cache_impl< K, p_in4, cache_io_policy::epflush, kmaximum > cachef4_t;
+    typedef detail::cache_impl< K, p_out, cache_io_policy::flush, kall > cachef5_t;
 
     typedef boost::mpl::vector5< cachef1_t, cachef2_t, cachef3_t, cachef4_t, cachef5_t > cachesf_t;
 
@@ -434,23 +456,27 @@ TEST(iterate_domain_cache, ecflush) {
 
 TEST(iterate_domain_cache, bpfill) {
 
-    typedef detail::cache_impl< K, p_in1, fill, kminimum > cache1_t;
-    typedef detail::cache_impl< K, p_in2, bpfill, kmin_and_range1 > cache2_t;
-    typedef detail::cache_impl< K, p_in3, bpfill, krange2_and_max > cache3_t;
-    typedef detail::cache_impl< K, p_in4, local, kmaximum > cache4_t;
-    typedef detail::cache_impl< K, p_out, flush, kall > cache5_t;
+    typedef detail::cache_impl< K, p_in1, cache_io_policy::fill, kminimum > cache1_t;
+    typedef detail::cache_impl< K, p_in2, cache_io_policy::bpfill, kmin_and_range1 > cache2_t;
+    typedef detail::cache_impl< K, p_in3, cache_io_policy::bpfill, krange2_and_max > cache3_t;
+    typedef detail::cache_impl< K, p_in4, cache_io_policy::local, kmaximum > cache4_t;
+    typedef detail::cache_impl< K, p_out, cache_io_policy::flush, kall > cache5_t;
 
     typedef boost::mpl::vector5< cache1_t, cache2_t, cache3_t, cache4_t, cache5_t > caches_t;
 
-    typedef metadata_set< boost::mpl::vector1< pointer< storage_type::storage_info_type > > > metadata_vector_t;
-    typedef boost::mpl::vector5< pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type >,
-        pointer< storage_type > > storages_t;
-    typedef boost::fusion::result_of::as_vector< storages_t >::type storages_tuple_t;
+    typedef boost::mpl::
+        vector5< st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t > storages_t;
+
     typedef boost::mpl::vector5< p_in1, p_in2, p_in3, p_in4, p_out > esf_args_t;
-    typedef local_domain< storages_tuple_t, metadata_vector_t, esf_args_t, false > local_domain_t;
+
+    typedef local_domain< storages_t,
+        esf_args_t,
+        boost::mpl::map5< boost::mpl::pair< p_in1, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in2, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in3, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_in4, extent< 0, 0, 0, 0 > >,
+                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
+        false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
 
