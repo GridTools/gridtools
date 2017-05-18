@@ -111,8 +111,15 @@ namespace assembly {
         typedef ValueType value_type;
         typedef meta_storage_cache< Layout, Dims... > meta_t;
 
+        // default constructor useless, but required in the storage implementation
         GT_FUNCTION
         constexpr elemental() : m_values{0} {}
+
+        GT_FUNCTION
+        elemental(ValueType init_) : m_values{} {
+            for (int i = 0; i < accumulate(multiplies(), Dims...); ++i)
+                m_values[i] = init_;
+        }
 
         template < typename... Ints >
         GT_FUNCTION value_type &operator()(Ints &&... args_) {
@@ -153,25 +160,23 @@ namespace assembly {
                         // check the initialization to 0
                         assert(eval(result(i, j, k, di + I, dj + J, dk + K)) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
-                            eval(result(di + I, dj + J, dk + K, qp)) += eval(
-                                phi(I, J, K, q) //* psi(0, 0, 0, q)) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
-                                                // phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} *
-                                                //     f{i, j, k, di + 1, dj, dk} +
-                                                // phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
-                                                //     f{i, j, k, di, dj + 1, dk} +
-                                                // phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
-                                                //     f{i, k, k, di, dj, dk + 1} +
-                                                // phi(I, J, K, q) * psi(1, 1, 0, q) * jac{i, j, k, qp + q} *
-                                                //     f{i, j, k, di + 1, dj + 1, dk} +
-                                                // phi(I, J, K, q) * psi(1, 0, 1, q) * jac{i, j, k, qp + q} *
-                                                //     f{i, j, k, di + 1, dj, dk + 1} +
-                                                // phi(I, J, K, q) * psi(0, 1, 1, q) * jac{i, j, k, qp + q} *
-                                                //     f{i, j, k, di, dj + 1, dk + 1} +
-                                                // phi(I, J, K, q) * psi(1, 1, 1, q) * jac{i, j, k, qp + q} *
-                                                //     f{i, j, k, di + 1, dj + 1, dk + 1}
-                                );
-                            // /
-                            //     8;
+                            eval(result(di + I, dj + J, dk + K, qp)) +=
+                                eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
+                                     phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj, dk} +
+                                     phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di, dj + 1, dk} +
+                                     phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, k, k, di, dj, dk + 1} +
+                                     phi(I, J, K, q) * psi(1, 1, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj + 1, dk} +
+                                     phi(I, J, K, q) * psi(1, 0, 1, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj, dk + 1} +
+                                     phi(I, J, K, q) * psi(0, 1, 1, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di, dj + 1, dk + 1} +
+                                     phi(I, J, K, q) * psi(1, 1, 1, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj + 1, dk + 1}) /
+                                8;
                         }
                     }
         }
@@ -186,8 +191,8 @@ namespace assembly {
         static const uint_t b2 = 2;
         static const uint_t b3 = 2;
         // basis functions available in a 2x2x2 cell, because of P1 FE
-        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > phi;
-        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > psi;
+        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > phi(10.);
+        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > psi(11.);
 
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU
