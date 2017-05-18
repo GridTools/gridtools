@@ -35,7 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include <stencil-composition/make_computation.hpp>
-#include <storage/partitioner_trivial.hpp>
+#include <common/partitioner_trivial.hpp>
 
 using namespace gridtools;
 

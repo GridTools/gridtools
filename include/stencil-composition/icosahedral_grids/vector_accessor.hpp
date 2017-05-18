@@ -64,7 +64,7 @@ namespace gridtools {
 #ifdef CXX11_ENABLED
         using super = accessor< ID, Intent, LocationType, Extent, NDim >;
         using super::accessor;
-        static const ushort_t n_dim = NDim;
+        static const ushort_t n_dimensions = NDim;
 #else
         GRIDTOOLS_STATIC_ASSERT(
             NDim > 0, "You are using a vector_accessor and compiling with C++03, switch to C++11 (-DENABLE_CXX11=ON)");
