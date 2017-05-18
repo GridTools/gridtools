@@ -43,8 +43,8 @@
 #endif
 #include <gridtools.hpp>
 #include <stencil-composition/make_computation.hpp>
-#include <storage/parallel_storage.hpp>
-#include <storage/partitioner_trivial.hpp>
+#include <common/parallel_storage_info.hpp>
+#include <common/partitioner_trivial.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
 #ifdef CUDA_EXAMPLE
@@ -111,31 +111,6 @@ namespace shallow_water {
 
     template < uint_t Component = 0, uint_t Snapshot = 0 >
     struct bc_periodic : functor_traits {
-        // periodic boundary conditions in I
-        template < sign I, sign K, typename DataField0 >
-        GT_FUNCTION void operator()(direction< I, minus_, K, typename boost::enable_if_c< I != minus_ >::type >,
-            DataField0 &data_field0,
-            uint_t i,
-            uint_t j,
-            uint_t k) const {
-            data_field0.template get< Snapshot, Component >()[data_field0._index(i, j, k)] =
-                data_field0.template get< Component,
-                    Snapshot >()[data_field0._index(i, data_field0.template dim< 1 >() - 1 - j, k)];
-        }
-
-        // periodic boundary conditions in J
-        template < sign J, sign K, typename DataField0 >
-        GT_FUNCTION void operator()(
-            direction< minus_, J, K >, DataField0 &data_field0, uint_t i, uint_t j, uint_t k) const {
-            data_field0.template get< Snapshot, Component >()[data_field0._index(i, j, k)] =
-                data_field0.template get< Component,
-                    Snapshot >()[data_field0._index(data_field0.template dim< 0 >() - 1 - i, j, k)];
-        }
-
-        // default: do nothing
-        template < sign I, sign J, sign K, typename P, typename DataField0 >
-        GT_FUNCTION void operator()(
-            direction< I, J, K, P >, DataField0 &data_field0, uint_t i, uint_t j, uint_t k) const {}
         //! [droplet]
         static constexpr float_type height = 2.;
         GT_FUNCTION
@@ -384,35 +359,20 @@ namespace shallow_water {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
-//! [layout_map]
-//           dims  x y z
-//        strides yz z 1
-#ifdef __CUDACC__
-        typedef layout_map< 2, 1, 0 > layout_t;
-#else
-        typedef layout_map< 0, 1, 2 > layout_t;
-#endif
+
         //! [layout_map]
 
         //! [storage_type]
-        typedef BACKEND::storage_info< 0, layout_t > storage_info_t;
-        typedef BACKEND::storage_info< 0, layout_t > storage_info_tmp_t;
-        typedef BACKEND::storage_type< float_type, storage_info_t >::type storage_type;
-        typedef BACKEND::temporary_storage_type< float_type, storage_info_tmp_t >::type tmp_storage_type;
-        typedef storage_type::pointer_type pointer_type;
+        typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
+        typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_type;
+        typedef BACKEND::storage_traits_t::data_store_field_t< float_type, storage_info_t, 1, 1, 1 > sol_type;
         //! [storage_type]
-
-        //! [fields]
-        /*! The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
-        typedef field< storage_type, 1, 1, 1 >::type sol_type;
-        typedef field< tmp_storage_type, 1, 1, 1 >::type tmp_type;
-        //! [fields]
 
         // Definition of placeholders. The order of them reflects the order in which the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
         //! [args]
-        typedef arg< 0, tmp_type > p_tmpx;
-        typedef arg< 1, tmp_type > p_tmpy;
+        typedef tmp_arg< 0, sol_type > p_tmpx;
+        typedef tmp_arg< 1, sol_type > p_tmpy;
         // typedef arg<0, sol_type > p_tmpx;
         // typedef arg<1, sol_type > p_tmpy;
         typedef arg< 2, sol_type > p_sol;
@@ -426,9 +386,9 @@ namespace shallow_water {
         //! [proc_grid_dims]
 
         //! [pattern_type]
-        typedef gridtools::halo_exchange_dynamic_ut< layout_t,
+        typedef gridtools::halo_exchange_dynamic_ut< typename storage_info_t::layout_t,
             gridtools::layout_map< 0, 1, 2 >,
-            pointer_type::pointee_t,
+            float_type,
             MPI_3D_process_grid_t< 3 >,
 #ifdef __CUDACC__
             gridtools::gcl_gpu,
@@ -451,7 +411,7 @@ namespace shallow_water {
 
         //! [parallel_storage]
         parallel_storage_info< storage_info_t, partitioner_t > meta_(part, d1, d2, d3);
-        sol_type sol(meta_.get_metadata(), "sol");
+        sol_type sol(meta_.get_metadata());
         // sol_type tmpx(meta_.get_metadata(), "tmpx");
         // sol_type tmpy(meta_.get_metadata(), "tmpy");
         //! [parallel_storage]
@@ -462,21 +422,40 @@ namespace shallow_water {
         he.add_halo< 2 >(meta_.get_halo_gcl< 2 >());
 
         he.setup(3);
-//! [add_halo]
+        //! [add_halo]
 
-//! [initialization_h]
-#ifdef __CUDACC__
-        sol.template set< 0, 0 >(&bc_periodic< 0, 0 >::droplet); // h
-#else
-        if (PID == 1)
-            sol.template set< 0, 0 >(&bc_periodic< 0, 0 >::droplet); // h
-        else
-            sol.template set< 0, 0 >(1.); // h
-#endif
         //! [initialization_h]
-        //! [initialization]
-        sol.template set< 0, 1 >(0.); // u
-        sol.template set< 0, 2 >(0.); // v
+        auto ds0 = sol.template get< 0, 0 >();
+        auto ds1 = sol.template get< 1, 0 >();
+        auto ds2 = sol.template get< 2, 0 >();
+        auto view0 = make_host_view(ds0);
+        auto view1 = make_host_view(ds1);
+        auto view2 = make_host_view(ds2);
+#ifdef __CUDACC__
+        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
+            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
+                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+                    view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
+                    view1(i, j, k) = 0.0;
+                    view2(i, j, k) = 0.0;
+                }
+            }
+        }
+#else
+        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
+            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
+                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+                    if (PID == 1) {
+                        view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
+                    } else {
+                        view0(i, j, k) = 1.; // h
+                    }
+                    view1(i, j, k) = 0.0;
+                    view2(i, j, k) = 0.0;
+                }
+            }
+        }
+#endif
 //! [initialization]
 
 #ifndef NDEBUG
@@ -494,8 +473,7 @@ namespace shallow_water {
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
         //! [aggregator_type]
-        aggregator_type< accessor_list > domain(boost::fusion::make_vector( //&tmpx, &tmpy,
-            &sol));
+        aggregator_type< accessor_list > domain(sol);
         //! [aggregator_type]
 
         // Definition of the physical dimensions of the problem.
@@ -528,12 +506,17 @@ namespace shallow_water {
 
         for (; final_step::current_time < total_time; ++final_step::current_time) {
             //! [exchange]
-            // std::vector<pointer_type::pointee_t*> vec={sol.fields()[0].get(), sol.fields()[1].get(),
-            // sol.fields()[2].get()};
-            std::vector< pointer_type::pointee_t * > vec(3);
-            vec[0] = sol.get< 0, 0 >().get();
-            vec[1] = sol.get< 0, 1 >().get();
-            vec[2] = sol.get< 0, 2 >().get();
+            // is on device?
+            std::vector< float_type * > vec(3);
+#ifndef __CUDACC__
+            vec[0] = sol.get< 0, 0 >().get_storage_ptr()->get_cpu_ptr();
+            vec[1] = sol.get< 1, 0 >().get_storage_ptr()->get_cpu_ptr();
+            vec[2] = sol.get< 2, 0 >().get_storage_ptr()->get_cpu_ptr();
+#else
+            vec[0] = sol.get< 0, 0 >().get_storage_ptr()->get_gpu_ptr();
+            vec[1] = sol.get< 1, 0 >().get_storage_ptr()->get_gpu_ptr();
+            vec[2] = sol.get< 2, 0 >().get_storage_ptr()->get_gpu_ptr();
+#endif
 
             he.pack(vec);
             he.exchange();
@@ -542,8 +525,20 @@ namespace shallow_water {
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
+            auto view = make_field_host_view(sol);
+            auto view00 = view.get< 0, 0 >();
+            auto view10 = view.get< 1, 0 >();
+            auto view20 = view.get< 2, 0 >();
             myfile << "INITIALIZED VALUES" << std::endl;
-            sol.print(myfile);
+            for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
+                for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
+                    for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+                        myfile << view00(i, j, k) << std::endl;
+                        myfile << view10(i, j, k) << std::endl;
+                        myfile << view20(i, j, k) << std::endl;
+                    }
+                }
+            }
             myfile << "#####################################################" << std::endl;
 #endif
 #endif
@@ -566,7 +561,19 @@ namespace shallow_water {
 #ifndef NDEBUG
 #ifndef __CUDACC__
         myfile << "############## SOLUTION ################" << std::endl;
-        sol.print(myfile);
+        auto view = make_field_host_view(sol);
+        auto view00 = view.get< 0, 0 >();
+        auto view10 = view.get< 1, 0 >();
+        auto view20 = view.get< 2, 0 >();
+        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
+            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
+                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+                    myfile << view00(i, j, k) << std::endl;
+                    myfile << view10(i, j, k) << std::endl;
+                    myfile << view20(i, j, k) << std::endl;
+                }
+            }
+        }
 #endif
 
         verifier check_result(1e-8);
@@ -576,11 +583,25 @@ namespace shallow_water {
         for (uint_t t = 0; t < total_time; ++t) {
             reference.iterate();
         }
-        retval = check_result.verify_parallel(grid, meta_, sol, reference.solution, halos);
+        for (int i = 0; i < sol_type::num_of_storages; ++i) {
+            retval &= check_result.verify(grid, sol.get_field()[i], reference.solution.get_field()[i], halos);
+        }
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;
-        reference.solution.print(myfile);
+        view = make_field_host_view(reference.solution);
+        view00 = view.get< 0, 0 >();
+        view10 = view.get< 1, 0 >();
+        view20 = view.get< 2, 0 >();
+        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
+            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
+                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+                    myfile << view00(i, j, k) << std::endl;
+                    myfile << view10(i, j, k) << std::endl;
+                    myfile << view20(i, j, k) << std::endl;
+                }
+            }
+        }
         myfile.close();
 #endif
 #endif

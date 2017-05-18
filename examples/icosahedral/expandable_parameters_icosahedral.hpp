@@ -101,29 +101,31 @@ namespace test_expandable_parameters_icosahedral {
         auto storage70 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage70");
         auto storage80 = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("storage80");
 
-        storage1.initialize(1.);
-        storage2.initialize(2.);
-        storage3.initialize(3.);
-        storage4.initialize(4.);
-        storage5.initialize(5.);
-        storage6.initialize(6.);
-        storage7.initialize(7.);
-        storage8.initialize(8.);
+        auto sinfo = *storage1.get_storage_info_ptr();
 
-        storage10.initialize(10.);
-        storage20.initialize(20.);
-        storage30.initialize(30.);
-        storage40.initialize(40.);
-        storage50.initialize(50.);
-        storage60.initialize(60.);
-        storage70.initialize(70.);
-        storage80.initialize(80.);
+        storage1 = cell_storage_type(sinfo, 1.);
+        storage2 = cell_storage_type(sinfo, 2.);
+        storage3 = cell_storage_type(sinfo, 3.);
+        storage4 = cell_storage_type(sinfo, 4.);
+        storage5 = cell_storage_type(sinfo, 5.);
+        storage6 = cell_storage_type(sinfo, 6.);
+        storage7 = cell_storage_type(sinfo, 7.);
+        storage8 = cell_storage_type(sinfo, 8.);
 
-        std::vector< pointer< decltype(storage1) > > list_out_ = {
-            &storage1, &storage2, &storage3, &storage4, &storage5, &storage6, &storage7, &storage8};
+        storage10 = cell_storage_type(sinfo, 10.);
+        storage20 = cell_storage_type(sinfo, 20.);
+        storage30 = cell_storage_type(sinfo, 30.);
+        storage40 = cell_storage_type(sinfo, 40.);
+        storage50 = cell_storage_type(sinfo, 50.);
+        storage60 = cell_storage_type(sinfo, 60.);
+        storage70 = cell_storage_type(sinfo, 70.);
+        storage80 = cell_storage_type(sinfo, 80.);
 
-        std::vector< pointer< decltype(storage10) > > list_in_ = {
-            &storage10, &storage20, &storage30, &storage40, &storage50, &storage60, &storage70, &storage80};
+        std::vector< decltype(storage1) > list_out_ = {
+            storage1, storage2, storage3, storage4, storage5, storage6, storage7, storage8};
+
+        std::vector< decltype(storage10) > list_in_ = {
+            storage10, storage20, storage30, storage40, storage50, storage60, storage70, storage80};
 
         array< uint_t, 5 > di = {0, 0, 0, d1 - 1, d1};
         array< uint_t, 5 > dj = {0, 0, 0, d2 - 1, d2};
@@ -137,7 +139,7 @@ namespace test_expandable_parameters_icosahedral {
 
         typedef boost::mpl::vector< p_list_out, p_list_in > args_t;
 
-        aggregator_type< args_t > domain_((p_list_out() = list_out_), (p_list_in() = list_in_));
+        aggregator_type< args_t > domain_(list_out_, list_in_);
 
         auto comp_ = make_computation< BACKEND >(
             expand_factor< 3 >(),

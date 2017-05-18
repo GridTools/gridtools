@@ -96,19 +96,25 @@ namespace ico_operators {
         auto &orientation_of_normal = repo.orientation_of_normal();
         auto &edge_length = repo.edge_length();
         auto &ref_cells = repo.div_u_ref();
-        auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type >("out");
+        auto out_cells =
+            icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type, typename repository::halo_t >(
+                "out");
 
-        auto div_weights =
-            icosahedral_grid.make_storage< icosahedral_topology_t::cells, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "weights", 3);
+        auto div_weights = icosahedral_grid.make_storage< icosahedral_topology_t::cells,
+            float_type,
+            typename repository::halo_5d_t,
+            selector< 1, 1, 1, 1, 1 > >("weights", 3);
 
-        auto l_over_A =
-            icosahedral_grid.make_storage< icosahedral_topology_t::edges, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "l_over_A", 2);
+        auto l_over_A = icosahedral_grid.make_storage< icosahedral_topology_t::edges,
+            float_type,
+            typename repository::halo_5d_t,
+            selector< 1, 1, 1, 1, 1 > >("l_over_A", 2);
+        typedef decltype(out_cells) out_cells_storage;
+        typedef decltype(l_over_A) l_over_A_storage;
 
-        out_cells.initialize(0.0);
-        div_weights.initialize(0.0);
-        l_over_A.initialize(0.0);
+        out_cells = out_cells_storage(*out_cells.get_storage_info_ptr(), 0.0);
+        div_weights = cells_4d_storage_type(*div_weights.get_storage_info_ptr(), 0.0);
+        l_over_A = l_over_A_storage(*l_over_A.get_storage_info_ptr(), 0.0);
 
         {
             typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;
@@ -120,7 +126,7 @@ namespace ico_operators {
                 accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&edge_length, &cell_area_reciprocal, &orientation_of_normal, &div_weights));
+                edge_length, cell_area_reciprocal, orientation_of_normal, div_weights);
 
             auto stencil_prep = gridtools::make_computation< backend_t >(
                 domain,
@@ -132,13 +138,6 @@ namespace ico_operators {
             stencil_prep->ready();
             stencil_prep->steady();
             stencil_prep->run();
-#ifdef __CUDACC__
-            orientation_of_normal.d2h_update();
-            edge_length.d2h_update();
-            cell_area_reciprocal.d2h_update();
-            div_weights.d2h_update();
-            l_over_A.d2h_update();
-#endif
             stencil_prep->finalize();
         }
 
@@ -149,8 +148,7 @@ namespace ico_operators {
 
             typedef boost::mpl::vector< p_edge_length, p_cell_area_reciprocal, p_l_over_A > accessor_list_t;
 
-            gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&edge_length, &cell_area_reciprocal, &l_over_A));
+            gridtools::aggregator_type< accessor_list_t > domain(edge_length, cell_area_reciprocal, l_over_A);
 
             auto stencil_prep_on_edges = gridtools::make_computation< backend_t >(
                 domain,
@@ -163,12 +161,6 @@ namespace ico_operators {
             stencil_prep_on_edges->ready();
             stencil_prep_on_edges->steady();
             stencil_prep_on_edges->run();
-
-#ifdef __CUDACC__
-            edge_length.d2h_update();
-            cell_area_reciprocal.d2h_update();
-            l_over_A.d2h_update();
-#endif
             stencil_prep_on_edges->finalize();
         }
 
@@ -184,8 +176,7 @@ namespace ico_operators {
 
             typedef boost::mpl::vector< p_in_edges, p_div_weights, p_out_cells > accessor_list_t;
 
-            gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&in_edges, &div_weights, &out_cells));
+            gridtools::aggregator_type< accessor_list_t > domain(in_edges, div_weights, out_cells);
 
             auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
@@ -198,11 +189,9 @@ namespace ico_operators {
             stencil_->steady();
             stencil_->run();
 
-#ifdef __CUDACC__
-            in_edges.d2h_update();
-            div_weights.d2h_update();
-            out_cells.d2h_update();
-#endif
+            in_edges.sync();
+            div_weights.sync();
+            out_cells.sync();
 
             result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
@@ -222,8 +211,7 @@ namespace ico_operators {
 
             typedef boost::mpl::vector< p_in_edges, p_div_weights, p_out_cells > accessor_list_t;
 
-            gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&in_edges, &div_weights, &out_cells));
+            gridtools::aggregator_type< accessor_list_t > domain(in_edges, div_weights, out_cells);
 
             auto stencil_reduction_into_scalar = gridtools::make_computation< backend_t >(
                 domain,
@@ -237,11 +225,9 @@ namespace ico_operators {
             stencil_reduction_into_scalar->steady();
             stencil_reduction_into_scalar->run();
 
-#ifdef __CUDACC__
-            in_edges.d2h_update();
-            div_weights.d2h_update();
-            out_cells.d2h_update();
-#endif
+            in_edges.sync();
+            div_weights.sync();
+            out_cells.sync();
 
             result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
@@ -308,7 +294,7 @@ namespace ico_operators {
                 accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&in_edges, &edge_length, &cell_area_reciprocal, &out_cells));
+                in_edges, edge_length, cell_area_reciprocal, out_cells);
 
             auto stencil_flow_convention = gridtools::make_computation< backend_t >(
                 domain,
@@ -323,12 +309,11 @@ namespace ico_operators {
             stencil_flow_convention->steady();
             stencil_flow_convention->run();
 
-#ifdef __CUDACC__
-            in_edges.d2h_update();
-            edge_length.d2h_update();
-            cell_area_reciprocal.d2h_update();
-            out_cells.d2h_update();
-#endif
+            in_edges.sync();
+            edge_length.sync();
+            cell_area_reciprocal.sync();
+            out_cells.sync();
+
             result = result && ver.verify(grid_, ref_cells, out_cells, halos);
 
 #ifdef BENCHMARK

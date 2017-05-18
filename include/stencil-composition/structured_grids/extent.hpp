@@ -161,9 +161,9 @@ namespace gridtools {
     template < typename Extent1, typename Extent2 >
     struct sum_extent {
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::or_< is_extent< Extent1 >, is_staggered< Extent1 > >::value), "wrong type");
+            (boost::mpl::or_< is_extent< Extent1 >, is_staggered< Extent1 > >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::or_< is_extent< Extent2 >, is_staggered< Extent2 > >::value), "wrong type");
+            (boost::mpl::or_< is_extent< Extent2 >, is_staggered< Extent2 > >::value), GT_INTERNAL_ERROR);
 
         typedef extent< boost::mpl::plus< typename Extent1::iminus, typename Extent2::iminus >::type::value,
             boost::mpl::plus< typename Extent1::iplus, typename Extent2::iplus >::type::value,
