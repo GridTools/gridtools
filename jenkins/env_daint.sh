@@ -51,5 +51,5 @@ export MPI_NODES=4
 export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
 export USE_MPI_COMPILER=OFF
-export MAKE_THREADS=36
+export MAKE_THREADS=18
 export SRUN_BUILD_COMMAND="srun -C mc --account c01 --time=00:20:00"
