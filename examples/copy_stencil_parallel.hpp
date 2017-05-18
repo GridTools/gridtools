@@ -145,13 +145,6 @@ namespace copy_stencil {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
-        //                   strides  1 x xy
-        //                      dims  x y z
-        typedef gridtools::layout_map< 0, 1, 2 > layout_t;
-        typedef BACKEND::storage_info< 0, layout_t > metadata_t;
-        typedef BACKEND::storage_type< float_type, metadata_t >::type storage_type;
-        typedef storage_type::pointer_type pointer_type;
-======= end
 
         typedef gridtools::halo_exchange_dynamic_ut< typename storage_info_t::layout_t,
             gridtools::layout_map< 0, 1, 2 >,
