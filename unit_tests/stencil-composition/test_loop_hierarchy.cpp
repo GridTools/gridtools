@@ -45,20 +45,20 @@ namespace loop_test {
     struct iterate_domain_ {
 
         template < typename Index >
-        void get_index(Index idx) const {}
+        GT_FUNCTION void get_index(Index idx) const {}
 
         template < typename Index >
-        void set_index(Index idx) {}
+        GT_FUNCTION void set_index(Index idx) {}
 
         template < ushort_t index, typename Step >
-        void increment() {}
+        GT_FUNCTION void increment() {}
     };
 
     struct functor {
 
         functor() : m_iterations(0) {}
 
-        void operator()() { m_iterations++; }
+        GT_FUNCTION void operator()() { m_iterations++; }
 
         uint_t m_iterations;
     };

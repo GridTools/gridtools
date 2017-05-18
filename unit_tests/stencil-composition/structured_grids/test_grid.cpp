@@ -49,7 +49,7 @@ TEST(test_grid, k_total_length) {
     grid_.value_list[0] = splitter_begin;
     grid_.value_list[1] = splitter_end;
 
-    uint_t expected_total_length = splitter_end - splitter_begin - offset_from + offset_to;
+    uint_t expected_total_length = (int_t)splitter_end - (int_t)splitter_begin - offset_from + offset_to;
 
     ASSERT_EQ(expected_total_length, grid_.k_total_length());
 }
