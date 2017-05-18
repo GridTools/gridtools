@@ -160,7 +160,7 @@ if [[ "$BUILD_ON_CN" == "ON" ]]; then
         echo "No command for building on a compute node available, falling back to normal mode." 
         SRUN_BUILD_COMMAND=""
     else
-        echo "Building on a compute node"
+        echo "Building on a compute node (launching from `hostname`)"
     fi
 else
     echo "Building on `hostname`"
