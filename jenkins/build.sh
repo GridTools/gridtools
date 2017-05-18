@@ -24,6 +24,7 @@ function help {
    echo "-v      compile in VERBOSE mode               "
    echo "-q      queue for testing                     "
    echo "-x      compiler version                      "
+   echo "-n      execute the build on a compute node   "
    exit 1
 }
 
@@ -34,7 +35,7 @@ FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
 
-while getopts "h:b:t:f:c:l:zmsidvq:x:" opt; do
+while getopts "h:b:t:f:c:l:zmsidvq:x:in" opt; do
     case "$opt" in
     h|\?)
         help
@@ -65,6 +66,8 @@ while getopts "h:b:t:f:c:l:zmsidvq:x:" opt; do
     q) QUEUE=$OPTARG
         ;;
     x) VERSION_=$OPTARG
+        ;;
+    n) BUILD_ON_CN="ON"
         ;;
     esac
 done
@@ -152,7 +155,16 @@ fi
 # measuring time
 export START_TIME=$SECONDS
 
-echo "Building on `hostname`"
+if [[ "$BUILD_ON_CN" == "ON" ]]; then
+    if [[ -z ${SRUN_BUILD_COMMAND} ]]; then
+        echo "No command for building on a compute node available, falling back to normal mode." 
+        SRUN_BUILD_COMMAND=""
+    else
+        echo "Building on a compute node"
+    fi
+else
+    echo "Building on `hostname`"
+fi
 
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
@@ -196,9 +208,9 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     do
       echo "COMPILATION # ${i}"
       if [ ${i} -eq ${num_make_rep} ]; then
-          make  >& ${log_file};
+          ${SRUN_BUILD_COMMAND} make  >& ${log_file};
       else
-          make -j${MAKE_THREADS}  >& ${log_file};
+          ${SRUN_BUILD_COMMAND} make -j${MAKE_THREADS}  >& ${log_file};
       fi
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
@@ -210,7 +222,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
         cat ${log_file};
     fi
 else
-    make -j${MAKE_THREADS}
+    ${SRUN_BUILD_COMMAND} make -j${MAKE_THREADS}
     error_code=$?
 fi
 
