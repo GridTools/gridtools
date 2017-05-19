@@ -36,14 +36,9 @@
 #pragma once
 // [includes]
 #include <iostream>
-#ifndef NDEBUG
-#ifndef __CUDACC__
 #include <fstream>
-#endif
-#endif
 #include <gridtools.hpp>
 #include <stencil-composition/make_computation.hpp>
-#include <common/parallel_storage_info.hpp>
 #include <common/partitioner_trivial.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
@@ -53,10 +48,20 @@
 #include <boundary-conditions/apply.hpp>
 #endif
 
+#ifdef _GCL_MPI_
 #include <communication/halo_exchange.hpp>
+#include <common/parallel_storage_info.hpp>
+#endif
 
 #include <tools/verifier.hpp>
 #include "shallow_water_reference.hpp"
+
+#ifdef _GCL_MPI_
+#include "../unit_tests/communication/check_flags.hpp"
+#include "../unit_tests/communication/mpi_listener.hpp"
+#include "../unit_tests/communication/device_binding.hpp"
+#endif
+
 // [includes]
 
 // [backend]
@@ -263,26 +268,24 @@ namespace shallow_water {
             dimension< 1 > i;
             dimension< 2 > j;
 
-            eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
+            eval(sol()) = eval(sol{} - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
                                (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));
 
-            eval(sol(comp(1))) =
-                eval(sol(comp(1)) -
-                     (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / tl)) -
-                         (pow< 2 >(tmpx(comp(1))) / tmpx(i - 0) + pow< 2 >(tmpx(i - 0)) * ((g() / tl)))) *
-                         ((dt() / dx())) -
-                     (tmpy(comp(2), j + 1) * tmpy(comp(1), j + 1) / tmpy(j + 1) -
-                         tmpy(comp(2)) * tmpy(comp(1)) / tmpy(i - 0)) *
-                         (dt() / dy()));
+            eval(sol(comp(1))) = eval(
+                sol(comp(1)) -
+                (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / tl)) -
+                    (pow< 2 >(tmpx(comp(1))) / tmpx{} + pow< 2 >(tmpx{}) * ((g() / tl)))) *
+                    ((dt() / dx())) -
+                (tmpy(comp(2), j + 1) * tmpy(comp(1), j + 1) / tmpy(j + 1) - tmpy(comp(2)) * tmpy(comp(1)) / tmpy{}) *
+                    (dt() / dy()));
 
-            eval(sol(comp(2))) =
-                eval(sol(comp(2)) -
-                     (tmpx(comp(1), i + 1) * tmpx(comp(2), i + 1) / tmpx(i + 1) -
-                         (tmpx(comp(1)) * tmpx(comp(2))) / tmpx(i - 0)) *
-                         ((dt() / dx())) -
-                     (pow< 2 >(tmpy(comp(2), j + 1)) / tmpy(j + 1) + pow< 2 >(tmpy(j + 1)) * ((g() / tl)) -
-                         (pow< 2 >(tmpy(comp(2))) / tmpy(i - 0) + pow< 2 >(tmpy(i - 0)) * ((g() / tl)))) *
-                         ((dt() / dy())));
+            eval(sol(comp(2))) = eval(
+                sol(comp(2)) -
+                (tmpx(comp(1), i + 1) * tmpx(comp(2), i + 1) / tmpx(i + 1) - (tmpx(comp(1)) * tmpx(comp(2))) / tmpx{}) *
+                    ((dt() / dx())) -
+                (pow< 2 >(tmpy(comp(2), j + 1)) / tmpy(j + 1) + pow< 2 >(tmpy(j + 1)) * ((g() / tl)) -
+                    (pow< 2 >(tmpy(comp(2))) / tmpy{} + pow< 2 >(tmpy{}) * ((g() / tl)))) *
+                    ((dt() / dy())));
 
 #else
             dimension< 1 > i;
@@ -337,7 +340,9 @@ namespace shallow_water {
 
     bool test(uint_t x, uint_t y, uint_t z, uint_t t) {
 
+#ifdef _GCL_MPI_
         gridtools::GCL_Init();
+#endif
 
 #ifndef __CUDACC__
         // testing the static printing
@@ -378,11 +383,14 @@ namespace shallow_water {
         typedef arg< 2, sol_type > p_sol;
         typedef boost::mpl::vector< p_tmpx, p_tmpy, p_sol > accessor_list;
         //! [args]
+        uint_t halo_size = 1;
 
+#ifdef _GCL_MPI_
         //! [proc_grid_dims]
-        array< int, 3 > dimensions{0, 0, 0};
-        MPI_3D_process_grid_t< 3 >::dims_create(PROCS, 2, dimensions);
+        array< int, 3 > dimensions{0, 0, 1};
+        MPI_Dims_create(PROCS, 2, &dimensions[0]);
         dimensions[2] = 1;
+
         //! [proc_grid_dims]
 
         //! [pattern_type]
@@ -397,12 +405,19 @@ namespace shallow_water {
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, &dimensions);
+        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, dimensions);
         //! [pattern_type]
 
         //! [partitioner]
         array< ushort_t, 3 > padding{1, 1, 0};
         array< ushort_t, 3 > halo{1, 1, 0};
+
+        if (PROCS == 1) // serial execution
+        {
+            halo[0] = halo[1] = 1;
+            halo[2] = 0;
+        }
+
         typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
             pattern_type::grid_type > partitioner_t;
 
@@ -414,7 +429,6 @@ namespace shallow_water {
         sol_type sol(meta_.get_metadata());
         // sol_type tmpx(meta_.get_metadata(), "tmpx");
         // sol_type tmpy(meta_.get_metadata(), "tmpy");
-        //! [parallel_storage]
 
         //! [add_halo]
         he.add_halo< 0 >(meta_.get_halo_gcl< 0 >());
@@ -422,7 +436,12 @@ namespace shallow_water {
         he.add_halo< 2 >(meta_.get_halo_gcl< 2 >());
 
         he.setup(3);
-        //! [add_halo]
+
+//! [add_halo]
+#else
+        storage_info_t meta_(d1, d2, d3);
+        sol_type sol(meta_);
+#endif
 
         //! [initialization_h]
         auto ds0 = sol.template get< 0, 0 >();
@@ -456,7 +475,6 @@ namespace shallow_water {
             }
         }
 #endif
-//! [initialization]
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
@@ -474,13 +492,19 @@ namespace shallow_water {
         // order. (I don't particularly like this)
         //! [aggregator_type]
         aggregator_type< accessor_list > domain(sol);
-        //! [aggregator_type]
+//! [aggregator_type]
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        //! [grid]
+// Definition of the physical dimensions of the problem.
+// The constructor takes the horizontal plane dimensions,
+// while the vertical ones are set according the the axis property soon after
+//! [grid]
+#ifdef _GCL_MPI_
         grid< axis, partitioner_t > grid(part, meta_);
+#else
+        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        grid< axis > grid(di, dj);
+#endif
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
         //! [grid]
@@ -505,9 +529,10 @@ namespace shallow_water {
         uint_t total_time = t;
 
         for (; final_step::current_time < total_time; ++final_step::current_time) {
-            //! [exchange]
-            // is on device?
-            std::vector< float_type * > vec(3);
+#ifdef _GCL_MPI_
+
+            std::vector< double * > vec(2);
+
 #ifndef __CUDACC__
             vec[0] = sol.get< 0, 0 >().get_storage_ptr()->get_cpu_ptr();
             vec[1] = sol.get< 1, 0 >().get_storage_ptr()->get_cpu_ptr();
@@ -522,6 +547,7 @@ namespace shallow_water {
             he.exchange();
             he.unpack(vec);
 //! [exchange]
+#endif // _GCL_MPI_
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
@@ -548,13 +574,16 @@ namespace shallow_water {
             //! [run]
         }
 
-        //! [finalize]
+//! [finalize]
+#ifdef _GCL_MPI_
         he.wait();
+#endif
 
         shallow_water_stencil->finalize();
 
+#ifdef _GCL_MPI_
         GCL_Finalize();
-
+#endif
         bool retval = true;
 //! [finalize]
 
@@ -578,14 +607,14 @@ namespace shallow_water {
 
         verifier check_result(1e-8);
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-        shallow_water_reference< sol_type, 11, 11 > reference;
+        shallow_water_reference< sol_type, 60 + 2, 83 + 2 > reference;
         reference.setup();
         for (uint_t t = 0; t < total_time; ++t) {
             reference.iterate();
         }
-        for (int i = 0; i < sol_type::num_of_storages; ++i) {
+
+        for (int i = 0; i < 3; ++i)
             retval &= check_result.verify(grid, sol.get_field()[i], reference.solution.get_field()[i], halos);
-        }
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;

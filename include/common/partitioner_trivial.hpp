@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "partitioner.hpp"
+#include "../boundary-conditions/predicate.hpp"
 
 /**
 @file
@@ -75,6 +76,10 @@ namespace gridtools {
 
         static const ushort_t space_dimensions = topology_t::space_dimensions;
 
+        GRIDTOOLS_STATIC_ASSERT((space_dimensions == communicator_t::ndims),
+            "the dimension of the topology does not "
+            "match the dimension of the processor "
+            "grid. What are you trying to do?");
         GRIDTOOLS_STATIC_ASSERT(is_cell_topology< GridTopology >::value,
             "check that the first template argument to the partitioner is a supported cell_topology type");
         /**@brief constructor
@@ -101,6 +106,10 @@ namespace gridtools {
 
             where d is the number of dimensions of the processors grid.
             The boundary flag is a single integer containing the sum of the touched boundaries (i.e. a bit map).
+
+            \param comm the processor grid communicator
+            \param halo the internal halos exchanged between neighbouring processors
+            \param padding the halo at the global boundary, needed by the boundary condition
         */
         partitioner_trivial(const communicator_t &comm,
             const gridtools::array< ushort_t, space_dimensions > &halo,
@@ -110,11 +119,16 @@ namespace gridtools {
 
             m_boundary = 0; // bitmap
 
-            for (ushort_t i = 0; i < communicator_t::ndims; ++i)
-                if (comm.coordinates(i) == comm.dimensions(i) - 1)
+            for (ushort_t i = 0; i < communicator_t::ndims; ++i) {
+                // check for errors in the input:
+                // the following one means that the given processor is outside the grid
+                assert(comm.coordinates()[i] < comm.dimensions()[i]);
+
+                if (comm.coordinates()[i] == comm.dimensions()[i] - 1)
                     m_boundary += std::pow(2, i);
+            }
             for (ushort_t i = communicator_t::ndims; i < 2 * (communicator_t::ndims); ++i)
-                if (comm.coordinates(i % (communicator_t::ndims)) == 0)
+                if (comm.coordinates()[i % (communicator_t::ndims)] == 0)
                     m_boundary += std::pow(2, i);
         }
 
@@ -123,11 +137,16 @@ namespace gridtools {
 
             m_boundary = 0; // bitmap
 
-            for (ushort_t i = 0; i < communicator_t::ndims; ++i)
-                if (comm.coordinates(i) == comm.dimensions(i) - 1)
+            for (ushort_t i = 0; i < communicator_t::ndims; ++i) {
+                // check for errors in the input:
+                // the following one means that the given processor is outside the grid
+                assert(comm.coordinates()[i] < comm.dimensions()[i]);
+
+                if (comm.coordinates()[i] == comm.dimensions()[i] - 1)
                     m_boundary += std::pow(2, i);
+            }
             for (ushort_t i = communicator_t::ndims; i < 2 * (communicator_t::ndims); ++i)
-                if (comm.coordinates(i % (communicator_t::ndims)) == 0)
+                if (comm.coordinates()[i % (communicator_t::ndims)] == 0)
                     m_boundary += std::pow(2, i);
         }
 
@@ -162,14 +181,7 @@ namespace gridtools {
             }
         }
 
-        uint_t compute_tile(ushort_t component, uint_t const size_) const {
-            int_t low;
-            int_t high;
-            low_up_bounds(low, high, component, size_);
-            return high - low;
-        }
-
-/**@brief computes the lower and upprt index of the local interval
+/**@brief computes the lower and upper index of the local interval
    \param component the dimension being partitioned
    \param size the total size of the quantity being partitioned
 
@@ -211,17 +223,15 @@ namespace gridtools {
 
             coordinates_gcl[component] = halo_descriptor(m_halo[component],
                 m_halo[component],
-                compute_halo(component, LOW),
-                tile_dimension + (compute_halo(component, LOW)) - 1,
-                tile_dimension + (compute_halo(component, UP)) + (compute_halo(component, LOW)));
+                m_halo[component],
+                tile_dimension + m_halo[component] - 1,
+                tile_dimension + m_halo[component]+m_halo[component] );
 
 #ifndef NDEBUG
-#ifdef VERBOSE
-            std::cout << "[" << PID << "]"
-                      << "grid [" << compute_halo(component, LOW) << " " << compute_halo(component, UP) << " "
-                      << compute_halo(component, LOW) << " " << tile_dimension + (compute_halo(component, LOW)) - 1
-                      << " " << (tile_dimension + compute_halo(component, UP)) + (compute_halo(component, LOW)) << "]"
+            std::cout << "PID: " << PID << " coords[" << component << "]     " << coordinates[component] << std::endl;
+            std::cout << "PID: " << PID << " gcl_coords[" << component << "]     " << coordinates_gcl[component]
                       << std::endl;
+
             std::cout << "boundary for coords definition: " << boundary() << std::endl;
             std::cout << "partitioning" << std::endl;
             std::cout << "up bounds for component " << component << ": " << up_bound[component] << std::endl
@@ -229,8 +239,11 @@ namespace gridtools {
                       << "pid: " << m_pid[0] << " " << m_pid[1] << " " << m_pid[2] << std::endl
                       << "component, size: " << component << " " << size_ << std::endl;
 #endif
-#endif
-            return tile_dimension + compute_halo(component, UP) + compute_halo(component, LOW);
+            // adding twice the halo => wasting some space in case the
+            // global boundary has no halo.
+            // The commented version is tight (and should be used), but it's not working.
+            return tile_dimension + 2 * m_halo[component];
+            //+ compute_halo(component, UP) + compute_halo(component, LOW);
         }
 
         /** @brief method to query the halo dimension based on the periodicity of the communicator and the boundary flag
@@ -282,16 +295,34 @@ namespace gridtools {
             \endverbatim
         */
         int_t compute_halo(ushort_t const &component_, typename super::Flag const &flag_) const {
-            return (m_comm.periodic(component_) || !at_boundary(component_, flag_)) ? m_halo[component_]
-                                                                                    : m_pad[component_];
+            assert(component_ < communicator_t::ndims);
+            return (m_comm.periodic()[component_] || !at_boundary(component_, flag_)) ? m_halo[component_]
+                                                                                      : m_pad[component_];
         }
 
-        /**to be called from the user interface*/
+        /**@brief returns wether the current partition is touching the boundary specified in input
+
+           @param component_ the space dimension considered (i,j,k,...)
+           @param flag_ a direction (UP or LOW) for the given dimension
+           formula:
+           * compute \f$ flag_*2^{component_}\f$ , which will
+           be in binary representation a serie of 0s with a 1 at position either component_, or component_ +
+           n_dimensions
+           (depending on wether the flag is UP or LOW).
+           * compare this with boundary(), which is a bitmap having 1s in position "p" if the current partition is
+           touching the "p"th global boundary.
+           The bitwise and is either 0 or the identity in this case.
+           * Convert the value to a boolean: false if the boundary is not touched, true otherwise
+           * Take the opposite: return true if it's touching the boundary, false otherwise
+         */
         GT_FUNCTION
         bool at_boundary(ushort_t const &component_, typename super::Flag flag_) const {
 
-            return !(boundary() % (ushort_t)((ushort_t)gt_pow< 2 >::apply(component_ + 1) * (ushort_t)flag_) <
-                     ((component_ + (ushort_t)1) * (ushort_t)flag_));
+#ifndef __CUDACC__
+            assert(component_ < communicator_t::ndims);
+#endif
+            // bitwise and
+            return boundary_function::compute_boundary_id(component_, flag_) & boundary();
         }
 
         GT_FUNCTION

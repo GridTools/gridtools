@@ -7,11 +7,11 @@ else()
   file(GLOB_RECURSE INC_ALL_ "../include/[a-z|A-Z|0-9]*.hpp")
   list ( APPEND INC_ALL ${INC_ALL_} )
 
-  list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment advection_pdbott_prepare_tracers)
+  list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment )
   list( APPEND X86_SRCFILES reduction)
 
   if( ENABLE_CXX11)
-    list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage  expandable_parameters expandable_parameters_single_kernel expandable_parameters_reassign_domain data_store_field_test)
+    list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage  expandable_parameters expandable_parameters_single_kernel expandable_parameters_reassign_domain data_store_field_test advection_pdbott_prepare_tracers)
   endif()
 
   set( GTEST_FILES Options.hpp Options.cpp)
@@ -51,14 +51,19 @@ else()
         gridtools_add_test( tests.interface1_functions_block_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/interface1_functions_block_${var_suffix}" "23 11 23")
     endforeach(variation)
 
-    if( GCL_MPI )
-        add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
-        target_link_libraries(shallow_water_enhanced ${exe_LIBS} gtest_main)
-        set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+    add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
+    target_link_libraries(shallow_water_enhanced gcl ${ADD_MPI_LIBS} ${exe_LIBS} gtest gtest_main)
+    #set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+    if( NOT GCL_MPI ) # when MPI is on this test must be executed in parallel
+      gridtools_add_test( tests.shallow_water_enhanced ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced" "8 8 1 1")
+    endif(NOT GCL_MPI)
 
-        add_executable(copy_stencil_parallel  copy_stencil_parallel.cpp)
-        target_link_libraries(copy_stencil_parallel ${exe_LIBS} gtest_main)
-        set_target_properties(copy_stencil_parallel PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+    if( GCL_MPI )
+        set(ccflags " " )
+        set(ldflags " ")
+
+        #add_custom_mpi_host_test(shallow_water_enhanced_mpi ${CMAKE_CURRENT_SOURCE_DIR}/../examples/shallow_water_enhanced.cpp ${ldflags} ${ccflags})
+        add_custom_mpi_host_test(copy_stencil_parallel ${CMAKE_CURRENT_SOURCE_DIR}/../examples/copy_stencil_parallel.cpp ${ldflags} ${ccflags})
     endif()
   endif()
 
@@ -85,13 +90,19 @@ else()
             gridtools_add_test( tests.interface1_functions_cuda_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/interface1_functions_cuda_${var_suffix}" "23 11 43")
             gridtools_add_test( tests.interface1_functions_cuda_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/interface1_functions_cuda_${var_suffix}" "23 11 23")
         endforeach(variation)
-        if( GCL_MPI )
-          cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
-          target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS} gtest_main)
 
-          cuda_add_executable(copy_stencil_parallel_cuda  copy_stencil_parallel.cu)
-          target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gtest_main)
-        endif()
+        cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS )
+        target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS}  gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} gtest gtest_main)
+        gridtools_add_test( tests.shallow_water_enhanced_cuda ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/shallow_water_enhanced_cuda" "64 16 1 1")
+
+        if( GCL_MPI )
+          set(ccflags " " )
+          set(ldflags " ")
+
+          # TODO: not working
+          # add_custom_mpi_gpu_test(shallow_water_enhanced_cuda_mpi ${CMAKE_CURRENT_SOURCE_DIR}/../examples/shallow_water_enhanced.cu ${ldflags} ${ccflags})
+          add_custom_mpi_gpu_test(copy_stencil_parallel_cuda ${CMAKE_CURRENT_SOURCE_DIR}/../examples/copy_stencil_parallel.cu ${ldflags} ${ccflags})
+          endif()
     endif()
 
     add_subdirectory( communication )

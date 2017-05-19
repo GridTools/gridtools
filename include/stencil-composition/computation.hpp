@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../common/defs.hpp"
+#include <string>
 // //\todo this struct becomes redundant when the auto keyword is used
 namespace gridtools {
     template < typename ReductionType = int >

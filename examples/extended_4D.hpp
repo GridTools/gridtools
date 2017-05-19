@@ -181,6 +181,25 @@ namespace assembly {
         metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
         storage_global_quad_t jac(integration_metadata, [](int i, int j, int k, int q) { return 1. + q; }, "jac");
 
+        auto v_jac = make_host_view(jac);
+
+        for (uint_t i = 0; i < d1; ++i)
+            for (uint_t j = 0; j < d2; ++j)
+                for (uint_t k = 0; k < d3; ++k)
+                    for (uint_t q = 0; q < nbQuadPt; ++q) {
+                        v_jac(i, j, k, q) = 1. + q;
+                    }
+
+        auto v_phi = make_host_view(phi);
+        auto v_psi = make_host_view(psi);
+        for (uint_t i = 0; i < b1; ++i)
+            for (uint_t j = 0; j < b2; ++j)
+                for (uint_t k = 0; k < b3; ++k)
+                    for (uint_t q = 0; q < nbQuadPt; ++q) {
+                        v_phi(i, j, k, q) = 10.;
+                        v_psi(i, j, k, q) = 11.;
+                    }
+
         metadata_t meta_(d1, d2, d3, b1, b2, b3);
         storage_t f(meta_, (float_type)1.3, "f");
         storage_t result(meta_, (float_type)0., "result");
