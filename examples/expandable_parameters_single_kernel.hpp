@@ -115,10 +115,8 @@ namespace test_expandable_parameters {
         storage_t storage40(meta_data_, -4., "storage40");
         storage_t storage50(meta_data_, -5., "storage50");
 
-        std::vector< storage_t > list_out_ = {
-            storage1, storage2, storage3, storage4, storage5};
-        std::vector< storage_t > list_in_ = {
-            storage10, storage20, storage30, storage40, storage50};
+        std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
+        std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
@@ -161,22 +159,13 @@ namespace test_expandable_parameters {
             p_3_tmp,
             p_4_tmp > args_t;
 
-        aggregator_type< args_t > domain_(storage1,
-            storage2,
-            storage3,
-            storage4,
-            storage5,
-            storage10,
-            storage20,
-            storage30,
-            storage40,
-            storage50);
+        aggregator_type< args_t > domain_(
+            storage1, storage2, storage3, storage4, storage5, storage10, storage20, storage30, storage40, storage50);
         auto comp_ = make_computation< BACKEND >(
             domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                define_caches(cache< IJ, local >(
-                    p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
+                define_caches(cache< IJ, local >(p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
                 make_stage< functor_single_kernel >(p_0_tmp(),
                                 p_1_tmp(),
                                 p_2_tmp(),

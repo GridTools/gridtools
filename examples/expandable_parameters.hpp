@@ -97,10 +97,8 @@ namespace test_expandable_parameters {
         storage_t storage40(meta_data_, -4., "storage40");
         storage_t storage50(meta_data_, -5., "storage50");
 
-        std::vector< storage_t > list_out_ = {
-            storage1, storage2, storage3, storage4, storage5};
-        std::vector< storage_t > list_in_ = {
-            storage10, storage20, storage30, storage40, storage50};
+        std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
+        std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
