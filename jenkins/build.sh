@@ -164,6 +164,7 @@ if [[ "$BUILD_ON_CN" == "ON" ]]; then
     fi
 else
     echo "Building on `hostname`"
+    SRUN_BUILD_COMMAND=""
 fi
 
 cmake \
