@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2016, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,60 +33,49 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "host_device.hpp"
-#include <stdexcept>
+#include "gtest/gtest.h"
+#include "common/defs.hpp"
+#include "common/halo_descriptor.hpp"
 
-#ifndef NDEBUG
-#include <stdio.h>
-#endif
+using namespace gridtools;
 
-#ifdef __CUDACC__
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 200)
-// we take the cuda assert for arch greater than 2.x
-#include <assert.h>
-#else
-#undef assert
-#define assert(e)
-#endif
-#else
-#include <cassert>
-#endif
+TEST(test_halo_descriptor, empty_compute_domain) {
+    uint_t size = 6;
+    uint_t halo_size = 3;
 
-#ifdef __GNUC__
-
-#define GTASSERT(cond) gt_assert(cond, __LINE__, __FILE__)
-
-namespace gridtools {
-    GT_FUNCTION
-    void gt_assert(bool cond, int line, const char *filename) {
-#ifndef NDEBUG
-        if (!cond)
-            printf("Assert triggered in %s:%d \n", filename, line);
-#endif
-        assert(cond);
-    }
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, halo_size, size - halo_size - 1, size}));
 }
 
-#else
+TEST(test_halo_descriptor, begin_in_halo) {
+    uint_t begin = 0;
+    uint_t halo_size = 1;
+    uint_t size = 10;
 
-#define GTASSERT(cond) gt_assert(cond)
-
-namespace gridtools {
-    GT_FUNCTION
-    void gt_assert(bool cond) { assert(cond); }
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, begin, size - halo_size - 1, size}));
 }
 
-#endif
+TEST(test_halo_descriptor, end_in_halo) {
+    uint_t halo_size = 1;
+    uint_t size = 10;
+    uint_t end = size - 1;
 
-#ifdef __CUDA_ARCH__
-#ifdef CUDA8
-#define ASSERT_OR_THROW(cond, msg) assert(cond &&msg)
-#else
-#define ASSERT_OR_THROW(cond, msg)
-#endif
-#else
-#define ASSERT_OR_THROW(cond, msg) \
-    if (!cond)                     \
-    throw std::runtime_error(msg)
-#endif
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, halo_size, end, size}));
+}
+
+TEST(test_halo_descriptor, invalid_total_length) {
+    uint_t halo_size = 3;
+    uint_t begin = halo_size;
+    uint_t end = 10 - halo_size - 1;
+    uint_t size = 9;
+
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, begin, end, size}));
+}
+
+TEST(test_halo_descriptor, is_valid) {
+    uint_t size = 7;
+    uint_t halo_size = 3;
+
+    ASSERT_NO_THROW((halo_descriptor{halo_size, halo_size, halo_size, size - halo_size - 1, size}));
+}
+
+TEST(test_halo_descriptor, default_constructed_is_valid) { ASSERT_NO_THROW((halo_descriptor())); }
