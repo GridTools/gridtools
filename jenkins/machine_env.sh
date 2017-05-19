@@ -8,6 +8,8 @@ elif [ "`hostname | grep dom`" != "" ] ; then
     myhost="dom"
 elif [ "`hostname | grep daint`" != "" ] ; then
     myhost="daint"
+elif [ "`hostname | grep nid0`" != "" ] ; then
+    myhost="daint"
 else
     echo "ERROR: host not known"
     exit 1

@@ -61,7 +61,7 @@ namespace gridtools {
     template < typename IterateDomain, ushort_t Position >
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, GT_INTERNAL_ERROR);
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
         typedef IterateDomain iterate_domain_t;
@@ -102,7 +102,7 @@ namespace gridtools {
             // check that if the storage is written the accessor is inout
 
             accessor< ACC_ID, Intent, Extent, Size > tmp_(arg);
-            tmp_.template set< 1 >(ID);
+            tmp_.template set< 0 >(ID);
 
             return super::operator()(tmp_);
         }

@@ -59,7 +59,7 @@ TEST(icosahedral_topology, layout) {
     static_assert((boost::is_same< alayout_t, layout_map< 0, 1, 2, 3 > >::value), "ERROR");
 #endif
 
-    using alayout_2d_t = icosahedral_topology_t::layout_t< selector< 1, 1, 1, -1 > >;
+    using alayout_2d_t = icosahedral_topology_t::layout_t< selector< 1, 1, 1, 0 > >;
 #ifdef __CUDACC__
     static_assert((boost::is_same< alayout_2d_t, layout_map< 2, 1, 0, -1 > >::value), "ERROR");
 #else
@@ -77,10 +77,14 @@ TEST(icosahedral_topology, layout) {
 TEST(icosahedral_topology, make_storage) {
 
     icosahedral_topology_t grid(4, 6, 7);
+    icosahedral_topology_t::meta_storage_t< icosahedral_topology_t::edges, halo< 0, 0, 0, 0 >, selector< 1, 1, 1, 1 > >
+        x(1, 2, 3, 4);
     {
-        auto astorage =
-            grid.template make_storage< icosahedral_topology_t::edges, double, selector< 1, 1, 1, 1 > >("turu");
-        auto ameta = astorage.meta_data();
+        auto astorage = grid.template make_storage< icosahedral_topology_t::edges,
+            double,
+            halo< 0, 0, 0, 0 >,
+            selector< 1, 1, 1, 1 > >("turu");
+        auto ameta = *astorage.get_storage_info_ptr();
 
         ASSERT_TRUE((ameta.dim< 0 >() == 4));
         ASSERT_TRUE((ameta.dim< 1 >() == 3));
@@ -88,10 +92,11 @@ TEST(icosahedral_topology, make_storage) {
         ASSERT_TRUE((ameta.dim< 3 >() == 7));
     }
     {
-        auto astorage =
-            grid.template make_storage< icosahedral_topology_t::edges, double, selector< 1, 1, 1, 1, 1, 1 > >(
-                "turu", 8, 9);
-        auto ameta = astorage.meta_data();
+        auto astorage = grid.template make_storage< icosahedral_topology_t::edges,
+            double,
+            halo< 0, 0, 0, 0, 0, 0 >,
+            selector< 1, 1, 1, 1, 1, 1 > >("turu", 8, 9);
+        auto ameta = *astorage.get_storage_info_ptr();
 
         ASSERT_TRUE((ameta.dim< 0 >() == 4));
         ASSERT_TRUE((ameta.dim< 1 >() == 3));

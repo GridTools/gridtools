@@ -36,7 +36,7 @@
 #ifndef _TRANSLATE_H_
 #define _TRANSLATE_H_
 
-#include "../../common/layout_map.hpp"
+#include "../../common/layout_map_metafunctions.hpp"
 
 namespace gridtools {
 
