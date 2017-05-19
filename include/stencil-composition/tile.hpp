@@ -47,6 +47,16 @@ namespace gridtools {
     };
 
     template < typename T >
+    struct get_minus_t_from_tile {
+        typedef typename T::s_minus_t type;
+    };
+
+    template < typename T >
+    struct get_plus_t_from_tile {
+        typedef typename T::s_plus_t type;
+    };
+
+    template < typename T >
     struct is_tile : boost::mpl::false_ {};
 
     template < uint_t Tile, uint_t Minus, uint_t Plus >

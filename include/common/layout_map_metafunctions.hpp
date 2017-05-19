@@ -35,25 +35,105 @@
 */
 
 #pragma once
-#include "generic_metafunctions/gt_integer_sequence.hpp"
+
+#include <boost/mpl/range_c.hpp>
+#include <boost/mpl/fold.hpp>
+
 #include "layout_map.hpp"
 #include "selector.hpp"
+#include "generic_metafunctions/gt_integer_sequence.hpp"
 #include "generic_metafunctions/replace.hpp"
 #include "generic_metafunctions/sequence_unpacker.hpp"
 
 #ifdef CXX11_ENABLED
 namespace gridtools {
 
+    template < typename LayoutMap >
+    struct reverse_map;
+
+    template < short_t... Is >
+    struct reverse_map< layout_map< Is... > > {
+        template < short_t I, short_t Max >
+        struct new_value {
+            static const short_t value = (Max - I) > Max ? I : Max - I;
+        };
+
+        template < typename Current, typename Next >
+        struct get_max {
+            using type = boost::mpl::int_< (Current::value > Next::value) ? Current::value : Next::value >;
+        };
+
+        using max = typename boost::mpl::fold< typename layout_map< Is... >::layout_vector_t,
+            boost::mpl::int_< -1 >,
+            get_max< boost::mpl::_1, boost::mpl::_2 > >::type;
+
+        typedef layout_map< new_value< Is, max::value >::value... > type;
+    };
+
+    template < typename DATALO, typename PROCLO >
+    struct layout_transform;
+
+    template < short_t I1, short_t I2, short_t P1, short_t P2 >
+    struct layout_transform< layout_map< I1, I2 >, layout_map< P1, P2 > > {
+        typedef layout_map< I1, I2 > L1;
+        typedef layout_map< P1, P2 > L2;
+
+        static const short_t N1 = boost::mpl::at_c< typename L1::static_layout_vector, P1 >::type::value;
+        static const short_t N2 = boost::mpl::at_c< typename L1::static_layout_vector, P2 >::type::value;
+
+        typedef layout_map< N1, N2 > type;
+    };
+
+    template < short_t I1, short_t I2, short_t I3, short_t P1, short_t P2, short_t P3 >
+    struct layout_transform< layout_map< I1, I2, I3 >, layout_map< P1, P2, P3 > > {
+        typedef layout_map< I1, I2, I3 > L1;
+        typedef layout_map< P1, P2, P3 > L2;
+
+        static const short_t N1 = boost::mpl::at_c< typename L1::static_layout_vector, P1 >::type::value;
+        static const short_t N2 = boost::mpl::at_c< typename L1::static_layout_vector, P2 >::type::value;
+        static const short_t N3 = boost::mpl::at_c< typename L1::static_layout_vector, P3 >::type::value;
+
+        typedef layout_map< N1, N2, N3 > type;
+    };
+
+    template < short_t D >
+    struct default_layout_map;
+
+    template <>
+    struct default_layout_map< 1 > {
+        typedef layout_map< 0 > type;
+    };
+
+    template <>
+    struct default_layout_map< 2 > {
+        typedef layout_map< 0, 1 > type;
+    };
+
+    template <>
+    struct default_layout_map< 3 > {
+        typedef layout_map< 0, 1, 2 > type;
+    };
+
+    template <>
+    struct default_layout_map< 4 > {
+        typedef layout_map< 0, 1, 2, 3 > type;
+    };
+
     /*
      * metafunction to filter out some of the dimensions of a layout map, determined by the DimSelector
-     * Example of use: filter_layout<layout_map<0,1,2,3>, selector<1,1,-1,1 > == layout_map<0,1,-1,2>
+     * Example of use: filter_layout<layout_map<0,1,2,3>, selector<1,1,0,1 > == layout_map<0,1,-1,2>
      */
     template < typename Layout, typename DimSelector >
-    struct filter_layout {
-        GRIDTOOLS_STATIC_ASSERT((is_selector< DimSelector >::value), "Error: Dimension selector is wrong");
+    struct filter_layout;
+
+    template < typename Layout, bool... Bitmask >
+    struct filter_layout< Layout, selector< Bitmask... > > {
+        typedef selector< Bitmask... > dim_selector_t;
+        GRIDTOOLS_STATIC_ASSERT((is_selector< dim_selector_t >::value), "Error: Dimension selector is wrong");
+        typedef boost::mpl::vector_c< bool, Bitmask... > dim_selector_vec_t;
         GRIDTOOLS_STATIC_ASSERT((is_layout_map< Layout >::value), "Error: need a layout map type");
         GRIDTOOLS_STATIC_ASSERT(
-            (DimSelector::length >= Layout::length), "Error: need to specifiy at least 4 dimensions");
+            (sizeof...(Bitmask) >= Layout::masked_length), "Error: need to specifiy at least 4 dimensions");
 
         template < uint_t NumNullDims, typename Seq_ >
         struct data_ {
@@ -76,21 +156,22 @@ namespace gridtools {
                     Data_::num_null_dims,
                     typename replace< typename Data_::seq_t,
                         Position,
-                        static_int< Layout::template at_< Position::value >::value - Data_::num_null_dims > >::type >
-                    type;
+                        static_int< Layout::template at< Position::value >() - Data_::num_null_dims > >::type > type;
             };
-            typedef static_int< Layout::template pos_< Index::value >::value > position_t;
-            typedef typename boost::mpl::if_c< (DimSelector::template get_elem< position_t::value >::value == -1),
-                typename insert_a_null< Data, position_t >::type,
-                typename insert_a_pos_index< Data, position_t >::type >::type type;
+            typedef static_int< Layout::template find< Index::value >() > position_t;
+            typedef
+                typename boost::mpl::if_c< (boost::mpl::at_c< dim_selector_vec_t, position_t::value >::type::value ==
+                                               false),
+                    typename insert_a_null< Data, position_t >::type,
+                    typename insert_a_pos_index< Data, position_t >::type >::type type;
         };
 
-        typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, Layout::length >,
+        typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, Layout::masked_length >,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1, static_int< 0 > > >::type initial_vector;
 
         typedef data_< 0, initial_vector > initial_data;
-        typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, Layout::length >,
+        typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, Layout::masked_length >,
             initial_data,
             insert_index_at_pos< boost::mpl::_1, boost::mpl::_2 > >::type new_layout_indices_data_t;
 

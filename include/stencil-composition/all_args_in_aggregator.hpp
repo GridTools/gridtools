@@ -48,7 +48,7 @@ namespace gridtools {
                 template < typename CR, typename Plc >
                 struct apply {
                     using type = typename boost::mpl::and_< CR,
-                        typename boost::mpl::contains< typename Agg::placeholders, Plc >::type >::type;
+                        typename boost::mpl::contains< typename Agg::sorted_placeholders_t, Plc >::type >::type;
                 };
             };
 

@@ -37,13 +37,16 @@
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
 
+using namespace gridtools;
+using namespace enumtype;
+
 namespace all_args_in_aggregator {
-    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
+    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 
     struct copy_functor {
 
-        typedef gridtools::accessor< 0, gridtools::enumtype::in, gridtools::extent<>, 3 > in;
-        typedef gridtools::accessor< 1, gridtools::enumtype::inout, gridtools::extent<>, 3 > out;
+        typedef accessor< 0, enumtype::in, extent<>, 3 > in;
+        typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
@@ -52,32 +55,37 @@ namespace all_args_in_aggregator {
         }
     };
 
-    struct storage_type {
-        using iterator = int;
-        using value_type = float;
-    };
-
     TEST(testdomain, testindices) {
-        typedef gridtools::arg< 0, storage_type > p_in;
-        typedef gridtools::arg< 1, storage_type > p_out;
-        typedef gridtools::arg< 2, storage_type > p_err;
+#ifdef __CUDACC__
+#define BACKEND_ARCH Cuda
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#else
+#define BACKEND_ARCH Host
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#endif
+        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
+        typedef arg< 0, data_store_t > p_in;
+        typedef tmp_arg< 2, data_store_t > p_tmp;
+        typedef arg< 1, data_store_t > p_out;
+        typedef arg< 3, data_store_t > p_err;
 
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
-        using agg = gridtools::aggregator_type< accessor_list >;
+        typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
+        using agg = aggregator_type< accessor_list >;
 
-        auto bad = gridtools::make_multistage(gridtools::enumtype::execute< gridtools::enumtype::forward >(),
-            gridtools::make_stage< copy_functor >(p_in(), p_err()),
-            gridtools::make_stage< copy_functor >(p_in(), p_out()));
+        auto bad = make_multistage(enumtype::execute< enumtype::forward >(),
+            make_stage< copy_functor >(p_in(), p_err()),
+            make_stage< copy_functor >(p_in(), p_out()));
 
-        auto good = gridtools::make_multistage(gridtools::enumtype::execute< gridtools::enumtype::forward >(),
-            gridtools::make_stage< copy_functor >(p_in(), p_out()),
-            gridtools::make_stage< copy_functor >(p_in(), p_out()));
+        auto good = make_multistage(enumtype::execute< enumtype::forward >(),
+            make_stage< copy_functor >(p_in(), p_tmp()),
+            make_stage< copy_functor >(p_tmp(), p_out()));
 
-        static_assert(gridtools::_impl::all_args_in_aggregator< agg, decltype(good) >::type::value, "");
-        static_assert(!gridtools::_impl::all_args_in_aggregator< agg, decltype(bad) >::type::value, "");
+        static_assert(_impl::all_args_in_aggregator< agg, decltype(good) >::type::value, "");
+        static_assert(!_impl::all_args_in_aggregator< agg, decltype(bad) >::type::value, "");
 
-        static_assert(gridtools::_impl::all_args_in_aggregator< agg, decltype(good), decltype(good) >::type::value, "");
-        static_assert(!gridtools::_impl::all_args_in_aggregator< agg, decltype(bad), decltype(good) >::type::value, "");
+        static_assert(_impl::all_args_in_aggregator< agg, decltype(good), decltype(good) >::type::value, "");
+        static_assert(!_impl::all_args_in_aggregator< agg, decltype(bad), decltype(good) >::type::value, "");
     }
 
 } // namespace all_args_in_aggregator
