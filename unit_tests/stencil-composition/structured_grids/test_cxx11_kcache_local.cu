@@ -414,17 +414,6 @@ TEST_F(kcachef, biside_backward) {
     m_out.reactivate_host_write_views();
 
     bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
