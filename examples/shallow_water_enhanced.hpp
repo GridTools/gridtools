@@ -50,7 +50,7 @@
 
 #ifdef _GCL_MPI_
 #include <communication/halo_exchange.hpp>
-#include <storage/parallel_storage.hpp>
+#include <common/parallel_storage_info.hpp>
 #endif
 
 #include <tools/verifier.hpp>
@@ -530,6 +530,9 @@ namespace shallow_water {
 
         for (; final_step::current_time < total_time; ++final_step::current_time) {
 #ifdef _GCL_MPI_
+
+            std::vector< double * > vec(2);
+
 #ifndef __CUDACC__
             vec[0] = sol.get< 0, 0 >().get_storage_ptr()->get_cpu_ptr();
             vec[1] = sol.get< 1, 0 >().get_storage_ptr()->get_cpu_ptr();
@@ -610,16 +613,8 @@ namespace shallow_water {
             reference.iterate();
         }
 
-#ifdef _GCL_MPI_
-#ifndef __CUDACC__ // TODO fix bug with CUDA
-        for (int i = 0; i < 3; ++i)
-            retval &=
-                check_result.verify_parallel(grid, meta_, sol.get_field()[i], reference.solution.get_field()[i], halos);
-#endif
-#else
         for (int i = 0; i < 3; ++i)
             retval &= check_result.verify(grid, sol.get_field()[i], reference.solution.get_field()[i], halos);
-#endif
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;
