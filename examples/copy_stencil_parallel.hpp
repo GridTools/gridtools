@@ -199,10 +199,11 @@ namespace copy_stencil {
         printf("halo set up\n");
 #endif
 
+        auto v_in = make_host_view(in);
         for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i) {
             for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j) {
                 for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
-                    in(i, j, k) = (i + j + k) * (gridtools::PID + 1);
+                    v_in(i, j, k) = (i + j + k) * (gridtools::PID + 1);
                 }
             }
         }
@@ -258,10 +259,11 @@ namespace copy_stencil {
         halos[1] = meta_.template get_halo_descriptor< 1 >();
         halos[2] = meta_.template get_halo_descriptor< 2 >();
 
+        auto v_out = make_host_view(out);
         typename gridtools::boundary_apply< boundary_conditions< partitioner_t >,
             typename gridtools::bitmap_predicate< partitioner_t > >(
             halos, boundary_conditions< partitioner_t >(part), gridtools::bitmap_predicate< partitioner_t >(part))
-            .apply(in, out);
+            .apply(v_in, v_out);
 
         auto inv = make_host_view(in);
         auto outv = make_host_view(out);
@@ -291,7 +293,7 @@ namespace copy_stencil {
         for (uint_t i = 1; i < metadata_.template dim< 0 >() - 1; ++i)
             for (uint_t j = 1; j < metadata_.template dim< 1 >() - 1; ++j)
                 for (uint_t k = 1; k < metadata_.template dim< 2 >() - 1; ++k) {
-                    if (out(i, j, k) != (i + j + k) * (gridtools::PID + 1)) {
+                    if (v_out(i, j, k) != (i + j + k) * (gridtools::PID + 1)) {
                         GCL_Finalize();
                         return false;
                     }
