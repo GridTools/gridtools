@@ -109,11 +109,9 @@ namespace test_expandable_parameters_icosahedral {
         storage40 = cell_storage_type(sinfo, 40.);
         storage50 = cell_storage_type(sinfo, 50.);
 
-        std::vector< decltype(storage1) > list_out_ = {
-            storage1, storage2, storage3, storage4, storage5};
+        std::vector< decltype(storage1) > list_out_ = {storage1, storage2, storage3, storage4, storage5};
 
-        std::vector< decltype(storage10) > list_in_ = {
-            storage10, storage20, storage30, storage40, storage50};
+        std::vector< decltype(storage10) > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
         array< uint_t, 5 > di = {0, 0, 0, d1 - 1, d1};
         array< uint_t, 5 > dj = {0, 0, 0, d2 - 1, d2};

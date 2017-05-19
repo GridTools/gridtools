@@ -276,8 +276,8 @@ namespace gridtools {
                 const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[0].set_minus(0);
-                    dangeroushalo_r[0].set_plus(0);
+                    dangeroushalo[0].reset_minus();
+                    dangeroushalo_r[0].reset_plus();
                 }
             }
             {
@@ -289,8 +289,8 @@ namespace gridtools {
                 const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[0].set_plus(0);
-                    dangeroushalo_r[0].set_minus(0);
+                    dangeroushalo[0].reset_plus();
+                    dangeroushalo_r[0].reset_minus();
                 }
             }
             {
@@ -302,8 +302,8 @@ namespace gridtools {
                 const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[1].set_minus(0);
-                    dangeroushalo_r[1].set_plus(0);
+                    dangeroushalo[1].reset_minus();
+                    dangeroushalo_r[1].reset_plus();
                 }
             }
             {
@@ -315,8 +315,8 @@ namespace gridtools {
                 const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[1].set_plus(0);
-                    dangeroushalo_r[1].set_minus(0);
+                    dangeroushalo[1].reset_plus();
+                    dangeroushalo_r[1].reset_minus();
                 }
             }
             {
@@ -328,8 +328,8 @@ namespace gridtools {
                 const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[2].set_minus(0);
-                    dangeroushalo_r[2].set_plus(0);
+                    dangeroushalo[2].reset_minus();
+                    dangeroushalo_r[2].reset_plus();
                 }
             }
             {
@@ -341,8 +341,8 @@ namespace gridtools {
                 const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[2].set_plus(0);
-                    dangeroushalo_r[2].set_minus(0);
+                    dangeroushalo[2].reset_plus();
+                    dangeroushalo_r[2].reset_minus();
                 }
             }
 
