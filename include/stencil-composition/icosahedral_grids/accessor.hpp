@@ -53,7 +53,7 @@ namespace gridtools {
         using type = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
         using location_type = LocationType;
         static const uint_t value = ID;
-        using index_type = static_uint< ID >;
+        using index_t = static_uint< ID >;
         using extent_t = Extent;
         location_type location() const { return location_type(); }
 
