@@ -37,7 +37,7 @@
 #define _ALL_TO_ALL_HALO_H_
 
 #include "low-level/access_functions.hpp"
-#include "high-level/halo_descriptor.hpp"
+#include "../common/halo_descriptor.hpp"
 #include "low-level/Generic_All_to_All.hpp"
 #include "low-level/data_types_mapping.hpp"
 
