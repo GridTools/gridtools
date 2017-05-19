@@ -224,8 +224,8 @@ namespace gridtools {
             coordinates_gcl[component] = halo_descriptor(m_halo[component],
                 m_halo[component],
                 m_halo[component],
-                tile_dimension + (compute_halo(component, LOW)) - 1,
-                tile_dimension + (compute_halo(component, UP)) + (compute_halo(component, LOW)));
+                tile_dimension + m_halo[component] - 1,
+                tile_dimension + m_halo[component]+m_halo[component] );
 
 #ifndef NDEBUG
             std::cout << "PID: " << PID << " coords[" << component << "]     " << coordinates[component] << std::endl;
