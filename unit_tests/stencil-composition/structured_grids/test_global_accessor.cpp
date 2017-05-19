@@ -86,8 +86,8 @@ TEST(test_global_accessor, boundary_conditions) {
     auto bd_ = backend_t::make_global_parameter(bd);
     typedef arg< 1, decltype(bd_) > p_bd;
 
-    halo_descriptor di = halo_descriptor(0, 1, 1, 9, 10);
-    halo_descriptor dj = halo_descriptor(0, 1, 1, 1, 2);
+    halo_descriptor di = halo_descriptor(1, 0, 1, 9, 10);
+    halo_descriptor dj = halo_descriptor(1, 0, 1, 1, 2);
     grid< axis > coords_bc(di, dj);
     coords_bc.value_list[0] = 0;
     coords_bc.value_list[1] = 1;
