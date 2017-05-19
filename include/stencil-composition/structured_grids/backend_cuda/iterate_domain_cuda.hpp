@@ -300,8 +300,7 @@ namespace gridtools {
             // retrieve the k cache from the fusion tuple and access the element required give the current thread
             // position within
             // the block and the offsets of the accessor
-            return m_iterate_domain_cache.template get_k_cache< static_uint< acc_t::index_t::value > >().at(
-                accessor_);
+            return m_iterate_domain_cache.template get_k_cache< static_uint< acc_t::index_t::value > >().at(accessor_);
         }
 
         /** @brief return a the value in memory pointed to by an accessor

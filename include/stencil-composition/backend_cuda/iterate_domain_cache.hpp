@@ -105,6 +105,7 @@ namespace gridtools {
      * functor that will synchronize a cache with main memory
      * \tparam AccIndex index of the accessor
      * \tparam ExecutionPolicy : forward, backward
+     * \tparam InitialOffset additional offset to be applied to the accessor
      */
     template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0 >
     struct sync_mem_accessor {
@@ -139,6 +140,7 @@ namespace gridtools {
      * functor that prefill a kcache (before starting the vertical iteration) with initial values from main memory
      * \tparam AccIndex index of the accessor
      * \tparam ExecutionPolicy : forward, backward
+     * \tparam InitialOffset additional offset to be applied to the accessor
      */
     template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0 >
     struct prefill_cache {
