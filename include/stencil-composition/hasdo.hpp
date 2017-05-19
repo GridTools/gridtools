@@ -134,6 +134,9 @@ namespace gridtools {
         BOOST_STATIC_CONSTANT(
             bool, value = (HasDoDetails::check_if< has_do_member< TFunctor >::value, TFunctor, TInterval >::value));
         typedef boost::mpl::bool_< bool(value) > type;
+
+        GRIDTOOLS_STATIC_ASSERT((!HasDoDetails::check_if_const< value, TFunctor, TInterval >::value || !type::value),
+            "Do method can not accept a const eval object");
     };
 
 } // namespace gridtools
