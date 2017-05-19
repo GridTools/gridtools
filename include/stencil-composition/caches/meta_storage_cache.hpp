@@ -48,6 +48,8 @@ namespace gridtools {
             layout_t::masked_length == sizeof...(Dims), "Mismatch in layout length and passed number of dimensions.");
 
       public:
+        constexpr meta_storage_cache() {}
+
         GT_FUNCTION
         static constexpr uint_t size() { return meta_storage_t(Dims...).size(); }
 
