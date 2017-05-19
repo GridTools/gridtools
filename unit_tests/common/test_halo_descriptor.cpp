@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2016, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,47 +33,49 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #include "gtest/gtest.h"
-#include "test_grid.hpp"
+#include "common/defs.hpp"
+#include "common/halo_descriptor.hpp"
 
-TEST(test_grid, k_total_length) {
-    static const int_t offset_from = -2;
-    static const int_t offset_to = 2;
+using namespace gridtools;
 
-    uint_t splitter_begin = 5;
-    uint_t splitter_end = 50;
+TEST(test_halo_descriptor, empty_compute_domain) {
+    uint_t size = 6;
+    uint_t halo_size = 3;
 
-    typedef interval< level< 0, offset_from >, level< 1, offset_to + 1 > > axis;
-    grid< axis > grid_(halo_descriptor{}, halo_descriptor{});
-    grid_.value_list[0] = splitter_begin;
-    grid_.value_list[1] = splitter_end;
-
-    uint_t expected_total_length = splitter_end - splitter_begin - offset_from + offset_to;
-
-    ASSERT_EQ(expected_total_length, grid_.k_total_length());
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, halo_size, size - halo_size - 1, size}));
 }
 
-class test_grid_copy_ctor : public ::testing::Test {
-  private:
-    halo_descriptor halo_i;
-    halo_descriptor halo_j;
-    const int splitter_0;
-    const int splitter_1;
+TEST(test_halo_descriptor, begin_in_halo) {
+    uint_t begin = 0;
+    uint_t halo_size = 1;
+    uint_t size = 10;
 
-  public:
-    typedef interval< level< 0, -1 >, level< 1, -1 > > axis;
-    grid< axis > grid_;
-
-    test_grid_copy_ctor()
-        : halo_i(1, 1, 1, 3, 5), halo_j(2, 2, 2, 7, 10), splitter_0(2), splitter_1(5), grid_(halo_i, halo_j) {
-        grid_.value_list[0] = splitter_0;
-        grid_.value_list[1] = splitter_1;
-    }
-};
-
-TEST_F(test_grid_copy_ctor, copy_on_host) {
-    grid< axis > copy(grid_);
-
-    ASSERT_TRUE(test_grid_eq(grid_, copy));
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, begin, size - halo_size - 1, size}));
 }
+
+TEST(test_halo_descriptor, end_in_halo) {
+    uint_t halo_size = 1;
+    uint_t size = 10;
+    uint_t end = size - 1;
+
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, halo_size, end, size}));
+}
+
+TEST(test_halo_descriptor, invalid_total_length) {
+    uint_t halo_size = 3;
+    uint_t begin = halo_size;
+    uint_t end = 10 - halo_size - 1;
+    uint_t size = 9;
+
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, begin, end, size}));
+}
+
+TEST(test_halo_descriptor, is_valid) {
+    uint_t size = 7;
+    uint_t halo_size = 3;
+
+    ASSERT_NO_THROW((halo_descriptor{halo_size, halo_size, halo_size, size - halo_size - 1, size}));
+}
+
+TEST(test_halo_descriptor, default_constructed_is_valid) { ASSERT_NO_THROW((halo_descriptor())); }
