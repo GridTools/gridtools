@@ -404,7 +404,14 @@ namespace gridtools {
             }
         };
 
-        // fill next k level from main memory for all k caches
+        /**
+         * fill next k level from main memory for all k caches. The position of the kcache being filled
+         * depends on the iteration policy
+         * \tparam IterationPolicy forward: backward
+         * \param it_domain an iterate domain
+         * \param klevel current k level index
+         * \param grid a grid with loop bounds information
+         */
         template < typename IterationPolicy, typename IterateDomain, typename Grid >
         GT_FUNCTION void fill_caches(IterateDomain const &it_domain, const int_t klevel, const Grid &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
@@ -415,7 +422,14 @@ namespace gridtools {
                     it_domain, m_k_caches_tuple, klevel, grid));
         }
 
-        // flush the last k level of the ring buffer into main memory
+        /**
+         * flush the last k level of the ring buffer into main memory. The position of the kcache being flushed
+         * depends on the iteration policy
+         * \tparam IterationPolicy forward: backward
+         * \param it_domain an iterate domain
+         * \param klevel current k level index
+         * \param grid a grid with loop bounds information
+         */
         template < typename IterationPolicy, typename IterateDomain, typename Grid >
         GT_FUNCTION void flush_caches(IterateDomain const &it_domain, const int_t klevel, Grid const &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
@@ -499,7 +513,12 @@ namespace gridtools {
                                                boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type;
         };
 
-        // apply a prefill of all k caches
+        /**
+         * Initial fill of the of the kcaches. Before the iteration over k starts, we need to prefill the k level
+         * of the cache with k > 0 (<0) for the forward (backward) iteration policy
+         * \tparam IterationPolicy forward: backward
+         * \param it_domain an iterate domain
+         */
         template < typename IterationPolicy, typename IterateDomain >
         GT_FUNCTION void begin_fill(IterateDomain const &it_domain) {
             typedef typename kcache_begin_fill_indexes< IterationPolicy >::type k_begin_filling_caches_indexes_t;
@@ -509,7 +528,12 @@ namespace gridtools {
                     it_domain, m_k_caches_tuple));
         }
 
-        // apply a final flush at the end of the interval iteration
+        /**
+         * Final flush of the of the kcaches. After the iteration over k is done, we still need to flush the remaining
+         * k levels of the cache with k > 0 (<0) for the backward (forward) iteration policy
+         * \tparam IterationPolicy forward: backward
+         * \param it_domain an iterate domain
+         */
         template < typename IterationPolicy, typename IterateDomain >
         GT_FUNCTION void final_flush(IterateDomain const &it_domain) {
             typedef typename kcache_final_flush_indexes< IterationPolicy >::type k_final_flushing_caches_indexes_t;

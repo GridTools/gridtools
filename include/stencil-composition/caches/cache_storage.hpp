@@ -66,26 +66,24 @@ namespace gridtools {
     template < typename T, typename U >
     struct get_storage_accessor;
 
-    template < typename Cache, typename BlockSize, typename Extent, typename StorageWrapper >
-    struct cache_storage;
-
     /**
      * @struct cache_storage
      * simple storage class for storing caches. Current version is multidimensional, but allows the user only to cache
      * an entire dimension.
-     * Which dimensions to cache is decided by the extents. if the extent is 0,0 the dimension is not cached (and CANNOT
-     * BE ACCESSED with an offset other than 0).
+     * Which dimensions to cache is decided by the extents.
      * In a cached data field we suppose that all the snapshots get cached (adding an extra dimension to the
      * meta_storage_cache)
-     * in future version we need to support K and IJK storages. Data is allocated on the stack.
      * The size of the storage is determined by the block size and the extension to this block sizes required for
      *  halo regions (determined by a extent type)
-     * @tparam Value value type being stored
-     * @tparam BlockSize physical domain block size
-     * @tparam Extend extent
-     * @tparam NColors number of colors of the location type of the storage
-     * @tparam Storage type of the storage
+     * @tparam Cache a cache_impl type of the cache for which this class provides storage functionality
+     * @tparam BlockSize physical block size (in IJ dims) that determines the size of the cache storage in the
+     * scratchpad
+     * @tparam Extend extent at which the cache is used (used also to determine the size of storage)
+     * @tparam StorageWrapper storage wrapper containing the storage of the arg being cached
      */
+    template < typename Cache, typename BlockSize, typename Extent, typename StorageWrapper >
+    struct cache_storage;
+
     template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper >
     struct cache_storage< Cache, block_size< Tiles... >, extent< ExtentBounds... >, StorageWrapper > {
         GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
@@ -161,6 +159,9 @@ namespace gridtools {
             return m_values[extra_];
         }
 
+        /**
+         * @brief check that the offsets and bounds to a kcache access are correct
+         */
         template < typename Accessor >
         GT_FUNCTION value_type const &RESTRICT check_kcache_access(Accessor const &accessor_,
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
@@ -176,6 +177,10 @@ namespace gridtools {
             _impl::check_bounds_cache_offset< meta_t >(accessor_);
         }
 
+        /**
+         * @brief retrieve value in a cache given an accessor for a k cache
+         * @param accessor_ the accessor that contains the offsets being accessed
+         */
         template < typename Accessor >
         GT_FUNCTION value_type &RESTRICT at(Accessor const &accessor_,
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) {
@@ -187,6 +192,10 @@ namespace gridtools {
             return m_values[index_ - kminus_t::value];
         }
 
+        /**
+         * @brief retrieve value in a cache given an accessor for a k cache
+         * @param accessor_ the accessor that contains the offsets being accessed
+         */
         template < typename Accessor >
         GT_FUNCTION value_type const &RESTRICT at(Accessor const &accessor_,
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
@@ -198,6 +207,9 @@ namespace gridtools {
             return m_values[index_ - kminus_t::value];
         }
 
+        /**
+         * @brief slides the values of the ring buffer
+         */
         template < typename IterationPolicy >
         GT_FUNCTION void slide() {
             // TODO do not slide if cache interval out of ExecutionPolicy intervals

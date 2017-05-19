@@ -296,10 +296,6 @@ namespace gridtools {
             typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
 
-            // TODO ICO_STORAGE
-            // retrieve the k cache from the fusion tuple and access the element required give the current thread
-            // position within
-            // the block and the offsets of the accessor
             return m_iterate_domain_cache.template get_k_cache< static_uint< acc_t::index_t::value > >().at(accessor_);
         }
 
@@ -336,6 +332,13 @@ namespace gridtools {
             m_iterate_domain_cache.template slide_caches< IterationPolicy >();
         }
 
+        /**
+         * fill next k level from main memory for all k caches. The position of the kcache being filled
+         * depends on the iteration policy
+         * \tparam IterationPolicy forward: backward
+         * \param klevel current k level index
+         * \param grid a grid with loop bounds information
+         */
         template < typename IterationPolicy, typename Grid >
         GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
@@ -344,6 +347,13 @@ namespace gridtools {
             m_iterate_domain_cache.template fill_caches< IterationPolicy >(*this, klevel, grid);
         }
 
+        /**
+         * flush the last k level of the ring buffer into main memory. The position of the kcache being flushed
+         * depends on the iteration policy
+         * \tparam IterationPolicy forward: backward
+         * \param klevel current k level index
+         * \param grid a grid with loop bounds information
+         */
         template < typename IterationPolicy, typename Grid >
         GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
@@ -352,12 +362,22 @@ namespace gridtools {
             m_iterate_domain_cache.template flush_caches< IterationPolicy >(*this, klevel, grid);
         }
 
+        /**
+         * Final flush of the of the kcaches. After the iteration over k is done, we still need to flush the remaining
+         * k levels of the cache with k > 0 (<0) for the backward (forward) iteration policy
+         * \tparam IterationPolicy forward: backward
+         */
         template < typename IterationPolicy >
         GT_FUNCTION void final_flush() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
             m_iterate_domain_cache.template final_flush< IterationPolicy >(*this);
         }
 
+        /**
+         * Initial fill of the of the kcaches. Before the iteration over k starts, we need to prefill the k level
+         * of the cache with k > 0 (<0) for the forward (backward) iteration policy
+         * \tparam IterationPolicy forward: backward
+         */
         template < typename IterationPolicy >
         GT_FUNCTION void begin_fill() {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
