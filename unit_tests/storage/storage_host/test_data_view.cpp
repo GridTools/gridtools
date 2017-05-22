@@ -77,6 +77,20 @@ TEST(DataViewTest, Simple) {
     EXPECT_THROW(si.index(0, 3, 0), std::runtime_error);
     EXPECT_THROW(si.index(3, 0, 0), std::runtime_error);
     EXPECT_THROW(si.index(5, 5, 5), std::runtime_error);
+    typedef host_storage_info< 0, layout_map< 2, 1, 0 >, halo< 2, 2, 2 > > storage_info_w_halo_t;
+    constexpr storage_info_w_halo_t si2(3, 3, 3);
+    // out of bounds (negative direction)
+    si2.index(-2, -2, -2); // should not fail
+    EXPECT_THROW(si2.index(-2, -2, -3), std::runtime_error);
+    EXPECT_THROW(si2.index(0, 0, -3), std::runtime_error);
+    EXPECT_THROW(si2.index(0, -3, 0), std::runtime_error);
+    EXPECT_THROW(si2.index(-3, 0, 0), std::runtime_error);
+    // out of bounds (positive direction)
+    si2.index(4, 4, 4); // should not fail
+    EXPECT_THROW(si2.index(4, 4, 5), std::runtime_error);
+    EXPECT_THROW(si2.index(0, 0, 5), std::runtime_error);
+    EXPECT_THROW(si2.index(0, 5, 0), std::runtime_error);
+    EXPECT_THROW(si2.index(5, 0, 0), std::runtime_error);
 #endif
 
     ASSERT_TRUE(si.index(1, 0, 1) == 10);

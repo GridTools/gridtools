@@ -235,10 +235,10 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.stride< 2 >()), 1);
         EXPECT_EQ((x.stride< 3 >()), 32 * 11 * 7);
 
-        EXPECT_EQ(x.index(0, 0, 0, 0), 29); // halo point
-        EXPECT_EQ(x.index(0, 0, 1, 0), 30); // halo point
-        EXPECT_EQ(x.index(0, 0, 2, 0), 31); // halo point
-        EXPECT_EQ(x.index(0, 0, 3, 0), 32); // first data point, aligned
+        EXPECT_EQ(x.index(-1, -2, -3, -4), 29); // halo point
+        EXPECT_EQ(x.index(-1, -2, -2, -4), 30); // halo point
+        EXPECT_EQ(x.index(-1, -2, -1, -4), 31); // halo point
+        EXPECT_EQ(x.index(-1, -2, 0, -4), 32);  // first data point, aligned
     }
     {
         // test with different dims, halo and alignment
@@ -253,10 +253,10 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.stride< 2 >()), 32 * 11);
         EXPECT_EQ((x.stride< 3 >()), 32 * 11 * 14);
 
-        EXPECT_EQ(x.index(0, 0, 0, 0), 31); // halo point
-        EXPECT_EQ(x.index(0, 1, 0, 0), 31 + 32);
-        EXPECT_EQ(x.index(0, 0, 1, 0), 31 + 32 * 11);
-        EXPECT_EQ(x.index(0, 0, 0, 1), 31 + 32 * 11 * 14);
+        EXPECT_EQ(x.index(-1, -2, -3, -4), 31); // halo point
+        EXPECT_EQ(x.index(-1, -1, -3, -4), 31 + 32);
+        EXPECT_EQ(x.index(-1, -2, -2, -4), 31 + 32 * 11);
+        EXPECT_EQ(x.index(-1, -2, -3, -3), 31 + 32 * 11 * 14);
     }
     {
         // test with masked dimensions
@@ -271,10 +271,10 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.stride< 2 >()), 0);
         EXPECT_EQ((x.stride< 3 >()), 7);
 
-        EXPECT_EQ(x.index(0, 0, 0, 0), 31); // halo point
-        EXPECT_EQ(x.index(0, 1, 0, 0), 31);
-        EXPECT_EQ(x.index(0, 0, 1, 0), 31);
-        EXPECT_EQ(x.index(0, 0, 0, 1), 31 + 7);
+        EXPECT_EQ(x.index(-1, -2, -3, -4), 31); // halo point
+        EXPECT_EQ(x.index(-1, -1, -3, -4), 31);
+        EXPECT_EQ(x.index(-1, -2, -2, -4), 31);
+        EXPECT_EQ(x.index(-1, -2, -3, -3), 31 + 7);
 
         EXPECT_EQ(x.size(), 7 * 10 + 31);
     }

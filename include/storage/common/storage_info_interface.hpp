@@ -127,8 +127,11 @@ namespace gridtools {
                 Ints... idx) const {
             // check for out of bounds access; each index is checked if it does not exceed the unaligned dimension.
             // masked dimensions are skipped and a recursive call is performed until all indices are checked.
-            return ((layout_t::template at< N >() == -1) || (get_value_from_pack(N, idx...) < unaligned_dim< N >())) &&
-                   check_bounds< N + 1 >(idx...);
+            typedef boost::mpl::int_< (int)halo_t::template at< N >() > halosize_t;
+            return ((layout_t::template at< N >() == -1) ||
+                    ((get_value_from_pack(N, idx...) >= -halosize_t::value) &&
+                        (get_value_from_pack(N, idx...) < (unaligned_dim< N >() - halosize_t::value))) &&
+                        check_bounds< N + 1 >(idx...));
         }
 
         /*
@@ -151,7 +154,8 @@ namespace gridtools {
         template < unsigned N, typename... Ints >
         GT_FUNCTION constexpr typename boost::enable_if_c< (N < layout_t::masked_length), int >::type index_part(
             int first, Ints... ints) const {
-            return first * m_strides.template get< N >() + index_part< N + 1 >(ints..., first);
+            typedef boost::mpl::int_< (int)halo_t::template at< N >() > halosize_t;
+            return (first + halosize_t::value) * m_strides.template get< N >() + index_part< N + 1 >(ints..., first);
         }
 
         /*
