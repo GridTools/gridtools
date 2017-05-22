@@ -65,7 +65,7 @@ namespace adv_prepare_tracers {
         typedef boost::mpl::vector< data, data_nnow, rho > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, interval_t) {
+        GT_FUNCTION static void Do(Evaluation &eval, interval_t) {
             eval(data()) = eval(rho()) * eval(data_nnow());
         }
     };
@@ -91,17 +91,14 @@ namespace adv_prepare_tracers {
 
         meta_data_t meta_data_(d1, d2, d3);
 
-        std::vector< storage_t > list_out_(vec_size, storage_t(meta_data_, 0.0, "out"));
-        std::vector< storage_t > list_in_(vec_size, storage_t(meta_data_, 0.0, "in"));
+        std::vector< storage_t > list_out_;
+        std::vector< storage_t > list_in_;
 
-        /*
-        // TODO: Should be tested like this, otherwise we use the same data
-        // for all expandable parameter elements.
+        // fill expandable parameters
         for (unsigned i = 0; i < vec_size; ++i) {
             list_out_.push_back(storage_t(meta_data_, 0.0, "out"));
             list_in_.push_back(storage_t(meta_data_, i, "in"));
         }
-        */
 
         storage_t rho(meta_data_, 1.1);
 

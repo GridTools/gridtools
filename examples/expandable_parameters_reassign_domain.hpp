@@ -68,7 +68,7 @@ namespace test_expandable_parameters {
         typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(parameters_out{}) = eval(parameters_in{});
         }
     };
@@ -85,23 +85,15 @@ namespace test_expandable_parameters {
         storage_t storage3(meta_data_, 3., "storage3");
         storage_t storage4(meta_data_, 4., "storage4");
         storage_t storage5(meta_data_, 5., "storage5");
-        storage_t storage6(meta_data_, 6., "storage6");
-        storage_t storage7(meta_data_, 7., "storage7");
-        storage_t storage8(meta_data_, 8., "storage8");
 
         storage_t storage10(meta_data_, -1., "storage10");
         storage_t storage20(meta_data_, -2., "storage20");
         storage_t storage30(meta_data_, -3., "storage30");
         storage_t storage40(meta_data_, -4., "storage40");
         storage_t storage50(meta_data_, -5., "storage50");
-        storage_t storage60(meta_data_, -6., "storage60");
-        storage_t storage70(meta_data_, -7., "storage70");
-        storage_t storage80(meta_data_, -8., "storage80");
 
-        std::vector< storage_t > list_out_ = {
-            storage1, storage2, storage3, storage4, storage5, storage6, storage7, storage8};
-        std::vector< storage_t > list_in_ = {
-            storage10, storage20, storage30, storage40, storage50, storage60, storage70, storage80};
+        std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
+        std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};

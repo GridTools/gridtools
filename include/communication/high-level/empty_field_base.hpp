@@ -40,7 +40,7 @@
 #include "../../common/ndloops.hpp"
 #include "../low-level/data_types_mapping.hpp"
 #include "../../common/numerics.hpp"
-#include "halo_descriptor.hpp"
+#include "../../common/halo_descriptor.hpp"
 
 namespace gridtools {
     namespace _impl {

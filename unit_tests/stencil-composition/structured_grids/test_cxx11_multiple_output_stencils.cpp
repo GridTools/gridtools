@@ -52,19 +52,9 @@ struct TensionShearFunction {
     using arg_list = boost::mpl::vector< T_sqr_s, S_sqr_uv, u_in, v_in >;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(const Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
-/**
- * @brief Function computing the coefficients for the Smagorinsky diffusion
- *
- * Flops: 8 Nadd + 5 Nmul + 4 Ncmp + 2 Nsqrt= 27
- *
- * Assuming sqrt costs approximately 5 flops.
- *
- * Refrence:
- *  - STELLA: dycore/HorizontalDiffusionSmagorinsky.cpp
- */
 struct SmagCoeffFunction {
     using smag_u = inout_accessor< 0 >;
     using smag_v = inout_accessor< 1 >;
@@ -75,17 +65,9 @@ struct SmagCoeffFunction {
     using arg_list = boost::mpl::vector< smag_u, smag_v, T_sqr_s, S_sqr_uv >;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(const Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
-/**
- * @brief Function updating the horizontal velocities using the Smagorinsy coefficients
- *
- * Flops: 14 Nadd + 8 Nmul = 22
- *
- * Refrence:
- *  - STELLA: dycore/HorizontalDiffusionSmagorinsky.cpp
- */
 struct SmagUpdateFunction {
     using u_out = inout_accessor< 0 >;
     using v_out = inout_accessor< 1 >;
@@ -98,7 +80,7 @@ struct SmagUpdateFunction {
     using arg_list = boost::mpl::vector< u_out, v_out, u_in, v_in, smag_u, smag_v >;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(const Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 #ifdef __CUDACC__
@@ -149,8 +131,8 @@ TEST(multiple_outputs, compute_extents) {
 
     aggregator_type< arg_list > domain(dummy, dummy, dummy, dummy);
 
-    uint_t di[5] = {2, 2, 0, 7, 10};
-    uint_t dj[5] = {2, 2, 0, 7, 10};
+    halo_descriptor di{2, 2, 2, 7, 10};
+    halo_descriptor dj{2, 2, 2, 7, 10};
     grid< axis > grid_(di, dj);
 
     grid_.value_list[0] = 0;

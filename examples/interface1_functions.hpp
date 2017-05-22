@@ -75,8 +75,8 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
             auto x = (gridtools::float_type)4.0 * eval(in()) -
                      (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
             eval(out()) = x;
@@ -91,8 +91,8 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
 #ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version"
             gridtools::float_type _x_ =
@@ -137,8 +137,8 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
 
 #ifdef FUNCTIONS_MONOLITHIC
 #pragma message "monolithic version"
@@ -186,8 +186,8 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) =
                 eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
         }

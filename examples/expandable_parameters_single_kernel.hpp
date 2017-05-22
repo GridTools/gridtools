@@ -67,18 +67,12 @@ namespace test_expandable_parameters {
         typedef accessor< 2, enumtype::inout > parameters3_out;
         typedef accessor< 3, enumtype::inout > parameters4_out;
         typedef accessor< 4, enumtype::inout > parameters5_out;
-        typedef accessor< 5, enumtype::inout > parameters6_out;
-        typedef accessor< 6, enumtype::inout > parameters7_out;
-        typedef accessor< 7, enumtype::inout > parameters8_out;
 
-        typedef accessor< 8, enumtype::in > parameters1_in;
-        typedef accessor< 9, enumtype::in > parameters2_in;
-        typedef accessor< 10, enumtype::in > parameters3_in;
-        typedef accessor< 11, enumtype::in > parameters4_in;
-        typedef accessor< 12, enumtype::in > parameters5_in;
-        typedef accessor< 13, enumtype::in > parameters6_in;
-        typedef accessor< 14, enumtype::in > parameters7_in;
-        typedef accessor< 15, enumtype::in > parameters8_in;
+        typedef accessor< 5, enumtype::in > parameters1_in;
+        typedef accessor< 6, enumtype::in > parameters2_in;
+        typedef accessor< 7, enumtype::in > parameters3_in;
+        typedef accessor< 8, enumtype::in > parameters4_in;
+        typedef accessor< 9, enumtype::in > parameters5_in;
         // typedef accessor<2, enumtype::in> scalar;
 
         typedef boost::mpl::vector< parameters1_out,
@@ -86,28 +80,19 @@ namespace test_expandable_parameters {
             parameters3_out,
             parameters4_out,
             parameters5_out,
-            parameters6_out,
-            parameters7_out,
-            parameters8_out,
             parameters1_in,
             parameters2_in,
             parameters3_in,
             parameters4_in,
-            parameters5_in,
-            parameters6_in,
-            parameters7_in,
-            parameters8_in > arg_list;
+            parameters5_in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(parameters1_out()) = eval(parameters1_in());
             eval(parameters2_out()) = eval(parameters2_in());
             eval(parameters3_out()) = eval(parameters3_in());
             eval(parameters4_out()) = eval(parameters4_in());
             eval(parameters5_out()) = eval(parameters5_in());
-            eval(parameters6_out()) = eval(parameters6_in());
-            eval(parameters7_out()) = eval(parameters7_in());
-            eval(parameters8_out()) = eval(parameters8_in());
         }
     };
 
@@ -123,23 +108,15 @@ namespace test_expandable_parameters {
         storage_t storage3(meta_data_, 3., "storage3");
         storage_t storage4(meta_data_, 4., "storage4");
         storage_t storage5(meta_data_, 5., "storage5");
-        storage_t storage6(meta_data_, 6., "storage6");
-        storage_t storage7(meta_data_, 7., "storage7");
-        storage_t storage8(meta_data_, 8., "storage8");
 
         storage_t storage10(meta_data_, -1., "storage10");
         storage_t storage20(meta_data_, -2., "storage20");
         storage_t storage30(meta_data_, -3., "storage30");
         storage_t storage40(meta_data_, -4., "storage40");
         storage_t storage50(meta_data_, -5., "storage50");
-        storage_t storage60(meta_data_, -6., "storage60");
-        storage_t storage70(meta_data_, -7., "storage70");
-        storage_t storage80(meta_data_, -8., "storage80");
 
-        std::vector< storage_t > list_out_ = {
-            storage1, storage2, storage3, storage4, storage5, storage6, storage7, storage8};
-        std::vector< storage_t > list_in_ = {
-            storage10, storage20, storage30, storage40, storage50, storage60, storage70, storage80};
+        std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
+        std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
@@ -153,107 +130,62 @@ namespace test_expandable_parameters {
         typedef arg< 2, storage_t > p_2_out;
         typedef arg< 3, storage_t > p_3_out;
         typedef arg< 4, storage_t > p_4_out;
-        typedef arg< 5, storage_t > p_5_out;
-        typedef arg< 6, storage_t > p_6_out;
-        typedef arg< 7, storage_t > p_7_out;
 
-        typedef arg< 8, storage_t > p_0_in;
-        typedef arg< 9, storage_t > p_1_in;
-        typedef arg< 10, storage_t > p_2_in;
-        typedef arg< 11, storage_t > p_3_in;
-        typedef arg< 12, storage_t > p_4_in;
-        typedef arg< 13, storage_t > p_5_in;
-        typedef arg< 14, storage_t > p_6_in;
-        typedef arg< 15, storage_t > p_7_in;
+        typedef arg< 5, storage_t > p_0_in;
+        typedef arg< 6, storage_t > p_1_in;
+        typedef arg< 7, storage_t > p_2_in;
+        typedef arg< 8, storage_t > p_3_in;
+        typedef arg< 9, storage_t > p_4_in;
 
-        typedef tmp_arg< 16, storage_t > p_0_tmp;
-        typedef tmp_arg< 17, storage_t > p_1_tmp;
-        typedef tmp_arg< 18, storage_t > p_2_tmp;
-        typedef tmp_arg< 19, storage_t > p_3_tmp;
-        typedef tmp_arg< 20, storage_t > p_4_tmp;
-        typedef tmp_arg< 21, storage_t > p_5_tmp;
-        typedef tmp_arg< 22, storage_t > p_6_tmp;
-        typedef tmp_arg< 23, storage_t > p_7_tmp;
+        typedef tmp_arg< 10, storage_t > p_0_tmp;
+        typedef tmp_arg< 11, storage_t > p_1_tmp;
+        typedef tmp_arg< 12, storage_t > p_2_tmp;
+        typedef tmp_arg< 13, storage_t > p_3_tmp;
+        typedef tmp_arg< 14, storage_t > p_4_tmp;
 
         typedef boost::mpl::vector< p_0_out,
             p_1_out,
             p_2_out,
             p_3_out,
             p_4_out,
-            p_5_out,
-            p_6_out,
-            p_7_out,
             p_0_in,
             p_1_in,
             p_2_in,
             p_3_in,
             p_4_in,
-            p_5_in,
-            p_6_in,
-            p_7_in,
             p_0_tmp,
             p_1_tmp,
             p_2_tmp,
             p_3_tmp,
-            p_4_tmp,
-            p_5_tmp,
-            p_6_tmp,
-            p_7_tmp > args_t;
+            p_4_tmp > args_t;
 
-        aggregator_type< args_t > domain_(storage1,
-            storage2,
-            storage3,
-            storage4,
-            storage5,
-            storage6,
-            storage7,
-            storage8,
-            storage10,
-            storage20,
-            storage30,
-            storage40,
-            storage50,
-            storage60,
-            storage70,
-            storage80);
+        aggregator_type< args_t > domain_(
+            storage1, storage2, storage3, storage4, storage5, storage10, storage20, storage30, storage40, storage50);
         auto comp_ = make_computation< BACKEND >(
             domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                define_caches(cache< IJ, local >(
-                    p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp(), p_5_tmp(), p_6_tmp(), p_7_tmp())),
+                define_caches(cache< IJ, local >(p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
                 make_stage< functor_single_kernel >(p_0_tmp(),
                                 p_1_tmp(),
                                 p_2_tmp(),
                                 p_3_tmp(),
                                 p_4_tmp(),
-                                p_5_tmp(),
-                                p_6_tmp(),
-                                p_7_tmp(),
                                 p_0_in(),
                                 p_1_in(),
                                 p_2_in(),
                                 p_3_in(),
-                                p_4_in(),
-                                p_5_in(),
-                                p_6_in(),
-                                p_7_in()),
+                                p_4_in()),
                 make_stage< functor_single_kernel >(p_0_out(),
                                 p_1_out(),
                                 p_2_out(),
                                 p_3_out(),
                                 p_4_out(),
-                                p_5_out(),
-                                p_6_out(),
-                                p_7_out(),
                                 p_0_tmp(),
                                 p_1_tmp(),
                                 p_2_tmp(),
                                 p_3_tmp(),
-                                p_4_tmp(),
-                                p_5_tmp(),
-                                p_6_tmp(),
-                                p_7_tmp())));
+                                p_4_tmp())));
 
         comp_->ready();
         comp_->steady();
