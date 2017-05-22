@@ -75,7 +75,7 @@ namespace gridtools {
         /**
            @brief default constructor
          */
-        conditional() = default; // TODO: Not sure about the intent of the previous code, please comment.
+        conditional() = default;
         conditional(conditional const &) = default;
         conditional(conditional &&) = default;
         conditional &operator=(conditional const &) = default;
