@@ -40,6 +40,7 @@
 #include <boost/type_traits.hpp>
 #include <boost/mpl/and.hpp>
 
+#include "../../common/gt_assert.hpp"
 #include "storage.hpp"
 #include "storage_info.hpp"
 #include "../data_store_field.hpp"
@@ -95,7 +96,8 @@ namespace gridtools {
                                    is_data_store_field< DecayedDSF > >,
         bool >::type
     check_consistency(DataStoreField const &ds, DataFieldView const &dv) {
-        static_assert(is_data_field_view< DecayedDFV >::value, "Passed type is no data_field_view type");
+        GRIDTOOLS_STATIC_ASSERT(
+            is_data_field_view< DecayedDFV >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_field_view type"));
         bool res = true;
         uint_t i = 0;
         for (uint_t dim = 0; dim < DecayedDSF::num_of_components; ++dim) {

@@ -48,6 +48,7 @@
 
 #include "../gridtools.hpp"
 #include "../common/vector_traits.hpp"
+#include "../common/gt_assert.hpp"
 #include "accessor.hpp"
 #include "arg.hpp"
 #include "../storage/storage-facility.hpp"
@@ -160,10 +161,11 @@ namespace gridtools {
         struct extract_storage_info_id_from_arg {
             template < typename Arg >
             struct apply {
-                static_assert(is_arg< Arg >::value, "given type is no arg type");
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR_MSG("given type is no arg type"));
                 typedef typename get_storage_from_arg< Arg >::type storage_t;
                 typedef typename storage_t::storage_info_t storage_info_t;
-                static_assert(is_storage_info< storage_info_t >::value, "given type is no arg type");
+                GRIDTOOLS_STATIC_ASSERT(
+                    (is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR_MSG("given type is no arg type"));
                 typedef boost::mpl::int_< storage_info_t::id > type;
             };
         };
@@ -269,7 +271,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
 
         template < typename Arg >
         struct create_arg_storage_pair_type {
-            static_assert(is_arg< Arg >::value, "The given type is not an arg type");
+            GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR_MSG("The given type is not an arg type"));
             typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
         };
 
@@ -322,7 +324,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::not_< typename boost::is_same< iter,
                             typename boost::mpl::end< TempsPerFunctor >::type >::type >::type::value),
-                    "Temporary not found in the list of temporaries");
+                    GT_INTERNAL_ERROR_MSG("Temporary not found in the list of temporaries"));
 
                 typedef typename boost::mpl::at< ExtendSizes, typename iter::pos >::type type;
             };

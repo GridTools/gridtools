@@ -40,8 +40,9 @@
 
 #include "gtest/gtest.h"
 #include <boost/mpl/equal.hpp>
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/caches/define_caches.hpp"
+#include <common/gt_assert.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/caches/define_caches.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -81,22 +82,25 @@ TEST(define_caches, test_sequence_caches) {
     typedef decltype(gridtools::cache< IJK, fill >(arg0_t(), arg1_t())) caches_ret_sequence_2_t;
     typedef decltype(gridtools::cache< IJ, fill >(arg0_t())) caches_ret_sequence_1_t;
 
-    static_assert((boost::mpl::equal< caches_ret_sequence_4_t,
-                      boost::mpl::vector2< detail::cache_impl< K, arg0_t, flush, interval_ >,
-                                          detail::cache_impl< K, arg1_t, flush, interval_ > > >::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< caches_ret_sequence_4_t,
+                                boost::mpl::vector2< detail::cache_impl< K, arg0_t, flush, interval_ >,
+                                                    detail::cache_impl< K, arg1_t, flush, interval_ > > >::value),
         "Failed TEST");
 
-    static_assert((boost::mpl::equal< caches_ret_sequence_3_t,
-                      boost::mpl::vector3< detail::cache_impl< IJ, arg0_t, fill, boost::mpl::void_ >,
-                                          detail::cache_impl< IJ, arg1_t, fill, boost::mpl::void_ >,
-                                          detail::cache_impl< IJ, arg2_t, fill, boost::mpl::void_ > > >::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::equal< caches_ret_sequence_3_t,
+            boost::mpl::vector3< detail::cache_impl< IJ, arg0_t, fill, boost::mpl::void_ >,
+                                detail::cache_impl< IJ, arg1_t, fill, boost::mpl::void_ >,
+                                detail::cache_impl< IJ, arg2_t, fill, boost::mpl::void_ > > >::value),
         "Failed TEST");
-    static_assert((boost::mpl::equal< caches_ret_sequence_2_t,
-                      boost::mpl::vector2< detail::cache_impl< IJK, arg0_t, fill, boost::mpl::void_ >,
-                                          detail::cache_impl< IJK, arg1_t, fill, boost::mpl::void_ > > >::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::equal< caches_ret_sequence_2_t,
+            boost::mpl::vector2< detail::cache_impl< IJK, arg0_t, fill, boost::mpl::void_ >,
+                                detail::cache_impl< IJK, arg1_t, fill, boost::mpl::void_ > > >::value),
         "Failed TEST");
-    static_assert((boost::mpl::equal< caches_ret_sequence_1_t,
-                      boost::mpl::vector1< detail::cache_impl< IJ, arg0_t, fill, boost::mpl::void_ > > >::value),
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::mpl::equal< caches_ret_sequence_1_t,
+            boost::mpl::vector1< detail::cache_impl< IJ, arg0_t, fill, boost::mpl::void_ > > >::value),
         "Failed TEST");
 
     ASSERT_TRUE(true);

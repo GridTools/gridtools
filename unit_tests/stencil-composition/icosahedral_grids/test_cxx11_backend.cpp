@@ -34,9 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
-#include "stencil-composition/icosahedral_grids/icosahedral_topology.hpp"
+#include <common/defs.hpp>
+#include <common/gt_assert.hpp>
+#include <stencil-composition/stencil-composition.hpp>
+#include <stencil-composition/icosahedral_grids/icosahedral_topology.hpp>
 
 using namespace gridtools;
 
@@ -52,25 +53,25 @@ using namespace gridtools;
 
 TEST(bakend, select_layout) {
 #ifdef __CUDACC__
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< BACKEND::select_layout< selector< 1, 1, 1, 1 > >::type, layout_map< 3, 2, 1, 0 > >::value),
         "ERROR");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< BACKEND::select_layout< selector< 1, 0, 1, 1 > >::type, layout_map< 2, -1, 1, 0 > >::value),
         "ERROR");
-    static_assert((boost::is_same< BACKEND::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
-                      layout_map< 3, 2, -1, 1, 0 > >::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< BACKEND::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
+                                layout_map< 3, 2, -1, 1, 0 > >::value),
         "ERROR");
 
 #else
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< BACKEND::select_layout< selector< 1, 1, 1, 1 > >::type, layout_map< 0, 1, 2, 3 > >::value),
         "ERROR");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< BACKEND::select_layout< selector< 1, 0, 1, 1 > >::type, layout_map< 0, -1, 1, 2 > >::value),
         "ERROR");
-    static_assert((boost::is_same< BACKEND::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
-                      layout_map< 1, 2, -1, 3, 0 > >::value),
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< BACKEND::select_layout< selector< 1, 1, 0, 1, 1 > >::type,
+                                layout_map< 1, 2, -1, 3, 0 > >::value),
         "ERROR");
 #endif
 }

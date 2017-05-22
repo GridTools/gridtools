@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include "../../common/gt_assert.hpp"
 #include "../../common/generic_metafunctions/unzip.hpp"
 
 namespace gridtools {
@@ -44,8 +45,8 @@ namespace gridtools {
 
         typedef storage_info_interface< 0, Layout > meta_storage_t;
         typedef Layout layout_t;
-        static_assert(
-            layout_t::masked_length == sizeof...(Dims), "Mismatch in layout length and passed number of dimensions.");
+        GRIDTOOLS_STATIC_ASSERT(layout_t::masked_length == sizeof...(Dims),
+            GT_INTERNAL_ERROR_MSG("Mismatch in layout length and passed number of dimensions."));
 
       public:
         GT_FUNCTION

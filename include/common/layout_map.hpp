@@ -46,13 +46,14 @@
 
 #include "variadic_pack_metafunctions.hpp"
 #include "defs.hpp"
+#include "gt_assert.hpp"
 #include "generic_metafunctions/variadic_to_vector.hpp"
 
 namespace gridtools {
 
     template < int... Args >
     struct layout_map {
-        static_assert(sizeof...(Args) > 0, "Zero-dimensional layout makes no sense.");
+        GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, GT_INTERNAL_ERROR_MSG("Zero-dimensional layout makes no sense."));
 
         static constexpr int masked_length = sizeof...(Args);
         typedef typename variadic_to_vector< boost::mpl::int_< Args >... >::type static_layout_vector;
@@ -64,13 +65,14 @@ namespace gridtools {
             boost::mpl::if_< boost::mpl::greater< boost::mpl::_2, boost::mpl::int_< -1 > >,
                                                boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 >,
                                                boost::mpl::_1 > >::type accumulated_arg_sum_t;
-        static_assert((accumulated_arg_sum_t::value ==
-                          ((unmasked_length - 1) * (unmasked_length - 1) + (unmasked_length - 1)) / 2),
-            "Layout map args must not contain any holes (e.g., layout_map<3,1,0>).");
+        GRIDTOOLS_STATIC_ASSERT((accumulated_arg_sum_t::value ==
+                                    ((unmasked_length - 1) * (unmasked_length - 1) + (unmasked_length - 1)) / 2),
+            GT_INTERNAL_ERROR_MSG("Layout map args must not contain any holes (e.g., layout_map<3,1,0>)."));
 
         template < int I >
         GT_FUNCTION static constexpr int find() {
-            static_assert((I >= 0) && (I < unmasked_length), "This index does not exist");
+            GRIDTOOLS_STATIC_ASSERT(
+                (I >= 0) && (I < unmasked_length), GT_INTERNAL_ERROR_MSG("This index does not exist"));
             return boost::mpl::find< static_layout_vector, boost::mpl::int_< I > >::type::pos::value;
         }
 
@@ -78,7 +80,7 @@ namespace gridtools {
 
         template < int I >
         GT_FUNCTION static constexpr int at() {
-            static_assert((I <= masked_length), "Out of bounds access");
+            GRIDTOOLS_STATIC_ASSERT((I <= masked_length), GT_INTERNAL_ERROR_MSG("Out of bounds access"));
             return boost::mpl::at< static_layout_vector, boost::mpl::int_< I > >::type::value;
         }
 

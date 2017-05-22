@@ -43,6 +43,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/plus.hpp>
 
+#include "../../common/gt_assert.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/generic_metafunctions/repeat_template.hpp"
 
@@ -66,7 +67,8 @@ namespace gridtools {
          */
         template < uint_t V >
         static constexpr uint_t at() {
-            static_assert((V < sizeof...(N)), "Out of bounds access in halo type discovered.");
+            GRIDTOOLS_STATIC_ASSERT(
+                (V < sizeof...(N)), GT_INTERNAL_ERROR_MSG("Out of bounds access in halo type discovered."));
             return get_value_from_pack(V, N...);
         }
 

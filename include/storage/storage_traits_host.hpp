@@ -36,13 +36,14 @@
 
 #pragma once
 
-#include "common/definitions.hpp"
-#include "common/storage_traits_metafunctions.hpp"
-#include "../common/selector.hpp"
-#include "storage_host/data_field_view_helpers.hpp"
-#include "storage_host/data_view_helpers.hpp"
-#include "storage_host/storage.hpp"
-#include "storage_host/storage_info.hpp"
+#include <common/selector.hpp>
+#include <common/gt_assert.hpp>
+#include <storage/common/definitions.hpp>
+#include <storage/common/storage_traits_metafunctions.hpp>
+#include <storage/storage_host/data_field_view_helpers.hpp>
+#include <storage/storage_host/data_view_helpers.hpp>
+#include <storage/storage_host/storage.hpp>
+#include <storage/storage_host/storage_info.hpp>
 
 namespace gridtools {
     template < enumtype::platform T >
@@ -59,22 +60,22 @@ namespace gridtools {
 
         template < uint_t Id, uint_t Dims, typename Halo >
         struct select_storage_info {
-            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
+            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
             typedef typename get_layout< Dims, true >::type layout;
             typedef host_storage_info< Id, layout, Halo > type;
         };
 
         template < uint_t Id, typename Layout, typename Halo >
         struct select_custom_layout_storage_info {
-            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
-            static_assert(is_layout_map< Layout >::value, "Given type is not a layout map type.");
+            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
+            GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "Given type is not a layout map type.");
             typedef host_storage_info< Id, Layout, Halo > type;
         };
 
         template < uint_t Id, typename Selector, typename Halo >
         struct select_special_storage_info {
-            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
-            static_assert(is_selector< Selector >::value, "Given type is not a selector type.");
+            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
+            GRIDTOOLS_STATIC_ASSERT(is_selector< Selector >::value, "Given type is not a selector type.");
             typedef typename get_layout< Selector::size, true >::type layout;
             typedef host_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo > type;
         };

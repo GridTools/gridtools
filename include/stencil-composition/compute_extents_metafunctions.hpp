@@ -40,6 +40,7 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/reverse.hpp>
 
+#include "../common/gt_assert.hpp"
 #include "./amss_descriptor.hpp"
 #include "./conditionals/condition.hpp"
 #include "./esf_metafunctions.hpp"
@@ -261,7 +262,7 @@ namespace gridtools {
                 // substitute the types for expandable parameters arg
                 typedef typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs;
 #ifndef __CUDACC__
-                static_assert((check_all_extents_are_same_upto< outputs, extent<>, 4 >::type::value),
+                GRIDTOOLS_STATIC_ASSERT((check_all_extents_are_same_upto< outputs, extent<>, 4 >::type::value),
                     "Horizontal extents of the outputs of ESFs are not all empty. "
                     "All outputs must have empty (horizontal) extents");
 #endif

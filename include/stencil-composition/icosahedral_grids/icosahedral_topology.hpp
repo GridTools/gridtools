@@ -83,14 +83,16 @@ namespace gridtools {
         template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
         constexpr typename boost::enable_if_c< (N == 0), StorageInfo >::type get_storage_info_from_array(
             Array arr, Rest... r) {
-            static_assert(is_array< Array >::value, "Passed type is not an array type.");
+            GRIDTOOLS_STATIC_ASSERT(
+                is_array< Array >::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array type."));
             return StorageInfo(r...);
         }
 
         template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
         constexpr typename boost::enable_if_c< (N > 0), StorageInfo >::type get_storage_info_from_array(
             Array arr, Rest... r) {
-            static_assert(is_array< Array >::value, "Passed type is not an array type.");
+            GRIDTOOLS_STATIC_ASSERT(
+                is_array< Array >::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array type."));
             typedef typename StorageInfo::halo_t halo_t;
             return get_storage_info_from_array< StorageInfo, Array, N - 1 >(
                 arr, arr[N - 1] - 2 * halo_t::template at< N - 1 >(), r...);

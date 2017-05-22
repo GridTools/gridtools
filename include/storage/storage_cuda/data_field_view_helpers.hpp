@@ -40,6 +40,7 @@
 #include <boost/type_traits.hpp>
 #include <boost/mpl/and.hpp>
 
+#include "../../common/gt_assert.hpp"
 #include "storage.hpp"
 #include "storage_info.hpp"
 #include "../data_store_field.hpp"
@@ -77,9 +78,9 @@ namespace gridtools {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_cpu_ptr();
             state_ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr();
             if (AccessMode != access_mode::ReadOnly) {
-                assert(!ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr()->m_hnu &&
-                       "There is already an active read-write device view. Synchronization is needed before "
-                       "constructing the view.");
+                ASSERT_OR_THROW(!ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr()->m_hnu,
+                    "There is already an active read-write device view. Synchronization is needed before "
+                    "constructing the view.");
                 ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr()->m_dnu = true;
             }
         }
@@ -116,9 +117,9 @@ namespace gridtools {
             ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_gpu_ptr();
             state_ptrs[i] = ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr();
             if (AccessMode != access_mode::ReadOnly) {
-                assert(!ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr()->m_dnu &&
-                       "There is already an active read-write host view. Synchronization is needed before constructing "
-                       "the view.");
+                ASSERT_OR_THROW(!ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr()->m_dnu,
+                    "There is already an active read-write host view. Synchronization is needed before constructing "
+                    "the view.");
                 ds.get_field()[i].get_storage_ptr()->get_state_machine_ptr()->m_hnu = true;
             }
         }
@@ -140,7 +141,8 @@ namespace gridtools {
                                    is_data_store_field< DecayedDSF > >,
         bool >::type
     check_consistency(DataStoreField const &ds, DataFieldView const &dv) {
-        static_assert(is_data_field_view< DecayedDFV >::value, "Passed type is no data_field_view type");
+        GRIDTOOLS_STATIC_ASSERT(
+            is_data_field_view< DecayedDFV >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_field_view type"));
         bool res = true;
         uint_t i = 0;
         for (uint_t dim = 0; dim < DecayedDSF::num_of_components; ++dim) {

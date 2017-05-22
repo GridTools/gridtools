@@ -36,9 +36,10 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/data_store.hpp"
-#include "storage/storage_host/storage.hpp"
-#include "storage/storage_host/storage_info.hpp"
+#include <common/gt_assert.hpp>
+#include <storage/data_store.hpp>
+#include <storage/storage_host/storage.hpp>
+#include <storage/storage_host/storage_info.hpp>
 
 using namespace gridtools;
 
@@ -64,47 +65,47 @@ TEST(DataStoreTest, Simple) {
     constexpr storage_info_halo_t si_halo(3, 3, 3);
     constexpr storage_info_halo_aligned_t si_halo_al(3, 3, 3);
     // check sizes, strides, and alignment
-    static_assert(si.template dim< 0 >() == 3, "dimension check failed.");
-    static_assert(si.template dim< 1 >() == 3, "dimension check failed.");
-    static_assert(si.template dim< 2 >() == 3, "dimension check failed.");
-    static_assert(si.template unaligned_dim< 0 >() == 3, "dimension check failed.");
-    static_assert(si.template unaligned_dim< 1 >() == 3, "dimension check failed.");
-    static_assert(si.template unaligned_dim< 2 >() == 3, "dimension check failed.");
-    static_assert(si.template stride< 0 >() == 9, "stride check failed.");
-    static_assert(si.template stride< 1 >() == 3, "stride check failed.");
-    static_assert(si.template stride< 2 >() == 1, "stride check failed.");
-    static_assert(si.template unaligned_stride< 0 >() == 9, "stride check failed.");
-    static_assert(si.template unaligned_stride< 1 >() == 3, "stride check failed.");
-    static_assert(si.template unaligned_stride< 2 >() == 1, "stride check failed.");
-    static_assert(si.get_initial_offset() == 0, "init. offset check failed");
+    GRIDTOOLS_STATIC_ASSERT(si.template dim< 0 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template dim< 1 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template dim< 2 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_dim< 0 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_dim< 1 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_dim< 2 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template stride< 0 >() == 9, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template stride< 1 >() == 3, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template stride< 2 >() == 1, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_stride< 0 >() == 9, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_stride< 1 >() == 3, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.template unaligned_stride< 2 >() == 1, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si.get_initial_offset() == 0, "init. offset check failed");
 
-    static_assert(si_halo.template dim< 0 >() == 7, "dimension check failed.");
-    static_assert(si_halo.template dim< 1 >() == 5, "dimension check failed.");
-    static_assert(si_halo.template dim< 2 >() == 3, "dimension check failed.");
-    static_assert(si_halo.template unaligned_dim< 0 >() == 7, "dimension check failed.");
-    static_assert(si_halo.template unaligned_dim< 1 >() == 5, "dimension check failed.");
-    static_assert(si_halo.template unaligned_dim< 2 >() == 3, "dimension check failed.");
-    static_assert(si_halo.template stride< 0 >() == 15, "stride check failed.");
-    static_assert(si_halo.template stride< 1 >() == 3, "stride check failed.");
-    static_assert(si_halo.template stride< 2 >() == 1, "stride check failed.");
-    static_assert(si_halo.template unaligned_stride< 0 >() == 15, "stride check failed.");
-    static_assert(si_halo.template unaligned_stride< 1 >() == 3, "stride check failed.");
-    static_assert(si_halo.template unaligned_stride< 2 >() == 1, "stride check failed.");
-    static_assert(si_halo.get_initial_offset() == 0, "init. offset check failed");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 0 >() == 7, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 1 >() == 5, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 2 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_dim< 0 >() == 7, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_dim< 1 >() == 5, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_dim< 2 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 0 >() == 15, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 1 >() == 3, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 2 >() == 1, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_stride< 0 >() == 15, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_stride< 1 >() == 3, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.template unaligned_stride< 2 >() == 1, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo.get_initial_offset() == 0, "init. offset check failed");
 
-    static_assert(si_halo_al.template dim< 0 >() == 7, "dimension check failed.");
-    static_assert(si_halo_al.template dim< 1 >() == 5, "dimension check failed.");
-    static_assert(si_halo_al.template dim< 2 >() == 16, "dimension check failed.");
-    static_assert(si_halo_al.template unaligned_dim< 0 >() == 7, "dimension check failed.");
-    static_assert(si_halo_al.template unaligned_dim< 1 >() == 5, "dimension check failed.");
-    static_assert(si_halo_al.template unaligned_dim< 2 >() == 3, "dimension check failed.");
-    static_assert(si_halo_al.template stride< 0 >() == 80, "stride check failed.");
-    static_assert(si_halo_al.template stride< 1 >() == 16, "stride check failed.");
-    static_assert(si_halo_al.template stride< 2 >() == 1, "stride check failed.");
-    static_assert(si_halo_al.template unaligned_stride< 0 >() == 15, "stride check failed.");
-    static_assert(si_halo_al.template unaligned_stride< 1 >() == 3, "stride check failed.");
-    static_assert(si_halo_al.template unaligned_stride< 2 >() == 1, "stride check failed.");
-    static_assert(si_halo_al.get_initial_offset() == 0, "init. offset check failed");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 0 >() == 7, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 1 >() == 5, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 2 >() == 16, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_dim< 0 >() == 7, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_dim< 1 >() == 5, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_dim< 2 >() == 3, "dimension check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 0 >() == 80, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 1 >() == 16, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 2 >() == 1, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_stride< 0 >() == 15, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_stride< 1 >() == 3, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.template unaligned_stride< 2 >() == 1, "stride check failed.");
+    GRIDTOOLS_STATIC_ASSERT(si_halo_al.get_initial_offset() == 0, "init. offset check failed");
 
     // create unallocated data_store
     data_store< host_storage< double >, storage_info_t > ds;
@@ -113,11 +114,11 @@ TEST(DataStoreTest, Simple) {
     std::cout << "Execute death tests.\n";
     data_store< host_storage< double >, storage_info_t > ds_tmp;
     ds_tmp.allocate(si);
-    ASSERT_DEATH(ds_tmp.allocate(si), "This data store has already been allocated.");
-    ASSERT_DEATH(ds.get_storage_ptr(), "data_store is in a non-initialized state.");
-    ASSERT_DEATH(ds.get_storage_info_ptr(), "data_store is in a non-initialized state.");
-    ASSERT_DEATH(invalid_copy(), "Cannot copy a non-initialized data_store.");
-    ASSERT_DEATH(invalid_copy_assign(), "Cannot copy a non-initialized data_store.");
+    EXPECT_THROW(ds_tmp.allocate(si), std::runtime_error);
+    EXPECT_THROW(ds.get_storage_ptr(), std::runtime_error);
+    EXPECT_THROW(ds.get_storage_info_ptr(), std::runtime_error);
+    EXPECT_THROW(invalid_copy(), std::runtime_error);
+    EXPECT_THROW(invalid_copy_assign(), std::runtime_error);
 #endif
     // allocate space
     ds.allocate(si);
@@ -129,7 +130,7 @@ TEST(DataStoreTest, Simple) {
     ds1.reset(); // destroy the data_store
 #ifndef NDEBUG
     std::cout << "Execute death tests.\n";
-    ASSERT_DEATH(ds1.get_storage_ptr(), "data_store is in a non-initialized state.");
+    EXPECT_THROW(ds1.get_storage_ptr(), std::runtime_error);
 #endif
 
     // create a copy of a data_store and check equivalence
