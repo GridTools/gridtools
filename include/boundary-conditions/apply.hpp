@@ -94,7 +94,7 @@ namespace gridtools {
 
         */
         template < typename... DataFieldViews >
-        void apply(DataFieldViews const&... data_field_views) const {
+        void apply(DataFieldViews const &... data_field_views) const {
 
             if (predicate(direction< minus_, minus_, minus_ >()))
                 this->loop< direction< minus_, minus_, minus_ > >(data_field_views...);
