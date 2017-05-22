@@ -37,11 +37,7 @@
 #include <gridtools.hpp>
 #include <common/halo_descriptor.hpp>
 
-#ifdef CUDA_EXAMPLE
-#include <boundary-conditions/apply_gpu.hpp>
-#else
-#include <boundary-conditions/apply.hpp>
-#endif
+#include <boundary-conditions/boundary.hpp>
 
 using gridtools::direction;
 using gridtools::sign;
@@ -59,14 +55,12 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define GT_ARCH Cuda
 #else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define GT_ARCH Host
 #endif
-#endif
+
+#define BACKEND backend< GT_ARCH, GRIDBACKEND, Block >
 
 template < typename T >
 struct direction_bc_input {
@@ -149,16 +143,7 @@ int main(int argc, char **argv) {
     in_s.sync();
     out_s.sync();
 
-#ifdef __CUDACC__
-    auto dvin = make_device_view(in_s);
-    auto dvout = make_device_view(out_s);
-
-    gridtools::boundary_apply_gpu< direction_bc_input< uint_t > >(halos, direction_bc_input< uint_t >(2))
-        .apply(dvin, dvout);
-#else
-
-    gridtools::boundary_apply< direction_bc_input< uint_t > >(halos, direction_bc_input< uint_t >(2)).apply(in, out);
-#endif
+    gridtools::template boundary< direction_bc_input< uint_t >, GT_ARCH > x(halos, direction_bc_input< uint_t >(2)); x.apply(in_s, out_s);
 
     // sync the data stores if needed
     in_s.sync();
