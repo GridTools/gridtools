@@ -62,11 +62,11 @@ struct lap_function {
 
     typedef boost::mpl::vector< out_acc, in_acc > arg_list;
 
-    template < typename t_domain >
-    GT_FUNCTION static void Do(t_domain const &dom, x_lap) {
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, x_lap) {
 
-        dom(out_acc()) = 4 * dom(in_acc()) -
-                         (dom(in_acc(1, 0, 0)) + dom(in_acc(0, 1, 0)) + dom(in_acc(-1, 0, 0)) + dom(in_acc(0, -1, 0)));
+        eval(out_acc()) = 4 * eval(in_acc()) - (eval(in_acc(1, 0, 0)) + eval(in_acc(0, 1, 0)) + eval(in_acc(-1, 0, 0)) +
+                                                   eval(in_acc(0, -1, 0)));
     }
 };
 

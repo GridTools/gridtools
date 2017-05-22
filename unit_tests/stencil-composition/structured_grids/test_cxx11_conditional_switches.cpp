@@ -65,7 +65,7 @@ namespace test_conditional_switches {
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(p_dummy()) += Id;
         }
     };
@@ -79,7 +79,7 @@ namespace test_conditional_switches {
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(p_dummy()) += Id;
         }
     };
