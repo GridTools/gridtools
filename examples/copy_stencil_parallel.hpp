@@ -134,8 +134,8 @@ namespace copy_stencil {
         storage_t in(metadata_, [](int i, int j, int k) { return (i + j + k) * (gridtools::PID + 1); }, "in");
         storage_t out(metadata_, 0., "out");
 
-        he.add_halo< 0 >(meta_.template get_halo_gcl< 0 >());
-        he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
+        he.add_halo< 0 >(meta_.get_halo_gcl< 0 >());
+        he.add_halo< 1 >(meta_.get_halo_gcl< 1 >());
         he.add_halo< 2 >(0, 0, 0, d3 - 1, d3);
 
         he.setup(2);

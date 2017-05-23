@@ -112,7 +112,7 @@ struct transform {
 };
 
 struct lambda {
-    constexpr int operator()(const int i, const int j, const int k, const int l, const int add) {
+    constexpr int operator()(const int i, const int j, const int k, const int l, const int add) const {
         return add * (i + j + k + l);
     }
 };

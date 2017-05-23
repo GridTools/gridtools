@@ -61,7 +61,7 @@ namespace gridtools {
     template < unsigned HaloVal, int LayoutArg >
     struct extend_by_halo {
         template < typename Dim >
-        static constexpr unsigned extend(Dim d) {
+        GT_FUNCTION static constexpr unsigned extend(Dim d) {
             static_assert(boost::is_integral< Dim >::value, "Dimensions has to be integral type.");
             return error_or_return((d > 0),
                 ((LayoutArg == -1) ? 1 : d + 2 * HaloVal),
@@ -77,9 +77,9 @@ namespace gridtools {
      * @return return aligned dimension if it should be aligned, otherwise return as is.
      */
     template < typename Alignment, unsigned Length, int LayoutArg >
-    constexpr unsigned align_dimensions(unsigned dimension) {
+    GT_FUNCTION constexpr unsigned align_dimensions(unsigned dimension) {
         static_assert(is_alignment< Alignment >::value, "Passed type is no alignment type");
-        return ((Alignment::value > 1) && (LayoutArg == Length - 1))
+        return ((Alignment::value > 1) && (LayoutArg == (int)Length - 1))
                    ? gt_ceil((float)dimension / (float)Alignment::value) * Alignment::value
                    : dimension;
     }
@@ -104,7 +104,7 @@ namespace gridtools {
         // e.g., layout_map<1,2,-1,0> with halo<3,4,0,1> would return 4
         // because the second dimension is the one first stride dimension
         // and the halo there is 4.
-        constexpr static unsigned get_first_stride_dim_halo() {
+        GT_FUNCTION constexpr static unsigned get_first_stride_dim_halo() {
             return get_value_from_pack(get_index_of_element_in_pack(0,
                                            static_cast< int >(layout_map< LayoutArgs... >::unmasked_length - 1),
                                            static_cast< int >(LayoutArgs)...),
@@ -115,7 +115,7 @@ namespace gridtools {
         // e.g., alignment<32>, layout_map<0,1,2>, halo<0,2,2>. the function
         // gt_ceil(2/32) * 32 - 2 = 1 * 32 - 2 = 30. This means the initial offset
         // is 30, followed by 2 halo points, followed by an aligned non-halo point.
-        constexpr static unsigned compute() {
+        GT_FUNCTION constexpr static unsigned compute() {
             return ((Alignment::value > 1u) && (get_first_stride_dim_halo() > 0))
                        ? static_cast< unsigned >(
                              gt_ceil((float)get_first_stride_dim_halo() / (float)Alignment::value) * Alignment::value -
@@ -136,7 +136,7 @@ namespace gridtools {
         typedef layout_map< LayoutArgs... > layout_map_t;
 
         template < int N, typename... Dims >
-        static constexpr
+        GT_FUNCTION static constexpr
             typename boost::enable_if_c< (N != -1 && N != layout_map_t::unmasked_length - 1), unsigned >::type
                 get_stride(Dims... d) {
             return (get_value_from_pack(get_index_of_element_in_pack(0, N + 1, LayoutArgs...), d...)) *
@@ -144,12 +144,12 @@ namespace gridtools {
         }
 
         template < int N, typename... Dims >
-        static constexpr typename boost::enable_if_c< (N == -1), unsigned >::type get_stride(Dims... d) {
+        GT_FUNCTION static constexpr typename boost::enable_if_c< (N == -1), unsigned >::type get_stride(Dims... d) {
             return 0;
         }
 
         template < int N, typename... Dims >
-        static constexpr
+        GT_FUNCTION static constexpr
             typename boost::enable_if_c< (N != -1 && N == layout_map_t::unmasked_length - 1), unsigned >::type
                 get_stride(Dims... d) {
             return 1;
@@ -166,7 +166,7 @@ namespace gridtools {
     template < int... LayoutArgs >
     struct get_strides< layout_map< LayoutArgs... > > {
         template < typename... Dims >
-        static constexpr array< unsigned, sizeof...(LayoutArgs) > get_stride_array(Dims... d) {
+        GT_FUNCTION static constexpr array< unsigned, sizeof...(LayoutArgs) > get_stride_array(Dims... d) {
             static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                               typename is_all_integral< Dims... >::type >::value,
                 "Dimensions have to be integral types.");

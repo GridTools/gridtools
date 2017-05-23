@@ -71,10 +71,11 @@ namespace gridtools {
     template < typename IterationPolicy >
     struct slide_cache_functor {
       public:
+        GT_FUNCTION
         slide_cache_functor() {}
 
         template < typename Arg >
-        void operator()(Arg &arg_) const {
+        GT_FUNCTION void operator()(Arg &arg_) const {
             arg_.second.template slide< IterationPolicy >();
         }
     };

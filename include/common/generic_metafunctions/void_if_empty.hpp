@@ -35,48 +35,14 @@
 */
 #pragma once
 
-#include <assert.h>
-#include <stdexcept>
+#include <boost/mpl/void.hpp>
+#include <boost/mpl/if.hpp>
 
-#include "host_device.hpp"
-
+/**
+ * @brief Replaces an mpl sequence by void_ if the sequence is empty. Otherwise, CUDA will complain about a non-empty
+ * ctor if used in shared memory.
+ */
 namespace gridtools {
-
-    /**
-     * @brief This struct is used to trigger runtime errors. The reason
-     * for having a struct is simply that this element can be used in
-     * constexpr functions while a simple call to e.g., std::runtime_error
-     * would not compile.
-     */
-    struct error {
-
-        template < typename T >
-        GT_FUNCTION static T get(char const *msg) {
-#ifdef __CUDA_ARCH__
-            assert(false);
-            return *((T volatile *)(0x0));
-#else
-            throw std::runtime_error(msg);
-            assert(false);
-#endif
-        }
-
-        template < typename T = unsigned >
-        GT_FUNCTION static constexpr T trigger(char const *msg = "Error triggered") {
-            return get< T >(msg);
-        }
-    };
-
-    /**
-     * @brief Helper struct used to throw an error if the condition is not met.
-     * Otherwise the provided result is returned. This method can be used in constexprs.
-     * @tparam T return type
-     * @param cond condition that should be true
-     * @param res result value
-     * @param msg error message if condition is not met
-     */
     template < typename T >
-    GT_FUNCTION constexpr T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
-        return cond ? res : error::trigger< T >(msg);
-    }
+    using void_if_empty_t = typename boost::mpl::if_< boost::mpl::size< T >, T, boost::mpl::void_ >::type;
 }
