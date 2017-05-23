@@ -102,15 +102,15 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        uint_t i() const { return m_i; }
+        int_t i() const { return m_i; }
 
         GT_FUNCTION
-        uint_t j() const { return m_j; }
+        int_t j() const { return m_j; }
 
         GT_FUNCTION
-        uint_t k() const { return m_k; }
+        int_t k() const { return m_k; }
 
       private:
-        uint_t m_i, m_j, m_k;
+        int_t m_i, m_j, m_k;
     };
 }
