@@ -90,8 +90,7 @@ namespace gridtools {
                 typename ArgType1 /*typename IntType, IntType*/
                 ,
                 int exponent /*, typename boost::enable_if<typename boost::is_integral<IntType>::type, int >::type=0 */ >
-            GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_pow< ArgType1, exponent > const &arg)
+            GT_FUNCTION auto static constexpr value(IterateDomain &it_domain, expr_pow< ArgType1, exponent > const &arg)
                 -> decltype(gt_pow< exponent >::apply(it_domain(arg.first_operand))) {
                 return gt_pow< exponent >::apply(it_domain(arg.first_operand));
             }
@@ -100,7 +99,7 @@ namespace gridtools {
             /** power derivative evaluation*/
             template < typename IterateDomain, typename ArgType1, int Exponent >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_derivative< expr_pow< ArgType1, Exponent > > const &arg)
+                IterateDomain &it_domain, expr_derivative< expr_pow< ArgType1, Exponent > > const &arg)
                 -> decltype(it_domain(expr_pow< ArgType1, Exponent - 1 >(arg.first_operand) *
                                       expr_derivative< ArgType1 >(arg.first_operand))) {
                 return (it_domain(expr_pow< ArgType1, Exponent - 1 >(arg.first_operand) *

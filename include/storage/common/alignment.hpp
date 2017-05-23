@@ -76,7 +76,7 @@ namespace gridtools {
         array< unsigned, N > m_unaligned_dims;
         array< unsigned, N > m_unaligned_strides;
 
-        constexpr alignment_impl(array< unsigned, N > dims, array< unsigned, N > strides)
+        GT_FUNCTION constexpr alignment_impl(array< unsigned, N > dims, array< unsigned, N > strides)
             : m_unaligned_dims(dims), m_unaligned_strides(strides) {}
 
         template < unsigned Coord >
@@ -95,7 +95,7 @@ namespace gridtools {
     struct alignment_impl< alignment< 1 >, Layout, Halo > {
         static constexpr unsigned InitialOffset = 0;
         template < typename... T >
-        constexpr alignment_impl(T... t) {}
+        GT_FUNCTION constexpr alignment_impl(T... t) {}
 
         template < unsigned Coord >
         GT_FUNCTION constexpr unsigned unaligned_dim() const {

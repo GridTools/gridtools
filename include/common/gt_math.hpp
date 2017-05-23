@@ -62,7 +62,7 @@ namespace gridtools {
      * @param num value to ceil
      * @return ceiled value
      */
-    constexpr static int gt_ceil(float num) {
+    GT_FUNCTION constexpr static int gt_ceil(float num) {
         return (static_cast< float >(static_cast< int >(num)) == num) ? static_cast< int >(num)
                                                                       : static_cast< int >(num) + ((num > 0) ? 1 : 0);
     }

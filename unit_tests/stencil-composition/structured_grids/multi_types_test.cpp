@@ -187,7 +187,7 @@ namespace multi_types_test {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, region) {
+        GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()).i = eval(in()).i + 1;
             eval(out()).j = eval(in()).j + 1;
             eval(out()).k = eval(in()).k + 1;
@@ -201,7 +201,7 @@ namespace multi_types_test {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, region) {
+        GT_FUNCTION static void Do(Evaluation &eval, region) {
 #ifdef FUNCTIONS_PROCEDURES
             type1 result;
             call_proc< function0, region >::with(eval, in(), result);
@@ -230,7 +230,7 @@ namespace multi_types_test {
         typedef boost::mpl::vector< out, in, temp > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, region) {
+        GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()) = eval(temp()) + eval(in());
             // std::cout << (eval(temp())+eval(in())).x << ", "
             //           << (eval(temp())+eval(in())).y << ", "
@@ -248,7 +248,7 @@ namespace multi_types_test {
         typedef boost::mpl::vector< out, temp, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, region) {
+        GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()) = eval(temp()) - eval(in());
         }
     };
