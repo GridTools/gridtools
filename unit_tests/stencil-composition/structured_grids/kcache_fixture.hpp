@@ -71,7 +71,7 @@ class kcachef : public ::testing::Test {
     void init_fields() {
         for (gridtools::uint_t i = 0; i < m_d1; ++i) {
             for (gridtools::uint_t j = 0; j < m_d2; ++j) {
-                for (gridtools::uint_t k = 0; k >= m_d3; ++k) {
+                for (gridtools::uint_t k = 0; k < m_d3; ++k) {
                     m_outv(i, j, k) = -1;
                     m_refv(i, j, k) = -1;
                 }
