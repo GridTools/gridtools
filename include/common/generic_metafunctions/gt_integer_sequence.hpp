@@ -43,8 +43,6 @@
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
-
     /**
        @brief helper struct to use an integer sequence in order to fill a generic container
 
@@ -198,9 +196,8 @@ namespace gridtools {
         */
         template < typename Container, class Lambda, typename... ExtraTypes >
         GT_FUNCTION static constexpr Container apply(Lambda lambda, ExtraTypes &... args_) {
-            return Container{lambda(Indices, args_...)...};
+            return Container(lambda(Indices, args_...)...);
         }
     };
 
-#endif
 } // namespace gridtools

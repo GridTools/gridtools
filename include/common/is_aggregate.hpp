@@ -41,6 +41,12 @@
 
 namespace gridtools {
 
+    template < typename T >
+    struct is_vector : boost::mpl::false_ {};
+
+    template < typename T >
+    struct is_vector< std::vector< T > > : boost::mpl::true_ {};
+
     /**
      * type trait to check if a type is an aggregate
      * Note: see discussion here
@@ -50,5 +56,6 @@ namespace gridtools {
      * (in the future this might be extended to using concepts)
      */
     template < typename T >
-    struct is_aggregate : boost::mpl::or_< is_array< T >, boost::is_integral< T > > {};
+    struct is_aggregate
+        : boost::mpl::or_< boost::is_integral< T >, is_vector< T >, std::is_array< T >, is_array< T > > {};
 }

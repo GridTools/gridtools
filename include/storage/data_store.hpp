@@ -331,6 +331,10 @@ namespace gridtools {
          */
         void reactivate_host_write_views() const { this->m_shared_storage->reactivate_host_write_views(); }
 
+        bool device_needs_update() const { return this->m_shared_storage->device_needs_update_impl(); }
+
+        bool host_needs_update() const { return this->m_shared_storage->host_needs_update_impl(); }
+
         /**
          * @brief retrieve the name of the storage
          * @return name of the data_store

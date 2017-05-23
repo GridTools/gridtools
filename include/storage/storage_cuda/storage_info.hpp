@@ -56,21 +56,29 @@ namespace gridtools {
     struct cuda_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
       private:
         mutable cuda_storage_info< Id, Layout, Halo, Alignment > *m_gpu_ptr;
+        GRIDTOOLS_STATIC_ASSERT((is_halo< Halo >::value), "Given type is not a halo type.");
+        GRIDTOOLS_STATIC_ASSERT((is_alignment< Alignment >::value), "Given type is not an alignment type.");
 
       public:
+        static constexpr unsigned int ndims = storage_info_interface< Id, Layout, Halo, Alignment >::ndims;
         /*
          * @brief cuda_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        template < typename... Dims >
-        explicit constexpr cuda_storage_info(Dims... dims_)
+        template < typename... Dims, typename = gridtools::all_integers< Dims... > >
+        explicit cuda_storage_info(Dims... dims_)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
-            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
-            static_assert(is_alignment< Alignment >::value, "Given type is not an alignment type.");
             static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                               typename is_all_integral< Dims... >::type >::value,
                 "Dimensions have to be integral types.");
         }
+
+        /*
+         * @brief cuda_storage_info constructor.
+         * @param dims_ the dimensionality (e.g., 128x128x80)
+         */
+        constexpr cuda_storage_info(std::array< unsigned int, ndims > dims, std::array< unsigned int, ndims > strides)
+            : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides), m_gpu_ptr(nullptr) {}
 
         /*
          * @brief cuda_storage_info destructor.

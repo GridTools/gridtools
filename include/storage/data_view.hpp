@@ -57,6 +57,7 @@ namespace gridtools {
     template < typename DataStore, access_mode AccessMode = access_mode::ReadWrite >
     struct data_view {
         static_assert(is_data_store< DataStore >::value, "Passed type is no data_store type");
+        using data_store_t = DataStore;
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
@@ -88,6 +89,20 @@ namespace gridtools {
             assert(data_ptr && "Cannot create data_view with invalid data pointer");
             assert(info_ptr && "Cannot create data_view with invalid storage info pointer");
         }
+
+        GT_FUNCTION storage_info_t const &storage_info() { return *m_storage_info; }
+
+        /**
+         * data getter
+         */
+        GT_FUNCTION
+        data_t *data() { return m_raw_ptrs[0]; }
+
+        /**
+         * data getter
+         */
+        GT_FUNCTION
+        data_t const *data() const { return m_raw_ptrs[0]; }
 
         /**
          * @brief operator() is used to access elements. E.g., view(0,0,2) will return the third element.

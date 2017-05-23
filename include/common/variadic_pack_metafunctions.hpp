@@ -99,7 +99,8 @@ namespace gridtools {
     template < typename First, typename... T >
     struct is_all_integral< First, T... > {
         typedef typename is_all_integral< T... >::type rec_t;
-        typedef typename boost::mpl::and_< boost::is_integral< First >, rec_t >::type type;
+        typedef typename boost::mpl::and_< boost::mpl::or_< boost::is_integral< First >, boost::is_enum< First > >,
+            rec_t >::type type;
     };
 
     template <>
