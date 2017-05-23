@@ -47,12 +47,6 @@
 #include <common/partitioner_trivial.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
-#ifdef CUDA_EXAMPLE
-#include <boundary-conditions/apply_gpu.hpp>
-#else
-#include <boundary-conditions/apply.hpp>
-#endif
-
 #include <communication/halo_exchange.hpp>
 
 #include <tools/verifier.hpp>

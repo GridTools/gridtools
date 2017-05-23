@@ -137,8 +137,6 @@ int main(int argc, char **argv) {
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
-    auto in = make_host_view(in_s);
-    auto out = make_host_view(out_s);
     // sync the data stores if needed
     in_s.sync();
     out_s.sync();
@@ -153,6 +151,9 @@ int main(int argc, char **argv) {
     // reactivate views and check consistency
     in_s.reactivate_host_write_views();
     out_s.reactivate_host_write_views();
+    auto in = make_host_view(in_s);
+    auto out = make_host_view(out_s);
+
     assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
     assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
 

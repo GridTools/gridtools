@@ -51,7 +51,7 @@ namespace gridtools {
 
     template < typename BoundaryFunction,
         typename Predicate = default_predicate,
-        typename HaloDescriptors = array< halo_descriptor, 3 > >
+        typename HaloDescriptors = array< halo_descriptor, 3u > >
     struct boundary_apply {
       private:
         HaloDescriptors halo_descriptors;

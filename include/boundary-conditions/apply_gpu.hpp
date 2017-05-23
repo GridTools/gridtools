@@ -177,7 +177,7 @@ namespace gridtools {
 */
 #define GTAPPLY(z, n, nil)                                                                                      \
     template < BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField) >                                      \
-    void apply(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, &data_field)) const {                    \
+    void apply(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, const &data_field)) const {              \
                                                                                                                 \
         if (predicate(direction< minus_, minus_, minus_ >()))                                                   \
             apply_it< direction< minus_, minus_, minus_ > >(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field)); \

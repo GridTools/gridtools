@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-
-#ifdef _USE_GPU_
+#ifdef __CUDACC__
 #include "../storage/storage_cuda/data_view_helpers.hpp"
+#include "./apply_gpu.hpp"
 #endif
 #include "../storage/storage_host/data_view_helpers.hpp"
+#include "./apply.hpp"
 
 #include "./boundary-conditions/predicate.hpp"
-#include "./apply.hpp"
 
 namespace gridtools {
 
@@ -56,6 +56,15 @@ namespace gridtools {
             using type = boundary_apply< BoundaryFunction, Predicate >;
         };
 
+#ifdef __CUDACC__
+        template < typename BoundaryFunction, typename Predicate >
+        struct select_apply< enumtype::Cuda, BoundaryFunction, Predicate >
+
+        {
+            using type = boundary_apply_gpu< BoundaryFunction, Predicate >;
+        };
+#endif
+
         template < enumtype::platform Arch, access_mode AM, typename DataF >
         struct proper_view;
 
@@ -65,6 +74,15 @@ namespace gridtools {
 
             static proper_view_t make(DataF &df) { return make_host_view< AM >(df); }
         };
+
+#ifdef __CUDACC__
+        template < access_mode AM, typename DataF >
+        struct proper_view< enumtype::Cuda, AM, DataF > {
+            using proper_view_t = decltype(make_device_view< AM, DataF >(std::declval< DataF >()));
+
+            static proper_view_t make(DataF &df) { return make_device_view< AM >(df); }
+        };
+#endif
     } // namespace _impl
 
     /**

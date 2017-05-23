@@ -43,12 +43,6 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 
-#ifdef CUDA_EXAMPLE
-#include <boundary-conditions/apply_gpu.hpp>
-#else
-#include <boundary-conditions/apply.hpp>
-#endif
-
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil

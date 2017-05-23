@@ -44,7 +44,6 @@
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
 #include "../storage_host/storage.hpp"
-#include <cuda.h>
 
 namespace gridtools {
 
