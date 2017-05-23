@@ -100,7 +100,7 @@ namespace gridtools {
             template < typename Accessor >
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value < OutArg), ReturnType >::type const
-                operator()(Accessor const &accessor) {
+                operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type(
                     accessor.template get< 2 >() + Offi,
                     accessor.template get< 1 >() + Offj,
@@ -110,7 +110,7 @@ namespace gridtools {
             template < typename Accessor >
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value > OutArg), ReturnType >::type const
-                operator()(Accessor const &accessor) {
+                operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(
                     typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value - 1 >::type(
                         accessor.template get< 2 >() + Offi,
@@ -121,14 +121,14 @@ namespace gridtools {
             template < typename Accessor >
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value == OutArg), ReturnType >::type &
-                operator()(Accessor const &) {
+                operator()(Accessor const &) const {
                 // std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
                 return *m_result;
             }
 
             /** @brief method called in the Do methods of the functors. */
             template < typename... Arguments, template < typename... Args > class Expression >
-            GT_FUNCTION constexpr auto operator()(Expression< Arguments... > const &arg)
+            GT_FUNCTION constexpr auto operator()(Expression< Arguments... > const &arg) const
                 -> decltype(expressions::evaluation::value(*this, arg)) {
                 // arg.to_string();
                 return expressions::evaluation::value((*this), arg);
@@ -140,7 +140,7 @@ namespace gridtools {
                 template < typename Arg1, typename Arg2 > class Expression,
                 typename FloatType,
                 typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
-            GT_FUNCTION constexpr auto operator()(Expression< Accessor, FloatType > const &arg)
+            GT_FUNCTION constexpr auto operator()(Expression< Accessor, FloatType > const &arg) const
                 -> decltype(expressions::evaluation::value(*this, arg)) {
                 // TODO RENAME ACCESSOR,is not an accessor but an expression, and add an assertion for type
                 return expressions::evaluation::value((*this), arg);
@@ -197,7 +197,7 @@ namespace gridtools {
             template < typename Accessor >
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value < OutArg), ReturnType >::type const
-                operator()(Accessor const &accessor) {
+                operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type(
                     accessor.template get< 2 >() + Offi +
                         boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 2 >(),
@@ -210,7 +210,7 @@ namespace gridtools {
             template < typename Accessor >
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value > OutArg), ReturnType >::type const
-                operator()(Accessor const &accessor) {
+                operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(
                     typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value - 1 >::type(
                         accessor.template get< 2 >() + Offi +
@@ -224,7 +224,7 @@ namespace gridtools {
             template < typename Accessor >
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value == OutArg), ReturnType >::type &
-                operator()(Accessor const &) {
+                operator()(Accessor const &) const {
                 // std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
                 return *m_result;
             }
@@ -504,7 +504,7 @@ namespace gridtools {
                 not _impl::contains_value< non_accessor_indices, typename Accessor::index_t >::value,
                 typename CallerAggregator::template accessor_return_type<
                     typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type >::type >::type
-            operator()(Accessor const &accessor) {
+            operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type(
                     accessor.template get< 2 >() + Offi +
                         boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 2 >(),
@@ -519,7 +519,7 @@ namespace gridtools {
                 _impl::contains_value< non_accessor_indices, typename Accessor::index_t >::value,
                 typename boost::remove_reference< typename boost::fusion::result_of::at_c< accessors_list_t,
                     Accessor::index_t::value >::type >::type::type >::type &
-            operator()(Accessor const &) {
+            operator()(Accessor const &) const {
                 // std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
                 return (boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).value());
             }
@@ -581,7 +581,7 @@ namespace gridtools {
                 typename CallerAggregator::template accessor_return_type<
                     typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type > //::type
                 >::type
-            operator()(Accessor const &accessor) {
+            operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type(
                     accessor.template get< 2 >() + Offi,
                     accessor.template get< 1 >() + Offj,
@@ -594,7 +594,7 @@ namespace gridtools {
                 typename boost::remove_reference< typename boost::fusion::result_of::at_c< accessors_list_t,
                     Accessor::index_t::value >::type >::type //::type
                 >::type &
-            operator()(Accessor const &) {
+            operator()(Accessor const &) const {
                 // std::cout << "Giving the ref (OutArg=" << OutArg << ") " << m_result << std::endl;
                 return (boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).value());
             }
