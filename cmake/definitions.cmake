@@ -12,6 +12,11 @@ endif(VERBOSE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE}")
 
+## enable -Werror
+if( WERROR )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Werror" )
+endif()
+
 ## structured grids ##
 if(STRUCTURED_GRIDS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DSTRUCTURED_GRIDS" )
@@ -36,8 +41,11 @@ else()
 endif()
 
 if(Boost_FOUND)
-    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
+  # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
+  foreach(dir ${Boost_INCLUDE_DIRS})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${dir}")
+  endforeach()
+  set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
 if(NOT USE_GPU)
@@ -76,6 +84,11 @@ if( USE_GPU )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${CUDA_VERSION}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "${BOOST_FUSION_MAX_SIZE_FLAGS}")
+  if( WERROR )
+     #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
+  endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
   if( ${CUDA_VERSION} VERSION_GREATER "60")
       if (NOT ENABLE_CXX11 )

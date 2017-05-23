@@ -65,7 +65,7 @@ namespace adv_prepare_tracers {
         typedef boost::mpl::vector< data, data_nnow, rho > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, interval_t) {
+        GT_FUNCTION static void Do(Evaluation &eval, interval_t) {
             eval(data()) = eval(rho()) * eval(data_nnow());
         }
     };
