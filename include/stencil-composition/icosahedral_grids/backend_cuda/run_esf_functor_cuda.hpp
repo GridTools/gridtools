@@ -220,7 +220,7 @@ namespace gridtools {
             boost::mpl::for_each< color_range_t >(
                 color_functor< iterate_domain_t, EsfArguments, location_type_t, IntervalType >(m_iterate_domain));
 
-            using neg_n_colors_t = static_uint< -location_type_t::n_colors::value >;
+            using neg_n_colors_t = static_int< -location_type_t::n_colors::value >;
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, neg_n_colors_t >();
         }

@@ -65,7 +65,7 @@ namespace gridtools {
          * @return halo size
          */
         template < unsigned V >
-        static constexpr unsigned at() {
+        GT_FUNCTION static constexpr unsigned at() {
             static_assert((V < sizeof...(N)), "Out of bounds access in halo type discovered.");
             return get_value_from_pack(V, N...);
         }
@@ -75,14 +75,14 @@ namespace gridtools {
          * @param V Dimension or coordinate to query
          * @return halo size
          */
-        static constexpr unsigned at(unsigned V) { return get_value_from_pack(V, N...); }
+        GT_FUNCTION static constexpr unsigned at(unsigned V) { return get_value_from_pack(V, N...); }
 
         /**
          * @brief member function used to query the number of dimensions. E.g., a halo
          * type with 3 entries cannot be passed to a <3 or >3 dimensional storage_info.
          * @return number of dimensions
          */
-        static constexpr unsigned size() { return sizeof...(N); }
+        GT_FUNCTION static constexpr unsigned size() { return sizeof...(N); }
     };
 
     /**

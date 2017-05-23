@@ -39,6 +39,7 @@
  */
 #pragma once
 #include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "common/generic_metafunctions/void_if_empty.hpp"
 #include "stencil-composition/accessor.hpp"
 #include <boost/fusion/include/at_key.hpp>
 #include <boost/fusion/sequence/intrinsic/at_key.hpp>
@@ -64,9 +65,7 @@ namespace gridtools {
       private:
         DataPointerArray m_data_pointer;
         StridesType m_strides;
-        // TODO: This trick is used to prevent a race condition reported in cuda-memcheck. Should be investigated.
-        typename boost::mpl::if_< boost::mpl::empty< IJCachesTuple >, boost::mpl::void_, IJCachesTuple >::type
-            m_ij_caches_tuple;
+        void_if_empty_t< IJCachesTuple > m_ij_caches_tuple; // HACK: see void_if_empty_t
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
         // constructed with the result_of::as_map from a fusion vector.
