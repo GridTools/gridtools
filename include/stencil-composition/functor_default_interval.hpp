@@ -66,7 +66,7 @@ namespace gridtools {
         typedef typename Functor::arg_list arg_list;
 
         template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval_, default_interval) {
+        GT_FUNCTION static void Do(Eval &eval_, default_interval) {
             Functor::Do(eval_);
         }
     };
