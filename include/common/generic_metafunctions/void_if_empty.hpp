@@ -33,3 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
+
+#include <boost/mpl/void.hpp>
+#include <boost/mpl/if.hpp>
+
+/**
+ * @brief Replaces an mpl sequence by void_ if the sequence is empty. Otherwise, CUDA will complain about a non-empty
+ * ctor if used in shared memory.
+ */
+namespace gridtools {
+    template < typename T >
+    using void_if_empty_t = typename boost::mpl::if_< boost::mpl::size< T >, T, boost::mpl::void_ >::type;
+}

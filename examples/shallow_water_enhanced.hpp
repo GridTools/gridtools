@@ -136,7 +136,7 @@ namespace shallow_water {
         using arg_list = boost::mpl::vector2< tmpx, sol >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
 
             const float_type &tl = 2.;
 #ifndef CUDA8
@@ -195,7 +195,7 @@ namespace shallow_water {
         using arg_list = boost::mpl::vector< tmpy, sol >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
 
             const float_type &tl = 2.;
 #ifndef CUDA8
@@ -257,7 +257,7 @@ namespace shallow_water {
         // Using a strategy to define some arguments beforehand
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             const float_type &tl = 2.;
 #ifndef CUDA8
             dimension< 1 > i;
@@ -425,16 +425,16 @@ namespace shallow_water {
         //! [add_halo]
 
         //! [initialization_h]
-        auto ds0 = sol.template get< 0, 0 >();
-        auto ds1 = sol.template get< 1, 0 >();
-        auto ds2 = sol.template get< 2, 0 >();
+        auto ds0 = sol.get< 0, 0 >();
+        auto ds1 = sol.get< 1, 0 >();
+        auto ds2 = sol.get< 2, 0 >();
         auto view0 = make_host_view(ds0);
         auto view1 = make_host_view(ds1);
         auto view2 = make_host_view(ds2);
 #ifdef __CUDACC__
-        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
+        for (int i = 0; i < ds0.get_storage_info_ptr()->dim< 0 >(); ++i) {
+            for (int j = 0; j < ds0.get_storage_info_ptr()->dim< 1 >(); ++j) {
+                for (int k = 0; k < ds0.get_storage_info_ptr()->dim< 2 >(); ++k) {
                     view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
                     view1(i, j, k) = 0.0;
                     view2(i, j, k) = 0.0;

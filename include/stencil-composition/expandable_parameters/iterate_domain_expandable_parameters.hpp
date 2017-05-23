@@ -96,7 +96,7 @@ namespace gridtools {
         template < uint_t ACC_ID, enumtype::intend Intent, typename Extent, uint_t Size >
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor< ACC_ID, Intent, Extent, Size > >::type
-        operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) const {
+        operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) {
             typedef typename super::template accessor_return_type< accessor< ACC_ID, Intent, Extent, Size > >::type
                 return_t;
             // check that if the storage is written the accessor is inout

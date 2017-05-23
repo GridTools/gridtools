@@ -81,7 +81,7 @@ namespace gridtools {
             /** minus evaluation*/
             template < typename IterateDomain, typename ArgType1, typename ArgType2 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_minus< ArgType1, ArgType2 > const &arg)
+                IterateDomain &it_domain, expr_minus< ArgType1, ArgType2 > const &arg)
                 -> decltype(it_domain(arg.first_operand) - it_domain(arg.second_operand)) {
                 return it_domain(arg.first_operand) - it_domain(arg.second_operand);
             }
@@ -92,7 +92,7 @@ namespace gridtools {
                 typename FloatType,
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_minus< ArgType1, FloatType > const &arg)
+                IterateDomain &it_domain, expr_minus< ArgType1, FloatType > const &arg)
                 -> decltype(it_domain(arg.first_operand) - arg.second_operand) {
                 return it_domain(arg.first_operand) - arg.second_operand;
             }
@@ -103,7 +103,7 @@ namespace gridtools {
                 typename ArgType2,
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_minus< FloatType, ArgType2 > const &arg)
+                IterateDomain &it_domain, expr_minus< FloatType, ArgType2 > const &arg)
                 -> decltype(arg.first_operand - it_domain(arg.second_operand)) {
                 return arg.second_operand - it_domain(arg.second_operand);
             }
@@ -112,7 +112,7 @@ namespace gridtools {
             /** plus derivative evaluation*/
             template < typename IterateDomain, typename ArgType1, typename ArgType2 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_derivative< expr_minus< ArgType1, ArgType2 > > const &arg)
+                IterateDomain &it_domain, expr_derivative< expr_minus< ArgType1, ArgType2 > > const &arg)
                 -> decltype(it_domain(expr_derivative< ArgType1 >(arg.first_operand)) -
                             it_domain(expr_derivative< ArgType2 >(arg.second_operand))) {
                 return it_domain(expr_derivative< ArgType1 >(arg.first_operand)) -
@@ -125,7 +125,7 @@ namespace gridtools {
                 typename FloatType,
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_derivative< expr_minus< ArgType1, FloatType > > const &arg)
+                IterateDomain &it_domain, expr_derivative< expr_minus< ArgType1, FloatType > > const &arg)
                 -> decltype(it_domain(expr_derivative< ArgType1 >(arg.first_operand))) {
                 return it_domain(expr_derivative< ArgType1 >(arg.first_operand));
             }
@@ -136,7 +136,7 @@ namespace gridtools {
                 typename ArgType2,
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_derivative< expr_minus< FloatType, ArgType2 > > const &arg)
+                IterateDomain &it_domain, expr_derivative< expr_minus< FloatType, ArgType2 > > const &arg)
                 -> decltype(-it_domain(expr_derivative< ArgType2 >(arg.second_operand))) {
                 return -it_domain(expr_derivative< ArgType2 >(arg.second_operand));
             }
