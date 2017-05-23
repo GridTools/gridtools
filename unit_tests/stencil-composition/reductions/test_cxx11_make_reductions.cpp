@@ -76,7 +76,7 @@ namespace make_reduction_test {
         typedef boost::mpl::vector1< in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
     };
 }
 
