@@ -36,11 +36,12 @@
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
 #include "kcache_fixture.hpp"
+#include "tools/verifier.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
-struct shift_acc_forward_epfill {
+struct shift_acc_forward_bpfilll {
 
     typedef accessor< 0, in, extent< 0, 0, 0, 0, -2, 0 > > in;
     typedef accessor< 1, inout, extent<> > out;
@@ -63,7 +64,7 @@ struct shift_acc_forward_epfill {
     }
 };
 
-struct shift_acc_backward_epfill {
+struct shift_acc_backward_bpfilll {
 
     typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, 2 > > in;
     typedef accessor< 1, inout, extent<> > out;
@@ -85,7 +86,7 @@ struct shift_acc_backward_epfill {
     }
 };
 
-struct self_update_forward_epfill {
+struct self_update_forward_bpfilll {
 
     typedef accessor< 0, inout, extent< 0, 0, 0, 0, -2, 1 > > in;
     typedef inout_accessor< 1 > out;
@@ -110,7 +111,7 @@ struct self_update_forward_epfill {
     }
 };
 
-struct self_update_backward_epfill {
+struct self_update_backward_bpfilll {
 
     typedef accessor< 0, inout, extent< 0, 0, 0, 0, -1, 2 > > in;
     typedef inout_accessor< 1 > out;
@@ -135,7 +136,7 @@ struct self_update_backward_epfill {
     }
 };
 
-TEST_F(kcachef, epfill_forward) {
+TEST_F(kcachef, bpfilll_forward) {
 
     init_fields();
     for (uint_t i = 0; i < m_d1; ++i) {
@@ -161,7 +162,7 @@ TEST_F(kcachef, epfill_forward) {
             make_multistage // mss_descriptor
             (execute< forward >(),
                                         define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_in())),
-                                        make_stage< shift_acc_forward_epfill >(p_in() // esf_descriptor
+                                        make_stage< shift_acc_forward_bpfilll >(p_in() // esf_descriptor
                                             ,
                                             p_out())));
 
@@ -174,24 +175,19 @@ TEST_F(kcachef, epfill_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+
+    kcache_stencil->finalize();
 }
 
-TEST_F(kcachef, epfill_backward) {
+TEST_F(kcachef, bpfilll_backward) {
 
     init_fields();
     for (uint_t i = 0; i < m_d1; ++i) {
@@ -217,7 +213,7 @@ TEST_F(kcachef, epfill_backward) {
             make_multistage // mss_descriptor
             (execute< backward >(),
                                         define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_in())),
-                                        make_stage< shift_acc_backward_epfill >(p_in() // esf_descriptor
+                                        make_stage< shift_acc_backward_bpfilll >(p_in() // esf_descriptor
                                             ,
                                             p_out())));
 
@@ -229,24 +225,19 @@ TEST_F(kcachef, epfill_backward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+
+    kcache_stencil->finalize();
 }
 
-TEST_F(kcachef, epfill_selfupdate_forward) {
+TEST_F(kcachef, bpfilll_selfupdate_forward) {
 
     init_fields();
     auto buff = create_new_field("buff");
@@ -278,7 +269,7 @@ TEST_F(kcachef, epfill_selfupdate_forward) {
             make_multistage // mss_descriptor
             (execute< forward >(),
                                         define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_buff())),
-                                        make_stage< self_update_forward_epfill >(p_buff(), p_out())));
+                                        make_stage< self_update_forward_bpfilll >(p_buff(), p_out())));
 
     kcache_stencil->ready();
 
@@ -289,24 +280,18 @@ TEST_F(kcachef, epfill_selfupdate_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+    kcache_stencil->finalize();
 }
 
-TEST_F(kcachef, epfill_selfupdate_backward) {
+TEST_F(kcachef, bpfilll_selfupdate_backward) {
 
     init_fields();
     auto buff = create_new_field("buff");
@@ -338,7 +323,7 @@ TEST_F(kcachef, epfill_selfupdate_backward) {
             make_multistage // mss_descriptor
             (execute< backward >(),
                                         define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_buff())),
-                                        make_stage< self_update_backward_epfill >(p_buff(), p_out())));
+                                        make_stage< self_update_backward_bpfilll >(p_buff(), p_out())));
 
     kcache_stencil->ready();
 
@@ -349,19 +334,14 @@ TEST_F(kcachef, epfill_selfupdate_backward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+
+    kcache_stencil->finalize();
 }

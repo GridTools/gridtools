@@ -199,21 +199,16 @@ TEST_F(kcachef, local_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+
+    kcache_stencil->finalize();
 }
 
 TEST_F(kcachef, local_backward) {
@@ -261,21 +256,16 @@ TEST_F(kcachef, local_backward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+
+    kcache_stencil->finalize();
 }
 
 TEST_F(kcachef, biside_forward) {
@@ -305,17 +295,7 @@ TEST_F(kcachef, biside_forward) {
     typedef tmp_arg< 2, storage_t > p_buff;
 
     typedef boost::mpl::vector< p_in, p_out, p_buff > accessor_list;
-    // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-    // that are used, temporary and not
-    // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-    // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-    // order. (I don't particularly like this)
     gridtools::aggregator_type< accessor_list > domain((p_in() = m_in), (p_out() = m_out));
-
-    // Definition of the physical dimensions of the problem.
-    // The constructor takes the horizontal plane dimensions,
-    // while the vertical ones are set according the the axis property soon after
-    // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
 
     auto kcache_stencil = gridtools::make_computation< gridtools::BACKEND >(
         domain,
@@ -337,8 +317,6 @@ TEST_F(kcachef, biside_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
@@ -346,11 +324,9 @@ TEST_F(kcachef, biside_forward) {
 #endif
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    success = success && verif.verify(m_grid, m_ref, m_out, halos);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 
     kcache_stencil->finalize();
-
-    ASSERT_TRUE(success);
 }
 
 TEST_F(kcachef, biside_backward) {
@@ -413,7 +389,6 @@ TEST_F(kcachef, biside_backward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
@@ -421,9 +396,7 @@ TEST_F(kcachef, biside_backward) {
 #endif
     array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    success = success && verif.verify(m_grid, m_ref, m_out, halos);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
 
     kcache_stencil->finalize();
-
-    ASSERT_TRUE(success);
 }

@@ -101,14 +101,14 @@ namespace gridtools {
     };
 
     /**
-     * @struct sync_mem_accessor
+     * @struct flush_mem_accessor
      * functor that will synchronize a cache with main memory
      * \tparam AccIndex index of the accessor
      * \tparam ExecutionPolicy : forward, backward
      * \tparam InitialOffset additional offset to be applied to the accessor
      */
     template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0 >
-    struct sync_mem_accessor {
+    struct flush_mem_accessor {
         /**
          * @struct apply struct of the functor
          * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
@@ -136,14 +136,14 @@ namespace gridtools {
     };
 
     /**
-     * @struct prefill_cache
+     * @struct fill_mem_accessor
      * functor that prefill a kcache (before starting the vertical iteration) with initial values from main memory
      * \tparam AccIndex index of the accessor
      * \tparam ExecutionPolicy : forward, backward
      * \tparam InitialOffset additional offset to be applied to the accessor
      */
     template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset = 0 >
-    struct prefill_cache {
+    struct fill_mem_accessor {
         /**
          * @struct apply struct of the functor
          * \tparam Offset integer that specifies the vertical offset of the cache parameter being synchronized
@@ -178,12 +178,12 @@ namespace gridtools {
 
     template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset >
     struct io_operator< AccIndex, ExecutionPolicy, cache_io_policy::fill, InitialOffset > {
-        using type = prefill_cache< AccIndex, ExecutionPolicy, InitialOffset >;
+        using type = fill_mem_accessor< AccIndex, ExecutionPolicy, InitialOffset >;
     };
 
     template < typename AccIndex, enumtype::execution ExecutionPolicy, int_t InitialOffset >
     struct io_operator< AccIndex, ExecutionPolicy, cache_io_policy::flush, InitialOffset > {
-        using type = sync_mem_accessor< AccIndex, ExecutionPolicy, InitialOffset >;
+        using type = flush_mem_accessor< AccIndex, ExecutionPolicy, InitialOffset >;
     };
 
     /**

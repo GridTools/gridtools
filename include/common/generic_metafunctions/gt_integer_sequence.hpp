@@ -179,6 +179,16 @@ namespace gridtools {
             return lambda(MetaFunctor< Indices >::apply(args_...)..., add_arg);
         }
 
+        /**
+           @brief applies a lambda function to the transformed argument pack.
+           The lambda function does not return any value, like in other specializations of this class, but
+           simply apply a void action of each index of the integer sequence.
+           This functionality is equivalent to a boost::mpl::for_each
+
+           \tparam Lambda lambda function applied to the transformed argument pack
+           \tparam MetaFunctor functor that is transforming each of the arguments of the variadic pack
+           \tparam ExtraTypes variadic pack of arguments to be passed to the lambda
+         */
         template < template < UInt T > class MetaFunctor, typename... ExtraTypes >
         GT_FUNCTION static constexpr uint_t apply_void_lambda(ExtraTypes &... args_) {
             return impl::void_lambda(MetaFunctor< Indices >::apply(args_...)...);

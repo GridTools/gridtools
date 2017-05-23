@@ -36,6 +36,7 @@
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
 #include "kcache_fixture.hpp"
+#include "tools/verifier.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -136,21 +137,16 @@ TEST_F(kcachef, fill_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+
+    kcache_stencil->finalize();
 }
 
 TEST_F(kcachef, fill_backward) {
@@ -190,21 +186,15 @@ TEST_F(kcachef, fill_backward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+    kcache_stencil->finalize();
 }
 
 TEST_F(kcachef, fill_copy_forward) {
@@ -243,19 +233,13 @@ TEST_F(kcachef, fill_copy_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+    kcache_stencil->finalize();
 }

@@ -336,7 +336,7 @@ TEST(iterate_domain_cache, fill) {
         (boost::mpl::equal< begin_fill_indexes8_t, boost::mpl::vector1< static_uint< 0 > > >::value), "Error");
 }
 
-TEST(iterate_domain_cache, ecflush) {
+TEST(iterate_domain_cache, epflush) {
 
     typedef boost::mpl::
         vector5< st_wrapper_in1_t, st_wrapper_in2_t, st_wrapper_in3_t, st_wrapper_in4_t, st_wrapper_out_t > storages_t;

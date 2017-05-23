@@ -36,6 +36,7 @@
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
 #include "kcache_fixture.hpp"
+#include "tools/verifier.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -89,14 +90,19 @@ struct shift_acc_backward_epflush {
 TEST_F(kcachef, epflush_forward) {
 
     init_fields();
+    auto auxf = create_new_field("aux");
+    auto auxv = make_host_view(auxf);
 
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
-            m_refv(i, j, 0) = m_inv(i, j, 0);
-            m_refv(i, j, 1) = m_inv(i, j, 1) + m_refv(i, j, 0);
+            auxv(i, j, 0) = m_inv(i, j, 0);
+            auxv(i, j, 1) = m_inv(i, j, 1) + auxv(i, j, 0);
 
             for (uint_t k = 2; k < m_d3; ++k) {
-                m_refv(i, j, k) = m_refv(i, j, k - 1) + m_refv(i, j, k - 2) + m_inv(i, j, k);
+                auxv(i, j, k) = auxv(i, j, k - 1) + auxv(i, j, k - 2) + m_inv(i, j, k);
+                if (k >= m_d3 - 2) {
+                    m_refv(i, j, k) = auxv(i, j, k);
+                }
             }
         }
     }
@@ -126,40 +132,34 @@ TEST_F(kcachef, epflush_forward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < m_d3 - 2; ++k) {
-                if (m_refv(i, j, k) == m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-            for (uint_t k = m_d3 - 2; k < m_d3; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+
+    kcache_stencil->finalize();
 }
 
 TEST_F(kcachef, epflush_backward) {
 
     init_fields();
+    auto auxf = create_new_field("aux");
+    auto auxv = make_host_view(auxf);
+
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
-            m_refv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);
-            m_refv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2) + m_refv(i, j, m_d3 - 1);
+            auxv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);
+            auxv(i, j, m_d3 - 2) = m_inv(i, j, m_d3 - 2) + auxv(i, j, m_d3 - 1);
 
             for (int_t k = m_d3 - 3; k >= 0; --k) {
-                m_refv(i, j, k) = m_refv(i, j, k + 1) + m_refv(i, j, k + 2) + m_inv(i, j, k);
+                auxv(i, j, k) = auxv(i, j, k + 1) + auxv(i, j, k + 2) + m_inv(i, j, k);
+                if (k < 2) {
+                    m_refv(i, j, k) = auxv(i, j, k);
+                }
             }
         }
     }
@@ -189,26 +189,14 @@ TEST_F(kcachef, epflush_backward) {
     m_out.sync();
     m_out.reactivate_host_write_views();
 
-    bool success = true;
-    for (uint_t i = 0; i < m_d1; ++i) {
-        for (uint_t j = 0; j < m_d2; ++j) {
-            for (uint_t k = 0; k < 2; ++k) {
-                if (m_refv(i, j, k) != m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-            for (uint_t k = 2; k < m_d3; ++k) {
-                if (m_refv(i, j, k) == m_outv(i, j, k)) {
-                    std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                              << "ref = " << m_refv(i, j, k) << ", out = " << m_outv(i, j, k) << std::endl;
-                    success = false;
-                }
-            }
-        }
-    }
-    kcache_stencil->finalize();
+#if FLOAT_PRECISION == 4
+    verifier verif(1e-6);
+#else
+    verifier verif(1e-10);
+#endif
+    array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
 
-    ASSERT_TRUE(success);
+    ASSERT_TRUE(verif.verify(m_grid, m_ref, m_out, halos));
+
+    kcache_stencil->finalize();
 }
