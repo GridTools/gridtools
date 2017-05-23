@@ -38,7 +38,6 @@
 
 #include <array>
 #include <assert.h>
-#include <cuda_runtime.h>
 #include <boost/mpl/bool.hpp>
 
 #include "../common/state_machine.hpp"
