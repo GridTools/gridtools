@@ -58,8 +58,7 @@ namespace gridtools {
         template < uint TileI, uint TileJ, uint... Tiles >
         struct check_cache_tile_sizes {
             GRIDTOOLS_STATIC_ASSERT((TileI > 0 && TileJ > 0), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((accumulate(multiplies(), Tiles...) == 1), GT_INTERNAL_ERROR);
-            using type = int;
+            static constexpr bool value = (accumulate(multiplies(), Tiles...) == 1);
         };
     }
 
@@ -87,8 +86,7 @@ namespace gridtools {
     template < typename Cache, uint_t... Tiles, short_t... ExtentBounds, typename StorageWrapper >
     struct cache_storage< Cache, block_size< Tiles... >, extent< ExtentBounds... >, StorageWrapper > {
         GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
-
-        using dumm = typename _impl::check_cache_tile_sizes< Tiles... >::type;
+        GRIDTOOLS_STATIC_ASSERT((_impl::check_cache_tile_sizes< Tiles... >::value), GT_INTERNAL_ERROR);
 
       public:
         using cache_t = Cache;

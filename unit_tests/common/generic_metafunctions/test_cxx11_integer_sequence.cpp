@@ -67,24 +67,6 @@ struct get_component_type {
     static constexpr int value = Elem::value;
 };
 
-TEST(integer_sequence, fill_templated_container_type) {
-
-    using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
-
-    // calling the array constexpr copy constructor
-    using filled_type_t = seq::template apply_t< int,
-        test_extent,
-        get_component_type,
-        static_int< 0 >,
-        static_int< 1 >,
-        static_int< 2 >,
-        static_int< 3 > >::type;
-
-    // verifying that the information is actually compile-time known and that it's correct
-    GRIDTOOLS_STATIC_ASSERT(
-        (boost::is_same< filled_type_t, test_extent< 0, 1, 2, 3 > >::value), "Error in test_integer_sequence");
-}
-
 TEST(integer_sequence, fill_array) {
 
     using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
