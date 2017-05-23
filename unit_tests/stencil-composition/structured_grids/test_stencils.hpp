@@ -77,9 +77,9 @@ namespace copy_stencils_3D_2D_1D_0D {
         typedef accessor< 1, enumtype::inout > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_interval) {
-            dom(out()) = dom(in());
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in());
         }
     };
 
