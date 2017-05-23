@@ -73,6 +73,9 @@ TEST(DataViewTest, Simple) {
 
 // this checks are only performed in debug mode
 #ifndef NDEBUG
+    EXPECT_THROW(si.index(-1, 0, 0), std::runtime_error);
+    EXPECT_THROW(si.index(0, -1, 0), std::runtime_error);
+    EXPECT_THROW(si.index(0, 0, -1), std::runtime_error);
     EXPECT_THROW(si.index(0, 0, 3), std::runtime_error);
     EXPECT_THROW(si.index(0, 3, 0), std::runtime_error);
     EXPECT_THROW(si.index(3, 0, 0), std::runtime_error);
@@ -91,6 +94,10 @@ TEST(DataViewTest, Simple) {
     EXPECT_THROW(si2.index(0, 0, 5), std::runtime_error);
     EXPECT_THROW(si2.index(0, 5, 0), std::runtime_error);
     EXPECT_THROW(si2.index(5, 0, 0), std::runtime_error);
+    // testing special storage info
+    typedef host_storage_info< 2, layout_map< -1, 0, -1 >, halo< 0, 0, 0 > > special_storage_info_t;
+    special_storage_info_t ssi(128, 128, 80);
+    EXPECT_THROW(ssi.index(0, -1, 0), std::runtime_error);
 #endif
 
     ASSERT_TRUE(si.index(1, 0, 1) == 10);

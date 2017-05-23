@@ -129,9 +129,9 @@ namespace gridtools {
             // masked dimensions are skipped and a recursive call is performed until all indices are checked.
             typedef boost::mpl::int_< (int)halo_t::template at< N >() > halosize_t;
             return ((layout_t::template at< N >() == -1) ||
-                    ((get_value_from_pack(N, idx...) >= -halosize_t::value) &&
-                        (get_value_from_pack(N, idx...) < (unaligned_dim< N >() - halosize_t::value))) &&
-                        check_bounds< N + 1 >(idx...));
+                       ((get_value_from_pack(N, idx...) >= -halosize_t::value) &&
+                           (get_value_from_pack(N, idx...) < (unaligned_dim< N >() - halosize_t::value)))) &&
+                   check_bounds< N + 1 >(idx...);
         }
 
         /*
