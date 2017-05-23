@@ -770,7 +770,7 @@ namespace gridtools {
         GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
             : m_dims{idim, jdim, kdim} {}
 
-        __device__ icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
+        GT_FUNCTION_DEVICE icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
 
         template < typename LocationType,
             typename ValueType,
