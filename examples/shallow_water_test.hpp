@@ -126,14 +126,14 @@ namespace shallow_water {
 
         template < typename Evaluation, typename ComponentU, typename DimensionX, typename DimensionY >
         GT_FUNCTION static float_type /*&&*/ half_step(
-            Evaluation const &eval, ComponentU U, DimensionX d1, DimensionY d2, float_type const &delta) {
+            Evaluation &eval, ComponentU U, DimensionX d1, DimensionY d2, float_type const &delta) {
             return /*std::move*/ (
                 eval(sol(d1, d2) + sol(d2) / 2. - (sol(U, d2, d1) - sol(U, d2)) * (dt() / (2 * delta))));
         }
 
         template < typename Evaluation, typename ComponentU, typename DimensionX, typename DimensionY >
         GT_FUNCTION static float_type /*&&*/ half_step_u(
-            Evaluation const &eval, ComponentU U, DimensionX d1, DimensionY d2, float_type const &delta) {
+            Evaluation &eval, ComponentU U, DimensionX d1, DimensionY d2, float_type const &delta) {
             return /*std::move*/ (eval((
                 sol(U, d1, d2) + sol(U, d2) / 2. -
                 (pow< 2 >(sol(U, d1, d2)) / sol(d1, d2) + pow< 2 >(sol(d1, d2)) * g() / 2.) * (dt() / (2. * delta)) -
@@ -146,14 +146,14 @@ namespace shallow_water {
             typename DimensionX,
             typename DimensionY >
         GT_FUNCTION static float_type /*&&*/ half_step_v(
-            Evaluation const &eval, ComponentU U, ComponentV V, DimensionX d1, DimensionY d2, float_type const &delta) {
+            Evaluation &eval, ComponentU U, ComponentV V, DimensionX d1, DimensionY d2, float_type const &delta) {
             return /*std::move*/ (eval((sol(V, d1, d2) + sol(V, d1) / 2. -
                                         sol(U, d1, d2) * sol(V, d1, d2) / sol(d1, d2) * (dt() / (2 * delta)) -
                                         sol(U, d2) * sol(V, d2) / sol(d2))));
         }
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             // x i;
             // y j;
 
@@ -176,7 +176,7 @@ namespace shallow_water {
         typedef dimension< 4 > comp;
 #endif
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             //########## FINAL STEP #############
             // data dependencies with the previous parts
             // notation: alias<tmp, comp, step>(0, 0) is ==> tmp(comp(0), step(0)).

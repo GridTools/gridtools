@@ -63,7 +63,7 @@ struct functor1 {
     typedef boost::mpl::vector< in, buff > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 typedef backend< Host, GRIDBACKEND, Naive > backend_t;

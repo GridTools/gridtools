@@ -168,11 +168,9 @@ fi
 
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
--DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
 -DCUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DGPU_ENABLED_FUSION:PATH=../fusion/include \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
@@ -217,6 +215,12 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
           break # Skip the make repetitions
       fi
     done
+
+    nwarnings=`grep -i "warning" ${log_file} | wc -l`
+    if [ ${nwarnings} -ne 0 ]; then
+        echo "Treating warnings as errors! Build failed because of ${nwarnings} warnings!"
+        error_code=$((error_code || `echo "1"` ))    
+    fi
 
     if [ ${error_code} -ne 0 ]; then
         cat ${log_file};
