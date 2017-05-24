@@ -52,4 +52,4 @@ export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
 export USE_MPI_COMPILER=OFF
 export MAKE_THREADS=24
-export SRUN_BUILD_COMMAND="srun -C gpu --account c01 --time=00:15:00"
+export SRUN_BUILD_COMMAND="srun -C gpu --account c01 --time=00:10:00"
