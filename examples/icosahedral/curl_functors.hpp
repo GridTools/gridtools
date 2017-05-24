@@ -54,7 +54,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< dual_area_reciprocal, dual_edge_length, weights, edge_orientation > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             using edge_of_vertex_dim = dimension< 5 >;
             edge_of_vertex_dim edge;
 
@@ -76,7 +76,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_edges, weights, out_vertices > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             using edge_of_vertex_dim = dimension< 5 >;
             edge_of_vertex_dim edge;
 
@@ -101,7 +101,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_edges, dual_area_reciprocal, dual_edge_length, out_vertices > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             constexpr auto neighbor_offsets = connectivity< vertices, edges, Color >::offsets();
             eval(out_vertices()) = -eval(in_edges(neighbor_offsets[0])) * eval(dual_edge_length(neighbor_offsets[0])) +
                                    eval(in_edges(neighbor_offsets[1])) * eval(dual_edge_length(neighbor_offsets[1])) -
