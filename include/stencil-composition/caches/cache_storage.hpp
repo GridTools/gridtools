@@ -182,10 +182,13 @@ namespace gridtools {
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) {
             check_kcache_access(accessor_);
 
-            const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                  _impl::get_cache_offset< meta_t >(accessor_);
+            const int_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                                 _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
 
-            return m_values[index_ - kminus_t::value];
+            assert(index_ >= 0);
+            assert(index_ < (size() * StorageWrapper::num_of_storages));
+
+            return m_values[index_];
         }
 
         /**
@@ -197,10 +200,12 @@ namespace gridtools {
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
             check_kcache_access(accessor_);
 
-            const uint_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                  _impl::get_cache_offset< meta_t >(accessor_);
+            const int_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                                 _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
+            assert(index_ >= 0);
+            assert(index_ < (size() * StorageWrapper::num_of_storages));
 
-            return m_values[index_ - kminus_t::value];
+            return m_values[index_];
         }
 
         /**
