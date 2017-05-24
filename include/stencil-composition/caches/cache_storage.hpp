@@ -182,9 +182,9 @@ namespace gridtools {
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) {
             check_kcache_access(accessor_);
 
-            const int_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+            const int_t index_ = (int_t) size() * (int_t) get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                                  _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
-
+if(threadIdx.x==2 && threadIdx.y==2) printf("EXE %d %d %d\n", index_, size() , size() * StorageWrapper::num_of_storages);
             assert(index_ >= 0);
             assert(index_ < (size() * StorageWrapper::num_of_storages));
 
@@ -200,8 +200,10 @@ namespace gridtools {
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
             check_kcache_access(accessor_);
 
-            const int_t index_ = size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+            const int_t index_ = (int_t) size() * (int_t) get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                                  _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
+if(threadIdx.x==2 && threadIdx.y==2) printf("EXE %d %d %d\n", index_, size() , size() * StorageWrapper::num_of_storages);
+
             assert(index_ >= 0);
             assert(index_ < (size() * StorageWrapper::num_of_storages));
 

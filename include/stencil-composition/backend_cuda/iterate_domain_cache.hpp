@@ -325,12 +325,6 @@ namespace gridtools {
 
                 constexpr int_t koffset_abs = koffset > 0 ? koffset : -koffset;
 
-                typedef accessor< Idx::value,
-                    enumtype::in,
-                    extent< 0, 0, 0, 0, (koffset < 0) ? koffset : -koffset, (koffset > 0) ? koffset : -koffset > >
-                    acc_t;
-                constexpr acc_t acc_(0, 0, koffset);
-
                 // compute the limit level of the iteration space in k, below which we can not fill (in case of fill)
                 // or beyond which we can not flush (in case of flush) since it might
                 // produce an out of bounds when accessing main memory. This limit level is defined by the interval
@@ -398,7 +392,7 @@ namespace gridtools {
                 using io_op_t = typename io_operator< Idx,
                     IterationPolicy::value,
                     CacheIOPolicy,
-                    (CacheIOPolicy == cache_io_policy::flush) ? (int_t)1 : (int_t)0 >::type;
+                    (kcache_t::ccacheIOPolicy == cache_io_policy::flush) ? (int_t)1 : (int_t)0 >::type;
 
                 auto &cache_st = boost::fusion::at_key< Idx >(m_kcaches);
                 seq::template apply_void_lambda< io_op_t::apply_t >(m_it_domain, cache_st);
