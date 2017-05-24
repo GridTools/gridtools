@@ -110,8 +110,8 @@ namespace soneoc {
             }
         }
 
-        typedef arg< 0, edge_storage_type > p_in_edges;
-        typedef arg< 1, cell_storage_type > p_out_cells;
+        typedef arg< 0, edge_storage_type, icosahedral_topology_t::edges > p_in_edges;
+        typedef arg< 1, cell_storage_type, icosahedral_topology_t::cells > p_out_cells;
 
         typedef boost::mpl::vector< p_in_edges, p_out_cells > accessor_list_edges_t;
 

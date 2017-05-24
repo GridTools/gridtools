@@ -52,7 +52,7 @@ namespace gridtools {
 
         template < typename Plc, typename Acc >
         struct same_location_type {
-            using type = typename boost::is_same< typename Plc::location_type_t, typename Acc::location_type >::type;
+            using type = typename boost::is_same< typename Plc::location_t, typename Acc::location_type >::type;
             static constexpr bool value = type::value;
         };
 
