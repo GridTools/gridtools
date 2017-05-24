@@ -59,7 +59,7 @@ namespace ico_operators {
             vector< in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             constexpr auto neighbors_offsets_cell = connectivity< edges, cells, Color >::offsets();
 
             float_type grad_n{(eval(in_cells(neighbors_offsets_cell[1])) - eval(in_cells(neighbors_offsets_cell[0]))) *
