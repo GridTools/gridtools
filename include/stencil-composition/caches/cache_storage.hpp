@@ -164,8 +164,6 @@ namespace gridtools {
         GT_FUNCTION value_type const &RESTRICT check_kcache_access(Accessor const &accessor_,
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
 
-            constexpr const meta_t s_storage_info;
-
             using accessor_t = typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type;
             GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor_t >::value), "Error type is not accessor tuple");
 
