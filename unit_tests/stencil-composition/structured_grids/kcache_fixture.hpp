@@ -77,5 +77,6 @@ class kcachef : public ::testing::Test {
                 }
             }
         }
+         m_out.clone_to_device();
     }
 };
