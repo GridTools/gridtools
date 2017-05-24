@@ -81,11 +81,14 @@ if( ENABLE_ATLAS )
   add_definitions(-DENABLE_ATLAS)
   include_directories(${ATLAS_INCLUDE_DIR})
  
-  find_package( Eckit REQUIRED) 
   set(ATLAS_LIBRARIES ${ATLAS_LIB} ${ECKIT_LIB})
 
   add_definitions(-DATLAS_HAVE_GRIDTOOLS_STORAGE)
-
+  if( ENABLE_GPU )
+    add_definitions(-DATLAS_GRIDTOOLS_STORAGE_BACKEND_CUDA)
+  else()
+    add_definitions(-DATLAS_GRIDTOOLS_STORAGE_BACKEND_HOST)
+  endif(ENABLE_GPU)
 endif(ENABLE_ATLAS)
 
 ## cuda support ##
