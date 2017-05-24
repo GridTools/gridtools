@@ -85,6 +85,7 @@ namespace gridtools {
         typedef ProcessingElementsBlockSize processing_elements_block_size_t;
         typedef PhysicalDomainBlockSize physical_domain_block_size_t;
         typedef Grid grid_t;
+        typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
         static const bool s_is_reduction = IsReduction::value;
         typedef IsReduction is_reduction_t;
         typedef FunctorReturnType functor_return_type_t;
@@ -165,8 +166,9 @@ namespace gridtools {
         typedef LoopIntervals loop_intervals_t;
         typedef FunctorsMap functors_map_t;
         typedef ExtendSizes extent_sizes_t;
+        typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
         typedef typename boost::mpl::fold< extent_sizes_t,
-            typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t,
+            typename grid_traits_t::null_extent_t,
             enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type max_extent_t;
         typedef LocalDomain local_domain_t;
         typedef CacheSequence cache_sequence_t;

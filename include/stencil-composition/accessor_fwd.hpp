@@ -49,5 +49,5 @@ namespace gridtools {
      * Struct to test if an argument is a temporary
      */
     template < typename T >
-    struct is_plchldr_to_temp;
+    struct is_tmp_arg;
 }

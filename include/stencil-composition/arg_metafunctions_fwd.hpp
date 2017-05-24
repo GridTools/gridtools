@@ -35,7 +35,10 @@
 */
 #pragma once
 
+#include "arg_fwd.hpp"
+
 namespace gridtools {
+
     template < typename T >
     struct is_arg;
 

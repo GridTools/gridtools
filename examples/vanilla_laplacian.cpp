@@ -74,7 +74,7 @@ void print(double *that, uint_t n, uint_t m, uint_t l, Stream &stream) {
 int main_naive(int argc, char **argv) {
 
     if (argc != 4) {
-        std::cout << "Usage: basic_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
+        std::cout << "Usage: vanilla_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
                   << std::endl;
         return 1;
     }
@@ -137,7 +137,7 @@ int main_naive(int argc, char **argv) {
 int main_naive_inc(int argc, char **argv) {
 
     if (argc != 4) {
-        std::cout << "Usage: basic_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
+        std::cout << "Usage: vanilla_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
                   << std::endl;
         return 1;
     }
@@ -220,7 +220,7 @@ int main_naive_inc(int argc, char **argv) {
 int main_block(int argc, char **argv) {
 
     if (argc != 4) {
-        std::cout << "Usage: basic_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
+        std::cout << "Usage: vanilla_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
                   << std::endl;
         return 1;
     }
@@ -372,7 +372,7 @@ int main_block(int argc, char **argv) {
 int main_block_inc(int argc, char **argv) {
 
     if (argc != 4) {
-        std::cout << "Usage: basic_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
+        std::cout << "Usage: vanilla_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
                   << std::endl;
         return 1;
     }

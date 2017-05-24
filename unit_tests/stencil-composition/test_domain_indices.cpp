@@ -65,7 +65,7 @@ struct print_plchld {
 
     template < typename T >
     void operator()(T const &v) const {
-        if (T::index_type::value != count) {
+        if (T::index_t::value != count) {
             result = false;
         }
         ++count;
@@ -74,34 +74,40 @@ struct print_plchld {
 
 bool test_domain_indices() {
 
-    typedef backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_type< float_type,
-        backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_info< 0, layout_map< 0, 1, 2 > > >::type
-        storage_type;
-    typedef backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::temporary_storage_type< float_type,
-        backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_info< 0, layout_map< 0, 1, 2 > > >::type
-        tmp_storage_type;
+#ifdef CUDA_EXAMPLE
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend< Host, GRIDBACKEND, Block >
+#else
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#endif
+#endif
+
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
     uint_t d1 = 10;
     uint_t d2 = 10;
     uint_t d3 = 10;
 
-    backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >::storage_info< 0, layout_map< 0, 1, 2 > > meta_(d1, d2, d3);
-    storage_type in(meta_, -1., "in");
-    storage_type out(meta_, -7.3, "out");
-    storage_type coeff(meta_, 8., "coeff");
+    storage_info_t meta_(d1, d2, d3);
+    data_store_t in(meta_, -1.);
+    data_store_t out(meta_, -7.3);
+    data_store_t coeff(meta_, 8.);
 
-    typedef arg< 2, tmp_storage_type > p_lap;
-    typedef arg< 1, tmp_storage_type > p_flx;
-    typedef arg< 5, tmp_storage_type > p_fly;
-    typedef arg< 0, storage_type > p_coeff;
-    typedef arg< 3, storage_type > p_in;
-    typedef arg< 4, storage_type > p_out;
+    typedef tmp_arg< 2, data_store_t > p_lap;
+    typedef tmp_arg< 1, data_store_t > p_flx;
+    typedef tmp_arg< 5, data_store_t > p_fly;
+    typedef arg< 0, data_store_t > p_coeff;
+    typedef arg< 3, data_store_t > p_in;
+    typedef arg< 4, data_store_t > p_out;
 
     result = true;
 
     typedef boost::mpl::vector< p_lap, p_flx, p_fly, p_coeff, p_in, p_out > accessor_list;
 
-    aggregator_type< accessor_list > domain(boost::fusion::make_vector(&out, &in, &coeff /*,&fly, &flx*/));
+    aggregator_type< accessor_list > domain(coeff, in, out);
 
     count = 0;
     result = true;
@@ -109,7 +115,7 @@ bool test_domain_indices() {
     print_plchld pfph;
     count = 0;
     result = true;
-    boost::mpl::for_each< aggregator_type< accessor_list >::placeholders >(pfph);
+    boost::mpl::for_each< aggregator_type< accessor_list >::placeholders_t >(pfph);
 
     return result;
 }

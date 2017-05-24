@@ -36,6 +36,8 @@
 #pragma once
 #include <boost/mpl/bool.hpp>
 
+#include "host_device.hpp"
+
 /**
 @file
 @brief dummy pointer object
@@ -124,7 +126,6 @@ namespace gridtools {
         /**
           @brief destroy pointer
          */
-        GT_FUNCTION
         void destroy() {
             assert(m_t);
             delete m_t;
@@ -143,12 +144,10 @@ namespace gridtools {
        to delete the instances of the storage_info class
      */
     struct delete_pointer {
-
-        GT_FUNCTION
         delete_pointer() {}
 
         template < typename U >
-        GT_FUNCTION void operator()(U t) const {
+        void operator()(U t) const {
             if (t.get())
                 delete t.get();
         }

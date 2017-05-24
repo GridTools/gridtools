@@ -52,22 +52,22 @@ using namespace gridtools;
 // test functor 1
 struct Functor0 {
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 3, -1 >, level< 3, -1 > >) {}
+    static void Do(TArguments &args, interval< level< 3, -1 >, level< 3, -1 > >) {}
 };
 
 // test functor 1
 struct Functor1 {
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 0, 1 >, level< 2, -1 > >) {}
+    static void Do(TArguments &args, interval< level< 0, 1 >, level< 2, -1 > >) {}
 };
 
 // test functor 2
 struct Functor2 {
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 0, 1 >, level< 1, -1 > >) {}
+    static void Do(TArguments &args, interval< level< 0, 1 >, level< 1, -1 > >) {}
 
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 1, 1 >, level< 3, -1 > >) {}
+    static void Do(TArguments &args, interval< level< 1, 1 >, level< 3, -1 > >) {}
 };
 
 // helper printing a do method lookup map entry
