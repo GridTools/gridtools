@@ -50,7 +50,7 @@ namespace gridtools {
     struct run_esf_functor_cuda
         : public run_esf_functor< run_esf_functor_cuda< RunFunctorArguments, Interval > > // CRTP
     {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
         // TODOCOSUNA This type here is not an interval, is a pair<int_, int_ >
         // BOOST_STATIC_ASSERT((is_interval<Interval>::value));
 
@@ -67,7 +67,7 @@ namespace gridtools {
         // size and the cuda block size have to be the same
         GRIDTOOLS_STATIC_ASSERT(
             (physical_domain_block_size_t::i_size_t::value == processing_elements_block_size_t::i_size_t::value),
-            "Internal Error: wrong type");
+            GT_INTERNAL_ERROR);
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
@@ -83,7 +83,7 @@ namespace gridtools {
          */
         template < typename IntervalType, typename EsfArguments >
         __device__ void do_impl() const {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
 
             // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
             // position in the iterate domain

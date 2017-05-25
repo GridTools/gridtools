@@ -65,7 +65,7 @@ namespace gridtools {
         template < typename EsfsVector, typename PushRegular, typename PushIndependent = PushRegular >
         struct linearize_esf_array {
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfsVector, is_esf_descriptor >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfsVector, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
 
             template < typename Vector, typename Element >
             struct push_into {

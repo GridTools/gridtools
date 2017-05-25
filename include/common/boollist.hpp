@@ -127,24 +127,24 @@ namespace gridtools {
         }
 
         template < typename LayoutMap >
-        GT_FUNCTION boollist< LayoutMap::length > permute(
-            typename boost::enable_if_c< LayoutMap::length == 1 >::type *a = 0) const {
-            return boollist< LayoutMap::length >(LayoutMap::template find< 0 >(m_value));
+        GT_FUNCTION boollist< LayoutMap::masked_length > permute(
+            typename boost::enable_if_c< LayoutMap::masked_length == 1 >::type *a = 0) const {
+            return boollist< LayoutMap::masked_length >(m_value[LayoutMap::template find< 0 >()]);
         }
 
         template < typename LayoutMap >
-        GT_FUNCTION boollist< LayoutMap::length > permute(
-            typename boost::enable_if_c< LayoutMap::length == 2 >::type *a = 0) const {
-            return boollist< LayoutMap::length >(
-                LayoutMap::template find< 0 >(m_value), LayoutMap::template find< 1 >(m_value));
+        GT_FUNCTION boollist< LayoutMap::masked_length > permute(
+            typename boost::enable_if_c< LayoutMap::masked_length == 2 >::type *a = 0) const {
+            return boollist< LayoutMap::masked_length >(
+                m_value[LayoutMap::template find< 0 >()], m_value[LayoutMap::template find< 1 >()]);
         }
 
         template < typename LayoutMap >
-        GT_FUNCTION boollist< LayoutMap::length > permute(
-            typename boost::enable_if_c< LayoutMap::length == 3 >::type *a = 0) const {
-            return boollist< LayoutMap::length >(LayoutMap::template find< 0 >(&m_value[0]),
-                LayoutMap::template find< 1 >(&m_value[0]),
-                LayoutMap::template find< 2 >(&m_value[0]));
+        GT_FUNCTION boollist< LayoutMap::masked_length > permute(
+            typename boost::enable_if_c< LayoutMap::masked_length == 3 >::type *a = 0) const {
+            return boollist< LayoutMap::masked_length >(m_value[LayoutMap::template find< 0 >()],
+                m_value[LayoutMap::template find< 1 >()],
+                m_value[LayoutMap::template find< 2 >()]);
         }
     };
 }

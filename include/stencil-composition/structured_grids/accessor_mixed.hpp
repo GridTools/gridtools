@@ -50,7 +50,7 @@ namespace gridtools {
      */
     template < typename ArgType, typename... Pair >
     struct accessor_mixed : public offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... > {
-        typedef typename ArgType::index_type index_type;
+        typedef typename ArgType::index_t index_t;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::offset_tuple_t offset_tuple_t;
         typedef typename ArgType::extent_t extent_t;
@@ -87,7 +87,7 @@ the dimension is chosen
             "wrong type. If you want to generalize the alias "
             "to something more generic than an offset_tuple "
             "remove this assert.");
-        GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Known >::value...), "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Known >::value...), GT_INTERNAL_ERROR);
 
         template < int_t Arg1, int_t Arg2 >
         struct pair_ {
@@ -121,7 +121,7 @@ the dimension is chosen
         template < typename... Unknowns >
         GT_FUNCTION AccessorType /*&&*/ operator()(Unknowns /*&&*/... unknowns) const {
 #ifdef PEDANTIC // the runtime arguments are not necessarily dimension<>()
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Unknowns >::value...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Unknowns >::value...), GT_INTERNAL_ERROR);
 #endif
             return AccessorType(
                 dimension< Known::direction >(m_knowns[boost::mpl::find< dim_vector, Known >::type::pos::value])...,
