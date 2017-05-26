@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#define PEDANTIC_DISABLED
+//#define PEDANTIC_DISABLED
 #include <stencil-composition/stencil-composition.hpp>
 #include "Options.hpp"
 #include "extended_4D_verify.hpp"
