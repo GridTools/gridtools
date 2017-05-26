@@ -67,7 +67,7 @@ namespace rw_test {
         typedef boost::mpl::vector8< i0, o0, i1, o1, i2, o2, i3, o3 > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
     };
 } // namespace rw_test
 
@@ -75,10 +75,8 @@ using namespace rw_test;
 
 TEST(esf, read_write) {
 
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t;
-    typedef backend_t::storage_info< 0, layout_t > storage_info_t;
-
-    using cell_storage_type = typename backend_t::storage_type< double, storage_info_t >;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< double, meta_data_t > cell_storage_type;
 
     typedef arg< 0, cell_storage_type > pi0;
     typedef arg< 1, cell_storage_type > po0;

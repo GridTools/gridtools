@@ -44,7 +44,17 @@ namespace gridtools {
 
     namespace _impl {
 
-        template < typename Layout, typename Plus, typename Minus, typename Tiles, ushort_t NColors, typename Storage >
+        template < typename Layout, typename LocationType, unsigned D1, unsigned D2, unsigned... Rest >
+        struct get_meta_storage {
+            typedef meta_storage_cache< Layout, D1, LocationType::n_colors::value, D2, Rest... > type;
+        };
+
+        template < typename Layout, unsigned D1, unsigned D2, unsigned... Rest >
+        struct get_meta_storage< Layout, enumtype::default_location_type, D1, D2, Rest... > {
+            typedef meta_storage_cache< Layout, D1, D2, Rest... > type;
+        };
+
+        template < typename Layout, typename Plus, typename Minus, typename Tiles, typename StorageWrapper >
         struct compute_meta_storage;
 
         /**
@@ -66,25 +76,20 @@ namespace gridtools {
             typename T1,
             typename T2,
             typename... Tiles,
-            ushort_t NColors,
-            typename Storage >
+            typename StorageWrapper >
         struct compute_meta_storage< Layout,
             variadic_to_vector< P1, P2, Plus... >,
             variadic_to_vector< M1, M2, Minus... >,
             variadic_to_vector< T1, T2, Tiles... >,
-            NColors,
-            Storage > {
-
-            typedef meta_storage_cache< Layout,
-                P1::value - M1::value + T1::value,
-// TODO ICO_STORAGE
-#ifndef STRUCTURED_GRIDS
-                NColors,
-#endif
-                P2::value - M2::value + T2::value, // first 2 dimensions are special (the block)
-                ((Plus::value - Minus::value) > 0 ? (Tiles::value - Minus::value + Plus::value) : 1)...,
-                Storage::field_dimensions,
-                1 > type;
+            StorageWrapper > {
+            typedef typename StorageWrapper::arg_t::location_t location_t;
+            static constexpr unsigned d1 = P1::value - M1::value + T1::value;
+            static constexpr unsigned d2 = P2::value - M2::value + T2::value;
+            typedef typename get_meta_storage< Layout,
+                location_t,
+                d1,
+                d2,
+                ((Plus::value - Minus::value) > 0 ? (Tiles::value - Minus::value + Plus::value) : 1)... >::type type;
         };
 
         namespace impl {
@@ -125,27 +130,15 @@ namespace gridtools {
          */
         template < uint_t... Id >
         struct generate_layout_map< gt_integer_sequence< uint_t, Id... > > {
-#ifdef CUDA8
-            typedef layout_map< (sizeof...(Id)-Id - 1)... > type;
-#else
-            typedef typename impl::get_layout_map_< sizeof...(Id) >::type type;
-#endif
-        };
+            static constexpr int_t s = sizeof...(Id)-1;
 
-#ifndef CUDA8
-        template < uint_t NColors, typename Minus, typename Plus, typename Tiles, typename Storage >
-        struct compute_size;
+            template < uint_t... D >
+            struct get_layout {
+                typedef layout_map< D... > type;
+            };
 
-        template < uint_t NColors, typename... Minus, typename... Plus, typename... Tiles, typename Storage >
-        struct compute_size< NColors,
-            variadic_to_vector< Minus... >,
-            variadic_to_vector< Plus... >,
-            variadic_to_vector< Tiles... >,
-            Storage > {
-            static constexpr auto value = accumulate(multiplies(), (Plus::value + Tiles::value - Minus::value)...) *
-                                          Storage::field_dimensions * NColors;
+            typedef typename get_layout< (s - Id)... >::type type;
         };
-#endif
 
     } // namespace _impl
 } // namespace gridtools

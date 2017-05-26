@@ -41,6 +41,7 @@
 #include <fstream>
 #include <common/array.hpp>
 #include <common/boollist.hpp>
+#include <storage/storage-facility.hpp>
 #include "gtest/gtest.h"
 #include "../../unit_tests/communication/device_binding.hpp"
 

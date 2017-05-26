@@ -45,12 +45,12 @@ namespace gridtools {
     namespace impl {
 
         template < typename ReturnType, uint_t Idx >
-        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint pos) {
+        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint_t pos) {
             return ReturnType();
         }
 
         template < typename ReturnType, uint_t Idx, typename First, typename... ElemTypes >
-        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint pos, First first, ElemTypes... elems) {
+        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint_t pos, First first, ElemTypes... elems) {
             return (pos == Idx) ? first : pack_get_elem_< ReturnType, Idx >(pos + 1, elems...);
         }
 
