@@ -63,7 +63,7 @@ namespace gridtools {
             using type = boost::mpl::int_< (Current::value > Next::value) ? Current::value : Next::value >;
         };
 
-        using max = typename boost::mpl::fold< typename layout_map< Is... >::layout_vector_t,
+        using max = typename boost::mpl::fold< typename layout_map< Is... >::static_layout_vector,
             boost::mpl::int_< -1 >,
             get_max< boost::mpl::_1, boost::mpl::_2 > >::type;
 
