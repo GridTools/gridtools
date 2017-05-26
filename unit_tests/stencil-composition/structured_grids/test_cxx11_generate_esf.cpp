@@ -177,7 +177,7 @@ struct generate_functor {
         }
         code += "\n    template <typename Evaluation>\n";
         code += "    GT_FUNCTION\n";
-        code += "    static void Do(Evaluation const & eval, x_interval) {}\n";
+        code += "    static void Do(Evaluation & eval, x_interval) {}\n";
         code += "};\n";
 
         return code;

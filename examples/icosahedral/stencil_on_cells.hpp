@@ -68,7 +68,7 @@ namespace soc {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
 
             /**
@@ -112,12 +112,13 @@ namespace soc {
             }
         }
 
-        typedef arg< 0, cell_storage_type > p_in_cells;
-        typedef arg< 1, cell_storage_type > p_out_cells;
+        typedef arg< 0, cell_storage_type, icosahedral_topology_t::cells > p_in_cells;
+        typedef arg< 1, cell_storage_type, icosahedral_topology_t::cells > p_out_cells;
 
         typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_cells_t;
 
-        gridtools::aggregator_type< accessor_list_cells_t > domain_cells(in_cells, out_cells);
+        gridtools::aggregator_type< accessor_list_cells_t > domain_cells(
+            (p_in_cells() = in_cells), (p_out_cells() = out_cells));
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};

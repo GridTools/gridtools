@@ -68,7 +68,7 @@ namespace soneoc {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
 
             /**
@@ -110,8 +110,8 @@ namespace soneoc {
             }
         }
 
-        typedef arg< 0, edge_storage_type > p_in_edges;
-        typedef arg< 1, cell_storage_type > p_out_cells;
+        typedef arg< 0, edge_storage_type, icosahedral_topology_t::edges > p_in_edges;
+        typedef arg< 1, cell_storage_type, icosahedral_topology_t::cells > p_out_cells;
 
         typedef boost::mpl::vector< p_in_edges, p_out_cells > accessor_list_edges_t;
 

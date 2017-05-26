@@ -44,7 +44,7 @@
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
 #include <boost/type_traits/remove_reference.hpp>
 
-#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, "non_vect_interface.hpp"))
+#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, "communication/high-level/non_vect_interface.hpp"))
 #include BOOST_PP_ITERATE()
 
 #endif
@@ -92,7 +92,7 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[0].set_minus(0);
+                fields[l].halos[0].reset_minus();
         }
     }
     {
@@ -104,7 +104,7 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[0].set_plus(0);
+                fields[l].halos[0].reset_plus();
         }
     }
     {
@@ -116,7 +116,7 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[1].set_minus(0);
+                fields[l].halos[1].reset_minus();
         }
     }
     {
@@ -128,7 +128,7 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[1].set_plus(0);
+                fields[l].halos[1].reset_plus();
         }
     }
     {
@@ -140,7 +140,7 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[2].set_minus(0);
+                fields[l].halos[2].reset_minus();
         }
     }
     {
@@ -152,7 +152,7 @@ void pack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[2].set_plus(0);
+                fields[l].halos[2].reset_plus();
         }
     }
 
@@ -248,7 +248,7 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[0].set_plus(0);
+                fields[l].halos[0].reset_plus();
         }
     }
     {
@@ -260,7 +260,7 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[0].set_minus(0);
+                fields[l].halos[0].reset_minus();
         }
     }
     {
@@ -272,7 +272,7 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[1].set_plus(0);
+                fields[l].halos[1].reset_plus();
         }
     }
     {
@@ -284,7 +284,7 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[1].set_minus(0);
+                fields[l].halos[1].reset_minus();
         }
     }
     {
@@ -296,7 +296,7 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[2].set_plus(0);
+                fields[l].halos[2].reset_plus();
         }
     }
     {
@@ -308,7 +308,7 @@ void unpack(BOOST_PP_ENUM_BINARY_PARAMS(n_o_i, FIELD, const &_field)) const {
         const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
         if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
             for (int l = 0; l < fields.size(); ++l)
-                fields[l].halos[2].set_minus(0);
+                fields[l].halos[2].reset_minus();
         }
     }
 

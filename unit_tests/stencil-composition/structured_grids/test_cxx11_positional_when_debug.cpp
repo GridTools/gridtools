@@ -69,7 +69,7 @@ namespace positional_when_debug_test {
         typedef boost::mpl::vector1< in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval.i();
             eval.j();
             eval.k();
@@ -99,7 +99,7 @@ TEST(test_make_computation, positional_when_debug) {
        This is a TODO in aggregator_type.hpp */
     aggregator_type< accessor_list_t > dm(a_storage);
     auto test_computation = make_computation< BACKEND >(dm,
-        positional_when_debug_test::grid_t({0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}),
+        positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}),
         make_multistage // mss_descriptor
         (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
 
