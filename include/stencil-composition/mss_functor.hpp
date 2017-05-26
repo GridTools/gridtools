@@ -62,7 +62,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((has_do< EsfFunction, interval_t >::type::value),
                 "Error: Do method does not contain signature with specified interval");
-            using rtype = decltype(EsfFunction::Do(int(), interval_t()));
+            int dumm;
+            using rtype = decltype(EsfFunction::Do(dumm, interval_t()));
             typedef typename boost::mpl::if_< boost::is_same< void, rtype >, notype, rtype >::type type;
         };
 
@@ -196,11 +197,6 @@ namespace gridtools {
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps< mss_components_t, Grid >::type functors_map_t;
 
-// we check that the return types of the reduction user functor matcheds the value provided in the initial value
-// extracted from the make_reduction api (only available for CXX11)
-#ifdef CXX11_ENABLED
-            typedef typename check_reduction_types< mss_components_t, functors_map_t >::type reduction_type_check_t;
-#endif
             typedef backend_traits_from_id< BackendIds::s_backend_id > backend_traits_t;
 
             typedef typename backend_traits_t::template get_block_size< BackendIds::s_strategy_id >::type block_size_t;
@@ -213,7 +209,8 @@ namespace gridtools {
 
                 this is what the following metafunction does:
 
-                - sets the last boolean of the vector to TRUE (never need to sync the last ESF)
+                - sets the last boolean of the vector to TRUE if we don't use IJ
+                caches (in this case we can avoid the sync in the last ESF)
                 - loops over the inner linearized ESFs starting from 0, excluding the last one
                 - if the next ESF is not independent, then this one needs to be synced, otherwise
                 it is not synced
@@ -255,11 +252,19 @@ namespace gridtools {
                         boost::mpl::pair< boost::mpl::at< functors_list_t, boost::mpl::_2 >,
                                             boost::mpl::false_ > > > >::type async_esf_map_tmp_t;
 
-            // insert true for the last esf
+            // insert true for the last esf (but only if there are no IJ caches;
+            // otherwise it could happen that warp A is already in level k+1
+            // filling values in the cache while warp B did not consume the
+            // cached values (written by A) from level k yet -> race condition)
+            typedef typename boost::mpl::transform< typename mss_components_t::cache_sequence_t,
+                cache_is_type< IJ > >::type cache_types_t;
+            typedef typename boost::mpl::not_< typename boost::mpl::contains< cache_types_t,
+                boost::integral_constant< bool, true > >::type >::type contains_no_IJ_cache_t;
+
             typedef typename boost::mpl::insert< async_esf_map_tmp_t,
                 boost::mpl::pair< typename boost::mpl::at_c< functors_list_t,
                                       boost::mpl::size< next_thing >::value >::type,
-                                                     boost::mpl::true_ > >::type async_esf_map_t;
+                                                     contains_no_IJ_cache_t > >::type async_esf_map_t;
 
             // perform some checks concerning the reduction types
             typedef run_functor_arguments< BackendIds,
@@ -279,8 +284,6 @@ namespace gridtools {
                 typename mss_components_is_reduction< mss_components_t >::type,
                 ReductionData,
                 nocolor > run_functor_args_t;
-
-            typedef boost::mpl::range_c< uint_t, 0, boost::mpl::size< functors_list_t >::type::value > iter_range;
 
             // now the corresponding backend has to execute all the functors of the mss
             backend_traits_from_id< BackendIds::s_backend_id >::template mss_loop< run_functor_args_t >::template run(

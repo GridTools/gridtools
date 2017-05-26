@@ -34,5 +34,4 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <cuda.h>
 #include "test_halo_exchange_3D_generic.cpp"

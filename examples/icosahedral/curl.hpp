@@ -81,13 +81,13 @@ namespace ico_operators {
         auto &ref_vertices = repo.curl_u_ref();
         auto &out_vertices = repo.out_vertex();
 
-        vertices_4d_storage_type curl_weights(
-            icosahedral_grid.make_storage< icosahedral_topology_t::vertices, float_type, selector< 1, 1, 1, 1, 1 > >(
-                "weights", 6));
+        vertices_4d_storage_type curl_weights(icosahedral_grid.make_storage< icosahedral_topology_t::vertices,
+                                              float_type,
+                                              typename repository::halo_5d_t,
+                                              selector< 1, 1, 1, 1, 1 > >("weights", 6));
         edges_of_vertices_storage_type &edge_orientation = repo.edge_orientation();
 
-        out_vertices.initialize(0.0);
-        curl_weights.initialize(0.0);
+        curl_weights = vertices_4d_storage_type(*curl_weights.get_storage_info_ptr(), 0.0);
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
@@ -108,7 +108,7 @@ namespace ico_operators {
                 accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&dual_area_reciprocal, &dual_edge_length, &curl_weights, &edge_orientation));
+                dual_area_reciprocal, dual_edge_length, curl_weights, edge_orientation);
 
             auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
@@ -123,12 +123,10 @@ namespace ico_operators {
             stencil_->steady();
             stencil_->run();
 
-#ifdef __CUDACC__
-            dual_area_reciprocal.d2h_update();
-            dual_edge_length.d2h_update();
-            curl_weights.d2h_update();
-            edge_orientation.d2h_update();
-#endif
+            dual_area_reciprocal.sync();
+            dual_edge_length.sync();
+            curl_weights.sync();
+            edge_orientation.sync();
         }
 
         {
@@ -138,8 +136,7 @@ namespace ico_operators {
 
             typedef boost::mpl::vector< p_in_edges, p_curl_weights, p_out_vertices > accessor_list_t;
 
-            gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&in_edges, &curl_weights, &out_vertices));
+            gridtools::aggregator_type< accessor_list_t > domain(in_edges, curl_weights, out_vertices);
 
             auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
@@ -154,11 +151,9 @@ namespace ico_operators {
             stencil_->steady();
             stencil_->run();
 
-#ifdef __CUDACC__
-            in_edges.d2h_update();
-            curl_weights.d2h_update();
-            out_vertices.d2h_update();
-#endif
+            in_edges.sync();
+            curl_weights.sync();
+            out_vertices.sync();
 
 #if FLOAT_PRECISION == 4
             verifier ver(1e-4);
@@ -184,7 +179,7 @@ namespace ico_operators {
                 accessor_list_t;
 
             gridtools::aggregator_type< accessor_list_t > domain(
-                boost::fusion::make_vector(&in_edges, &dual_area_reciprocal, &dual_edge_length, &out_vertices));
+                in_edges, dual_area_reciprocal, dual_edge_length, out_vertices);
 
             auto stencil_ = gridtools::make_computation< backend_t >(
                 domain,
@@ -200,12 +195,10 @@ namespace ico_operators {
             stencil_->steady();
             stencil_->run();
 
-#ifdef __CUDACC__
-            in_edges.d2h_update();
-            dual_area_reciprocal.d2h_update();
-            dual_edge_length.d2h_update();
-            out_vertices.d2h_update();
-#endif
+            in_edges.sync();
+            dual_area_reciprocal.sync();
+            dual_edge_length.sync();
+            out_vertices.sync();
 
 #if FLOAT_PRECISION == 4
             verifier ver(1e-4);

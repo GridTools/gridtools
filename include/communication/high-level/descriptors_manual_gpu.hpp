@@ -272,12 +272,12 @@ namespace gridtools {
                 int ii = 1;
                 int jj = 0;
                 int kk = 0;
-                const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[0].set_minus(0);
-                    dangeroushalo_r[0].set_plus(0);
+                    dangeroushalo[0].reset_minus();
+                    dangeroushalo_r[0].reset_plus();
                 }
             }
             {
@@ -285,12 +285,12 @@ namespace gridtools {
                 int ii = -1;
                 int jj = 0;
                 int kk = 0;
-                const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[0].set_plus(0);
-                    dangeroushalo_r[0].set_minus(0);
+                    dangeroushalo[0].reset_plus();
+                    dangeroushalo_r[0].reset_minus();
                 }
             }
             {
@@ -298,12 +298,12 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 1;
                 int kk = 0;
-                const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[1].set_minus(0);
-                    dangeroushalo_r[1].set_plus(0);
+                    dangeroushalo[1].reset_minus();
+                    dangeroushalo_r[1].reset_plus();
                 }
             }
             {
@@ -311,12 +311,12 @@ namespace gridtools {
                 int ii = 0;
                 int jj = -1;
                 int kk = 0;
-                const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[1].set_plus(0);
-                    dangeroushalo_r[1].set_minus(0);
+                    dangeroushalo[1].reset_plus();
+                    dangeroushalo_r[1].reset_minus();
                 }
             }
             {
@@ -324,12 +324,12 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 0;
                 int kk = 1;
-                const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[2].set_minus(0);
-                    dangeroushalo_r[2].set_plus(0);
+                    dangeroushalo[2].reset_minus();
+                    dangeroushalo_r[2].reset_plus();
                 }
             }
             {
@@ -337,12 +337,12 @@ namespace gridtools {
                 int ii = 0;
                 int jj = 0;
                 int kk = -1;
-                const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
-                    dangeroushalo[2].set_plus(0);
-                    dangeroushalo_r[2].set_minus(0);
+                    dangeroushalo[2].reset_plus();
+                    dangeroushalo_r[2].reset_minus();
                 }
             }
 
@@ -392,9 +392,9 @@ namespace gridtools {
                     for (int kk = -1; kk <= 1; ++kk)
                         if (ii != 0 || jj != 0 || kk != 0) {
                             typedef typename translate_P::map_type map_type;
-                            const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                            const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                            const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
 
                             if (base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1) {
                                 send_size[translate()(ii, jj, kk)] = halo.send_buffer_size(make_array(ii, jj, kk));
