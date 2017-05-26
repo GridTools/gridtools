@@ -70,7 +70,7 @@ namespace gridtools {
         static StorageInfoPtr extract_storage_info_ptr(StorageInfoPtr t) {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_storage_info< typename boost::decay< decltype(*t) >::type >::value), GT_INTERNAL_ERROR);
-            return t->get_gpu_ptr();
+            return t;
         }
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,

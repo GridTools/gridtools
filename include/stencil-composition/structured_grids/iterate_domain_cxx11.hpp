@@ -159,6 +159,7 @@ namespace gridtools {
 
       protected:
         // ******************* members *******************
+        // TODO this member is not needed and should be removed
         local_domain_t const &local_domain;
         array_index_t m_index;
         // ******************* end of members *******************
@@ -191,13 +192,13 @@ namespace gridtools {
            @brief returns the strides
         */
         GT_FUNCTION
-        strides_cached_t &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
+        strides_cached_t const &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
 
         /**
            @brief returns the array of pointers to the raw data
         */
         GT_FUNCTION
-        data_ptr_cached_t &RESTRICT data_pointer() {
+        data_ptr_cached_t const &RESTRICT data_pointer() {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
@@ -215,6 +216,24 @@ namespace gridtools {
             : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_), m_index{
                                                                                                     0,
                                                                                                 } {}
+
+        /** This functon set the addresses of the data values  before the computation
+            begins.
+
+            The EU stands for ExecutionUnit (thich may be a thread or a group of
+            threasd. There are potentially two ids, one over i and one over j, since
+            our execution model is parallel on (i,j). Defaulted to 1.
+        */
+        template < typename BackendType >
+        GT_FUNCTION void assign_index() {
+            boost::fusion::for_each(local_domain.m_local_data_ptrs,
+                assign_index_functor< BackendType,
+                                        array_index_t,
+                                        local_domain_t,
+                                        processing_elements_block_size_t,
+                                        typename local_domain_t::extents_map_t,
+                                        grid_traits_t >(m_index, local_domain.m_local_storage_info_ptrs));
+        }
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -275,6 +294,7 @@ namespace gridtools {
          */
         template < ushort_t Coordinate, typename Steps >
         GT_FUNCTION void increment() {
+            // TODO should access the cached strides instead of the storage_info through the local_domain
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
                 increment_index_functor< local_domain_t, Coordinate, strides_cached_t, array_index_t >(
                                         Steps::value, m_index, strides()));
