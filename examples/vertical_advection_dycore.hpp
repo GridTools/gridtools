@@ -79,8 +79,8 @@ namespace vertical_advection_dycore {
         typedef boost::mpl::vector< utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol >
             arg_list;
 
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kbody interval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, kbody interval) {
             // TODO use Average function here
             T gav = (T)-0.25 * (eval(wcon(1, 0, 0)) + eval(wcon(0, 0, 0)));
             T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
@@ -99,8 +99,8 @@ namespace vertical_advection_dycore {
             thomas_forward(eval, interval);
         }
 
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kmaximum interval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, kmaximum interval) {
             T gav = -(T)0.25 * (eval(wcon(1, 0, 0)) + eval(wcon()));
             T as = gav * BET_M;
 
@@ -114,8 +114,8 @@ namespace vertical_advection_dycore {
             thomas_forward(eval, interval);
         }
 
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kminimum interval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, kminimum interval) {
             T gcv = (T)0.25 * (eval(wcon(1, 0, 1)) + eval(wcon(0, 0, 1)));
             T cs = gcv * BET_M;
 
@@ -129,26 +129,26 @@ namespace vertical_advection_dycore {
         }
 
       private:
-        template < typename Eval >
-        GT_FUNCTION static void computeDColumn(Eval const &eval, const T correctionTerm) {
+        template < typename Evaluation >
+        GT_FUNCTION static void computeDColumn(Evaluation &eval, const T correctionTerm) {
             eval(dcol()) = eval(dtr_stage()) * eval(u_pos()) + eval(utens()) + eval(utens_stage()) + correctionTerm;
         }
 
-        template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kbody) {
+        template < typename Evaluation >
+        GT_FUNCTION static void thomas_forward(Evaluation &eval, kbody) {
             T divided = (T)1.0 / (eval(bcol()) - (eval(ccol(0, 0, -1)) * eval(acol())));
             eval(ccol()) = eval(ccol()) * divided;
             eval(dcol()) = (eval(dcol()) - (eval(dcol(0, 0, -1)) * eval(acol()))) * divided;
         }
 
-        template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kmaximum) {
+        template < typename Evaluation >
+        GT_FUNCTION static void thomas_forward(Evaluation &eval, kmaximum) {
             T divided = (T)1.0 / (eval(bcol()) - eval(ccol(0, 0, -1)) * eval(acol()));
             eval(dcol()) = (eval(dcol()) - eval(dcol(0, 0, -1)) * eval(acol())) * divided;
         }
 
-        template < typename Eval >
-        GT_FUNCTION static void thomas_forward(Eval const &eval, kminimum) {
+        template < typename Evaluation >
+        GT_FUNCTION static void thomas_forward(Evaluation &eval, kminimum) {
             T divided = (T)1.0 / eval(bcol());
             eval(ccol()) = eval(ccol()) * divided;
             eval(dcol()) = eval(dcol()) * divided;
@@ -166,26 +166,26 @@ namespace vertical_advection_dycore {
 
         typedef boost::mpl::vector< utens_stage, u_pos, dtr_stage, ccol, dcol, data_col > arg_list;
 
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kbody_low interval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, kbody_low interval) {
             eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
         }
 
-        template < typename Eval >
-        GT_FUNCTION static void Do(Eval const &eval, kmaximum interval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, kmaximum interval) {
             eval(utens_stage()) = eval(dtr_stage()) * (thomas_backward(eval, interval) - eval(u_pos()));
         }
 
       private:
-        template < typename Eval >
-        GT_FUNCTION static T thomas_backward(Eval const &eval, kbody_low) {
+        template < typename Evaluation >
+        GT_FUNCTION static T thomas_backward(Evaluation &eval, kbody_low) {
             T datacol = eval(dcol()) - eval(ccol()) * eval(data_col(0, 0, 1));
             eval(data_col()) = datacol;
             return datacol;
         }
 
-        template < typename Eval >
-        GT_FUNCTION static T thomas_backward(Eval const &eval, kmaximum) {
+        template < typename Evaluation >
+        GT_FUNCTION static T thomas_backward(Evaluation &eval, kmaximum) {
             T datacol = eval(dcol());
             eval(data_col()) = datacol;
             return datacol;

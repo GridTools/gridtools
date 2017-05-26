@@ -84,7 +84,7 @@ namespace smf {
         typedef boost::mpl::vector< cell_area, weight_edges > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim edge;
 
@@ -137,7 +137,7 @@ namespace smf {
         }
 
         typedef arg< 0, cell_storage_type, enumtype::cells > p_cell_area;
-        typedef arg< 1, edges_of_cells_storage_type, enumtype::edges > p_weight_edges;
+        typedef arg< 1, edges_of_cells_storage_type, enumtype::cells > p_weight_edges;
 
         typedef boost::mpl::vector< p_cell_area, p_weight_edges > accessor_list_t;
 

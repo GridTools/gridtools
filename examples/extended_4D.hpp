@@ -141,7 +141,7 @@ namespace assembly {
         typedef boost::mpl::vector< phi_t, psi_t, jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             dimension< 1 > i;
             dimension< 2 > j;
             dimension< 3 > k;

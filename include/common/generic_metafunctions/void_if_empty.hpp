@@ -34,59 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "host_device.hpp"
-#include <stdexcept>
 
-#ifndef NDEBUG
-#include <stdio.h>
-#endif
+#include <boost/mpl/void.hpp>
+#include <boost/mpl/if.hpp>
 
-#ifdef __CUDACC__
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 200)
-// we take the cuda assert for arch greater than 2.x
-#include <assert.h>
-#else
-#undef assert
-#define assert(e)
-#endif
-#else
-#include <cassert>
-#endif
-
-#ifdef __GNUC__
-
-#define GTASSERT(cond) gt_assert(cond, __LINE__, __FILE__)
-
+/**
+ * @brief Replaces an mpl sequence by void_ if the sequence is empty. Otherwise, CUDA will complain about a non-empty
+ * ctor if used in shared memory.
+ */
 namespace gridtools {
-    GT_FUNCTION
-    void gt_assert(bool cond, int line, const char *filename) {
-#ifndef NDEBUG
-        if (!cond)
-            printf("Assert triggered in %s:%d \n", filename, line);
-#endif
-        assert(cond);
-    }
+    template < typename T >
+    using void_if_empty_t = typename boost::mpl::if_< boost::mpl::size< T >, T, boost::mpl::void_ >::type;
 }
-
-#else
-
-#define GTASSERT(cond) gt_assert(cond)
-
-namespace gridtools {
-    GT_FUNCTION
-    void gt_assert(bool cond) { assert(cond); }
-}
-
-#endif
-
-#ifdef __CUDA_ARCH__
-#ifdef CUDA8
-#define ASSERT_OR_THROW(cond, msg) assert(cond &&msg)
-#else
-#define ASSERT_OR_THROW(cond, msg)
-#endif
-#else
-#define ASSERT_OR_THROW(cond, msg) \
-    if (!cond)                     \
-    throw std::runtime_error(msg)
-#endif

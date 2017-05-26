@@ -53,7 +53,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_cells, dual_edge_length_reciprocal, out_edges > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, cells, Color >::offsets();
 
             eval(out_edges()) = (eval(in_cells(neighbors_offsets[0])) - eval(in_cells(neighbors_offsets[1]))) *
@@ -69,7 +69,7 @@ namespace ico_operators {
         typedef boost::mpl::vector< in_vertices, edge_length_reciprocal, out_edges > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             constexpr auto neighbors_offsets = connectivity< edges, vertices, Color >::offsets();
             eval(out_edges()) = (eval(in_vertices(neighbors_offsets[1])) - eval(in_vertices(neighbors_offsets[0]))) *
                                 eval(edge_length_reciprocal());

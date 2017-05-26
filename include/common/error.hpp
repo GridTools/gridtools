@@ -76,7 +76,7 @@ namespace gridtools {
      * @param msg error message if condition is not met
      */
     template < typename T >
-    constexpr T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
+    GT_FUNCTION constexpr T error_or_return(bool cond, T res, char const *msg = "Error triggered") {
         return cond ? res : error::trigger< T >(msg);
     }
 }
