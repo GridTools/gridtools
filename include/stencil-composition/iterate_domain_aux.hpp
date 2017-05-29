@@ -439,12 +439,12 @@ namespace gridtools {
         DataPtrCached &RESTRICT m_data_ptr_cached;
         storage_info_ptrs_t const &RESTRICT m_storageinfo_fusion_list;
 
-        GT_FUNCTION assign_storage_init_ptrs(
+        assign_storage_init_ptrs(
             DataPtrCached &RESTRICT data_ptr_cached, storage_info_ptrs_t const &RESTRICT storageinfo_fusion_list)
             : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list) {}
 
         template < typename FusionPair >
-        GT_FUNCTION void operator()(FusionPair const &sw) const {
+        void operator()(FusionPair const &sw) const {
             typedef typename boost::fusion::result_of::first< FusionPair >::type arg_t;
             typedef typename storage_wrapper_elem< arg_t, typename LocalDomain::storage_wrapper_list_t >::type
                 storage_wrapper_t;

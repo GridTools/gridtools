@@ -96,7 +96,7 @@ namespace gridtools {
             our execution model is parallel on (i,j). Defaulted to 1.
         */
         template < typename PEBlock, typename LocalDomain >
-        GT_FUNCTION void assign_storage_pointers(LocalDomain const &local_domain_) {
+        void assign_storage_pointers(LocalDomain const &local_domain_) {
             typedef LocalDomain local_domain_t;
 
             boost::fusion::for_each(local_domain_.m_local_data_ptrs,
