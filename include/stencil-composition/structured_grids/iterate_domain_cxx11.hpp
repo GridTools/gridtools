@@ -172,14 +172,6 @@ namespace gridtools {
         data_ptr_cached_t const &RESTRICT data_pointer() const {
             return static_cast< const IterateDomainImpl * >(this)->data_pointer_impl();
         }
-
-        /**
-           @brief returns the array of pointers to the raw data as const reference
-        */
-        GT_FUNCTION
-        array_index_t const &RESTRICT index() const { return m_index; }
-
-      protected:
         /**
            @brief returns the strides as const reference
         */
@@ -189,17 +181,29 @@ namespace gridtools {
         }
 
         /**
-           @brief returns the strides
+           @brief returns the array of pointers to the raw data as const reference
         */
         GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
+        array_index_t const &RESTRICT index() const { return m_index; }
+
+      protected:
 
         /**
-           @brief returns the array of pointers to the raw data
+           @brief TODO remove
+           only for host initialization
         */
         GT_FUNCTION
-        data_ptr_cached_t const &RESTRICT data_pointer() {
+        data_ptr_cached_t &RESTRICT data_pointer() {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
+        }
+
+        /**
+           @brief TODO remove
+           only for host initialization
+        */
+        GT_FUNCTION
+        strides_cached_t &RESTRICT strides() {
+            return static_cast< IterateDomainImpl * >(this)->strides_impl();
         }
 
       public:
