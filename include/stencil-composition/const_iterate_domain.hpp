@@ -106,15 +106,6 @@ namespace gridtools {
                                         PEBlock,
                                         typename LocalDomain::extents_map_t,
                                         grid_traits_t >(data_pointer(), local_domain_.m_local_storage_info_ptrs));
-
-            //     boost::mpl::for_each< typename boost::mpl::
-            //         range_c< uint_t, 0, boost::mpl::size< typename local_domain_t::actual_args_type >::value >::type
-            //         >(
-            //             assign_storage_ptrs< Backend,
-            //             data_pointer_array_t,
-            //             typename local_domain_t::local_storage_type,
-            //             typename local_domain_t::local_metadata_type,
-            //             typename local_domain_t::storage_metadata_map);
         }
 
         /**
@@ -131,15 +122,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_strides_cached< strides_t >::value), GT_INTERNAL_ERROR);
             boost::fusion::for_each(local_domain_.m_local_storage_info_ptrs,
                 assign_strides< Backend, strides_t, LocalDomain, PEBlock >(strides()));
-
-            // boost::mpl::for_each< typename local_domain_t::storage_metadata_map >(assign_strides_functor< strides_t,
-            //                                                                       typename
-            //                                                                       boost::fusion::result_of::as_vector<
-            //                                                                       typename
-            //                                                                       local_domain_t::local_metadata_type
-            //                                                                       >::type >(
-            //                                                                           strides(),
-            //                                                                           local_domain_.m_local_metadata));
         }
     };
 
