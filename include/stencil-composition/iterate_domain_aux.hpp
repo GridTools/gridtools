@@ -497,9 +497,7 @@ namespace gridtools {
                 typename storage_wrapper_t::arg_t,
                 max_extent_t,
                 GridTraits >(boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
-            for (unsigned i = 0; i < storage_wrapper_t::num_of_storages; ++i) {
-                m_index[si_index_t::value] = offset;
-            }
+            m_index[si_index_t::value] = offset;
         }
     };
 

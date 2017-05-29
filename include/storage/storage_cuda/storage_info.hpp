@@ -58,12 +58,16 @@ namespace gridtools {
         mutable cuda_storage_info< Id, Layout, Halo, Alignment > *m_gpu_ptr;
 
       public:
+
+        cuda_storage_info(cuda_storage_info const&) = default;
+        cuda_storage_info() = delete;
+        cuda_storage_info(cuda_storage_info&&) = default;
         /*
          * @brief cuda_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
         template < typename... Dims >
-        explicit constexpr cuda_storage_info(Dims... dims_)
+        __host__ explicit constexpr cuda_storage_info(Dims... dims_)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
             static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
             static_assert(is_alignment< Alignment >::value, "Given type is not an alignment type.");
