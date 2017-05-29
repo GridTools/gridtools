@@ -188,6 +188,7 @@ namespace gridtools {
 
       protected:
 
+#ifndef __CUDACC__
         /**
            @brief TODO remove
            only for host initialization
@@ -205,6 +206,7 @@ namespace gridtools {
         strides_cached_t &RESTRICT strides() {
             return static_cast< IterateDomainImpl * >(this)->strides_impl();
         }
+#endif
 
       public:
         /**@brief constructor of the iterate_domain struct
