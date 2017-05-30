@@ -37,15 +37,10 @@
 
 #include <boost/mpl/or.hpp>
 #include <boost/type_traits/is_integral.hpp>
+#include "vector_traits.hpp"
 #include "array.hpp"
 
 namespace gridtools {
-
-    template < typename T >
-    struct is_vector : boost::mpl::false_ {};
-
-    template < typename T >
-    struct is_vector< std::vector< T > > : boost::mpl::true_ {};
 
     /**
      * type trait to check if a type is an aggregate

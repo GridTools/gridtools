@@ -231,7 +231,7 @@ namespace gridtools {
                   array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(dims_)...},
                   get_strides< layout_t >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
             static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                              typename is_all_integral< Dims... >::type >::value,
+                              typename is_all_integral_or_enum< Dims... >::type >::value,
                 "Dimensions have to be integral types.");
             static_assert(
                 (sizeof...(Dims) == ndims), "Number of passed dimensions do not match the layout map length.");
@@ -318,9 +318,10 @@ namespace gridtools {
          */
         template < typename... Ints >
         GT_FUNCTION constexpr
-            typename boost::enable_if< typename is_all_integral< Ints... >::type, int >::type index(Ints... idx) const {
+            typename boost::enable_if< typename is_all_integral_or_enum< Ints... >::type, int >::type index(
+                Ints... idx) const {
             static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Ints) > 0) >,
-                              typename is_all_integral< Ints... >::type >::value,
+                              typename is_all_integral_or_enum< Ints... >::type >::value,
                 "Dimensions have to be integral types.");
             static_assert(sizeof...(Ints) == ndims, "Index function called with wrong number of arguments.");
 #ifdef NDEBUG
