@@ -74,7 +74,7 @@ namespace gridtools {
                     constexpr acc_t acc_(0,
                         0,
                         (ExecutionPolicy == enumtype::forward) ? -(Offset + InitialOffset) : (Offset + InitialOffset));
-                    it_domain.gmem_access(acc_) = cache_st.at(acc_);
+                    it_domain.get_gmem_value(acc_) = cache_st.at(acc_);
                     return 0;
                 }
             };
@@ -109,7 +109,7 @@ namespace gridtools {
                     constexpr acc_t acc_(0,
                         0,
                         (ExecutionPolicy == enumtype::backward) ? -(Offset + InitialOffset) : (Offset + InitialOffset));
-                    cache_st.at(acc_) = it_domain.gmem_access(acc_);
+                    cache_st.at(acc_) = it_domain.get_gmem_value(acc_);
                     return 0;
                 }
             };

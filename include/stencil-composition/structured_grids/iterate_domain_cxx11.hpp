@@ -416,7 +416,9 @@ namespace gridtools {
          * \param storage_pointer base address to gmem
          * \param offset to compose the address being access
         */
-        template < typename ReturnType, typename StoragePointer >
+        template < typename ReturnType,
+            typename StoragePointer,
+            typename T = typename boost::enable_if_c< boost::is_pointer< StoragePointer >::type::value >::type >
         GT_FUNCTION ReturnType get_gmem_value(StoragePointer RESTRICT &storage_pointer
             // control your instincts: changing the following
             // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
@@ -462,8 +464,10 @@ namespace gridtools {
         /**
          * @brief direct access for an accessor to main memory. No dispatch to a corresponding scratch-pad is performed
          */
-        template < typename Accessor >
-        GT_FUNCTION typename accessor_return_type< Accessor >::type gmem_access(Accessor const &accessor) const {
+        template < typename Accessor,
+            typename T = typename boost::enable_if_c<
+                is_accessor< typename boost::remove_const< Accessor >::type >::type::value >::type >
+        GT_FUNCTION typename accessor_return_type< Accessor >::type get_gmem_value(Accessor const &accessor) const {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             GRIDTOOLS_STATIC_ASSERT(
