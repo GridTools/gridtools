@@ -152,7 +152,6 @@ namespace gridtools {
                                   size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                                   _impl::get_cache_offset< meta_t >(accessor_);
             _impl::check_bounds_cache_offset< meta_t >(accessor_);
-            assert((extra_) >= 0);
             assert((extra_) < (size() * StorageWrapper::num_of_storages));
             return m_values[extra_];
         }
