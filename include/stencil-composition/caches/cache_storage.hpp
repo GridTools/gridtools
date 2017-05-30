@@ -215,8 +215,6 @@ namespace gridtools {
          */
         template < typename IterationPolicy >
         GT_FUNCTION void slide() {
-            // TODO do not slide if cache interval out of ExecutionPolicy intervals
-
             GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value == K), "Error: we can only slide KCaches");
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "Error");
 
@@ -227,7 +225,7 @@ namespace gridtools {
             constexpr uint_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : ksize - 1;
             constexpr uint_t kend = (IterationPolicy::value == enumtype::forward) ? ksize - 2 : 1;
 
-            for (int_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
+            for (int_t k = (int_t)kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
                 m_values[k] = (IterationPolicy::value == enumtype::forward) ? m_values[k + 1] : m_values[k - 1];
             }
         }
