@@ -219,14 +219,14 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "Error");
 
             constexpr uint_t ksize = kplus_t::value - kminus_t::value + 1;
-            if (ksize <= 1)
-                return;
+            if (ksize > 1) {
 
-            constexpr uint_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : ksize - 1;
-            constexpr uint_t kend = (IterationPolicy::value == enumtype::forward) ? ksize - 2 : 1;
+                constexpr int_t kbegin = (IterationPolicy::value == enumtype::forward) ? 0 : (int_t)ksize - 1;
+                constexpr int_t kend = (IterationPolicy::value == enumtype::forward) ? (int_t)ksize - 2 : 1;
 
-            for (int_t k = (int_t)kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
-                m_values[k] = (IterationPolicy::value == enumtype::forward) ? m_values[k + 1] : m_values[k - 1];
+                for (int_t k = kbegin; IterationPolicy::condition(k, kend); IterationPolicy::increment(k)) {
+                    m_values[k] = (IterationPolicy::value == enumtype::forward) ? m_values[k + 1] : m_values[k - 1];
+                }
             }
         }
 
