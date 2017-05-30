@@ -215,8 +215,6 @@ namespace gridtools {
          */
         template < typename IterationPolicy >
         GT_FUNCTION void slide() {
-            // TODO do not slide if cache interval out of ExecutionPolicy intervals
-
             GRIDTOOLS_STATIC_ASSERT((Cache::cache_type_t::value == K), "Error: we can only slide KCaches");
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "Error");
 
