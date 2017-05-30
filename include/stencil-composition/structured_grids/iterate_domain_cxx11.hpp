@@ -159,6 +159,7 @@ namespace gridtools {
 
       protected:
         // ******************* members *******************
+        // TODO this member is not needed and should be removed
         local_domain_t const &local_domain;
         array_index_t m_index;
         // ******************* end of members *******************
@@ -171,14 +172,6 @@ namespace gridtools {
         data_ptr_cached_t const &RESTRICT data_pointer() const {
             return static_cast< const IterateDomainImpl * >(this)->data_pointer_impl();
         }
-
-        /**
-           @brief returns the array of pointers to the raw data as const reference
-        */
-        GT_FUNCTION
-        array_index_t const &RESTRICT index() const { return m_index; }
-
-      protected:
         /**
            @brief returns the strides as const reference
         */
@@ -188,18 +181,32 @@ namespace gridtools {
         }
 
         /**
-           @brief returns the strides
+           @brief returns the array of pointers to the raw data as const reference
         */
         GT_FUNCTION
-        strides_cached_t &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
+        array_index_t const &RESTRICT index() const { return m_index; }
 
+      protected:
+
+#ifndef __CUDACC__
         /**
-           @brief returns the array of pointers to the raw data
+           @brief TODO remove
+           only for host initialization
         */
         GT_FUNCTION
         data_ptr_cached_t &RESTRICT data_pointer() {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
+
+        /**
+           @brief TODO remove
+           only for host initialization
+        */
+        GT_FUNCTION
+        strides_cached_t &RESTRICT strides() {
+            return static_cast< IterateDomainImpl * >(this)->strides_impl();
+        }
+#endif
 
       public:
         /**@brief constructor of the iterate_domain struct
@@ -215,6 +222,24 @@ namespace gridtools {
             : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_), m_index{
                                                                                                     0,
                                                                                                 } {}
+
+        /** This functon set the addresses of the data values  before the computation
+            begins.
+
+            The EU stands for ExecutionUnit (thich may be a thread or a group of
+            threasd. There are potentially two ids, one over i and one over j, since
+            our execution model is parallel on (i,j). Defaulted to 1.
+        */
+        template < typename BackendType >
+        GT_FUNCTION void assign_index() {
+            boost::fusion::for_each(local_domain.m_local_data_ptrs,
+                assign_index_functor< BackendType,
+                                        array_index_t,
+                                        local_domain_t,
+                                        processing_elements_block_size_t,
+                                        typename local_domain_t::extents_map_t,
+                                        grid_traits_t >(m_index, local_domain.m_local_storage_info_ptrs));
+        }
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -275,6 +300,7 @@ namespace gridtools {
          */
         template < ushort_t Coordinate, typename Steps >
         GT_FUNCTION void increment() {
+            // TODO should access the cached strides instead of the storage_info through the local_domain
             boost::fusion::for_each(local_domain.m_local_storage_info_ptrs,
                 increment_index_functor< local_domain_t, Coordinate, strides_cached_t, array_index_t >(
                                         Steps::value, m_index, strides()));
@@ -531,8 +557,8 @@ namespace gridtools {
         typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
             const storage_info_t * >::type::pos storage_info_index_t;
 
-        const storage_info_t *storage_info =
-            boost::fusion::at< storage_info_index_t >(local_domain.m_local_storage_info_ptrs);
+        // const storage_info_t *storage_info =
+        //     boost::fusion::at< storage_info_index_t >(local_domain.m_local_storage_info_ptrs);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
@@ -554,13 +580,13 @@ namespace gridtools {
         // i+offset_i or j+offset_j or k+offset_k is too large.
         // Most probably this is due to you specifying a positive offset which is larger than expected,
         // or maybe you did a mistake when specifying the ranges in the placehoders definition
-        GTASSERT(storage_info->size() > pointer_offset);
+        // GTASSERT(storage_info->size() > pointer_offset);
 
-        return static_cast< const IterateDomainImpl * >(this)
+        return  static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<
-                typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
-                Accessor,
-                data_t * >(real_storage_pointer, pointer_offset);
+        typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
+            Accessor,
+            data_t * >(real_storage_pointer, pointer_offset);
     }
 
     /** @brief method called in the Do methods of the functors.
@@ -590,8 +616,6 @@ namespace gridtools {
         typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
             const storage_info_t * >::type::pos storage_info_index_t;
 
-        const storage_info_t *storage_info =
-            boost::fusion::at< storage_info_index_t >(local_domain.m_local_storage_info_ptrs);
 
         GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
@@ -607,12 +631,6 @@ namespace gridtools {
         // int_t to uint_t will prevent GCC from vectorizing (compiler bug)
         const int_t pointer_offset = compute_offset< storage_info_t >(
             strides().template get< storage_info_index_t::value >(), expr.first_operand);
-
-        // the following assert fails when an out of bound access is observed, i.e. either one of
-        // i+offset_i or j+offset_j or k+offset_k is too large.
-        // Most probably this is due to you specifying a positive offset which is larger than expected,
-        // or maybe you did a mistake when specifying the ranges in the placehoders definition
-        GTASSERT(storage_info->size() > pointer_offset);
 
         return static_cast< const IterateDomainImpl * >(this)
             ->template get_value_impl<

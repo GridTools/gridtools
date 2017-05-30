@@ -170,6 +170,9 @@ namespace gridtools {
         GT_FUNCTION
         strides_cached() : super() {}
 
+        GT_FUNCTION
+        strides_cached(strides_cached const &other) : super(other), m_data(other.get< ID >()) {}
+
         template < short_t Idx >
         GT_FUNCTION return_t< Idx > const &RESTRICT get() const {
             return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
@@ -180,9 +183,8 @@ namespace gridtools {
             return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
         }
 
-      private:
+      protected:
         data_array_t m_data;
-        strides_cached(strides_cached const &);
     };
 
     /**specialization to stop the recursion*/
@@ -194,6 +196,9 @@ namespace gridtools {
 
         GT_FUNCTION
         strides_cached() {}
+
+        GT_FUNCTION
+        strides_cached(strides_cached const &other) : m_data(other.get< 0 >()) {}
 
         typedef array< int_t, storage_info_t::layout_t::masked_length - 1 > data_array_t;
 
@@ -212,7 +217,6 @@ namespace gridtools {
 
       private:
         data_array_t m_data;
-        strides_cached(strides_cached const &);
     };
 
     template < typename T >
@@ -239,11 +243,11 @@ namespace gridtools {
 
         const int_t m_increment;
         ArrayIndex &RESTRICT m_index_array;
-        StridesCached &RESTRICT m_strides_cached;
+        StridesCached const &RESTRICT m_strides_cached;
 
         GT_FUNCTION
         increment_index_functor(
-            int_t const increment, ArrayIndex &RESTRICT index_array, StridesCached &RESTRICT strides_cached)
+            int_t const increment, ArrayIndex &RESTRICT index_array, StridesCached const &RESTRICT strides_cached)
             : m_increment(increment), m_index_array(index_array), m_strides_cached(strides_cached) {}
 
         template < typename StorageInfo,
@@ -354,7 +358,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_array_of< ArrayIndex, int >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), GT_INTERNAL_ERROR);
 
-        Strides &RESTRICT m_strides;
+        Strides const &RESTRICT m_strides;
         const int_t m_initial_pos;
         const uint_t m_block;
         ArrayIndex &RESTRICT m_index_array;
@@ -367,8 +371,10 @@ namespace gridtools {
               m_index_array(other.m_index_array) {}
 
         GT_FUNCTION
-        initialize_index_functor(
-            Strides &RESTRICT strides, const int_t initial_pos, const uint_t block, ArrayIndex &RESTRICT index_array)
+        initialize_index_functor(Strides const &RESTRICT strides,
+            const int_t initial_pos,
+            const uint_t block,
+            ArrayIndex &RESTRICT index_array)
             : m_strides(strides), m_initial_pos(initial_pos), m_block(block), m_index_array(index_array) {}
 
         template < typename StorageInfo,
@@ -406,6 +412,95 @@ namespace gridtools {
                                                      m_strides.template get< index_t::value >()[(uint_t)pos]);
                 m_index_array[index_t::value] += (stride * initial_pos);
             }
+        }
+    };
+
+    /**@brief functor assigning all the storage pointers to the m_data_pointers array
+     * This method is responsible of copying the base pointers of the storages inside a local vector
+     * which is tipically instantiated on a fast local memory.
+     *
+     * The EU stands for ExecutionUnit (thich may be a thread or a group of
+     * threads. There are potentially two ids, one over i and one over j, since
+     * our execution model is parallel on (i,j). Defaulted to 1.
+     * @tparam BackendTraits the type traits of the backend
+     * @tparam DataPointerArray gridtools array of data pointers
+     * @tparam LocalDomain local domain type
+     * @tparam PEBlockSize the processing elements block size
+     * */
+    template < typename BackendTraits,
+        typename DataPtrCached,
+        typename LocalDomain,
+        typename PEBlockSize,
+        typename ExtentMap,
+        typename GridTraits >
+    struct assign_storage_init_ptrs {
+
+        GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached< DataPtrCached >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), GT_INTERNAL_ERROR);
+        typedef typename LocalDomain::storage_info_ptr_fusion_list storage_info_ptrs_t;
+
+        DataPtrCached &RESTRICT m_data_ptr_cached;
+        storage_info_ptrs_t const &RESTRICT m_storageinfo_fusion_list;
+
+        assign_storage_init_ptrs(
+            DataPtrCached &RESTRICT data_ptr_cached, storage_info_ptrs_t const &RESTRICT storageinfo_fusion_list)
+            : m_data_ptr_cached(data_ptr_cached), m_storageinfo_fusion_list(storageinfo_fusion_list) {}
+
+        template < typename FusionPair >
+        void operator()(FusionPair const &sw) const {
+            typedef typename boost::fusion::result_of::first< FusionPair >::type arg_t;
+            typedef typename storage_wrapper_elem< arg_t, typename LocalDomain::storage_wrapper_list_t >::type
+                storage_wrapper_t;
+            typedef typename boost::mpl::find< typename LocalDomain::storage_wrapper_list_t,
+                storage_wrapper_t >::type::pos pos_in_storage_wrapper_list_t;
+
+            typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
+                const typename storage_wrapper_t::storage_info_t * >::type::pos si_index_t;
+            typedef typename boost::mpl::at< ExtentMap, arg_t >::type max_extent_t;
+
+            const int offset = 0;
+            for (unsigned i = 0; i < storage_wrapper_t::num_of_storages; ++i) {
+                m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i] = sw.second[i] + offset;
+            }
+        }
+    };
+
+    template < typename BackendTraits,
+        typename DataPtrCached,
+        typename LocalDomain,
+        typename PEBlockSize,
+        typename ExtentMap,
+        typename GridTraits >
+    struct assign_index_functor {
+
+        GRIDTOOLS_STATIC_ASSERT((is_block_size< PEBlockSize >::value), GT_INTERNAL_ERROR);
+        typedef typename LocalDomain::storage_info_ptr_fusion_list storage_info_ptrs_t;
+
+        DataPtrCached &RESTRICT m_index;
+        storage_info_ptrs_t const &RESTRICT m_storageinfo_fusion_list;
+
+        GT_FUNCTION assign_index_functor(
+            DataPtrCached &RESTRICT index_, storage_info_ptrs_t const &RESTRICT storageinfo_fusion_list)
+            : m_index(index_), m_storageinfo_fusion_list(storageinfo_fusion_list) {}
+
+        template < typename FusionPair >
+        GT_FUNCTION void operator()(FusionPair const &sw) const {
+            typedef typename boost::fusion::result_of::first< FusionPair >::type arg_t;
+            typedef typename storage_wrapper_elem< arg_t, typename LocalDomain::storage_wrapper_list_t >::type
+                storage_wrapper_t;
+            typedef typename boost::mpl::find< typename LocalDomain::storage_wrapper_list_t,
+                storage_wrapper_t >::type::pos pos_in_storage_wrapper_list_t;
+
+            typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
+                const typename storage_wrapper_t::storage_info_t * >::type::pos si_index_t;
+            typedef typename boost::mpl::at< ExtentMap, arg_t >::type max_extent_t;
+
+            const int offset = BackendTraits::template fields_offset< LocalDomain,
+                PEBlockSize,
+                typename storage_wrapper_t::arg_t,
+                max_extent_t,
+                GridTraits >(boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
+            m_index[si_index_t::value] = offset;
         }
     };
 
@@ -511,9 +606,8 @@ namespace gridtools {
                     (pos < SInfo::layout_t::masked_length),
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
-                BackendType::template once_per_block< index_t::value, PEBlockSize >::assign(
-                    (m_strides_cached.template get< index_t::value >())[Coordinate::value],
-                    m_storage_info->template stride< pos >());
+                (m_strides_cached.template get< index_t::value >())[Coordinate::value] =
+                    m_storage_info->template stride< pos >();
             }
         };
 
