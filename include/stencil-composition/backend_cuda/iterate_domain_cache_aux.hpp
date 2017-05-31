@@ -67,7 +67,6 @@ namespace gridtools {
                  */
                 template < typename IterateDomain, typename CacheStorage >
                 GT_FUNCTION static int_t apply(IterateDomain const &it_domain, CacheStorage const &cache_st) {
-
                     typedef accessor< AccIndex::value,
                         enumtype::inout,
                         extent< 0, 0, 0, 0, -(Offset + InitialOffset), (Offset + InitialOffset) > > acc_t;
@@ -255,18 +254,18 @@ namespace gridtools {
                 // compute the sequence of all offsets that we need to prefill or final flush
                 using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence<
                     int_t,
-                    (kcache_t::ccacheIOPolicy == cache_io_policy::bpfill ||
-                        kcache_t::ccacheIOPolicy == cache_io_policy::epflush)
-                        ? koffset + 1
+                    kcache_t::ccacheIOPolicy == cache_io_policy::bpfill
+                        ? koffset + 1 
                         : koffset >::type >;
+                constexpr int_t additional_offset = (kcache_t::ccacheIOPolicy == cache_io_policy::flush || kcache_t::ccacheIOPolicy == cache_io_policy::epflush) ? (int_t)1 : 0 ;
                 using io_op_t = typename io_operator< Idx,
                     IterationPolicy::value,
                     CacheIOPolicy,
-                    (kcache_t::ccacheIOPolicy == cache_io_policy::flush) ? (int_t)1 : (int_t)0 >::type;
+                    additional_offset >::type;
 
                 auto &cache_st = boost::fusion::at_key< Idx >(m_kcaches);
                 seq::template apply_void_lambda< io_op_t::apply_t >(m_it_domain, cache_st);
-            }
+           }
         };
     } // namespace _impl
 } // namespace gridtools
