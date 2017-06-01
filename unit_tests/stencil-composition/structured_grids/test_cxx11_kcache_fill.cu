@@ -101,7 +101,6 @@ struct copy_fill {
 
 TEST_F(kcachef, fill_forward) {
 
-    init_fields();
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, 0) = m_inv(i, j, 0) + m_inv(i, j, 1);
@@ -199,7 +198,6 @@ TEST_F(kcachef, fill_backward) {
 
 TEST_F(kcachef, fill_copy_forward) {
 
-    init_fields();
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             for (uint_t k = 0; k < m_d3; ++k) {

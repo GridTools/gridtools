@@ -79,7 +79,6 @@ struct shift_acc_backward_flush {
 
 TEST_F(kcachef, flush_forward) {
 
-    init_fields();
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, 0) = m_inv(i, j, 0);
@@ -127,8 +126,6 @@ TEST_F(kcachef, flush_forward) {
 }
 
 TEST_F(kcachef, flush_backward) {
-
-    init_fields();
 
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {

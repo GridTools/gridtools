@@ -64,6 +64,8 @@ class kcachef : public ::testing::Test {
         m_gridb.value_list[0] = 0;
         m_gridb.value_list[1] = m_d3 - 3;
         m_gridb.value_list[2] = m_d3 - 1;
+
+        init_fields();
     }
 
     storage_t create_new_field(std::string name) { return storage_t(m_meta, -1, name); }

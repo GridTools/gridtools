@@ -138,7 +138,6 @@ struct self_update_backward_bpfilll {
 
 TEST_F(kcachef, bpfilll_forward) {
 
-    init_fields();
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, 0) = m_inv(i, j, 0);
@@ -189,7 +188,6 @@ TEST_F(kcachef, bpfilll_forward) {
 
 TEST_F(kcachef, bpfilll_backward) {
 
-    init_fields();
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);
@@ -239,7 +237,6 @@ TEST_F(kcachef, bpfilll_backward) {
 
 TEST_F(kcachef, bpfilll_selfupdate_forward) {
 
-    init_fields();
     auto buff = create_new_field("buff");
 
     auto buffv = make_host_view(buff);
@@ -293,7 +290,6 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
 
 TEST_F(kcachef, bpfilll_selfupdate_backward) {
 
-    init_fields();
     auto buff = create_new_field("buff");
 
     auto buffv = make_host_view(buff);

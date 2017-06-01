@@ -213,8 +213,6 @@ TEST_F(kcachef, local_forward) {
 
 TEST_F(kcachef, local_backward) {
 
-    init_fields();
-
     for (uint_t i = 0; i < m_d1; ++i) {
         for (uint_t j = 0; j < m_d2; ++j) {
             m_refv(i, j, m_d3 - 1) = m_inv(i, j, m_d3 - 1);

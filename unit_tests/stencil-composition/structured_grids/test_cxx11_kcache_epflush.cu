@@ -89,7 +89,6 @@ struct shift_acc_backward_epflush {
 
 TEST_F(kcachef, epflush_forward) {
 
-    init_fields();
     auto auxf = create_new_field("aux");
     auto auxv = make_host_view(auxf);
 
@@ -146,7 +145,6 @@ TEST_F(kcachef, epflush_forward) {
 
 TEST_F(kcachef, epflush_backward) {
 
-    init_fields();
     auto auxf = create_new_field("aux");
     auto auxv = make_host_view(auxf);
 
