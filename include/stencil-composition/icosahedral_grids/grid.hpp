@@ -51,6 +51,8 @@ namespace gridtools {
         GridTopology m_grid_topology;
 
       public:
+        static constexpr enumtype::grid_type c_grid_type = enumtype::icosahedral;
+
         GT_FUNCTION
         // TODO make grid const
         // TODO should be removed (use ctor with halo_descriptor)

@@ -307,8 +307,7 @@ namespace vertical_advection_dycore {
 #else
             verifier verif(1e-12);
 #endif
-            array< array< uint_t, 2 >, 3 > halos{
-                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
 #else
 #if FLOAT_PRECISION == 4

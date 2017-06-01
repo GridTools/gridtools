@@ -40,6 +40,8 @@ namespace gridtools {
 
     template < typename Axis, typename Partitioner = partitioner_dummy >
     struct grid : public grid_base< Axis, Partitioner >, public clonable_to_gpu< grid< Axis, Partitioner > > {
+        static constexpr enumtype::grid_type c_grid_type = enumtype::structured;
+
         GT_FUNCTION
         explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : grid_base< Axis, Partitioner >(direction_i, direction_j) {}
