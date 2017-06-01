@@ -189,12 +189,12 @@ class call_interface : public testing::Test {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
-    const uint_t d1 = 13;
-    const uint_t d2 = 9;
-    const uint_t d3 = 7;
     const uint_t halo_size = 1;
+    const int_t d1 = 13;
+    const int_t d2 = 9;
+    const int_t d3 = 7;
 
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3, halo< 1, 1, 0 > > storage_info_t;
     typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
     storage_info_t meta_;
@@ -218,7 +218,8 @@ class call_interface : public testing::Test {
     aggregator_type< accessor_list > domain;
 
     call_interface()
-        : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
+        : meta_(d1 - 2 * halo_size, d2 - 2 * halo_size, d3),
+          di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
           dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
 #if FLOAT_PRECISION == 4
           verifier_(1e-6),
@@ -399,12 +400,12 @@ class call_proc_interface : public testing::Test {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
-    const uint_t d1 = 13;
-    const uint_t d2 = 9;
-    const uint_t d3 = 7;
+    const int_t d1 = 13;
+    const int_t d2 = 9;
+    const int_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3, halo< 1, 1, 0 > > storage_info_t;
     typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
     storage_info_t meta_;
@@ -430,7 +431,8 @@ class call_proc_interface : public testing::Test {
     aggregator_type< accessor_list > domain;
 
     call_proc_interface()
-        : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
+        : meta_(d1 - 2 * halo_size, d2 - 2 * halo_size, d3),
+          di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
           dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
 #if FLOAT_PRECISION == 4
           verifier_(1e-6),

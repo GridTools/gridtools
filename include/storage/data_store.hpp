@@ -97,7 +97,9 @@ namespace gridtools {
         template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
         typename boost::enable_if_c< (sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void >::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (unsigned i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
+            typedef boost::mpl::int_< StorageInfo::halo_t::template at< sizeof...(Args) >() > halo_size_t;
+            for (int i = -halo_size_t::value; i < si.template unaligned_dim< sizeof...(Args) >() - halo_size_t::value;
+                 ++i) {
                 ptr[si.index(args..., i)] = init(args..., i);
             }
         }
@@ -119,7 +121,9 @@ namespace gridtools {
         template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
         typename boost::enable_if_c< (sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void >::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (unsigned i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
+            typedef boost::mpl::int_< StorageInfo::halo_t::template at< sizeof...(Args) >() > halo_size_t;
+            for (int i = -halo_size_t::value; i < si.template unaligned_dim< sizeof...(Args) >() - halo_size_t::value;
+                 ++i) {
                 lambda_initializer(init, si, ptr, args..., i);
             }
         }

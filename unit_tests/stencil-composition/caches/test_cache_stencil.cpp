@@ -136,8 +136,8 @@ class cache_stencil : public ::testing::Test {
         m_in = storage_t(m_meta, 0.);
         m_out = storage_t(m_meta, 0.);
         auto m_inv = make_host_view(m_in);
-        for (int i = m_di.begin(); i < m_di.end(); ++i) {
-            for (int j = m_dj.begin(); j < m_dj.end(); ++j) {
+        for (int i = 0; i < m_d1 - 2 * halo_size; ++i) {
+            for (int j = 0; j < m_d2 - 2 * halo_size; ++j) {
                 for (int k = 0; k < m_d3; ++k) {
                     m_inv(i, j, k) = i + j * 100 + k * 10000;
                 }
@@ -191,8 +191,8 @@ TEST_F(cache_stencil, ij_cache_offset) {
     storage_t ref(meta_, 0.0);
     auto m_inv = make_host_view(m_in);
     auto refv = make_host_view(ref);
-    for (int i = halo_size; i < m_d1 - halo_size; ++i) {
-        for (int j = halo_size; j < m_d2 - halo_size; ++j) {
+    for (int i = 0; i < m_d1 - 2 * halo_size; ++i) {
+        for (int j = 0; j < m_d2 - 2 * halo_size; ++j) {
             for (int k = 0; k < m_d3; ++k) {
                 refv(i, j, k) = (m_inv(i - 1, j, k) + m_inv(i + 1, j, k) + m_inv(i, j - 1, k) + m_inv(i, j + 1, k)) /
                                 (float_type)4.0;
@@ -246,8 +246,8 @@ TEST_F(cache_stencil, multi_cache) {
     auto m_inv = make_host_view(m_in);
     auto refv = make_host_view(ref);
 
-    for (int i = halo_size; i < m_d1 - halo_size; ++i) {
-        for (int j = halo_size; j < m_d2 - halo_size; ++j) {
+    for (int i = 0; i < m_d1 - 2 * halo_size; ++i) {
+        for (int j = 0; j < m_d2 - 2 * halo_size; ++j) {
             for (int k = 0; k < m_d3; ++k) {
                 refv(i, j, k) = (m_inv(i, j, k) + 4);
             }

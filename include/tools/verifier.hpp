@@ -80,20 +80,21 @@ namespace gridtools {
               m_halos(halos) {}
 
         template < typename Grid >
-        bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
+        bool operator()(Grid const &grid_, array< int_t, NCoord > const &pos) {
             typename StorageType::storage_info_t const &meta = *(m_exp_field.get_storage_info_ptr());
 
-            const gridtools::uint_t size = meta.template unaligned_dim< NDim - 1 >();
+            const gridtools::int_t size = meta.template unaligned_dim< NDim - 1 >();
             bool verified = true;
 
             verify_helper< NDim - 1, NCoord + 1, StorageType > next_loop(
                 m_exp_field, m_actual_field, m_field_id, m_halos, m_precision);
 
-            const uint_t halo_minus = m_halos[NDim - 1][0];
-            const uint_t halo_plus = m_halos[NDim - 1][1];
+            const int_t halo_minus = m_halos[NDim - 1][0];
+            const int_t halo_plus = m_halos[NDim - 1][1];
+            constexpr int_t real_halo = StorageType::storage_info_t::halo_t::template at< NDim - 1 >();
 
-            for (int c = halo_minus; c < size - halo_plus; ++c) {
-                array< uint_t, NCoord + 1 > new_pos = pos.prepend_dim(c);
+            for (int c = -real_halo + halo_minus; c < size - halo_plus - real_halo; ++c) {
+                array< int_t, NCoord + 1 > new_pos = pos.prepend_dim(c);
                 verified = verified & next_loop(grid_, new_pos);
             }
             return verified;
@@ -118,7 +119,7 @@ namespace gridtools {
               m_halos(halos) {}
 
         template < typename Grid >
-        bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
+        bool operator()(Grid const &grid_, array< int_t, NCoord > const &pos) {
             bool verified = true;
             if (pos[2] < grid_.k_max()) {
                 typename StorageType::storage_info_t const &meta = *(m_exp_field.get_storage_info_ptr());
@@ -158,15 +159,15 @@ namespace gridtools {
         const gridtools::uint_t size = meta.template unaligned_dim< NDim - 1 >();
         bool verified = true;
         verify_helper< NDim - 1, 1, StorageType > next_loop(exp_field, actual_field, field_id, halos, precision);
-
         const uint_t halo_minus = halos[NDim - 1][0];
         const uint_t halo_plus = halos[NDim - 1][1];
+        constexpr int_t real_halo = StorageType::storage_info_t::halo_t::template at< NDim - 1 >();
 
-        for (uint_t c = halo_minus; c < size - halo_plus; ++c) {
+        for (int_t c = -real_halo + halo_minus; c < size - halo_plus - real_halo; ++c) {
 #ifdef CXX11_ENABLED
-            array< uint_t, 1 > new_pos{c};
+            array< int_t, 1 > new_pos{c};
 #else
-            array< uint_t, 1 > new_pos(c);
+            array< int_t, 1 > new_pos(c);
 #endif
             verified = verified & next_loop(grid_, new_pos);
         }
@@ -214,11 +215,13 @@ namespace gridtools {
             const gridtools::uint_t kdim = meta->template unaligned_dim< 2 >();
 
             bool verified = true;
+            constexpr int_t real_halo_i = storage_type::storage_info_t::halo_t::template at< 0 >();
+            constexpr int_t real_halo_j = storage_type::storage_info_t::halo_t::template at< 1 >();
 
             for (gridtools::uint_t f = 0; f < storage_type::field_dimensions; ++f)
-                for (gridtools::uint_t i = m_halo_size; i < idim - m_halo_size; ++i) {
-                    for (gridtools::uint_t j = m_halo_size; j < jdim - m_halo_size; ++j) {
-                        for (gridtools::uint_t k = 0; k < grid_.k_max(); ++k) {
+                for (gridtools::int_t i = -real_halo_i + m_halo_size; i < idim - m_halo_size - real_halo_i; ++i) {
+                    for (gridtools::int_t j = -real_halo_j + m_halo_size; j < jdim - m_halo_size - real_halo_j; ++j) {
+                        for (gridtools::int_t k = 0; k < grid_.k_max(); ++k) {
                             typename storage_type::data_t expected = field1.fields()[f][meta->index(i, j, k)];
                             typename storage_type::data_t actual = field2.fields()[f][meta->index(i, j, k)];
 
@@ -246,10 +249,12 @@ namespace gridtools {
             const gridtools::uint_t kdim = metadata_.get_metadata().template unaligned_dim< 2 >();
 
             bool verified = true;
+            constexpr int_t real_halo_i = storage_type::storage_info_t::halo_t::template at< 0 >();
+            constexpr int_t real_halo_j = storage_type::storage_info_t::halo_t::template at< 1 >();
 
             for (gridtools::uint_t f = 0; f < StorageType::field_dimensions; ++f)
-                for (gridtools::uint_t i = m_halo_size; i < idim - m_halo_size; ++i) {
-                    for (gridtools::uint_t j = m_halo_size; j < jdim - m_halo_size; ++j) {
+                for (gridtools::int_t i = -real_halo_i + m_halo_size; i < idim - m_halo_size - real_halo_i; ++i) {
+                    for (gridtools::int_t j = -real_halo_j + m_halo_size; j < jdim - m_halo_size - real_halo_j; ++j) {
                         for (gridtools::uint_t k = 0; k < grid_.k_max(); ++k) {
                             if (metadata_.mine(i, j, k)) {
                                 typename StorageType::data_t expected = field2.get_value(i, j, k);

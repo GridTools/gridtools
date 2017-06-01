@@ -81,7 +81,7 @@ struct direction_bc_input {
     // relative coordinates
     template < typename Direction, typename DataField0, typename DataField1 >
     GT_FUNCTION void operator()(
-        Direction, DataField0 &data_field0, DataField1 const &data_field1, uint_t i, uint_t j, uint_t k) const {
+        Direction, DataField0 &data_field0, DataField1 const &data_field1, int_t i, int_t j, int_t k) const {
         data_field1(i, j, k) = data_field0(i, j, k) * value;
     }
 
@@ -90,9 +90,9 @@ struct direction_bc_input {
     GT_FUNCTION void operator()(direction< I, minus_, K >,
         DataField0 &data_field0,
         DataField1 const &data_field1,
-        uint_t i,
-        uint_t j,
-        uint_t k) const {
+        int_t i,
+        int_t j,
+        int_t k) const {
         data_field1(i, j, k) = 88 * value;
     }
 
@@ -101,9 +101,9 @@ struct direction_bc_input {
     GT_FUNCTION void operator()(direction< minus_, minus_, K >,
         DataField0 &data_field0,
         DataField1 const &data_field1,
-        uint_t i,
-        uint_t j,
-        uint_t k) const {
+        int_t i,
+        int_t j,
+        int_t k) const {
         data_field1(i, j, k) = 77777 * value;
     }
 
@@ -111,9 +111,9 @@ struct direction_bc_input {
     GT_FUNCTION void operator()(direction< minus_, minus_, minus_ >,
         DataField0 &data_field0,
         DataField1 const &data_field1,
-        uint_t i,
-        uint_t j,
-        uint_t k) const {
+        int_t i,
+        int_t j,
+        int_t k) const {
         data_field1(i, j, k) = 55555 * value;
     }
 };
@@ -145,6 +145,7 @@ int main(int argc, char **argv) {
 
     auto in = make_host_view(in_s);
     auto out = make_host_view(out_s);
+
     // sync the data stores if needed
     in_s.sync();
     out_s.sync();
@@ -172,9 +173,9 @@ int main(int argc, char **argv) {
 
     // check inner domain (should be zero)
     bool error = false;
-    for (uint_t i = 1; i < d3 - 1; ++i) {
-        for (uint_t j = 1; j < d2 - 1; ++j) {
-            for (uint_t k = 1; k < d1 - 1; ++k) {
+    for (int_t i = 0; i < d3 - 2; ++i) {
+        for (int_t j = 0; j < d2 - 2; ++j) {
+            for (int_t k = 0; k < d1 - 2; ++k) {
                 if (in(k, j, i) != i + j + k) {
                     std::cout << "Error: INPUT field got modified " << k << " " << j << " " << i << "\n";
                     error = true;
@@ -189,20 +190,21 @@ int main(int argc, char **argv) {
     }
 
     // check edge column
-    if (out(0, 0, 0) != 111110) {
+    if (out(-1, -1, -1) != 111110) {
         std::cout << "Error: edge column values in OUTPUT field are wrong 0 0 0\n";
         error = true;
     }
-    for (uint_t k = 1; k < d3; ++k) {
-        if (out(0, 0, k) != 155554) {
+
+    for (uint_t k = 0; k < d3 - 2; ++k) {
+        if (out(-1, -1, k) != 155554) {
             std::cout << "Error: edge column values in OUTPUT field are wrong 0 0 " << k << "\n";
             error = true;
         }
     }
 
     // check j==0 i>0 surface
-    for (uint_t i = 1; i < d1; ++i) {
-        for (uint_t k = 0; k < d3; ++k) {
+    for (int_t i = 0; i < d1 - 1; ++i) {
+        for (int_t k = -1; k < d3 - 1; ++k) {
             if (out(i, 0, k) != 176) {
                 std::cout << "Error: j==0 surface values in OUTPUT field are wrong " << i << " 0 " << k << "\n";
                 error = true;
@@ -211,11 +213,11 @@ int main(int argc, char **argv) {
     }
 
     // check outer domain
-    for (uint_t i = 0; i < d1; ++i) {
-        for (uint_t j = 0; j < d2; ++j) {
-            for (uint_t k = 0; k < d3; ++k) {
+    for (int_t i = -1; i < d1 - 1; ++i) {
+        for (int_t j = -1; j < d2 - 1; ++j) {
+            for (int_t k = -1; k < d3 - 1; ++k) {
                 // check outer surfaces of the cube
-                if (((i == 0 || i == d1 - 1) && j > 0) || (j > 0 && (k == 0 || k == d3 - 1))) {
+                if (((i == -1 || i == d1 - 2) && j > -1) || (j > -1 && (k == -1 || k == d3 - 2))) {
                     if (out(i, j, k) != in(i, j, k) * 2) {
                         std::cout << "Error: values in OUTPUT field are wrong " << i << " " << j << " " << k << "\n";
                         error = true;

@@ -59,31 +59,21 @@ namespace vertical_advection {
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
             : m_storage_info(idim - (2 * halo_size), jdim - (2 * halo_size), kdim),
               m_scalar_storage_info(1, 1, 1), // fake 3D
-              utens_stage_(m_storage_info, "utens_stage"), utens_stage_ref_(m_storage_info, "u_stage_ref"),
-              u_stage_(m_storage_info, "u_stage"), wcon_(m_storage_info, "wcon"), u_pos_(m_storage_info, "upos"),
-              utens_(m_storage_info, "utens"), ipos_(m_storage_info, "ipos"), jpos_(m_storage_info, "jpos"),
-              kpos_(m_storage_info, "kpos"), dtr_stage_(m_scalar_storage_info, "dtr_stage"), halo_size_(halo_size),
-              idim_(idim), jdim_(jdim), kdim_(kdim) {
-            init_field_to_value(utens_stage_, -1.);
-            init_field_to_value(utens_stage_ref_, -1.);
-            init_field_to_value(u_stage_, -1.);
-            init_field_to_value(wcon_, -1.);
-            init_field_to_value(u_pos_, -1.);
-            init_field_to_value(utens_, -1.);
-            init_field_to_value(ipos_, -1.);
-            init_field_to_value(jpos_, -1.);
-            init_field_to_value(kpos_, -1.);
-            init_field_to_value(dtr_stage_, -1.);
-        }
+              utens_stage_(m_storage_info, -1., "utens_stage"), utens_stage_ref_(m_storage_info, -1., "u_stage_ref"),
+              u_stage_(m_storage_info, -1., "u_stage"), wcon_(m_storage_info, -1., "wcon"),
+              u_pos_(m_storage_info, -1., "upos"), utens_(m_storage_info, -1., "utens"),
+              ipos_(m_storage_info, -1., "ipos"), jpos_(m_storage_info, -1., "jpos"),
+              kpos_(m_storage_info, -1., "kpos"), dtr_stage_(m_scalar_storage_info, -1., "dtr_stage"),
+              halo_size_(halo_size), idim_(idim), jdim_(jdim), kdim_(kdim) {}
 
         void init_fields() {
             // set the fields to advect
             const double PI = std::atan(1.) * 4.;
 
-            const uint_t i_begin = 0;
-            const uint_t i_end = idim_;
-            const uint_t j_begin = 0;
-            const uint_t j_end = jdim_;
+            const uint_t i_begin = halo_size_;
+            const uint_t i_end = idim_ - halo_size_;
+            const uint_t j_begin = halo_size_;
+            const uint_t j_end = jdim_ - halo_size_;
             const uint_t k_begin = 0;
             const uint_t k_end = kdim_;
 
@@ -134,36 +124,15 @@ namespace vertical_advection {
             }
         }
 
-        template < typename TStorage_type, typename TValue_type >
-        void init_field_to_value(TStorage_type &field, TValue_type value) {
-            auto field_v = make_host_view(field);
-            const uint_t dim0 = (TStorage_type::storage_info_t::layout_t::template at< 0 >() == -1) ? 1 : idim_;
-            const uint_t dim1 = (TStorage_type::storage_info_t::layout_t::template at< 1 >() == -1) ? 1 : jdim_;
-            const uint_t dim2 = (TStorage_type::storage_info_t::layout_t::template at< 2 >() == -1) ? 1 : kdim_;
-
-            for (uint_t k = 0; k < dim2; ++k) {
-                for (uint_t i = 0; i < dim0; ++i) {
-                    for (uint_t j = 0; j < dim1; ++j) {
-                        field_v(i, j, k) = value;
-                    }
-                }
-            }
-        }
-
         void generate_reference() {
             auto dtr_stage_v = make_host_view(dtr_stage_);
             double dtr_stage = dtr_stage_v(0, 0, 0);
 
             storage_info_ij_t storage_info_ij(idim_ - (2 * halo_size_), jdim_ - (2 * halo_size_), (uint_t)1);
-            ij_storage_type datacol(storage_info_ij);
+            ij_storage_type datacol(storage_info_ij, 0.);
             storage_info_ijk_t storage_info_(idim_ - (2 * halo_size_), jdim_ - (2 * halo_size_), kdim_);
-            storage_type ccol(storage_info_);
-            storage_type dcol(storage_info_);
-
-            init_field_to_value(ccol, 0.0);
-            init_field_to_value(dcol, 0.0);
-
-            init_field_to_value(datacol, 0.0);
+            storage_type ccol(storage_info_, 0.);
+            storage_type dcol(storage_info_, 0.);
 
             // Generate U
             forward_sweep(1, 0, ccol, dcol);
@@ -183,8 +152,8 @@ namespace vertical_advection {
             double dtr_stage = dtr_stage_v(0, 0, 0);
             // k minimum
             int k = 0;
-            for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
+            for (int i = 0; i < idim_ - 2 * halo_size_; ++i) {
+                for (int j = 0; j < jdim_ - 2 * halo_size_; ++j) {
                     double gcv = (double)0.25 * (wcon_v(i + ishift, j + jshift, k + 1) + wcon_v(i, j, k + 1));
                     double cs = gcv * BET_M;
 
@@ -209,8 +178,8 @@ namespace vertical_advection {
 
             // kbody
             for (k = 1; k < kdim_ - 1; ++k) {
-                for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                    for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
+                for (int i = 0; i < idim_ - 2 * halo_size_; ++i) {
+                    for (int j = 0; j < jdim_ - 2 * halo_size_; ++j) {
                         double gav = (double)-0.25 * (wcon_v(i + ishift, j + jshift, k) + wcon_v(i, j, k));
                         double gcv = (double)0.25 * (wcon_v(i + ishift, j + jshift, k + 1) + wcon_v(i, j, k + 1));
 
@@ -238,8 +207,8 @@ namespace vertical_advection {
 
             // k maximum
             k = kdim_ - 1;
-            for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
+            for (int i = 0; i < idim_ - 2 * halo_size_; ++i) {
+                for (int j = 0; j < jdim_ - 2 * halo_size_; ++j) {
                     double gav = -(double)0.25 * (wcon_v(i + ishift, j + jshift, k) + wcon_v(i, j, k));
                     double as = gav * BET_M;
 
@@ -268,8 +237,8 @@ namespace vertical_advection {
             double dtr_stage = dtr_stage_v(0, 0, 0);
             // k maximum
             int k = kdim_ - 1;
-            for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
+            for (int i = 0; i < idim_ - 2 * halo_size_; ++i) {
+                for (int j = 0; j < jdim_ - 2 * halo_size_; ++j) {
                     datacol_v(i, j, k) = dcol_v(i, j, k);
                     ccol_v(i, j, k) = datacol_v(i, j, k);
                     utens_stage_ref_v(i, j, k) = dtr_stage * (datacol_v(i, j, k) - u_pos_v(i, j, k));
@@ -277,8 +246,8 @@ namespace vertical_advection {
             }
             // kbody
             for (k = kdim_ - 2; k >= 0; --k) {
-                for (int i = halo_size_; i < idim_ - halo_size_; ++i) {
-                    for (int j = halo_size_; j < jdim_ - halo_size_; ++j) {
+                for (int i = 0; i < idim_ - 2 * halo_size_; ++i) {
+                    for (int j = 0; j < jdim_ - 2 * halo_size_; ++j) {
                         datacol_v(i, j, k) = dcol_v(i, j, k) - (ccol_v(i, j, k) * datacol_v(i, j, k + 1));
                         ccol_v(i, j, k) = datacol_v(i, j, k);
                         utens_stage_ref_v(i, j, k) = dtr_stage * (datacol_v(i, j, k) - u_pos_v(i, j, k));

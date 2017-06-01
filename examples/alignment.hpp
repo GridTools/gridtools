@@ -119,7 +119,7 @@ namespace aligned_copy_stencil {
         }
     };
 
-    bool test(uint_t d1, uint_t d2, uint_t d3) {
+    bool test(int_t d1, int_t d2, int_t d3) {
 
         meta_data_t meta_data_(d1, d2, d3);
 
@@ -174,9 +174,9 @@ namespace aligned_copy_stencil {
 
         // check values
         bool success = true;
-        for (uint_t i = halo_t::at< 0 >(); i < d1 + halo_t::at< 0 >(); ++i)
-            for (uint_t j = halo_t::at< 1 >(); j < d2 + halo_t::at< 1 >(); ++j)
-                for (uint_t k = halo_t::at< 2 >(); k < d3 + halo_t::at< 2 >(); ++k) {
+        for (int_t i = 0; i < d1; ++i)
+            for (int_t j = 0; j < d2; ++j)
+                for (int_t k = 0; k < d3; ++k) {
                     if (inv(i, j, k) != outv(i, j, k) || outv(i, j, k) != i + j + k) {
                         std::cout << "error in " << i << ", " << j << ", " << k << ": "
                                   << "in = " << inv(i, j, k) << ", out = " << outv(i, j, k) << std::endl;
