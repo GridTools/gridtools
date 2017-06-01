@@ -27,6 +27,7 @@ no_dependency "common" "tools"
 
 are_independent "stencil-composition" "boundary-conditions"
 are_independent "stencil-composition" "communication"
+no_dependency "stencil-composition" "tools"
 
 are_independent "boundary-conditions" "communication" #maybe they can have a dependency later?
 are_independent "boundary-conditions" "storage"
