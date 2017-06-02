@@ -46,27 +46,6 @@ namespace gridtools {
     namespace _impl {
 
         /**
-         * @brief it determines if a give level is the last level (in a certain iteration order specified by
-         * IterationPolicy) of the interval of use of a CacheStorage
-         * @tparam IterationPolicy iteration policy that specifies the order of iteration
-         * @tparam CacheStorage cache storage
-         * @tparam Level level to query if it is the last level of the execution of the kcache
-         */
-        template < typename IterationPolicy, typename CacheStorage, typename Level >
-        struct is_end_index {
-
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
-
-            using cache_t = typename CacheStorage::cache_t;
-
-            static constexpr bool value = (IterationPolicy::value == enumtype::forward)
-                                              ? (interval_from_index< typename cache_t::interval_t >::type::value ==
-                                                    level_to_index< Level >::type::value)
-                                              : (interval_to_index< typename cache_t::interval_t >::type::value ==
-                                                    level_to_index< Level >::type::value);
-        };
-
-        /**
          * @struct flush_mem_accessor
          * functor that will synchronize a cache with main memory
          * \tparam AccIndex index of the accessor
