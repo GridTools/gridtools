@@ -65,7 +65,6 @@ namespace copy_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-
         GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in());
         }
