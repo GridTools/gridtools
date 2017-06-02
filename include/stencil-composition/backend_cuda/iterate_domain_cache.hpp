@@ -75,9 +75,10 @@ namespace gridtools {
         GT_FUNCTION
         slide_cache_functor() {}
 
-        template < typename Arg >
-        GT_FUNCTION void operator()(Arg &arg_) const {
-            arg_.second.template slide< IterationPolicy >();
+        // \tparam CacheStoragePair is a pair of <index,cache_storage>
+        template < typename CacheStoragePair >
+        GT_FUNCTION void operator()(CacheStoragePair &st_pair) const {
+            st_pair.second.template slide< IterationPolicy >();
         }
     };
 
@@ -251,31 +252,25 @@ namespace gridtools {
          */
         template < typename IterationPolicy >
         struct kcache_final_flush_indexes {
-            template < typename CacheStorage >
-            struct is_end_index {
-                //                GRIDTOOLS_STATIC_ASSERT((is_cache_storage< CacheStorage >::value), GT_INTERNAL_ERROR);
-                using cache_t = typename CacheStorage::cache_t;
-                using to_index = typename level_to_index< typename IterationPolicy::to >::type;
-
-                static constexpr bool value = (IterationPolicy::value == enumtype::forward)
-                                                  ? (interval_to_index< typename cache_t::interval_t >::type::value ==
-                                                        level_to_index< typename IterationPolicy::to >::type::value)
-                                                  : (interval_from_index< typename cache_t::interval_t >::type::value ==
-                                                        level_to_index< typename IterationPolicy::to >::type::value);
-            };
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
 
             // determine indexes of all k caches that require flushing, whose associated interval ends with the interval
             // of the current iteration
             // policy.
-            using interval_flushing_indexes_t = typename boost::mpl::filter_view< k_flushing_caches_indexes_t,
-                is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
+            using interval_flushing_indexes_t =
+                typename boost::mpl::filter_view< k_flushing_caches_indexes_t,
+                    _impl::is_end_index< IterationPolicy,
+                                                      boost::mpl::at< k_caches_map_t, boost::mpl::_ >,
+                                                      typename IterationPolicy::to > >::type;
 
             // same for those k caches that need an end-point flush. Determine among them, which ones have an interval
             // whose end
             // matches the current interval
-            using interval_epflushing_indexes_t =
-                typename sequence_to_vector< typename boost::mpl::filter_view< k_epflushing_caches_indexes_t,
-                    is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
+            using interval_epflushing_indexes_t = typename sequence_to_vector<
+                typename boost::mpl::filter_view< k_epflushing_caches_indexes_t,
+                    _impl::is_end_index< IterationPolicy,
+                                                      boost::mpl::at< k_caches_map_t, boost::mpl::_ >,
+                                                      typename IterationPolicy::to > >::type >::type;
 
             using type =
                 typename boost::mpl::copy< interval_flushing_indexes_t,
@@ -289,28 +284,21 @@ namespace gridtools {
          */
         template < typename IterationPolicy >
         struct kcache_begin_fill_indexes {
-            template < typename CacheStorage >
-            struct is_end_index {
-                using cache_t = typename CacheStorage::cache_t;
-                using to_index = typename level_to_index< typename IterationPolicy::to >::type;
-
-                static constexpr bool value = (IterationPolicy::value == enumtype::forward)
-                                                  ? (interval_from_index< typename cache_t::interval_t >::type::value ==
-                                                        level_to_index< typename IterationPolicy::from >::type::value)
-                                                  : (interval_to_index< typename cache_t::interval_t >::type::value ==
-                                                        level_to_index< typename IterationPolicy::from >::type::value);
-            };
-
             // determine indexes of all k caches that require filling, whose associated interval starts with the
             // interval
             // of the current iteration policy.
-            using interval_filling_indexes_t = typename boost::mpl::filter_view< k_filling_caches_indexes_t,
-                is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type;
+            using interval_filling_indexes_t =
+                typename boost::mpl::filter_view< k_filling_caches_indexes_t,
+                    _impl::is_end_index< IterationPolicy,
+                                                      boost::mpl::at< k_caches_map_t, boost::mpl::_ >,
+                                                      typename IterationPolicy::from > >::type;
 
             // same for those k cache that require a begin-point filling
-            using interval_bpfilling_indexes_t =
-                typename sequence_to_vector< typename boost::mpl::filter_view< k_bpfilling_caches_indexes_t,
-                    is_end_index< boost::mpl::at< k_caches_map_t, boost::mpl::_ > > >::type >::type;
+            using interval_bpfilling_indexes_t = typename sequence_to_vector<
+                typename boost::mpl::filter_view< k_bpfilling_caches_indexes_t,
+                    _impl::is_end_index< IterationPolicy,
+                                                      boost::mpl::at< k_caches_map_t, boost::mpl::_ >,
+                                                      typename IterationPolicy::from > >::type >::type;
 
             using type =
                 typename boost::mpl::copy< interval_filling_indexes_t,
@@ -328,6 +316,7 @@ namespace gridtools {
         GT_FUNCTION void begin_fill(IterateDomain const &it_domain) {
             typedef typename kcache_begin_fill_indexes< IterationPolicy >::type k_begin_filling_caches_indexes_t;
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
+
             boost::mpl::for_each< k_begin_filling_caches_indexes_t >(_impl::endpoint_io_cache_functor< k_caches_tuple_t,
                 k_caches_map_t,
                 IterateDomain,
@@ -343,9 +332,10 @@ namespace gridtools {
          */
         template < typename IterationPolicy, typename IterateDomain >
         GT_FUNCTION void final_flush(IterateDomain const &it_domain) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
+
             typedef typename kcache_final_flush_indexes< IterationPolicy >::type k_final_flushing_caches_indexes_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
             boost::mpl::for_each< k_final_flushing_caches_indexes_t >(
                 _impl::endpoint_io_cache_functor< k_caches_tuple_t,
                     k_caches_map_t,
