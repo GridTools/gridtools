@@ -46,6 +46,27 @@ namespace gridtools {
     namespace _impl {
 
         /**
+         * @brief it determines if a give level is the last level (in a certain iteration order specified by
+         * IterationPolicy) of the interval of use of a CacheStorage
+         * @tparam IterationPolicy iteration policy that specifies the order of iteration
+         * @tparam CacheStorage cache storage
+         * @tparam Level level to query if it is the last level of the execution of the kcache
+         */
+        template < typename IterationPolicy, typename CacheStorage, typename Level >
+        struct is_end_index {
+
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
+
+            using cache_t = typename CacheStorage::cache_t;
+
+            static constexpr bool value = (IterationPolicy::value == enumtype::forward)
+                                              ? (interval_from_index< typename cache_t::interval_t >::type::value ==
+                                                    level_to_index< Level >::type::value)
+                                              : (interval_to_index< typename cache_t::interval_t >::type::value ==
+                                                    level_to_index< Level >::type::value);
+        };
+
+        /**
          * @struct flush_mem_accessor
          * functor that will synchronize a cache with main memory
          * \tparam AccIndex index of the accessor
@@ -246,26 +267,28 @@ namespace gridtools {
             GT_FUNCTION void operator()(Idx const &) const {
                 typedef typename boost::mpl::at< KCachesMap, Idx >::type k_cache_storage_t;
                 using kcache_t = typename k_cache_storage_t::cache_t;
+                GRIDTOOLS_STATIC_ASSERT(((IterationPolicy::value != enumtype::parallel) ||
+                                            (kcache_t::ccacheIOPolicy != cache_io_policy::bpfill &&
+                                                kcache_t::ccacheIOPolicy != cache_io_policy::epflush)),
+                    "bpfill and epflush policies can not be used with a kparallel iteration strategy");
 
                 // compute the maximum offset of all levels that we need to prefill or final flush
                 constexpr uint_t koffset =
                     compute_section_kcache_to_sync_with_mem< IterationPolicy, k_cache_storage_t >(CacheIOPolicy);
 
                 // compute the sequence of all offsets that we need to prefill or final flush
-                using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence<
-                    int_t,
-                    kcache_t::ccacheIOPolicy == cache_io_policy::bpfill
-                        ? koffset + 1 
-                        : koffset >::type >;
-                constexpr int_t additional_offset = (kcache_t::ccacheIOPolicy == cache_io_policy::flush || kcache_t::ccacheIOPolicy == cache_io_policy::epflush) ? (int_t)1 : 0 ;
-                using io_op_t = typename io_operator< Idx,
-                    IterationPolicy::value,
-                    CacheIOPolicy,
-                    additional_offset >::type;
+                using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int_t,
+                    kcache_t::ccacheIOPolicy == cache_io_policy::bpfill ? koffset + 1 : koffset >::type >;
+                constexpr int_t additional_offset = (kcache_t::ccacheIOPolicy == cache_io_policy::flush ||
+                                                        kcache_t::ccacheIOPolicy == cache_io_policy::epflush)
+                                                        ? (int_t)1
+                                                        : 0;
+                using io_op_t =
+                    typename io_operator< Idx, IterationPolicy::value, CacheIOPolicy, additional_offset >::type;
 
                 auto &cache_st = boost::fusion::at_key< Idx >(m_kcaches);
                 seq::template apply_void_lambda< io_op_t::apply_t >(m_it_domain, cache_st);
-           }
+            }
         };
     } // namespace _impl
 } // namespace gridtools
