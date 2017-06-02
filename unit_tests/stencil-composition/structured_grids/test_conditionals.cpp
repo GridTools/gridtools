@@ -63,7 +63,7 @@ namespace test_conditionals {
         typedef boost::mpl::vector1< p_dummy > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(p_dummy()) = +Id;
         }
     };

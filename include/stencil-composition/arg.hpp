@@ -111,21 +111,27 @@ namespace gridtools {
      * @tparam LocationType the location type of the storage of the placeholder
      * @tparam is_temporary_storage determines whether the placeholder holds a temporary or normal storage
      */
-    template < uint_t I, typename Storage, typename Location, bool Temporary >
+    template < uint_t I, typename Storage, typename LocationType, bool Temporary >
     struct arg {
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value),
+            "The third template argument of a placeholder must be a location_type");
         typedef Storage storage_t;
+
         typedef static_uint< I > index_t;
-        typedef Location location_t;
+
+        typedef LocationType location_t;
+        typedef arg< I, storage_t, location_t > type;
+
         constexpr static bool is_temporary = Temporary;
 
         template < typename Storage2 >
-        arg_storage_pair< arg< I, storage_t, Location, Temporary >, Storage2 > operator=(Storage2 &ref) {
+        arg_storage_pair< arg< I, storage_t, LocationType, Temporary >, Storage2 > operator=(Storage2 &ref) {
             GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_t >::value),
                 "there is a mismatch between the storage types used by the arg placeholders and the storages really "
                 "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
                 "correctly assigned and that their type match the instantiated storages ones");
 
-            return arg_storage_pair< arg< I, storage_t, Location, Temporary >, Storage2 >(&ref);
+            return arg_storage_pair< arg< I, storage_t, LocationType, Temporary >, Storage2 >(&ref);
         }
 
         static void info(std::ostream &out_s) {

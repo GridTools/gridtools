@@ -65,7 +65,7 @@ namespace cs_test {
         typedef boost::mpl::vector2< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -102,8 +102,8 @@ TEST(test_copy_stencil, run) {
         }
     }
 
-    typedef arg< 0, cell_storage_type > p_in_cells;
-    typedef arg< 1, cell_storage_type > p_out_cells;
+    typedef arg< 0, cell_storage_type, enumtype::cells > p_in_cells;
+    typedef arg< 1, cell_storage_type, enumtype::cells > p_out_cells;
 
     typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
 

@@ -24,16 +24,18 @@ function help {
    echo "-v      compile in VERBOSE mode               "
    echo "-q      queue for testing                     "
    echo "-x      compiler version                      "
+   echo "-n      execute the build on a compute node   "
    exit 1
 }
 
 INITPATH=$PWD
 BASEPATH_SCRIPT=$(dirname "${0}")
+ABSOLUTEPATH_SCRIPT=${INITPATH}/${BASEPATH_SCRIPT#$INITPATH}
 FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
 
-while getopts "h:b:t:f:c:l:zmsidvq:x:" opt; do
+while getopts "h:b:t:f:c:l:zmsidvq:x:in" opt; do
     case "$opt" in
     h|\?)
         help
@@ -65,6 +67,8 @@ while getopts "h:b:t:f:c:l:zmsidvq:x:" opt; do
         ;;
     x) VERSION_=$OPTARG
         ;;
+    n) BUILD_ON_CN="ON"
+        ;;
     esac
 done
 
@@ -93,8 +97,8 @@ fi
 
 echo $@
 
-source ${BASEPATH_SCRIPT}/machine_env.sh
-source ${BASEPATH_SCRIPT}/env_${myhost}.sh
+source ${ABSOLUTEPATH_SCRIPT}/machine_env.sh
+source ${ABSOLUTEPATH_SCRIPT}/env_${myhost}.sh
 if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
     test -e build
@@ -151,15 +155,23 @@ fi
 # measuring time
 export START_TIME=$SECONDS
 
-echo "Building on `hostname`"
+if [[ "$BUILD_ON_CN" == "ON" ]]; then
+    if [[ -z ${SRUN_BUILD_COMMAND} ]]; then
+        echo "No command for building on a compute node available, falling back to normal mode." 
+        SRUN_BUILD_COMMAND=""
+    else
+        echo "Building on a compute node (launching from `hostname`)"
+    fi
+else
+    echo "Building on `hostname`"
+    SRUN_BUILD_COMMAND=""
+fi
 
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
--DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
 -DCUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DGPU_ENABLED_FUSION:PATH=../fusion/include \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
@@ -182,18 +194,22 @@ exit_if_error $?
 #some object files, probably related to parallel make compilation, but we dont know yet how to solve this.
 #Workaround here is to try multiple times the compilation step
 num_make_rep=2
-
 error_code=0
 log_file="/tmp/jenkins_${BUILD_TYPE}_${TARGET}_${FLOAT_TYPE}_${CXX_STD}_${MPI}_${RANDOM}.log"
+
+if [[ -z ${MAKE_THREADS} ]]; then
+    MAKE_THREADS=5
+fi
+
 if [[ "$SILENT_BUILD" == "ON" ]]; then
     echo "Log file ${log_file}"
     for i in `seq 1 $num_make_rep`;
     do
       echo "COMPILATION # ${i}"
       if [ ${i} -eq ${num_make_rep} ]; then
-          make  >& ${log_file};
+          ${SRUN_BUILD_COMMAND} make  >& ${log_file};
       else
-          make -j5  >& ${log_file};
+          ${SRUN_BUILD_COMMAND} make -j${MAKE_THREADS}  >& ${log_file};
       fi
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
@@ -201,11 +217,17 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
       fi
     done
 
+    nwarnings=`grep -i "warning" ${log_file} | wc -l`
+    if [ ${nwarnings} -ne 0 ]; then
+        echo "Treating warnings as errors! Build failed because of ${nwarnings} warnings!"
+        error_code=$((error_code || `echo "1"` ))    
+    fi
+
     if [ ${error_code} -ne 0 ]; then
         cat ${log_file};
     fi
 else
-    make -j10
+    ${SRUN_BUILD_COMMAND} make -j${MAKE_THREADS}
     error_code=$?
 fi
 
@@ -225,9 +247,9 @@ fi
 
 
 if [[ "$RUN_MPI_TESTS" == "ON" ]]; then
-    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $USE_GPU
+    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $USE_GPU
 else
-    bash ${INITPATH}/${BASEPATH_SCRIPT}/test.sh ${queue_str}
+    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str}
 fi
 
 exit_if_error $?

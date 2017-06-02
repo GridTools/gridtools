@@ -147,6 +147,8 @@ namespace gridtools {
         std::string m_name;
 
       public:
+        ~data_store() = default;
+
         /**
          * @brief data_store constructor. This constructor does not trigger an allocation of the required space.
          */

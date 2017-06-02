@@ -74,7 +74,7 @@ struct pretent_function {
     typedef gridtools::accessor< 3, gridtools::enumtype::inout > a3;
 
     template < typename Eval >
-    static void Do(Eval const &eval) {
+    static void Do(Eval &eval) {
         eval(a1()) += eval(a0());
         eval(a3()) += eval(a2());
     }
@@ -121,7 +121,9 @@ void complex_test(Args &... args) {
 
     auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-    pretent_function::Do(f_aggregator_t(pretent_aggregator(), y));
+    pretent_aggregator pa;
+    f_aggregator_t fa(pa, y);
+    pretent_function::Do(fa);
 }
 
 TEST(call_interfaces_metafunctions, compile_time_basic_tests) {

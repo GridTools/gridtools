@@ -267,9 +267,10 @@ namespace gridtools {
             constexpr int pos = StorageInfo::layout_t::template at< Coordinate >();
             if (pos >= 0) {
                 auto stride =
-                    (max_t::value < 0)
-                        ? 0
-                        : ((pos == max_t::value) ? 1 : m_strides_cached.template get< index_t::value >()[pos]);
+                    (max_t::value < 0) ? 0 : ((pos == max_t::value) ? 1 :
+                                                                    // uint_t cast to avoid a warning (maybe this is
+                                                     // compile time evaluated even if pos < 0)
+                                                     m_strides_cached.template get< index_t::value >()[(uint_t)pos]);
                 m_index_array[index_t::value] += (stride * m_increment);
             }
         }
@@ -398,9 +399,11 @@ namespace gridtools {
                     : m_initial_pos;
             constexpr int pos = StorageInfo::layout_t::template at< Coordinate >();
             if (Coordinate < StorageInfo::layout_t::masked_length && pos >= 0) {
-                auto stride = (max_t::value < 0)
-                                  ? 0
-                                  : ((pos == max_t::value) ? 1 : m_strides.template get< index_t::value >()[pos]);
+                auto stride =
+                    (max_t::value < 0) ? 0 : ((pos == max_t::value) ? 1 :
+                                                                    // uint_t cast to avoid a warning (maybe this is
+                                                     // compile time evaluated even if pos < 0)
+                                                     m_strides.template get< index_t::value >()[(uint_t)pos]);
                 m_index_array[index_t::value] += (stride * initial_pos);
             }
         }
@@ -557,7 +560,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size< typename LocalDomain::data_ptr_fusion_map >::value > Accessor::index_t::value),
             GT_INTERNAL_ERROR);
-        typedef typename LocalDomain::template get_storage< Accessor::index_t >::type storage_t;
+        typedef typename LocalDomain::template get_storage< typename Accessor::index_t >::type storage_t;
         typedef storage_t type;
     };
 

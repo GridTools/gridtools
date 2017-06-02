@@ -55,7 +55,7 @@ namespace test_cycle_and_swap {
         typedef inout_accessor< 0, extent<>, 5 > p_i;
         typedef boost::mpl::vector< p_i > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(p_i()) += eval(p_i());
         }
     };
@@ -68,7 +68,7 @@ namespace test_cycle_and_swap {
 
         typedef boost::mpl::vector< p_data > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(p_data(time(1))) = (eval(p_data(i - 1)) + eval(p_data(i + 1))) * (float_t)0.5;
         }
     };

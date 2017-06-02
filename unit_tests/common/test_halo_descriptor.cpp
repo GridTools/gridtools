@@ -33,37 +33,49 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+#include "gtest/gtest.h"
+#include "common/defs.hpp"
+#include "common/halo_descriptor.hpp"
 
-#include "../../common/generic_metafunctions/unzip.hpp"
+using namespace gridtools;
 
-namespace gridtools {
+TEST(test_halo_descriptor, empty_compute_domain) {
+    uint_t size = 6;
+    uint_t halo_size = 3;
 
-    template < typename Layout, uint_t... Dims >
-    struct meta_storage_cache {
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, halo_size, size - halo_size - 1, size}));
+}
 
-        typedef storage_info_interface< 0, Layout > meta_storage_t;
-        typedef Layout layout_t;
-        static_assert(
-            layout_t::masked_length == sizeof...(Dims), "Mismatch in layout length and passed number of dimensions.");
+TEST(test_halo_descriptor, begin_in_halo) {
+    uint_t begin = 0;
+    uint_t halo_size = 1;
+    uint_t size = 10;
 
-      public:
-        GT_FUNCTION
-        static constexpr uint_t size() { return meta_storage_t(Dims...).size(); }
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, begin, size - halo_size - 1, size}));
+}
 
-        template < ushort_t Id >
-        GT_FUNCTION static constexpr int_t stride() {
-            return meta_storage_t(Dims...).template stride< Id >();
-        }
+TEST(test_halo_descriptor, end_in_halo) {
+    uint_t halo_size = 1;
+    uint_t size = 10;
+    uint_t end = size - 1;
 
-        template < typename... D, typename Dummy = all_integers< typename std::remove_reference< D >::type... > >
-        GT_FUNCTION constexpr int_t index(D &&... args_) const {
-            return meta_storage_t(Dims...).index(args_...);
-        }
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, halo_size, end, size}));
+}
 
-        template < ushort_t Id >
-        GT_FUNCTION static constexpr int_t dim() {
-            return meta_storage_t(Dims...).template dim< Id >();
-        }
-    };
-} // namespace gridtools
+TEST(test_halo_descriptor, invalid_total_length) {
+    uint_t halo_size = 3;
+    uint_t begin = halo_size;
+    uint_t end = 10 - halo_size - 1;
+    uint_t size = 9;
+
+    ASSERT_ANY_THROW((halo_descriptor{halo_size, halo_size, begin, end, size}));
+}
+
+TEST(test_halo_descriptor, is_valid) {
+    uint_t size = 7;
+    uint_t halo_size = 3;
+
+    ASSERT_NO_THROW((halo_descriptor{halo_size, halo_size, halo_size, size - halo_size - 1, size}));
+}
+
+TEST(test_halo_descriptor, default_constructed_is_valid) { ASSERT_NO_THROW((halo_descriptor())); }

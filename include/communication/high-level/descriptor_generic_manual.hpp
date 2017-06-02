@@ -36,46 +36,46 @@
 #ifndef _DESCRIPTOR_GENERIC_MANUAL_H_
 #define _DESCRIPTOR_GENERIC_MANUAL_H_
 
-#include "gcl_parameters.hpp"
-#include "descriptor_base.hpp"
+#include "communication/high-level/gcl_parameters.hpp"
+#include "communication/high-level/descriptor_base.hpp"
 
 #ifdef __CUDACC__
-#include "m_packZL_generic.hpp"
-#include "m_packZU_generic.hpp"
-#include "m_packYL_generic.hpp"
-#include "m_packYU_generic.hpp"
-#include "m_packXL_generic.hpp"
-#include "m_packXU_generic.hpp"
+#include "communication/high-level/m_packZL_generic.hpp"
+#include "communication/high-level/m_packZU_generic.hpp"
+#include "communication/high-level/m_packYL_generic.hpp"
+#include "communication/high-level/m_packYU_generic.hpp"
+#include "communication/high-level/m_packXL_generic.hpp"
+#include "communication/high-level/m_packXU_generic.hpp"
 
-#include "m_unpackZL_generic.hpp"
-#include "m_unpackZU_generic.hpp"
-#include "m_unpackYL_generic.hpp"
-#include "m_unpackYU_generic.hpp"
-#include "m_unpackXL_generic.hpp"
-#include "m_unpackXU_generic.hpp"
+#include "communication/high-level/m_unpackZL_generic.hpp"
+#include "communication/high-level/m_unpackZU_generic.hpp"
+#include "communication/high-level/m_unpackYL_generic.hpp"
+#include "communication/high-level/m_unpackYU_generic.hpp"
+#include "communication/high-level/m_unpackXL_generic.hpp"
+#include "communication/high-level/m_unpackXU_generic.hpp"
 
 #define KERNEL_TYPE ZL
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE ZU
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE YL
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE YU
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE XL
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE XU
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 #endif
 
@@ -698,7 +698,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[0].set_minus(0);
+                        fields[l].halos[0].reset_minus();
                 }
             }
             {
@@ -710,7 +710,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[0].set_plus(0);
+                        fields[l].halos[0].reset_plus();
                 }
             }
             {
@@ -722,7 +722,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[1].set_minus(0);
+                        fields[l].halos[1].reset_minus();
                 }
             }
             {
@@ -734,7 +734,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[1].set_plus(0);
+                        fields[l].halos[1].reset_plus();
                 }
             }
             {
@@ -746,7 +746,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[2].set_minus(0);
+                        fields[l].halos[2].reset_minus();
                 }
             }
             {
@@ -758,7 +758,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[2].set_plus(0);
+                        fields[l].halos[2].reset_plus();
                 }
             }
 
@@ -854,7 +854,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[0].set_plus(0);
+                        fields[l].halos[0].reset_plus();
                 }
             }
             {
@@ -866,7 +866,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[0].set_minus(0);
+                        fields[l].halos[0].reset_minus();
                 }
             }
             {
@@ -878,7 +878,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[1].set_plus(0);
+                        fields[l].halos[1].reset_plus();
                 }
             }
             {
@@ -890,7 +890,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[1].set_minus(0);
+                        fields[l].halos[1].reset_minus();
                 }
             }
             {
@@ -902,7 +902,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[2].set_plus(0);
+                        fields[l].halos[2].reset_plus();
                 }
             }
             {
@@ -914,7 +914,7 @@ namespace gridtools {
                 const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                 if ((base_type::pattern().proc_grid().proc(ii_P, jj_P, kk_P) == -1)) {
                     for (int l = 0; l < fields.size(); ++l)
-                        fields[l].halos[2].set_minus(0);
+                        fields[l].halos[2].reset_minus();
                 }
             }
 
@@ -969,7 +969,7 @@ namespace gridtools {
             }
         }
 
-#include <non_vect_interface.hpp>
+#include <communication/high-level/non_vect_interface.hpp>
     };
 #endif // cudacc
 }
