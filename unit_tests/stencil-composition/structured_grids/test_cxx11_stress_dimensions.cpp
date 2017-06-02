@@ -83,10 +83,14 @@ typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad
   * The quadrature nodes/quadrature rule
   With this information we perform the projection (i.e. perform an integral) by looping on the
   quadrature points in an innermost loop, with stride given by the layout_map (I*J*K in this case).
-  In this example we introduce also another syntactic element in the high level expression: the operator exclamation
-  mark (!). This operator prefixed to a placeholder means that the corresponding storage index is not considered, and
-  only the offsets are used to get the absolute address. This allows to perform operations which are not stencil-like.
-  It is used in this case to address the basis functions values.
+
+  This code uses a deprecated way of dealing with input data that does not 'move' with the iteration space.
+  The right way of doing it would be to use global_accessors and global_parameters (the proper implementation
+  can be found in the example folder). Here Phi and Psi are then 7 dimensional arrays, where the first three 
+  dimensions are 'killed' (the corresponding layout map entries are set to -1). In this way, when the iteration
+  point is moved the fields phi and psi offset if not updated and then the other 4 dimensions are accessed
+  from within the stencil operator. The values accessed there are always the same regardless of the iteration
+  point.
 */
 
 template < typename StorageLocal, typename StorageGlobal, typename Storage, typename Grid >
