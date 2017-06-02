@@ -70,7 +70,6 @@ using namespace enumtype;
 namespace aligned_copy_stencil {
 
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
@@ -104,7 +103,7 @@ namespace aligned_copy_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
 
 #ifdef __CUDACC__
 #ifndef NDEBUG
@@ -145,8 +144,10 @@ namespace aligned_copy_stencil {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + halo_t::at< 0 >()};
-        uint_t dj[5] = {halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + halo_t::at< 1 >()};
+        uint_t di[5] = {
+            halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + 2 * halo_t::at< 0 >()};
+        uint_t dj[5] = {
+            halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + 2 * halo_t::at< 1 >()};
 
         gridtools::grid< axis > grid(di, dj);
 
