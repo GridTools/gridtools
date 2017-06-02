@@ -75,7 +75,7 @@ namespace gridtools {
         /**
            @brief device copy constructor
          */
-        __device__ metadata_set(metadata_set const &other) : m_set(other.m_set){};
+        GT_FUNCTION_DEVICE metadata_set(metadata_set const &other) : m_set(other.m_set){};
 
         /**
            @brief inserts a new instance in the sequence
