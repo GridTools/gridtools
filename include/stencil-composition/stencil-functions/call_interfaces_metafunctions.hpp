@@ -40,7 +40,7 @@
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include "../../common/defs.hpp"
-#include "./accessor_metafunctions.hpp"
+#include "../structured_grids/accessor_metafunctions.hpp"
 #include "./call_interfaces_fwd.hpp"
 
 namespace gridtools {
