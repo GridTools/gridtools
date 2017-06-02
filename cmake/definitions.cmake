@@ -206,6 +206,7 @@ file(APPEND ${TEST_SCRIPT} "res=0\n")
 function(gridtools_add_test test_name test_script test_exec)
   file(APPEND ${test_script} "${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${test_script} "res=$((res || $? ))\n")
+  file(APPEND ${test_script} "echo \"TIMESTAMP=`date +%s`\"\n")
 endfunction(gridtools_add_test)
 
 ## test script generator for MPI tests ##
@@ -213,12 +214,14 @@ file(WRITE ${TEST_MPI_SCRIPT} "res=0\n")
 function(gridtools_add_mpi_test test_name test_exec)
   file(APPEND ${TEST_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_MPI_SCRIPT} "res=$((res || $? ))\n")
+  file(APPEND ${TEST_MPI_SCRIPT} "echo \"TIMESTAMP=`date +%s`\"\n")
 endfunction(gridtools_add_mpi_test)
 
 file(WRITE ${TEST_CUDA_MPI_SCRIPT} "res=0\n")
 function(gridtools_add_cuda_mpi_test test_name test_exec)
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "\$LAUNCH_MPI_TEST ${test_exec}" " ${ARGN}" "\n")
   file(APPEND ${TEST_CUDA_MPI_SCRIPT} "res=$((res || $? ))\n")
+  file(APPEND ${TEST_CUDA_MPI_SCRIPT} "echo \"TIMESTAMP=`date +%s`\"\n")
 endfunction(gridtools_add_cuda_mpi_test)
 
 ## caching ##
