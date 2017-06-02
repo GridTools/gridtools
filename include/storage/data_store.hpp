@@ -147,6 +147,7 @@ namespace gridtools {
         std::string m_name;
 
       public:
+        // following members are declared in order to have same API as data_store_fields
         const static unsigned num_of_storages = 1;
         const static unsigned num_of_components = 1;
 
