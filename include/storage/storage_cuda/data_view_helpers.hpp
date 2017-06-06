@@ -64,7 +64,9 @@ namespace gridtools {
                                    is_data_store< DecayedCDS > >,
         data_view< DecayedCDS, AccessMode > >::type
     make_host_view(CudaDataStore const &ds) {
-        assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
+        if (!ds.valid())
+            return data_view< DecayedCDS, AccessMode >();
+
         if (AccessMode != access_mode::ReadOnly) {
             assert(!ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu && "There is already an active read-write "
                                                                             "device view. Synchronization is needed "
@@ -91,13 +93,16 @@ namespace gridtools {
                                    is_data_store< DecayedCDS > >,
         data_view< DecayedCDS, AccessMode > >::type
     make_device_view(CudaDataStore const &ds) {
-        assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
+        if (!ds.valid())
+            return data_view< DecayedCDS, AccessMode >();
+
         if (AccessMode != access_mode::ReadOnly) {
             assert(!ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu && "There is already an active read-write "
                                                                             "host view. Synchronization is needed "
                                                                             "before constructing the view.");
             ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu = true;
         }
+
         return data_view< DecayedCDS, AccessMode >(ds.get_storage_ptr()->get_gpu_ptr(),
             ds.get_storage_info_ptr()->get_gpu_ptr(),
             ds.get_storage_ptr()->get_state_machine_ptr(),

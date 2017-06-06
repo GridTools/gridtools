@@ -411,7 +411,7 @@ namespace gridtools {
         storage_wrapper_fusion_list_t m_storage_wrapper_list;
 
       public:
-        intermediate(DomainType const& domain,
+        intermediate(DomainType const &domain,
             Grid const &grid,
             ConditionalsSet conditionals_,
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)

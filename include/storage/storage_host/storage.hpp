@@ -101,8 +101,7 @@ namespace gridtools {
          * @brief host_storage destructor.
          */
         ~host_storage() {
-            assert(m_cpu_ptr && "This would end up in a double-free.");
-            if (m_ownership == ownership::Full)
+            if (m_ownership == ownership::Full && m_cpu_ptr != NULL)
                 delete[] m_cpu_ptr;
         }
 
