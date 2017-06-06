@@ -50,7 +50,7 @@ namespace gridtools {
     /**
        @brief kernel to appy boundary conditions to the data fields requested
      */
-    template < typename BoundaryFunction, typename Direction, typename... DataFieldViews >
+    template < typename BoundaryFunction, typename Direction, typename... DataViews >
     __global__ void loop_kernel(BoundaryFunction boundary_function,
         Direction direction,
         uint_t starti,
@@ -59,12 +59,12 @@ namespace gridtools {
         uint_t nx,
         uint_t ny,
         uint_t nz,
-        DataFieldViews... data_field_views) {
+        DataViews... data_views) {
         uint_t i = blockIdx.x * blockDim.x + threadIdx.x;
         uint_t j = blockIdx.y * blockDim.y + threadIdx.y;
         uint_t k = blockIdx.z * blockDim.z + threadIdx.z;
         if ((i < nx) && (j < ny) && (k < nz)) {
-            boundary_function(direction, data_field_views..., i + starti, j + startj, k + startk);
+            boundary_function(direction, data_views..., i + starti, j + startj, k + startk);
         }
     }
 
