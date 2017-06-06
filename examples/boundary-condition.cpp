@@ -148,9 +148,7 @@ int main(int argc, char **argv) {
     in_s.sync();
     out_s.sync();
 
-    // reactivate views and check consistency
-    in_s.reactivate_host_write_views();
-    out_s.reactivate_host_write_views();
+    // making the views to access and check correctness
     auto in = make_host_view(in_s);
     auto out = make_host_view(out_s);
 
