@@ -64,7 +64,7 @@ namespace gridtools {
             GridTopology &grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : grid_base< Axis >(direction_i, direction_j), m_grid_topology(grid_topology) {}
 
-        __device__ grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
+        GT_FUNCTION_DEVICE grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
         GridTopology const &grid_topology() const { return m_grid_topology; }
