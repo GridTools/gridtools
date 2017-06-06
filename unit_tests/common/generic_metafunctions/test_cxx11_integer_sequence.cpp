@@ -58,9 +58,6 @@ struct get_component_meta {
 
 using namespace gridtools;
 
-template < int_t... Vals >
-struct test_extent {};
-
 template < int Idx, typename Elem >
 struct get_component_type {
 
