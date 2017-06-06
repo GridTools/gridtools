@@ -505,8 +505,9 @@ namespace gridtools {
          * and is not cached (i.e. is accessing main memory)
          */
         template < typename Accessor >
-        GT_FUNCTION typename boost::disable_if<
-            boost::mpl::or_< cached< Accessor >, boost::mpl::not_< is_accessor< Accessor > > >,
+        GT_FUNCTION typename boost::disable_if< boost::mpl::or_< cached< Accessor >,
+                                                    boost::mpl::not_< is_accessor< Accessor > >,
+                                                    is_global_accessor< Accessor > >,
             typename accessor_return_type< Accessor >::type >::type
         operator()(Accessor const &accessor) {
             GRIDTOOLS_STATIC_ASSERT(
