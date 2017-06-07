@@ -41,7 +41,7 @@
 #include <boost/preprocessor/repetition/enum_binary_params.hpp>
 
 // clang-format off
-#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, <call_generic.hpp>))
+#define BOOST_PP_ITERATION_PARAMS_1 (3, (1, GCL_MAX_FIELDS, <communication/high-level/call_generic.hpp>))
 // clang-format on
 #include BOOST_PP_ITERATE()
 
