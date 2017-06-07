@@ -216,7 +216,6 @@ namespace gridtools {
         GT_FUNCTION void fill_caches(IterateDomain const &it_domain, const int_t klevel, const Grid &grid) {
             GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-            assert(klevel >= 0);
 
             boost::mpl::for_each< k_filling_caches_indexes_t >(_impl::io_cache_functor< k_caches_tuple_t,
                 k_caches_map_t,
