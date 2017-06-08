@@ -39,8 +39,8 @@
 #include <storage/data_store.hpp>
 #include <common/gt_assert.hpp>
 #include <common/variadic_pack_metafunctions.hpp>
-#include <storage/storage_cuda/storage.hpp>
-#include <storage/storage_cuda/storage_info.hpp>
+#include <storage/storage_cuda/cuda_storage.hpp>
+#include <storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 

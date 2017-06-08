@@ -42,8 +42,8 @@
 #include <storage/common/storage_traits_metafunctions.hpp>
 #include <storage/storage_host/data_field_view_helpers.hpp>
 #include <storage/storage_host/data_view_helpers.hpp>
-#include <storage/storage_host/storage.hpp>
-#include <storage/storage_host/storage_info.hpp>
+#include <storage/storage_host/host_storage.hpp>
+#include <storage/storage_host/host_storage_info.hpp>
 
 namespace gridtools {
     template < enumtype::platform T >

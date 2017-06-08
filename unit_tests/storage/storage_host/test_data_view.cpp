@@ -39,8 +39,8 @@
 #include <common/gt_assert.hpp>
 #include <storage/data_store.hpp>
 #include <storage/storage_host/data_view_helpers.hpp>
-#include <storage/storage_host/storage.hpp>
-#include <storage/storage_host/storage_info.hpp>
+#include <storage/storage_host/host_storage.hpp>
+#include <storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 

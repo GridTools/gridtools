@@ -41,8 +41,8 @@
 #include <boost/mpl/and.hpp>
 
 #include "../../common/gt_assert.hpp"
-#include "storage.hpp"
-#include "storage_info.hpp"
+#include "host_storage.hpp"
+#include "host_storage_info.hpp"
 #include "../data_store_field.hpp"
 #include "../data_field_view.hpp"
 

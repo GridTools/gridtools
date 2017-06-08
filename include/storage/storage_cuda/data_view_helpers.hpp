@@ -46,8 +46,8 @@
 #include "../../common/gt_assert.hpp"
 #include "../data_store.hpp"
 #include "../data_view.hpp"
-#include "storage.hpp"
-#include "storage_info.hpp"
+#include "cuda_storage.hpp"
+#include "cuda_storage_info.hpp"
 
 namespace gridtools {
 
