@@ -36,7 +36,7 @@
 
 #include "gtest/gtest.h"
 
-#include <storage/storage_host/storage.hpp>
+#include <storage/storage_host/host_storage.hpp>
 #include <common/gt_assert.hpp>
 
 TEST(StorageHostTest, Simple) {

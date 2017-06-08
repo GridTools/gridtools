@@ -40,8 +40,8 @@
 #include <storage/data_store_field.hpp>
 #include <storage/storage_host/data_field_view_helpers.hpp>
 #include <storage/storage_host/data_view_helpers.hpp>
-#include <storage/storage_host/storage.hpp>
-#include <storage/storage_host/storage_info.hpp>
+#include <storage/storage_host/host_storage.hpp>
+#include <storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 

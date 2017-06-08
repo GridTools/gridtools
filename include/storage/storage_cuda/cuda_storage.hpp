@@ -44,7 +44,7 @@
 #include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
-#include "../storage_host/storage.hpp"
+#include "../storage_host/host_storage.hpp"
 
 namespace gridtools {
 
