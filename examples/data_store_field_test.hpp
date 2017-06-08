@@ -102,19 +102,19 @@ namespace data_store_field_test {
         for (int i = 0; i < d1; ++i)
             for (int j = 0; j < d2; ++j)
                 for (int k = 0; k < d3; ++k) {
-                    hv_in.template get< 0, 0 >()(i, j, k) = 1;
-                    hv_in.template get< 1, 0 >()(i, j, k) = 2;
-                    hv_in.template get< 1, 1 >()(i, j, k) = 3;
-                    hv_in.template get< 2, 0 >()(i, j, k) = 4;
-                    hv_in.template get< 2, 1 >()(i, j, k) = 5;
-                    hv_in.template get< 2, 2 >()(i, j, k) = 6;
+                    hv_in.get< 0, 0 >()(i, j, k) = 1;
+                    hv_in.get< 1, 0 >()(i, j, k) = 2;
+                    hv_in.get< 1, 1 >()(i, j, k) = 3;
+                    hv_in.get< 2, 0 >()(i, j, k) = 4;
+                    hv_in.get< 2, 1 >()(i, j, k) = 5;
+                    hv_in.get< 2, 2 >()(i, j, k) = 6;
 
-                    hv_out.template get< 0, 0 >()(i, j, k) = 123;
-                    hv_out.template get< 1, 0 >()(i, j, k) = 123;
-                    hv_out.template get< 1, 1 >()(i, j, k) = 123;
-                    hv_out.template get< 2, 0 >()(i, j, k) = 123;
-                    hv_out.template get< 2, 1 >()(i, j, k) = 123;
-                    hv_out.template get< 2, 2 >()(i, j, k) = 123;
+                    hv_out.get< 0, 0 >()(i, j, k) = 123;
+                    hv_out.get< 1, 0 >()(i, j, k) = 123;
+                    hv_out.get< 1, 1 >()(i, j, k) = 123;
+                    hv_out.get< 2, 0 >()(i, j, k) = 123;
+                    hv_out.get< 2, 1 >()(i, j, k) = 123;
+                    hv_out.get< 2, 2 >()(i, j, k) = 123;
                 }
 
         // create some gridtools stuff
@@ -150,14 +150,14 @@ namespace data_store_field_test {
         for (int i = halo_size; i < d1 - halo_size; ++i) {
             for (int j = halo_size; j < d2 - halo_size; ++j) {
                 for (int k = 0; k < d3; ++k) {
-                    valid &= (hv_out.template get< 0, 0 >()(i, j, k) == 1);
+                    valid &= (hv_out.get< 0, 0 >()(i, j, k) == 1);
 
-                    valid &= (hv_out.template get< 1, 0 >()(i, j, k) == 2);
-                    valid &= (hv_out.template get< 1, 1 >()(i, j, k) == 3);
+                    valid &= (hv_out.get< 1, 0 >()(i, j, k) == 2);
+                    valid &= (hv_out.get< 1, 1 >()(i, j, k) == 3);
 
-                    valid &= (hv_out.template get< 2, 0 >()(i, j, k) == 4);
-                    valid &= (hv_out.template get< 2, 1 >()(i, j, k) == 5);
-                    valid &= (hv_out.template get< 2, 2 >()(i, j, k) == 6);
+                    valid &= (hv_out.get< 2, 0 >()(i, j, k) == 4);
+                    valid &= (hv_out.get< 2, 1 >()(i, j, k) == 5);
+                    valid &= (hv_out.get< 2, 2 >()(i, j, k) == 6);
 
                     if (!valid) {
                         std::cout << "ERROR IN: " << i << " " << j << " " << k << std::endl;

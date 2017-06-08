@@ -118,7 +118,7 @@ namespace gridtools {
         /*
          * @brief private storage info interface constructor
          */
-        constexpr storage_info_interface() {}
+        GT_FUNCTION constexpr storage_info_interface() {}
 
         /*
          * @brief Helper function to check for out of bounds accesses (step case)
@@ -223,7 +223,7 @@ namespace gridtools {
          * region is added to the corresponding dimensions and the alignment is applied.
          */
         template < typename... Dims >
-        explicit constexpr storage_info_interface(Dims... dims_)
+        GT_FUNCTION explicit constexpr storage_info_interface(Dims... dims_)
             : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                   extend_by_halo< Halos, LayoutArgs >::extend(dims_))...},
               m_strides(get_strides< layout_t >::get_stride_array(
@@ -242,7 +242,7 @@ namespace gridtools {
         /*
          * @brief storage info copy constructor.
          */
-        constexpr storage_info_interface(storage_info_interface const &other) = default;
+        GT_FUNCTION constexpr storage_info_interface(storage_info_interface const &other) = default;
 
         /*
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset).

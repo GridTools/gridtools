@@ -108,7 +108,7 @@ namespace gridtools {
         // e.g., layout_map<1,2,-1,0> with halo<3,4,0,1> would return 4
         // because the second dimension is the one first stride dimension
         // and the halo there is 4.
-        constexpr static uint_t get_first_stride_dim_halo() {
+        GT_FUNCTION constexpr static uint_t get_first_stride_dim_halo() {
             return get_value_from_pack(get_index_of_element_in_pack(0,
                                            static_cast< int >(layout_map< LayoutArgs... >::unmasked_length - 1),
                                            static_cast< int >(LayoutArgs)...),
@@ -119,7 +119,7 @@ namespace gridtools {
         // e.g., alignment<32>, layout_map<0,1,2>, halo<0,2,2>. the function
         // gt_ceil(2/32) * 32 - 2 = 1 * 32 - 2 = 30. This means the initial offset
         // is 30, followed by 2 halo points, followed by an aligned non-halo point.
-        constexpr static uint_t compute() {
+        GT_FUNCTION constexpr static uint_t compute() {
             return ((Alignment::value > 1u) && (get_first_stride_dim_halo() > 0))
                        ? static_cast< uint_t >(
                              gt_ceil((float)get_first_stride_dim_halo() / (float)Alignment::value) * Alignment::value -
@@ -140,7 +140,7 @@ namespace gridtools {
         typedef layout_map< LayoutArgs... > layout_map_t;
 
         template < int N, typename... Dims >
-        static constexpr
+        GT_FUNCTION static constexpr
             typename boost::enable_if_c< (N != -1 && N != layout_map_t::unmasked_length - 1), uint_t >::type get_stride(
                 Dims... d) {
             return (get_value_from_pack(get_index_of_element_in_pack(0, N + 1, LayoutArgs...), d...)) *
@@ -148,12 +148,12 @@ namespace gridtools {
         }
 
         template < int N, typename... Dims >
-        static constexpr typename boost::enable_if_c< (N == -1), uint_t >::type get_stride(Dims... d) {
+        GT_FUNCTION static constexpr typename boost::enable_if_c< (N == -1), uint_t >::type get_stride(Dims... d) {
             return 0;
         }
 
         template < int N, typename... Dims >
-        static constexpr
+        GT_FUNCTION static constexpr
             typename boost::enable_if_c< (N != -1 && N == layout_map_t::unmasked_length - 1), uint_t >::type get_stride(
                 Dims... d) {
             return 1;
@@ -170,7 +170,7 @@ namespace gridtools {
     template < int... LayoutArgs >
     struct get_strides< layout_map< LayoutArgs... > > {
         template < typename... Dims >
-        static constexpr array< uint_t, sizeof...(LayoutArgs) > get_stride_array(Dims... d) {
+        GT_FUNCTION static constexpr array< uint_t, sizeof...(LayoutArgs) > get_stride_array(Dims... d) {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                                         typename is_all_integral< Dims... >::type >::value),
                 GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));

@@ -53,7 +53,7 @@ namespace gridtools {
             typedef typename boost::mpl::if_< is_array< Accessor >,
                 boost::mpl::int_< N >,
                 boost::mpl::int_< ((Accessor::n_dimensions - 1) - N) > >::type offset_t;
-            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
+            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[(uint_t)val_t::value])) *
                    acc.template get< offset_t::value >();
         }
 
@@ -69,7 +69,7 @@ namespace gridtools {
             typedef typename boost::mpl::if_< is_array< Accessor >,
                 boost::mpl::int_< N >,
                 boost::mpl::int_< ((Accessor::n_dimensions - 1) - N) > >::type offset_t;
-            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
+            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[(uint_t)val_t::value])) *
                        acc.template get< offset_t::value >() +
                    apply_accessor< Max, StridesCached, Accessor, StorageInfo, N + 1 >(strides, acc);
         }

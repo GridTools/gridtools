@@ -425,9 +425,9 @@ namespace shallow_water {
         //! [add_halo]
 
         //! [initialization_h]
-        auto ds0 = sol.template get< 0, 0 >();
-        auto ds1 = sol.template get< 1, 0 >();
-        auto ds2 = sol.template get< 2, 0 >();
+        auto ds0 = sol.get< 0, 0 >();
+        auto ds1 = sol.get< 1, 0 >();
+        auto ds2 = sol.get< 2, 0 >();
         auto view0 = make_host_view(ds0);
         auto view1 = make_host_view(ds1);
         auto view2 = make_host_view(ds2);
