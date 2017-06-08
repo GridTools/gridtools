@@ -53,11 +53,7 @@
 #include <boost/mpl/fold.hpp>
 #include "../common/defs.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
-#ifdef CXX11_ENABLED
 #include "meta_array_generator.hpp"
-#else
-#include "meta_array_generator_cxx03.hpp"
-#endif
 
 namespace gridtools {
 

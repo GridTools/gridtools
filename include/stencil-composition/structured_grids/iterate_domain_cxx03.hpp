@@ -519,8 +519,6 @@ namespace gridtools {
                 *storage_, accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
         }
 
-#ifdef CXX11_ENABLED
-
         /**@brief returns the dimension of the storage corresponding to the given accessor
 
            Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
@@ -540,7 +538,6 @@ namespace gridtools {
 
             return metadata_->template dim< Coordinate >();
         }
-#endif // CXX11_ENABLED
 
         /** @brief return a the value in gmem pointed to by an accessor
         */
@@ -601,8 +598,6 @@ namespace gridtools {
                 typename accessor_return_type< Accessor >::type >::type
             operator()(Accessor const &accessor) const;
 
-#ifdef CXX11_ENABLED
-
         /** @brief method called in the Do methods of the functors. */
         template < typename... Arguments,
             template < typename... Args > class Expression,
@@ -620,8 +615,6 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, int_argument > >::value), "invalid expression");
             return expressions::evaluation::value((*this), arg);
         }
-
-#endif // CXX11_ENABLED
     };
 
     //    ################## IMPLEMENTATION ##############################
@@ -689,8 +682,6 @@ namespace gridtools {
                 Accessor,
                 storage_pointer_t >(real_storage_pointer, pointer_offset);
     }
-
-#if defined(CXX11_ENABLED)
 
     /** @brief method called in the Do methods of the functors.
         Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of data
@@ -776,7 +767,5 @@ namespace gridtools {
                              +
                              current_storage< (Accessor::index_t::value == 0), local_domain_t, Accessor >::value]);
     }
-
-#endif // defined (CXX11_ENABLED)
 
 } // namespace gridtools

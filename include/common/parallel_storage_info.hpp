@@ -67,8 +67,6 @@ namespace gridtools {
 
         explicit parallel_storage_info(partitioner_t const &part) : m_partitioner(&part), m_metadata() {}
 
-#ifdef CXX11_ENABLED
-
 #ifndef __CUDACC__
 
         /**
@@ -163,7 +161,6 @@ namespace gridtools {
 #endif
             return -1;
         }
-#endif
 
         /**
            @brief given a local (to the current subdomain) index (i,j,k) it returns the global corresponding index

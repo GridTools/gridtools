@@ -44,10 +44,8 @@
 #include "../iterate_domain_aux.hpp"
 #include "../offset_computation.hpp"
 
-#ifdef CXX11_ENABLED
 #include "meta_storage_cache.hpp"
 #include "cache_storage_metafunctions.hpp"
-#endif
 
 namespace gridtools {
     template < typename T, typename U >

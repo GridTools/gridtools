@@ -59,14 +59,9 @@ namespace gridtools {
             -cLevelOffsetLimit <= VOffset && VOffset <= cLevelOffsetLimit, "check offset and splitter value ranges \n\
          (note that non negative splitter values simplify the index computation)");
 
-#ifdef CXX11_ENABLED
         // define splitter and level offset
         typedef static_uint< VSplitter > Splitter;
         typedef static_int< VOffset > Offset;
-#else
-        typedef boost::mpl::integral_c< uint_t, VSplitter > Splitter;
-        typedef boost::mpl::integral_c< int_t, VOffset > Offset;
-#endif
     };
 
     /**

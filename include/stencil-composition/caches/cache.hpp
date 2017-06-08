@@ -100,7 +100,6 @@ namespace gridtools {
         };
     }
 
-#ifdef CXX11_ENABLED
     /**
      *	@brief function that forms a vector of caches that share the same cache type and input/output policy  (c++11
      *version)
@@ -129,27 +128,4 @@ namespace gridtools {
             detail::force_arg_resolution< cacheType, cacheIOPolicy, Interval > >::type res_ty;
         return res_ty();
     }
-#else
-
-/*
- * This macro is providing the same functionality as the cache(Args&&) function above.
- * Just used because of c++03 compatibility.
- */
-#define _CREATE_CACHE(z, n, nil)                                                                                \
-    template < cache_type cacheType,                                                                            \
-        cache_io_policy cacheIOPolicy,                                                                          \
-        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename T) >                                                     \
-    typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >,             \
-        detail::force_arg_resolution< cacheType, cacheIOPolicy, boost::mpl::void_ > >::type                     \
-        cache(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T)) {                                                       \
-        typedef typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >, \
-            detail::force_arg_resolution< cacheType, cacheIOPolicy, boost::mpl::void_ > >::type res_type;       \
-        GRIDTOOLS_STATIC_ASSERT(                                                                                \
-            (boost::mpl::size< res_type >::value > 0), "Cannot build cache sequence without argument");         \
-        return res_type();                                                                                      \
-    }
-    BOOST_PP_REPEAT(GT_MAX_ARGS, _CREATE_CACHE, _)
-#undef _CREATE_CACHE
-
-#endif
 }

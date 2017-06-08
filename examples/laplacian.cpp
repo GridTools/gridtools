@@ -168,7 +168,6 @@ TEST(Laplace, test) {
         }
     }
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
@@ -176,14 +175,6 @@ TEST(Laplace, test) {
 #endif
     array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     bool result = verif.verify(grid, ref, out, halos);
-#else
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6, halo_size);
-#else
-    verifier verif(1e-12, halo_size);
-#endif
-    bool result = verif.verify(grid, out, ref);
-#endif
 
 #ifdef BENCHMARK
     std::cout << laplace->print_meter() << std::endl;

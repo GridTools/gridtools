@@ -43,8 +43,6 @@
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
-
     /**
        @brief helper struct to use an integer sequence in order to fill a generic container
 
@@ -201,6 +199,4 @@ namespace gridtools {
             return Container{lambda(Indices, args_...)...};
         }
     };
-
-#endif
 } // namespace gridtools

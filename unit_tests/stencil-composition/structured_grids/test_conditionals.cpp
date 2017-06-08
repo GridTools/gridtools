@@ -36,9 +36,6 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/conditionals/condition_pool.hpp>
-#ifndef CXX11_ENABLED
-#include <boost/shared_ptr.hpp>
-#endif
 
 namespace test_conditionals {
     using namespace gridtools;
@@ -73,21 +70,10 @@ namespace test_conditionals {
 
     bool test() {
 
-#ifdef CXX11_ENABLED
         auto cond = new_cond([]() { return false; });
         auto cond2 = new_cond([]() { return true; });
-#else
-        new_cond(cond, &predicate1);
-        new_cond(cond2, &predicate2);
-#endif
 
-#ifdef CXX11_ENABLED
         grid< axis > grid_({0, 0, 0, 1, 2}, {0, 0, 0, 1, 2});
-#else
-        uint_t di[5] = {0, 0, 0, 1, 2};
-        uint_t dj[5] = {0, 0, 0, 1, 2};
-        grid< axis > grid_(di, dj);
-#endif
         grid_.value_list[0] = 0;
         grid_.value_list[1] = 2;
 

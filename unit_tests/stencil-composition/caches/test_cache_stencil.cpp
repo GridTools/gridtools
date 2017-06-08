@@ -119,15 +119,9 @@ class cache_stencil : public ::testing::Test {
     storage_t m_in, m_out;
 
     cache_stencil()
-        : m_d1(128), m_d2(128), m_d3(30),
-#ifdef CXX11_ENABLED
-          m_di{halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1},
-          m_dj{halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2},
-#else
-          m_di(halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1),
-          m_dj(halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2),
-#endif
-          m_grid(m_di, m_dj), m_meta(m_d1, m_d2, m_d3), m_in(m_meta, 0.), m_out(m_meta, 0.) {
+        : m_d1(128), m_d2(128), m_d3(30), m_di{halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1},
+          m_dj{halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2}, m_grid(m_di, m_dj),
+          m_meta(m_d1, m_d2, m_d3), m_in(m_meta, 0.), m_out(m_meta, 0.) {
         m_grid.value_list[0] = 0;
         m_grid.value_list[1] = m_d3 - 1;
     }
@@ -167,7 +161,6 @@ TEST_F(cache_stencil, ij_cache) {
 
     pstencil->finalize();
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
@@ -175,14 +168,6 @@ TEST_F(cache_stencil, ij_cache) {
 #endif
     array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, m_in, m_out, halos));
-#else
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6, halo_size);
-#else
-    verifier verif(1e-12, halo_size);
-#endif
-    ASSERT_TRUE(verif.verify(m_grid, m_in, m_out));
-#endif
 }
 
 TEST_F(cache_stencil, ij_cache_offset) {
@@ -221,7 +206,6 @@ TEST_F(cache_stencil, ij_cache_offset) {
 
     pstencil->finalize();
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
@@ -229,14 +213,6 @@ TEST_F(cache_stencil, ij_cache_offset) {
 #endif
     array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
-#else
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6, halo_size);
-#else
-    verifier verif(1e-12, halo_size);
-#endif
-    ASSERT_TRUE(verif.verify(m_grid, ref, m_out));
-#endif
 }
 
 TEST_F(cache_stencil, multi_cache) {
@@ -279,12 +255,7 @@ TEST_F(cache_stencil, multi_cache) {
 
     stencil->finalize();
 
-#ifdef CXX11_ENABLED
     verifier verif(1e-13);
     array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
-#else
-    verifier verif(1e-13, halo_size);
-    ASSERT_TRUE(verif.verify(m_grid, ref, m_out));
-#endif
 }
