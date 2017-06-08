@@ -33,39 +33,24 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/*
- * test_computation.cpp
- *
- *  Created on: Mar 9, 2015
- *      Author: carlosos
- */
+#pragma once
+#include <boost/mpl/vector/vector0.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/fold.hpp>
 
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
+namespace gridtools {
 
-#include <gridtools.hpp>
-#include <boost/mpl/equal.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-
-#include "gtest/gtest.h"
-
-#include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
-
-using namespace gridtools;
-
-namespace make_computation_test {
-
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
-    struct test_functor {
-        typedef accessor< 0 > in;
-        typedef boost::mpl::vector1< in > arg_list;
-
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    /**
+     * @struct sequence_to_vector
+     * convert a forward sequence (vector like) into a vector.
+     * This is used in order to force instantiation of mpl vector from lazy sequence like
+     * mpl::filter_view
+     */
+    template < typename Vec >
+    struct sequence_to_vector {
+        typedef typename boost::mpl::fold< Vec,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type type;
     };
-}
 
-TEST(MakeComputation, Basic) {}
+} // namespace gridtools

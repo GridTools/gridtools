@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2016, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,42 +34,41 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../common/defs.hpp"
+#include "../common/host_device.hpp"
+#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/generic_metafunctions/variadic_typedef.hpp"
+#include "../common/pair.hpp"
+#include "extent.hpp"
 
 namespace gridtools {
-    /**
-       @brief simple wrapper for a pair of types
-     */
-    template < typename T, typename U >
-    struct pair_type {
-        typedef T first;
-        typedef U second;
-    };
 
-    /**
-       @brief simple wrapper for a pair of integral types
-     */
-    template < typename Value, Value T, Value U >
-    struct ipair_type {
-        static constexpr Value first = T;
-        static constexpr Value second = U;
-    };
+#ifdef CXX11_ENABLED
 
-    /**
-       @brief simple pair with constexpr constructor
+    namespace impl {
+        template < int Idx, typename Pair >
+        struct get_component {
 
-       NOTE: can be replaced by std::pair
-     */
-    template < typename T1, typename T2 >
-    struct pair {
-        constexpr pair(T1 t1_, T2 t2_) : first(t1_), second(t2_) {}
-
-        T1 first;
-        T2 second;
-    };
-
-    template < typename T1, typename T2 >
-    constexpr pair< T1, T2 > make_pair(T1 t1_, T2 t2_) {
-        return pair< T1, T2 >(t1_, t2_);
+            static constexpr int value = (Idx % 2) ? (Pair::first > Pair::second ? Pair::first : Pair::second)
+                                                   : (Pair::first < Pair::second ? Pair::first : Pair::second);
+        };
     }
 
-} // namespace gridtools
+    /**
+     * Metafunction taking two extents and yielding a extent containing them
+     */
+    template < typename Extent1, typename Extent2 >
+    struct enclosing_extent_full;
+
+    template < int_t... Vals1, int_t... Vals2 >
+    struct enclosing_extent_full< extent< Vals1... >, extent< Vals2... > > {
+        GRIDTOOLS_STATIC_ASSERT((sizeof...(Vals1) == sizeof...(Vals2)), "Error: size of the two extents need to match");
+
+        using seq = gridtools::apply_gt_integer_sequence<
+            typename gridtools::make_gt_integer_sequence< int, sizeof...(Vals1) >::type >;
+
+        using type = typename seq::
+            template apply_t< int_t, extent, impl::get_component, ipair_type< int_t, Vals1, Vals2 >... >::type;
+    };
+#endif
+}
