@@ -40,7 +40,7 @@
 #include "horizontal_diffusion_repository.hpp"
 #include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
-#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/stencil-functions/stencil-functions.hpp>
 #include "./cache_flusher.hpp"
 #include "./defs.hpp"
 
@@ -260,7 +260,7 @@ namespace horizontal_diffusion_functions {
             grid_,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                define_caches(cache< IJ, local >(p_flx(), p_fly())),
+                define_caches(cache< IJ, cache_io_policy::local >(p_flx(), p_fly())),
                 // gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (gridtools::make_stage< flx_function >(p_flx(), p_in()),

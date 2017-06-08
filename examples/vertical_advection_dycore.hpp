@@ -56,6 +56,7 @@ using namespace enumtype;
 
 namespace vertical_advection_dycore {
     // This is the definition of the special regions in the "vertical" direction
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > kfull;
     typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
     typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kbody_low;
     typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
@@ -66,15 +67,15 @@ namespace vertical_advection_dycore {
     template < typename T >
     struct u_forward_function {
         typedef accessor< 0 > utens_stage;
-        typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0 > > wcon;
-        typedef accessor< 2 > u_stage;
+        typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0, 0, 1 > > wcon;
+        typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 0, -1, 1 > > u_stage;
         typedef accessor< 3 > u_pos;
         typedef accessor< 4 > utens;
         typedef accessor< 5 > dtr_stage;
         typedef accessor< 6, enumtype::inout > acol;
         typedef accessor< 7, enumtype::inout > bcol;
-        typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, 0, -1 > > ccol;
-        typedef accessor< 9, enumtype::inout > dcol;
+        typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > ccol;
+        typedef accessor< 9, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > dcol;
 
         typedef boost::mpl::vector< utens_stage, wcon, u_stage, u_pos, utens, dtr_stage, acol, bcol, ccol, dcol >
             arg_list;
@@ -162,7 +163,7 @@ namespace vertical_advection_dycore {
         typedef accessor< 2 > dtr_stage;
         typedef accessor< 3 > ccol;
         typedef accessor< 4 > dcol;
-        typedef accessor< 5, enumtype::inout > data_col;
+        typedef accessor< 5, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 > > data_col;
 
         typedef boost::mpl::vector< utens_stage, u_pos, dtr_stage, ccol, dcol, data_col > arg_list;
 
@@ -274,7 +275,9 @@ namespace vertical_advection_dycore {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< K, flush, kbody >(p_ccol())),
+                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
+                        cache< K, cache_io_policy::flush, kfull >(p_dcol()),
+                        cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
                     gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
@@ -286,10 +289,14 @@ namespace vertical_advection_dycore {
                         p_ccol(),
                         p_dcol()) // esf_descriptor
                     ),
-                gridtools::make_multistage(
-                    execute< backward >(),
-                    gridtools::make_stage< u_backward_function< double > >(
-                        p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
+                gridtools::make_multistage(execute< backward >(),
+                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
+                    gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
+                                               p_u_pos(),
+                                               p_dtr_stage(),
+                                               p_ccol(),
+                                               p_dcol(),
+                                               p_data_col())));
 
         vertical_advection->ready();
 
@@ -305,7 +312,7 @@ namespace vertical_advection_dycore {
 #if FLOAT_PRECISION == 4
             verifier verif(1e-6);
 #else
-            verifier verif(1e-12);
+            verifier verif(1e-11);
 #endif
             array< array< uint_t, 2 >, 3 > halos{
                 {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
@@ -314,7 +321,7 @@ namespace vertical_advection_dycore {
 #if FLOAT_PRECISION == 4
             verifier verif(1e-6, halo_size);
 #else
-            verifier verif(1e-12, halo_size);
+            verifier verif(1e-11, halo_size);
 #endif
             result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
 #endif

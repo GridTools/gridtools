@@ -36,7 +36,7 @@ set(exe_LIBS ${exe_LIBS} gcl)
 # ===============
 # add all cpp files in src:
 # ===============
-file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" )
+file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 list(REMOVE_ITEM sources "${CMAKE_CURRENT_SOURCE_DIR}/src/GCL.cpp")
 foreach( src_file ${sources} )
     get_filename_component (exec ${src_file} NAME_WE )
@@ -45,15 +45,11 @@ foreach( src_file ${sources} )
 endforeach(src_file)
 
 # ===============
-# tests
+# examples and tests
 # ===============
 include (fix_test_case_name)
-add_subdirectory(unit_tests)
-
-# ===============
-# add all cpp files in examples:
-# ===============
 add_subdirectory(examples)
+add_subdirectory(unit_tests)
 
 # Add all targets to the build-tree export set
 export(TARGETS gcl

@@ -35,7 +35,7 @@
 */
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <tools/verifier.hpp>
 #include "gtest/gtest.h"
 
@@ -232,10 +232,6 @@ namespace multi_types_test {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()) = eval(temp()) + eval(in());
-            // std::cout << (eval(temp())+eval(in())).x << ", "
-            //           << (eval(temp())+eval(in())).y << ", "
-            //           << (eval(temp())+eval(in())).z << ": "
-            //           << " " << (eval(out())).xy << std::endl;
         }
     };
 

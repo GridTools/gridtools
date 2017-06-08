@@ -344,7 +344,6 @@ namespace gridtools {
             grid_traits_t,
             placeholders_t,
             RepeatFunctor >::type extent_map_t;
-
         // Second we need to associate an extent to each esf, so that
         // we can associate loop bounds to the functors.
         typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
@@ -400,7 +399,7 @@ namespace gridtools {
         mss_local_domain_list_t m_mss_local_domain_list;
 
         DomainType m_domain;
-        const Grid &m_grid;
+        const Grid m_grid;
 
         bool is_storage_ready;
         performance_meter_t m_meter;
@@ -411,7 +410,7 @@ namespace gridtools {
         storage_wrapper_fusion_list_t m_storage_wrapper_list;
 
       public:
-        intermediate(DomainType &domain,
+        intermediate(DomainType const &domain,
             Grid const &grid,
             ConditionalsSet conditionals_,
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)

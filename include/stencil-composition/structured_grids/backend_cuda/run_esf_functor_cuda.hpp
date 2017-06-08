@@ -82,7 +82,7 @@ namespace gridtools {
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
         template < typename IntervalType, typename EsfArguments >
-        __device__ void do_impl() const {
+        GT_FUNCTION_DEVICE void do_impl() const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
 
             // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
