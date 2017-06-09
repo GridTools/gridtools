@@ -32,7 +32,7 @@ def substitute_note(key, value, format, meta):
             f.write(table);
             f.close();
             
-            command = 'pandoc defines.md ' + fname + ' --from markdown --to json'
+            command = 'pandoc ../pandoc_tools/defines.md ' + fname + ' --from markdown --to json'
 
             (v, out) = cm.getstatusoutput(command)
 
