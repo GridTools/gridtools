@@ -1,7 +1,7 @@
 # Documentation
 
 ```include
-Installation.md Quick_Start_Guide.md
+Installation.md
 ```
 
 ```include
