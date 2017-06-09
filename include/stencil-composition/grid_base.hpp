@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 #include "../common/halo_descriptor.hpp"
 #include "../common/array.hpp"
@@ -125,11 +126,7 @@ namespace gridtools {
          * The total length of the k dimension as defined by the axis.
          */
         GT_FUNCTION
-        uint_t k_total_length() const {
-            const uint_t begin_of_k = value_at< typename Axis::FromLevel >();
-            const uint_t end_of_k = value_at< typename Axis::ToLevel >() - 1;
-            return k_max() - k_min() + 1;
-        }
+        uint_t k_total_length() const { return k_max() - k_min() + 1; }
 
         GT_FUNCTION halo_descriptor const &direction_i() const { return m_direction_i; }
 
