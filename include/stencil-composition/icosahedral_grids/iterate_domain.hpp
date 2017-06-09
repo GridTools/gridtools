@@ -139,9 +139,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_holds_data_field {
-            typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
-                arg_holds_data_field_h< get_arg_from_accessor< Accessor, iterate_domain_arguments_t > >,
-                boost::mpl::identity< boost::mpl::false_ > >::type type;
+            typedef typename aux::accessor_holds_data_field< Accessor, iterate_domain_arguments_t >::type type;
         };
 
         /**

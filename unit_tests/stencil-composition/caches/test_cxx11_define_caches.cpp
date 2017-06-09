@@ -64,39 +64,46 @@ TEST(define_caches, test_sequence_caches) {
     typedef gridtools::arg< 1, storage_t > arg1_t;
     typedef gridtools::arg< 2, storage_t > arg2_t;
 
-    typedef decltype(gridtools::define_caches(
-        cache< IJ, fill >(arg0_t()), cache< IJK, flush >(arg1_t()), cache< K, local >(arg2_t()))) cache_sequence_t;
+    typedef decltype(gridtools::define_caches(cache< IJ, cache_io_policy::fill >(arg0_t()),
+        cache< IJK, cache_io_policy::flush >(arg1_t()),
+        cache< K, cache_io_policy::local >(arg2_t()))) cache_sequence_t;
 
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal< cache_sequence_t,
-            boost::mpl::vector3< detail::cache_impl< IJ, arg0_t, fill, boost::mpl::void_ >,
-                                detail::cache_impl< IJK, arg1_t, flush, boost::mpl::void_ >,
-                                detail::cache_impl< K, arg2_t, local, boost::mpl::void_ > > >::value),
+            boost::mpl::vector3< detail::cache_impl< IJ, arg0_t, cache_io_policy::fill, boost::mpl::void_ >,
+                                detail::cache_impl< IJK, arg1_t, cache_io_policy::flush, boost::mpl::void_ >,
+                                detail::cache_impl< K, arg2_t, cache_io_policy::local, boost::mpl::void_ > > >::value),
         "Failed TEST");
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > interval_;
 
-    typedef decltype(gridtools::cache< K, flush, interval_ >(arg0_t(), arg1_t())) caches_ret_sequence_4_t;
-    typedef decltype(gridtools::cache< IJ, fill >(arg0_t(), arg1_t(), arg2_t())) caches_ret_sequence_3_t;
-    typedef decltype(gridtools::cache< IJK, fill >(arg0_t(), arg1_t())) caches_ret_sequence_2_t;
-    typedef decltype(gridtools::cache< IJ, fill >(arg0_t())) caches_ret_sequence_1_t;
+    typedef decltype(
+        gridtools::cache< K, cache_io_policy::flush, interval_ >(arg0_t(), arg1_t())) caches_ret_sequence_4_t;
+    typedef decltype(
+        gridtools::cache< IJ, cache_io_policy::fill >(arg0_t(), arg1_t(), arg2_t())) caches_ret_sequence_3_t;
+    typedef decltype(gridtools::cache< IJK, cache_io_policy::fill >(arg0_t(), arg1_t())) caches_ret_sequence_2_t;
+    typedef decltype(gridtools::cache< IJ, cache_io_policy::fill >(arg0_t())) caches_ret_sequence_1_t;
 
-    static_assert((boost::mpl::equal< caches_ret_sequence_4_t,
-                      boost::mpl::vector2< detail::cache_impl< K, arg0_t, flush, interval_ >,
-                                          detail::cache_impl< K, arg1_t, flush, interval_ > > >::value),
+    static_assert(
+        (boost::mpl::equal< caches_ret_sequence_4_t,
+            boost::mpl::vector2< detail::cache_impl< K, arg0_t, cache_io_policy::flush, interval_ >,
+                                detail::cache_impl< K, arg1_t, cache_io_policy::flush, interval_ > > >::value),
         "Failed TEST");
 
-    static_assert((boost::mpl::equal< caches_ret_sequence_3_t,
-                      boost::mpl::vector3< detail::cache_impl< IJ, arg0_t, fill, boost::mpl::void_ >,
-                                          detail::cache_impl< IJ, arg1_t, fill, boost::mpl::void_ >,
-                                          detail::cache_impl< IJ, arg2_t, fill, boost::mpl::void_ > > >::value),
+    static_assert(
+        (boost::mpl::equal< caches_ret_sequence_3_t,
+            boost::mpl::vector3< detail::cache_impl< IJ, arg0_t, cache_io_policy::fill, boost::mpl::void_ >,
+                                detail::cache_impl< IJ, arg1_t, cache_io_policy::fill, boost::mpl::void_ >,
+                                detail::cache_impl< IJ, arg2_t, cache_io_policy::fill, boost::mpl::void_ > > >::value),
         "Failed TEST");
-    static_assert((boost::mpl::equal< caches_ret_sequence_2_t,
-                      boost::mpl::vector2< detail::cache_impl< IJK, arg0_t, fill, boost::mpl::void_ >,
-                                          detail::cache_impl< IJK, arg1_t, fill, boost::mpl::void_ > > >::value),
+    static_assert(
+        (boost::mpl::equal< caches_ret_sequence_2_t,
+            boost::mpl::vector2< detail::cache_impl< IJK, arg0_t, cache_io_policy::fill, boost::mpl::void_ >,
+                                detail::cache_impl< IJK, arg1_t, cache_io_policy::fill, boost::mpl::void_ > > >::value),
         "Failed TEST");
-    static_assert((boost::mpl::equal< caches_ret_sequence_1_t,
-                      boost::mpl::vector1< detail::cache_impl< IJ, arg0_t, fill, boost::mpl::void_ > > >::value),
+    static_assert(
+        (boost::mpl::equal< caches_ret_sequence_1_t,
+            boost::mpl::vector1< detail::cache_impl< IJ, arg0_t, cache_io_policy::fill, boost::mpl::void_ > > >::value),
         "Failed TEST");
 
     ASSERT_TRUE(true);

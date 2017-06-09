@@ -33,4 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cxx11_make_computation.cpp"
+#pragma once
+
+namespace gridtools {
+    namespace _impl {
+
+        /**\brief policy defining the behaviour on the vertical direction*/
+        template < typename From, typename To, typename ZDimIndex, enumtype::execution ExecutionType >
+        struct iteration_policy;
+    } // namespace _impl
+
+    template < typename T >
+    struct is_iteration_policy;
+} // namespace gridtools

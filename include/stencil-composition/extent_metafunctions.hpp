@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2016, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,39 +33,42 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
+#include "../common/defs.hpp"
+#include "../common/host_device.hpp"
+#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/generic_metafunctions/variadic_typedef.hpp"
+#include "../common/pair.hpp"
+#include "extent.hpp"
 
-#include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/stencil-functions/stencil-functions.hpp>
+namespace gridtools {
 
-using namespace gridtools;
-struct func {
-    using p1 = accessor< 0, enumtype::in >;
-    using p2 = accessor< 1, enumtype::inout >;
-    using arg_list = boost::mpl::vector2< p1, p2 >;
+#ifdef CXX11_ENABLED
 
-    template < typename Evaluation >
-    void Do(Evaluation &eval) {}
-};
+    namespace impl {
+        template < int Idx, typename Pair >
+        struct get_component {
 
-struct func_call {
-    using p1 = accessor< 0, enumtype::in >;
-    using p2 = accessor< 1, enumtype::inout >;
-    using arg_list = boost::mpl::vector2< p1, p2 >;
-
-    template < typename Evaluation >
-    void Do(Evaluation &eval) {
-        call< func >::with(eval);
+            static constexpr int value = (Idx % 2) ? (Pair::first > Pair::second ? Pair::first : Pair::second)
+                                                   : (Pair::first < Pair::second ? Pair::first : Pair::second);
+        };
     }
-};
 
-struct storage_stub {
-    using iterator = void;
-    using value_type = void;
-};
+    /**
+     * Metafunction taking two extents and yielding a extent containing them
+     */
+    template < typename Extent1, typename Extent2 >
+    struct enclosing_extent_full;
 
-TEST(default_interval, test) {
+    template < int_t... Vals1, int_t... Vals2 >
+    struct enclosing_extent_full< extent< Vals1... >, extent< Vals2... > > {
+        GRIDTOOLS_STATIC_ASSERT((sizeof...(Vals1) == sizeof...(Vals2)), "Error: size of the two extents need to match");
 
-    auto s1 = make_stage< func >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
-    auto s2 = make_stage< func_call >(arg< 0, storage_stub >(), arg< 1, storage_stub >());
+        using seq = gridtools::apply_gt_integer_sequence<
+            typename gridtools::make_gt_integer_sequence< int, sizeof...(Vals1) >::type >;
+
+        using type = typename seq::
+            template apply_t< int_t, extent, impl::get_component, ipair_type< int_t, Vals1, Vals2 >... >::type;
+    };
+#endif
 }
