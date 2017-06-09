@@ -86,7 +86,7 @@ typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad
 
   This code uses a deprecated way of dealing with input data that does not 'move' with the iteration space.
   The right way of doing it would be to use global_accessors and global_parameters (the proper implementation
-  can be found in the example folder). Here Phi and Psi are then 7 dimensional arrays, where the first three 
+  can be found in the example folder). Here Phi and Psi are then 7 dimensional arrays, where the first three
   dimensions are 'killed' (the corresponding layout map entries are set to -1). In this way, when the iteration
   point is moved the fields phi and psi offset if not updated and then the other 4 dimensions are accessed
   from within the stencil operator. The values accessed there are always the same regardless of the iteration
@@ -203,7 +203,7 @@ namespace assembly {
         typedef boost::mpl::vector< phi, psi, jac, f, result > arg_list;
         using quad = dimension< 7 >;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             dimension< 1 > i;
             dimension< 2 > j;
             dimension< 3 > k;
