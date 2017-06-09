@@ -47,17 +47,20 @@ namespace gridtools {
     template < typename T >
     struct is_accessor : boost::mpl::false_ {};
 
-    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
 
-    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_accessor< const T > : is_accessor< T > {};
 
-    template < ushort_t ID, enumtype::intend Intend >
+    template < uint_t ID, enumtype::intend Intend >
     struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
+
+    template < typename GlobalAcc, typename... Args >
+    struct is_accessor< global_accessor_with_arguments< GlobalAcc, Args... > > : boost::mpl::true_ {};
 
 #ifdef CUDA8
     template < typename ArgType >
@@ -136,6 +139,25 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), GT_INTERNAL_ERROR);
 
         typedef global_accessor< boost::mpl::at< ArgsMap, index_t >::type::value, Intend > type;
+    };
+
+    template < typename GlobalAcc, typename ArgsMap, typename... Args >
+    struct remap_accessor_type< global_accessor_with_arguments< GlobalAcc, Args... >, ArgsMap > {
+
+        typedef global_accessor_with_arguments< GlobalAcc, Args... > accessor_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), GT_INTERNAL_ERROR);
+        // check that the key type is an int (otherwise the later has_key would never find the key)
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::is_same<
+                typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
+                int >::value),
+            GT_INTERNAL_ERROR);
+
+        typedef typename boost::mpl::integral_c< int, GlobalAcc::index_t::value > index_type_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), GT_INTERNAL_ERROR);
+        typedef global_accessor_with_arguments<
+            global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, GlobalAcc::intent >,
+            Args... > type;
     };
 
 #ifdef CXX11_ENABLED

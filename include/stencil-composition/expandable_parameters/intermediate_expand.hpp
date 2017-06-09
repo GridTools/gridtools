@@ -39,7 +39,7 @@
 #include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/filter_if.hpp>
 
-#include "../storage/storage-facility.hpp"
+#include "../../storage/storage-facility.hpp"
 #include "../intermediate.hpp"
 
 #include "intermediate_expand_impl.hpp"

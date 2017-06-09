@@ -560,7 +560,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size< typename LocalDomain::data_ptr_fusion_map >::value > Accessor::index_t::value),
             GT_INTERNAL_ERROR);
-        typedef typename LocalDomain::template get_storage< Accessor::index_t >::type storage_t;
+        typedef typename LocalDomain::template get_storage< typename Accessor::index_t >::type storage_t;
         typedef storage_t type;
     };
 
@@ -638,5 +638,16 @@ namespace gridtools {
             typename boost::add_const< accessor_value_type >::type,
             typename boost::add_reference< accessor_value_type >::type RESTRICT >::type type;
     };
+    namespace aux {
+        /**
+         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
+         */
+        template < typename Accessor, typename IterateDomainArguments >
+        struct accessor_holds_data_field {
+            typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
+                arg_holds_data_field_h< get_arg_from_accessor< Accessor, IterateDomainArguments > >,
+                boost::mpl::identity< boost::mpl::false_ > >::type type;
+        };
 
+    } // namespace aux
 } // namespace gridtools

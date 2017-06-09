@@ -129,9 +129,9 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     grid.value_list[0] = 0;
     grid.value_list[1] = d3 - 1;
 
-    using caches_t = decltype(define_caches(cache< bypass, local >(p_read_only_bypass_arg()),
-        cache< IJ, local >(p_shared_mem_arg()),
-        cache< K, local >(p_kcache_arg())));
+    using caches_t = decltype(define_caches(cache< bypass, cache_io_policy::local >(p_read_only_bypass_arg()),
+        cache< IJ, cache_io_policy::local >(p_shared_mem_arg()),
+        cache< K, cache_io_policy::local >(p_kcache_arg())));
 
     auto computation_ =
         gridtools::make_computation< backend_t >(domain,
@@ -166,8 +166,8 @@ TEST(test_iterate_domain, accessor_metafunctions) {
             boost::mpl::vector1< extent< 0, 0, 0, 0 > >,
             extent< 1, -1, 1, -1 >,
             caches_t,
-            block_size< 32, 4, 0 >,
-            block_size< 32, 4, 0 >,
+            block_size< 32, 4, 1 >,
+            block_size< 32, 4, 1 >,
             gridtools::grid< axis >,
             boost::mpl::false_,
             notype > > it_domain_t;
