@@ -41,7 +41,7 @@ template < unsigned Id, typename Layout >
 using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
 typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
 typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map< 3, 2, 1, 0 > > metadata_local_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< -1, -1, -1, 3, 2, 1, 0 > > metadata_local_quad_t;
 #else
 #define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 template < unsigned Id, typename Layout >
@@ -86,7 +86,7 @@ typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad
 
   This code uses a deprecated way of dealing with input data that does not 'move' with the iteration space.
   The right way of doing it would be to use global_accessors and global_parameters (the proper implementation
-  can be found in the example folder). Here Phi and Psi are then 7 dimensional arrays, where the first three 
+  can be found in the example folder). Here Phi and Psi are then 7 dimensional arrays, where the first three
   dimensions are 'killed' (the corresponding layout map entries are set to -1). In this way, when the iteration
   point is moved the fields phi and psi offset if not updated and then the other 4 dimensions are accessed
   from within the stencil operator. The values accessed there are always the same regardless of the iteration
@@ -147,7 +147,7 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
                     for (short_t J = 0; J < 2; ++J)
                         for (short_t K = 0; K < 2; ++K) {
                             // check the initialization to 0
-                            assert(reference(i, j, k, I, J, K) == 0.);
+                            assert(referencev(i, j, k, I, J, K) == 0.);
                             for (short_t q = 0; q < 2; ++q) {
                                 referencev(i, j, k, I, J, K) +=
                                     (phiv(1, 1, 1, I, J, K, q) * psiv(1, 1, 1, 0, 0, 0, q) * jacv(i, j, k, q) *
@@ -203,7 +203,7 @@ namespace assembly {
         typedef boost::mpl::vector< phi, psi, jac, f, result > arg_list;
         using quad = dimension< 7 >;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             dimension< 1 > i;
             dimension< 2 > j;
             dimension< 3 > k;
