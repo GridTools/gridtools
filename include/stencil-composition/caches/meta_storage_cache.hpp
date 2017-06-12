@@ -49,6 +49,9 @@ namespace gridtools {
 
       public:
         GT_FUNCTION
+        constexpr meta_storage_cache() {}
+
+        GT_FUNCTION
         static constexpr uint_t size() { return meta_storage_t(Dims...).size(); }
 
         template < ushort_t Id >

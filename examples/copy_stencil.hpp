@@ -55,7 +55,7 @@ using namespace enumtype;
 namespace copy_stencil {
 
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
@@ -132,7 +132,9 @@ namespace copy_stencil {
             (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 
         copy->ready();
+
         copy->steady();
+
         copy->run();
 
         out.sync();
