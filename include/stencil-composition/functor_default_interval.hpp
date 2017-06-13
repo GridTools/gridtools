@@ -67,7 +67,7 @@ namespace gridtools {
 
         template < typename Eval >
         GT_FUNCTION static void Do(Eval &eval_, default_interval) {
-            Functor::Do(eval_);
+            Functor::template Do< Eval & >(eval_);
         }
     };
     template < typename T >

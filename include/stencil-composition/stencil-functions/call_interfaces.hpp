@@ -309,7 +309,7 @@ namespace gridtools {
             result_type result;
 
             auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
-            Functor::Do< decltype(agg_p) & >(agg_p, Region());
+            Functor::template Do< decltype(agg_p) & >(agg_p, Region());
 
             return result;
         }
@@ -339,7 +339,7 @@ namespace gridtools {
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
             auto agg_p = f_aggregator_t(eval, result);
-            Functor::Do< decltype(agg_p) & >(agg_p, Region());
+            Functor::template Do< decltype(agg_p) & >(agg_p, Region());
 
             return result;
         }
@@ -407,7 +407,7 @@ namespace gridtools {
             result_type result;
 
             auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
-            Functor::Do< decltype(agg_p) & >(agg_p);
+            Functor::template Do< decltype(agg_p) & >(agg_p);
 
             return result;
         }
@@ -438,7 +438,7 @@ namespace gridtools {
 
             auto agg_p = f_aggregator_t(eval, result);
 
-            Functor::Do< decltype(agg_p) & >(agg_p);
+            Functor::template Do< decltype(agg_p) & >(agg_p);
 
             return result;
         }
@@ -656,7 +656,7 @@ namespace gridtools {
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
             auto agg_p = f_aggregator_t(eval, y);
-            Functor::Do< decltype(agg_p) & >(agg_p, Region());
+            Functor::template Do< decltype(agg_p) & >(agg_p, Region());
         }
 
         /** With this interface a stencil function can be invoked and
@@ -680,7 +680,7 @@ namespace gridtools {
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
             auto agg_p = f_aggregator_t(eval, y);
-            Functor::Do< decltype(agg_p) & >(agg_p, Region());
+            Functor::template Do< decltype(agg_p) & >(agg_p, Region());
         }
     };
 
@@ -720,7 +720,7 @@ namespace gridtools {
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
             auto agg_p = f_aggregator_t(eval, y);
-            Functor::Do< decltype(agg_p) & >(agg_p);
+            Functor::template Do< decltype(agg_p) & >(agg_p);
         }
 
         /** With this interface a stencil function can be invoked and
@@ -744,7 +744,7 @@ namespace gridtools {
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
             auto agg_p = f_aggregator_t(eval, y);
-            Functor::Do< decltype(agg_p) & >(agg_p);
+            Functor::template Do< decltype(agg_p) & >(agg_p);
         }
     };
 
