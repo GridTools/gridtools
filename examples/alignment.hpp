@@ -120,7 +120,7 @@ namespace aligned_copy_stencil {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        meta_data_t meta_data_(d1, d2, d3);
+        meta_data_t meta_data_(d1 + 2 * halo_t::at< 0 >(), d2 + 2 * halo_t::at< 1 >(), d3 + 2 * halo_t::at< 2 >());
 
         // Definition of the actual data fields that are used for input/output
         storage_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
@@ -144,10 +144,8 @@ namespace aligned_copy_stencil {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {
-            halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + halo_t::at< 0 >()};
-        uint_t dj[5] = {
-            halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + halo_t::at< 1 >()};
+        uint_t di[5] = {halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + halo_t::at< 0 >()};
+        uint_t dj[5] = {halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + halo_t::at< 1 >()};
 
         gridtools::grid< axis > grid(di, dj);
 

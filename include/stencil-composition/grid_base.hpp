@@ -70,7 +70,7 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
+            : m_partitioner(static_cast< partitioner_t const & >(partitioner_dummy())), // HACK: suppress a warning
               m_direction_i(direction_i), m_direction_j(direction_j) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
@@ -87,7 +87,7 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/)
-            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
+            : m_partitioner(static_cast< partitioner_t const & >(partitioner_dummy())), // HACK: suppress a warning
               m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,

@@ -61,8 +61,8 @@ void invalid_copy_assign() {
 
 TEST(DataStoreTest, Simple) {
     constexpr storage_info_t si(3, 3, 3);
-    constexpr storage_info_halo_t si_halo(3, 3, 3);
-    constexpr storage_info_halo_aligned_t si_halo_al(3, 3, 3);
+    constexpr storage_info_halo_t si_halo(7, 5, 3);
+    constexpr storage_info_halo_aligned_t si_halo_al(7, 5, 3);
     // check sizes, strides, and alignment
     static_assert(si.template dim< 0 >() == 3, "dimension check failed.");
     static_assert(si.template dim< 1 >() == 3, "dimension check failed.");

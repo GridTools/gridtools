@@ -68,8 +68,8 @@ TEST(DataStoreTest, Simple) {
     using data_store_t = data_store< cuda_storage< double >, storage_info_t >;
     storage_info_t si(3, 3, 3);
     constexpr storage_info_interface< 0, layout_map< 2, 1, 0 > > csi(3, 3, 3);
-    constexpr storage_info_interface< 1, layout_map< 2, 1, 0 >, halo< 2, 1, 0 > > csih(3, 3, 3);
-    constexpr storage_info_interface< 2, layout_map< 2, 1, 0 >, halo< 2, 1, 0 >, alignment< 16 > > csiha(3, 3, 3);
+    constexpr storage_info_interface< 1, layout_map< 2, 1, 0 >, halo< 2, 1, 0 > > csih(7, 5, 3);
+    constexpr storage_info_interface< 2, layout_map< 2, 1, 0 >, halo< 2, 1, 0 >, alignment< 16 > > csiha(7, 5, 3);
     // check sizes, strides, and alignment
     static_assert(csi.dim< 0 >() == 3, "dimension check failed.");
     static_assert(csi.dim< 1 >() == 3, "dimension check failed.");

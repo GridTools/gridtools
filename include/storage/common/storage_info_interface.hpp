@@ -222,13 +222,13 @@ namespace gridtools {
         template < typename... Dims >
         GT_FUNCTION explicit constexpr storage_info_interface(Dims... dims_)
             : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
-                  extend_by_halo< Halos, LayoutArgs >::extend(dims_))...},
+                  handle_masked_dims< LayoutArgs >::extend(dims_))...},
               m_strides(get_strides< layout_t >::get_stride_array(
                   align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
-                      extend_by_halo< Halos, LayoutArgs >::extend(dims_))...)),
+                      handle_masked_dims< LayoutArgs >::extend(dims_))...)),
               m_alignment(
-                  array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(dims_)...},
-                  get_strides< layout_t >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
+                  array< unsigned, sizeof...(Dims) >{(unsigned)handle_masked_dims< LayoutArgs >::extend(dims_)...},
+                  get_strides< layout_t >::get_stride_array(handle_masked_dims< LayoutArgs >::extend(dims_)...)) {
             static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                               typename is_all_integral< Dims... >::type >::value,
                 "Dimensions have to be integral types.");

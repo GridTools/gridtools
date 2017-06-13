@@ -178,7 +178,7 @@ TEST(StorageInfo, ArrayAccess) {
 
 TEST(StorageInfo, Halo) {
     // test with simple halo, dims and strides are extended
-    storage_info_interface< 0, layout_map< 2, 1, 0 >, halo< 2, 2, 2 > > x(3, 3, 3);
+    storage_info_interface< 0, layout_map< 2, 1, 0 >, halo< 2, 2, 2 > > x(7, 7, 7);
     EXPECT_EQ((x.dim< 0 >()), 7);
     EXPECT_EQ((x.dim< 1 >()), 7);
     EXPECT_EQ((x.dim< 2 >()), 7);
@@ -188,7 +188,7 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((x.stride< 2 >()), 49);
 
     // test with simple halo, dims and strides are extended
-    storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 2, 2, 2 > > y(3, 3, 3);
+    storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 2, 2, 2 > > y(7, 7, 7);
     EXPECT_EQ((y.dim< 0 >()), 7);
     EXPECT_EQ((y.dim< 1 >()), 7);
     EXPECT_EQ((y.dim< 2 >()), 7);
@@ -198,7 +198,7 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((y.stride< 2 >()), 1);
 
     // test with heterogeneous halo, dims and strides are extended
-    storage_info_interface< 0, layout_map< 2, 1, 0 >, halo< 2, 4, 0 > > z(3, 3, 3);
+    storage_info_interface< 0, layout_map< 2, 1, 0 >, halo< 2, 4, 0 > > z(7, 11, 3);
     EXPECT_EQ((z.dim< 0 >()), 7);
     EXPECT_EQ((z.dim< 1 >()), 11);
     EXPECT_EQ((z.dim< 2 >()), 3);
@@ -211,7 +211,7 @@ TEST(StorageInfo, Halo) {
 TEST(StorageInfo, Alignment) {
     {
         // test with different dims and alignment
-        storage_info_interface< 0, layout_map< 1, 2, 3, 0 >, halo< 0, 0, 0, 0 >, alignment< 32 > > x(5, 7, 8, 2);
+        storage_info_interface< 0, layout_map< 1, 2, 3, 0 >, halo< 0, 0, 0, 0 >, alignment< 32 > > x(5, 7, 32, 2);
         EXPECT_EQ((x.dim< 0 >()), 5);
         EXPECT_EQ((x.dim< 1 >()), 7);
         EXPECT_EQ((x.dim< 2 >()), 32);
@@ -224,7 +224,7 @@ TEST(StorageInfo, Alignment) {
     }
     {
         // test with different dims, halo and alignment
-        storage_info_interface< 0, layout_map< 1, 2, 3, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(5, 7, 8, 2);
+        storage_info_interface< 0, layout_map< 1, 2, 3, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(7, 11, 32, 10);
         EXPECT_EQ((x.dim< 0 >()), 7);
         EXPECT_EQ((x.dim< 1 >()), 11);
         EXPECT_EQ((x.dim< 2 >()), 32);
@@ -242,7 +242,7 @@ TEST(StorageInfo, Alignment) {
     }
     {
         // test with different dims, halo and alignment
-        storage_info_interface< 0, layout_map< 3, 2, 1, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(5, 7, 8, 2);
+        storage_info_interface< 0, layout_map< 3, 2, 1, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(32, 11, 14, 10);
         EXPECT_EQ((x.dim< 0 >()), 32);
         EXPECT_EQ((x.dim< 1 >()), 11);
         EXPECT_EQ((x.dim< 2 >()), 14);
@@ -260,7 +260,7 @@ TEST(StorageInfo, Alignment) {
     }
     {
         // test with masked dimensions
-        storage_info_interface< 0, layout_map< 1, -1, -1, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(5, 7, 8, 2);
+        storage_info_interface< 0, layout_map< 1, -1, -1, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(7, 7, 8, 10);
         EXPECT_EQ((x.dim< 0 >()), 7);
         EXPECT_EQ((x.dim< 1 >()), 1);
         EXPECT_EQ((x.dim< 2 >()), 1);
