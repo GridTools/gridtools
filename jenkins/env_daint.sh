@@ -14,7 +14,7 @@ module load /users/vogtha/modules/CMake/3.7.2
 module load cudatoolkit
 module rm   PrgEnv-cray
 module load PrgEnv-gnu/6.0.3
-export BOOST_ROOT=/apps/daint/UES/jenkins/dom-acceptance/haswell/easybuild/software/Boost/1.61.0-CrayGNU-2016.11-Python-2.7.12/
+export BOOST_ROOT=/users/stefanm/boost_1_62_0/
 
 if [[ ${COMPILER} == "gcc" ]]; then
   if [[ ${VERSION} == "5.3" ]]; then
