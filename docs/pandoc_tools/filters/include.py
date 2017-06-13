@@ -32,7 +32,6 @@ from pandocfilters import toJSONFilter, CodeBlock, Table, Str, Header, Link, Spa
 import commands as cm
 import json
 
-
 def code_include(key, value, format, meta):
     if key == 'CodeBlock':
         [[ident, classes, namevals], code] = value
@@ -57,7 +56,7 @@ def code_include(key, value, format, meta):
                     raise ValueError("Only one file at a time can be included")
 
 
-                (v, out) = cm.getstatusoutput('pandoc ../pandoc_tools/defines.md ' + code + ' --from markdown --to json ')
+                (v, out) = cm.getstatusoutput('pandoc ../pandoc_tools/defines.md ' + code + ' --from markdown --to json | python ../pandoc_tools/filters/include.py | python ../pandoc_tools/filters/note.py ')
                 if v != 0:
                     raise ValueError("Something went wrong: maybe included file " + code + " GTwas not found")
 
