@@ -33,13 +33,11 @@ import commands as cm
 import json
 
 
-
 def code_include(key, value, format, meta):
     if key == 'CodeBlock':
         [[ident, classes, namevals], code] = value
 
         if classes != [] and classes[0] == "include" :
-
             tags = [l[0] for l in namevals if l[0]]
             if "lang" in tags:
                 # switch to including into a codeblock
