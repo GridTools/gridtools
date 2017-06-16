@@ -126,6 +126,8 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     uint_t dj[5] = {4, 4, 4, d2 - 4 - 1, d2};
 
     gridtools::grid< axis > grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = d3 - 1;
 
     using caches_t = decltype(define_caches(cache< bypass, cache_io_policy::local >(p_read_only_bypass_arg()),
         cache< IJ, cache_io_policy::local >(p_shared_mem_arg()),
