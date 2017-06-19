@@ -215,7 +215,7 @@ TEST(DataStoreTest, InvalidSize) {
 TEST(DataStoreTest, DimAndSizeInterface) {
     storage_info_t si(128, 128, 80);
     data_store< host_storage< double >, storage_info_t > ds(si, 3.1415);
-    ASSERT_TRUE((ds.size() == si.size()));
+    ASSERT_TRUE((ds.padded_total_length() == si.padded_total_length()));
     ASSERT_TRUE((ds.dim< 0 >() == si.dim< 0 >()));
     ASSERT_TRUE((ds.dim< 1 >() == si.dim< 1 >()));
     ASSERT_TRUE((ds.dim< 2 >() == si.dim< 2 >()));

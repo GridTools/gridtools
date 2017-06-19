@@ -98,7 +98,9 @@ TEST(StorageInfo, Simple) {
 
     // storage info has to be constexpr capable
     constexpr storage_info_interface< 0, layout_map< 1, 0, 2 > > si(3, 3, 3);
-    static_assert(si.size() == 27, "storage info is not constexpr anymore");
+    static_assert(si.padded_total_length() == 27, "storage info is not constexpr anymore");
+    static_assert(si.total_length() == 27, "storage info is not constexpr anymore");
+    static_assert(si.length() == 27, "storage info is not constexpr anymore");
     static_assert(si.stride< 0 >() == 3, "storage info is not constexpr anymore");
     static_assert(si.stride< 1 >() == 9, "storage info is not constexpr anymore");
     static_assert(si.stride< 2 >() == 1, "storage info is not constexpr anymore");
@@ -276,6 +278,40 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ(x.index(0, 0, 1, 0), 31);
         EXPECT_EQ(x.index(0, 0, 0, 1), 31 + 7);
 
-        EXPECT_EQ(x.size(), 7 * 10 + 31);
+        EXPECT_EQ(x.padded_total_length(), 7 * 10 + 31);
+        EXPECT_EQ(x.total_length(), 7 * 10);
+        EXPECT_EQ(x.length(), 5 * 2);
     }
+}
+
+TEST(StorageInfo, BeginEnd) {
+    // no halo, no alignment
+    storage_info_interface< 0, layout_map< 1, 2, 0 > > x(7, 7, 7);
+    EXPECT_EQ(x.length(), 7 * 7 * 7);
+    EXPECT_EQ(x.total_length(), 7 * 7 * 7);
+    EXPECT_EQ(x.padded_total_length(), 7 * 7 * 7);
+    EXPECT_EQ(x.begin(), 0);
+    EXPECT_EQ(x.end(), 7 * 7 * 7 - 1);
+    EXPECT_EQ(x.total_begin(), 0);
+    EXPECT_EQ(x.total_end(), 7 * 7 * 7 - 1);
+
+    // halo, no alignment
+    storage_info_interface< 0, layout_map< 1, 2, 0 >, halo< 1, 2, 3 > > y(9, 11, 13);
+    EXPECT_EQ(y.length(), 7 * 7 * 7);
+    EXPECT_EQ(y.total_length(), 9 * 11 * 13);
+    EXPECT_EQ(y.padded_total_length(), 9 * 11 * 13);
+    EXPECT_EQ(y.begin(), y.index(1, 2, 3));
+    EXPECT_EQ(y.end(), y.index(7, 8, 9));
+    EXPECT_EQ(y.total_begin(), y.index(0, 0, 0));
+    EXPECT_EQ(y.total_end(), y.index(8, 10, 12));
+
+    // halo, alignment
+    storage_info_interface< 0, layout_map< 1, 2, 0 >, halo< 1, 2, 3 >, alignment< 16 > > z(9, 11, 13);
+    EXPECT_EQ(z.length(), 7 * 7 * 7);
+    EXPECT_EQ(z.total_length(), 9 * 11 * 13);
+    EXPECT_EQ(z.padded_total_length(), 9 * 16 * 13 + z.get_initial_offset());
+    EXPECT_EQ(z.begin(), z.index(1, 2, 3));
+    EXPECT_EQ(z.end(), z.index(7, 8, 9));
+    EXPECT_EQ(z.total_begin(), z.index(0, 0, 0));
+    EXPECT_EQ(z.total_end(), z.index(8, 10, 12));
 }
