@@ -531,7 +531,7 @@ namespace shallow_water {
         for (; final_step::current_time < total_time; ++final_step::current_time) {
 #ifdef _GCL_MPI_
 
-            std::vector< double * > vec(2);
+            std::vector< float_type * > vec(2);
 
 #ifndef __CUDACC__
             vec[0] = sol.get< 0, 0 >().get_storage_ptr()->get_cpu_ptr();
