@@ -1,7 +1,7 @@
 Quick Start Guide {#sec:getting_started}
 =================
 
-This chapter describes how to use $\GT$ to solve a (simple) PDE.
+This chapter describes how to use $\GT$ to solve a (simple) PDE.
 We will use the fourth-order horizontal smoothing filter example from
 with small modifications to explain the necessary steps to assemble a
 stencil from scratch. We will not go into details in this chapter but
@@ -26,7 +26,7 @@ In the following we will walk through the following steps:
 
 -   The $\GT$ coordinate system and its notation.
 
--   Storages: how does $\GT$ manage the input and output fields.
+-   Storages: how does $\GT$ manage the input and output fields.
 
 -   The first stencil: calculating $L$, the second order Laplacian of
 $\phi$.
@@ -51,7 +51,7 @@ coordinates restricted on the grid. The *computation domain* is defined
 by all grid points in our domain of interest
 $$\Lambda = (i,j,k) \quad \text{with}\quad i \in \{ 0\dots N_i-1\}, j \in \{0\dots N_j-1\}, k\in\{0 \dots N_k-1\}$$
 
-$\GT$ supports any number of dimension, however it will treat
+$\GT$ supports any number of dimension, however it will treat
 one dimension, here the $k$, dimension differently: the $ij$-plane is
 executed in parallel while the computation in $k$ can be sequential. The
 consequence is that there must not be a dependency in $ij$ within a
@@ -60,7 +60,7 @@ it is sufficient to just remember that the $ij$-plane and the $k$
 dimension are treated differently by $\GT$.
 
 The calculation domain is surrounded by a *boundary region* as depicted
-in [Fig. \[fig:getting\_started:coordinates\]]{}. Computation happens
+in [Fig. \[fig:getting\_started:coordinates\]]{}. Computation happens
 only within the calculation domain but values might be read from grid
 points in the boundary region.
 
@@ -73,12 +73,12 @@ In this section we will setup the fields for our example: we need a
 storage for the $\phi$-field (`phi_in`) and a storage for the output
 (`phi_out`).
 
-Storages in $\GT$ are n-dimensional array-like objects with the
+Storages in $\GT$ are n-dimensional array-like objects with the
 following capabilities:
 
 -   access an element with $(i,j,k)$ syntax
 
--   copying between CPU memory and a device (e.g. a CUDA capable GPU)
+-   copying between CPU memory and a device (e.g. a CUDA capable GPU)
 
 Backend
 -------
@@ -93,7 +93,7 @@ using backend_t = backend< Cuda, structured, Block >;
 
 for the CUDA backed or for the CPU backend. The
 second argument defines the type of the grid, where ``phi_in`` refers to a
-Cartesian grid, see [Chapter [sec:grids]] for details. The last
+Cartesian grid, see [Chapter [sec:grids]] for details. The last
 argument defines that blocking should be used in CPU mode (instead of
 ``phi_out`` without blocking). For the CUDA mode [``]{} is the only option.
 
@@ -143,15 +143,14 @@ the field and an initial value.
 
 ---------------
 
----------------------------------------------------   --------------------------------------------------------
-![Tip](figures/hint.gif){ width=20px height=20px }                                                        
-                                                      For each `meta_storage` type you should use only one  
-                                                      instantiation. The mapping between a storage and the  
-                                                      run-time information in the `meta_storage` has to be  
-                                                      done at compile time via the index. Thus $\GT$ cannot 
-                                                      distinguish the storages by the run-time sizes passed  
-                                                      to the `meta_storage`.                                
----------------------------------------------------   --------------------------------------------------------
+```note
+For each `meta_storage` type you should use only one  
+instantiation. The mapping between a storage and the  
+run-time information in the `meta_storage` has to be  
+done at compile time via the index. Thus $\GT$ cannot 
+distinguish the storages by the run-time sizes passed  
+to the `meta_storage`.                                
+```
 
 ---------------
 
@@ -183,14 +182,16 @@ Example: Naive 2D Laplacian
 
 The simplest discretization of the 2D Laplacian is the finite difference
 five-point stencil as depicted in
-[Fig. \[fig:getting\_started:laplacian2D\]]{}. For the calculation of
+[Fig. \[fig:getting\_started:laplacian2D\]]{}. For the calculation of
 the Laplacian at a given grid point we need the value at the grid point
 itself and its four direct neighbors along the Cartesian axis.
 
 ![Access pattern of a 2D Laplacian](figures/Laplacian2D.png){width="0.49\columnwidth"}
 
 A naive C++ implementation of the 2D Laplacian stencil is provided in
-[Listing \[code:getting\_started:cxx\_laplacian\]]{}.
+```{.include lang=cpp}
+../../examples/laplacian.cpp
+```
 
 Apart from the initialization (orange) the stencil implementation
 consists of 2 main components:
@@ -205,20 +206,20 @@ Special care has to be taken at the boundary of the domain. Since the
 Laplacian needs the neighboring points we cannot calculate the Laplacian
 on the boundary layer and have to exclude them from the loop.
 
-First $\GT$ stencil
+First $\GT$ stencil
 ---------------------------
 
-In $\GT$ the loop logic and the storage order is implemented
+In $\GT$ the loop logic and the storage order is implemented
 (and optimized) by the library while the update function is implemented
 by the user. The loop logic (for a given architecture) is combined with
 the user-defined update function at compile-time by template
 meta-programming (see
-[Sec. \[sec:introduction:template\_meta\_programming\]]{}).
+[Sec. \[sec:introduction:template\_meta\_programming\]]{}).
 
-### Update-logic: $\GT$ 2D Laplacian
+### Update-logic: $\GT$ 2D Laplacian
 
 The update-logic is implemented with state-less functors. A
-$\GT$ functor is a [``]{} or [``]{} providing a *static* method
+$\GT$ functor is a [``]{} or [``]{} providing a *static* method
 called [``]{}. The update-logic is implemented in these [``]{}-methods.
 As the functors are state-less (no member variables, static methods
 only) they can be passed by type, i.e. at compile-time, and therefore
@@ -235,17 +236,17 @@ to the current point. The format for the extent is
 extent<i_minus, i_plus, j_minus, j_plus, k_minus, k_plus>
 
 where [``]{} and [``]{} define an interval on the $i$-axis relative to
-the current position; [``]{} is the negative offset, i.e. zero or a
+the current position; [``]{} is the negative offset, i.e. zero or a
 negative number, while [``]{} is the positive offset. Analogously for
 $j$ and $k$. In the Laplacian example,
-[Listing \[code:getting\_started\_gtlaplacian\]]{}, the first two number
+[Listing \[code:getting\_started\_gtlaplacian\]]{}, the first two number
 in the extent of the [``]{} accessor define that we want to access the
 field at $i-1,i,i+1$. The accessor type and the extent is needed for a
 dependency analysis in the compile-time optimizations for more complex
 stencils.
 
 The first template argument is an index defining the order of the
-parameters, i.e. the order in which the fields are passed to the
+parameters, i.e. the order in which the fields are passed to the
 functor. The [``]{} has to defined and stores all accessors in an
 [``]{}.
 
@@ -260,7 +261,7 @@ later.
 
 The body of the [``]{}-method looks quite similar to the one in the
 naive implementation
-[Listing \[code:getting\_started:cxx\_laplacian\]]{}, except that each
+[Listing \[code:getting\_started:cxx\_laplacian\]]{}, except that each
 field access has to be wrapped by a call to the context object [``]{}.
 This is necessary to map the compile-time parameter, the accessor, to
 the field, a run-time object.
@@ -268,7 +269,7 @@ the field, a run-time object.
 ### Calling the stencil
 
 In the naive implementation,
-[Listing \[code:getting\_started:cxx\_laplacian\]]{}, the call to the
+[Listing \[code:getting\_started:cxx\_laplacian\]]{}, the call to the
 [``]{} is as simple as
 
 int boundary_size = 1;
@@ -277,20 +278,20 @@ laplacian( lap, phi, boundary_size );
 since it contains already all the information: the update-logic *and*
 the loop-logic.
 
-The $\GT$ stencil,
-[Listing \[code:getting\_started\_gtlaplacian\]]{}, does not contain the
+The $\GT$ stencil,
+[Listing \[code:getting\_started\_gtlaplacian\]]{}, does not contain the
 information about the loop-logic. We have to specify it in an abstract
 platform-independent syntax, a *domain specific embedded language*
 (DSEL), such that the backend can decide on the specific implementation.
 
 For our example it looks as in
-[Listing \[code:getting\_started:gtlaplacian:make\_computation\]]{}.
+[Listing \[code:getting\_started:gtlaplacian:make\_computation\]]{}.
 
 In line \[gt\_laplacian\_setup:arg\_phi\] and
 \[gt\_laplacian\_setup:arg\_lap\] we define placeholders for the fields.
 In the lines
 \[gt\_laplacian\_setup:domain:start\]-\[gt\_laplacian\_setup:domain:end\]
-the fields, i.e. the storages, are attached to these placeholders in the
+the fields, i.e. the storages, are attached to these placeholders in the
 [``]{}.
 
 In lines \[gt\_laplacian\_setup:grid:start\] to
@@ -332,28 +333,28 @@ In a more realistic application the [``]{} will be called multiple
 times. If one wants to inspect the fields between runs (and before the
 [``]{}) one has to manually copy the data back from device.
 
-### Full $\GT$ Laplacian
+### Full $\GT$ Laplacian
 
 Assembling stencils: smoothing filter
 ------------------
 
-In the preceding section we saw how a first simple $\GT$ stencil
+In the preceding section we saw how a first simple $\GT$ stencil
 is defined and executed. In this section we will use this stencil to
 compute the example PDE . A naive implementation could look as in
-[Listing \[code:getting\_started:naive\_smoothing\]]{}.
+[Listing \[code:getting\_started:naive\_smoothing\]]{}.
 
-For the $\GT$ implementation we will learn three things in this
+For the $\GT$ implementation we will learn three things in this
 section: how to define special regions in the $k$-direction; how to use
-$\GT$ temporaries and how to call functors from functors.
+$\GT$ temporaries and how to call functors from functors.
 
 Do-method overload
 ------------------
 
-Our first $\GT$ implementation will be very close to the naive
+Our first $\GT$ implementation will be very close to the naive
 implementation: we will call two times the Laplacian functor from the
 previous section and store the result in two extra fields. Then we will
 call a third functor to compute the final result. This functor, see
-[Listing \[code:getting\_started:gt\_smoothing\_version1\]]{} shows how
+[Listing \[code:getting\_started:gt\_smoothing\_version1\]]{} shows how
 we can specialize the computation in the $k$-direction. We define two
 intervals, the [``]{} and the [``]{}, and provide an overload of the
 [``]{}-method for each interval.
@@ -373,13 +374,13 @@ Finally, the call to [``]{} looks as follows[^3]
 
 In this version we needed to explicitly allocate the temporary fields
 [``]{} and [``]{}. In the next section we will learn about
-$\GT$ temporaries.
+$\GT$ temporaries.
 
-$\GT$ temporaries
+$\GT$ temporaries
 -------------------------
 
-*$\GT$ temporary storages* are storages with the lifetime of the
-[``]{}, i.e. they can be used by different stages assembled in one
+*$\GT$ temporary storages* are storages with the lifetime of the
+[``]{}, i.e. they can be used by different stages assembled in one
 [``]{} call. This is exactly what we need for the [``]{} and [``]{}
 fields.
 
@@ -395,9 +396,9 @@ instantiations any more and we can leave out pointers to storages when
 we build the domain. The new code looks as follows The temporary
 storages are allocated in the [``]{} call and freed in [``]{}. Besides
 the simplifications in the code (no explicit storage needed), the
-concept of temporaries allows $\GT$ to apply optimization. Since
+concept of temporaries allows $\GT$ to apply optimization. Since
 the temporaries, by definition, are only visible inside a computation,
-$\GT$ is free to remove them if it does not break the semantics
+$\GT$ is free to remove them if it does not break the semantics
 of the algorithm.
 
 Functor calls
@@ -504,7 +505,6 @@ struct smoothing_function_3 {
 };
 /***/
 int main() {
-    std::unordered_map<int, std::string> x{};
 
     uint_t Ni = 10;
     uint_t Nj = 12;
