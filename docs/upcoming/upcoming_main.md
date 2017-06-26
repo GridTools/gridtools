@@ -9,3 +9,7 @@ user_specified_extents.md
 ```include
 comm_and_bc.md
 ```
+
+```include
+new_indexing.md
+```
