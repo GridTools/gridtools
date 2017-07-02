@@ -316,7 +316,7 @@ namespace ico_operators {
                 grid_,
                 gridtools::make_multistage(
                     execute< forward >(),
-                    define_caches(cache< IJ, local >(p_div_on_cells())), // p_curl_on_vertices())),
+                    define_caches(cache< IJ, cache_io_policy::local >(p_div_on_cells())), // p_curl_on_vertices())),
                     make_stage< div_functor_flow_convention_connectivity,
                         icosahedral_topology_t,
                         icosahedral_topology_t::cells >(
