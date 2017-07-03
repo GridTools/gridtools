@@ -174,6 +174,7 @@ namespace gridtools {
             it_domain.set_index(0);
 
             // initialize the indices
+            print("blockid %i %i, threadid %i %i: %i %i\n", blockIdx.x, blockIdx.y, threadIdx.x, threadIdx.y, i + starti, j + startj);
             it_domain.template initialize< 0 >(i + starti, blockIdx.x);
             it_domain.template initialize< 1 >(j + startj, blockIdx.y);
 

@@ -192,7 +192,7 @@ namespace gridtools {
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
             // return the field offset
             return StorageInfo::get_initial_offset() +
-                   sinfo->template stride< grid_traits_t::dim_i_t::value >() * i * blocksize;
+                   sinfo->template stride< grid_traits_t::dim_i_t::value >() * i * blocksize + halo_i;
         }
 
         /**
@@ -207,8 +207,11 @@ namespace gridtools {
             typename GridTraits,
             typename StorageInfo >
         static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
+            typedef GridTraits grid_traits_t;            
+            // halo in I direction
+            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
             // return the field offset
-            return StorageInfo::get_initial_offset();
+            return StorageInfo::get_initial_offset() + halo_i;
         }
 
         /**
