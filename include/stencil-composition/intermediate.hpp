@@ -312,8 +312,7 @@ namespace gridtools {
 
         template < typename Bool, typename MssElem >
         struct accumulate_or {
-            typedef typename boost::mpl::or_< Bool,
-                typename boost::mpl::not_< typename is_esf_with_extent< MssElem >::type >::type >::type type;
+            typedef typename boost::mpl::or_< Bool, typename is_esf_with_extent< MssElem >::type >::type type;
         };
 
         template < typename Acc, typename MssDescriptor >
@@ -326,7 +325,7 @@ namespace gridtools {
         };
 
         template < typename Acc, typename MssDescriptor >
-        struct mss_has_a_stage_without_extent {
+        struct mss_has_a_stage_with_extent {
             using type = typename boost::mpl::or_< Acc,
                 typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
                                                        boost::mpl::bool_< false >,
@@ -335,15 +334,16 @@ namespace gridtools {
 
         typedef typename boost::mpl::fold< MssDescriptorSequence,
             boost::mpl::bool_< true >,
-            mss_has_stages_with_extent< boost::mpl::_1, boost::mpl::_2 > >::type opposite_type;
+            mss_has_stages_with_extent< boost::mpl::_1, boost::mpl::_2 > >::type has_all_extents;
 
         typedef typename boost::mpl::fold< MssDescriptorSequence,
             boost::mpl::bool_< false >,
-            mss_has_a_stage_without_extent< boost::mpl::_1, boost::mpl::_2 > >::type type;
+            mss_has_a_stage_with_extent< boost::mpl::_1, boost::mpl::_2 > >::type has_extent;
 
-        GRIDTOOLS_STATIC_ASSERT((type::value != opposite_type::value),
+        GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
             "The computation appear to have stages with and without extents being specified at the same time. A "
             "computation shoule have all stages with extents or none.");
+        using type = typename boost::mpl::not_< has_extent >::type;
     };
 
     template < bool do_compute_extents,
