@@ -226,7 +226,7 @@ namespace horizontal_diffusion {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
+                    define_caches(cache< IJ, cache_io_policy::local >(p_lap(), p_flx(), p_fly())),
                     gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
                     gridtools::make_independent(                            // independent_esf
                         gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),

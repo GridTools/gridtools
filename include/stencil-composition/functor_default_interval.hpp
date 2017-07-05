@@ -60,7 +60,7 @@ namespace gridtools {
         // for this reason whe have to devise a special case for when the "from" offset in the vertical Axis is -1
         // (in that case the interval representing the whole axis must start from 1 instead of 0, so we have to add
         // -1+2=1)
-        typedef gridtools::interval< level< from_splitter, (from_offset != -1) ? from_offset + 1 : from_offset + 2 >,
+        typedef gridtools::interval< level< from_splitter, from_offset >,
             level< to_splitter, (to_offset != 1) ? to_offset - 1 : to_offset - 2 > > default_interval;
 
         typedef typename Functor::arg_list arg_list;

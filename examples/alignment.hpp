@@ -70,8 +70,7 @@ using namespace enumtype;
 namespace aligned_copy_stencil {
 
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
     typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
@@ -104,7 +103,7 @@ namespace aligned_copy_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
 
 #ifdef __CUDACC__
 #ifndef NDEBUG

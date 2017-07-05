@@ -183,7 +183,7 @@ namespace shorizontal_diffusion {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< IJ, local >(p_lap())),
+                    define_caches(cache< IJ, cache_io_policy::local >(p_lap())),
                     gridtools::make_stage< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
                     gridtools::make_stage< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 

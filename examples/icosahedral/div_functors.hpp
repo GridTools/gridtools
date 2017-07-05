@@ -189,7 +189,7 @@ namespace ico_operators {
 
         template < typename Evaluation >
 #ifdef __CUDACC__
-        __device__
+        GT_FUNCTION_DEVICE
 #else
         GT_FUNCTION
 #endif
@@ -248,7 +248,7 @@ namespace ico_operators {
 
         template < typename Evaluation >
 #ifdef __CUDACC__
-        __device__
+        GT_FUNCTION_DEVICE
 #else
         GT_FUNCTION
 #endif
