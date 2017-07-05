@@ -286,8 +286,7 @@ namespace horizontal_diffusion_functions {
 #endif
 
 #ifdef CXX11_ENABLED
-            array< array< uint_t, 2 >, 3 > halos{
-                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
 #else
             result = verif.verify(repository.out_ref(), repository.out());
