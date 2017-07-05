@@ -344,4 +344,11 @@ namespace gridtools {
             populate< boost::mpl::_1, boost::mpl::_2 > >::type type;
     }; // struct unwrap_independent
 
+    template < typename Esf >
+    struct esf_extent;
+
+    template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
+    struct esf_extent< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > {
+        using type = Extent;
+    };
 } // namespace gridtools

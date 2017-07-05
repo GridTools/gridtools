@@ -335,6 +335,20 @@ namespace gridtools {
         };
 
         /**
+         * @brief specialization for structured grid ESF with extent
+         */
+        template < template < typename, typename, typename, typename > class EsfDescriptor,
+            typename ESF,
+            typename Extent,
+            typename ArgArray,
+            typename Staggering >
+        struct apply< EsfDescriptor< ESF, Extent, ArgArray, Staggering > > {
+            static_assert(is_esf_descriptor< EsfDescriptor< ESF, Extent, ArgArray, Staggering > >::value,
+                "Given type is no esf_descriptor.");
+            typedef EsfDescriptor< ESF, Extent, typename impl< ArgArray >::type, Staggering > type;
+        };
+
+        /**
          * @brief specialization for icosahedral grid ESF types
          */
         template < template < template < uint_t > class, typename, typename, typename, typename > class EsfDescriptor,

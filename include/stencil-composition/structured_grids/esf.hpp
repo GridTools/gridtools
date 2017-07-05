@@ -149,7 +149,9 @@ namespace gridtools {
     struct is_esf_descriptor< esf_descriptor< ESF, ArgArray, Staggering > > : boost::mpl::true_ {};
 
     template < typename ESF, typename Extent, typename ArgArray, typename Staggering = staggered< 0, 0, 0, 0, 0, 0 > >
-    struct esf_descriptor_with_extent : public esf_descriptor_with_extent< ESF, ArgArray, Staggering > {};
+    struct esf_descriptor_with_extent : public esf_descriptor< ESF, ArgArray, Staggering > {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "stage descriptor is expecting a extent type");
+    };
 
     template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
     struct is_esf_descriptor< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > : boost::mpl::true_ {};
@@ -160,9 +162,4 @@ namespace gridtools {
     template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
     struct is_esf_with_extent< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > : boost::mpl::true_ {};
 
-    template < typename ESF >
-    struct is_esf_without_extent : boost::mpl::false_ {};
-
-    template < typename ESF, typename ArgArray, typename Staggering >
-    struct is_esf_without_extent< esf_descriptor< ESF, ArgArray, Staggering > > : boost::mpl::true_ {};
 } // namespace gridtools

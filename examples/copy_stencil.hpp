@@ -126,10 +126,12 @@ namespace copy_stencil {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto copy = gridtools::make_computation< gridtools::BACKEND >(
+            domain,
             grid,
             gridtools::make_multistage // mss_descriptor
-            (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
+            (execute< forward >(),
+                gridtools::make_stage_with_extent< copy_functor, extent< 0, 0, 0, 0 > >(p_in(), p_out())));
 
         copy->ready();
         copy->steady();
