@@ -52,7 +52,7 @@ namespace gridtools {
         constexpr meta_storage_cache() {}
 
         GT_FUNCTION
-        static constexpr uint_t size() { return meta_storage_t(Dims...).padded_total_length(); }
+        static constexpr uint_t padded_total_length() { return meta_storage_t(Dims...).padded_total_length(); }
 
         template < ushort_t Id >
         GT_FUNCTION static constexpr int_t stride() {
