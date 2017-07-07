@@ -82,8 +82,7 @@ namespace gridtools {
             const uint_t i_size = grid.direction_i().total_length();
             const uint_t j_size = grid.direction_j().total_length();
             const uint_t k_size = (grid.k_max() + 1);
-            return storage_info_t(
-                i_size + 2 * halo_i, StorageWrapper::arg_t::location_t::n_colors::value, j_size + 2 * halo_j, k_size);
+            return storage_info_t(i_size, StorageWrapper::arg_t::location_t::n_colors::value, j_size, k_size);
         }
 
         // get a temporary storage for Host Block

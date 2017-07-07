@@ -96,7 +96,7 @@ namespace gridtools {
             const uint_t i_size = grid.direction_i().total_length();
             const uint_t j_size = grid.direction_j().total_length();
             const uint_t k_size = (grid.k_max() + 1);
-            return storage_info_t(i_size + 2 * halo_i, j_size + 2 * halo_j, k_size);
+            return storage_info_t(i_size, j_size, k_size);
         }
 
         // get a temporary storage for Host Block
@@ -116,7 +116,7 @@ namespace gridtools {
 
             // create and return the storage info instance
             return storage_info_t((StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads_i,
-                (StorageWrapper::tileJ_t::s_tile)*threads_j + 2 * halo_i,
+                (StorageWrapper::tileJ_t::s_tile)*threads_j + 2 * halo_j,
                 k_size);
         }
 
