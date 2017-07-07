@@ -14,7 +14,7 @@ module load /users/vogtha/modules/CMake/3.7.2
 module load cudatoolkit
 module rm   PrgEnv-cray
 module load PrgEnv-gnu/6.0.3
-export BOOST_ROOT=/users/stefanm/boost_1_62_0/
+module load Boost/1.63.0-CrayGNU-2016.11-Python-3.5.2
 
 if [[ ${COMPILER} == "gcc" ]]; then
   if [[ ${VERSION} == "5.3" ]]; then
@@ -52,4 +52,4 @@ export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
 export USE_MPI_COMPILER=OFF
 export MAKE_THREADS=24
-export SRUN_BUILD_COMMAND="srun -C gpu --account c01 --time=00:15:00"
+export SRUN_BUILD_COMMAND="srun -C gpu --account c14 --time=00:20:00"
