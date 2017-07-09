@@ -99,8 +99,7 @@ namespace gridtools {
                     typename boost::mpl::at< typename esf_t::args_with_extents, cache_arg_t >::type,
                     typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type extent_t;
 
-                GRIDTOOLS_STATIC_ASSERT(((extent_t::kminus::value == 0 && extent_t::kplus::value == 0) || 
-                    !boost::mpl::contains< typename esf_t::args_t, typename cache_parameter< Cache >::type>::type::value),
+                GRIDTOOLS_STATIC_ASSERT((extent_t::kminus::value == 0 && extent_t::kplus::value == 0),
                     "Error: IJ Caches can not have k extent values");
 
                 typedef typename boost::mpl::if_<
