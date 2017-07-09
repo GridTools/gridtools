@@ -40,9 +40,9 @@
 */
 
 #pragma once
+#include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_metafunctions.hpp"
 #include "stencil-composition/accessor.hpp"
-#include "../iterate_domain_fwd.hpp"
 
 namespace gridtools {
 
@@ -113,17 +113,9 @@ namespace gridtools {
 
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template < typename Accessor >
-            GT_FUNCTION
-#ifdef CXX11_ENABLED
-                auto
-                operator()(Accessor const &arg)
-                    -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
-#else  // CXX11_ENABLED
-                typename iterate_domain_t::template accessor_return_type<
-                    typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type
-                operator()(Accessor const &arg)
-#endif // CXX11_ENABLED
-            {
+            GT_FUNCTION typename iterate_domain_t::template accessor_return_type<
+                typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type
+            operator()(Accessor const &arg) {
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
                 const remap_accessor_t tmp_(arg);
                 return m_iterate_domain(tmp_);
