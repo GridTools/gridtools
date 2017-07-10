@@ -90,7 +90,7 @@ namespace gridtools {
 
         GT_FUNCTION constexpr global_accessor() {}
 
-        // copy ctor from another accessor_base with different index
+        // copy ctor from another global_accessor with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr global_accessor(const global_accessor< OtherIndex, Intend > &other) {}
 
