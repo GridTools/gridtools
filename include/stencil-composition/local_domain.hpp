@@ -97,22 +97,20 @@ namespace gridtools {
     template < typename T >
     struct local_domain_base;
 
-    template < typename SWL, typename E, typename ExtentMap, bool I >
+    template < typename SWL, typename E, bool I >
     class local_domain;
 
-    template < typename StorageWrapperList, typename EsfArgs, typename ExtentMap, bool IsStateful >
-    struct local_domain_base< local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > >
-        : public clonable_to_gpu< local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > > {
+    template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
+    struct local_domain_base< local_domain< StorageWrapperList, EsfArgs, IsStateful > >
+        : public clonable_to_gpu< local_domain< StorageWrapperList, EsfArgs, IsStateful > > {
 
-        typedef local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > derived_t;
+        typedef local_domain< StorageWrapperList, EsfArgs, IsStateful > derived_t;
 
         typedef local_domain_base< derived_t > this_type;
 
         typedef EsfArgs esf_args;
 
         typedef StorageWrapperList storage_wrapper_list_t;
-
-        typedef ExtentMap extents_map_t;
 
         typedef typename max_i_extent_from_storage_wrapper_list< storage_wrapper_list_t >::type max_i_extent_t;
 
@@ -230,16 +228,15 @@ namespace gridtools {
                        for the current ESF
      * @tparam IsStateful The flag stating if the local_domain is aware of the position in the iteration domain
      */
-    template < typename StorageWrapperList, typename EsfArgs, typename ExtentMap, bool IsStateful >
-    struct local_domain
-        : public local_domain_base< local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > > {
+    template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
+    struct local_domain : public local_domain_base< local_domain< StorageWrapperList, EsfArgs, IsStateful > > {
 
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< StorageWrapperList, is_storage_wrapper >::value),
             "Local domain contains wrong type for parameter StorageWrapperList");
         GRIDTOOLS_STATIC_ASSERT(
             (is_sequence_of< EsfArgs, is_arg >::value), "Local domain contains wrong type for parameter EsfArgs");
 
-        typedef local_domain_base< local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > > base_type;
+        typedef local_domain_base< local_domain< StorageWrapperList, EsfArgs, IsStateful > > base_type;
 
         GT_FUNCTION
         local_domain() {}
@@ -255,30 +252,29 @@ namespace gridtools {
         uint_t k() const { return 1e9; }
     };
 
-    template < typename StorageWrapperList, typename EsfArgs, typename ExtentMap, bool IsStateful >
-    std::ostream &operator<<(
-        std::ostream &s, local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > const &) {
+    template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
+    std::ostream &operator<<(std::ostream &s, local_domain< StorageWrapperList, EsfArgs, IsStateful > const &) {
         return s << "local_domain<stuff>";
     }
 
     template < typename T >
     struct is_local_domain : boost::mpl::false_ {};
 
-    template < typename StorageWrapperList, typename EsfArgs, typename ExtentMap, bool IsStateful >
-    struct is_local_domain< local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > > : boost::mpl::true_ {};
+    template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
+    struct is_local_domain< local_domain< StorageWrapperList, EsfArgs, IsStateful > > : boost::mpl::true_ {};
 
     template < typename T >
     struct local_domain_is_stateful;
 
-    template < typename StorageWrapperList, typename EsfArgs, typename ExtentMap, bool IsStateful >
-    struct local_domain_is_stateful< local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > >
+    template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
+    struct local_domain_is_stateful< local_domain< StorageWrapperList, EsfArgs, IsStateful > >
         : boost::mpl::bool_< IsStateful > {};
 
     template < typename T >
     struct local_domain_esf_args;
 
-    template < typename StorageWrapperList, typename EsfArgs, typename ExtentMap, bool IsStateful >
-    struct local_domain_esf_args< local_domain< StorageWrapperList, EsfArgs, ExtentMap, IsStateful > > {
+    template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
+    struct local_domain_esf_args< local_domain< StorageWrapperList, EsfArgs, IsStateful > > {
         typedef EsfArgs type;
     };
 

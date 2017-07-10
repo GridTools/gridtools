@@ -178,12 +178,7 @@ namespace gridtools {
            regions for each block. This method calculates the offset for temporaries and takes the private halo and
            alignment information into account.
         */
-        template < typename LocalDomain,
-            typename PEBlockSize,
-            typename Arg,
-            typename CurrentExtent,
-            typename GridTraits,
-            typename StorageInfo >
+        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(
             StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
@@ -215,18 +210,10 @@ namespace gridtools {
            storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
            the offset of this pointer. This function computes the field offset for non temporary storages.
         */
-        template < typename LocalDomain,
-            typename PEBlockSize,
-            typename Arg,
-            typename CurrentExtent,
-            typename GridTraits,
-            typename StorageInfo >
+        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
             StorageInfo const *sinfo) {
-            // halo in I direction
-            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
-            // return field offset (Initial storage offset in order to be aligned)
-            return StorageInfo::get_initial_offset() + halo_i;
+            return StorageInfo::get_initial_offset();
         }
 
         /**

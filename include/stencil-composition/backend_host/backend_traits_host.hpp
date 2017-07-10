@@ -176,12 +176,7 @@ namespace gridtools {
            regions for each thread. This method calculates the offset for temporaries and takes the private halo and
            alignment information into account.
         */
-        template < typename LocalDomain,
-            typename PEBlockSize,
-            typename Arg,
-            typename CurrentExtent,
-            typename GridTraits,
-            typename StorageInfo >
+        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
             // get the thread ID
@@ -191,8 +186,8 @@ namespace gridtools {
             // compute the blocksize
             constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
             // return the field offset
-            return StorageInfo::get_initial_offset() +
-                   sinfo->template stride< grid_traits_t::dim_i_t::value >() * i * blocksize + halo_i;
+            const int stride_i = sinfo->template stride< grid_traits_t::dim_i_t::value >();
+            return StorageInfo::get_initial_offset() + stride_i * (i * blocksize + halo_i);
         }
 
         /**
@@ -200,18 +195,9 @@ namespace gridtools {
            storage in the shared memory. In addition to this each OpenMP thread stores an integer that indicates
            the offset of this pointer. This function computes the field offset for non temporary storages.
         */
-        template < typename LocalDomain,
-            typename PEBlockSize,
-            typename Arg,
-            typename CurrentExtent,
-            typename GridTraits,
-            typename StorageInfo >
+        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
-            typedef GridTraits grid_traits_t;            
-            // halo in I direction
-            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
-            // return the field offset
-            return StorageInfo::get_initial_offset() + halo_i;
+            return StorageInfo::get_initial_offset();
         }
 
         /**

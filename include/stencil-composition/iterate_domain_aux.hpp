@@ -389,22 +389,24 @@ namespace gridtools {
 
             constexpr int_t i_pos = GridTraits::dim_i_t::value;
             constexpr int_t j_pos = GridTraits::dim_j_t::value;
+            constexpr int_t additional_offset =
+                (Coordinate == i_pos && tmp_info_t::value) ? StorageInfo::halo_t::template at< i_pos >() : 0;
             GRIDTOOLS_STATIC_ASSERT(
                 (index_t::value < ArrayIndex::n_dimensions), "Accessing an index out of bound in fusion tuple");
             const int_t initial_pos =
-                (tmp_info_t::value)
-                    ? ((m_initial_pos)-m_block * ((Coordinate == j_pos)
-                                                         ? PEBlockSize::j_size_t::value
-                                                         : ((Coordinate == i_pos) ? PEBlockSize::i_size_t::value : 0)))
-                    : m_initial_pos;
+                ((tmp_info_t::value)
+                        ? ((m_initial_pos)-m_block *
+                              ((Coordinate == j_pos) ? PEBlockSize::j_size_t::value
+                                                     : ((Coordinate == i_pos) ? PEBlockSize::i_size_t::value : 0)))
+                        : m_initial_pos);
             constexpr int pos = StorageInfo::layout_t::template at< Coordinate >();
             if (Coordinate < StorageInfo::layout_t::masked_length && pos >= 0) {
-                auto stride =
+                int_t stride =
                     (max_t::value < 0) ? 0 : ((pos == max_t::value) ? 1 :
                                                                     // uint_t cast to avoid a warning (maybe this is
                                                      // compile time evaluated even if pos < 0)
                                                      m_strides.template get< index_t::value >()[(uint_t)pos]);
-                m_index_array[index_t::value] += (stride * initial_pos);
+                m_index_array[index_t::value] += (stride * (initial_pos - additional_offset));
             }
         }
     };
@@ -425,7 +427,6 @@ namespace gridtools {
         typename DataPtrCached,
         typename LocalDomain,
         typename PEBlockSize,
-        typename ExtentMap,
         typename GridTraits >
     struct assign_storage_ptrs {
 
@@ -450,13 +451,9 @@ namespace gridtools {
 
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const typename storage_wrapper_t::storage_info_t * >::type::pos si_index_t;
-            typedef typename boost::mpl::at< ExtentMap, arg_t >::type max_extent_t;
-
-            const int offset = BackendTraits::template fields_offset< LocalDomain,
-                PEBlockSize,
-                typename storage_wrapper_t::arg_t,
-                max_extent_t,
-                GridTraits >(boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
+            const int_t offset = BackendTraits::
+                template fields_offset< LocalDomain, PEBlockSize, typename storage_wrapper_t::arg_t, GridTraits >(
+                    boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
             for (unsigned i = 0; i < storage_wrapper_t::num_of_storages; ++i) {
                 BackendTraits::template once_per_block< pos_in_storage_wrapper_list_t::value, PEBlockSize >::assign(
                     m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i], sw.second[i] + offset);

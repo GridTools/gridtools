@@ -230,7 +230,6 @@ namespace gridtools {
                                         data_ptr_cached_t,
                                         local_domain_t,
                                         processing_elements_block_size_t,
-                                        typename local_domain_t::extents_map_t,
                                         grid_traits_t >(data_pointer(), m_local_domain.m_local_storage_info_ptrs));
         }
 
