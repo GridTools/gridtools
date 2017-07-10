@@ -540,11 +540,6 @@ namespace gridtools {
             typename MssDescriptorArray::elements,
             grid_traits_t,
             placeholders_t,
-            RepeatFunctor >::type extent_map_t;
-        // Second we need to associate an extent to each esf, so that
-        // we can associate loop bounds to the functors.
-        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
-            extent_map_t,
             RepeatFunctor >::type extent_sizes_t;
 
         typedef typename init_map_of_extents< placeholders_t >::type extent_map_t;
