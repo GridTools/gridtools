@@ -226,7 +226,7 @@ namespace horizontal_diffusion {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
+                    define_caches(cache< IJ, cache_io_policy::local >(p_lap(), p_flx(), p_fly())),
                     gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
                     gridtools::make_independent(                            // independent_esf
                         gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
@@ -248,8 +248,7 @@ namespace horizontal_diffusion {
 #else
             verifier verif(1e-12);
 #endif
-            array< array< uint_t, 2 >, 3 > halos{
-                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
 #else
 #if FLOAT_PRECISION == 4

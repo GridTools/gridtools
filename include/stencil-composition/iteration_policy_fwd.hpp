@@ -36,40 +36,13 @@
 #pragma once
 
 namespace gridtools {
-    /**
-       @brief simple wrapper for a pair of types
-     */
-    template < typename T, typename U >
-    struct pair_type {
-        typedef T first;
-        typedef U second;
-    };
+    namespace _impl {
 
-    /**
-       @brief simple wrapper for a pair of integral types
-     */
-    template < typename Value, Value T, Value U >
-    struct ipair_type {
-        static constexpr Value first = T;
-        static constexpr Value second = U;
-    };
+        /**\brief policy defining the behaviour on the vertical direction*/
+        template < typename From, typename To, typename ZDimIndex, enumtype::execution ExecutionType >
+        struct iteration_policy;
+    } // namespace _impl
 
-    /**
-       @brief simple pair with constexpr constructor
-
-       NOTE: can be replaced by std::pair
-     */
-    template < typename T1, typename T2 >
-    struct pair {
-        constexpr pair(T1 t1_, T2 t2_) : first(t1_), second(t2_) {}
-
-        T1 first;
-        T2 second;
-    };
-
-    template < typename T1, typename T2 >
-    constexpr pair< T1, T2 > make_pair(T1 t1_, T2 t2_) {
-        return pair< T1, T2 >(t1_, t2_);
-    }
-
+    template < typename T >
+    struct is_iteration_policy;
 } // namespace gridtools
