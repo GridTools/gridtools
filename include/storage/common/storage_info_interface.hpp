@@ -111,8 +111,6 @@ namespace gridtools {
 
       private:
         typedef storage_info_interface< Id, layout_map< LayoutArgs... >, halo< Halos... >, Align > this_t;
-        array< unsigned, layout_t::masked_length > m_dims;
-        array< unsigned, layout_t::masked_length > m_strides;
         alignment_impl< alignment_t, layout_t, halo_t > m_alignment;
 
         /*
@@ -249,6 +247,8 @@ namespace gridtools {
 
       public:
         const static int id = Id;
+        array< unsigned, layout_t::masked_length > m_dims;
+        array< unsigned, layout_t::masked_length > m_strides;
 
         /*
          * @brief storage info constructor. Additionally to initializing the members the halo
