@@ -372,12 +372,6 @@ namespace gridtools {
                 ReductionData >::run_and_serialize(mss_local_domain_list, grid, reduction_data, stencil_ser);
         }
 
-        template < typename ArgList, typename MetaList, typename Grid >
-        static void prepare_temporaries(ArgList &arg_list_, MetaList &meta_list_, Grid const &grid) {
-            _impl::template prepare_temporaries_functor< ArgList, MetaList, Grid, backend_ids_t >::prepare_temporaries(
-                (arg_list_), meta_list_, (grid));
-        }
-
         /** Initial interface
 
             Threads are oganized in a 2D grid. These two functions

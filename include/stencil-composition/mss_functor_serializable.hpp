@@ -39,29 +39,36 @@
 #include "mss_functor.hpp"
 #include "../common/stencil_serializer.hpp"
 #include "../common/type_name.hpp"
-
-#ifdef CXX11_ENABLED
+#include <boost/fusion/include/find.hpp>
 
 namespace gridtools {
 
     namespace _impl {
 
-        template < class SerializerType, class SavepointType >
+        template < class SerializerType, class SavepointType, class StorageInfoList >
         struct serialize_storages {
             SerializerType &m_serializer;
             SavepointType &m_savepoint;
             int_t *m_tmp_id;
+            StorageInfoList &m_storage_info_ptr_list;
 
-            template < typename T >
-            void operator()(T const &storage_ptr) const {
-                using storage_t = const typename T::value_type;
-                const storage_t &storage = *storage_ptr;
+            template < typename Arg, typename Ptr >
+            void operator()(boost::fusion::pair< Arg, Ptr > const &storage_ptr) const {
+                using data_store_t = const typename Arg::storage_t;
+                using storage_info_t = const typename data_store_t::storage_info_t;
+                using storage_t = typename data_store_t::storage_t;
 
-                if (is_temporary_storage< T >::value) {
+                auto storage_ptrs = storage_ptr.second;
+                auto storage_info_ptr = *boost::fusion::find< storage_info_t * >(m_storage_info_ptr_list);
+                storage_t storage(0, storage_ptrs[0]);
+                data_store_t data_store(*storage_info_ptr, storage_ptrs[0]);
+
+                if (Arg::is_temporary) {
                     std::string tmp_name("tmp_" + std::to_string((*m_tmp_id)++));
-                    m_serializer.write(tmp_name, m_savepoint, storage, *storage.meta_data_ptr());
+                    m_serializer.write(tmp_name, m_savepoint, data_store);
                 } else
-                    m_serializer.write(storage.get_name(), m_savepoint, storage, *storage.meta_data_ptr());
+                    m_serializer.write(std::to_string(Arg::index_t::value), m_savepoint, data_store); // TODO fix name
+                //                m_serializer.write(storage.name(), m_savepoint, storage, storage_info_ptr);
             }
         };
 
@@ -129,8 +136,11 @@ namespace gridtools {
 
             // Serialize all input storages
             int_t tmp_id = 0;
-            boost::fusion::for_each(local_domain.m_local_args,
-                _impl::serialize_storages< SerializerType, savepoint_t >{serializer, savepoint_in, &tmp_id});
+            boost::fusion::for_each(local_domain.m_local_data_ptrs,
+                _impl::serialize_storages< SerializerType,
+                                        savepoint_t,
+                                        typename local_domain_t::storage_info_ptr_fusion_list >{
+                    serializer, savepoint_in, &tmp_id, local_domain.m_local_storage_info_ptrs});
 
             // Run the functor
             //
@@ -144,11 +154,12 @@ namespace gridtools {
             savepoint_out.add_meta_info("invocation_count", invocation_count);
 
             tmp_id = 0;
-            boost::fusion::for_each(local_domain.m_local_args,
-                _impl::serialize_storages< SerializerType, savepoint_t >{serializer, savepoint_out, &tmp_id});
+            boost::fusion::for_each(local_domain.m_local_data_ptrs,
+                _impl::serialize_storages< SerializerType,
+                                        savepoint_t,
+                                        typename local_domain_t::storage_info_ptr_fusion_list >{
+                    serializer, savepoint_out, &tmp_id, local_domain.m_local_storage_info_ptrs});
         }
     };
 
 } // namespace gridtools
-
-#endif

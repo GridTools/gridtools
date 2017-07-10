@@ -704,23 +704,6 @@ namespace gridtools {
             m_domain.reassign_arg_storage_pairs_impl(pairs...);
         }
 
-        /**
-           @brief Method to reassign the storage pointers in the domain_type
-
-           @param args the arguments are pairs with the form (placeholder() = storage)
-           see @ref gridtools::test_domain_reassign for reference
-         */
-        template < typename... Args, typename... Storage >
-        void reassign(arg_storage_pair< Args, Storage >... args) {
-
-            GRIDTOOLS_STATIC_ASSERT(
-                accumulate(logical_and(), is_storage< Storage >::value...), "wrong storage type in a call to reassign");
-            GRIDTOOLS_STATIC_ASSERT(
-                accumulate(logical_and(), is_arg< Args >::value...), "wrong storage type in a call to reassign");
-            m_domain.reassign(args...);
-            copy_domain_storage_pointers();
-        }
-
         template < class SerializerType >
         reduction_type_t run(SerializerType &serializer, std::string stencil_name = "stencil") {
             stencil_serializer< SerializerType > stencil_ser(stencil_name, serializer);

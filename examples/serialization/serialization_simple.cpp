@@ -56,7 +56,7 @@ struct copy_functor {
     typedef boost::mpl::vector< in, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
         eval(out()) = eval(in());
     }
 };
@@ -66,11 +66,16 @@ TEST_F(serialization_setup, simple) {
     uint_t d1 = 3, d2 = 4, d3 = 5;
 
     // Storages
-    storage_t &in = make_storage("in", d1, d2, d3);
-    storage_t &out = make_storage("out", d1, d2, d3);
+    //    storage_t &in = make_storage("in", d1, d2, d3);
+    //    storage_t &out = make_storage("out", d1, d2, d3);
+    storage_t &in = make_storage("0", d1, d2, d3);
+    storage_t &out = make_storage("1", d1, d2, d3);
 
-    for_each("in", [&in](int i, int j, int k) { in(i, j, k) = i + j + k; });
-    for_each("out", [&out](int i, int j, int k) { out(i, j, k) = -1; });
+    auto in_view = make_host_view(in);
+    auto out_view = make_host_view(out);
+
+    for_each("0", [&in_view](int i, int j, int k) { in_view(i, j, k) = i + j + k; });
+    for_each("1", [&out_view](int i, int j, int k) { out_view(i, j, k) = -1; });
 
     // Domain
     typedef arg< 0, storage_t > p_in;
@@ -123,16 +128,21 @@ TEST_F(serialization_setup, simple) {
         storage_t &copy_output_in = make_storage("copy_output_in", d1, d2, d3);
         storage_t &copy_output_out = make_storage("copy_output_out", d1, d2, d3);
 
-        ref_serializer.read("in", ref_serializer.savepoints()[0], copy_input_in);
-        ref_serializer.read("out", ref_serializer.savepoints()[0], copy_input_out);
-        ref_serializer.read("in", ref_serializer.savepoints()[1], copy_output_in);
-        ref_serializer.read("out", ref_serializer.savepoints()[1], copy_output_out);
+        ref_serializer.read("0", ref_serializer.savepoints()[0], copy_input_in);
+        ref_serializer.read("1", ref_serializer.savepoints()[0], copy_input_out);
+        ref_serializer.read("0", ref_serializer.savepoints()[1], copy_output_in);
+        ref_serializer.read("1", ref_serializer.savepoints()[1], copy_output_out);
+        //        ref_serializer.read("in", ref_serializer.savepoints()[0], copy_input_in);
+        //        ref_serializer.read("out", ref_serializer.savepoints()[0], copy_input_out);
+        //        ref_serializer.read("in", ref_serializer.savepoints()[1], copy_output_in);
+        //        ref_serializer.read("out", ref_serializer.savepoints()[1], copy_output_out);
 
         // Verify serialized data
         // ======================
         storage_t &copy_input_out_ref = make_storage("copy_input_out_ref", d1, d2, d3);
-        for_each(
-            "copy_input_out_ref", [&copy_input_out_ref](int i, int j, int k) { copy_input_out_ref(i, j, k) = -1; });
+        auto copy_input_out_ref_view = make_host_view(copy_input_out_ref);
+        for_each("copy_input_out_ref",
+            [&copy_input_out_ref_view](int i, int j, int k) { copy_input_out_ref_view(i, j, k) = -1; });
 
         ASSERT_TRUE(verify_storages(copy_input_in, in, grid));
         ASSERT_TRUE(verify_storages(copy_input_out, copy_input_out_ref, grid));
