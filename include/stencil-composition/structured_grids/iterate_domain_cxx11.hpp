@@ -594,12 +594,6 @@ namespace gridtools {
             m_index[storage_info_index_t::value] +
             compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
-        // the following assert fails when an out of bound access is observed, i.e. either one of
-        // i+offset_i or j+offset_j or k+offset_k is too large.
-        // Most probably this is due to you specifying a positive offset which is larger than expected,
-        // or maybe you did a mistake when specifying the ranges in the placehoders definition
-        GTASSERT(storage_info->size() > pointer_offset);
-
         if (DirectGMemAccess) {
             return get_gmem_value< return_t >(real_storage_pointer, pointer_offset);
         } else {

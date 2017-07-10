@@ -42,6 +42,7 @@ namespace gridtools {
     struct grid : public clonable_to_gpu< grid< Axis, Partitioner > >, public grid_base< Axis, Partitioner > {
         using this_type = grid< Axis, Partitioner >;
         using base_type = grid_base< Axis, Partitioner >;
+        static constexpr enumtype::grid_type c_grid_type = enumtype::structured;
 
         GT_FUNCTION
         explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
