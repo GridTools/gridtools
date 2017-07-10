@@ -133,7 +133,7 @@ namespace gridtools {
         typedef typename _impl::compute_meta_storage< layout_t, plus_t, minus_t, tiles_t, StorageWrapper >::type meta_t;
 
         GT_FUNCTION
-        static constexpr uint_t size() { return meta_t::size(); }
+        static constexpr uint_t padded_total_length() { return meta_t::padded_total_length(); }
 
         template < uint_t Color, typename Accessor >
         GT_FUNCTION value_type &RESTRICT at(array< int, 2 > const &thread_pos, Accessor const &accessor_) {
@@ -149,10 +149,10 @@ namespace gridtools {
             const uint_t extra_ = (thread_pos[0] - iminus_t::value) * meta_t::template stride< 0 >() +
                                   (thread_pos[1] - jminus_t::value) * meta_t::template stride< 1 + (extra_dims) >() +
                                   (extra_dims)*Color * meta_t::template stride< 1 >() +
-                                  size() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                                  padded_total_length() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                                   _impl::get_cache_offset< meta_t >(accessor_);
             _impl::check_bounds_cache_offset< meta_t >(accessor_);
-            assert((extra_) < (size() * StorageWrapper::num_of_storages));
+            assert((extra_) < (padded_total_length() * StorageWrapper::num_of_storages));
             return m_values[extra_];
         }
 
@@ -182,10 +182,10 @@ namespace gridtools {
             check_kcache_access(accessor_);
 
             const int_t index_ =
-                (int_t)size() * (int_t)get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                (int_t)padded_total_length() * (int_t)get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                 _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
             assert(index_ >= 0);
-            assert(index_ < (size() * StorageWrapper::num_of_storages));
+            assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));
 
             return m_values[index_];
         }
@@ -200,11 +200,11 @@ namespace gridtools {
             check_kcache_access(accessor_);
 
             const int_t index_ =
-                (int_t)size() * (int_t)get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                (int_t)padded_total_length() * (int_t)get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
                 _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
 
             assert(index_ >= 0);
-            assert(index_ < (size() * StorageWrapper::num_of_storages));
+            assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));
 
             return m_values[index_];
         }
@@ -230,7 +230,7 @@ namespace gridtools {
         }
 
       private:
-        value_type m_values[size() * StorageWrapper::num_of_storages];
+        value_type m_values[padded_total_length() * StorageWrapper::num_of_storages];
     };
 
 } // namespace gridtools

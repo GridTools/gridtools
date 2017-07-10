@@ -120,7 +120,7 @@ namespace aligned_copy_stencil {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        meta_data_t meta_data_(d1, d2, d3);
+        meta_data_t meta_data_(d1 + 2 * halo_t::at< 0 >(), d2 + 2 * halo_t::at< 1 >(), d3 + 2 * halo_t::at< 2 >());
 
         // Definition of the actual data fields that are used for input/output
         storage_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");

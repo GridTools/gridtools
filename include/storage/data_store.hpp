@@ -164,8 +164,8 @@ namespace gridtools {
          * @param info storage info instance
          */
         constexpr data_store(StorageInfo const &info, std::string const &name = "")
-            : m_shared_storage(new storage_t(info.size())), m_shared_storage_info(new storage_info_t(info)),
-              m_name(name) {}
+            : m_shared_storage(new storage_t(info.padded_total_length())),
+              m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
@@ -174,7 +174,7 @@ namespace gridtools {
          * @param initializer initialization value
          */
         constexpr data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
-            : m_shared_storage(new storage_t(info.size(), initializer)),
+            : m_shared_storage(new storage_t(info.padded_total_length(), initializer)),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
@@ -187,8 +187,8 @@ namespace gridtools {
         data_store(StorageInfo const &info,
             typename appropriate_function_t< data_t, StorageInfo >::type const &initializer,
             std::string const &name = "")
-            : m_shared_storage(new storage_t(info.size())), m_shared_storage_info(new storage_info_t(info)),
-              m_name(name) {
+            : m_shared_storage(new storage_t(info.padded_total_length())),
+              m_shared_storage_info(new storage_info_t(info)), m_name(name) {
             // initialize the storage with the given lambda
             lambda_initializer(initializer, info, m_shared_storage->get_cpu_ptr());
             // synchronize contents
@@ -210,7 +210,7 @@ namespace gridtools {
             T external_ptr,
             ownership own = ownership::ExternalCPU,
             std::string const &name = "")
-            : m_shared_storage(new storage_t(info.size(), external_ptr, own)),
+            : m_shared_storage(new storage_t(info.padded_total_length(), external_ptr, own)),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
@@ -255,7 +255,7 @@ namespace gridtools {
             assert((!m_shared_storage_info.get() && !m_shared_storage.get()) &&
                    "This data store has already been allocated.");
             m_shared_storage_info = std::make_shared< storage_info_t >(info);
-            m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->size());
+            m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->padded_total_length());
         }
 
         /**
@@ -278,12 +278,30 @@ namespace gridtools {
         }
 
         /*
-         * @brief member function to retrieve the total size (dimensions, halos, initial_offset).
+         * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
          * @return total size
          */
-        int size() const {
+        int padded_total_length() const {
             assert(m_shared_storage_info.get() && "data_store is in a non-initialized state.");
-            return m_shared_storage_info->size();
+            return m_shared_storage_info->padded_total_length();
+        }
+
+        /*
+         * @brief member function to retrieve the inner domain size + halo (dimensions, halos, no initial_offset).
+         * @return inner domain size + halo
+         */
+        int total_length() const {
+            assert(m_shared_storage_info.get() && "data_store is in a non-initialized state.");
+            return m_shared_storage_info->total_length();
+        }
+
+        /*
+         * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
+         * @return inner domain size
+         */
+        int length() const {
+            assert(m_shared_storage_info.get() && "data_store is in a non-initialized state.");
+            return m_shared_storage_info->length();
         }
 
         /**

@@ -41,6 +41,7 @@
 
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/mpl/max_element.hpp>
 #include <boost/type_traits.hpp>
 
 #include "alignment.hpp"
@@ -66,7 +67,9 @@ namespace gridtools {
                    (a.template stride< N >() == b.template stride< N >()) &&
                    (a.template unaligned_dim< N >() == b.template unaligned_dim< N >()) &&
                    (a.template unaligned_stride< N >() == b.template unaligned_stride< N >()) &&
-                   (a.size() == b.size()) && (a.get_initial_offset() == b.get_initial_offset());
+                   (a.length() == b.length()) && (a.total_length() == b.total_length()) &&
+                   (a.padded_total_length() == b.padded_total_length()) &&
+                   (a.get_initial_offset() == b.get_initial_offset());
         }
 
         /*
@@ -195,21 +198,53 @@ namespace gridtools {
         }
 
         /*
-         * @brief Helper function to calculate the total storage size (step case)
-         * @return total storage size
+         * @brief Helper function to calculate the storage size (step case)
+         * @return storage size
          */
-        template < unsigned From = layout_t::masked_length - 1 >
+        template < bool HaloIncluded = true, bool AlignedDim = true, unsigned From = layout_t::masked_length - 1 >
         GT_FUNCTION constexpr typename boost::enable_if_c< (From > 0), unsigned >::type size_part() const {
-            return m_dims.template get< From >() * size_part< From - 1 >();
+            typedef boost::mpl::int_< (halo_t::template at< From >() * 2) > halo_val_t;
+            typedef boost::mpl::bool_< (layout_t::template at< From >() == -1) > masked_dim_t;
+            return ((int)(AlignedDim ? dim< From >() : unaligned_dim< From >()) -
+                       (int)((HaloIncluded || masked_dim_t::value) ? 0 : halo_val_t::value)) *
+                   size_part< HaloIncluded, AlignedDim, From - 1 >();
         }
 
         /*
-         * @brief Helper function to calculate the total storage size (base case)
-         * @return total storage size
+         * @brief Helper function to calculate the storage size (base case)
+         * @return storage size
          */
-        template < unsigned From = layout_t::masked_length - 1 >
+        template < bool HaloIncluded = true, bool AlignedDim = true, unsigned From = layout_t::masked_length - 1 >
         GT_FUNCTION constexpr typename boost::enable_if_c< (From == 0), unsigned >::type size_part() const {
-            return m_dims.template get< 0 >();
+            typedef boost::mpl::int_< (halo_t::template at< 0 >() * 2) > halo_val_t;
+            typedef boost::mpl::bool_< (layout_t::template at< 0 >() == -1) > masked_dim_t;
+            return ((int)(AlignedDim ? dim< 0 >() : unaligned_dim< 0 >()) -
+                    (int)((HaloIncluded || masked_dim_t::value) ? 0 : halo_val_t::value));
+        }
+
+        /*
+         * @brief Helper function to calculate the last usable index of the storage (base case)
+         * @return index of last data point (either halo or non halo)
+         */
+        template < bool HaloIncluded, typename... Args >
+        GT_FUNCTION constexpr
+            typename boost::enable_if_c< (sizeof...(Args) == layout_t::masked_length), int >::type end_part(
+                Args... indices) const {
+            return index(indices...);
+        }
+
+        /*
+         * @brief Helper function to calculate the last usable index of the storage (step case)
+         * @return index of last data point (either halo or non halo)
+         */
+        template < bool HaloIncluded, typename... Args >
+        GT_FUNCTION constexpr
+            typename boost::enable_if_c< (sizeof...(Args) < layout_t::masked_length), int >::type end_part(
+                Args... indices) const {
+            return HaloIncluded
+                       ? end_part< HaloIncluded >(indices...,
+                             (unaligned_dim< sizeof...(Args) >() - 1 - halo_t::template at< sizeof...(Args) >()))
+                       : end_part< HaloIncluded >(indices..., (unaligned_dim< sizeof...(Args) >() - 1));
         }
 
       public:
@@ -222,13 +257,13 @@ namespace gridtools {
         template < typename... Dims >
         GT_FUNCTION explicit constexpr storage_info_interface(Dims... dims_)
             : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
-                  extend_by_halo< Halos, LayoutArgs >::extend(dims_))...},
+                  handle_masked_dims< LayoutArgs >::extend(dims_))...},
               m_strides(get_strides< layout_t >::get_stride_array(
                   align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
-                      extend_by_halo< Halos, LayoutArgs >::extend(dims_))...)),
+                      handle_masked_dims< LayoutArgs >::extend(dims_))...)),
               m_alignment(
-                  array< unsigned, sizeof...(Dims) >{(unsigned)extend_by_halo< Halos, LayoutArgs >::extend(dims_)...},
-                  get_strides< layout_t >::get_stride_array(extend_by_halo< Halos, LayoutArgs >::extend(dims_)...)) {
+                  array< unsigned, sizeof...(Dims) >{(unsigned)handle_masked_dims< LayoutArgs >::extend(dims_)...},
+                  get_strides< layout_t >::get_stride_array(handle_masked_dims< LayoutArgs >::extend(dims_)...)) {
             static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                               typename is_all_integral< Dims... >::type >::value,
                 "Dimensions have to be integral types.");
@@ -242,10 +277,61 @@ namespace gridtools {
         GT_FUNCTION constexpr storage_info_interface(storage_info_interface const &other) = default;
 
         /*
-         * @brief member function to retrieve the total size (dimensions, halos, initial_offset).
-         * @return total size
+         * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
+         * @return total size including dimensions, halos, initial_offset, padding, and initial_offset
          */
-        GT_FUNCTION constexpr unsigned size() const { return size_part() + get_initial_offset(); }
+        GT_FUNCTION constexpr unsigned padded_total_length() const {
+            return size_part< true, true >() + get_initial_offset();
+        }
+
+        /*
+         * @brief member function to retrieve the number of domain elements
+         * (dimensions, halos, no initial_offset, no padding).
+         * @return number of domain elements
+         */
+        GT_FUNCTION constexpr unsigned total_length() const { return size_part< true, false >(); }
+
+        /*
+         * @brief member function to retrieve the number of inner domain elements
+         * (dimensions, no halos, no initial_offset, no padding).
+         * @return number of inner domain elements
+         */
+        GT_FUNCTION constexpr unsigned length() const { return size_part< false, false >(); }
+
+        /*
+         * @brief member function to retrieve the position of the first point.
+         * This could also be a halo point.
+         * @return position of first accessible point
+         */
+        GT_FUNCTION constexpr unsigned total_begin() const {
+            return index({
+                0,
+            });
+        }
+
+        /*
+         * @brief member function to retrieve the position of the first point.
+         * This could also be a halo point.
+         * @return position of last accessible point
+         */
+        GT_FUNCTION constexpr unsigned total_end() const { return end_part< false >(); }
+
+        /*
+         * @brief member function to retrieve the position of the first point.
+         * This could also be a halo point.
+         * @return position of first accessible point
+         */
+        GT_FUNCTION constexpr unsigned begin() const { return index(Halos...); }
+
+        /*
+         * @brief member function to retrieve the position of the first point.
+         * This could also be a halo point.
+         * @return position of last accessible point
+         */
+        GT_FUNCTION constexpr unsigned end() const {
+            typedef typename boost::mpl::max_element< typename layout_t::static_layout_vector >::type iter;
+            return end_part< true >();
+        }
 
         /*
          * @brief member function to retrieve the (aligned) size of a dimension (e.g., I, J, or K)
