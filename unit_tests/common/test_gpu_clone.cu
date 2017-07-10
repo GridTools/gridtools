@@ -1,3 +1,38 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 /** This code tests a solution to have clone objects on GPUs. The objects can have references to
     data members that must be initialized on GPU with references on the device
 
@@ -50,13 +85,13 @@ namespace gpu_clone_test {
 
         A(v_type const &a, v_type const &b) : v1(a), v2(b), zip_view(support_t(v1, v2)) {}
 
-        __host__ __device__ A(A const &a) : v1(a.v1), v2(a.v2), zip_view(support_t(v1, v2)) {}
+        GT_FUNCTION A(A const &a) : v1(a.v1), v2(a.v2), zip_view(support_t(v1, v2)) {}
 
         ~A() {}
 
         void update_gpu_copy() const { clone_to_device(); }
 
-        __host__ __device__ void out() const {
+        GT_FUNCTION void out() const {
             printf("v1:  ");
             boost::fusion::for_each(v1, print_elements());
             printf("\n");
@@ -72,14 +107,14 @@ namespace gpu_clone_test {
 
       private:
         struct print_elements {
-            __host__ __device__ void operator()(int u) const { printf("%d, ", u); }
+            GT_FUNCTION void operator()(int u) const { printf("%d, ", u); }
 
-            __host__ __device__ void operator()(double u) const { printf("%e, ", u); }
+            GT_FUNCTION void operator()(double u) const { printf("%e, ", u); }
         };
 
         struct print_zip {
             template < typename V >
-            __host__ __device__ void operator()(V const &v) const {
+            GT_FUNCTION void operator()(V const &v) const {
                 boost::fusion::for_each(v, print_elements());
                 printf("\n");
             }
@@ -95,21 +130,21 @@ namespace gpu_clone_test {
             //        clone_to_device();
         }
 
-        __device__ __host__ B(B const &b) : a(b.a) {}
+        GT_FUNCTION B(B const &b) : a(b.a) {}
 
-        __host__ __device__ void out() const { a.out(); }
+        GT_FUNCTION void out() const { a.out(); }
     };
 
     struct mul2_f {
         template < typename U >
-        __host__ __device__ void operator()(U &u) const {
+        GT_FUNCTION void operator()(U &u) const {
             u *= 2;
         }
     };
 
     struct mul2_fz {
         template < typename U >
-        __host__ __device__ void operator()(U const &u) const {
+        GT_FUNCTION void operator()(U const &u) const {
             boost::fusion::at_c< 0 >(u) *= 2;
             boost::fusion::at_c< 1 >(u) *= 2;
         }
@@ -129,7 +164,7 @@ namespace gpu_clone_test {
 
     struct minus1_f {
         template < typename T >
-        __host__ __device__ // Avoid warning
+        GT_FUNCTION // Avoid warning
             void
             operator()(T &x) const {
             x -= 1;

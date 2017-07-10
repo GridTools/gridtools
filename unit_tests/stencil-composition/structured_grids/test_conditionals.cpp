@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ namespace test_conditionals {
         typedef boost::mpl::vector1< p_dummy > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(p_dummy()) = +Id;
         }
     };
@@ -91,42 +91,31 @@ namespace test_conditionals {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = 2;
 
-        typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
-        typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
-        typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
-        meta_data_t meta_data_(3, 3, 3);
-        storage_t dummy(meta_data_, 0., "dummy");
-        typedef arg< 0, storage_t > p_dummy;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >
+            data_store_t;
+        storage_info_t meta_data_(3, 3, 3);
+        data_store_t dummy(meta_data_, 0.);
+        typedef arg< 0, data_store_t > p_dummy;
 
         typedef boost::mpl::vector1< p_dummy > arg_list;
-        aggregator_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
+        aggregator_type< arg_list > domain_(dummy);
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            comp_ = make_computation< BACKEND >(
-                domain_,
-                grid_,
-                if_(cond,
-                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
-                    if_(cond2,
-                        make_multistage(
-                            enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
-                        make_multistage(
-                            enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
+        auto comp_ = make_computation< BACKEND >(
+            domain_,
+            grid_,
+            if_(cond,
+                make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 0 > >(p_dummy())),
+                if_(cond2,
+                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 1 > >(p_dummy())),
+                    make_multistage(enumtype::execute< enumtype::forward >(), make_stage< functor< 2 > >(p_dummy())))));
 
         bool result = true;
         comp_->ready();
         comp_->steady();
         comp_->run();
         comp_->finalize();
-        result = result && (dummy(0, 0, 0) == 1);
+        result = result && (make_host_view(dummy)(0, 0, 0) == 1);
         return result;
     }
 } // namespace test_conditional

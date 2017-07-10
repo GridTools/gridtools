@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@
 #include "../../common/ndloops.hpp"
 #include "../low-level/data_types_mapping.hpp"
 #include "../../common/numerics.hpp"
-#include "halo_descriptor.hpp"
+#include "../../common/halo_descriptor.hpp"
 
 namespace gridtools {
     namespace _impl {

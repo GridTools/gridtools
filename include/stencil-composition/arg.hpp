@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -43,40 +43,47 @@
 
 #pragma once
 
-#include "stencil-composition/arg_metafunctions_fwd.hpp"
 #include <iosfwd>
-#include "storage/storage_metafunctions.hpp"
+
+#include "../common/defs.hpp"
+#include "../common/pointer.hpp"
+#include "arg_fwd.hpp"
 #include "arg_metafunctions.hpp"
+#include "arg_metafunctions_fwd.hpp"
+#include "../storage/storage-facility.hpp"
 
 namespace gridtools {
 
-    // fwd decl
     template < typename T >
-    struct is_arg;
+    struct is_arg : boost::mpl::false_ {};
+
+    template < uint_t I, typename Storage, typename Location, bool Temporary >
+    struct is_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_tmp_arg : boost::mpl::false_ {};
+
+    template < uint_t I, typename Storage, typename Location, bool Temporary >
+    struct is_tmp_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::bool_< Temporary > {};
 
     /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
     template < typename ArgType, typename Storage >
     struct arg_storage_pair {
 
-        GRIDTOOLS_STATIC_ASSERT(is_arg< ArgType >::value, "wrong type");
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename ArgType::storage_type, Storage >::value),
-            "in the instantiation of the aggregator type a pair (plch() = storage) is not matched");
-
-      private:
-        // arg_storage_pair(arg_storage_pair const&);
-        arg_storage_pair();
+        GRIDTOOLS_STATIC_ASSERT(is_arg< ArgType >::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename ArgType::storage_t, Storage >::type::value),
+            "Storage type not compatible with placeholder storage type, when associating placeholder to actual "
+            "storage");
 
       public:
         pointer< Storage > ptr;
 
-        arg_storage_pair(arg_storage_pair const &other) : ptr(other.ptr) { assert(ptr.get()); }
+        arg_storage_pair() {}
+        arg_storage_pair(Storage *storage) : ptr(pointer< Storage >(storage)) {}
+        arg_storage_pair(arg_storage_pair const &other) : ptr(other.ptr) {}
 
-        typedef ArgType arg_type;
-        typedef Storage storage_type;
-
-        arg_storage_pair(pointer< Storage > p) : ptr(p) {}
-
-        arg_storage_pair(Storage *p) : ptr(p) {}
+        typedef ArgType arg_t;
+        typedef Storage storage_t;
     };
 
     template < typename T >
@@ -84,6 +91,13 @@ namespace gridtools {
 
     template < typename ArgType, typename Storage >
     struct is_arg_storage_pair< arg_storage_pair< ArgType, Storage > > : boost::mpl::true_ {};
+
+    template < typename T >
+    struct is_arg_storage_pair_to_tmp : boost::mpl::false_ {};
+
+    template < typename ArgType, typename Storage >
+    struct is_arg_storage_pair_to_tmp< arg_storage_pair< ArgType, Storage > >
+        : boost::mpl::bool_< ArgType::is_temporary > {};
 
     /**
      * Type to create placeholders for data fields.
@@ -93,24 +107,31 @@ namespace gridtools {
      * user-defined ones used via the global-accessor)
      *
      * @tparam I Integer index (unique) of the data field to identify it
-     * @tparam T The type of the storage used to store data
+     * @tparam Storage The type of the storage used to store data
+     * @tparam LocationType the location type of the storage of the placeholder
+     * @tparam is_temporary_storage determines whether the placeholder holds a temporary or normal storage
      */
-    template < uint_t I, typename Storage, typename Condition = bool >
+    template < uint_t I, typename Storage, typename LocationType, bool Temporary >
     struct arg {
-        typedef Storage storage_type;
-        typedef typename Storage::iterator iterator;
-        typedef typename Storage::value_type value_type;
-        typedef static_uint< I > index_type;
-        typedef static_uint< I > index;
+        GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value),
+            "The third template argument of a placeholder must be a location_type");
+        typedef Storage storage_t;
+
+        typedef static_uint< I > index_t;
+
+        typedef LocationType location_t;
+        typedef arg< I, storage_t, location_t > type;
+
+        constexpr static bool is_temporary = Temporary;
 
         template < typename Storage2 >
-        arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
+        arg_storage_pair< arg< I, storage_t, LocationType, Temporary >, Storage2 > operator=(Storage2 &ref) {
+            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_t >::value),
                 "there is a mismatch between the storage types used by the arg placeholders and the storages really "
                 "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
                 "correctly assigned and that their type match the instantiated storages ones");
 
-            return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
+            return arg_storage_pair< arg< I, storage_t, LocationType, Temporary >, Storage2 >(&ref);
         }
 
         static void info(std::ostream &out_s) {
@@ -120,58 +141,22 @@ namespace gridtools {
         }
     };
 
-    /**
-     * This specialization is made for the standard storages (not user-defined)
-     * which have to contain a storage_info type, and can define a location_type
-     */
-    template < uint_t I, typename Storage >
-    struct arg< I, Storage, typename boost::enable_if< typename is_any_storage< Storage >::type, bool >::type > {
-        typedef Storage storage_type;
-        typedef typename Storage::iterator iterator;
-        typedef typename Storage::value_type value_type;
-        typedef static_uint< I > index_type;
-        typedef static_uint< I > index;
-
-// location type is only used by other grids, supported only for cxx11
-#ifdef CXX11_ENABLED
-        typedef typename get_location_type< Storage >::type location_type;
-#endif
-
-        template < typename Storage2 >
-        arg_storage_pair< arg< I, storage_type >, Storage2 > operator=(Storage2 &ref) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_type >::value),
-                "there is a mismatch between the storage types used by the arg placeholders and the storages really "
-                "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
-                "correctly assigned and that their type match the instantiated storages ones");
-
-            return arg_storage_pair< arg< I, storage_type >, Storage2 >(&ref);
-        }
-
-        static void info(std::ostream &out_s) {
-#ifdef VERBOSE
-            out_s << "Arg on real storage with index " << I;
-#endif
-        }
-    };
-
-    template < typename T >
-    struct is_arg : boost::mpl::false_ {};
-
-    template < uint_t I, typename Storage >
-    struct is_arg< arg< I, Storage > > : boost::mpl::true_ {};
+    /** alias template that provides convenient tmp arg declaration. */
+    template < uint_t I, typename Storage, typename Location = enumtype::default_location_type >
+    using tmp_arg = arg< I, Storage, Location, true >;
 
     template < typename T >
     struct arg_index;
 
     /** true in case of non temporary storage arg*/
-    template < uint_t I, typename Storage >
-    struct arg_index< arg< I, Storage > > : boost::mpl::integral_c< int, I > {};
+    template < uint_t I, typename Storage, typename Location, bool Temporary >
+    struct arg_index< arg< I, Storage, Location, Temporary > > : boost::mpl::integral_c< int, I > {};
 
     template < typename T >
     struct is_storage_arg : boost::mpl::false_ {};
 
-    template < uint_t I, typename Storage >
-    struct is_storage_arg< arg< I, Storage > > : is_storage< Storage > {};
+    template < uint_t I, typename Storage, typename Location, bool Temporary >
+    struct is_storage_arg< arg< I, Storage, Location, Temporary > > : is_storage< Storage > {};
 
     /**
      * @struct arg_hods_data_field
@@ -180,9 +165,7 @@ namespace gridtools {
     template < typename Arg >
     struct arg_holds_data_field;
 
-    template < uint_t I, typename Storage >
-    struct arg_holds_data_field< arg< I, Storage > > {
-        typedef typename storage_holds_data_field< Storage >::type type;
-    };
+    template < uint_t I, typename Storage, typename Location, bool Temporary >
+    struct arg_holds_data_field< arg< I, Storage, Location, Temporary > > : is_data_store_field< Storage > {};
 
 } // namespace gridtools

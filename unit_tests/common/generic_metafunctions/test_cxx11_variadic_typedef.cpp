@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -61,6 +61,17 @@ TEST(variadic_typedef, get_from_variadic_pack) {
     GRIDTOOLS_STATIC_ASSERT(
         (static_int< get_from_variadic_pack< 7 >::apply(2, 6, 8, 3, 5, 4, 6, -8, 4, 3, 1, 54, 67) >::value == -8),
         "Error");
+
+    ASSERT_TRUE(true);
+}
+
+TEST(variadic_typedef, find) {
+
+    typedef variadic_typedef< int, double, unsigned int, double > tt;
+
+    static_assert((tt::find< int >() == 0), "ERROR");
+    static_assert((tt::find< double >() == 1), "ERROR");
+    static_assert((tt::find< unsigned int >() == 2), "ERROR");
 
     ASSERT_TRUE(true);
 }

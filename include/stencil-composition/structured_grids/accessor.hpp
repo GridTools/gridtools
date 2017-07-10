@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,7 @@
 #pragma once
 #include "../accessor_base.hpp"
 #include "../arg.hpp"
-#include "../dimension.hpp"
+#include "../../common/dimension.hpp"
 #include "../../common/generic_metafunctions/all_integrals.hpp"
 #include "../../common/generic_metafunctions/static_if.hpp"
 

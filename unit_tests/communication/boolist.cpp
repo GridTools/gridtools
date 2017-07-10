@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -45,8 +45,9 @@
 #include <common/layout_map.hpp>
 #include <iostream>
 #include <stdlib.h>
+#include "gtest/gtest.h"
 
-int main() {
+TEST(Communication, boollist) {
 
     bool pass = true;
 
@@ -98,11 +99,5 @@ int main() {
             pass = false;
     }
 
-    if (pass)
-        std::cout << "PASSED\n";
-    else {
-        std::cout << "FAILED\n";
-        exit(-1);
-    }
-    return 0;
+    EXPECT_TRUE(pass);
 }

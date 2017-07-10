@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -92,7 +92,6 @@ namespace gridtools {
     void GCL_Init(int argc, char **argv) { _impl::GCL_Real_Init(argc, argv); }
 
     void GCL_Init() {
-        int ready;
         int arg = 1;
         _impl::GCL_Real_Init(arg, 0);
     }

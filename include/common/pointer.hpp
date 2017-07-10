@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@
 */
 #pragma once
 #include <boost/mpl/bool.hpp>
+
+#include "host_device.hpp"
 
 /**
 @file
@@ -124,7 +126,6 @@ namespace gridtools {
         /**
           @brief destroy pointer
          */
-        GT_FUNCTION
         void destroy() {
             assert(m_t);
             delete m_t;
@@ -143,12 +144,10 @@ namespace gridtools {
        to delete the instances of the storage_info class
      */
     struct delete_pointer {
-
-        GT_FUNCTION
         delete_pointer() {}
 
         template < typename U >
-        GT_FUNCTION void operator()(U t) const {
+        void operator()(U t) const {
             if (t.get())
                 delete t.get();
         }

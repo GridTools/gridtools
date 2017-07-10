@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,10 +36,11 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
 
+#include "../../common/numerics.hpp"
 #include "../backend_traits_fwd.hpp"
-#include "run_esf_functor_cuda.hpp"
 #include "../block_size.hpp"
 #include "iterate_domain_cuda.hpp"
+#include "run_esf_functor_cuda.hpp"
 #include "strategy_cuda.hpp"
 
 #ifdef ENABLE_METERS
@@ -58,13 +59,61 @@ namespace gridtools {
         struct run_functor_cuda;
     }
 
-    /**forward declaration*/
-    template < typename T, bool Array >
-    struct hybrid_pointer;
-
     /** @brief traits struct defining the types which are specific to the CUDA backend*/
     template <>
     struct backend_traits_from_id< enumtype::Cuda > {
+
+        /** This is the function used to extract a pointer out of a given storage info.
+            In the case of CUDA we have to retrieve the GPU pointer.
+        */
+        template < typename StorageInfoPtr >
+        static StorageInfoPtr extract_storage_info_ptr(StorageInfoPtr t) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename boost::decay< decltype(*t) >::type >::value), GT_INTERNAL_ERROR);
+            return t->get_gpu_ptr();
+        }
+
+        /** This is the functor used to generate view instances. According to the given storage (data_store,
+           data_store_field) an appropriate view is returned. When using the CUDA backend we return device view
+           instances.
+        */
+        template < typename AggregatorType >
+        struct instantiate_view {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+
+            AggregatorType &m_agg;
+            instantiate_view(AggregatorType &agg) : m_agg(agg) {}
+
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
+            arg_storage_pair< Arg, typename Arg::storage_t > get_arg_storage_pair() const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
+                return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::storage_t > >(
+                    m_agg.get_arg_storage_pairs()));
+            }
+
+            // specialization for creating view instance for data stores
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
+            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(
+                ViewFusionMapElem &t) const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
+                // make a view
+                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
+                    t = make_device_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
+            }
+
+            // specialization for creating view instance for data store fields
+            template < typename ViewFusionMapElem,
+                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
+            typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
+                ViewFusionMapElem &t) const {
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
+                // make a view
+                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
+                    t = make_field_device_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
+            }
+        };
 
         template < typename Arguments >
         struct execute_traits {
@@ -110,7 +159,7 @@ namespace gridtools {
         */
         template < uint_t Id, typename BlockSize >
         struct once_per_block {
-            GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), GT_INTERNAL_ERROR);
 
             template < typename Left, typename Right >
             GT_FUNCTION static void assign(Left &l, Right const &r) {
@@ -123,6 +172,60 @@ namespace gridtools {
         };
 
         /**
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
+           the offset of this pointer. For temporaries we use an oversized storage in order to have private halo
+           regions for each block. This method calculates the offset for temporaries and takes the private halo and
+           alignment information into account.
+        */
+        template < typename LocalDomain,
+            typename PEBlockSize,
+            typename Arg,
+            typename CurrentExtent,
+            typename GridTraits,
+            typename StorageInfo >
+        GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(
+            StorageInfo const *sinfo) {
+            typedef GridTraits grid_traits_t;
+            typedef typename LocalDomain::max_i_extent_t max_i_t;
+            // calculate the blocksize in I and J direction
+            constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
+            constexpr int block_size_j =
+                2 * StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >() + PEBlockSize::j_size_t::value;
+
+            // protect against div. by 0 and compute the distance between two blocks
+            constexpr int diff_between_blocks =
+                ((StorageInfo::alignment_t::value > 1)
+                        ? _impl::static_ceil(static_cast< float >(block_size_i) / StorageInfo::alignment_t::value) *
+                              StorageInfo::alignment_t::value
+                        : block_size_i);
+
+            // compute offset in I and J
+            const uint_t i = processing_element_i() * diff_between_blocks;
+            const uint_t j = Arg::location_t::n_colors::value *
+                             (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
+            // return field offset (Initial storage offset + Alignment correction value + I offset + J offset)
+            return (int)StorageInfo::get_initial_offset() - CurrentExtent::iminus::value + i + j;
+        }
+
+        /**
+           Static method in order to calculate the field offset. In the iterate domain we store one pointer per
+           storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
+           the offset of this pointer. This function computes the field offset for non temporary storages.
+        */
+        template < typename LocalDomain,
+            typename PEBlockSize,
+            typename Arg,
+            typename CurrentExtent,
+            typename GridTraits,
+            typename StorageInfo >
+        GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
+            StorageInfo const *sinfo) {
+            // return field offset (Initial storage offset in order to be aligned)
+            return StorageInfo::get_initial_offset();
+        }
+
+        /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments
          */
@@ -130,15 +233,15 @@ namespace gridtools {
         struct mss_loop {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
             template < typename LocalDomain, typename Grid, typename ReductionData >
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 const uint_t bi,
                 const uint_t bj) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), "Internal Error: wrong type");
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
                 typedef
@@ -164,20 +267,8 @@ namespace gridtools {
         // metafunction that contains the strategy from id metafunction corresponding to this backend
         template < typename BackendIds >
         struct select_strategy {
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             typedef strategy_from_id_cuda< BackendIds::s_strategy_id > type;
-        };
-
-        /*
-         * @brief metafunction that determines whether this backend requires redundant computations at halo points
-         * of each block, given the strategy Id
-         * @tparam StrategyId the strategy id
-         * @return always true for CUDA
-         */
-        template < enumtype::strategy StrategyId >
-        struct requires_temporary_redundant_halos {
-            GRIDTOOLS_STATIC_ASSERT((StrategyId == enumtype::Block), "Internal Error: wrong type");
-            typedef boost::mpl::true_ type;
         };
 
         /**
@@ -197,8 +288,7 @@ namespace gridtools {
          */
         template < typename IterateDomainArguments >
         struct select_iterate_domain {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
             // indirection in order to avoid instantiation of both types of the eval_if
             template < typename _IterateDomainArguments >
             struct select_positional_iterate_domain {

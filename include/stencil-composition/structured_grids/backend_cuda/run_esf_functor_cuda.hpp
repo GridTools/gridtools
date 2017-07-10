@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
 #include "../../run_esf_functor.hpp"
 #include "../../block_size.hpp"
 #include "../iterate_domain_remapper.hpp"
+#include "../../functor_decorator.hpp"
 
 namespace gridtools {
     /*
@@ -49,7 +50,7 @@ namespace gridtools {
     struct run_esf_functor_cuda
         : public run_esf_functor< run_esf_functor_cuda< RunFunctorArguments, Interval > > // CRTP
     {
-        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
         // TODOCOSUNA This type here is not an interval, is a pair<int_, int_ >
         // BOOST_STATIC_ASSERT((is_interval<Interval>::value));
 
@@ -66,7 +67,7 @@ namespace gridtools {
         // size and the cuda block size have to be the same
         GRIDTOOLS_STATIC_ASSERT(
             (physical_domain_block_size_t::i_size_t::value == processing_elements_block_size_t::i_size_t::value),
-            "Internal Error: wrong type");
+            GT_INTERNAL_ERROR);
 
         typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
 
@@ -81,8 +82,8 @@ namespace gridtools {
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
         template < typename IntervalType, typename EsfArguments >
-        __device__ void do_impl() const {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), "Internal Error: wrong type");
+        GT_FUNCTION_DEVICE void do_impl() const {
+            GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
 
             // instantiate the iterate domain remapper, that will map the calls to arguments to their actual
             // position in the iterate domain
@@ -94,12 +95,14 @@ namespace gridtools {
             typedef typename EsfArguments::functor_t functor_t;
             typedef typename EsfArguments::extent_t extent_t;
 
+            GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, GT_INTERNAL_ERROR);
+
             // a grid point at the core of the block can be out of extent (for last blocks) if domain of computations
             // is not a multiple of the block size
             if (m_iterate_domain.template is_thread_in_domain< extent_t >()) {
                 // call the user functor at the core of the block
                 _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
-                    Do(iterate_domain_remapper);
+                    call_do_method(iterate_domain_remapper);
             }
 
             // synchronize threads if not independent esf

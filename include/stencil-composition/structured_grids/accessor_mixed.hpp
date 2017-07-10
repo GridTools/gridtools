@@ -1,17 +1,37 @@
 /*
-   Copyright 2016 GridTools Consortium
+  GridTools Libraries
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  All rights reserved.
 
-       http://www.apache.org/licenses/LICENSE-2.0
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
 
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
 */
 
 #pragma once
@@ -30,21 +50,14 @@ namespace gridtools {
      */
     template < typename ArgType, typename... Pair >
     struct accessor_mixed : public offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... > {
-        typedef typename ArgType::index_type index_type;
+        typedef typename ArgType::index_t index_t;
         typedef typename ArgType::base_t base_t;
         typedef typename ArgType::offset_tuple_t offset_tuple_t;
         typedef typename ArgType::extent_t extent_t;
 
         using super = offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... >;
         /**inheriting all constructors from offset_tuple*/
-        using typename super::offset_tuple_mixed;
-
-#if defined(__CUDACC__) || defined(__clang__)
-        // the protection for the arguments is done in offset_tuple constructors
-        template < typename... T >
-        GT_FUNCTION constexpr accessor_mixed(T const &... t_)
-            : super(t_...) {}
-#endif
+        using offset_tuple_mixed< typename ArgType::offset_tuple_t, Pair... >::offset_tuple_mixed;
 
         GT_FUNCTION
         constexpr const super &offsets() const { return *this; }
@@ -74,7 +87,7 @@ the dimension is chosen
             "wrong type. If you want to generalize the alias "
             "to something more generic than an offset_tuple "
             "remove this assert.");
-        GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Known >::value...), "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Known >::value...), GT_INTERNAL_ERROR);
 
         template < int_t Arg1, int_t Arg2 >
         struct pair_ {
@@ -108,7 +121,7 @@ the dimension is chosen
         template < typename... Unknowns >
         GT_FUNCTION AccessorType /*&&*/ operator()(Unknowns /*&&*/... unknowns) const {
 #ifdef PEDANTIC // the runtime arguments are not necessarily dimension<>()
-            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Unknowns >::value...), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< Unknowns >::value...), GT_INTERNAL_ERROR);
 #endif
             return AccessorType(
                 dimension< Known::direction >(m_knowns[boost::mpl::find< dim_vector, Known >::type::pos::value])...,

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,13 @@ TEST(texture_type_traits, cv_int_is_texture_type) {
 }
 
 TEST(texture_type_traits, restrict_int_ref_is_texture_type) {
-    ASSERT_TRUE(gridtools::is_texture_type< int &__restrict__ >::value);
+    // We need this typedef for clang to work as CUDA host compiler
+    typedef gridtools::is_texture_type< int &__restrict__ >::type type;
+    ASSERT_TRUE((type::value));
+}
+
+TEST(texture_type_traits, restrict_int_ptr_is_texture_type) {
+    ASSERT_TRUE(gridtools::is_texture_type< int *__restrict__ >::value);
 }
 
 #ifdef CXX11_ENABLED

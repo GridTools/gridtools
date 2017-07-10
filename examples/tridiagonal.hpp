@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -92,31 +92,32 @@ namespace tridiagonal {
         typedef accessor< 4, enumtype::inout > rhs; // d
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
 
-        template < typename Domain >
-        GT_FUNCTION static void shared_kernel(Domain const &dom) {
+        template < typename Evaluation >
+        GT_FUNCTION static void shared_kernel(Evaluation &eval) {
 #if (defined(CXX11_ENABLED))
-            dom(sup{}) = dom(sup{} / (diag{} - sup{z{-1}} * inf{}));
-            dom(rhs{}) = dom((rhs{} - inf{} * rhs{z(-1)}) / (diag{} - sup{z(-1)} * inf{}));
+            eval(sup{}) = eval(sup{} / (diag{} - sup{z{-1}} * inf{}));
+            eval(rhs{}) = eval((rhs{} - inf{} * rhs{z(-1)}) / (diag{} - sup{z(-1)} * inf{}));
 #else
-            dom(sup()) = dom(sup()) / (dom(diag()) - dom(sup(z(-1))) * dom(inf()));
-            dom(rhs()) = (dom(rhs()) - dom(inf()) * dom(rhs(z(-1)))) / (dom(diag()) - dom(sup(z(-1))) * dom(inf()));
+            eval(sup()) = eval(sup()) / (eval(diag()) - eval(sup(z(-1))) * eval(inf()));
+            eval(rhs()) =
+                (eval(rhs()) - eval(inf()) * eval(rhs(z(-1)))) / (eval(diag()) - eval(sup(z(-1))) * eval(inf()));
 #endif
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_internal) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_internal) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_last) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_last) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_first) {
-            dom(sup()) = dom(sup()) / dom(diag());
-            dom(rhs()) = dom(rhs()) / dom(diag());
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_first) {
+            eval(sup()) = eval(sup()) / eval(diag());
+            eval(rhs()) = eval(rhs()) / eval(diag());
         }
     };
 
@@ -128,28 +129,28 @@ namespace tridiagonal {
         typedef accessor< 4, enumtype::inout > rhs; // d
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
 
-        template < typename Domain >
-        GT_FUNCTION static void shared_kernel(Domain &dom) {
+        template < typename Evaluation >
+        GT_FUNCTION static void shared_kernel(Evaluation &eval) {
 #if (defined(CXX11_ENABLED))
-            dom(out()) = dom(rhs{} - sup{} * out{0, 0, 1});
+            eval(out()) = eval(rhs{} - sup{} * out{0, 0, 1});
 #else
-            dom(out()) = dom(rhs()) - dom(sup()) * dom(out(0, 0, 1));
+            eval(out()) = eval(rhs()) - eval(sup()) * eval(out(0, 0, 1));
 #endif
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_internal) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_internal) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_first) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_first) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_last) {
-            dom(out()) = dom(rhs());
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_last) {
+            eval(out()) = eval(rhs());
         }
     };
 
@@ -179,27 +180,24 @@ namespace tridiagonal {
 #endif
 #endif
 
-        //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
-        typedef gridtools::layout_map< 0, 1, 2 > layout_t;
-        typedef gridtools::BACKEND::storage_info< 0, layout_t > meta_t;
-        typedef gridtools::BACKEND::storage_type< float_type, meta_t >::type storage_type;
-        typedef gridtools::BACKEND::temporary_storage_type< float_type, meta_t >::type tmp_storage_type;
+        typedef gridtools::BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_t;
+        typedef gridtools::BACKEND::storage_traits_t::data_store_t< float_type, meta_t > storage_type;
 
         // Definition of the actual data fields that are used for input/output
-        // storage_type in(d1,d2,d3,-1, "in"));
         meta_t meta_(d1, d2, d3);
-        storage_type out(meta_, 0., "out");
-        storage_type inf(meta_, -1., "inf");
-        storage_type diag(meta_, 3., "diag");
-        storage_type sup(meta_, 1., "sup");
-        storage_type rhs(meta_, 3., "rhs");
+        storage_type out(meta_, 0.0, "out");
+        storage_type inf(meta_, -1.0, "inf");
+        storage_type diag(meta_, 3.0, "diag");
+        storage_type sup(meta_, 1.0, "sup");
+        storage_type rhs(meta_, 3.0, "rhs");
+        storage_type solution(meta_, 1.0, "solution");
 
-        storage_type solution(meta_, 1., "sol");
-
+        // special field initalizations
+        auto rhsv = make_host_view(rhs);
         for (int_t i = 0; i < d1; ++i) {
             for (int_t j = 0; j < d2; ++j) {
-                rhs(i, j, 0) = 4.;
-                rhs(i, j, 5) = 2.;
+                rhsv(i, j, 0) = 4.;
+                rhsv(i, j, 5) = 2.;
             }
         }
         // result is 1
@@ -221,7 +219,7 @@ namespace tridiagonal {
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&inf, &diag, &sup, &rhs, &out));
+        gridtools::aggregator_type< accessor_list > domain(inf, diag, sup, rhs, out);
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -234,38 +232,27 @@ namespace tridiagonal {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-/*
-  Here we do lot of stuff
-  1) We pass to the intermediate representation ::run function the description
-  of the stencil, which is a multi-stage stencil (mss)
-  The mss includes (in order of execution) a laplacian, two fluxes which are independent
-  and a final step that is the out_function
-  2) The logical physical domain with the fields to use
-  3) The actual domain dimensions
- */
+        /*
+          Here we do lot of stuff
+          1) We pass to the intermediate representation ::run function the description
+          of the stencil, which is a multi-stage stencil (mss)
+          The mss includes (in order of execution) a laplacian, two fluxes which are independent
+          and a final step that is the out_function
+          2) The logical physical domain with the fields to use
+          3) The actual domain dimensions
+         */
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            solver = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    gridtools::make_stage< forward_thomas >(
-                        p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
-                    ),
-                gridtools::make_multistage // mss_descriptor
-                (execute< backward >(),
-                    gridtools::make_stage< backward_thomas >(
-                        p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
-                    ));
+        auto solver = gridtools::make_computation< gridtools::BACKEND >(
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_stage< forward_thomas >(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
+                ),
+            gridtools::make_multistage // mss_descriptor
+            (execute< backward >(),
+                gridtools::make_stage< backward_thomas >(p_out(), p_inf(), p_diag(), p_sup(), p_rhs()) // esf_descriptor
+                ));
 
         solver->ready();
         solver->steady();

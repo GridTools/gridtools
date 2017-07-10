@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -66,7 +66,7 @@ namespace shorizontal_diffusion {
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_flx;
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_out;
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct wlap_function {
@@ -78,7 +78,7 @@ namespace shorizontal_diffusion {
         typedef boost::mpl::vector< out, in, crlato, crlatu > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_lap) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_lap) {
             eval(out()) = eval(in(1, 0, 0)) + eval(in(-1, 0, 0)) - (gridtools::float_type)2 * eval(in()) +
                           eval(crlato()) * (eval(in(0, 1, 0)) - eval(in())) +
                           eval(crlatu()) * (eval(in(0, -1, 0)) - eval(in()));
@@ -96,7 +96,7 @@ namespace shorizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap, crlato, coeff > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_flx) {
             gridtools::float_type fluxx = eval(lap(1, 0, 0)) - eval(lap());
             gridtools::float_type fluxx_m = eval(lap(0, 0, 0)) - eval(lap(-1, 0, 0));
 
@@ -132,7 +132,6 @@ namespace shorizontal_diffusion {
 
         typedef horizontal_diffusion::repository::storage_type storage_type;
         typedef horizontal_diffusion::repository::j_storage_type j_storage_type;
-        typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
 
         horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
         repository.init_fields();
@@ -148,7 +147,7 @@ namespace shorizontal_diffusion {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, tmp_storage_type > p_lap;
+        typedef tmp_arg< 0, storage_type > p_lap;
         typedef arg< 1, storage_type > p_coeff;
         typedef arg< 2, storage_type > p_in;
         typedef arg< 3, storage_type > p_out;
@@ -157,19 +156,8 @@ namespace shorizontal_diffusion {
 
         // An array of placeholders to be passed to the domain
         typedef boost::mpl::vector< p_lap, p_coeff, p_in, p_out, p_crlato, p_crlatu > accessor_list;
+        gridtools::aggregator_type< accessor_list > domain(coeff, in, out, crlato, crlatu);
 
-// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
-// used, temporary and not
-// It must be noted that the only fields to be passed to the constructor are the non-temporary.
-// The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
-// don't particularly like this)
-#if defined(CXX11_ENABLED)
-        gridtools::aggregator_type< accessor_list > domain(
-            (p_out() = out), (p_in() = in), (p_coeff() = coeff), (p_crlato() = crlato), (p_crlatu() = crlatu));
-#else
-        gridtools::aggregator_type< accessor_list > domain(
-            boost::fusion::make_vector(&coeff, &in, &out, &crlato, &crlatu));
-#endif
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -195,7 +183,7 @@ namespace shorizontal_diffusion {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
-                    define_caches(cache< IJ, local >(p_lap())),
+                    define_caches(cache< IJ, cache_io_policy::local >(p_lap())),
                     gridtools::make_stage< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
                     gridtools::make_stage< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 
@@ -204,7 +192,7 @@ namespace shorizontal_diffusion {
 
         simple_hori_diff->run();
 
-        repository.update_cpu();
+        out.sync();
 
         bool result = true;
         if (verify) {

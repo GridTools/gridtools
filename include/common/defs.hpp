@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#define DEFS_GUARD
+
 #if __cplusplus > 199711L
 #ifndef CXX11_DISABLE
 #define CXX11_ENABLED
@@ -60,21 +62,21 @@
 #define FUSION_MAX_MAP_SIZE 20
 #endif
 
-#include <vector>
-#include <boost/mpl/map.hpp>
-#include <boost/mpl/insert.hpp>
-#include <boost/mpl/vector.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/map.hpp>
+#include <boost/mpl/vector.hpp>
+#include <vector>
 
 /**
    @file
    @brief global definitions
 */
 #include <boost/mpl/bool.hpp>
-#include <boost/utility/enable_if.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/type_traits.hpp>
 #include <boost/type_traits/is_same.hpp>
+#include <boost/utility/enable_if.hpp>
 
 #define GT_MAX_ARGS 20
 #define GT_MAX_INDEPENDENT 3
@@ -117,6 +119,11 @@
 #endif
 #endif
 
+// max limit of indices for metastorages, beyond indices are reserved for library
+#ifndef META_STORAGE_INDEX_LIMIT
+#define META_STORAGE_INDEX_LIMIT 1000
+#endif
+
 #if defined(_OPENMP)
 #include <omp.h>
 #else
@@ -136,12 +143,14 @@ namespace gridtools {
     /** \namespace enumtype
        @brief enumeration types*/
     namespace enumtype {
-        /**
-           @section enumtypes Gridtools enumeration types
-           @{
-         */
-        /** enum specifying the type of backend we use */
+/**
+   @section enumtypes Gridtools enumeration types
+   @{
+ */
+/** enum specifying the type of backend we use */
+#ifndef PLATFORM_GUARD
         enum platform { Cuda, Host };
+#endif
 
         enum strategy { Naive, Block };
 
@@ -192,6 +201,7 @@ namespace gridtools {
 #else
         static const unsigned int vector_width = 4;
 #endif
+        static const unsigned int metastorage_library_indices_limit = META_STORAGE_INDEX_LIMIT;
 
     } // namespace enumtype
 
@@ -221,22 +231,30 @@ namespace gridtools {
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator+(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator+(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator-(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator-(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator*(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator*(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 
     template < typename ArgType1,
         typename ArgType2,
         typename boost::enable_if< typename any_enum_type< ArgType1, ArgType2 >::type, int >::type = 0 >
-    error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {}
+    error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {
+        return {};
+    }
 #endif
 
     template < typename T >
@@ -256,6 +274,14 @@ namespace gridtools {
 #else
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) BOOST_STATIC_ASSERT(Condition)
 #endif
+
+#define GT_INTERNAL_ERROR                                                                                       \
+    "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
+    "GridTools Development Team"
+
+#define GT_INTERNAL_ERROR_MSG(x)                                                                                \
+    "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
+    "GridTools Development Team. \nMessage\n\n" x
 
 //################ Type aliases for GridTools ################
 

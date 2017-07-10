@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ namespace gridtools {
         struct grid_traits_arch< enumtype::Host > {
             template < typename RunFunctorArguments >
             struct kernel_functor_executor {
-                GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
+                GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
                 typedef execute_kernel_functor_host< RunFunctorArguments > type;
             };
 

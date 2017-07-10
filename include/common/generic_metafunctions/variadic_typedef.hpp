@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,15 @@
 #pragma once
 #include "../defs.hpp"
 #include "../host_device.hpp"
+#include "is_not_same.hpp"
 
 namespace gridtools {
 #ifdef CXX11_ENABLED
 
-    template < typename First, typename... Args >
+    template < typename... Args >
     struct variadic_typedef;
+    template < typename Value, Value First, Value... Args >
+    struct variadic_typedef_c;
 
     namespace impl_ {
 
@@ -55,6 +58,17 @@ namespace gridtools {
         struct get_elem< 0, First, Args... > {
             typedef First type;
         };
+
+        template < ushort_t Idx, typename Value, Value First, Value... Args >
+        struct get_elem_c {
+            GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
+            typedef typename ::gridtools::variadic_typedef_c< Value, Args... >::template get_elem< Idx - 1 >::type type;
+        };
+
+        template < typename Value, Value First, Value... Args >
+        struct get_elem_c< 0, Value, First, Args... > {
+            typedef boost::mpl::integral_c< Value, First > type;
+        };
     }
 
     /**
@@ -63,7 +77,7 @@ namespace gridtools {
      * struct a { typedef variadic_typedef<Args...> type; }
      */
     template < typename First, typename... Args >
-    struct variadic_typedef {
+    struct variadic_typedef< First, Args... > {
 
         // metafunction that returns a type of a variadic pack by index
         template < ushort_t Idx >
@@ -71,6 +85,48 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
             typedef typename impl_::template get_elem< Idx, First, Args... >::type type;
         };
+
+        template < typename Elem >
+        static constexpr int_t find(const ushort_t pos = 0) {
+            return (boost::is_same< First, Elem >::value) ? pos
+                                                          : variadic_typedef< Args... >::template find< Elem >(pos + 1);
+        }
+
+        static constexpr ushort_t length = sizeof...(Args) + 1;
+    };
+
+    template <>
+    struct variadic_typedef<> {
+
+        // metafunction that returns a type of a variadic pack by index
+        template < ushort_t Idx >
+        struct get_elem {
+            GRIDTOOLS_STATIC_ASSERT((Idx >= 0), GT_INTERNAL_ERROR);
+        };
+
+        template < typename Elem >
+        static constexpr int_t find(const ushort_t pos = 0) {
+            return -1;
+        }
+
+        static constexpr ushort_t length = 0;
+    };
+
+    /**
+     * metafunction is to simply "store" a variadic pack. A typical use case is when we need to typedef a variadic pack
+     * template<typename ... Args>
+     * struct a { typedef variadic_typedef<Args...> type; }
+     */
+    template < typename Value, Value First, Value... Args >
+    struct variadic_typedef_c {
+
+        // metafunction that returns a type of a variadic pack by index
+        template < ushort_t Idx >
+        struct get_elem {
+            GRIDTOOLS_STATIC_ASSERT((Idx <= sizeof...(Args)), "Out of bound access in variadic pack");
+            typedef typename impl_::template get_elem_c< Idx, Value, First, Args... >::type type;
+        };
+        static constexpr ushort_t length = sizeof...(Args) + 1;
     };
 
     /**
@@ -91,8 +147,7 @@ namespace gridtools {
     template <>
     struct get_from_variadic_pack< 0 > {
         template < typename First, typename... Accessors >
-        GT_FUNCTION static constexpr typename variadic_typedef< First, Accessors... >::template get_elem< 0 >::type
-        apply(First first, Accessors... args) {
+        GT_FUNCTION static constexpr First apply(First first, Accessors... args) {
             return first;
         }
     };

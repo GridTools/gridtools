@@ -2,7 +2,7 @@
 fetch_host_tests(.)
 fetch_gpu_tests(.)
 
-# collect the cache and redcution tests. 
+# collect the cache and redcution tests.
 #those are only enabled when using structured grids
 if (STRUCTURED_GRIDS)
     fetch_host_tests(caches)
@@ -23,7 +23,7 @@ else()
         foreach( variation CALL OFFSETS PROCEDURES PROCEDURES_OFFSETS )
             string(TOLOWER ${variation} var_suffix)
             set(ccflags_block "-DFUNCTIONS_${variation} -DBACKEND_BLOCK")
-            set(ccflags_naive "-DFUNCTIONS_${variation}")
+            set(ccflags_naive "-DFUNCTIONS_${variation} ")
             set(ldflags "${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS}")
             add_custom_host_test(multi_types_block_${var_suffix} structured_grids/multi_types_test.cpp ${ccflags_block} ${ldflags})
             add_custom_host_test(multi_types_naive_${var_suffix} structured_grids/multi_types_test.cpp ${ccflags_naive} ${ldflags})

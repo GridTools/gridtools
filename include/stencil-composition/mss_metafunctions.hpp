@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -117,8 +117,8 @@ namespace gridtools {
 
     template < typename Mss1, typename Mss2 >
     struct mss_equal {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss1 >::value), "Error");
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss2 >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss1 >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss2 >::value), GT_INTERNAL_ERROR);
 
         typedef static_bool< ((boost::is_same< typename mss_descriptor_execution_engine< Mss1 >::type,
                                   typename mss_descriptor_execution_engine< Mss2 >::type >::value) &&

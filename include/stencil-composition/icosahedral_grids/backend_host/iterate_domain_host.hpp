@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,10 +35,10 @@
 */
 #pragma once
 
-#include "stencil-composition/iterate_domain_fwd.hpp"
 #include "stencil-composition/iterate_domain.hpp"
-#include "stencil-composition/iterate_domain_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_fwd.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
+#include "stencil-composition/iterate_domain_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -50,14 +50,13 @@ namespace gridtools {
         : public IterateDomainBase< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > // CRTP
     {
         DISALLOW_COPY_AND_ASSIGN(iterate_domain_host);
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_iterate_domain_arguments< IterateDomainArguments >::value), "Internal error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 
         typedef IterateDomainBase< iterate_domain_host< IterateDomainBase, IterateDomainArguments > > super;
 
       public:
         typedef iterate_domain_host iterate_domain_t;
-        typedef typename super::data_pointer_array_t data_pointer_array_t;
+        typedef typename super::data_ptr_cached_t data_ptr_cached_t;
         typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::local_domain_t local_domain_t;
         typedef typename super::grid_topology_t grid_topology_t;
@@ -67,16 +66,17 @@ namespace gridtools {
         explicit iterate_domain_host(local_domain_t const &local_domain_, grid_topology_t const &grid_topology)
             : super(local_domain_, grid_topology), m_data_pointer(0), m_strides(0) {}
 
-        void set_data_pointer_impl(data_pointer_array_t *RESTRICT data_pointer) {
+        void set_data_pointer_impl(data_ptr_cached_t *RESTRICT data_pointer) {
             assert(data_pointer);
             m_data_pointer = data_pointer;
         }
 
-        data_pointer_array_t &RESTRICT data_pointer_impl() {
+        data_ptr_cached_t &RESTRICT data_pointer_impl() {
             assert(m_data_pointer);
             return *m_data_pointer;
         }
-        data_pointer_array_t const &RESTRICT data_pointer_impl() const {
+
+        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
             assert(m_data_pointer);
             return *m_data_pointer;
         }
@@ -105,8 +105,63 @@ namespace gridtools {
         template < ushort_t Coordinate >
         GT_FUNCTION void initialize_impl() {}
 
+        template < typename ReturnType, typename Accessor, typename StoragePointer >
+        GT_FUNCTION ReturnType get_value_impl(
+            StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
+
+            return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
+        }
+
+        /**
+         * caches are not currently used in host backend
+         */
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+
+        /**
+         * caches are not currently used in host backend
+         */
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+        }
+
+        /**
+         * caches are not currently used in host backend
+         */
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+        }
+
+        /**
+         * caches are not currently used in host backend
+         */
+        template < typename IterationPolicy >
+        GT_FUNCTION void final_flush() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+
+        /**
+         * caches are not currently used in host backend
+         */
+        template < typename IterationPolicy >
+        GT_FUNCTION void begin_fill() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), "error");
+        }
+
+        template < typename Extent >
+        GT_FUNCTION bool is_thread_in_domain() const {
+            return true;
+        }
+
       private:
-        data_pointer_array_t *RESTRICT m_data_pointer;
+        data_ptr_cached_t *RESTRICT m_data_pointer;
         strides_cached_t *RESTRICT m_strides;
     };
 

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,11 @@
  */
 
 #pragma once
-#include "stencil-composition/backend_host/iterate_domain_host.hpp"
-#include "stencil-composition/loop_hierarchy.hpp"
-#include "../../iteration_policy.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
+#include "../../iteration_policy.hpp"
+#include "stencil-composition/backend_host/iterate_domain_host.hpp"
+#include "stencil-composition/loop_hierarchy.hpp"
 
 namespace gridtools {
 
@@ -86,8 +86,7 @@ namespace gridtools {
                 }
             };
 
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
@@ -151,10 +150,10 @@ namespace gridtools {
                 typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
                 // in the host backend there should be only one esf per mss
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1),
-                    "Internal Error: wrong size");
+                GRIDTOOLS_STATIC_ASSERT(
+                    (boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1), GT_INTERNAL_ERROR);
                 typedef typename boost::mpl::back< typename RunFunctorArguments::extent_sizes_t >::type extent_t;
-                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), GT_INTERNAL_ERROR);
 
                 typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
                 typedef backend_traits_from_id< enumtype::Host > backend_traits_t;
@@ -174,7 +173,7 @@ namespace gridtools {
                 }
 #endif
 
-                typename iterate_domain_t::data_pointer_array_t data_pointer;
+                typename iterate_domain_t::data_ptr_cached_t data_pointer;
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
                 strides_t strides;
 

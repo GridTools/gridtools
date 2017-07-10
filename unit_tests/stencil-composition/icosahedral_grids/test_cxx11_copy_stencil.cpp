@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ namespace cs_test {
         typedef boost::mpl::vector2< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -75,9 +75,7 @@ using namespace cs_test;
 
 TEST(test_copy_stencil, run) {
 
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t;
-
-    using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+    using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 2;
@@ -90,24 +88,26 @@ TEST(test_copy_stencil, run) {
     cell_storage_type in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in");
     cell_storage_type out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
 
+    auto inv = make_host_view(in_cells);
+    auto outv = make_host_view(out_cells);
+
     for (int i = 0; i < d1; ++i) {
         for (int c = 0; c < 2; ++c) {
             for (int j = 0; j < d2; ++j) {
                 for (int k = 0; k < d3; ++k) {
-                    in_cells(i, c, j, k) = i + c * 100 + j * 10000 + k * 1000000;
+                    inv(i, c, j, k) = i + c * 100 + j * 10000 + k * 1000000;
+                    outv(i, c, j, k) = 1.1;
                 }
             }
         }
     }
 
-    out_cells.initialize(1.1);
-
-    typedef arg< 0, cell_storage_type > p_in_cells;
-    typedef arg< 1, cell_storage_type > p_out_cells;
+    typedef arg< 0, cell_storage_type, enumtype::cells > p_in_cells;
+    typedef arg< 1, cell_storage_type, enumtype::cells > p_out_cells;
 
     typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
 
-    gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&in_cells, &out_cells));
+    gridtools::aggregator_type< accessor_list_t > domain(in_cells, out_cells);
     array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
     array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -115,50 +115,21 @@ TEST(test_copy_stencil, run) {
     grid_.value_list[0] = halo_k;
     grid_.value_list[1] = d3 - 1 - halo_k;
 
-#ifdef CXX11_ENABLED
-    auto
-#else
-#ifdef __CUDACC__
-    gridtools::stencil *
-#else
-    boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-        copy = gridtools::make_computation< backend_t >(
-            domain,
-            grid_,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< test_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
-                    p_in_cells(), p_out_cells())));
+    auto copy = gridtools::make_computation< backend_t >(
+        domain,
+        grid_,
+        gridtools::make_multistage // mss_descriptor
+        (execute< forward >(),
+            gridtools::make_stage< test_functor, icosahedral_topology_t, icosahedral_topology_t::cells >(
+                p_in_cells(), p_out_cells())));
     copy->ready();
     copy->steady();
     copy->run();
 
-#ifdef __CUDACC__
-    in_cells.d2h_update();
-    out_cells.d2h_update();
-#endif
+    in_cells.sync();
+    out_cells.sync();
 
-    bool result = true;
-    for (int i = halo_nc; i < d1 - halo_nc; ++i) {
-        for (int c = 0; c < 2; ++c) {
-            for (int j = halo_mc; j < d2 - halo_mc; ++j) {
-                for (int k = 0; k < d3; ++k) {
-                    if (in_cells(i, c, j, k) != out_cells(i, c, j, k)) {
-                        std::cout << "ERRRRROR " << i << " " << c << " " << j << " " << k << " " << in_cells(i, c, j, k)
-                                  << " " << out_cells(i, c, j, k) << std::endl;
-                        result = false;
-                    }
-                }
-            }
-        }
-    }
-
-    // TODO recover verifier
-    //    verifier ver(1e-10);
-
-    //    array<array<uint_t, 2>, 4> halos = {{ {halo_nc, halo_nc},{0,0},{halo_mc, halo_mc},{halo_k, halo_k} }};
-    //    EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
-    EXPECT_TRUE(result);
+    verifier ver(1e-10);
+    array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
+    EXPECT_TRUE(ver.verify(grid_, in_cells, out_cells, halos));
 }

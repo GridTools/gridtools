@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -264,7 +264,7 @@ namespace gridtools {
         }
 
         array< bool, ndims > periodic() const {
-            GRIDTOOLS_STATIC_ASSERT(period_type::m_size == ndims, "Internal error: dimensions not matching");
+            GRIDTOOLS_STATIC_ASSERT(period_type::m_size == ndims, "Dimensions not matching");
             return m_cyclic.value();
         }
 

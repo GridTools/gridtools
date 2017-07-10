@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../iteration_policy.hpp"
-#include "../../backend_traits_fwd.hpp"
-#include "stencil-composition/iterate_domain.hpp"
-#include "../../backend_cuda/shared_iterate_domain.hpp"
-#include "../../../common/gt_assert.hpp"
 #include "../../../common/generic_metafunctions/replace_template_arguments.hpp"
+#include "../../../common/gt_assert.hpp"
+#include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "../../backend_traits_fwd.hpp"
+#include "../../iteration_policy.hpp"
+#include "stencil-composition/iterate_domain.hpp"
 
 namespace gridtools {
 
@@ -48,7 +48,7 @@ namespace gridtools {
         template < int VBoundary >
         struct padded_boundary
             : boost::mpl::integral_c< int, VBoundary <= 1 ? 1 : (VBoundary <= 2 ? 2 : (VBoundary <= 4 ? 4 : 8)) > {
-            BOOST_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8);
+            GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
         template < typename RunFunctorArguments, typename LocalDomain >
@@ -72,8 +72,8 @@ namespace gridtools {
 
             typedef backend_traits_from_id< enumtype::Cuda > backend_traits_t;
             typedef typename iterate_domain_t::strides_cached_t strides_t;
-            typedef typename iterate_domain_t::data_pointer_array_t data_pointer_array_t;
-            typedef shared_iterate_domain< data_pointer_array_t,
+            typedef typename iterate_domain_t::data_ptr_cached_t data_ptr_cached_t;
+            typedef shared_iterate_domain< data_ptr_cached_t,
                 strides_t,
                 max_extent_t,
                 typename iterate_domain_t::iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
@@ -142,9 +142,9 @@ namespace gridtools {
             int jblock = max_extent_t::jminus::value - 1;
             if (threadIdx.y < jboundary_limit) {
                 i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y + max_extent_t::jminus::value;
+                j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.y + max_extent_t::jminus::value;
                 iblock = threadIdx.x;
-                jblock = threadIdx.y + max_extent_t::jminus::value;
+                jblock = (int)threadIdx.y + max_extent_t::jminus::value;
             } else if (threadIdx.y < iminus_limit) {
                 const int padded_boundary_ = padded_boundary< -max_extent_t::iminus::value >::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
@@ -153,10 +153,10 @@ namespace gridtools {
                        enumtype::vector_width);
 
                 i = blockIdx.x * block_size_t::i_size_t::value - padded_boundary_ + threadIdx.x % padded_boundary_;
-                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
+                j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.x / padded_boundary_ +
                     max_extent_t::jminus::value;
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
-                jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+                jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
                 const int padded_boundary_ = padded_boundary< max_extent_t::iplus::value >::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
@@ -166,10 +166,10 @@ namespace gridtools {
 
                 i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x % padded_boundary_ +
                     block_size_t::i_size_t::value;
-                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
+                j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.x / padded_boundary_ +
                     max_extent_t::jminus::value;
                 iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
-                jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+                jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
             it_domain.set_index(0);
 
@@ -206,8 +206,7 @@ namespace gridtools {
          */
         template < typename RunFunctorArguments >
         struct execute_kernel_functor_cuda {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
 
@@ -322,6 +321,14 @@ namespace gridtools {
                     local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
 
+#ifndef NDEBUG
+                cudaDeviceSynchronize();
+                cudaError_t error = cudaGetLastError();
+                if (error != cudaSuccess) {
+                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+                    exit(-1);
+                }
+#endif
                 // TODOCOSUNA we do not need this. It will block the host, and we want to continue doing other stuff
                 cudaDeviceSynchronize();
             }

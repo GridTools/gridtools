@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,12 @@
 #pragma once
 
 #include <boost/mpl/filter_view.hpp>
-#include <boost/mpl/transform.hpp>
 #include <boost/mpl/reverse.hpp>
+#include <boost/mpl/transform.hpp>
 
-#include "gridtools.hpp"
-#include "./heap_allocated_temps.hpp"
 #include "./backend_traits_fwd.hpp"
 #include "./run_functor_arguments.hpp"
+#include "gridtools.hpp"
 
 #ifdef __CUDACC__
 #include "./backend_cuda/backend_cuda.hpp"
@@ -50,15 +49,16 @@
 #include "./backend_host/backend_host.hpp"
 #endif
 
+#include "../common/meta_array.hpp"
 #include "../common/pair.hpp"
 #include "./accessor.hpp"
-#include "./global_parameter.hpp"
 #include "./aggregator_type.hpp"
-#include "./mss_metafunctions.hpp"
-#include "./mss_local_domain.hpp"
+#include "./conditionals/condition.hpp"
+#include "./intermediate_impl.hpp"
 #include "./mss.hpp"
-#include "./axis.hpp"
-#include "../common/meta_array.hpp"
+#include "./mss_local_domain.hpp"
+#include "./mss_metafunctions.hpp"
+#include "./storage_wrapper.hpp"
 #include "./tile.hpp"
 #include "../storage/storage-facility.hpp"
 #include "./conditionals/condition.hpp"
@@ -72,33 +72,6 @@
 */
 
 namespace gridtools {
-
-    template < typename T >
-    struct is_meta_storage;
-
-    namespace _impl {
-
-        /**
-           \brief defines a method which associates an
-           tmp storage, whose extent depends on an index, to the
-           element in the Temporaries vector at that index position.
-
-           \tparam Temporaries is the vector of temporary placeholder types.
-        */
-        template < typename ValueType, uint_t BI, uint_t BJ, typename StrategyTraits, enumtype::platform BackendID >
-        struct get_storage_type {
-            template < typename MapElem >
-            struct apply {
-                typedef typename boost::mpl::second< MapElem >::type extent_t;
-                typedef typename boost::mpl::first< MapElem >::type temporary;
-
-                typedef pair_type< typename StrategyTraits::template get_tmp_storage< typename temporary::storage_type,
-                                       tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
-                                       tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > >::type,
-                    typename temporary::index_type > type;
-            };
-        };
-    } // namespace _impl
 
     /**
         this struct contains the 'run' method for all backends, with a
@@ -160,6 +133,7 @@ namespace gridtools {
 
         typedef backend_traits_from_id< BackendId > backend_traits_t;
         typedef grid_traits_from_id< GridId > grid_traits_t;
+        typedef storage_traits< BackendId > storage_traits_t;
         typedef typename backend_traits_t::template select_strategy< backend_ids_t >::type strategy_traits_t;
 
         static const enumtype::strategy s_strategy_id = StrategyId;
@@ -172,104 +146,84 @@ namespace gridtools {
         typedef uint_t (*query_i_threads_f)(uint_t);
         typedef uint_t (*query_j_threads_f)(uint_t);
 
-        template < typename ValueType, typename MetaDataType >
-        struct storage_type {
-            typedef typename storage_traits< BackendId >::storage_traits_aux::template select_storage<
-                ValueType,
-                typename storage_traits< BackendId >::storage_traits_aux::template select_meta_storage<
-                    typename MetaDataType::index_type,
-                    typename MetaDataType::layout,
-                    false,
-                    typename MetaDataType::halo_t,
-                    typename MetaDataType::alignment_t >::type >::type type;
-        };
-
-#ifdef CXX11_ENABLED
-
         /**
-           @brief syntactic sugar for the metadata type definition
-
-           \tparam Index an index used to differentiate the types also when there's only runtime
-           differences (e.g. only the storage dimensions differ)
-           \tparam Layout the map of the layout in memory
-           \tparam IsTemporary boolean flag set to true when the storage is a temporary one
-           \tmaram ... Tiles variadic argument containing the information abount the tiles
-           (for the Block strategy)
-
-           syntax example:
-           using metadata_t=storage_info<0,layout_map<0,1,2> >
-
-           NOTE: the information specified here will be used at a later stage
-           to define the storage meta information (the meta_storage_base type)
-        */
-        template < ushort_t Index,
-            typename Layout,
-            typename Halo = typename repeat_template_c< 0, Layout::length, halo >::type,
-            typename Alignment = typename storage_traits< BackendId >::storage_traits_aux::default_alignment::type >
-        using storage_info = typename storage_traits< BackendId >::storage_traits_aux::
-            template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type;
-
-#else
-        template < ushort_t Index,
-            typename Layout,
-            typename Halo = halo< 0, 0, 0 >,
-            typename Alignment = typename storage_traits< BackendId >::storage_traits_aux::default_alignment::type >
-        struct storage_info
-            : public storage_traits< BackendId >::storage_traits_aux::
-                  template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type {
-            typedef typename storage_traits< BackendId >::storage_traits_aux::
-                template select_meta_storage< static_uint< Index >, Layout, false, Halo, Alignment >::type super;
-
-            storage_info(uint_t const &d1, uint_t const &d2, uint_t const &d3) : super(d1, d2, d3) {}
-
-            GT_FUNCTION
-            storage_info(storage_info const &t) : super(t) {}
-        };
-
-#endif
-
-        /**
-         * @brief metafunction determining the type of a temporary storage (based on the layout)
-         * If the backend fuses multiple ESFs of a computation, it will require applying redundant computation
-         * at some halo points of each block. In this case a "no_storage_type_yet" type is selected, which will
-         * be replace into an actual storage allocating enough space for the redundant halo points. In this case,
-         * the allocated space will depend on block sizes and extents of the ESF (that is why we need to delay the
-         * instantiation of the actual storage type). If on the contrary multiple ESFs are not fused, a "standard"
-         * storage type will be enough.
+            Method to retrieve a global parameter
          */
-        template < typename ValueType, typename MetaDataType >
-        struct temporary_storage_type {
-            GRIDTOOLS_STATIC_ASSERT(is_meta_storage< MetaDataType >::value, "wrong type for the meta storage");
-            /** temporary storage must have the same iterator type than the regular storage
-             */
-          private:
-            typedef typename storage_traits< BackendId >::storage_traits_aux::template select_storage<
-                ValueType,
-                typename storage_traits< BackendId >::storage_traits_aux::template select_meta_storage<
-                    typename MetaDataType::index_type,
-                    typename MetaDataType::layout,
-                    true,
-                    typename MetaDataType::halo_t,
-                    typename MetaDataType::alignment_t >::type >::type temp_storage_t;
+        template < typename T >
+        static typename storage_traits_t::template data_store_t< T,
+            typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > >
+        make_global_parameter(T const &t) {
+            typename storage_traits_t::template special_storage_info_t< 0, selector< 0u > > si(1);
+            typename storage_traits_t::template data_store_t< T, decltype(si) > ds(si);
+            make_host_view(ds)(0) = t;
+            return ds;
+        }
 
-          public:
-            typedef no_storage_type_yet< temp_storage_t > type;
-        };
+        /**
+            Method to update a global parameter
+         */
+        template < typename T, typename V >
+        static void update_global_parameter(T &gp, V const &new_val) {
+            gp.sync();
+            auto view = make_host_view(gp);
+            assert(check_consistency(gp, view) && "Cannot create a valid view to a global parameter. Properly synced?");
+            view(0) = new_val;
+            gp.sync();
+        }
+
+        /**
+            Method to instantiate the views (according to the given backend)
+         */
+        template < typename AggregatorType, typename ViewFusionMap >
+        static void instantiate_views(AggregatorType &aggregator, ViewFusionMap &viewmap) {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+            boost::fusion::for_each(
+                viewmap, typename backend_traits_t::template instantiate_view< AggregatorType >(aggregator));
+        }
+
+        /**
+            Method to extract a storage_info pointer from a metadata_set
+         */
+        template < typename StorageInfoPtr, typename AggregatorType >
+        static typename StorageInfoPtr::value_type *extract_storage_info_ptrs(AggregatorType const &aggregator) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename boost::decay< typename StorageInfoPtr::value_type >::type >::value),
+                GT_INTERNAL_ERROR);
+            return backend_traits_t::template extract_storage_info_ptr(
+                aggregator.metadata_set_view().template get< StorageInfoPtr >().get());
+        }
+
+        /**
+            Method to extract get a storage_info for a temporary storage (could either be a icosahedral or a standard
+           storage info)
+         */
+        template < typename MaxExtent, typename StorageWrapper, typename Grid >
+        static typename StorageWrapper::storage_info_t instantiate_storage_info(Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_storage_info< typename StorageWrapper::storage_info_t >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_storage_wrapper< StorageWrapper >::value), GT_INTERNAL_ERROR);
+            return grid_traits_t::template instantiate_storage_info< MaxExtent, this_type, StorageWrapper >(grid);
+        }
 
         /**
          * @brief metafunction that computes the map of all the temporaries and their associated ij extents
-         * @tparam Domain domain type containing the placeholders for all storages (including temporaries)
+         * @tparam AggregatorType domain type containing the placeholders for all storages (including temporaries)
          * @tparam MssComponents the mss components of the MSS
          * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
          *      defined for the different functors of a MSS.
          */
-        template < typename Domain, typename MssComponents >
+        template < typename AggregatorType, typename MssComponents >
         struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
             typedef typename MssComponents::extent_sizes_t ExtendSizes;
 
-            typedef typename _impl::extract_temporaries< typename Domain::placeholders >::type list_of_temporaries;
+            // filter all the temporary args
+            typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
+                boost::mpl::vector0<>,
+                boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
+                                                   boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
+                                                   boost::mpl::_1 > >::type list_of_temporaries;
 
             // vector of written temporaries per functor (vector of vectors)
             typedef typename MssComponents::written_temps_per_functor_t written_temps_per_functor_t;
@@ -306,73 +260,62 @@ namespace gridtools {
         /**
          * @brief metafunction that computes the map of all the temporaries and their associated ij extents
          * for all the Mss components in an array (corresponding to a Computation)
-         * @tparam Domain domain type containing the placeholders for all storages (including temporaries)
+         * @tparam AggregatorType domain type containing the placeholders for all storages (including temporaries)
          * @tparam MssComponentsArray meta array of the mss components of all MSSs
          * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
          *      defined for the temporary in all MSSs.
          */
-        template < typename Domain, typename MssComponentsArray >
+        template < typename AggregatorType, typename MssComponentsArray >
         struct obtain_map_extents_temporaries_mss_array {
             GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
-            typedef
-                typename boost::mpl::fold< typename MssComponentsArray::elements,
-                    boost::mpl::map0<>,
-                    merge_extent_temporary_maps< boost::mpl::_1,
-                                               obtain_map_extents_temporaries_mss< Domain, boost::mpl::_2 > > >::type
-                    type;
+            typedef typename boost::mpl::fold<
+                typename MssComponentsArray::elements,
+                boost::mpl::map0<>,
+                merge_extent_temporary_maps< boost::mpl::_1,
+                    obtain_map_extents_temporaries_mss< AggregatorType, boost::mpl::_2 > > >::type type;
         };
 
-        template < typename Domain, typename MssArray1, typename MssArray2, typename Cond >
-        struct obtain_map_extents_temporaries_mss_array< Domain, condition< MssArray1, MssArray2, Cond > > {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
+        template < typename AggregatorType, typename MssArray1, typename MssArray2, typename Cond >
+        struct obtain_map_extents_temporaries_mss_array< AggregatorType, condition< MssArray1, MssArray2, Cond > > {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
-            typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray1 >::type type1;
-            typedef typename obtain_map_extents_temporaries_mss_array< Domain, MssArray2 >::type type2;
+            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray1 >::type type1;
+            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray2 >::type type2;
             typedef
                 typename boost::mpl::fold< type2, type1, boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type
                     type;
         };
 
         /**
-         * @brief compute a list with all the temporary storage types used by an array of mss
-         * @tparam Domain domain
+         * @brief compute a list with all the storage_wrappers
+         * @tparam AggregatorType domain
          * @tparam MssComponentsArray meta array of mss components
-         * @tparam ValueType type of field values stored in the temporary storage
-         * @tparam LayoutType memory layout
          */
-        template < typename Domain, typename MssComponentsArray, typename ValueType >
-        struct obtain_temporary_storage_types {
+        template < typename AggregatorType, typename MssComponentsArray >
+        struct obtain_storage_wrapper_list_t {
 
             GRIDTOOLS_STATIC_ASSERT((is_condition< MssComponentsArray >::value ||
                                         is_meta_array_of< MssComponentsArray, is_mss_components >::value),
-                "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
+                GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             typedef typename backend_traits_t::template get_block_size< StrategyId >::type block_size_t;
 
             static const uint_t tileI = block_size_t::i_size_t::value;
             static const uint_t tileJ = block_size_t::j_size_t::value;
 
-            typedef boost::mpl::filter_view< typename Domain::placeholders, is_plchldr_to_temp< boost::mpl::_ > >
-                temporaries;
-            typedef
-                typename obtain_map_extents_temporaries_mss_array< Domain, MssComponentsArray >::type map_of_extents;
-
-            // GRIDTOOLS_STATIC_ASSERT((boost::mpl::size<temporaries>::value ==
-            // boost::mpl::size<map_of_extents>::value),
-            //         "One of the temporaries was not found in at least one functor of all the MSS.\n Check that all
-            //         temporaries declared as in the domain are actually used in at least a functor"
-            // )
+            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssComponentsArray >::type
+                map_of_extents;
 
             typedef typename boost::mpl::fold<
                 map_of_extents,
                 boost::mpl::vector0<>,
-                typename boost::mpl::push_back< typename boost::mpl::_1,
-                    typename _impl::get_storage_type< ValueType, tileI, tileJ, strategy_traits_t, s_backend_id >::
-                        template apply< boost::mpl::_2 > > >::type type;
+                boost::mpl::push_back< boost::mpl::_1,
+                    typename _impl::get_storage_wrapper< tileI, tileJ >::template apply< boost::mpl::_2 > > >::type
+                type;
         };
 
         /**
@@ -393,16 +336,15 @@ namespace gridtools {
             ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
             GRIDTOOLS_STATIC_ASSERT(
-                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), "Internal Error: wrong type");
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
 
             strategy_traits_t::template fused_mss_loop< MssComponentsArray, backend_ids_t, ReductionData >::run(
                 mss_local_domain_list, grid, reduction_data);
         }
 
-#ifdef CXX11_ENABLED
         /**
          * \brief Calls the \ref gridtools::run_functor for each functor in the FunctorList.
          *
@@ -429,7 +371,6 @@ namespace gridtools {
                 backend_ids_t,
                 ReductionData >::run_and_serialize(mss_local_domain_list, grid, reduction_data, stencil_ser);
         }
-#endif
 
         template < typename ArgList, typename MetaList, typename Grid >
         static void prepare_temporaries(ArgList &arg_list_, MetaList &meta_list_, Grid const &grid) {
@@ -462,14 +403,6 @@ namespace gridtools {
             n_j_pes()(size): number of threads on the second dimension of the thread grid
         */
         static query_j_threads_f n_j_pes() { return &backend_traits_t::n_j_pes; }
-
-    }; // struct backend_base {
-
-    template < template < ushort_t, typename, typename, typename > class StorageInfo,
-        ushort_t Index,
-        typename Layout,
-        typename Halo,
-        typename Alignment >
-    struct is_meta_storage< StorageInfo< Index, Layout, Halo, Alignment > > : boost::mpl::true_ {};
+    };
 
 } // namespace gridtools

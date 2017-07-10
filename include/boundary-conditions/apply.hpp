@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -75,13 +75,13 @@ namespace gridtools {
 #define GTLOOP(z, n, nil)                                                                                       \
     template < typename Direction, BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename DataField) >                  \
     void loop(BOOST_PP_ENUM_BINARY_PARAMS(BOOST_PP_INC(n), DataField, &data_field)) const {                     \
-        for (uint_t i = halo_descriptors[0].loop_low_bound_outside(Direction::I);                               \
+        for (int_t i = halo_descriptors[0].loop_low_bound_outside(Direction::I);                                \
              i <= halo_descriptors[0].loop_high_bound_outside(Direction::I);                                    \
              ++i) {                                                                                             \
-            for (uint_t j = halo_descriptors[1].loop_low_bound_outside(Direction::J);                           \
+            for (int_t j = halo_descriptors[1].loop_low_bound_outside(Direction::J);                            \
                  j <= halo_descriptors[1].loop_high_bound_outside(Direction::J);                                \
                  ++j) {                                                                                         \
-                for (uint_t k = halo_descriptors[2].loop_low_bound_outside(Direction::K);                       \
+                for (int_t k = halo_descriptors[2].loop_low_bound_outside(Direction::K);                        \
                      k <= halo_descriptors[2].loop_high_bound_outside(Direction::K);                            \
                      ++k) {                                                                                     \
                     boundary_function(Direction(), BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), data_field), i, j, k); \

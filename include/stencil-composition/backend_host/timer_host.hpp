@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ namespace gridtools {
         /**
         * Reset counters
         */
-        void reset_impl() { startTime_ = 0.0; }
+        void set_impl(double const &time_) { startTime_ = time_; }
 
         /**
         * Start the stop watch

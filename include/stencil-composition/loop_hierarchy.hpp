@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -55,12 +55,14 @@ namespace gridtools {
     namespace _impl {
         template < ushort_t Index, typename IterateDomain, typename VT >
         typename boost::enable_if< typename is_positional_iterate_domain< IterateDomain >::type, void >::type
-        reset_index_if_positional(IterateDomain &itdom, VT value) {
+            GT_FUNCTION
+            reset_index_if_positional(IterateDomain &itdom, VT value) {
             itdom.template reset_positional_index< Index >(value);
         }
         template < ushort_t Index, typename IterateDomain, typename VT >
         typename boost::disable_if< typename is_positional_iterate_domain< IterateDomain >::type, void >::type
-        reset_index_if_positional(IterateDomain &, VT) {}
+            GT_FUNCTION
+            reset_index_if_positional(IterateDomain &, VT) {}
     } // namespace _impl
 
     /**@class holding one loop
@@ -88,7 +90,7 @@ namespace gridtools {
 
         /**@brief getter for the step */
         GT_FUNCTION
-        constexpr const uint_t step() const { return s_step; }
+        constexpr uint_t step() const { return s_step; }
         static const ushort_t s_id = ID;
 
         static const uint_t s_step = Step;
@@ -105,9 +107,9 @@ namespace gridtools {
     template < ushort_t ID, uint_t LowBound, uint_t UpBound, typename Integer = int_t, uint_t Step = 1 >
     struct static_loop_item {
         typedef Integer value_type;
-        constexpr const Integer up_bound() const { return UpBound; }
-        constexpr const Integer low_bound() const { return LowBound; }
-        constexpr const uint_t step() const { return s_step; }
+        GT_FUNCTION constexpr const Integer up_bound() const { return UpBound; }
+        GT_FUNCTION constexpr const Integer low_bound() const { return LowBound; }
+        GT_FUNCTION constexpr uint_t step() const { return s_step; }
         static const uint_t s_step = Step;
         static const ushort_t s_id = ID;
     };
@@ -299,7 +301,7 @@ namespace gridtools {
 
         /**@brief executes the loop
 
-           This represents the innermost loop, thus it executes the funcctor which is passed on by
+           This represents the innermost loop, thus it executes the functor which is passed on by
            all previous levels.
         */
         template < typename IterateDomain, typename InnerMostFunctor >

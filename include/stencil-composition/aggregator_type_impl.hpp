@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,99 +35,193 @@
 */
 #pragma once
 
-#include <iosfwd>
-#include "accessor.hpp"
+#include <iostream>
 
-#include <gridtools.hpp>
-#include <stdio.h>
-#include <boost/type_traits/remove_pointer.hpp>
 #include <boost/fusion/include/at.hpp>
-#include <boost/mpl/transform.hpp>
-#include <boost/mpl/set.hpp>
-#include <boost/mpl/insert.hpp>
+#include <boost/fusion/include/at_key.hpp>
 #include <boost/mpl/for_each.hpp>
+#include <boost/mpl/insert.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/transform.hpp>
+#include <boost/type_index.hpp>
+#include <boost/type_traits/remove_pointer.hpp>
+
+#include "../gridtools.hpp"
+#include "../common/vector_traits.hpp"
+#include "accessor.hpp"
 #include "arg.hpp"
+#include "../storage/storage-facility.hpp"
+
 template < typename RegularStorageType >
 struct no_storage_type_yet;
 
 namespace gridtools {
+
     namespace _debug {
-
-        struct stdcoutstuff {
+        struct print_type {
             template < typename T >
-            void operator()(T &) const {
-                std::cout << T() << " : " << typename T::storage_type() << std::endl;
+            typename boost::enable_if_c< is_pointer< T >::value, void >::type operator()(T const &t) const {
+                std::cout << boost::typeindex::type_id< T >().pretty_name() << std::endl;
+                std::cout << t.get() << "\n---\n";
             }
-        };
-
-        struct print_index {
-            template < typename T >
-            void operator()(T &) const {
-                std::cout << " *" << T() << " " << typename T::storage_type() << ", " << T::index_type::value << " * "
-                          << std::endl;
-            }
-        };
-
-        struct print_tmps {
-            template < typename T >
-            void operator()(T &) const {
-                boost::mpl::for_each< T >(print_index());
-                std::cout << " --- " << std::endl;
-            }
-        };
-
-        struct print_extents {
-            template < typename T >
-            void operator()(T const &) const {
-                std::cout << T() << std::endl;
-            }
-        };
-
-        struct print_deref {
-            template < typename T >
-            void operator()(T *const &) const {
-                std::cout << T() << std::endl;
-            }
-        };
-
-        struct print_view {
-            template < typename T >
-            void operator()(T &t) const {
-                // int a = T();
-                boost::remove_pointer< T >::type::text();
-            }
-        };
-
-        struct print_view_ {
-            std::ostream &out_s;
-            print_view_(std::ostream &out_s) : out_s(out_s) {}
 
             template < typename T >
-            void operator()(T &t) const {
-                t->info(out_s);
+            typename boost::enable_if_c< (is_arg_storage_pair< T >::value &&
+                                             is_data_store< typename T::storage_t >::value),
+                void >::type
+            operator()(T const &t) const {
+                std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
+                std::cout << t.ptr.get() << "\n---\n";
+            }
+
+            template < typename T >
+            typename boost::enable_if_c< (is_arg_storage_pair< T >::value && is_vector< typename T::storage_t >::value),
+                void >::type
+            operator()(T const &t) const {
+                std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
+                std::cout << t.ptr.get() << std::endl;
+                if (t.ptr.get())
+                    for (unsigned i = 0; i < t.ptr.get()->size(); ++i) {
+                        std::cout << "\t" << &(*t.ptr.get())[i] << " -> " << (*t.ptr.get())[i].get_storage_ptr()
+                                  << std::endl;
+                    }
+            }
+
+            template < typename T >
+            typename boost::enable_if_c< is_arg_storage_pair< T >::value &&
+                                             is_data_store_field< typename T::storage_t >::value,
+                void >::type
+            operator()(T const &t) const {
+                std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
+                std::cout << t.ptr.get() << std::endl;
+                if (t.ptr.get())
+                    for (auto &e : t.ptr->get_field()) {
+                        auto *ptr = (e.valid() ? e.get_storage_ptr() : 0x0);
+                        std::cout << "\t" << &e << " -> " << ptr << std::endl;
+                    }
             }
         };
+    }
 
-        struct print_domain_info {
-            template < typename StorageType >
-            GT_FUNCTION void operator()(pointer< StorageType > s) const {
-                printf("PTR %x\n", s);
-            }
+    namespace _impl {
+
+        // metafunction that checks if argument is a suitable aggregator element (only arg_storage_pair)
+        template < typename... Args >
+        struct aggregator_arg_storage_pair_check;
+
+        template < typename ArgStoragePair, typename... Rest >
+        struct aggregator_arg_storage_pair_check< ArgStoragePair, Rest... > {
+            typedef typename boost::decay< ArgStoragePair >::type arg_storage_pair_t;
+            typedef typename is_arg_storage_pair< arg_storage_pair_t >::type is_suitable;
+            typedef typename boost::mpl::and_< is_suitable,
+                typename aggregator_arg_storage_pair_check< Rest... >::type > type;
         };
 
-        struct dt_print_pointer {
-            template < typename PType >
-            GT_FUNCTION_WARNING void operator()(PType const &s) const {
-                printf("Pointer Value %x\n", s.get());
-            }
+        template <>
+        struct aggregator_arg_storage_pair_check<> {
+            typedef boost::mpl::true_ type;
+        };
+
+        // metafunction that checks if argument is a suitable aggregator element (only data_store, data_store_field,
+        // std::vector)
+        template < typename... Args >
+        struct aggregator_storage_check;
+
+        template < typename Storage, typename... Rest >
+        struct aggregator_storage_check< Storage, Rest... > {
+            typedef typename boost::decay< Storage >::type storage_t;
+            typedef typename is_data_store< storage_t >::type c1;
+            typedef typename is_data_store_field< storage_t >::type c2;
+            typedef typename is_vector< storage_t >::type c3;
+            typedef typename boost::mpl::or_< c1, c2, c3 >::type is_suitable;
+            typedef typename boost::mpl::and_< is_suitable, typename aggregator_storage_check< Rest... >::type > type;
+        };
+
+        template <>
+        struct aggregator_storage_check<> {
+            typedef boost::mpl::true_ type;
+        };
+
+        // metafunction that replaces the ID of a storage_info type
+        template < typename T, typename NewId >
+        struct replace_storage_info_index;
+
+        template < template < unsigned, typename, typename, typename > class StorageInfo,
+            unsigned Id,
+            typename Layout,
+            typename Halo,
+            typename Alignment,
+            typename NewId >
+        struct replace_storage_info_index< StorageInfo< Id, Layout, Halo, Alignment >, NewId > {
+            typedef StorageInfo< NewId::value, Layout, Halo, Alignment > type;
+        };
+
+        // metafunction class that extracts the storage_info ID of a given arg
+        struct extract_storage_info_id_from_arg {
+            template < typename Arg >
+            struct apply {
+                static_assert(is_arg< Arg >::value, "given type is no arg type");
+                typedef typename get_storage_from_arg< Arg >::type storage_t;
+                typedef typename storage_t::storage_info_t storage_info_t;
+                static_assert(is_storage_info< storage_info_t >::value, "given type is no arg type");
+                typedef boost::mpl::int_< storage_info_t::id > type;
+            };
+        };
+
+        // replace the storage_info ID contained in a given arg with a new ID
+        template < typename NewId, typename T >
+        struct replace_arg_storage_info;
+
+        template < typename NewId, unsigned Id, typename Storage, typename StorageInfo, typename L, bool B >
+        struct replace_arg_storage_info< NewId, arg< Id, data_store< Storage, StorageInfo >, L, B > > {
+            // replace the index
+            typedef typename L::n_colors location_info_colors_t;
+            typedef static_int< NewId::value + location_info_colors_t::value - 1 > new_id_t;
+            typedef typename replace_storage_info_index< StorageInfo, new_id_t >::type new_storage_info_t;
+            // rebuild new arg type
+            typedef arg< Id, data_store< Storage, new_storage_info_t >, L, B > type;
+        };
+
+        template < typename NewId, unsigned Id, typename DataStore, unsigned... N, typename L, bool B >
+        struct replace_arg_storage_info< NewId, arg< Id, data_store_field< DataStore, N... >, L, B > > {
+            typedef typename replace_arg_storage_info< NewId, arg< Id, DataStore, L, B > >::type new_data_store_t;
+            typedef arg< Id, data_store_field< typename new_data_store_t::storage_t, N... >, L, B > type;
+        };
+
+        template < typename NewId, unsigned Id, typename DataStore, typename L, bool B >
+        struct replace_arg_storage_info< NewId, arg< Id, std::vector< DataStore >, L, B > > {
+            typedef typename replace_arg_storage_info< NewId, arg< Id, DataStore, L, B > >::type new_data_store_t;
+            typedef arg< Id, std::vector< typename new_data_store_t::storage_t >, L, B > type;
         };
 
     } // namespace _debug
 
-    template < typename Storage, uint_t Size >
-    struct expandable_parameters;
-
     namespace _impl {
+
+        /**
+           \brief checks if a given list of placeholders are having consecutive indices
+        */
+        template < typename Placeholders >
+        struct continuous_indices_check {
+            // check if type of given Placeholders is correct
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::type::value), "wrong type:\
+the continuous_indices_check template argument must be an MPL vector of placeholders (arg<...>)");
+            // extract the indices of all placeholders
+            typedef typename boost::mpl::fold< Placeholders,
+                boost::mpl::vector<>,
+                boost::mpl::push_back< boost::mpl::_1, arg_index< boost::mpl::_2 > > >::type indices_t;
+            // check that all inidices are consecutive
+            typedef typename boost::mpl::fold< boost::mpl::range_c< int, 0, boost::mpl::size< indices_t >::value - 1 >,
+                boost::mpl::true_,
+                boost::mpl::if_< boost::is_same< boost::mpl::at< indices_t, boost::mpl::next< boost::mpl::_2 > >,
+                                     boost::mpl::next< boost::mpl::at< indices_t, boost::mpl::_2 > > >,
+                                                   boost::mpl::_1,
+                                                   boost::mpl::false_ > >::type cont_indices_t;
+            // check that the first index is zero
+            typedef boost::mpl::bool_< cont_indices_t::value && (boost::mpl::at_c< indices_t, 0 >::type::value == 0) >
+                type;
+        };
+
         struct l_get_type {
             template < typename U, typename Dummy = void >
             struct apply {
@@ -147,9 +241,9 @@ namespace gridtools {
             template < typename U >
             struct apply {
 #ifndef CXX11_ENABLED
-                typedef typename static_uint< U::index_type::value >::type
+                typedef typename static_uint< U::index_t::value >::type
 #else
-                typedef static_uint< U::index_type::value >
+                typedef static_uint< U::index_t::value >
 #endif
                     type;
             };
@@ -161,9 +255,22 @@ namespace gridtools {
         struct l_get_it_type {
             template < typename U >
             struct apply {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< U >::type::value), "wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_arg< U >::type::value), GT_INTERNAL_ERROR);
                 typedef typename U::iterator type;
             };
+        };
+
+        struct l_get_arg_storage_pair_type {
+            template < typename Arg, typename Dummy = void >
+            struct apply {
+                typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
+            };
+        };
+
+        template < typename Arg >
+        struct create_arg_storage_pair_type {
+            static_assert(is_arg< Arg >::value, "The given type is not an arg type");
+            typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
         };
 
         struct moveto_functor {
@@ -224,20 +331,6 @@ namespace gridtools {
         namespace {
             template < typename T1, typename T2 >
             struct matching {
-                typedef typename boost::is_same< T1, T2 >::type type;
-            };
-
-            // // specialization for base_storage
-            // template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
-            // struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< T1 > > >, Cond >,
-            //                  arg< ID, no_storage_type_yet< expandable_parameters< T2, Size > >, Cond > > {
-            //     typedef typename boost::is_same< T1, T2 >::type type;
-            // };
-
-            // specialization for storage
-            template < typename T1, typename T2, uint_t Size, ushort_t ID, typename Cond >
-            struct matching< arg< ID, std::vector< pointer< no_storage_type_yet< storage< T1 > > > >, Cond >,
-                arg< ID, no_storage_type_yet< storage< expandable_parameters< T2, Size > > >, Cond > > {
                 typedef typename boost::is_same< T1, T2 >::type type;
             };
 
@@ -308,10 +401,95 @@ namespace gridtools {
         struct extract_temporaries {
             typedef typename boost::mpl::fold< ListOfPlaceHolders,
                 boost::mpl::vector0<>,
-                boost::mpl::if_< is_plchldr_to_temp< boost::mpl::_2 >,
+                boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
                                                    boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
                                                    boost::mpl::_1 > >::type type;
         };
+
+        /** Metafunction class.
+         *  This class is filling a storage_info_set with pointers from given storages (data_store, data_store_field,
+         * std::vector)
+         */
+        template < typename MetaDataSet >
+        struct fill_metadata_set {
+          private:
+            MetaDataSet &m_storageinfo_set;
+
+          public:
+            fill_metadata_set(MetaDataSet &storageinfo) : m_storageinfo_set(storageinfo) {}
+
+            // unwrap an recursive call if given type is a pointer type
+            template < typename PointerType, typename boost::enable_if< is_pointer< PointerType >, int >::type = 0 >
+            void operator()(PointerType &ds) const {
+                this->operator()(*ds.get());
+            }
+
+            // specialization for std::vector (expandable param)
+            template < typename VectorType, typename boost::enable_if< is_vector< VectorType >, int >::type = 0 >
+            void operator()(VectorType &ds) const {
+                typedef typename VectorType::value_type::storage_info_t storage_info_t;
+                GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
+                typedef pointer< const storage_info_t > ptr_t;
+                m_storageinfo_set.insert(ptr_t(ds[0].get_storage_info_ptr()));
+            }
+
+            // specialization for data store type
+            template < typename DataStoreType,
+                typename boost::enable_if< is_data_store< DataStoreType >, int >::type = 0 >
+            void operator()(DataStoreType &ds) const {
+                typedef typename DataStoreType::storage_info_t storage_info_t;
+                GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
+                typedef pointer< const storage_info_t > ptr_ty;
+                m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr()));
+            }
+
+            // specialization for data store field type
+            template < typename DataStoreFieldType,
+                typename boost::enable_if< is_data_store_field< DataStoreFieldType >, int >::type = 0 >
+            void operator()(DataStoreFieldType &ds) const {
+                typedef typename DataStoreFieldType::storage_info_t storage_info_t;
+                GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
+                typedef pointer< const storage_info_t > ptr_ty;
+                m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr()));
+            }
+
+            // reset metadata_set with fresh storage info ptrs contained in storages (either data_store,
+            // data_store_field, std::vector)
+            template < typename Storage, typename... Rest >
+            void reassign(Storage first, Rest... stores) {
+                this->operator()(first);
+                reassign(stores...);
+            }
+            void reassign() {}
+        };
+
+        /** Metafunction class.
+         *  This class is filling a fusion::vector of pointers to storages with pointers from given arg_storage_pairs
+         */
+        template < typename FusionVector >
+        struct fill_arg_storage_pair_list {
+          private:
+            FusionVector &m_fusion_vec;
+
+          public:
+            fill_arg_storage_pair_list(FusionVector &fusion_vec) : m_fusion_vec(fusion_vec) {}
+
+            template < typename ArgStoragePair,
+                typename boost::enable_if< is_arg_storage_pair< ArgStoragePair >, int >::type = 0 >
+            void operator()(ArgStoragePair arg_storage_pair) const {
+                boost::fusion::at< typename ArgStoragePair::arg_t::index_t >(m_fusion_vec) = arg_storage_pair;
+            }
+
+            // reset fusion::vector of pointers to storages with fresh pointers from given storages (either data_store,
+            // data_store_field, std::vector)
+            template < typename ArgStoragePair, typename... Rest >
+            void reassign(ArgStoragePair first, Rest... pairs) {
+                this->operator()(first);
+                reassign(pairs...);
+            }
+            void reassign() {}
+        };
+
     } // namespace _impl
 
 } // namespace gridtoold

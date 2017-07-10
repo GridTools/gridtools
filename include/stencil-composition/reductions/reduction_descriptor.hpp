@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -54,9 +54,8 @@ namespace gridtools {
      */
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
     struct reduction_descriptor {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_sequence_of< EsfDescrSequence, is_esf_descriptor >::value), "Internal Error: invalid type");
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< EsfDescrSequence >::value == 1), "Internal Error: invalid type");
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfDescrSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< EsfDescrSequence >::value == 1), GT_INTERNAL_ERROR);
 
         typedef ReductionType reduction_type_t;
         typedef EsfDescrSequence esf_sequence_t;

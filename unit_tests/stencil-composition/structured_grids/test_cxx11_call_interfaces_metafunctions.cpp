@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,8 @@
 #include "gtest/gtest.h"
 
 #include <stencil-composition/global_accessor.hpp>
-#include <stencil-composition/structured_grids/call_interfaces.hpp>
-#include <stencil-composition/structured_grids/call_interfaces_metafunctions.hpp>
+#include <stencil-composition/stencil-functions/call_interfaces.hpp>
+#include <stencil-composition/stencil-functions/call_interfaces_metafunctions.hpp>
 #include <type_traits>
 #include <tuple>
 
@@ -74,7 +74,7 @@ struct pretent_function {
     typedef gridtools::accessor< 3, gridtools::enumtype::inout > a3;
 
     template < typename Eval >
-    static void Do(Eval const &eval) {
+    static void Do(Eval &eval) {
         eval(a1()) += eval(a0());
         eval(a3()) += eval(a2());
     }
@@ -121,7 +121,9 @@ void complex_test(Args &... args) {
 
     auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-    pretent_function::Do(f_aggregator_t(pretent_aggregator(), y));
+    pretent_aggregator pa;
+    f_aggregator_t fa(pa, y);
+    pretent_function::Do(fa);
 }
 
 TEST(call_interfaces_metafunctions, compile_time_basic_tests) {

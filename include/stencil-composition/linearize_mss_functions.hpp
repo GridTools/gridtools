@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ namespace gridtools {
         template < typename EsfsVector, typename PushRegular, typename PushIndependent = PushRegular >
         struct linearize_esf_array {
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfsVector, is_esf_descriptor >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfsVector, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
 
             template < typename Vector, typename Element >
             struct push_into {

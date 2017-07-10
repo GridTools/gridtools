@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -56,23 +56,24 @@ namespace gridtools {
             float4,
             double,
             double2 > texture_types;
+
+        template < typename T >
+        struct remove_restrict {
+            typedef T type;
+        };
+
+        template < typename T >
+        struct remove_restrict< T __restrict__ > {
+            typedef T type;
+        };
     } // namespace _impl
-
-    template < typename T >
-    struct remove_restrict {
-        typedef T type;
-    };
-
-    template < typename T >
-    struct remove_restrict< T __restrict__ > {
-        typedef T type;
-    };
 
     template < typename T >
     struct is_texture_type
         : boost::mpl::has_key< _impl::texture_types,
               typename boost::remove_cv< typename boost::remove_reference<
-                  typename boost::remove_pointer< typename remove_restrict< T >::type >::type >::type >::type > {};
+                  typename boost::remove_pointer< typename _impl::remove_restrict< T >::type >::type >::type >::type > {
+    };
 
 #ifdef CXX11_ENABLED
     template < typename T >

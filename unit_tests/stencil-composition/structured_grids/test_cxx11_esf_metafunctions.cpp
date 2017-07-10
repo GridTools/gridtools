@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -57,7 +57,7 @@ struct functor0 {
     typedef boost::mpl::vector< in0, in1, in2, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 struct functor1 {
@@ -69,7 +69,7 @@ struct functor1 {
     typedef boost::mpl::vector< in0, out, in2, in3 > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 struct functor2 {
@@ -80,7 +80,7 @@ struct functor2 {
     typedef boost::mpl::vector< in0, in1, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 struct functor3 {
@@ -92,7 +92,7 @@ struct functor3 {
     typedef boost::mpl::vector< in0, in1, out, in3 > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 struct functor4 {
@@ -104,7 +104,7 @@ struct functor4 {
     typedef boost::mpl::vector< in0, in1, in2, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 struct functor5 {
@@ -116,7 +116,7 @@ struct functor5 {
     typedef boost::mpl::vector< in0, in1, in2, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 struct functor6 {
@@ -128,7 +128,7 @@ struct functor6 {
     typedef boost::mpl::vector< out, in1, in2, in3 > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 std::ostream &operator<<(std::ostream &s, functor0) { return s << "functor0"; }
@@ -140,21 +140,20 @@ std::ostream &operator<<(std::ostream &s, functor5) { return s << "functor5"; }
 std::ostream &operator<<(std::ostream &s, functor6) { return s << "functor6"; }
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 
-typedef layout_map< 2, 1, 0 > layout_t;
-typedef BACKEND::storage_info< 0, layout_t > storage_info_type;
-typedef BACKEND::storage_type< float_type, storage_info_type >::type storage_type;
+typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > storage_t;
 
-typedef arg< 0, storage_type > o0;
-typedef arg< 1, storage_type > o1;
-typedef arg< 2, storage_type > o2;
-typedef arg< 3, storage_type > o3;
-typedef arg< 4, storage_type > o4;
-typedef arg< 5, storage_type > o5;
-typedef arg< 6, storage_type > o6;
-typedef arg< 7, storage_type > in0;
-typedef arg< 8, storage_type > in1;
-typedef arg< 9, storage_type > in2;
-typedef arg< 10, storage_type > in3;
+typedef arg< 0, storage_t > o0;
+typedef arg< 1, storage_t > o1;
+typedef arg< 2, storage_t > o2;
+typedef arg< 3, storage_t > o3;
+typedef arg< 4, storage_t > o4;
+typedef arg< 5, storage_t > o5;
+typedef arg< 6, storage_t > o6;
+typedef arg< 7, storage_t > in0;
+typedef arg< 8, storage_t > in1;
+typedef arg< 9, storage_t > in2;
+typedef arg< 10, storage_t > in3;
 int main() {
     typedef decltype(make_stage< functor0 >(in0(), in1(), in2(), o0())) functor0__;
     typedef decltype(make_stage< functor1 >(in3(), o1(), in0(), o0())) functor1__;

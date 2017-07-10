@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -51,8 +51,6 @@ struct fake_storage_type {
 TEST(unfold_independent, test) {
 
     using namespace gridtools;
-
-    //    typedef gridtools::STORAGE<double, gridtools::layout_map<0,1,2> > storage_type;
 
     typedef arg< 0, fake_storage_type > p0;
     typedef arg< 1, fake_storage_type > p1;
