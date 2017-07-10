@@ -47,6 +47,8 @@
 #include "common/storage_interface.hpp"
 #include "common/storage_info_interface.hpp"
 
+#include "../common/array_addons.hpp"
+
 namespace gridtools {
 
     namespace {
@@ -360,6 +362,16 @@ namespace gridtools {
          * @return name of the data_store
          */
         std::string const &name() const { return m_name; }
+
+        /**
+         * @brief return strides as std::vector
+         */
+        std::vector< uint_t > strides() const { return to_vector(m_shared_storage_info->m_strides); }
+
+        /**
+         * @brief return dims as std::vector
+         */
+        std::vector< uint_t > dims() const { return to_vector(m_shared_storage_info->m_dims); }
     };
 
     // simple metafunction to check if a type is a cuda_data_store
