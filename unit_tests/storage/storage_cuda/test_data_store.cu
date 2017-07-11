@@ -69,8 +69,8 @@ TEST(DataStoreTest, Simple) {
     using data_store_t = data_store< cuda_storage< double >, storage_info_t >;
     storage_info_t si(3, 3, 3);
     constexpr storage_info_interface< 0, layout_map< 2, 1, 0 > > csi(3, 3, 3);
-    constexpr storage_info_interface< 1, layout_map< 2, 1, 0 >, halo< 2, 1, 0 > > csih(3, 3, 3);
-    constexpr storage_info_interface< 2, layout_map< 2, 1, 0 >, halo< 2, 1, 0 >, alignment< 16 > > csiha(3, 3, 3);
+    constexpr storage_info_interface< 1, layout_map< 2, 1, 0 >, halo< 2, 1, 0 > > csih(7, 5, 3);
+    constexpr storage_info_interface< 2, layout_map< 2, 1, 0 >, halo< 2, 1, 0 >, alignment< 16 > > csiha(7, 5, 3);
     // check sizes, strides, and alignment
     GRIDTOOLS_STATIC_ASSERT(csi.dim< 0 >() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(csi.dim< 1 >() == 3, "dimension check failed.");
@@ -246,7 +246,7 @@ TEST(DataStoreTest, Naming) {
 TEST(DataStoreTest, ExternalPointer) {
     // test with an external CPU pointer
     storage_info_t si(10, 10, 10);
-    double *external_ptr = new double[si.size()];
+    double *external_ptr = new double[si.padded_total_length()];
     // create a data_store with externally managed storage
     data_store< cuda_storage< double >, storage_info_t > ds(si, external_ptr, ownership::ExternalCPU);
     ds.sync();
@@ -267,7 +267,7 @@ TEST(DataStoreTest, ExternalPointer) {
 TEST(DataStoreTest, DimAndSizeInterface) {
     storage_info_t si(128, 128, 80);
     data_store< cuda_storage< double >, storage_info_t > ds(si, 3.1415);
-    ASSERT_TRUE((ds.size() == si.size()));
+    ASSERT_TRUE((ds.padded_total_length() == si.padded_total_length()));
     ASSERT_TRUE((ds.dim< 0 >() == si.dim< 0 >()));
     ASSERT_TRUE((ds.dim< 1 >() == si.dim< 1 >()));
     ASSERT_TRUE((ds.dim< 2 >() == si.dim< 2 >()));
@@ -277,17 +277,23 @@ TEST(DataStoreTest, ExternalGPUPointer) {
     // test with an external GPU pointer
     storage_info_t si(10, 10, 10);
     double *external_gpu_ptr;
-    double *external_cpu_ptr = new double[si.size()];
+    double *external_cpu_ptr = new double[si.padded_total_length()];
     // initialize CPU ptr
+<<<<<<< HEAD
     for (uint_t i = 0; i < si.size(); ++i) {
+=======
+    for (unsigned i = 0; i < si.padded_total_length(); ++i) {
+>>>>>>> 59a6e83643ea3b66346769d4ccbde22fa5738a6b
         external_cpu_ptr[i] = 3.1415;
     }
     // create a GPU ptr
-    cudaError_t err = cudaMalloc(&external_gpu_ptr, si.size() * sizeof(double));
+    cudaError_t err = cudaMalloc(&external_gpu_ptr, si.padded_total_length() * sizeof(double));
     ASSERT_TRUE((err == cudaSuccess));
     // initialize the GPU ptr
-    err = cudaMemcpy(
-        (void *)external_gpu_ptr, (void *)external_cpu_ptr, si.size() * sizeof(double), cudaMemcpyHostToDevice);
+    err = cudaMemcpy((void *)external_gpu_ptr,
+        (void *)external_cpu_ptr,
+        si.padded_total_length() * sizeof(double),
+        cudaMemcpyHostToDevice);
     ASSERT_TRUE((err == cudaSuccess));
     // create a data_store with externally managed storage
     data_store< cuda_storage< double >, storage_info_t > ds(si, external_gpu_ptr, ownership::ExternalGPU);

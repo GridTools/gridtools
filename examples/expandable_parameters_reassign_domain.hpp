@@ -115,7 +115,7 @@ namespace test_expandable_parameters {
         auto comp_ = make_computation< BACKEND >(domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                                                     define_caches(cache< IJ, local >(p_tmp())),
+                                                     define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
                                                      make_stage< functor_exp >(p_tmp(), p_in()),
                                                      make_stage< functor_exp >(p_out(), p_tmp())));
 

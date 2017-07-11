@@ -55,18 +55,23 @@ namespace gridtools {
     struct is_alignment;
 
     /*
-     * @brief struct used to extend a given number of dimensions with a given halo
-     * @tparam HaloVal halo size
+     * @brief struct used to replace masked dimensions with size 1. otherwise the
+     * passed dimension is returned unmodified.
      * @tparam LayoutArg layout map entry
      */
+<<<<<<< HEAD
     template < uint_t HaloVal, int LayoutArg >
     struct extend_by_halo {
+=======
+    template < int LayoutArg >
+    struct handle_masked_dims {
+>>>>>>> 59a6e83643ea3b66346769d4ccbde22fa5738a6b
         template < typename Dim >
         static constexpr uint_t extend(Dim d) {
             GRIDTOOLS_STATIC_ASSERT(
                 boost::is_integral< Dim >::value, GT_INTERNAL_ERROR_MSG("Dimensions has to be integral type."));
             return error_or_return((d > 0),
-                ((LayoutArg == -1) ? 1 : d + 2 * HaloVal),
+                ((LayoutArg == -1) ? 1 : d),
                 "Tried to instantiate storage info with zero or negative dimensions");
         }
     };

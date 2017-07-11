@@ -121,7 +121,7 @@ namespace gridtools {
 #else  // CXX11_ENABLED
                 typename iterate_domain_t::template accessor_return_type<
                     typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type
-                operator()(Accessor const &arg) const
+                operator()(Accessor const &arg)
 #endif // CXX11_ENABLED
             {
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;

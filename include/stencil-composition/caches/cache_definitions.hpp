@@ -44,7 +44,7 @@ namespace gridtools {
     * @enum cache_io_policy
     * Enum listing the cache IO policies
     */
-    enum cache_io_policy {
+    enum class cache_io_policy {
         fill_and_flush, /**< Read values from the cached field and write the result back */
         fill,           /**< Read values form the cached field but do not write back */
         flush,          /**< Write values back the the cached field but do not read in */

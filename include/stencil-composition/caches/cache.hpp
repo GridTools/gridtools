@@ -86,7 +86,9 @@ namespace gridtools {
                 (!boost::is_same< typename Arg::location_t, enumtype::default_location_type >::value),
                 "args in irregular grids require a location type");
 #endif
+            typedef Interval interval_t;
             typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;
+            static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
         };
 
         /**
@@ -120,8 +122,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
         GRIDTOOLS_STATIC_ASSERT(((boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType == K),
             "Passing an interval to the cache<> construct is only allowed and required by the K caches");
-        GRIDTOOLS_STATIC_ASSERT(
-            (!(boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType != K || cacheIOPolicy == local),
+        GRIDTOOLS_STATIC_ASSERT((!(boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType != K ||
+                                    cacheIOPolicy == cache_io_policy::local),
             "cache<K, ... > construct requires an interval (unless the IO policy is local)");
 
         GRIDTOOLS_STATIC_ASSERT(

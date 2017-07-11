@@ -94,8 +94,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(
                 is_array< Array >::value, GT_INTERNAL_ERROR_MSG("Passed type is not an array type."));
             typedef typename StorageInfo::halo_t halo_t;
-            return get_storage_info_from_array< StorageInfo, Array, N - 1 >(
-                arr, arr[N - 1] - 2 * halo_t::template at< N - 1 >(), r...);
+            return get_storage_info_from_array< StorageInfo, Array, N - 1 >(arr, arr[N - 1], r...);
         }
     }
 
@@ -772,7 +771,7 @@ namespace gridtools {
         GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
             : m_dims{idim, jdim, kdim} {}
 
-        __device__ icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
+        GT_FUNCTION_DEVICE icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
 
         template < typename LocationType,
             typename ValueType,

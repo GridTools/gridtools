@@ -99,6 +99,7 @@ TEST(StorageInfo, Simple) {
 
     // storage info has to be constexpr capable
     constexpr storage_info_interface< 0, layout_map< 1, 0, 2 > > si(3, 3, 3);
+<<<<<<< HEAD
     GRIDTOOLS_STATIC_ASSERT(si.size() == 27, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.stride< 0 >() == 3, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.stride< 1 >() == 9, "storage info is not constexpr anymore");
@@ -106,6 +107,17 @@ TEST(StorageInfo, Simple) {
     GRIDTOOLS_STATIC_ASSERT(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
+=======
+    static_assert(si.padded_total_length() == 27, "storage info is not constexpr anymore");
+    static_assert(si.total_length() == 27, "storage info is not constexpr anymore");
+    static_assert(si.length() == 27, "storage info is not constexpr anymore");
+    static_assert(si.stride< 0 >() == 3, "storage info is not constexpr anymore");
+    static_assert(si.stride< 1 >() == 9, "storage info is not constexpr anymore");
+    static_assert(si.stride< 2 >() == 1, "storage info is not constexpr anymore");
+    static_assert(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
+    static_assert(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
+    static_assert(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
+>>>>>>> 59a6e83643ea3b66346769d4ccbde22fa5738a6b
 
     // test wiht different dims
     storage_info_interface< 0, layout_map< 1, 2, 3, 0 > > x(5, 7, 8, 2);
@@ -179,7 +191,7 @@ TEST(StorageInfo, ArrayAccess) {
 
 TEST(StorageInfo, Halo) {
     // test with simple halo, dims and strides are extended
-    storage_info_interface< 0, layout_map< 2, 1, 0 >, halo< 2, 2, 2 > > x(3, 3, 3);
+    storage_info_interface< 0, layout_map< 2, 1, 0 >, halo< 2, 2, 2 > > x(7, 7, 7);
     EXPECT_EQ((x.dim< 0 >()), 7);
     EXPECT_EQ((x.dim< 1 >()), 7);
     EXPECT_EQ((x.dim< 2 >()), 7);
@@ -189,7 +201,7 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((x.stride< 2 >()), 49);
 
     // test with simple halo, dims and strides are extended
-    storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 2, 2, 2 > > y(3, 3, 3);
+    storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 2, 2, 2 > > y(7, 7, 7);
     EXPECT_EQ((y.dim< 0 >()), 7);
     EXPECT_EQ((y.dim< 1 >()), 7);
     EXPECT_EQ((y.dim< 2 >()), 7);
@@ -199,7 +211,7 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((y.stride< 2 >()), 1);
 
     // test with heterogeneous halo, dims and strides are extended
-    storage_info_interface< 0, layout_map< 2, 1, 0 >, halo< 2, 4, 0 > > z(3, 3, 3);
+    storage_info_interface< 0, layout_map< 2, 1, 0 >, halo< 2, 4, 0 > > z(7, 11, 3);
     EXPECT_EQ((z.dim< 0 >()), 7);
     EXPECT_EQ((z.dim< 1 >()), 11);
     EXPECT_EQ((z.dim< 2 >()), 3);
@@ -212,7 +224,7 @@ TEST(StorageInfo, Halo) {
 TEST(StorageInfo, Alignment) {
     {
         // test with different dims and alignment
-        storage_info_interface< 0, layout_map< 1, 2, 3, 0 >, halo< 0, 0, 0, 0 >, alignment< 32 > > x(5, 7, 8, 2);
+        storage_info_interface< 0, layout_map< 1, 2, 3, 0 >, halo< 0, 0, 0, 0 >, alignment< 32 > > x(5, 7, 32, 2);
         EXPECT_EQ((x.dim< 0 >()), 5);
         EXPECT_EQ((x.dim< 1 >()), 7);
         EXPECT_EQ((x.dim< 2 >()), 32);
@@ -225,7 +237,7 @@ TEST(StorageInfo, Alignment) {
     }
     {
         // test with different dims, halo and alignment
-        storage_info_interface< 0, layout_map< 1, 2, 3, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(5, 7, 8, 2);
+        storage_info_interface< 0, layout_map< 1, 2, 3, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(7, 11, 32, 10);
         EXPECT_EQ((x.dim< 0 >()), 7);
         EXPECT_EQ((x.dim< 1 >()), 11);
         EXPECT_EQ((x.dim< 2 >()), 32);
@@ -243,7 +255,7 @@ TEST(StorageInfo, Alignment) {
     }
     {
         // test with different dims, halo and alignment
-        storage_info_interface< 0, layout_map< 3, 2, 1, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(5, 7, 8, 2);
+        storage_info_interface< 0, layout_map< 3, 2, 1, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(32, 11, 14, 10);
         EXPECT_EQ((x.dim< 0 >()), 32);
         EXPECT_EQ((x.dim< 1 >()), 11);
         EXPECT_EQ((x.dim< 2 >()), 14);
@@ -261,7 +273,7 @@ TEST(StorageInfo, Alignment) {
     }
     {
         // test with masked dimensions
-        storage_info_interface< 0, layout_map< 1, -1, -1, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(5, 7, 8, 2);
+        storage_info_interface< 0, layout_map< 1, -1, -1, 0 >, halo< 1, 2, 3, 4 >, alignment< 32 > > x(7, 7, 8, 10);
         EXPECT_EQ((x.dim< 0 >()), 7);
         EXPECT_EQ((x.dim< 1 >()), 1);
         EXPECT_EQ((x.dim< 2 >()), 1);
@@ -277,6 +289,40 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ(x.index(0, 0, 1, 0), 31);
         EXPECT_EQ(x.index(0, 0, 0, 1), 31 + 7);
 
-        EXPECT_EQ(x.size(), 7 * 10 + 31);
+        EXPECT_EQ(x.padded_total_length(), 7 * 10 + 31);
+        EXPECT_EQ(x.total_length(), 7 * 10);
+        EXPECT_EQ(x.length(), 5 * 2);
     }
+}
+
+TEST(StorageInfo, BeginEnd) {
+    // no halo, no alignment
+    storage_info_interface< 0, layout_map< 1, 2, 0 > > x(7, 7, 7);
+    EXPECT_EQ(x.length(), 7 * 7 * 7);
+    EXPECT_EQ(x.total_length(), 7 * 7 * 7);
+    EXPECT_EQ(x.padded_total_length(), 7 * 7 * 7);
+    EXPECT_EQ(x.begin(), 0);
+    EXPECT_EQ(x.end(), 7 * 7 * 7 - 1);
+    EXPECT_EQ(x.total_begin(), 0);
+    EXPECT_EQ(x.total_end(), 7 * 7 * 7 - 1);
+
+    // halo, no alignment
+    storage_info_interface< 0, layout_map< 1, 2, 0 >, halo< 1, 2, 3 > > y(9, 11, 13);
+    EXPECT_EQ(y.length(), 7 * 7 * 7);
+    EXPECT_EQ(y.total_length(), 9 * 11 * 13);
+    EXPECT_EQ(y.padded_total_length(), 9 * 11 * 13);
+    EXPECT_EQ(y.begin(), y.index(1, 2, 3));
+    EXPECT_EQ(y.end(), y.index(7, 8, 9));
+    EXPECT_EQ(y.total_begin(), y.index(0, 0, 0));
+    EXPECT_EQ(y.total_end(), y.index(8, 10, 12));
+
+    // halo, alignment
+    storage_info_interface< 0, layout_map< 1, 2, 0 >, halo< 1, 2, 3 >, alignment< 16 > > z(9, 11, 13);
+    EXPECT_EQ(z.length(), 7 * 7 * 7);
+    EXPECT_EQ(z.total_length(), 9 * 11 * 13);
+    EXPECT_EQ(z.padded_total_length(), 9 * 16 * 13 + z.get_initial_offset());
+    EXPECT_EQ(z.begin(), z.index(1, 2, 3));
+    EXPECT_EQ(z.end(), z.index(7, 8, 9));
+    EXPECT_EQ(z.total_begin(), z.index(0, 0, 0));
+    EXPECT_EQ(z.total_end(), z.index(8, 10, 12));
 }

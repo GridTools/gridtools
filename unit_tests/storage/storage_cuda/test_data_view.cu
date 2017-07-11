@@ -47,7 +47,7 @@ using namespace gridtools;
 template < typename View >
 __global__ void mul2(View s) {
     bool correct_dims = (s.template dim< 0 >() == 32) && (s.template dim< 1 >() == 3) && (s.template dim< 2 >() == 3);
-    bool correct_size = (s.size() == 32 * 3 * 3);
+    bool correct_size = (s.padded_total_length() == 32 * 3 * 3);
     s(0, 0, 0) *= (2 * correct_dims * correct_size);
     s(1, 0, 0) *= (2 * correct_dims * correct_size);
 }
@@ -68,7 +68,9 @@ TEST(DataViewTest, Simple) {
     ASSERT_TRUE((si.dim< 0 >() == dv.dim< 0 >()));
     ASSERT_TRUE((si.dim< 1 >() == dv.dim< 1 >()));
     ASSERT_TRUE((si.dim< 2 >() == dv.dim< 2 >()));
-    ASSERT_TRUE((si.size() == dv.size()));
+    ASSERT_TRUE((si.total_length() == dv.total_length()));
+    ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
+    ASSERT_TRUE((si.length() == dv.length()));
 
     // check if the user protections are working
     ASSERT_TRUE(si.index(1, 0, 0) == 1);

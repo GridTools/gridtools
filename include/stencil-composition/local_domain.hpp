@@ -182,7 +182,7 @@ namespace gridtools {
         GT_FUNCTION_WARNING
         local_domain_base() {}
 
-        __device__ local_domain_base(local_domain_base const &other)
+        GT_FUNCTION_DEVICE local_domain_base(local_domain_base const &other)
             : m_local_storage_info_ptrs(other.m_local_storage_info_ptrs) {
             copy_ptrs(m_local_data_ptrs, other.m_local_data_ptrs);
         }
@@ -246,7 +246,7 @@ namespace gridtools {
         GT_FUNCTION
         local_domain() {}
 
-        __device__ local_domain(local_domain const &other) : base_type(other) {}
+        GT_FUNCTION_DEVICE local_domain(local_domain const &other) : base_type(other) {}
 
         /**stub methods*/
         GT_FUNCTION

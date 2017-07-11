@@ -60,38 +60,16 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/void.hpp>
 
-#include "../esf_metafunctions.hpp"
-#include "../local_domain.hpp"
 #include "./cache.hpp"
 #include "./cache_storage.hpp"
+#include "../esf_metafunctions.hpp"
 
 #include "../../common/generic_metafunctions/is_there_in_sequence_if.hpp"
 
 #include "../accessor_fwd.hpp"
+#include "cache_traits.hpp"
 
 namespace gridtools {
-
-    /**
-     * @struct is_cache
-     * metafunction determining if a type is a cache type
-     */
-    template < typename T >
-    struct is_cache : boost::mpl::false_ {};
-
-    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
-    struct is_cache< detail::cache_impl< cacheType, Arg, cacheIOPolicy, Interval > > : boost::mpl::true_ {};
-
-    /**
-     * @struct cache_parameter
-     *  trait returning the parameter Arg type of a user provided cache
-     */
-    template < typename T >
-    struct cache_parameter;
-
-    template < cache_type cacheType, typename Arg, cache_io_policy cacheIOPolicy, typename Interval >
-    struct cache_parameter< detail::cache_impl< cacheType, Arg, cacheIOPolicy, Interval > > {
-        typedef Arg type;
-    };
 
     /**
      * @struct cache_to_index
@@ -188,8 +166,14 @@ namespace gridtools {
         struct get_cache_storage {
             GRIDTOOLS_STATIC_ASSERT(is_cache< Cache >::value, GT_INTERNAL_ERROR);
             typedef typename LocalDomain::template get_storage_wrapper< IndexT >::type storage_wrapper_t;
+            using block_size_t =
+                typename boost::mpl::if_< is_k_cache< Cache >, block_size< 1, 1, 1 >, BlockSize >::type;
+
             typedef typename boost::mpl::if_< is_storage_wrapper< storage_wrapper_t >,
-                cache_storage< BlockSize, typename boost::mpl::at< CacheExtendsMap, Cache >::type, storage_wrapper_t >,
+                cache_storage< Cache,
+                                                  block_size_t,
+                                                  typename boost::mpl::at< CacheExtendsMap, Cache >::type,
+                                                  storage_wrapper_t >,
                 boost::mpl::void_ >::type type;
         };
 

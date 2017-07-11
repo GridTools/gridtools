@@ -62,7 +62,9 @@ TEST(DataViewTest, Simple) {
     ASSERT_TRUE((si.dim< 0 >() == dv.dim< 0 >()));
     ASSERT_TRUE((si.dim< 1 >() == dv.dim< 1 >()));
     ASSERT_TRUE((si.dim< 2 >() == dv.dim< 2 >()));
-    ASSERT_TRUE((si.size() == dv.size()));
+    ASSERT_TRUE((si.total_length() == dv.total_length()));
+    ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
+    ASSERT_TRUE((si.length() == dv.length()));
 
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));

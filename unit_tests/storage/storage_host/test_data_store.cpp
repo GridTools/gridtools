@@ -62,8 +62,8 @@ void invalid_copy_assign() {
 
 TEST(DataStoreTest, Simple) {
     constexpr storage_info_t si(3, 3, 3);
-    constexpr storage_info_halo_t si_halo(3, 3, 3);
-    constexpr storage_info_halo_aligned_t si_halo_al(3, 3, 3);
+    constexpr storage_info_halo_t si_halo(7, 5, 3);
+    constexpr storage_info_halo_aligned_t si_halo_al(7, 5, 3);
     // check sizes, strides, and alignment
     GRIDTOOLS_STATIC_ASSERT(si.template dim< 0 >() == 3, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(si.template dim< 1 >() == 3, "dimension check failed.");
@@ -216,7 +216,7 @@ TEST(DataStoreTest, InvalidSize) {
 TEST(DataStoreTest, DimAndSizeInterface) {
     storage_info_t si(128, 128, 80);
     data_store< host_storage< double >, storage_info_t > ds(si, 3.1415);
-    ASSERT_TRUE((ds.size() == si.size()));
+    ASSERT_TRUE((ds.padded_total_length() == si.padded_total_length()));
     ASSERT_TRUE((ds.dim< 0 >() == si.dim< 0 >()));
     ASSERT_TRUE((ds.dim< 1 >() == si.dim< 1 >()));
     ASSERT_TRUE((ds.dim< 2 >() == si.dim< 2 >()));
