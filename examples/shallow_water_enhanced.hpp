@@ -432,9 +432,9 @@ namespace shallow_water {
         auto view1 = make_host_view(ds1);
         auto view2 = make_host_view(ds2);
 #ifdef __CUDACC__
-        for (int i = 0; i < ds0.template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.template dim< 2 >(); ++k) {
+        for (int i = 0; i < view0.dim< 0 >(); ++i) {
+            for (int j = 0; j < view0.dim< 1 >(); ++j) {
+                for (int k = 0; k < view0.dim< 2 >(); ++k) {
                     view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
                     view1(i, j, k) = 0.0;
                     view2(i, j, k) = 0.0;
@@ -442,9 +442,9 @@ namespace shallow_water {
             }
         }
 #else
-        for (int i = 0; i < ds0.template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.template dim< 2 >(); ++k) {
+        for (int i = 0; i < view0.dim< 0 >(); ++i) {
+            for (int j = 0; j < view0.dim< 1 >(); ++j) {
+                for (int k = 0; k < view0.dim< 2 >(); ++k) {
                     if (PID == 1) {
                         view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
                     } else {

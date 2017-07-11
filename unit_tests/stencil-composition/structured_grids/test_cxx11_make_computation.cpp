@@ -66,7 +66,7 @@ using namespace enumtype;
 
 namespace make_computation_test {
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > x_interval;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct test_functor {
         typedef accessor< 0, inout > inacc;
@@ -110,7 +110,7 @@ TEST(MakeComputation, Basic) {
     uint_t di[5] = {0, 0, 0, 4 - 1, 4};
     uint_t dj[5] = {0, 0, 0, 4 - 1, 4};
 
-    gridtools::grid< make_computation_test::x_interval > grid(di, dj);
+    gridtools::grid< make_computation_test::axis > grid(di, dj);
     grid.value_list[0] = 0;
     grid.value_list[1] = 4 - 1;
 
@@ -140,7 +140,7 @@ TEST(MakeComputation, InvalidHalo) {
     uint_t di[5] = {halo_size, halo_size, halo_size, 4 - 1 - halo_size, 4};
     uint_t dj[5] = {halo_size, halo_size, halo_size, 4 - 1 - halo_size, 4};
 
-    gridtools::grid< make_computation_test::x_interval > grid(di, dj);
+    gridtools::grid< make_computation_test::axis > grid(di, dj);
     grid.value_list[0] = 0;
     grid.value_list[1] = 4 - 1;
 
