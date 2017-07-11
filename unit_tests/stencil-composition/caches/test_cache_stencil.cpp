@@ -127,7 +127,8 @@ class cache_stencil : public ::testing::Test {
           m_di(halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1),
           m_dj(halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2),
 #endif
-          m_grid(m_di, m_dj), m_meta(m_d1, m_d2, m_d3), m_in(m_meta, 0.), m_out(m_meta, 0.) {
+          m_grid(m_di, m_dj), m_meta(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3), m_in(m_meta, 0.),
+          m_out(m_meta, 0.) {
         m_grid.value_list[0] = 0;
         m_grid.value_list[1] = m_d3 - 1;
     }
@@ -151,13 +152,14 @@ TEST_F(cache_stencil, ij_cache) {
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto pstencil = make_computation< gridtools::BACKEND >(domain,
-        m_grid,
-        make_multistage // mss_descriptor
-        (execute< forward >(),
-                                                               define_caches(cache< IJ, local >(p_buff())),
-                                                               make_stage< functor1 >(p_in(), p_buff()),
-                                                               make_stage< functor1 >(p_buff(), p_out())));
+    auto pstencil =
+        make_computation< gridtools::BACKEND >(domain,
+            m_grid,
+            make_multistage // mss_descriptor
+            (execute< forward >(),
+                                                   define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+                                                   make_stage< functor1 >(p_in(), p_buff()),
+                                                   make_stage< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -187,7 +189,7 @@ TEST_F(cache_stencil, ij_cache) {
 
 TEST_F(cache_stencil, ij_cache_offset) {
     SetUp();
-    storage_info_t meta_(m_d1, m_d2, m_d3);
+    storage_info_t meta_(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3);
     storage_t ref(meta_, 0.0);
     auto m_inv = make_host_view(m_in);
     auto refv = make_host_view(ref);
@@ -208,7 +210,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                                   define_caches(cache< IJ, local >(p_buff())),
+                                                   define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
                                                    make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
                                                    make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
                                                    ));
@@ -241,7 +243,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
 
 TEST_F(cache_stencil, multi_cache) {
     SetUp();
-    storage_info_t meta_(m_d1, m_d2, m_d3);
+    storage_info_t meta_(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3);
     storage_t ref(meta_, 0.0);
     auto m_inv = make_host_view(m_in);
     auto refv = make_host_view(ref);
@@ -265,7 +267,8 @@ TEST_F(cache_stencil, multi_cache) {
             // test if define_caches works properly with multiple vectors of caches.
             // in this toy example two vectors are passed (IJ cache vector for p_buff
             // and p_buff_2, IJ cache vector for p_buff_3)
-            define_caches(cache< IJ, local >(p_buff(), p_buff_2()), cache< IJ, local >(p_buff_3())),
+            define_caches(cache< IJ, cache_io_policy::local >(p_buff(), p_buff_2()),
+                cache< IJ, cache_io_policy::local >(p_buff_3())),
             make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
             make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
             make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor

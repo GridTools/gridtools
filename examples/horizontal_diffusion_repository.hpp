@@ -89,8 +89,7 @@ namespace horizontal_diffusion {
 
       public:
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
-            : m_storage_info_ijk(idim - (2 * halo_size), jdim - (2 * halo_size), kdim),
-              m_storage_info_ij(idim - (2 * halo_size), jdim - (2 * halo_size), kdim), m_storage_info_j(1, jdim, 1),
+            : m_storage_info_ijk(idim, jdim, kdim), m_storage_info_ij(idim, jdim, kdim), m_storage_info_j(1, jdim, 1),
               m_storage_info_scalar(1, 1, 1), in_(m_storage_info_ijk, "in"), crlato_(m_storage_info_j, "crlato"),
               crlatu_(m_storage_info_j, "crlatu"), crlat0_(m_storage_info_j, "crlat0"),
               crlat1_(m_storage_info_j, "crlat1"), out_(m_storage_info_ijk, "out"),

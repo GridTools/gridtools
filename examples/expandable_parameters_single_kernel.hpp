@@ -165,31 +165,31 @@ namespace test_expandable_parameters {
 
         aggregator_type< args_t > domain_(
             storage1, storage2, storage3, storage4, storage5, storage10, storage20, storage30, storage40, storage50);
-        auto comp_ = make_computation< BACKEND >(
-            domain_,
+        auto comp_ = make_computation< BACKEND >(domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                define_caches(cache< IJ, local >(p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
-                make_stage< functor_single_kernel >(p_0_tmp(),
-                                p_1_tmp(),
-                                p_2_tmp(),
-                                p_3_tmp(),
-                                p_4_tmp(),
-                                p_0_in(),
-                                p_1_in(),
-                                p_2_in(),
-                                p_3_in(),
-                                p_4_in()),
-                make_stage< functor_single_kernel >(p_0_out(),
-                                p_1_out(),
-                                p_2_out(),
-                                p_3_out(),
-                                p_4_out(),
-                                p_0_tmp(),
-                                p_1_tmp(),
-                                p_2_tmp(),
-                                p_3_tmp(),
-                                p_4_tmp())));
+                                                     define_caches(cache< IJ, cache_io_policy::local >(
+                                                         p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
+                                                     make_stage< functor_single_kernel >(p_0_tmp(),
+                                                         p_1_tmp(),
+                                                         p_2_tmp(),
+                                                         p_3_tmp(),
+                                                         p_4_tmp(),
+                                                         p_0_in(),
+                                                         p_1_in(),
+                                                         p_2_in(),
+                                                         p_3_in(),
+                                                         p_4_in()),
+                                                     make_stage< functor_single_kernel >(p_0_out(),
+                                                         p_1_out(),
+                                                         p_2_out(),
+                                                         p_3_out(),
+                                                         p_4_out(),
+                                                         p_0_tmp(),
+                                                         p_1_tmp(),
+                                                         p_2_tmp(),
+                                                         p_3_tmp(),
+                                                         p_4_tmp())));
 
         comp_->ready();
         comp_->steady();
