@@ -35,15 +35,9 @@ function(fetch_host_tests subfolder)
     file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
 
     # remove files that should not be there
-    if(ENABLE_CXX11)
-        foreach( cxx03 ${test_sources_cxx03} )
-            list(REMOVE_ITEM test_sources ${cxx03})
-        endforeach()
-    else()
-        foreach( cxx11 ${test_sources_cxx11} )
-            list(REMOVE_ITEM test_sources ${cxx11})
-        endforeach()
-    endif()
+    foreach( cxx03 ${test_sources_cxx03} )
+        list(REMOVE_ITEM test_sources ${cxx03})
+    endforeach()
 
     # create all targets
     foreach( test_source ${test_sources} )
@@ -73,15 +67,9 @@ function(fetch_gpu_tests subfolder)
         file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
 
         # remove files that should not be there
-        if(ENABLE_CXX11)
-            foreach( cxx03 ${test_sources_cxx03} )
-                list(REMOVE_ITEM test_sources ${cxx03})
-            endforeach()
-        else()
-            foreach( cxx11 ${test_sources_cxx11} )
-                list(REMOVE_ITEM test_sources ${cxx11})
-            endforeach()
-        endif()
+        foreach( cxx03 ${test_sources_cxx03} )
+            list(REMOVE_ITEM test_sources ${cxx03})
+        endforeach()
 
         # create all targets
         foreach( test_source ${test_sources} )
