@@ -92,8 +92,7 @@ namespace gridtools {
             Array arr, Rest... r) {
             static_assert(is_array< Array >::value, "Passed type is not an array type.");
             typedef typename StorageInfo::halo_t halo_t;
-            return get_storage_info_from_array< StorageInfo, Array, N - 1 >(
-                arr, arr[N - 1] - 2 * halo_t::template at< N - 1 >(), r...);
+            return get_storage_info_from_array< StorageInfo, Array, N - 1 >(arr, arr[N - 1], r...);
         }
     }
 

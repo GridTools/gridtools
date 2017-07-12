@@ -99,6 +99,9 @@ echo $@
 
 source ${ABSOLUTEPATH_SCRIPT}/machine_env.sh
 source ${ABSOLUTEPATH_SCRIPT}/env_${myhost}.sh
+
+echo "BOOST_ROOT=$BOOST_ROOT" 
+
 if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
     test -e build
@@ -186,7 +189,8 @@ cmake \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
- ../
+-DBOOST_ROOT=$BOOST_ROOT \
+../
 
 exit_if_error $?
 

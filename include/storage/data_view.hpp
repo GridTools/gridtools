@@ -148,10 +148,22 @@ namespace gridtools {
         }
 
         /*
-         * @brief member function to retrieve the total size (dimensions, halos, initial_offset).
+         * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
          * @return total size
          */
-        GT_FUNCTION constexpr int size() const { return m_storage_info->size(); }
+        GT_FUNCTION constexpr int padded_total_length() const { return m_storage_info->padded_total_length(); }
+
+        /*
+         * @brief member function to retrieve the inner domain size + halo (dimensions, halos, no initial_offset).
+         * @return inner domain size + halo
+         */
+        GT_FUNCTION constexpr int total_length() const { return m_storage_info->total_length(); }
+
+        /*
+         * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
+         * @return inner domain size
+         */
+        GT_FUNCTION constexpr int length() const { return m_storage_info->length(); }
     };
 
     template < typename T >
