@@ -107,6 +107,7 @@ namespace gridtools {
             template < typename Accessor >
             GT_FUNCTION auto operator()(Accessor const &arg)
                 -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg))) {
+
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
                 const remap_accessor_t tmp_(arg);
                 return m_iterate_domain(tmp_);

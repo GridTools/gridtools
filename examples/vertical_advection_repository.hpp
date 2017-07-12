@@ -57,8 +57,7 @@ namespace vertical_advection {
         using scalar_storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_scalar_t >;
 
         repository(const uint_t idim, const uint_t jdim, const uint_t kdim, const uint_t halo_size)
-            : m_storage_info(idim - (2 * halo_size), jdim - (2 * halo_size), kdim),
-              m_scalar_storage_info(1, 1, 1), // fake 3D
+            : m_storage_info(idim, jdim, kdim), m_scalar_storage_info(1, 1, 1), // fake 3D
               utens_stage_(m_storage_info, "utens_stage"), utens_stage_ref_(m_storage_info, "u_stage_ref"),
               u_stage_(m_storage_info, "u_stage"), wcon_(m_storage_info, "wcon"), u_pos_(m_storage_info, "upos"),
               utens_(m_storage_info, "utens"), ipos_(m_storage_info, "ipos"), jpos_(m_storage_info, "jpos"),
@@ -154,9 +153,9 @@ namespace vertical_advection {
             auto dtr_stage_v = make_host_view(dtr_stage_);
             double dtr_stage = dtr_stage_v(0, 0, 0);
 
-            storage_info_ij_t storage_info_ij(idim_ - (2 * halo_size_), jdim_ - (2 * halo_size_), (uint_t)1);
+            storage_info_ij_t storage_info_ij(idim_, jdim_, (uint_t)1);
             ij_storage_type datacol(storage_info_ij);
-            storage_info_ijk_t storage_info_(idim_ - (2 * halo_size_), jdim_ - (2 * halo_size_), kdim_);
+            storage_info_ijk_t storage_info_(idim_, jdim_, kdim_);
             storage_type ccol(storage_info_);
             storage_type dcol(storage_info_);
 

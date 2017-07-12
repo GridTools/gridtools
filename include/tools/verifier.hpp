@@ -38,6 +38,7 @@
 #include "common/array.hpp"
 #include "common/array_addons.hpp"
 #include "common/gt_math.hpp"
+#include "stencil-composition/grid_traits_fwd.hpp"
 
 namespace gridtools {
 
@@ -118,7 +119,7 @@ namespace gridtools {
         template < typename Grid >
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
             bool verified = true;
-            if (pos[2] < grid_.k_max()) {
+            if (pos[grid_traits_from_id< Grid::c_grid_type >::dim_k_t::value] <= grid_.k_max()) {
                 typename StorageType::storage_info_t const &meta = *(m_exp_field.get_storage_info_ptr());
 
                 typename StorageType::data_t expected =
@@ -180,6 +181,8 @@ namespace gridtools {
 
             bool verified = true;
 
+            if (StorageType::num_of_storages > 1)
+                throw std::runtime_error("Verifier not supported for data fields with more than 1 components");
             for (gridtools::uint_t f = 0; f < 1; ++f) {
                 verified = verify_functor< StorageType::storage_info_t::layout_t::masked_length >(
                     grid_, field1, field2, f, halos, m_precision);

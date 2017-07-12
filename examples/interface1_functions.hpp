@@ -60,7 +60,7 @@ using namespace enumtype;
 namespace horizontal_diffusion_functions {
     // This is the definition of the special regions in the "vertical" direction
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
@@ -254,7 +254,7 @@ namespace horizontal_diffusion_functions {
             grid_,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                define_caches(cache< IJ, local >(p_flx(), p_fly())),
+                define_caches(cache< IJ, cache_io_policy::local >(p_flx(), p_fly())),
                 // gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (gridtools::make_stage< flx_function >(p_flx(), p_in()),

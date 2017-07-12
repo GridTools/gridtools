@@ -206,14 +206,14 @@ namespace horizontal_diffusion {
           and a final step that is the out_function
           2) The logical physical domain with the fields to use
           3) The actual grid dimensions
-         */
+        */
 
         auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
+                define_caches(cache< IJ, cache_io_policy::local >(p_lap(), p_flx(), p_fly())),
                 gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent(                            // independent_esf
                     gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
@@ -234,8 +234,7 @@ namespace horizontal_diffusion {
 #else
             verifier verif(1e-12);
 #endif
-            array< array< uint_t, 2 >, 3 > halos{
-                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
         }
 
