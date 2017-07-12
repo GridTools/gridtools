@@ -117,7 +117,7 @@ TEST(test_global_accessor, boundary_conditions) {
     bc_eval->steady();
     bc_eval->run();
     // fetch data and check
-    sol_.sync();
+    sol_.clone_from_device();
     auto solv = make_host_view(sol_);
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
@@ -147,12 +147,13 @@ TEST(test_global_accessor, boundary_conditions) {
         }
     }
 
-    sol_.sync();
-    sol_.reactivate_host_write_views();
+    sol_.clone_to_device();
 
     // run again and finalize
     bc_eval->run();
-    bc_eval->finalize();
+
+    sol_.clone_from_device();
+    sol_.reactivate_host_write_views();
 
     // check result of second run
     for (int i = 0; i < 10; ++i) {
@@ -167,6 +168,7 @@ TEST(test_global_accessor, boundary_conditions) {
             }
         }
     }
+    bc_eval->finalize();
 }
 
 // The following will test the global accessor in a context of multiple
@@ -204,7 +206,7 @@ TEST(test_global_accessor, multiple_stages) {
     bc_eval->steady();
     bc_eval->run();
     // fetch data and check
-    sol_.sync();
+    sol_.clone_from_device();
     auto solv = make_host_view(sol_);
     for (int i = 0; i < 10; ++i) {
         for (int j = 0; j < 10; ++j) {
@@ -236,12 +238,13 @@ TEST(test_global_accessor, multiple_stages) {
         }
     }
 
-    sol_.sync();
-    sol_.reactivate_host_write_views();
+    sol_.clone_to_device();
+    tmp_.clone_to_device();
 
     // run again and finalize
     bc_eval->run();
-    bc_eval->finalize();
+    sol_.clone_from_device();
+    sol_.reactivate_host_write_views();
 
     // check result of second run
     for (int i = 0; i < 10; ++i) {
@@ -255,4 +258,6 @@ TEST(test_global_accessor, multiple_stages) {
             }
         }
     }
+    bc_eval->finalize();
+
 }
