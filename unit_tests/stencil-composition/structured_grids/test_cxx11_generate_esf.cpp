@@ -342,9 +342,11 @@ int main() {
     // boilerplate
     program += "#define BACKEND backend<Host, GRIDBACKEND, Block >\n";
     program += "\n";
+    program += "    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;\n";
+
     program += "typedef layout_map<2,1,0> layout_t;\n";
-    program += "typedef BACKEND::storage_info<0, layout_t > storage_info_type;\n";
-    program += "typedef BACKEND::storage_type<float_type, storage_info_type >::type storage_type;\n";
+    program += "using storage_info_type = storage_tr::storage_info_t< 0, 3, gridtools::halo< 2, 2, 0 > >;\n";
+    program += "using storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_type >;\n";
     program += "\n";
     program += "\n";
 
@@ -399,7 +401,7 @@ int main() {
     program += "    " + list_of_plcs;
 
     program += "\n    typedef "
-               "strgrid::compute_extents_of<strgrid::init_map_of_extents<placeholders>::type>::for_mss<mss_t>::type "
+               "compute_extents_of<init_map_of_extents<placeholders>::type,1>::for_mss<mss_t>::type "
                "final_map;\n";
 
     program += "    std::cout << \"FINAL\" << std::endl;\n";
