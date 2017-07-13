@@ -39,6 +39,7 @@
 #include <random>
 #include <cassert>
 #include <unordered_map>
+#include <boost/program_options.hpp>
 
 struct prelude {
     std::string out() const {
@@ -236,7 +237,20 @@ int find_input_close_to(int idx, generate_functor const &functor, std::vector< s
     return idx;
 }
 
-int main() {
+int main(int argc, char **argv) {
+
+    bool make_comp;
+
+    boost::program_options::options_description desc("Usage");
+    desc.add_options()("make,m",
+        boost::program_options::value< bool >(&make_comp)->default_value(false),
+        "It 1/yes/on/true the code will actually run make_computation instead of simply compiute_extents. This is "
+        "useful to benchmark the compiler. The check for correctness of the extents is turned off if this option is "
+        "set to 1/yes/on/true\n");
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+    boost::program_options::notify(vm);
+
     std::random_device rd;
     std::mt19937 gen(rd());
 
@@ -340,7 +354,7 @@ int main() {
     }
 
     // boilerplate
-    program += "#define BACKEND backend<Host, GRIDBACKEND, Block >\n";
+    program += "using BACKEND = backend<Host, GRIDBACKEND, Block >;\n";
     program += "\n";
     program += "    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;\n";
 
@@ -386,7 +400,7 @@ int main() {
         program += ")) " + functors[i].name() + "__;\n";
     }
 
-    program += "    typedef decltype( make_multistage\n";
+    program += "    auto mss = make_multistage\n";
     program += "        (\n";
     program += "            execute<forward>(),\n";
     for (int i = 0; i < functors.size(); ++i) {
@@ -395,69 +409,99 @@ int main() {
             program += ",\n";
         }
     }
-    program += "        )\n";
-    program += "    ) mss_t;\n";
+    program += "        );\n";
+    program += "    using mss_t = decltype(mss);\n";
 
     program += "    " + list_of_plcs;
 
-    program += "\n    typedef "
-               "compute_extents_of<init_map_of_extents<placeholders>::type,1>::for_mss<mss_t>::type "
-               "final_map;\n";
+    if (make_comp) {
+        program += "    storage_info_type mock_info(3,3,3);\n";
+        program += "    storage_type mock_stor(mock_info, \"mock_storage\");\n";
 
-    program += "    std::cout << \"FINAL\" << std::endl;\n";
-    program += "    boost::mpl::for_each<final_map>(print_r());\n\n";
+        std::string agg = "    aggregator_type< placeholders > agg(";
 
-    std::unordered_map< std::string, range > map;
+        for (int i = 0; i < functors.size(); ++i) {
+            agg += "(o" + std::to_string(i) + "() = mock_stor), ";
+        }
 
-    for (int i = 0; i < functors.size(); ++i) {
-        map.insert({"o" + std::to_string(i), range(0, 0, 0, 0, 0, 0)});
-    }
-    for (int i = 0; i < input_names.size(); ++i) {
-        map.insert({input_names[i], range(0, 0, 0, 0, 0, 0)});
-    }
-
-    for (int i = functors.size() - 1; i >= 0; --i) {
-        std::string out_name = names[i][functors[i].index_of_output()];
-        // std::cout << "/* " << functors[i].index_of_output() << " ********* " << out_name << " */" << std::endl;
-        range out_range = map[out_name];
-        for (int j = 0; j < functors[i].n_args(); ++j) {
-            if (j != functors[i].index_of_output()) {
-                // std::cout << names[i][j] << std::endl;
-                // std::cout << out_range.out() << std::endl;
-                range updated_range = functors[i].get_range(j) + out_range;
-                // std::cout << updated_range.out() << std::endl;
-                updated_range = updated_range || map[names[i][j]];
-                // std::cout << updated_range.out() << std::endl;
-                map[names[i][j]] = updated_range;
+        for (int i = 0; i < input_names.size(); ++i) {
+            agg += "(" + input_names[i] + "() = mock_stor)";
+            if (i != input_names.size() - 1) {
+                agg += ", ";
             }
         }
-    }
+        program += agg + ");\n";
 
-    for (int i = 0; i < functors.size(); ++i) {
-        program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o" + std::to_string(i) +
-                   ">::type, " + map["o" + std::to_string(i)].out() + ">::type::value),\n";
-        program +=
-            "                          \"o" + std::to_string(i) + " " + map["o" + std::to_string(i)].out() + "\");\n";
-    }
-    for (int i = 0; i < input_names.size(); ++i) {
-        program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, " + input_names[i] + ">::type, " +
-                   map[input_names[i]].out() + ">::type::value),\n";
-        program += "                          \"" + input_names[i] + " " + map[input_names[i]].out() + "\");\n";
-    }
+        program += "    uint_t di[5] = {1,1,1,3,5};\n";
+        program += "    uint_t dj[5] = {1,1,1,3,5};\n";
+        program += "    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;\n";
+        program += "    grid< axis > grid(di, dj);\n";
+        program += "    grid.value_list[0] = 0;\n";
+        program += "    grid.value_list[1] = 3;\n\n";
+        program += "    auto stencil = make_computation<BACKEND>(\n";
+        program += "        agg,\n";
+        program += "        grid,\n";
+        program += "        mss);\n";
+    } else {
+        program += "\n    typedef "
+                   "compute_extents_of<init_map_of_extents<placeholders>::type,1>::for_mss<mss_t>::type "
+                   "final_map;\n";
 
-    int total_placeholders = functors.size() + input_names.size();
-    if ((total_placeholders / 10) * 10 != total_placeholders) {
-        total_placeholders = (total_placeholders / 10 + 1) * 10;
-    }
+        program += "    std::cout << \"FINAL\" << std::endl;\n";
+        program += "    boost::mpl::for_each<final_map>(print_r());\n\n";
 
-    program += "/* total placeholders (rounded to 10) _SIZE = " + std::to_string(total_placeholders) + "*/\n";
+        std::unordered_map< std::string, range > map;
 
-    if (total_placeholders > 20) { // Adding macros in reverse!
-        program = "#define BOOST_MPL_LIMIT_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define BOOST_MPL_LIMIT_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define FUSION_MAX_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define FUSION_MAX_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS\n" + program;
+        for (int i = 0; i < functors.size(); ++i) {
+            map.insert({"o" + std::to_string(i), range(0, 0, 0, 0, 0, 0)});
+        }
+        for (int i = 0; i < input_names.size(); ++i) {
+            map.insert({input_names[i], range(0, 0, 0, 0, 0, 0)});
+        }
+
+        for (int i = functors.size() - 1; i >= 0; --i) {
+            std::string out_name = names[i][functors[i].index_of_output()];
+            // std::cout << "/* " << functors[i].index_of_output() << " ********* " << out_name << " */" << std::endl;
+            range out_range = map[out_name];
+            for (int j = 0; j < functors[i].n_args(); ++j) {
+                if (j != functors[i].index_of_output()) {
+                    // std::cout << names[i][j] << std::endl;
+                    // std::cout << out_range.out() << std::endl;
+                    range updated_range = functors[i].get_range(j) + out_range;
+                    // std::cout << updated_range.out() << std::endl;
+                    updated_range = updated_range || map[names[i][j]];
+                    // std::cout << updated_range.out() << std::endl;
+                    map[names[i][j]] = updated_range;
+                }
+            }
+        }
+
+        for (int i = 0; i < functors.size(); ++i) {
+            program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o" + std::to_string(i) +
+                       ">::type, " + map["o" + std::to_string(i)].out() + ">::type::value),\n";
+            program += "                          \"o" + std::to_string(i) + " " + map["o" + std::to_string(i)].out() +
+                       "\");\n";
+        }
+        for (int i = 0; i < input_names.size(); ++i) {
+            program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, " + input_names[i] +
+                       ">::type, " + map[input_names[i]].out() + ">::type::value),\n";
+            program += "                          \"" + input_names[i] + " " + map[input_names[i]].out() + "\");\n";
+        }
+
+        int total_placeholders = functors.size() + input_names.size();
+        if ((total_placeholders / 10) * 10 != total_placeholders) {
+            total_placeholders = (total_placeholders / 10 + 1) * 10;
+        }
+
+        program += "/* total placeholders (rounded to 10) _SIZE = " + std::to_string(total_placeholders) + "*/\n";
+
+        if (total_placeholders > 20) { // Adding macros in reverse!
+            program = "#define BOOST_MPL_LIMIT_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+            program = "#define BOOST_MPL_LIMIT_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+            program = "#define FUSION_MAX_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+            program = "#define FUSION_MAX_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+            program = "#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS\n" + program;
+        }
     }
 
     program += "    return 0;\n";
