@@ -241,6 +241,8 @@ int main(int argc, char **argv) {
 
     bool make_comp, explicit_extents;
     unsigned seed;
+    int ops;
+
     boost::program_options::options_description desc("Usage");
     desc.add_options()("make,m",
         boost::program_options::value< bool >(&make_comp)->default_value(false),
@@ -250,8 +252,9 @@ int main(int argc, char **argv) {
         boost::program_options::value< bool >(&explicit_extents)->default_value(false),
         "If -m or --make is specified, this option tells if the make_computation should use explicit extents")("seed,s",
         boost::program_options::value< unsigned >(&seed)->default_value(0),
-        "Random seed for the random number generation. A vlaue equal to 0 will let the seed unspecified")(
-        "help,h", "Produce help");
+        "Random seed for the random number generation. A vlaue equal to 0 will let the seed unspecified")("ops,o",
+        boost::program_options::value< int >(&ops)->default_value(-1),
+        "Number of operators (<=0 for random)")("help,h", "Produce help");
 
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
@@ -272,7 +275,7 @@ int main(int argc, char **argv) {
     std::uniform_int_distribution<> functor_gen(1, 8);
     std::uniform_int_distribution<> arg_gen(2, 6);
 
-    std::vector< generate_functor > functors(functor_gen(gen));
+    std::vector< generate_functor > functors((ops <= 0) ? functor_gen(gen) : ops);
 
     // generating arguments + output index
     int n = 0;
@@ -513,21 +516,21 @@ int main(int argc, char **argv) {
                        ">::type, " + map[input_names[i]].out() + ">::type::value),\n";
             program += "                          \"" + input_names[i] + " " + map[input_names[i]].out() + "\");\n";
         }
+    }
 
-        int total_placeholders = functors.size() + input_names.size();
-        if ((total_placeholders / 10) * 10 != total_placeholders) {
-            total_placeholders = (total_placeholders / 10 + 1) * 10;
-        }
+    int total_placeholders = functors.size() + input_names.size();
+    if ((total_placeholders / 10) * 10 != total_placeholders) {
+        total_placeholders = (total_placeholders / 10 + 1) * 10;
+    }
 
-        program += "/* total placeholders (rounded to 10) _SIZE = " + std::to_string(total_placeholders) + "*/\n";
+    program += "/* total placeholders (rounded to 10) _SIZE = " + std::to_string(total_placeholders) + "*/\n";
 
-        if (total_placeholders > 20) { // Adding macros in reverse!
-            program = "#define BOOST_MPL_LIMIT_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-            program = "#define BOOST_MPL_LIMIT_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-            program = "#define FUSION_MAX_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-            program = "#define FUSION_MAX_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-            program = "#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS\n" + program;
-        }
+    if (total_placeholders > 20) { // Adding macros in reverse!
+        program = "#define BOOST_MPL_LIMIT_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+        program = "#define BOOST_MPL_LIMIT_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+        program = "#define FUSION_MAX_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+        program = "#define FUSION_MAX_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
+        program = "#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS\n" + program;
     }
 
     program += "    return 0;\n";
