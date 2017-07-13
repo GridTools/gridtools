@@ -41,6 +41,18 @@
 #include <unordered_map>
 #include <boost/program_options.hpp>
 
+std::string add_define(std::string macro, int value) {
+    std::string def;
+    def += "#ifdef " + macro + "\n";
+    def += "#if " + macro + " < " + std::to_string(value) + "\n";
+    def += "#undef " + macro + "\n";
+    def += "#define " + macro + " " + std::to_string(value) + "\n";
+    def += "#endif\n#else\n";
+    def += "#define " + macro + " " + std::to_string(value) + "\n";
+    def += "#endif\n\n";
+    return def;
+}
+
 struct prelude {
     std::string out() const {
 
@@ -526,11 +538,14 @@ int main(int argc, char **argv) {
     program += "/* total placeholders (rounded to 10) _SIZE = " + std::to_string(total_placeholders) + "*/\n";
 
     if (total_placeholders > 20) { // Adding macros in reverse!
-        program = "#define BOOST_MPL_LIMIT_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define BOOST_MPL_LIMIT_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define FUSION_MAX_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define FUSION_MAX_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS\n" + program;
+        std::string defines;
+        defines += add_define("BOOST_MPL_LIMIT_VECTOR_SIZE", total_placeholders);
+        defines += add_define("BOOST_MPL_LIMIT_MAP_SIZE", total_placeholders);
+        defines += add_define("FUSION_MAX_VECTOR_SIZE", total_placeholders);
+        defines += add_define("FUSION_MAX_MAP_SIZE", total_placeholders);
+        defines += add_define("BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS", total_placeholders);
+
+        program = defines + program;
     }
 
     program += "    return 0;\n";
