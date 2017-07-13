@@ -490,13 +490,10 @@ int main(int argc, char **argv) {
         program += "    grid< axis > grid(di, dj);\n";
         program += "    grid.value_list[0] = 0;\n";
         program += "    grid.value_list[1] = 3;\n\n";
-        if (explicit_extents) {
-        } else {
-            program += "    auto stencil = make_computation<BACKEND>(\n";
-            program += "        agg,\n";
-            program += "        grid,\n";
-            program += "        mss);\n";
-        }
+        program += "    auto stencil = make_computation<BACKEND>(\n";
+        program += "        agg,\n";
+        program += "        grid,\n";
+        program += "        mss);\n";
     } else {
         program += "\n    typedef "
                    "compute_extents_of<init_map_of_extents<placeholders>::type,1>::for_mss<mss_t>::type "
