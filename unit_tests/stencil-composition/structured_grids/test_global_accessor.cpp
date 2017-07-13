@@ -225,6 +225,7 @@ TEST(test_global_accessor, multiple_stages) {
     bd.int_value = 30;
     backend_t::update_global_parameter(bd_, bd);
 
+    tmp_.sync();
     auto tmpv = make_host_view(tmp_);
 
     // get the storage object from the gpu
