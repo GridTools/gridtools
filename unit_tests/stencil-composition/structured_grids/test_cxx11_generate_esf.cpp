@@ -239,20 +239,35 @@ int find_input_close_to(int idx, generate_functor const &functor, std::vector< s
 
 int main(int argc, char **argv) {
 
-    bool make_comp;
-
+    bool make_comp, explicit_extents;
+    unsigned seed;
     boost::program_options::options_description desc("Usage");
     desc.add_options()("make,m",
         boost::program_options::value< bool >(&make_comp)->default_value(false),
         "It 1/yes/on/true the code will actually run make_computation instead of simply compiute_extents. This is "
         "useful to benchmark the compiler. The check for correctness of the extents is turned off if this option is "
-        "set to 1/yes/on/true\n");
+        "set to 1/yes/on/true\n")("explicit,e",
+        boost::program_options::value< bool >(&explicit_extents)->default_value(false),
+        "If -m or --make is specified, this option tells if the make_computation should use explicit extents")("seed,s",
+        boost::program_options::value< unsigned >(&seed)->default_value(0),
+        "Random seed for the random number generation. A vlaue equal to 0 will let the seed unspecified")(
+        "help,h", "Produce help");
+
     boost::program_options::variables_map vm;
     boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
     boost::program_options::notify(vm);
 
+    if (vm.count("help")) {
+        std::cout << desc << "\n";
+        return 0;
+    }
+
     std::random_device rd;
     std::mt19937 gen(rd());
+
+    if (seed != 0) {
+        gen.seed(seed);
+    }
 
     std::uniform_int_distribution<> functor_gen(1, 8);
     std::uniform_int_distribution<> arg_gen(2, 6);
@@ -386,11 +401,48 @@ int main(int argc, char **argv) {
 
     list_of_plcs += "> placeholders;\n";
 
+    /********************************************************************************
+     This is the part that computes the extents given the computation to the check
+    ********************************************************************************/
+    std::unordered_map< std::string, range > map;
+
+    for (int i = 0; i < functors.size(); ++i) {
+        map.insert({"o" + std::to_string(i), range(0, 0, 0, 0, 0, 0)});
+    }
+    for (int i = 0; i < input_names.size(); ++i) {
+        map.insert({input_names[i], range(0, 0, 0, 0, 0, 0)});
+    }
+
+    for (int i = functors.size() - 1; i >= 0; --i) {
+        std::string out_name = names[i][functors[i].index_of_output()];
+        // std::cout << "/* " << functors[i].index_of_output() << " ********* " << out_name << " */" << std::endl;
+        range out_range = map[out_name];
+        for (int j = 0; j < functors[i].n_args(); ++j) {
+            if (j != functors[i].index_of_output()) {
+                // std::cout << names[i][j] << std::endl;
+                // std::cout << out_range.out() << std::endl;
+                range updated_range = functors[i].get_range(j) + out_range;
+                // std::cout << updated_range.out() << std::endl;
+                updated_range = updated_range || map[names[i][j]];
+                // std::cout << updated_range.out() << std::endl;
+                map[names[i][j]] = updated_range;
+            }
+        }
+    }
+    /********************************************************************************
+     End of the part that computes the extents given the computation to the check
+    ********************************************************************************/
+
     // additional boilerplate
     program += "int main() {\n";
 
     for (int i = 0; i < functors.size(); ++i) {
-        program += "    typedef decltype(make_stage<" + functors[i].name() + ">(";
+        if (explicit_extents) {
+            program += "    typedef decltype(make_stage_with_extent<" + functors[i].name() + ", " +
+                       map["o" + std::to_string(i)].out() + ">(";
+        } else {
+            program += "    typedef decltype(make_stage<" + functors[i].name() + ">(";
+        }
         for (int j = 0; j < names[i].size(); ++j) {
             program += names[i][j] + "()";
             if (j != names[i].size() - 1) {
@@ -438,10 +490,13 @@ int main(int argc, char **argv) {
         program += "    grid< axis > grid(di, dj);\n";
         program += "    grid.value_list[0] = 0;\n";
         program += "    grid.value_list[1] = 3;\n\n";
-        program += "    auto stencil = make_computation<BACKEND>(\n";
-        program += "        agg,\n";
-        program += "        grid,\n";
-        program += "        mss);\n";
+        if (explicit_extents) {
+        } else {
+            program += "    auto stencil = make_computation<BACKEND>(\n";
+            program += "        agg,\n";
+            program += "        grid,\n";
+            program += "        mss);\n";
+        }
     } else {
         program += "\n    typedef "
                    "compute_extents_of<init_map_of_extents<placeholders>::type,1>::for_mss<mss_t>::type "
@@ -449,32 +504,6 @@ int main(int argc, char **argv) {
 
         program += "    std::cout << \"FINAL\" << std::endl;\n";
         program += "    boost::mpl::for_each<final_map>(print_r());\n\n";
-
-        std::unordered_map< std::string, range > map;
-
-        for (int i = 0; i < functors.size(); ++i) {
-            map.insert({"o" + std::to_string(i), range(0, 0, 0, 0, 0, 0)});
-        }
-        for (int i = 0; i < input_names.size(); ++i) {
-            map.insert({input_names[i], range(0, 0, 0, 0, 0, 0)});
-        }
-
-        for (int i = functors.size() - 1; i >= 0; --i) {
-            std::string out_name = names[i][functors[i].index_of_output()];
-            // std::cout << "/* " << functors[i].index_of_output() << " ********* " << out_name << " */" << std::endl;
-            range out_range = map[out_name];
-            for (int j = 0; j < functors[i].n_args(); ++j) {
-                if (j != functors[i].index_of_output()) {
-                    // std::cout << names[i][j] << std::endl;
-                    // std::cout << out_range.out() << std::endl;
-                    range updated_range = functors[i].get_range(j) + out_range;
-                    // std::cout << updated_range.out() << std::endl;
-                    updated_range = updated_range || map[names[i][j]];
-                    // std::cout << updated_range.out() << std::endl;
-                    map[names[i][j]] = updated_range;
-                }
-            }
-        }
 
         for (int i = 0; i < functors.size(); ++i) {
             program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o" + std::to_string(i) +
