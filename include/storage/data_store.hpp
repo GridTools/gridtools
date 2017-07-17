@@ -43,6 +43,7 @@
 
 #include <boost/mpl/bool.hpp>
 
+#include "../common/gt_assert.hpp"
 #include "common/definitions.hpp"
 #include "common/storage_interface.hpp"
 #include "common/storage_info_interface.hpp"
@@ -61,7 +62,7 @@ namespace gridtools {
          */
         template < typename ReturnType,
             typename StorageInfo,
-            unsigned N = StorageInfo::layout_t::masked_length,
+            uint_t N = StorageInfo::layout_t::masked_length,
             typename... Args >
         struct appropriate_function_t {
             typedef typename appropriate_function_t< ReturnType, StorageInfo, N - 1, Args..., int >::type type;
@@ -97,7 +98,7 @@ namespace gridtools {
         template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
         typename boost::enable_if_c< (sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void >::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (unsigned i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
+            for (uint_t i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
                 ptr[si.index(args..., i)] = init(args..., i);
             }
         }
@@ -119,7 +120,7 @@ namespace gridtools {
         template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
         typename boost::enable_if_c< (sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void >::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (unsigned i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
+            for (uint_t i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
                 lambda_initializer(init, si, ptr, args..., i);
             }
         }
@@ -134,8 +135,9 @@ namespace gridtools {
      */
     template < typename Storage, typename StorageInfo >
     struct data_store {
-        static_assert(is_storage< Storage >::value, "Passed type is no storage type");
-        static_assert(is_storage_info< StorageInfo >::value, "Passed type is no storage_info type");
+        GRIDTOOLS_STATIC_ASSERT(is_storage< Storage >::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage type"));
+        GRIDTOOLS_STATIC_ASSERT(
+            is_storage_info< StorageInfo >::value, GT_INTERNAL_ERROR_MSG("Passed type is no storage_info type"));
         typedef typename Storage::data_t data_t;
         typedef typename Storage::state_machine_t state_machine_t;
         typedef StorageInfo storage_info_t;
@@ -226,7 +228,7 @@ namespace gridtools {
         data_store(data_store const &other)
             : m_shared_storage(other.m_shared_storage), m_shared_storage_info(other.m_shared_storage_info),
               m_name(other.m_name) {
-            assert(other.valid() && "Cannot copy a non-initialized data_store.");
+            ASSERT_OR_THROW((other.valid()), "Cannot copy a non-initialized data_store.");
         }
 
         /**
@@ -235,12 +237,11 @@ namespace gridtools {
          */
         data_store &operator=(data_store const &other) {
             // check that the other storage is valid
-            assert(other.valid() && "Cannot copy a non-initialized data_store.");
+            ASSERT_OR_THROW((other.valid()), "Cannot copy a non-initialized data_store.");
             // check that dimensions are compatible; in case the storage has not been
             // initialized yet, we don't check compatibility of the storage infos.
-            assert(!valid() ||
-                   (*m_shared_storage_info == *other.m_shared_storage_info) &&
-                       "Cannot copy-assign a data store with incompatible storage info.");
+            ASSERT_OR_THROW((!valid() || (*m_shared_storage_info == *other.m_shared_storage_info)),
+                "Cannot copy-assign a data store with incompatible storage info.");
             // copy the contents
             m_shared_storage = other.m_shared_storage;
             m_shared_storage_info = other.m_shared_storage_info;
@@ -252,8 +253,8 @@ namespace gridtools {
          * @brief allocate the needed memory. this will instantiate a storage instance.
          */
         void allocate(StorageInfo const &info) {
-            assert((!m_shared_storage_info.get() && !m_shared_storage.get()) &&
-                   "This data store has already been allocated.");
+            ASSERT_OR_THROW((!m_shared_storage_info.get() && !m_shared_storage.get()),
+                "This data store has already been allocated.");
             m_shared_storage_info = std::make_shared< storage_info_t >(info);
             m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->padded_total_length());
         }
@@ -273,7 +274,7 @@ namespace gridtools {
          */
         template < int Coord >
         int dim() const {
-            assert(m_shared_storage_info.get() && "data_store is in a non-initialized state.");
+            ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->template dim< Coord >();
         }
 
@@ -306,20 +307,20 @@ namespace gridtools {
 
         /**
          * @brief retrieve a pointer to the underlying storage instance.
-         * @return pointer to the underlying storage instance
+         * @return shared pointer to the underlying storage instance
          */
-        storage_t *get_storage_ptr() const {
-            assert(m_shared_storage.get() && "data_store is in a non-initialized state.");
-            return m_shared_storage.get();
+        std::shared_ptr< storage_t > get_storage_ptr() const {
+            ASSERT_OR_THROW((m_shared_storage.get()), "data_store is in a non-initialized state.");
+            return m_shared_storage;
         }
 
         /**
          * @brief retrieve a pointer to the underlying storage_info instance.
-         * @return pointer to the underlying storage_info instance
+         * @return shared pointer to the underlying storage_info instance
          */
-        storage_info_t const *get_storage_info_ptr() const {
-            assert(m_shared_storage_info.get() && "data_store is in a non-initialized state.");
-            return m_shared_storage_info.get();
+        std::shared_ptr< storage_info_t const > get_storage_info_ptr() const {
+            ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
+            return m_shared_storage_info;
         }
 
         /**

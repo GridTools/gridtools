@@ -39,6 +39,7 @@
 #include <stdexcept>
 
 #include "host_device.hpp"
+#include "defs.hpp"
 
 namespace gridtools {
 
@@ -61,7 +62,7 @@ namespace gridtools {
 #endif
         }
 
-        template < typename T = unsigned >
+        template < typename T = uint_t >
         GT_FUNCTION static constexpr T trigger(char const *msg = "Error triggered") {
             return get< T >(msg);
         }

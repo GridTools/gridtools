@@ -36,10 +36,11 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/data_store.hpp"
-#include "storage/storage_cuda/data_view_helpers.hpp"
-#include "storage/storage_cuda/storage.hpp"
-#include "storage/storage_cuda/storage_info.hpp"
+#include <common/gt_assert.hpp>
+#include <storage/data_store.hpp>
+#include <storage/storage_cuda/data_view_helpers.hpp>
+#include <storage/storage_cuda/cuda_storage.hpp>
+#include <storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 
@@ -55,11 +56,11 @@ TEST(DataViewTest, Simple) {
     typedef cuda_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
     typedef data_store< cuda_storage< double >, storage_info_t > data_store_t;
     // create and allocate a data_store
-    constexpr storage_info_t si(3, 3, 3);
+    storage_info_t si(3, 3, 3);
     data_store_t ds(si);
     // create a rw view and fill with some data
     data_view< data_store_t > dv = make_host_view(ds);
-    static_assert(is_data_view< decltype(dv) >::value, "is_data_view check failed");
+    GRIDTOOLS_STATIC_ASSERT((is_data_view< decltype(dv) >::value), "is_data_view check failed");
     dv(0, 0, 0) = 50;
     dv(1, 0, 0) = 60;
 
@@ -72,7 +73,7 @@ TEST(DataViewTest, Simple) {
     ASSERT_TRUE((si.length() == dv.length()));
 
     // check if the user protections are working
-    static_assert(si.index(1, 0, 0) == 1, "constexpr index method call failed");
+    ASSERT_TRUE(si.index(1, 0, 0) == 1);
     ASSERT_TRUE(si.index(1, 0, 1) == 97);
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
@@ -91,7 +92,7 @@ TEST(DataViewTest, Simple) {
     // sync, create a device view and call kernel
     ds.sync();
     auto devv = make_device_view(ds);
-    static_assert(is_data_view< decltype(devv) >::value, "is_data_view check failed");
+    GRIDTOOLS_STATIC_ASSERT((is_data_view< decltype(devv) >::value), "is_data_view check failed");
     EXPECT_TRUE(check_consistency(ds, devv));
     EXPECT_FALSE(check_consistency(ds, dv));
     EXPECT_FALSE(check_consistency(ds, dvro));

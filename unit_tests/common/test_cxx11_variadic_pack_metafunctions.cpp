@@ -33,24 +33,29 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #include "gtest/gtest.h"
+#include <common/variadic_pack_metafunctions.hpp>
 #include <common/defs.hpp>
-#include <common/gt_assert.hpp>
-#include <common/generic_metafunctions/accumulate_tparams_until.hpp>
-#include <common/generic_metafunctions/binary_ops.hpp>
 
-using namespace gridtools;
-
-namespace gridtools {
-
-    template < int_t... Vals >
-    struct test_container {};
+TEST(VariadicPackMetafunctions, GetIndexOfElementInVariadicPack) {
+    GRIDTOOLS_STATIC_ASSERT((gridtools::get_index_of_element_in_pack(0, 1, 1, 2, 3, 4) == 0),
+        "Failed to retrieve correct index from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::get_index_of_element_in_pack(0, 2, 1, 2, 3, 4) == 1),
+        "Failed to retrieve correct index from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::get_index_of_element_in_pack(0, 3, 1, 2, 3, 4) == 2),
+        "Failed to retrieve correct index from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::get_index_of_element_in_pack(0, 4, 1, 2, 3, 4) == 3),
+        "Failed to retrieve correct index from varidadic pack.");
 }
 
-TEST(accumulate_tparams_until, first_few_vals) {
-    using ref = test_container< 1, -2, 3, -3, 4, 5 >;
-    using test = test_container< 1, -2, 3, -2, 4, 5 >;
-
-    GRIDTOOLS_STATIC_ASSERT((accumulate_tparams_until< int_t, equal, logical_and, ref, test, 3 >::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((!accumulate_tparams_until< int_t, equal, logical_and, ref, test, 4 >::value), "ERROR");
+TEST(VariadicPackMetafunctions, GetElementFromVariadicPack) {
+    GRIDTOOLS_STATIC_ASSERT(
+        (gridtools::get_value_from_pack(0, 1, 2, 3, 4) == 1), "Failed to retrieve correct value from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT(
+        (gridtools::get_value_from_pack(1, 1, 2, 3, 4) == 2), "Failed to retrieve correct value from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT(
+        (gridtools::get_value_from_pack(2, 1, 2, 3, 4) == 3), "Failed to retrieve correct value from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT(
+        (gridtools::get_value_from_pack(3, 1, 2, 3, 4) == 4), "Failed to retrieve correct value from varidadic pack.");
 }

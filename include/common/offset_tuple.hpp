@@ -40,6 +40,7 @@
 #include "defs.hpp"
 #include "array.hpp"
 #include "dimension.hpp"
+#include "gt_assert.hpp"
 #include "generic_metafunctions/binary_ops.hpp"
 #include "generic_metafunctions/accumulate.hpp"
 #include "generic_metafunctions/is_variadic_pack_of.hpp"
@@ -192,8 +193,8 @@ namespace gridtools {
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d)
             : super(pos + 1, offsets, d...),
               m_offset(_impl::assign_offset(pos, offsets) + initialize< super::n_dimensions - n_args >(d...)) {
-            static_assert(
-                (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
+            GRIDTOOLS_STATIC_ASSERT((ArrayDim <= NDim),
+                GT_INTERNAL_ERROR_MSG("ERROR, can not speficy offsets with larger dimension than accessor dimensions"));
         }
 
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
@@ -217,8 +218,8 @@ namespace gridtools {
             typename Dummy = typename all_dimensions< dimension< Idx >, GenericElements... >::type >
         GT_FUNCTION constexpr offset_tuple(dimension< Idx > const &t, GenericElements const &... x)
             : super(t, x...), m_offset(initialize< super::n_dimensions - n_args + 1 >(t, x...)) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (Idx <= n_dimensions), "overflow in offset_tuple. Check that the accessor dimension is valid.");
+            GRIDTOOLS_STATIC_ASSERT((Idx <= n_dimensions),
+                GT_INTERNAL_ERROR_MSG("overflow in offset_tuple. Check that the accessor dimension is valid."));
         }
 #else
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
@@ -322,8 +323,8 @@ namespace gridtools {
             typename... Dimensions,
             typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d) {
-            static_assert(
-                (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
+            GRIDTOOLS_STATIC_ASSERT((ArrayDim <= NDim),
+                GT_INTERNAL_ERROR_MSG("ERROR, can not speficy offsets with larger dimension than accessor dimensions"));
         }
 
         template < typename... GenericElements,
@@ -331,7 +332,7 @@ namespace gridtools {
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
         GT_FUNCTION constexpr offset_tuple(GenericElements const &... x) {
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< GenericElements >::type::value...),
-                "wrong type for the argument of an offset_tuple");
+                GT_INTERNAL_ERROR_MSG("wrong type for the argument of an offset_tuple"));
         }
 
         // copy ctor

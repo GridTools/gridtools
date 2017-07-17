@@ -38,6 +38,7 @@
 #include <boost/mpl/assert.hpp>
 
 #include "../common/meta_array.hpp"
+#include "../common/gt_assert.hpp"
 #include "./reductions/reduction_descriptor.hpp"
 #include "grid.hpp"
 #include "mss_components.hpp"
@@ -137,9 +138,11 @@ namespace gridtools {
             boost::mpl::identity< ExtentSizes >,
             unroll_extent_sizes< ExtentSizes > >::type extent_sizes_unrolled_t;
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename mss_array_t::elements >::value ==
-                                    boost::mpl::size< extent_sizes_unrolled_t >::value),
-            "Wrong size of the arg_list vector defined inside at least one of the user functions");
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::size< typename mss_array_t::elements >::value ==
+                boost::mpl::size< extent_sizes_unrolled_t >::value),
+            GT_INTERNAL_ERROR_MSG(
+                "Wrong size of the arg_list vector defined inside at least one of the user functions"));
 
         typedef meta_array< typename boost::mpl::fold<
                                 boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
@@ -276,8 +279,8 @@ namespace gridtools {
             cache_io_policy CacheStrategy,
             typename Interval >
         struct apply< Cache< CacheKind, Arg, CacheStrategy, Interval > > {
-            static_assert(
-                is_cache< Cache< CacheKind, Arg, CacheStrategy, Interval > >::value, "Given type is no cache.");
+            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache< CacheKind, Arg, CacheStrategy, Interval > >::value),
+                GT_INTERNAL_ERROR_MSG("Given type is no cache."));
             typedef typename boost::mpl::if_< is_tmp_arg< Arg >,
                 typename _impl::replace_arg_storage_info< typename AggregatorType::tmp_storage_info_id_t, Arg >::type,
                 Arg >::type new_arg_t;
@@ -329,8 +332,8 @@ namespace gridtools {
             typename ArgArray,
             typename Staggering >
         struct apply< EsfDescriptor< ESF, ArgArray, Staggering > > {
-            static_assert(is_esf_descriptor< EsfDescriptor< ESF, ArgArray, Staggering > >::value,
-                "Given type is no esf_descriptor.");
+            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< EsfDescriptor< ESF, ArgArray, Staggering > >::value),
+                GT_INTERNAL_ERROR_MSG("Given type is no esf_descriptor."));
             typedef EsfDescriptor< ESF, typename impl< ArgArray >::type, Staggering > type;
         };
 
@@ -344,8 +347,9 @@ namespace gridtools {
             typename Color,
             typename ArgArray >
         struct apply< EsfDescriptor< ESF, Topology, LocationType, Color, ArgArray > > {
-            static_assert(is_esf_descriptor< EsfDescriptor< ESF, Topology, LocationType, Color, ArgArray > >::value,
-                "Given type is no esf_descriptor.");
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_esf_descriptor< EsfDescriptor< ESF, Topology, LocationType, Color, ArgArray > >::value),
+                GT_INTERNAL_ERROR_MSG("Given type is no esf_descriptor."));
             typedef EsfDescriptor< ESF, Topology, LocationType, Color, typename impl< ArgArray >::type > type;
         };
 
@@ -377,7 +381,7 @@ namespace gridtools {
     template < typename ExecutionEngine, typename ESFSeq, typename CacheSeq, typename Functor >
     struct fix_arg_sequences< mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq >, Functor > {
         typedef mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq > MssDesc;
-        static_assert(is_mss_descriptor< MssDesc >::value, "Given type is no mss_descriptor.");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDesc >::value), "Given type is no mss_descriptor.");
         typedef typename boost::mpl::transform< ESFSeq, Functor >::type new_esf_sequence_t;
         typedef mss_descriptor< ExecutionEngine, new_esf_sequence_t, CacheSeq > type;
     };
@@ -388,7 +392,8 @@ namespace gridtools {
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence, typename Functor >
     struct fix_arg_sequences< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence >, Functor > {
         typedef reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > MssDesc;
-        static_assert(is_reduction_descriptor< MssDesc >::value, "Given type is no mss_descriptor.");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_reduction_descriptor< MssDesc >::value), GT_INTERNAL_ERROR_MSG("Given type is no mss_descriptor."));
         typedef typename boost::mpl::transform< EsfDescrSequence, Functor >::type new_esf_sequence_t;
         typedef reduction_descriptor< ReductionType, BinOp, new_esf_sequence_t > type;
     };
@@ -399,7 +404,8 @@ namespace gridtools {
     template < typename Sequence1, typename Sequence2, typename Tag, typename Functor >
     struct fix_arg_sequences< condition< Sequence1, Sequence2, Tag >, Functor > {
         typedef condition< Sequence1, Sequence2, Tag > MssDesc;
-        static_assert(is_condition< MssDesc >::value, "Given type is no mss_descriptor.");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_condition< MssDesc >::value), GT_INTERNAL_ERROR_MSG("Given type is no mss_descriptor."));
         typedef typename fix_arg_sequences< Sequence1, Functor >::type sequence1_t;
         typedef typename fix_arg_sequences< Sequence2, Functor >::type sequence2_t;
         typedef condition< sequence1_t, sequence2_t, Tag > type;
@@ -431,7 +437,8 @@ namespace gridtools {
     template < typename ExecutionEngine, typename ESFSeq, typename CacheSeq, typename Functor >
     struct fix_cache_sequences< mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq >, Functor > {
         typedef mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq > MssDesc;
-        static_assert(is_mss_descriptor< MssDesc >::value, "Given type is no mss_descriptor.");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_mss_descriptor< MssDesc >::value), GT_INTERNAL_ERROR_MSG("Given type is no mss_descriptor."));
         typedef typename boost::mpl::transform< CacheSeq, Functor >::type new_cache_sequence_t;
         typedef mss_descriptor< ExecutionEngine, ESFSeq, new_cache_sequence_t > type;
     };
@@ -442,7 +449,8 @@ namespace gridtools {
     template < typename Sequence1, typename Sequence2, typename Tag, typename Functor >
     struct fix_cache_sequences< condition< Sequence1, Sequence2, Tag >, Functor > {
         typedef condition< Sequence1, Sequence2, Tag > MssDesc;
-        static_assert(is_condition< MssDesc >::value, "Given type is no mss_descriptor.");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_condition< MssDesc >::value), GT_INTERNAL_ERROR_MSG("Given type is no mss_descriptor."));
         typedef typename fix_cache_sequences< Sequence1, Functor >::type sequence1_t;
         typedef typename fix_cache_sequences< Sequence2, Functor >::type sequence2_t;
         typedef condition< sequence1_t, sequence2_t, Tag > type;

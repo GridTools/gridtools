@@ -210,7 +210,7 @@ namespace gridtools {
             // assert(field1.template dim<0>() == field2.template dim<0>());
             // assert(field1.template dim<1>() == field2.template dim<1>());
             // assert(field1.template dim<2>() == field2.template dim<2>());
-            typename storage_type::storage_info_t const *meta = field1.get_storage_info_ptr();
+            typename storage_type::storage_info_t const *meta = field1.get_storage_info_ptr().get();
 
             const gridtools::uint_t idim = meta->template unaligned_dim< 0 >();
             const gridtools::uint_t jdim = meta->template unaligned_dim< 1 >();

@@ -92,17 +92,19 @@ namespace gridtools {
     struct aggregator_type {
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::type::value > 0),
-            "The aggregator_type must be constructed with at least one storage placeholder. If you don't use any "
-            "storage you are probably trying to do something which is not a stencil operation, aren't you?");
+            GT_INTERNAL_ERROR_MSG("The aggregator_type must be constructed with at least one storage placeholder. "
+                                  "Check the aggregator_type declaration."));
         typedef typename boost::mpl::sort< Placeholders, arg_comparator >::type sorted_placeholders_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< sorted_placeholders_t, is_arg >::type::value),
-            "wrong type: the aggregator_type template argument must be an MPL vector of placeholders (arg<...>)");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_sequence_of< sorted_placeholders_t, is_arg >::type::value),
+            GT_INTERNAL_ERROR_MSG(
+                "The aggregator_type template argument must be an MPL vector of placeholders (arg<...>)"));
 
         GRIDTOOLS_STATIC_ASSERT((_impl::continuous_indices_check< sorted_placeholders_t >::type::value),
-            "Storage placeholders must have consecutive indices starting with 0.");
+            GT_INTERNAL_ERROR_MSG("Storage placeholders must have consecutive indices starting with 0."));
 
-        const static uint_t len = boost::mpl::size< sorted_placeholders_t >::type::value;
+        constexpr static uint_t len = boost::mpl::size< sorted_placeholders_t >::type::value;
 
         // create a unique id that will be used as temporary storage info id
         typedef typename boost::mpl::fold< Placeholders,
@@ -148,10 +150,12 @@ namespace gridtools {
         typedef typename check_holes::index_set index_set;
 
         // actual check if the user specified placeholder arguments with the same index
-        GRIDTOOLS_STATIC_ASSERT((len <= boost::mpl::size< index_set >::type::value),
-            "you specified two different placeholders with the same index, which is not allowed. check the arg "
-            "definitions.");
-        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size< index_set >::type::value), "something strange is happening.");
+        GRIDTOOLS_STATIC_ASSERT(
+            (len <= boost::mpl::size< index_set >::type::value),
+            GT_INTERNAL_ERROR_MSG(
+                "Two different placeholders with the same index specified, which is not allowed. check the arg "
+                "definitions."));
+        GRIDTOOLS_STATIC_ASSERT((len >= boost::mpl::size< index_set >::type::value), GT_INTERNAL_ERROR);
 
         /**
          * Type of fusion::vector of pointers to storages as indicated in Placeholders
@@ -187,18 +191,20 @@ namespace gridtools {
             : m_arg_storage_pair_list(), m_metadata_set() {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(ArgStoragePairs) > 0),
-                "Computations with no data_stores are not supported. "
-                "Add at least one data_store to the aggregator_type "
-                "definition.");
+                GT_INTERNAL_ERROR_MSG("Computations with no data_stores are not supported. "
+                                      "Add at least one data_store to the aggregator_type "
+                                      "definition."));
 
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size< placeholders_t >::value -
                         boost::mpl::count_if< placeholders_t, is_tmp_arg< boost::mpl::_ > >::value ==
                     sizeof...(ArgStoragePairs)),
-                "The number of arguments specified when constructing the aggregator_type is not the same as the number "
-                "of "
-                "args to non-temporaries. Double check the temporary flag in the arg types or add the "
-                "necessary arg_storage_pairs.");
+                GT_INTERNAL_ERROR_MSG(
+                    "The number of arguments specified when constructing the aggregator_type is not the same as the "
+                    "number "
+                    "of "
+                    "args to non-temporaries. Double check the temporary flag in the arg types or add the "
+                    "necessary arg_storage_pairs."));
             _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign((*arg_storage_pairs.ptr.get())...);
             _impl::fill_arg_storage_pair_list< arg_storage_pair_fusion_list_t >(m_arg_storage_pair_list)
                 .reassign(arg_storage_pairs...);
@@ -217,18 +223,19 @@ namespace gridtools {
             : m_arg_storage_pair_list(), m_metadata_set() {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
-                "Computations with no data_stores are not supported. "
-                "Add at least one data_store to the aggregator_type "
-                "definition.");
+                GT_INTERNAL_ERROR_MSG("Computations with no data_stores are not supported. "
+                                      "Add at least one data_store to the aggregator_type "
+                                      "definition."));
 
             GRIDTOOLS_STATIC_ASSERT(
                 (boost::mpl::size< placeholders_t >::value -
                         boost::mpl::count_if< placeholders_t, is_tmp_arg< boost::mpl::_ > >::value ==
                     sizeof...(DataStores)),
-                "The number of arguments specified when constructing the aggregator_type is not the same as the number "
-                "of "
-                "args to non-temporaries. Double check the temporary flag in the arg types or add the "
-                "necessary storages.");
+                GT_INTERNAL_ERROR_MSG(
+                    "The number of arguments specified when constructing the aggregator_type is not the same as the "
+                    "number "
+                    "of args to non-temporaries. Double check the temporary flag in the arg types or add the "
+                    "necessary storages."));
             _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(ds...);
 
             // create a fusion vector that contains all the arg_storage_pairs to all non temporary args
@@ -303,8 +310,8 @@ namespace gridtools {
         void reassign_storages_impl(DataStores &... stores) {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
-                "the reassign_storages_impl must be called with at least one argument. "
-                "otherwise what are you calling it for?");
+                GT_INTERNAL_ERROR_MSG("the reassign_storages_impl must be called with at least one argument. "
+                                      "otherwise what are you calling it for?"));
             _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(stores...);
 
             // create a fusion vector that contains all the arg_storage_pairs to all non temporary args
@@ -328,8 +335,8 @@ namespace gridtools {
                 int >::type = 0 >
         void reassign_arg_storage_pairs_impl(ArgStoragePairs... arg_storage_pairs) {
             GRIDTOOLS_STATIC_ASSERT((sizeof...(ArgStoragePairs) > 0),
-                "the reassign_arg_storage_pairs_impl must be called with at least one argument. "
-                "otherwise what are you calling it for?");
+                GT_INTERNAL_ERROR_MSG("the reassign_arg_storage_pairs_impl must be called with at least one argument. "
+                                      "otherwise what are you calling it for?"));
 
             _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign((*arg_storage_pairs.ptr.get())...);
             _impl::fill_arg_storage_pair_list< arg_storage_pair_fusion_list_t >(m_arg_storage_pair_list)
