@@ -59,13 +59,8 @@ namespace gridtools {
      * passed dimension is returned unmodified.
      * @tparam LayoutArg layout map entry
      */
-<<<<<<< HEAD
-    template < uint_t HaloVal, int LayoutArg >
-    struct extend_by_halo {
-=======
     template < int LayoutArg >
     struct handle_masked_dims {
->>>>>>> 59a6e83643ea3b66346769d4ccbde22fa5738a6b
         template < typename Dim >
         static constexpr uint_t extend(Dim d) {
             GRIDTOOLS_STATIC_ASSERT(

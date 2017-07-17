@@ -279,25 +279,6 @@ namespace gridtools {
         }
 
         /*
-<<<<<<< HEAD
-         * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
-         * @tparam Coord queried coordinate
-         * @return size of dimension
-         */
-        template < int Coord >
-        int unaligned_dim() const {
-            ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage_info->template unaligned_dim< Coord >();
-        }
-
-        /*
-         * @brief member function to retrieve the total size (dimensions, halos, initial_offset).
-         * @return total size
-         */
-        int size() const {
-            ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage_info->size();
-=======
          * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
          * @return total size
          */
@@ -322,7 +303,6 @@ namespace gridtools {
         int length() const {
             assert(m_shared_storage_info.get() && "data_store is in a non-initialized state.");
             return m_shared_storage_info->length();
->>>>>>> 59a6e83643ea3b66346769d4ccbde22fa5738a6b
         }
 
         /**

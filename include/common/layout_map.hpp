@@ -92,7 +92,10 @@ namespace gridtools {
         */
         template < int I >
         struct at_ {
-            static const int value = (I < masked_length && I >= 0) ? at< I >() : -1;
+            typedef typename boost::mpl::eval_if_c<(I < masked_length && I >= 0),
+                boost::mpl::at< static_layout_vector, boost::mpl::int_< I > >, 
+                boost::mpl::int_<-1> >::type val_t;
+            const static int_t value = val_t::value;
         };
 
         GT_FUNCTION static constexpr int at(int i) { return get_value_from_pack(i, Args...); }

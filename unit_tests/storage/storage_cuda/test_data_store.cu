@@ -279,11 +279,7 @@ TEST(DataStoreTest, ExternalGPUPointer) {
     double *external_gpu_ptr;
     double *external_cpu_ptr = new double[si.padded_total_length()];
     // initialize CPU ptr
-<<<<<<< HEAD
-    for (uint_t i = 0; i < si.size(); ++i) {
-=======
     for (unsigned i = 0; i < si.padded_total_length(); ++i) {
->>>>>>> 59a6e83643ea3b66346769d4ccbde22fa5738a6b
         external_cpu_ptr[i] = 3.1415;
     }
     // create a GPU ptr

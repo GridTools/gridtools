@@ -99,15 +99,6 @@ TEST(StorageInfo, Simple) {
 
     // storage info has to be constexpr capable
     constexpr storage_info_interface< 0, layout_map< 1, 0, 2 > > si(3, 3, 3);
-<<<<<<< HEAD
-    GRIDTOOLS_STATIC_ASSERT(si.size() == 27, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.stride< 0 >() == 3, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.stride< 1 >() == 9, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.stride< 2 >() == 1, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
-    GRIDTOOLS_STATIC_ASSERT(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
-=======
     static_assert(si.padded_total_length() == 27, "storage info is not constexpr anymore");
     static_assert(si.total_length() == 27, "storage info is not constexpr anymore");
     static_assert(si.length() == 27, "storage info is not constexpr anymore");
@@ -117,7 +108,6 @@ TEST(StorageInfo, Simple) {
     static_assert(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
     static_assert(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
     static_assert(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
->>>>>>> 59a6e83643ea3b66346769d4ccbde22fa5738a6b
 
     // test wiht different dims
     storage_info_interface< 0, layout_map< 1, 2, 3, 0 > > x(5, 7, 8, 2);

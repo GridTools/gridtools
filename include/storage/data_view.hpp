@@ -151,21 +151,7 @@ namespace gridtools {
         }
 
         /*
-<<<<<<< HEAD
-         * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
-         * @tparam Coord queried coordinate
-         * @return size of dimension
-         */
-        template < int Coord >
-        GT_FUNCTION constexpr int unaligned_dim() const {
-            return m_storage_info->template unaligned_dim< Coord >();
-        }
-
-        /*
-         * @brief member function to retrieve the total size (dimensions, halos, initial_offset).
-=======
          * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
->>>>>>> 59a6e83643ea3b66346769d4ccbde22fa5738a6b
          * @return total size
          */
         GT_FUNCTION constexpr int padded_total_length() const { return m_storage_info->padded_total_length(); }

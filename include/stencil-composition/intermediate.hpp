@@ -467,13 +467,6 @@ namespace gridtools {
             grid_traits_t,
             placeholders_t,
             RepeatFunctor >::type extent_map_t;
-
-        // collect the extents
-        typedef typename boost::mpl::transform< placeholders_t, boost::mpl::at< extent_map_t, boost::mpl::_1 > >::type
-            all_extents_t;
-        typedef typename boost::mpl::transform< all_extents_t, get_extent_vec_t< boost::mpl::_1 > >::type
-            all_extents_vecs_t;
-
         // Second we need to associate an extent to each esf, so that
         // we can associate loop bounds to the functors.
         typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
@@ -546,9 +539,15 @@ namespace gridtools {
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
-            check_grid_against_extents< all_extents_vecs_t >(grid);
-            check_fields_sizes< grid_traits_t >(grid, domain);
+            // check_grid_against_extents< all_extents_vecs_t >(grid);
+            // check_fields_sizes< grid_traits_t >(grid, domain);
         }
+        /**
+           @brief This method allocates on the heap the temporary variables.
+           Calls heap_allocated_temps::prepare_temporaries(...).
+           It allocates the memory for the list of extents defined in the temporary placeholders.
+           Further it takes care of updating the global_parameters
+        */
 
         virtual void ready() {
             // instantiate all the temporaries
