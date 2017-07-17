@@ -62,6 +62,7 @@ namespace gridtools {
     template < int LayoutArg >
     struct handle_masked_dims {
         template < typename Dim >
+        GT_FUNCTION
         static constexpr uint_t extend(Dim d) {
             GRIDTOOLS_STATIC_ASSERT(
                 boost::is_integral< Dim >::value, GT_INTERNAL_ERROR_MSG("Dimensions has to be integral type."));
@@ -79,11 +80,12 @@ namespace gridtools {
      * @return return aligned dimension if it should be aligned, otherwise return as is.
      */
     template < typename Alignment, uint_t Length, int LayoutArg >
+    GT_FUNCTION
     constexpr uint_t align_dimensions(uint_t dimension) {
         GRIDTOOLS_STATIC_ASSERT(
             is_alignment< Alignment >::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));
-        return ((Alignment::value > 1) && (LayoutArg == Length - 1))
-                   ? gt_ceil((float)dimension / (float)Alignment::value) * Alignment::value
+        return ((Alignment::value > 1u) && (LayoutArg == (int_t)Length - 1))
+                   ? (gt_ceil((float)dimension / (float)Alignment::value) * Alignment::value)
                    : dimension;
     }
 
