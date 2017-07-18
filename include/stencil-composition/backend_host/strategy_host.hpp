@@ -82,19 +82,22 @@ namespace gridtools {
                         local_domain_lists, grid, reduction_data, 0, 0));
             }
 
-            template < typename LocalDomainListArray, typename Grid, class SerializerType >
+            template < typename LocalDomainListArray, typename Domain, typename Grid, class SerializerType >
             static void run_and_serialize(LocalDomainListArray &local_domain_lists,
+                const Domain &domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 stencil_serializer< SerializerType > &stencil_ser) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), GT_INTERNAL_ERROR);
 
                 boost::mpl::for_each< iter_range >(mss_functor_serializable< MssComponentsArray,
+                    Domain,
                     Grid,
                     LocalDomainListArray,
                     BackendIds,
                     ReductionData,
-                    SerializerType >(local_domain_lists, grid, reduction_data, 0, 0, stencil_ser));
+                    SerializerType >(local_domain_lists, domain, grid, reduction_data, 0, 0, stencil_ser));
             }
         };
 

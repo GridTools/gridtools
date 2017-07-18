@@ -45,12 +45,13 @@ namespace gridtools {
 
     namespace _impl {
 
-        template < class SerializerType, class SavepointType, class StorageInfoList >
+        template < class SerializerType, class SavepointType, class StorageInfoList, class Domain >
         struct serialize_storages {
             SerializerType &m_serializer;
             SavepointType &m_savepoint;
             int_t *m_tmp_id;
             StorageInfoList &m_storage_info_ptr_list;
+            const Domain &domain;
 
             template < typename Arg, typename Ptr >
             void operator()(boost::fusion::pair< Arg, Ptr > const &storage_ptr) const {
@@ -66,9 +67,11 @@ namespace gridtools {
                 if (Arg::is_temporary) {
                     std::string tmp_name("tmp_" + std::to_string((*m_tmp_id)++));
                     m_serializer.write(tmp_name, m_savepoint, data_store);
-                } else
-                    m_serializer.write(std::to_string(Arg::index_t::value), m_savepoint, data_store); // TODO fix name
-                //                m_serializer.write(storage.name(), m_savepoint, storage, storage_info_ptr);
+                } else {
+                    const auto &storage =
+                        *boost::fusion::at_c< Arg::index_t::value >(domain.get_arg_storage_pairs()).ptr;
+                    m_serializer.write(storage.name(), m_savepoint, data_store);
+                }
             }
         };
 
@@ -78,6 +81,7 @@ namespace gridtools {
      * \brief mss_functor with serialization capabilities
      */
     template < typename MssComponentsArray,
+        typename Domain,
         typename Grid,
         typename MssLocalDomainArray,
         typename BackendIds,
@@ -87,18 +91,20 @@ namespace gridtools {
         : public mss_functor< MssComponentsArray, Grid, MssLocalDomainArray, BackendIds, ReductionData > {
       private:
         stencil_serializer< SerializerType > &m_stencil_serializer;
+        const Domain &m_domain;
 
       public:
         using base_t = mss_functor< MssComponentsArray, Grid, MssLocalDomainArray, BackendIds, ReductionData >;
 
         mss_functor_serializable(MssLocalDomainArray &local_domain_lists,
+            const Domain &domain,
             const Grid &grid,
             ReductionData &reduction_data,
             const int block_idx,
             const int block_idy,
             stencil_serializer< SerializerType > &stencil_ser)
-            : base_t(local_domain_lists, grid, reduction_data, block_idx, block_idy),
-              m_stencil_serializer(stencil_ser) {}
+            : base_t(local_domain_lists, grid, reduction_data, block_idx, block_idy), m_stencil_serializer(stencil_ser),
+              m_domain(domain) {}
 
         template < typename Index >
         void operator()(Index const &index) const {
@@ -136,11 +142,12 @@ namespace gridtools {
 
             // Serialize all input storages
             int_t tmp_id = 0;
-            boost::fusion::for_each(local_domain.m_local_data_ptrs,
+            boost::fusion::for_each(
+                local_domain.m_local_data_ptrs,
                 _impl::serialize_storages< SerializerType,
-                                        savepoint_t,
-                                        typename local_domain_t::storage_info_ptr_fusion_list >{
-                    serializer, savepoint_in, &tmp_id, local_domain.m_local_storage_info_ptrs});
+                    savepoint_t,
+                    typename local_domain_t::storage_info_ptr_fusion_list,
+                    Domain >{serializer, savepoint_in, &tmp_id, local_domain.m_local_storage_info_ptrs, m_domain});
 
             // Run the functor
             //
@@ -154,11 +161,12 @@ namespace gridtools {
             savepoint_out.add_meta_info("invocation_count", invocation_count);
 
             tmp_id = 0;
-            boost::fusion::for_each(local_domain.m_local_data_ptrs,
+            boost::fusion::for_each(
+                local_domain.m_local_data_ptrs,
                 _impl::serialize_storages< SerializerType,
-                                        savepoint_t,
-                                        typename local_domain_t::storage_info_ptr_fusion_list >{
-                    serializer, savepoint_out, &tmp_id, local_domain.m_local_storage_info_ptrs});
+                    savepoint_t,
+                    typename local_domain_t::storage_info_ptr_fusion_list,
+                    Domain >{serializer, savepoint_out, &tmp_id, local_domain.m_local_storage_info_ptrs, m_domain});
         }
     };
 

@@ -270,6 +270,12 @@ namespace gridtools {
         arg_storage_pair_fusion_list_t &get_arg_storage_pairs() { return m_arg_storage_pair_list; }
 
         /**
+         * @brief returning by reference the list of all arg storage pairs. An arg storage pair maps
+         * an arg to an instance of a data_store, data_store_field, or std::vector.
+         */
+        arg_storage_pair_fusion_list_t const &get_arg_storage_pairs() const { return m_arg_storage_pair_list; }
+
+        /**
          * @brief returning by const reference an arg storage pair. An arg storage pair maps
          * an arg to an instance of a data_store, data_store_field, or std::vector.
          */
