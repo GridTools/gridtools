@@ -56,7 +56,7 @@ struct copy_to_foo {
     typedef boost::mpl::vector< in, foo > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
         eval(foo()) = eval(in());
     }
 };
@@ -68,7 +68,7 @@ struct copy_from_foo {
     typedef boost::mpl::vector< foo, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
         eval(out()) = eval(foo());
     }
 };
@@ -82,9 +82,13 @@ TEST_F(serialization_setup, multistage) {
     storage_t &out = make_storage("out", d1, d2, d3);
     storage_t &foo = make_storage("foo", d1, d2, d3);
 
-    for_each("in", [&](int i, int j, int k) { in(i, j, k) = i + j + k; });
-    for_each("out", [&](int i, int j, int k) { out(i, j, k) = -1; });
-    for_each("foo", [&](int i, int j, int k) { foo(i, j, k) = -1; });
+    auto in_view = make_host_view(in);
+    auto out_view = make_host_view(out);
+    auto foo_view = make_host_view(foo);
+
+    for_each("in", [&](int i, int j, int k) { in_view(i, j, k) = i + j + k; });
+    for_each("out", [&](int i, int j, int k) { out_view(i, j, k) = -1; });
+    for_each("foo", [&](int i, int j, int k) { foo_view(i, j, k) = -1; });
 
     // Domain
     typedef arg< 0, storage_t > p_in;
@@ -95,8 +99,8 @@ TEST_F(serialization_setup, multistage) {
     gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out), (p_foo() = foo));
 
     // Grid
-    uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-    uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+    halo_descriptor di{0, 0, 0, d1 - 1, d1};
+    halo_descriptor dj{0, 0, 0, d2 - 1, d2};
 
     gridtools::grid< axis > grid(di, dj);
     grid.value_list[0] = 0;
@@ -163,9 +167,11 @@ TEST_F(serialization_setup, multistage) {
         // Verify serialized data
         // ======================
         storage_t &input_out_ref = make_storage("input_out_ref", d1, d2, d3);
+        auto input_out_ref_view = make_host_view(input_out_ref);
         storage_t &input_foo_ref = make_storage("input_foo_ref", d1, d2, d3);
-        for_each("input_out_ref", [&input_out_ref](int i, int j, int k) { input_out_ref(i, j, k) = -1; });
-        for_each("input_foo_ref", [&input_foo_ref](int i, int j, int k) { input_foo_ref(i, j, k) = -1; });
+        auto input_foo_ref_view = make_host_view(input_foo_ref);
+        for_each("input_out_ref", [&input_out_ref_view](int i, int j, int k) { input_out_ref_view(i, j, k) = -1; });
+        for_each("input_foo_ref", [&input_foo_ref_view](int i, int j, int k) { input_foo_ref_view(i, j, k) = -1; });
 
         ASSERT_TRUE(verify_storages(copy_to_foo_input_in, in, grid));
         ASSERT_TRUE(verify_storages(copy_to_foo_input_foo, input_foo_ref, grid));

@@ -57,7 +57,7 @@ struct copy_to_temporaries {
     typedef boost::mpl::vector< in, tmp1, tmp2 > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
         eval(tmp1()) = 0.25 * eval(in());
         eval(tmp2()) = 0.75 * eval(in());
     }
@@ -70,7 +70,7 @@ struct copy_from_temporaries {
     typedef boost::mpl::vector< tmp1, tmp2, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
         eval(out()) = eval(tmp1()) + eval(tmp2());
     }
 };
@@ -83,12 +83,15 @@ TEST_F(serialization_setup, temporaries) {
     storage_t &in = make_storage("in", d1, d2, d3);
     storage_t &out = make_storage("out", d1, d2, d3);
 
-    for_each("in", [&in](int i, int j, int k) { in(i, j, k) = i + j + k; });
-    for_each("out", [&out](int i, int j, int k) { out(i, j, k) = -1; });
+    auto in_view = make_host_view(in);
+    auto out_view = make_host_view(out);
+
+    for_each("in", [&in_view](int i, int j, int k) { in_view(i, j, k) = i + j + k; });
+    for_each("out", [&out_view](int i, int j, int k) { out_view(i, j, k) = -1; });
 
     // Domain
-    typedef arg< 0, temporary_storage_t > p_tmp1;
-    typedef arg< 1, temporary_storage_t > p_tmp2;
+    typedef tmp_arg< 0, storage_t > p_tmp1;
+    typedef tmp_arg< 1, storage_t > p_tmp2;
     typedef arg< 2, storage_t > p_in;
     typedef arg< 3, storage_t > p_out;
     typedef boost::mpl::vector< p_tmp1, p_tmp2, p_in, p_out > accessor_list;
@@ -97,8 +100,8 @@ TEST_F(serialization_setup, temporaries) {
 
     // Grid
     uint_t halo_size = 1;
-    uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-    uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+    halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+    halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
     gridtools::grid< axis > grid(di, dj);
     grid.value_list[0] = 0;
@@ -179,10 +182,12 @@ TEST_F(serialization_setup, temporaries) {
         storage_t &copy_to_temporaries_output_tmp_1_ref =
             make_storage("copy_to_temporaries_output_tmp_1_ref", d1, d2, d3);
 
+        auto copy_to_temporaries_output_tmp_0_ref_view = make_host_view(copy_to_temporaries_output_tmp_0_ref);
         for_each("copy_to_temporaries_output_tmp_0_ref",
-            [&](int i, int j, int k) { copy_to_temporaries_output_tmp_0_ref(i, j, k) = 0.25 * in(i, j, k); });
+            [&](int i, int j, int k) { copy_to_temporaries_output_tmp_0_ref_view(i, j, k) = 0.25 * in_view(i, j, k); });
+        auto copy_to_temporaries_output_tmp_1_ref_view = make_host_view(copy_to_temporaries_output_tmp_1_ref);
         for_each("copy_to_temporaries_output_tmp_1_ref",
-            [&](int i, int j, int k) { copy_to_temporaries_output_tmp_1_ref(i, j, k) = 0.75 * in(i, j, k); });
+            [&](int i, int j, int k) { copy_to_temporaries_output_tmp_1_ref_view(i, j, k) = 0.75 * in_view(i, j, k); });
 
         ASSERT_TRUE(verify_storages(copy_to_temporaries_input_in, in, grid, halo_size));
         ASSERT_TRUE(verify_storages(copy_to_temporaries_output_in, in, grid, halo_size));
@@ -194,8 +199,9 @@ TEST_F(serialization_setup, temporaries) {
         // Verify: "copy_from_temporaries"
         storage_t &copy_from_temporaries_input_out_ref =
             make_storage("copy_from_temporaries_input_out_ref", d1, d2, d3);
+        auto copy_from_temporaries_input_out_ref_view = make_host_view(copy_from_temporaries_input_out_ref);
         for_each("copy_from_temporaries_input_out_ref",
-            [&](int i, int j, int k) { copy_from_temporaries_input_out_ref(i, j, k) = -1; });
+            [&](int i, int j, int k) { copy_from_temporaries_input_out_ref_view(i, j, k) = -1; });
 
         ASSERT_TRUE(
             verify_storages(copy_from_temporaries_input_out, copy_from_temporaries_input_out_ref, grid, halo_size));

@@ -59,18 +59,20 @@ namespace gridtools {
                 using storage_info_t = const typename data_store_t::storage_info_t;
                 using storage_t = typename data_store_t::storage_t;
 
-                auto storage_ptrs = storage_ptr.second;
-                auto storage_info_ptr = *boost::fusion::find< storage_info_t * >(m_storage_info_ptr_list);
-                storage_t storage(0, storage_ptrs[0]);
-                data_store_t data_store(*storage_info_ptr, storage_ptrs[0]);
-
                 if (Arg::is_temporary) {
+                    auto storage_ptrs = storage_ptr.second;
+                    auto storage_info_ptr = *boost::fusion::find< storage_info_t * >(m_storage_info_ptr_list);
+
+                    // create data_store in external ptr mode to be used by the serializer
+                    storage_t storage(0, storage_ptrs[0]);
+                    data_store_t data_store(*storage_info_ptr, storage_ptrs[0]);
                     std::string tmp_name("tmp_" + std::to_string((*m_tmp_id)++));
                     m_serializer.write(tmp_name, m_savepoint, data_store);
                 } else {
-                    const auto &storage =
+                    // take the storage from the domain (because the storage_ptr only contains raw ptr to data)
+                    const auto &data_store_ =
                         *boost::fusion::at_c< Arg::index_t::value >(domain.get_arg_storage_pairs()).ptr;
-                    m_serializer.write(storage.name(), m_savepoint, data_store);
+                    m_serializer.write(data_store_.name(), m_savepoint, data_store_);
                 }
             }
         };
