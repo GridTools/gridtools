@@ -82,7 +82,6 @@ namespace gridtools {
                         local_domain_lists, grid, reduction_data, 0, 0));
             }
 
-#ifdef CXX11_ENABLED
             template < typename LocalDomainListArray, typename Grid, class SerializerType >
             static void run_and_serialize(LocalDomainListArray &local_domain_lists,
                 const Grid &grid,
@@ -97,7 +96,6 @@ namespace gridtools {
                     ReductionData,
                     SerializerType >(local_domain_lists, grid, reduction_data, 0, 0, stencil_ser));
             }
-#endif
         };
 
         /**

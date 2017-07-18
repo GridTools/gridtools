@@ -39,8 +39,6 @@
 #include <cstddef>
 #include <string>
 
-#ifdef CXX11_ENABLED
-
 namespace gridtools {
 
     namespace impl_ {
@@ -75,5 +73,3 @@ namespace gridtools {
         return std::string(name.ptr, name.length);
     }
 }
-
-#endif // CXX11_ENABLED

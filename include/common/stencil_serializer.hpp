@@ -36,8 +36,6 @@
 
 #pragma once
 
-#ifdef CXX11_ENABLED
-
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -105,5 +103,3 @@ namespace gridtools {
     };
 
 } // namespace gridtools
-
-#endif
