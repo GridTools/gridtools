@@ -366,12 +366,12 @@ namespace gridtools {
         /**
          * @brief forward strides() from storage_info
          */
-        auto strides() -> decltype(m_shared_storage_info->strides()) const { return m_shared_storage_info->strides(); }
+        auto strides() const -> decltype(m_shared_storage_info->strides()) { return m_shared_storage_info->strides(); }
 
         /**
          * @brief forward dims() from storage_info
          */
-        auto dims() -> decltype(m_shared_storage_info->dims()) const { return m_shared_storage_info->dims(); }
+        auto dims() const -> decltype(m_shared_storage_info->dims()) { return m_shared_storage_info->dims(); }
     };
 
     // simple metafunction to check if a type is a cuda_data_store
