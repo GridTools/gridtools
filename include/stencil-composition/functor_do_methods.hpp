@@ -69,10 +69,8 @@ namespace gridtools {
                 boost::mpl::push_back< boost::mpl::_1, boost::mpl::pair< TFromIndex, boost::mpl::_2 > >,
                 boost::mpl::_1 > >::type DoMethods;
 
-#ifdef CXX11_ENABLED
         GRIDTOOLS_STATIC_ASSERT(sfinae::has_two_args< TFunctor >::type::value,
             "A functor's Do method is found to have only one argument, when it is supposed to have two");
-#endif
 
         // check that:
         // * the k intervals you specified are consistent (i.e. the domain axis used to build

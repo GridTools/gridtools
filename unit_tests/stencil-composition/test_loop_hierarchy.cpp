@@ -71,20 +71,11 @@ namespace loop_test {
 
         loop_hierarchy< array_t,
             loop_item< 1, int_t, 1 >,
-            loop_item< 5, short_t, 1 >
-#ifdef CXX11_ENABLED
-            ,
-            static_loop_item< 0, 0u, 10u, uint_t, 1 >
-#endif
-            > h(2, 5, 6, 8);
+            loop_item< 5, short_t, 1 >,
+            static_loop_item< 0, 0u, 10u, uint_t, 1 > > h(2, 5, 6, 8);
         h.apply(it_domain, fun);
 
-        return fun.m_iterations ==
-               4 * 3
-#ifdef CXX11_ENABLED
-                   * 11
-#endif
-            ;
+        return fun.m_iterations == 4 * 3 * 11;
     }
 } // namespace loop_test
 

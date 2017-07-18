@@ -205,15 +205,11 @@ namespace gridtools {
         template < typename Functor >
         struct inserter_ {
 
-#ifdef CXX11_ENABLED
             typedef typename boost::mpl::if_< typename sfinae::has_two_args< Functor >::type,
                 Functor,
                 functor_default_interval< Functor, typename Grid::axis_type > >::type functor_t;
 
             typedef typename compute_functor_do_methods< functor_t, typename Grid::axis_type >::type type;
-#else
-            typedef typename compute_functor_do_methods< Functor, typename Grid::axis_type >::type type;
-#endif
         };
 
         typedef typename boost::mpl::transform< typename MssComponents::functors_seq_t,

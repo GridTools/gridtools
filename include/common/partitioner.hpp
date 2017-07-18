@@ -67,15 +67,7 @@ namespace gridtools {
     class partitioner {
 
       public:
-        enum Flag {
-            UP = 1,
-            LOW =
-#ifdef CXX11_ENABLED
-                gt_pow< space_dimensions< Derived >::value >::apply(2)
-#else
-                8 // 2^3, 3D topology
-#endif
-        };
+        enum Flag { UP = 1, LOW = gt_pow< space_dimensions< Derived >::value >::apply(2) };
 
         /**@brief constructor
            suppose we are using an MPI cartesian communicator:

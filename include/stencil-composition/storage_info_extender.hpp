@@ -38,7 +38,6 @@
 #include "../storage/storage-facility.hpp"
 #include "../common/layout_map_metafunctions.hpp"
 
-#ifdef CXX11_ENABLED
 namespace gridtools {
 
     /**
@@ -137,4 +136,3 @@ namespace gridtools {
         }
     };
 }
-#endif
