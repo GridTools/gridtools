@@ -336,7 +336,7 @@ namespace gridtools {
         /*
          * @brief return the array of (aligned) dims, see dim() for details.
          */
-        GT_FUNCTION constexpr const array< uint_t, layout_t::masked_length > &dims() { return m_dims; }
+        GT_FUNCTION constexpr const array< uint_t, layout_t::masked_length > &dims() const { return m_dims; }
 
         /*
          * @brief member function to retrieve the (aligned) size of a dimension (e.g., I, J, or K)
@@ -366,7 +366,7 @@ namespace gridtools {
         /*
          * @brief return the array of (aligned) strides, see stride() for details.
          */
-        GT_FUNCTION constexpr const array< uint_t, layout_t::masked_length > &strides() { return m_strides; }
+        GT_FUNCTION constexpr const array< uint_t, layout_t::masked_length > &strides() const { return m_strides; }
 
         /*
          * @brief member function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
