@@ -29,21 +29,9 @@ set( exe_LIBS ${exe_LIBS} gtest)
 # Only used for gcc or clang compilations
 function(fetch_host_tests subfolder)
     # get all source files in the current directory
-    file(GLOB test_sources_cxx03 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx03_*.cpp" )
     file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
     file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
     file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
-
-    # remove files that should not be there
-    if(ENABLE_CXX11)
-        foreach( cxx03 ${test_sources_cxx03} )
-            list(REMOVE_ITEM test_sources ${cxx03})
-        endforeach()
-    else()
-        foreach( cxx11 ${test_sources_cxx11} )
-            list(REMOVE_ITEM test_sources ${cxx11})
-        endforeach()
-    endif()
 
     # create all targets
     foreach( test_source ${test_sources} )
@@ -67,21 +55,9 @@ function(fetch_gpu_tests subfolder)
     # don't care if USE_GPU is not set
     if(USE_GPU)
         # get all source files in the current directory
-        file(GLOB test_sources_cxx03 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx03_*.cu" )
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cu" )
         file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cu" )
         file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
-
-        # remove files that should not be there
-        if(ENABLE_CXX11)
-            foreach( cxx03 ${test_sources_cxx03} )
-                list(REMOVE_ITEM test_sources ${cxx03})
-            endforeach()
-        else()
-            foreach( cxx11 ${test_sources_cxx11} )
-                list(REMOVE_ITEM test_sources ${cxx11})
-            endforeach()
-        endif()
 
         # create all targets
         foreach( test_source ${test_sources} )

@@ -57,12 +57,6 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-// Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
-//  for any type, which breaks most of the code after using expressions
-#ifdef CXX11_ENABLED
-// using namespace expressions;
-#endif
-
 namespace horizontal_diffusion_functions {
     // This is the definition of the special regions in the "vertical" direction
 
@@ -285,12 +279,9 @@ namespace horizontal_diffusion_functions {
             verifier verif(1e-12);
 #endif
 
-#ifdef CXX11_ENABLED
-            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+            array< array< uint_t, 2 >, 3 > halos{
+                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
             bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
-#else
-            result = verif.verify(repository.out_ref(), repository.out());
-#endif
         }
         if (!result) {
             std::cout << "ERROR" << std::endl;

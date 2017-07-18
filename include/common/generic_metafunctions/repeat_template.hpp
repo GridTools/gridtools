@@ -72,7 +72,7 @@ namespace gridtools {
         };
     }
 
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if !defined(__CUDACC__)
 
     namespace _impl {
         template < typename Seq, typename Value, template < Value... > class Lambda, Value... InitialValues >

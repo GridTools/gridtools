@@ -93,7 +93,6 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
                             }
                         }
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
@@ -101,13 +100,5 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
 #endif
     array< array< uint_t, 2 >, 6 > halos{{{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}};
     bool result = verif.verify(grid, reference, result_, halos);
-#else
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6, 0);
-#else
-    verifier verif(1e-12, 0);
-#endif
-    bool result = verif.verify(grid, reference, result_);
-#endif
     return result;
 }

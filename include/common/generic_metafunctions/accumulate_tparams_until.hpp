@@ -40,7 +40,6 @@
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
     namespace impl {
 
         /**@brief accumulator recursive implementation*/
@@ -97,5 +96,4 @@ namespace gridtools {
         static constexpr bool value = impl::accumulate_tparams_until_(
             BinaryOp(), LogicalOp(), Limit, 0, pair< Value, Value >(FirstVals, SecondVals)...);
     };
-#endif
 }

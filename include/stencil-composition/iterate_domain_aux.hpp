@@ -35,9 +35,7 @@
 */
 #pragma once
 
-#ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
-#endif
 #include <boost/fusion/include/size.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
@@ -54,9 +52,7 @@
 #include <boost/mpl/modulus.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/utility/enable_if.hpp>
-#ifdef CXX11_ENABLED
 #include "expressions/expressions.hpp"
-#endif
 #include "../common/array.hpp"
 #include "../common/meta_array.hpp"
 #include "../common/generic_metafunctions/reversed_range.hpp"
