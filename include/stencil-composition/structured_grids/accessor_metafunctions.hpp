@@ -38,9 +38,7 @@
 #include "../global_accessor.hpp"
 #include "./accessor.hpp"
 #include "./accessor_mixed.hpp"
-#ifdef CXX11_ENABLED
 #include "../expressions/expressions.hpp"
-#endif
 
 namespace gridtools {
 
@@ -160,7 +158,6 @@ namespace gridtools {
             Args... > type;
     };
 
-#ifdef CXX11_ENABLED
     template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
     struct remap_accessor_type< Expression< Arguments... >,
         ArgsMap,
@@ -187,8 +184,6 @@ namespace gridtools {
         // integer (the exponent)
         typedef Expression< typename remap_accessor_type< Accessor, ArgsMap >::type, Number > type;
     };
-
-#endif
 
     template < typename Accessor >
     struct is_accessor_readonly : boost::mpl::false_ {};

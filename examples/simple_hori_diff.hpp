@@ -54,11 +54,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-// Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
-//  for any type, which breaks most of the code after using expressions
-#ifdef CXX11_ENABLED
 using namespace expressions;
-#endif
 
 namespace shorizontal_diffusion {
     // This is the definition of the special regions in the "vertical" direction
@@ -169,23 +165,14 @@ namespace shorizontal_diffusion {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            simple_hori_diff = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    define_caches(cache< IJ, cache_io_policy::local >(p_lap())),
-                    gridtools::make_stage< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
-                    gridtools::make_stage< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
+        auto simple_hori_diff = gridtools::make_computation< gridtools::BACKEND >(
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                define_caches(cache< IJ, cache_io_policy::local >(p_lap())),
+                gridtools::make_stage< wlap_function >(p_lap(), p_in(), p_crlato(), p_crlatu()), // esf_descriptor
+                gridtools::make_stage< divflux_function >(p_out(), p_in(), p_lap(), p_crlato(), p_coeff())));
 
         simple_hori_diff->ready();
         simple_hori_diff->steady();
@@ -196,7 +183,6 @@ namespace shorizontal_diffusion {
 
         bool result = true;
         if (verify) {
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
             verifier verif(1e-6);
 #else
@@ -204,18 +190,8 @@ namespace shorizontal_diffusion {
 #endif
             array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
-#else
-#if FLOAT_PRECISION == 4
-            verifier verif(1e-6, halo_size);
-#else
-            verifier verif(1e-12, halo_size);
-#endif
-            result = verif.verify(grid, repository.out_ref(), repository.out());
-#endif
         }
-#ifdef BENCHMARK
-        benchmarker::run(simple_hori_diff, t_steps);
-#endif
+
         simple_hori_diff->finalize();
 
         return result; /// lapse_time.wall<5000000 &&

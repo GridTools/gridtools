@@ -37,7 +37,6 @@
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
     /**@file
     @brief implementation of a compile time string.
 
@@ -124,7 +123,6 @@ namespace gridtools {
             apply(s...);
         }
     };
-#endif // CXX11_ENABLED
 
     /**@brief simple function that copies a string **/
     inline char const *malloc_and_copy(char const *src) {

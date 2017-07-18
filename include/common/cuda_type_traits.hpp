@@ -75,9 +75,7 @@ namespace gridtools {
                   typename boost::remove_pointer< typename _impl::remove_restrict< T >::type >::type >::type >::type > {
     };
 
-#ifdef CXX11_ENABLED
     template < typename T >
     using is_texture_type_t = typename is_texture_type< T >::type;
-#endif
 
 } // namespace gridtools

@@ -56,7 +56,7 @@ namespace gridtools {
             typedef typename boost::mpl::insert<
                 typename boost::mpl::erase_key< ExtendsMap_, Cache >::type,
                 boost::mpl::pair< Cache,
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if !defined(__CUDACC__)
                     typename enclosing_extent_full< default_extent_t, Extend >::type > >::type
 #else
                     typename enclosing_extent< default_extent_t, Extend >::type > >::type

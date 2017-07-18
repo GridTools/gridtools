@@ -240,12 +240,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
         struct l_get_index {
             template < typename U >
             struct apply {
-#ifndef CXX11_ENABLED
-                typedef typename static_uint< U::index_t::value >::type
-#else
-                typedef static_uint< U::index_t::value >
-#endif
-                    type;
+                typedef static_uint< U::index_t::value > type;
             };
         };
 
