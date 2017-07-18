@@ -53,7 +53,7 @@
 namespace gridtools {
 
     namespace _impl {
-        template < uint TileI, uint TileJ, uint... Tiles >
+        template < uint_t TileI, uint_t TileJ, uint_t... Tiles >
         struct check_cache_tile_sizes {
             GRIDTOOLS_STATIC_ASSERT((TileI > 0 && TileJ > 0), GT_INTERNAL_ERROR);
             static constexpr bool value = (accumulate(multiplies(), Tiles...) == 1);
