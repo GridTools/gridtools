@@ -40,6 +40,7 @@
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/layout_map.hpp"
+#include "storage_info_interface.hpp"
 
 namespace gridtools {
     /*
@@ -103,11 +104,30 @@ namespace gridtools {
      */
     template < typename StorageInfo >
     storage_info_rt make_storage_info_rt(const StorageInfo &storage_info) {
-        auto dims = to_vector(storage_info.dims());
-        auto unaligned_dims = to_vector(make_array_from< unaligned_dim_getter >(storage_info));
-        auto strides = to_vector(storage_info.strides());
-        auto unaligned_strides = to_vector(make_array_from< unaligned_stride_getter >(storage_info));
-        return storage_info_rt(
-            std::move(dims), std::move(unaligned_dims), std::move(strides), std::move(unaligned_strides));
+        return storage_info_rt( //
+            to_vector(storage_info.dims()),
+            to_vector(make_unaligned_dims_array(storage_info)),
+            to_vector(storage_info.strides()),
+            to_vector(make_unaligned_strides_array(storage_info)));
+    }
+
+    /*
+     * @brief Constructs gridtools::array of unaligned_dims.
+     */
+    template < typename StorageInfo >
+    gridtools::array< uint_t, StorageInfo::layout_t::masked_length > make_unaligned_dims_array(
+        const StorageInfo &storage_info) {
+        GRIDTOOLS_STATIC_ASSERT((gridtools::is_storage_info< StorageInfo >::value), "Expected a StorageInfo");
+        return make_array_from< unaligned_dim_getter >(storage_info);
+    }
+
+    /*
+     * @brief Constructs gridtools::array of unaligned_strides.
+     */
+    template < typename StorageInfo >
+    gridtools::array< uint_t, StorageInfo::layout_t::masked_length > make_unaligned_strides_array(
+        const StorageInfo &storage_info) {
+        GRIDTOOLS_STATIC_ASSERT((gridtools::is_storage_info< StorageInfo >::value), "Expected a StorageInfo");
+        return make_array_from< unaligned_stride_getter >(storage_info);
     }
 }
