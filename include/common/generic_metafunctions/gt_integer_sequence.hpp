@@ -150,7 +150,7 @@ namespace gridtools {
             typename... ExtraTypes,
             typename boost::disable_if< typename is_aggregate< Container >::type, int >::type = 0 >
         GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
-            return Container(Lambda< Indices >::apply(args_...)...);
+            return Container{Lambda< Indices >::apply(args_...)...};
         }
 
         /**
