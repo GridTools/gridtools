@@ -38,6 +38,7 @@
 
 #include <assert.h>
 
+#include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
 
@@ -101,7 +102,7 @@ namespace gridtools {
          * @brief host_storage destructor.
          */
         ~host_storage() {
-            assert(m_cpu_ptr && "This would end up in a double-free.");
+            ASSERT_OR_THROW(m_cpu_ptr, "This would end up in a double-free.");
             if (m_ownership == ownership::Full)
                 delete[] m_cpu_ptr;
         }
@@ -111,7 +112,7 @@ namespace gridtools {
          * @return data pointer
          */
         data_t *get_cpu_ptr() const {
-            assert(m_cpu_ptr && "This storage has never been initialized");
+            ASSERT_OR_THROW(m_cpu_ptr, "This storage has never been initialized");
             return m_cpu_ptr;
         }
 

@@ -37,6 +37,7 @@
 #pragma once
 
 #include "definitions.hpp"
+#include "../../common/gt_assert.hpp"
 #include "../../common/array.hpp"
 #include "storage_info_metafunctions.hpp"
 
@@ -69,7 +70,7 @@ namespace gridtools {
 
     template < uint_t M, typename Layout, typename Halo >
     struct alignment_impl< alignment< M >, Layout, Halo > {
-        static_assert((M > 1), "Wrong alignment value passed.");
+        GRIDTOOLS_STATIC_ASSERT((M > 1), GT_INTERNAL_ERROR_MSG("Wrong alignment value passed."));
         static constexpr uint_t N = Layout::masked_length;
         static constexpr uint_t InitialOffset = get_initial_offset< Layout, alignment< M >, Halo >::compute();
 

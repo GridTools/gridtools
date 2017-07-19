@@ -34,9 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+
 #include <gridtools.hpp>
-#include "storage/storage-facility.hpp"
-#include "stencil-composition/stencil-composition.hpp"
+#include <common/gt_assert.hpp>
+#include <storage/storage-facility.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
@@ -124,7 +126,7 @@ TEST(assign_placeholders, test) {
                                          gridtools::arg_storage_pair< gridtools::arg< 4u, dst1 >, dst1 >,
                                          gridtools::arg_storage_pair< gridtools::arg< 5u, dst2 >, dst2 > > >::type
         check_storages_t;
-    static_assert(check_storages_t::value, "Type check failed.");
+    GRIDTOOLS_STATIC_ASSERT(check_storages_t::value, "Type check failed.");
 
     // Check metadata_set correctness
     typedef typename boost::is_same< gridtools::metadata_set< boost::mpl::v_item<
@@ -158,7 +160,7 @@ TEST(assign_placeholders, test) {
                                          0 > >,
         typename decltype(domain)::metadata_set_t >::type check_storage_infos_t;
 
-    static_assert(check_storage_infos_t::value, "Type check failed.");
+    GRIDTOOLS_STATIC_ASSERT(check_storage_infos_t::value, "Type check failed.");
 
     // Check pointers
     assert(domain.template get_arg_storage_pair< p_flx >().ptr.get() == 0x0);

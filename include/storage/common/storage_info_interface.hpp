@@ -48,6 +48,7 @@
 #include "definitions.hpp"
 #include "halo.hpp"
 #include "storage_info_metafunctions.hpp"
+#include "../../common/gt_assert.hpp"
 #include "../../common/array.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/layout_map.hpp"
@@ -106,8 +107,10 @@ namespace gridtools {
         using layout_t = layout_map< LayoutArgs... >;
         using halo_t = halo< Halos... >;
         using alignment_t = Align;
-        static_assert(sizeof...(Halos) == layout_t::masked_length, "Halo size does not match number of dimensions");
-        static_assert(is_alignment< Align >::value, "Given type is not an alignment type");
+        GRIDTOOLS_STATIC_ASSERT((sizeof...(Halos) == layout_t::masked_length),
+            GT_INTERNAL_ERROR_MSG("Halo size does not match number of dimensions"));
+        GRIDTOOLS_STATIC_ASSERT(
+            is_alignment< Align >::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type"));
 
       private:
         typedef storage_info_interface< Id, layout_map< LayoutArgs... >, halo< Halos... >, Align > this_t;
@@ -263,11 +266,11 @@ namespace gridtools {
                       handle_masked_dims< LayoutArgs >::extend(dims_))...)),
               m_alignment(array< uint_t, sizeof...(Dims) >{(uint_t)handle_masked_dims< LayoutArgs >::extend(dims_)...},
                   get_strides< layout_t >::get_stride_array(handle_masked_dims< LayoutArgs >::extend(dims_)...)) {
-            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                              typename is_all_integral< Dims... >::type >::value,
-                "Dimensions have to be integral types.");
-            static_assert((sizeof...(Dims) == layout_t::masked_length),
-                "Number of passed dimensions do not match the layout map length.");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
+                                        typename is_all_integral< Dims... >::type >::value),
+                GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Dims) == layout_t::masked_length),
+                GT_INTERNAL_ERROR_MSG("Number of passed dimensions do not match the layout map length."));
         }
 
         /*
@@ -342,7 +345,8 @@ namespace gridtools {
          */
         template < int Coord >
         GT_FUNCTION constexpr int dim() const {
-            static_assert((Coord < layout_t::masked_length), "Out of bounds access in storage info dimension call.");
+            GRIDTOOLS_STATIC_ASSERT((Coord < layout_t::masked_length),
+                GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
             return m_dims.template get< Coord >();
         }
 
@@ -353,7 +357,8 @@ namespace gridtools {
          */
         template < int Coord >
         GT_FUNCTION constexpr int stride() const {
-            static_assert((Coord < layout_t::masked_length), "Out of bounds access in storage info stride call.");
+            GRIDTOOLS_STATIC_ASSERT((Coord < layout_t::masked_length),
+                GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info stride call."));
             return m_strides.template get< Coord >();
         }
 
@@ -368,8 +373,8 @@ namespace gridtools {
          */
         template < int Coord >
         GT_FUNCTION constexpr int unaligned_dim() const {
-            static_assert(
-                (Coord < layout_t::masked_length), "Out of bounds access in storage info unaligned dimension call.");
+            GRIDTOOLS_STATIC_ASSERT((Coord < layout_t::masked_length),
+                GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned dimension call."));
             return m_alignment.template unaligned_dim< Coord >() ? m_alignment.template unaligned_dim< Coord >()
                                                                  : dim< Coord >();
         }
@@ -381,8 +386,8 @@ namespace gridtools {
          */
         template < int Coord >
         GT_FUNCTION constexpr int unaligned_stride() const {
-            static_assert(
-                (Coord < layout_t::masked_length), "Out of bounds access in storage info unaligned stride call.");
+            GRIDTOOLS_STATIC_ASSERT((Coord < layout_t::masked_length),
+                GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned stride call."));
             return m_alignment.template unaligned_stride< Coord >() ? m_alignment.template unaligned_stride< Coord >()
                                                                     : stride< Coord >();
         }
@@ -396,11 +401,11 @@ namespace gridtools {
         template < typename... Ints >
         GT_FUNCTION constexpr
             typename boost::enable_if< typename is_all_integral< Ints... >::type, int >::type index(Ints... idx) const {
-            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Ints) > 0) >,
-                              typename is_all_integral< Ints... >::type >::value,
-                "Dimensions have to be integral types.");
-            static_assert(
-                sizeof...(Ints) == layout_t::masked_length, "Index function called with wrong number of arguments.");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Ints) > 0) >,
+                                        typename is_all_integral< Ints... >::type >::value),
+                GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Ints) == layout_t::masked_length,
+                GT_INTERNAL_ERROR_MSG("Index function called with wrong number of arguments."));
 #ifdef NDEBUG
             return index_part< 0 >(idx...) + get_initial_offset();
 #else

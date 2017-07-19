@@ -40,6 +40,7 @@
 
 #include <boost/mpl/vector_c.hpp>
 
+#include "../common/gt_assert.hpp"
 #include "data_store.hpp"
 #include "common/data_store_field_metafunctions.hpp"
 #include "common/storage_info_interface.hpp"
@@ -55,7 +56,8 @@ namespace gridtools {
      */
     template < typename DataStore, uint_t... N >
     struct data_store_field {
-        static_assert(is_data_store< DataStore >::value, "Passed type is no data_store type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_data_store< DataStore >::value), GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
         using data_store_t = DataStore;
         using data_t = typename DataStore::data_t;
         using storage_t = typename DataStore::storage_t;
@@ -89,8 +91,8 @@ namespace gridtools {
          */
         template < uint_t Dim, uint_t Snapshot >
         DataStore const &get() const {
-            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages,
-                "Data store field out of bounds access");
+            GRIDTOOLS_STATIC_ASSERT(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
+                GT_INTERNAL_ERROR_MSG("Data store field out of bounds access"));
             // return
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
@@ -102,8 +104,8 @@ namespace gridtools {
          * @return data_store instance
          */
         DataStore const &get(uint_t Dim, uint_t Snapshot) const {
-            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages &&
-                   "Data store field out of bounds access");
+            ASSERT_OR_THROW(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
+                "Data store field out of bounds access");
             // return
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
@@ -116,15 +118,15 @@ namespace gridtools {
          */
         template < uint_t Dim, uint_t Snapshot >
         void set(DataStore const &store) {
-            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages,
-                "Data store field out of bounds access");
+            GRIDTOOLS_STATIC_ASSERT(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
+                GT_INTERNAL_ERROR_MSG("Data store field out of bounds access"));
             // check equality of storage infos
             for (auto elem : get_field()) {
                 if (elem.valid()) {
-                    assert(store.valid() && "Passed invalid data store.");
-                    assert(*elem.get_storage_info_ptr() == *store.get_storage_info_ptr() &&
-                           "Passed data store cannot be inserted into data store field because storage infos are not "
-                           "compatible.");
+                    ASSERT_OR_THROW((store.valid()), "Passed invalid data store.");
+                    ASSERT_OR_THROW((*elem.get_storage_info_ptr() == *store.get_storage_info_ptr()),
+                        "Passed data store cannot be inserted into data store field because storage infos are not "
+                        "compatible.");
                 }
             }
             // set data store
@@ -138,15 +140,15 @@ namespace gridtools {
          * @param store data_store that should be inserted into the field
          */
         void set(uint_t Dim, uint_t Snapshot, DataStore const &store) {
-            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages &&
-                   "Data store field out of bounds access");
+            ASSERT_OR_THROW(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
+                "Data store field out of bounds access");
             // check equality of storage infos
             for (auto elem : get_field()) {
                 if (elem.valid()) {
-                    assert(store.valid() && "Passed invalid data store.");
-                    assert(*elem.get_storage_info_ptr() == *store.get_storage_info_ptr() &&
-                           "Passed data store cannot be inserted into data store field because storage infos do not "
-                           "match.");
+                    ASSERT_OR_THROW((store.valid()), "Passed invalid data store.");
+                    ASSERT_OR_THROW((*elem.get_storage_info_ptr() == *store.get_storage_info_ptr()),
+                        "Passed data store cannot be inserted into data store field because storage infos do not "
+                        "match.");
                 }
             }
             // set data store
@@ -250,9 +252,9 @@ namespace gridtools {
     struct swap {
         template < uint_t Dim_T, uint_t Snapshot_T, typename T, uint_t... N >
         static void with(data_store_field< T, N... > &data_field) {
-            static_assert(Dim_S == Dim_T, "Inter-component swap is not allowed.");
-            static_assert(
-                is_data_store_field< data_store_field< T, N... > >::value, "Passed type is no data_store_field type.");
+            GRIDTOOLS_STATIC_ASSERT((Dim_S == Dim_T), GT_INTERNAL_ERROR_MSG("Inter-component swap is not allowed."));
+            GRIDTOOLS_STATIC_ASSERT((is_data_store_field< data_store_field< T, N... > >::value),
+                GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type."));
             typedef typename std::remove_pointer< decltype(
                 std::declval< typename data_store_field< T, N... >::data_store_t >().get_storage_ptr().get()) >::type::
                 ptrs_t ptrs_t;
@@ -274,8 +276,8 @@ namespace gridtools {
     struct cycle {
         template < int F, typename T, uint_t... N >
         static void by(data_store_field< T, N... > &data_field) {
-            static_assert(
-                is_data_store_field< data_store_field< T, N... > >::value, "Passed type is no data_store_field type.");
+            GRIDTOOLS_STATIC_ASSERT((is_data_store_field< data_store_field< T, N... > >::value),
+                GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type."));
             typedef typename data_store_field< T, N... >::data_store_t data_store_t;
             typedef typename std::remove_pointer< decltype(
                 std::declval< data_store_t >().get_storage_ptr().get()) >::type::ptrs_t ptrs_t;

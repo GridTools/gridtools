@@ -35,8 +35,10 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
+
+#include <common/defs.hpp>
+#include <common/gt_assert.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -172,39 +174,42 @@ TEST(test_iterate_domain, accessor_metafunctions) {
             boost::mpl::false_,
             notype > > it_domain_t;
 
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::read_only_texture_arg >::type::value),
         "Error");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::read_only_bypass_arg >::type::value),
         "Error");
 
-    static_assert(!(it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::out >::type::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        !(it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::out >::type::value), "Error");
 
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_read_from_texture< dummy_functor::read_only_texture_arg >::type::value),
         "Error");
 
     // because is output field
-    static_assert(!(it_domain_t::template accessor_read_from_texture< dummy_functor::out >::type::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        !(it_domain_t::template accessor_read_from_texture< dummy_functor::out >::type::value), "Error");
     // because is being bypass
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_read_from_texture< dummy_functor::read_only_bypass_arg >::type::value),
         "Error");
     // because is not a texture supported type
-    static_assert(!(it_domain_t::template accessor_read_from_texture<
-                      dummy_functor::read_only_non_texture_type_arg >::type::value),
+    GRIDTOOLS_STATIC_ASSERT(!(it_domain_t::template accessor_read_from_texture<
+                                dummy_functor::read_only_non_texture_type_arg >::type::value),
         "Error");
 
     // access via shared mem
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_from_shared_mem< dummy_functor::shared_mem_arg >::type::value), "Error");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_from_shared_mem< dummy_functor::read_only_bypass_arg >::type::value), "Error");
 
     // access via kcache reg
-    static_assert((it_domain_t::template accessor_from_kcache_reg< dummy_functor::kcache_arg >::type::value), "Error");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
+        (it_domain_t::template accessor_from_kcache_reg< dummy_functor::kcache_arg >::type::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_from_kcache_reg< dummy_functor::shared_mem_arg >::type::value), "Error");
 
     ASSERT_TRUE(true);

@@ -113,7 +113,7 @@ namespace gridtools {
 
         template < size_t I >
         GT_FUNCTION constexpr T get() const {
-            static_assert((I < n_dimensions), "Array out of bounds access.");
+            GRIDTOOLS_STATIC_ASSERT((I < n_dimensions), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
             return _array[I];
         }
 

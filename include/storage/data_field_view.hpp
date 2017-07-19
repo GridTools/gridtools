@@ -40,6 +40,7 @@
 #include <boost/mpl/and.hpp>
 #include <boost/type_traits.hpp>
 
+#include "../common/gt_assert.hpp"
 #include "data_store_field.hpp"
 #include "data_view.hpp"
 #include "common/definitions.hpp"
@@ -54,7 +55,8 @@ namespace gridtools {
      */
     template < typename DataStoreField, access_mode AccessMode = access_mode::ReadWrite >
     struct data_field_view {
-        static_assert(is_data_store_field< DataStoreField >::value, "Passed type is no data_store_field type");
+        GRIDTOOLS_STATIC_ASSERT(is_data_store_field< DataStoreField >::value,
+            GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type"));
         typedef typename DataStoreField::data_store_t data_store_t;
         typedef typename DataStoreField::data_t data_t;
         typedef typename DataStoreField::state_machine_t state_machine_t;

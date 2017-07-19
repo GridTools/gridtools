@@ -38,6 +38,7 @@
 
 #include <assert.h>
 
+#include "../../common/gt_assert.hpp"
 #include "../common/storage_info_interface.hpp"
 
 namespace gridtools {
@@ -65,11 +66,12 @@ namespace gridtools {
         template < typename... Dims >
         explicit constexpr cuda_storage_info(Dims... dims_)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
-            static_assert(is_halo< Halo >::value, "Given type is not a halo type.");
-            static_assert(is_alignment< Alignment >::value, "Given type is not an alignment type.");
-            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                              typename is_all_integral< Dims... >::type >::value,
-                "Dimensions have to be integral types.");
+            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, GT_INTERNAL_ERROR_MSG("Given type is not a halo type."));
+            GRIDTOOLS_STATIC_ASSERT(
+                is_alignment< Alignment >::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type."));
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
+                                        typename is_all_integral< Dims... >::type >::value),
+                GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
         }
 
         /*
@@ -85,12 +87,12 @@ namespace gridtools {
         cuda_storage_info< Id, Layout, Halo, Alignment > *get_gpu_ptr() const {
             if (!m_gpu_ptr) {
                 cudaError_t err = cudaMalloc(&m_gpu_ptr, sizeof(cuda_storage_info< Id, Layout, Halo, Alignment >));
-                assert((err == cudaSuccess) && "failed to allocate GPU memory.");
+                ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
                 err = cudaMemcpy((void *)m_gpu_ptr,
                     (void *)this,
                     sizeof(cuda_storage_info< Id, Layout, Halo, Alignment >),
                     cudaMemcpyHostToDevice);
-                assert((err == cudaSuccess) && "failed to clone storage_info to the device.");
+                ASSERT_OR_THROW((err == cudaSuccess), "failed to clone storage_info to the device.");
             }
             return m_gpu_ptr;
         }
