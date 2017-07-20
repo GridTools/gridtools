@@ -62,7 +62,7 @@ namespace gridtools {
       private:
         uint_t m_minus;        // halo on the minus direction
         uint_t m_plus;         // halo on the plus direction
-        uint_t m_begin;        // index of the fisrt element of the active region
+        uint_t m_begin;        // index of the first element of the active region
         uint_t m_end;          // index of the last element of the active region
         uint_t m_total_length; // minus+plus+(end-begin+1)+pads
 
