@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -55,13 +55,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace reduction {
-#ifdef __CUDACC__
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
-#else
-    //                   strides  1 x xy
-    //                      dims  x y z
-    typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
-#endif
 
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
@@ -74,7 +67,7 @@ namespace reduction {
         typedef boost::mpl::vector< in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static float_type Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static float_type Do(Evaluation &eval, x_interval) {
             return eval(in());
         }
     };
@@ -87,7 +80,7 @@ namespace reduction {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -112,27 +105,28 @@ namespace reduction {
 #endif
 #endif
 
-        typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
-        typedef BACKEND::storage_type< float_type, meta_data_t >::type storage_t;
+        typedef BACKEND::storage_traits_t::storage_info_t< __COUNTER__, 3 > meta_data_t;
+        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         meta_data_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
-        typedef storage_t storage_type;
-        storage_type in(meta_data_, "in");
-        storage_type out(meta_data_, float_type(0.));
+        storage_t in(meta_data_, "in");
+        storage_t out(meta_data_, "out");
+
+        auto inv = make_host_view(in);
 
         float_type sum_ref = 0, prod_ref = 1;
         for (uint_t i = 0; i < d1; ++i)
             for (uint_t j = 0; j < d2; ++j)
                 for (uint_t k = 0; k < d3; ++k) {
-                    in(i, j, k) = static_cast< float_type >((std::rand() % 100 + std::rand() % 100) * 0.002 + 0.51);
-                    sum_ref += in(i, j, k);
-                    prod_ref *= in(i, j, k);
+                    inv(i, j, k) = static_cast< float_type >((std::rand() % 100 + std::rand() % 100) * 0.002 + 0.51);
+                    sum_ref += inv(i, j, k);
+                    prod_ref *= inv(i, j, k);
                 }
 
-        typedef arg< 0, storage_type > p_in;
-        typedef arg< 1, storage_type > p_out;
+        typedef arg< 0, storage_t > p_in;
+        typedef arg< 1, storage_t > p_out;
 
         typedef boost::mpl::vector< p_in, p_out > accessor_list;
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
@@ -140,7 +134,7 @@ namespace reduction {
         // It must be noted that the only fields to be passed to the constructor are the non-temporary.
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&in, &out));
+        gridtools::aggregator_type< accessor_list > domain(in, out);
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -153,19 +147,10 @@ namespace reduction {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::computation< float_type > *
-#else
-        boost::shared_ptr< gridtools::computation< float_type > >
-#endif
-#endif
-            sum_red_ = make_computation< gridtools::BACKEND >(domain,
-                grid,
-                make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
-                make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
+        auto sum_red_ = make_computation< gridtools::BACKEND >(domain,
+            grid,
+            make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
+            make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
 
         sum_red_->ready();
         sum_red_->steady();
@@ -187,19 +172,10 @@ namespace reduction {
         std::cout << "Sum Reduction : " << sum_red_->print_meter() << std::endl;
 #endif
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::computation< float_type > *
-#else
-        boost::shared_ptr< gridtools::computation< float_type > >
-#endif
-#endif
-            prod_red_ = make_computation< gridtools::BACKEND >(domain,
-                grid,
-                make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
-                make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
+        auto prod_red_ = make_computation< gridtools::BACKEND >(domain,
+            grid,
+            make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
+            make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
 
         prod_red_->ready();
         prod_red_->steady();

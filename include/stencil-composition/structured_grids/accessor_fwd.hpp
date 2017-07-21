@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,5 +39,8 @@ namespace gridtools {
 
     template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct accessor;
+
+    template < typename T >
+    struct is_accessor;
 
 } // namespace gridtools

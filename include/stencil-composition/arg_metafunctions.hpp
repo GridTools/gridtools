@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "stencil-composition/arg_metafunctions_fwd.hpp"
+#include "arg_metafunctions_fwd.hpp"
+#include "arg_fwd.hpp"
 
 namespace gridtools {
+
     /**
      * @struct arg_hods_data_field_h
      * high order metafunction of arg_holds_data_field
@@ -46,22 +48,31 @@ namespace gridtools {
         typedef typename arg_holds_data_field< typename Arg::type >::type type;
     };
 
+    template < uint_t I, typename Storage, typename Location, bool Temporary >
+    struct arg_holds_data_field_h< arg< I, Storage, Location, Temporary > > {
+        typedef typename arg_holds_data_field< arg< I, Storage, Location, Temporary > >::type type;
+    };
+
     // metafunction to access the storage type given the arg
     template < typename T >
-    struct arg2storage {
-        typedef typename T::storage_type type;
+    struct get_storage_from_arg;
+
+    template < unsigned I, typename T, typename L, bool B >
+    struct get_storage_from_arg< arg< I, T, L, B > > {
+        typedef T type;
+    };
+
+    template < unsigned I, typename T, typename L, bool B >
+    struct get_storage_from_arg< arg< I, std::vector< T >, L, B > > {
+        typedef T type;
     };
 
     // metafunction to access the metadata type given the arg
     template < typename T >
-    struct arg2metadata {
-        typedef typename arg2storage< T >::type::storage_info_type type;
-    };
-
-    /** metafunction extracting the location type from the storage*/
-    template < typename T >
-    struct get_location_type {
-        typedef typename T::storage_info_type::index_type type;
+    struct get_storage_info_from_arg {
+        static_assert(is_arg< T >::value, "Given type is not an arg.");
+        typedef typename get_storage_from_arg< T >::type storage_t;
+        typedef typename storage_t::storage_info_t type;
     };
 
 } // namespace gridtools

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -64,7 +64,7 @@ namespace gridtools {
     struct iterate_domain_local_domain< IterateDomainImpl< IterateDomainBase, IterateDomainArguments > > {
         GRIDTOOLS_STATIC_ASSERT(
             (is_iterate_domain< IterateDomainImpl< IterateDomainBase, IterateDomainArguments > >::value),
-            "Internal Error: wrong type");
+            GT_INTERNAL_ERROR);
         typedef typename IterateDomainArguments::local_domain_t type;
     };
 }

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -44,14 +44,14 @@ namespace gridtools {
     namespace icgrid {
         template < typename EsfSequence >
         struct extract_esf_location_type {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Error, wrong esf types");
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value),
+                GT_INTERNAL_ERROR_MSG("Error, wrong esf types"));
             typedef typename boost::mpl::fold< EsfSequence,
                 boost::mpl::set0<>,
                 boost::mpl::insert< boost::mpl::_1, esf_get_location_type< boost::mpl::_2 > > >::type
                 location_type_set_t;
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< location_type_set_t >::value == 1),
-                "Error: all ESFs should have the same location type");
+                "Error: all ESFs in a Multi Stage stencil should have the same location type");
 
             typedef typename boost::mpl::front< location_type_set_t >::type type;
         };
@@ -65,12 +65,12 @@ namespace gridtools {
          */
         template < typename EsfSequence, typename Color >
         struct esf_sequence_contains_color {
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), "Error");
-            GRIDTOOLS_STATIC_ASSERT((is_color_type< Color >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfSequence, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_color_type< Color >::value), GT_INTERNAL_ERROR);
 
             template < typename Esf >
             struct esf_has_color_ {
-                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
+                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
                 typedef static_bool< (
                     boost::is_same< typename Esf::color_t::color_t, typename Color::color_t >::value ||
                     boost::is_same< typename Esf::color_t, nocolor >::value) > type;
@@ -83,7 +83,7 @@ namespace gridtools {
     template < typename Esf1, typename Esf2 >
     struct esf_equal {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_esf_descriptor< Esf1 >::value && is_esf_descriptor< Esf2 >::value), "Error: Internal Error");
+            (is_esf_descriptor< Esf1 >::value && is_esf_descriptor< Esf2 >::value), GT_INTERNAL_ERROR);
         typedef static_bool< boost::is_same< typename Esf1::esf_function, typename Esf2::esf_function >::value &&
                              boost::mpl::equal< typename Esf1::args_t, typename Esf2::args_t >::value &&
                              boost::is_same< typename Esf1::location_type, typename Esf2::location_type >::value &&
@@ -93,7 +93,7 @@ namespace gridtools {
     struct extract_esf_functor {
         template < typename Esf >
         struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
 
             typedef typename Esf::template esf_function< 0 > type;
         };
@@ -107,7 +107,7 @@ namespace gridtools {
                 typename Esf::template esf_function< Item::value >::arg_list >::type type;
         };
 
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), "Error");
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::fold< boost::mpl::range_c< uint_t, 0, Esf::location_type::n_colors::value >,
             boost::mpl::set0<>,

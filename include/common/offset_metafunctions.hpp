@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,10 @@
 
 namespace gridtools {
 
-    template <typename T>
+    template < typename T >
     struct is_array;
 
-    template <typename T>
+    template < typename T >
     struct is_offset_tuple;
 
     // metafunction determines whether an argument is an offset_tuple or an array

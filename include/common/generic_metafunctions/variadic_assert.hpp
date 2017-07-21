@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,6 @@
 */
 #pragma once
 
-#ifdef CXX11_ENABLED
-
 template < typename Lambda, typename First >
 void variadic_assert(Lambda fn, First first) {
     assert(fn(first));
@@ -47,5 +45,3 @@ void variadic_assert(Lambda fn, First first, T... args) {
     assert(fn(first));
     variadic_assert(fn, args...);
 }
-
-#endif

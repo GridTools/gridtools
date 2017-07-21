@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,4 @@
 */
 #pragma once
 
-#ifdef CXX11_ENABLED
 #include "stencil-composition/caches/define_caches_cxx11.hpp"
-#else
-#include "stencil-composition/caches/define_caches_cxx03.hpp"
-#endif

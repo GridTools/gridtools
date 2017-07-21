@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -72,6 +72,10 @@ namespace gridtools {
     template < typename ESF, typename... ExtraArgs >
     esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > > make_stage(ExtraArgs &&... /*args_*/) {
         GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_arg< ExtraArgs >::value...)), "Malformed make_esf");
+#ifdef PEDANTIC // find a way to enable this check also with generic accessors
+        GRIDTOOLS_STATIC_ASSERT((sizeof...(ExtraArgs) == boost::mpl::size< typename ESF::arg_list >::value),
+            "wrong number of arguments passed to the make_esf");
+#endif
         return esf_descriptor< ESF, boost::mpl::vector< ExtraArgs... > >();
     }
 

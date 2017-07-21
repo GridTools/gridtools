@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -68,8 +68,7 @@ namespace gridtools {
             : public run_f_on_interval_base<
                   run_f_on_interval< enumtype::execute< IterationType >, RunFunctorArguments > > // CRTP
         {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
 
             typedef
                 typename backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >::run_esf_functor_h_t
@@ -87,12 +86,35 @@ namespace gridtools {
 
             template < typename IterationPolicy, typename Interval >
             GT_FUNCTION void k_loop(int_t from, int_t to) const {
+#ifdef CUDA8
+                assert(from >= 0);
+                assert(to >= 0);
+                assert(to >= from);
+#endif
                 typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
                     run_esf_functor_t;
 
+                if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
+                    super::m_domain.template begin_fill< IterationPolicy >();
+                }
                 for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
+                    if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
+                        const int_t lev = (IterationPolicy::value == enumtype::backward) ? (to - k) + from : k;
+                        super::m_domain.template fill_caches< IterationPolicy >(lev, super::m_grid);
+                    }
+
                     boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
                         run_esf_functor_t(super::m_domain));
+                    if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
+
+                        const int_t lev = (IterationPolicy::value == enumtype::backward) ? (to - k) + from : k;
+
+                        super::m_domain.template flush_caches< IterationPolicy >(lev, super::m_grid);
+                        super::m_domain.template slide_caches< IterationPolicy >();
+                    }
+                }
+                if (super::m_domain.template is_thread_in_domain< typename RunFunctorArguments::max_extent_t >()) {
+                    super::m_domain.template final_flush< IterationPolicy >();
                 }
             }
         };
@@ -105,8 +127,7 @@ namespace gridtools {
         struct run_f_on_interval< typename enumtype::execute< enumtype::parallel >, RunFunctorArguments >
             : public run_f_on_interval_base<
                   run_f_on_interval< enumtype::execute< enumtype::parallel >, RunFunctorArguments > > {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             //*TODO implement me
         };
     } // namespace _impl

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,13 +36,8 @@
 
 #pragma once
 
-#ifndef CXX11_ENABLED
-#error("this file must be included only when c++11 is supported (i.e. ENABLE_CXX11=ON)")
-#endif
-
 #include <memory>
 
-#include "specializations.hpp"
 #include "../conditionals/fill_conditionals.hpp"
 #include "../../common/generic_metafunctions/vector_to_set.hpp"
 #include "../computation_grammar.hpp"

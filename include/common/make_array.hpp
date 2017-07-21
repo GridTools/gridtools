@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,13 +38,13 @@
 #include "array.hpp"
 
 namespace gridtools {
-    __host__ __device__ inline gridtools::array< int, 2 > make_array(int i1, int i2) {
+    GT_FUNCTION gridtools::array< int, 2 > make_array(int i1, int i2) {
         gridtools::array< int, 2 > a;
         a[0] = i1;
         a[1] = i2;
         return a;
     }
-    __host__ __device__ inline gridtools::array< int, 3 > make_array(int i1, int i2, int i3) {
+    GT_FUNCTION gridtools::array< int, 3 > make_array(int i1, int i2, int i3) {
         gridtools::array< int, 3 > a;
         a[0] = i1;
         a[1] = i2;

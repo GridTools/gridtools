@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -69,8 +69,4 @@
 #define POSITIONAL_WHEN_DEBUGGING false
 #endif
 
-#ifdef CXX11_ENABLED
 #include "make_computation_cxx11.hpp"
-#else
-#include "make_computation_cxx03.hpp"
-#endif

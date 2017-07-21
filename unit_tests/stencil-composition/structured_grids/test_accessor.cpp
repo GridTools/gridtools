@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -42,18 +42,18 @@
 
 TEST(accessor, is_accessor) {
     using namespace gridtools;
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3,4,4,5> > >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 6, enumtype::inout, extent< 3, 4, 4, 5 > > >::value) == true, "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 2, enumtype::in > >::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<int>::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<double&>::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<double const&>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< int >::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< double & >::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< double const & >::value) == false, "");
 }
 
 TEST(accessor, copy_const) {
 
     // using namespace gridtools;
-    //TODOCOSUNA not working due to problems with the copy ctor of the accessors
-    
+    // TODOCOSUNA not working due to problems with the copy ctor of the accessors
+
     //    typedef accessor<0, extent<-1,0,0,0>, 3> accessor_t;
     //    accessor<0, extent<-1,0,0,0>, 3> in(1,2,3);
     //    accessor<1, extent<-1,0,0,0>, 3> out(in);

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -37,12 +37,8 @@
 
 #include "gtest/gtest.h"
 
-TEST(cycle_and_swap, 2D){
-    EXPECT_TRUE(test_cycle_and_swap::test_2D());
-}
+TEST(cycle_and_swap, 2D) { EXPECT_TRUE(test_cycle_and_swap::test_2D()); }
 
-TEST(cycle_and_swap, 3D){
-    EXPECT_TRUE(test_cycle_and_swap::test_3D());
-}
+TEST(cycle_and_swap, 3D) { EXPECT_TRUE(test_cycle_and_swap::test_3D()); }
 
 TEST(cycle_and_swap, cycle) { EXPECT_TRUE(test_cycle_and_swap::test_cycle()); }

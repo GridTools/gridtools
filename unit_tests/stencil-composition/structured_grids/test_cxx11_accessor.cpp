@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,7 +39,7 @@
 #include "gridtools.hpp"
 #include "stencil-composition/accessor.hpp"
 #include "stencil-composition/structured_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/expressions.hpp"
+#include "stencil-composition/expressions/expressions.hpp"
 #include "stencil-composition/expandable_parameters/vector_accessor.hpp"
 
 using namespace gridtools;
@@ -52,6 +52,20 @@ namespace interface {
         return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
     }
 
+    bool test_array() {
+        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
+        GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1), "ERROR");
+        return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
+    }
+
+    bool test_array_and_dim() {
+        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(
+            array< int_t, 3 >{3, 2, -1}, dimension< 1 >(2));
+
+        GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1), "ERROR");
+        return first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1;
+    }
+
     /** @brief interface with out-of-order optional arguments
      */
     bool test_alternative1() {
@@ -61,16 +75,16 @@ namespace interface {
                first.get< 5 - 3 >() == 12 && first.get< 5 - 4 >() == 0 && first.get< 5 - 5 >() == -6;
     }
 
-/** @brief interface with out-of-order optional arguments, represented as matlab indices
- */
+    /** @brief interface with out-of-order optional arguments, represented as matlab indices
+     */
 
     using namespace expressions;
 
     bool test_alternative2() {
 
-        constexpr x i;
-        constexpr y j;
-        constexpr z k;
+        constexpr dimension< 1 > i;
+        constexpr dimension< 2 > j;
+        constexpr dimension< 3 > k;
 
         constexpr dimension< 4 > t;
         constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
@@ -90,9 +104,9 @@ namespace interface {
         // mixing compile time and runtime values
         using t = dimension< 15 >;
         typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 > arg_t;
-        using alias_t = alias< arg_t, t, x, dimension< 7 > >::set< -3, 4, 2 >;
+        using alias_t = alias< arg_t, t, dimension< 1 >, dimension< 7 > >::set< -3, 4, 2 >;
 
-        alias_t first(dimension< 8 >(23), z(-5));
+        alias_t first(dimension< 8 >(23), dimension< 3 >(-5));
 
         GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr< 14 >() == 4, "ERROR");
         return first.get< 14 - 6 >() == 2 && first.get< 14 - 0 >() == 4 && first.get< 14 - 14 >() == -3 &&
@@ -113,9 +127,12 @@ namespace interface {
         alias< arg_t, t > field1(-3); // records the offset -3 as dynamic values
         alias< arg_t, t > field2(-1); // records the offset -1 as static const
 
-        return field1(z(-5), x(1)).get< 14 - 0 >() == 1 && field1(z(-5), x(1)).get< 14 - 2 >() == -5 &&
-               field1(z(-5), x(1)).get< 14 - 14 >() == -3 && field2(z(-5), x(1)).get< 14 - 0 >() == 1 &&
-               field2(z(-5), x(1)).get< 14 - 2 >() == -5 && field2(z(-5), x(1)).get< 14 - 14 >() == -1;
+        return field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 &&
+               field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 &&
+               field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -3 &&
+               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 &&
+               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 &&
+               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -1;
     }
 
 } // namespace interface
@@ -123,29 +140,21 @@ namespace interface {
 using namespace interface;
 
 TEST(Accessor, is_accessor) {
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<6, enumtype::inout, extent<3,4,4,5> > >::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<accessor<2,  enumtype::in> >::value) == true, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<int>::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<double&>::value) == false, "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor<double const&>::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 6, enumtype::inout, extent< 3, 4, 4, 5 > > >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 2, enumtype::in > >::value) == true, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< int >::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< double & >::value) == false, "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< double const & >::value) == false, "");
 }
 
-TEST(Accessor, Trivial) {
-    EXPECT_TRUE(test_trivial());
-}
+TEST(Accessor, Trivial) { EXPECT_TRUE(test_trivial()); }
 
-TEST(Accessor, Alternative) {
-    EXPECT_TRUE(test_alternative1());
-}
+TEST(Accessor, Array) { EXPECT_TRUE(test_array()); }
 
-TEST(Accessor, Cxx11Alternative) {
-    EXPECT_TRUE(test_alternative2());
-}
+TEST(Accessor, Alternative) { EXPECT_TRUE(test_alternative1()); }
 
-TEST(Accessor, Cxx11DynamicAlias) {
-    EXPECT_TRUE(test_dynamic_alias());
-}
+TEST(Accessor, Cxx11Alternative) { EXPECT_TRUE(test_alternative2()); }
 
-TEST(Accessor, Cxx11StaticAlias) {
-    EXPECT_TRUE(test_static_alias());
-}
+TEST(Accessor, Cxx11DynamicAlias) { EXPECT_TRUE(test_dynamic_alias()); }
+
+TEST(Accessor, Cxx11StaticAlias) { EXPECT_TRUE(test_static_alias()); }

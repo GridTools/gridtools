@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -45,20 +45,20 @@ namespace loop_test {
     struct iterate_domain_ {
 
         template < typename Index >
-        void get_index(Index idx) const {}
+        GT_FUNCTION void get_index(Index idx) const {}
 
         template < typename Index >
-        void set_index(Index idx) {}
+        GT_FUNCTION void set_index(Index idx) {}
 
         template < ushort_t index, typename Step >
-        void increment() {}
+        GT_FUNCTION void increment() {}
     };
 
     struct functor {
 
         functor() : m_iterations(0) {}
 
-        void operator()() { m_iterations++; }
+        GT_FUNCTION void operator()() { m_iterations++; }
 
         uint_t m_iterations;
     };
@@ -71,23 +71,12 @@ namespace loop_test {
 
         loop_hierarchy< array_t,
             loop_item< 1, int_t, 1 >,
-            loop_item< 5, short_t, 1 >
-#ifdef CXX11_ENABLED
-            ,
-            static_loop_item< 0, 0u, 10u, uint_t, 1 >
-#endif
-            > h(2, 5, 6, 8);
+            loop_item< 5, short_t, 1 >,
+            static_loop_item< 0, 0u, 10u, uint_t, 1 > > h(2, 5, 6, 8);
         h.apply(it_domain, fun);
 
-        return fun.m_iterations ==
-               4 * 3
-#ifdef CXX11_ENABLED
-                   * 11
-#endif
-            ;
+        return fun.m_iterations == 4 * 3 * 11;
     }
 } // namespace loop_test
 
-TEST(loop_hierarchy_test, functionality_test) {
-    EXPECT_EQ(loop_test::test(), true);
-}
+TEST(loop_hierarchy_test, functionality_test) { EXPECT_EQ(loop_test::test(), true); }

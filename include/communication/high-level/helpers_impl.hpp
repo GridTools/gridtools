@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@
 */
 #ifndef _HELPERS_IMPL_H_
 #define _HELPERS_IMPL_H_
+#include "../../common/generic_metafunctions/pack_get_elem.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -142,9 +143,9 @@ namespace gridtools {
                                     hm->halo.recv_buffer_size(make_array(ii, jj, kk)) * mf);
 
                                 typedef typename translate_P::map_type map_type;
-                                const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                                const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                                const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                                const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                                const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                                const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
 
                                 hm->m_haloexch.register_send_to_buffer(&(hm->send_buffer[translate()(ii, jj, kk)][0]),
                                     hm->halo.send_buffer_size(make_array(ii, jj, kk)) * sizeof(Datatype) * mf,

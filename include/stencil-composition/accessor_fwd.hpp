@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -49,5 +49,5 @@ namespace gridtools {
      * Struct to test if an argument is a temporary
      */
     template < typename T >
-    struct is_plchldr_to_temp;
+    struct is_tmp_arg;
 }

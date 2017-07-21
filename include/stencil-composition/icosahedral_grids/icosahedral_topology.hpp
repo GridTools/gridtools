@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -46,6 +46,7 @@
 #include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/at.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/vector.hpp>
 #include <boost/fusion/include/size.hpp>
 #include <boost/fusion/adapted/mpl.hpp>
 #include <boost/fusion/container/vector.hpp>
@@ -57,11 +58,16 @@
 #include <boost/fusion/sequence/io.hpp>
 #include <boost/fusion/include/io.hpp>
 
-#include <common/array.hpp>
+#include "../../common/array.hpp"
 #include "../../common/gt_assert.hpp"
-#include <boost/mpl/vector.hpp>
-#include "location_type.hpp"
-#include "common/array_addons.hpp"
+#include "../location_type.hpp"
+#include "../../common/array_addons.hpp"
+#include "../../common/gpu_clone.hpp"
+#include "../../common/generic_metafunctions/pack_get_elem.hpp"
+#include "../../common/generic_metafunctions/all_integrals.hpp"
+#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+
+#include "icosahedral_topology_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -70,7 +76,24 @@ namespace gridtools {
     namespace {
         using cells = location_type< 0, 2 >;
         using edges = location_type< 1, 3 >;
-        using vertexes = location_type< 2, 1 >;
+        using vertices = location_type< 2, 1 >;
+    }
+
+    namespace impl {
+        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
+        constexpr typename boost::enable_if_c< (N == 0), StorageInfo >::type get_storage_info_from_array(
+            Array arr, Rest... r) {
+            static_assert(is_array< Array >::value, "Passed type is not an array type.");
+            return StorageInfo(r...);
+        }
+
+        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
+        constexpr typename boost::enable_if_c< (N > 0), StorageInfo >::type get_storage_info_from_array(
+            Array arr, Rest... r) {
+            static_assert(is_array< Array >::value, "Passed type is not an array type.");
+            typedef typename StorageInfo::halo_t halo_t;
+            return get_storage_info_from_array< StorageInfo, Array, N - 1 >(arr, arr[N - 1], r...);
+        }
     }
 
     template < typename T, typename ValueType >
@@ -99,7 +122,7 @@ namespace gridtools {
     };
 
     template < typename ValueType >
-    struct return_type< from< cells >::template to< vertexes >, ValueType > {
+    struct return_type< from< cells >::template to< vertices >, ValueType > {
         typedef array< ValueType, 3 > type;
     };
 
@@ -114,22 +137,22 @@ namespace gridtools {
     };
 
     template < typename ValueType >
-    struct return_type< from< edges >::template to< vertexes >, ValueType > {
+    struct return_type< from< edges >::template to< vertices >, ValueType > {
         typedef array< ValueType, 2 > type;
     };
 
     template < typename ValueType >
-    struct return_type< from< vertexes >::template to< vertexes >, ValueType > {
+    struct return_type< from< vertices >::template to< vertices >, ValueType > {
         typedef array< ValueType, 6 > type;
     };
 
     template < typename ValueType >
-    struct return_type< from< vertexes >::template to< cells >, ValueType > {
+    struct return_type< from< vertices >::template to< cells >, ValueType > {
         typedef array< ValueType, 6 > type;
     };
 
     template < typename ValueType >
-    struct return_type< from< vertexes >::template to< edges >, ValueType > {
+    struct return_type< from< vertices >::template to< edges >, ValueType > {
         typedef array< ValueType, 6 > type;
     };
 
@@ -153,26 +176,6 @@ namespace gridtools {
 
     template < typename T >
     struct is_grid_topology;
-
-    template < typename DestLocation, typename GridTopology, uint_t SourceColor >
-    struct get_connectivity_index {
-
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Error");
-        GRIDTOOLS_STATIC_ASSERT((is_location_type< DestLocation >::value), "Error");
-
-        template < int Idx >
-        struct get_element {
-            GT_FUNCTION
-            constexpr get_element() {}
-
-            template < typename Offsets >
-            GT_FUNCTION static uint_t apply(
-                GridTopology const &grid_topology, array< uint_t, 3 > const &i, Offsets offsets) {
-                return boost::fusion::at_c< DestLocation::value >(grid_topology.virtual_storages())
-                    .index(get_connectivity_offset< SourceColor >::template get_element< Idx >::apply(i, offsets));
-            }
-        };
-    };
 
     /**
      * Following specializations provide all information about the connectivity of the icosahedral/ocahedral grid
@@ -271,10 +274,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertexes >::to< vertexes >::with_color< static_uint< 0 > > {
+    struct from< vertices >::to< vertices >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< vertexes >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< vertices >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -432,10 +435,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< vertexes >::with_color< static_uint< 0 > > {
+    struct from< cells >::to< vertices >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< cells >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< cells >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -459,10 +462,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< cells >::to< vertexes >::with_color< static_uint< 1 > > {
+    struct from< cells >::to< vertices >::with_color< static_uint< 1 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< cells >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< cells >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -564,10 +567,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertexes >::with_color< static_uint< 0 > > {
+    struct from< edges >::to< vertices >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< edges >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -591,10 +594,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertexes >::with_color< static_uint< 1 > > {
+    struct from< edges >::to< vertices >::with_color< static_uint< 1 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< edges >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -619,10 +622,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< edges >::to< vertexes >::with_color< static_uint< 2 > > {
+    struct from< edges >::to< vertices >::with_color< static_uint< 2 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< edges >::to< vertexes >, ValueType >::type;
+        using return_t = typename return_type< from< edges >::to< vertices >, ValueType >::type;
 
         /*
          * neighbors order
@@ -646,10 +649,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertexes >::to< cells >::with_color< static_uint< 0 > > {
+    struct from< vertices >::to< cells >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< vertexes >::to< cells >, ValueType >::type;
+        using return_t = typename return_type< from< vertices >::to< cells >, ValueType >::type;
 
         /*
          * neighbors order
@@ -675,10 +678,10 @@ namespace gridtools {
     template <>
     template <>
     template <>
-    struct from< vertexes >::to< edges >::with_color< static_uint< 0 > > {
+    struct from< vertices >::to< edges >::with_color< static_uint< 0 > > {
 
         template < typename ValueType >
-        using return_t = typename return_type< from< vertexes >::to< edges >, ValueType >::type;
+        using return_t = typename return_type< from< vertices >::to< edges >, ValueType >::type;
 
         /*
          * neighbors order
@@ -712,7 +715,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (!boost::is_same< SrcLocation, edges >::value || Color < 3), "Error: Color index beyond color length");
         GRIDTOOLS_STATIC_ASSERT(
-            (!boost::is_same< SrcLocation, vertexes >::value || Color < 1), "Error: Color index beyond color length");
+            (!boost::is_same< SrcLocation, vertices >::value || Color < 1), "Error: Color index beyond color length");
 
         GT_FUNCTION
         constexpr static
@@ -728,59 +731,75 @@ namespace gridtools {
     template < typename Backend >
     class icosahedral_topology : public clonable_to_gpu< icosahedral_topology< Backend > > {
       public:
-        using cells = location_type< 0, 2 >;
-        using edges = location_type< 1, 3 >;
-        using vertexes = location_type< 2, 1 >;
-        using layout_map_t = typename Backend::layout_map_t;
+        using cells = enumtype::cells;
+        using edges = enumtype::edges;
+        using vertices = enumtype::vertices;
+        // default 4d layout map (matching the chosen architecture by the Backend)
+        using default_4d_layout_map_t = typename Backend::layout_map_t;
         using type = icosahedral_topology< Backend >;
 
-        template < typename LocationType >
-        using meta_storage_t = typename Backend::template storage_info_t< LocationType >;
+        // returns a layout map with ordering specified by the Backend but where
+        // the user can specify the active dimensions
+        template < typename Selector >
+        using layout_t = typename Backend::template select_layout< Selector >::type;
 
-        template < typename LocationType, typename ValueType >
-        using storage_t = typename Backend::template storage_t< LocationType, ValueType >;
+        template < typename LocationType,
+            typename Halo = halo< 0, 0, 0, 0 >,
+            typename Selector = selector< 1, 1, 1, 1 > >
+        using meta_storage_t =
+            typename Backend::template storage_info_t< impl::compute_uuid< LocationType::value, Selector >::value,
+                layout_t< Selector >,
+                Halo >;
 
-        const gridtools::array< uint_t, 2 > m_dims; // Sizes as cells in a multi-dimensional Cell array
+        template < typename LocationType,
+            typename ValueType,
+            typename Halo = halo< 0, 0, 0, 0 >,
+            typename Selector = selector< 1, 1, 1, 1 > >
+        using storage_t =
+            typename Backend::template storage_t< ValueType, meta_storage_t< LocationType, Halo, Selector > >;
 
-        using grid_meta_storages_t =
-            boost::fusion::vector3< meta_storage_t< cells >, meta_storage_t< edges >, meta_storage_t< vertexes > >;
-
-        grid_meta_storages_t m_virtual_storages;
+        const array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
       public:
-        using n_locations = static_uint< boost::mpl::size< grid_meta_storages_t >::value >;
-        template < typename LocationType >
-        GT_FUNCTION uint_t size(LocationType location) {
-            return boost::fusion::at_c< LocationType::value >(m_virtual_storages).size();
-        }
-
         icosahedral_topology() = delete;
 
       public:
         template < typename... UInt >
-        GT_FUNCTION icosahedral_topology(uint_t first_, uint_t second_, UInt... dims)
-            : m_dims{second_, first_},
-              m_virtual_storages(meta_storage_t< cells >(array< uint_t, meta_storage_t< cells >::space_dimensions >{
-                                     first_, cells::n_colors::value, second_, dims...}),
-                  meta_storage_t< edges >(array< uint_t, meta_storage_t< edges >::space_dimensions >{
-                      first_, edges::n_colors::value, second_, dims...}),
-                  // here we assume by convention that the dual grid (vertexes) have one more grid point
-                  meta_storage_t< vertexes >(array< uint_t, meta_storage_t< vertexes >::space_dimensions >{
-                      first_, vertexes::n_colors::value, second_ + 1, dims...})) {}
 
-        __device__ icosahedral_topology(icosahedral_topology const &other)
-            : m_dims(other.m_dims), m_virtual_storages(boost::fusion::at_c< cells::value >(other.m_virtual_storages),
-                                        boost::fusion::at_c< edges::value >(other.m_virtual_storages),
-                                        boost::fusion::at_c< vertexes::value >(other.m_virtual_storages)) {}
+        GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
+            : m_dims{idim, jdim, kdim} {}
 
-        GT_FUNCTION
-        grid_meta_storages_t const &virtual_storages() const { return m_virtual_storages; }
+        GT_FUNCTION_DEVICE icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
 
-        // TODOMEETING move semantic
-        template < typename LocationType, typename ValueType >
-        GT_FUNCTION storage_t< LocationType, double > make_storage(char const *name) const {
-            return storage_t< LocationType, ValueType >(
-                boost::fusion::at_c< LocationType::value >(m_virtual_storages), name);
+        template < typename LocationType,
+            typename ValueType,
+            typename Halo = halo< 0, 0, 0, 0 >,
+            typename Selector = selector< 1, 1, 1, 1 >,
+            typename... IntTypes
+#if defined(CUDA8) || !defined(__CUDACC__)
+            ,
+            typename Dummy = all_integers< IntTypes... >
+#endif
+            >
+        storage_t< LocationType, ValueType, Halo, Selector > make_storage(
+            char const *name, IntTypes... extra_dims) const {
+            GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
+            GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (Selector::size == sizeof...(IntTypes) + 4), "ERROR: Mismatch between Selector and extra-dimensions");
+
+            using meta_storage_type = meta_storage_t< LocationType, Halo, Selector >;
+            GRIDTOOLS_STATIC_ASSERT((Selector::size == meta_storage_type::layout_t::masked_length),
+                "ERROR: Mismatch between Selector and space dimensions");
+
+            array< uint_t, meta_storage_type::layout_t::masked_length > metastorage_sizes =
+                impl::array_dim_initializers< uint_t,
+                    meta_storage_type::layout_t::masked_length,
+                    LocationType,
+                    Selector >::apply(m_dims, extra_dims...);
+            auto ameta = impl::get_storage_info_from_array< meta_storage_type >(metastorage_sizes);
+            return storage_t< LocationType, ValueType, Halo, Selector >(ameta, name);
         }
 
         template < typename LocationType >
@@ -793,87 +812,6 @@ namespace gridtools {
                 i[1] % static_cast< int_t >(LocationType::n_colors::value),
                 i[1] / static_cast< int >(LocationType::n_colors::value),
                 i[2]};
-        }
-
-        template < typename LocationType >
-        GT_FUNCTION int_t ll_offset(array< uint_t, 4 > const &i, LocationType) const {
-            return boost::fusion::at_c< LocationType::value >(m_virtual_storages).index(i);
-        }
-
-        /**
-          * function to extract the absolute index of all neighbours of current position. This is used to find position
-         * of
-          * neighbours when the neighbours are not in the
-          * same location as the location type of the iteration space (otherwise connectivity table providing 4D arrays
-         * position
-          * offsets is recommended, since they are compute at compile time)
-          * @return an array (over neighbours) of unsinged integers (indices of position).
-          *     Dimension of the array depends on the number of neighbours of the location type
-          * @i indexes of current position in the iteration space
-          */
-        template < typename Location1, typename Location2, typename Color >
-        GT_FUNCTION typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type
-            connectivity_index(Location1, Location2, Color, array< uint_t, 3 > const &i) const {
-
-            using return_type_t =
-                typename return_type< typename from< Location1 >::template to< Location2 >, uint_t >::type;
-
-            using n_neighbors_t = static_int< return_type_t::n_dimensions >;
-
-            // Note: offsets have to be extracted here as a constexpr object instead of passed inline to the apply fn
-            // Otherwise constexpr of the array is lost
-            constexpr const auto offsets =
-                from< Location1 >::template to< Location2 >::template with_color< Color >::offsets();
-
-            using seq = gridtools::apply_gt_integer_sequence<
-                typename gridtools::make_gt_integer_sequence< int, n_neighbors_t::value >::type >;
-            return seq::template apply< return_type_t,
-                get_connectivity_index< Location2, type, Color::value >::template get_element >(*this, i, offsets);
-        }
-
-        template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION
-            typename return_type< typename from< cells >::template to< Location2 >, uint_t >::type neighbors_indices_3(
-                array< uint_t, 4 > const &i, cells, Location2) const {
-            switch (i[1] % cells::n_colors::value) {
-            case 0: {
-                return connectivity_index(cells(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
-            }
-            case 1: {
-                return connectivity_index(cells(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
-            }
-            default: {
-                GTASSERT(false);
-                return typename return_type< typename from< cells >::template to< Location2 >, uint_t >::type();
-            }
-            }
-        }
-
-        template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION
-            typename return_type< typename from< edges >::template to< Location2 >, uint_t >::type neighbors_indices_3(
-                array< uint_t, 4 > const &i, edges, Location2) const {
-            switch (i[1] % edges::n_colors::value) {
-            case 0: {
-                return connectivity_index(edges(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
-            }
-            case 1: {
-                return connectivity_index(edges(), Location2(), static_int< 1 >(), {i[0], i[2], i[3]});
-            }
-            case 2: {
-                return connectivity_index(edges(), Location2(), static_int< 2 >(), {i[0], i[2], i[3]});
-            }
-            default: {
-                GTASSERT(false);
-                return typename return_type< typename from< edges >::template to< Location2 >, uint_t >::type();
-            }
-            }
-        }
-
-        template < typename Location2 > // Works for cells or edges with same code
-        GT_FUNCTION typename return_type< typename from< vertexes >::template to< Location2 >, uint_t >::type
-            neighbors_indices_3(array< uint_t, 4 > const &i, vertexes, Location2) const {
-            return connectivity_index(vertexes(), Location2(), static_int< 0 >(), {i[0], i[2], i[3]});
         }
     };
 

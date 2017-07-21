@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 
 #pragma once
 #include "../iterate_domain.hpp"
+#include "../sfinae.hpp"
 
 /** @file iterate_domain for expandable parameters*/
 
@@ -60,12 +61,11 @@ namespace gridtools {
     template < typename IterateDomain, ushort_t Position >
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, GT_INTERNAL_ERROR);
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
         typedef IterateDomain iterate_domain_t;
 
-#ifdef CXX11_ENABLED
         // user protections
         template < typename... T >
         GT_FUNCTION iterate_domain_expandable_parameters(T const &... other_)
@@ -73,7 +73,6 @@ namespace gridtools {
             // TODO I don't understand this check and the error message
             GRIDTOOLS_STATIC_ASSERT((sizeof...(T) == 1), "The eval() is called with the wrong arguments");
         }
-#endif
 
         template < typename T, ushort_t Val >
         GT_FUNCTION iterate_domain_expandable_parameters(iterate_domain_expandable_parameters< T, Val > const &other_)
@@ -96,68 +95,16 @@ namespace gridtools {
         template < uint_t ACC_ID, enumtype::intend Intent, typename Extent, uint_t Size >
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor< ACC_ID, Intent, Extent, Size > >::type
-        operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) const {
+        operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) {
             typedef typename super::template accessor_return_type< accessor< ACC_ID, Intent, Extent, Size > >::type
                 return_t;
-// check that if the storage is written the accessor is inout
+            // check that if the storage is written the accessor is inout
 
-#ifdef CUDA8
-            GRIDTOOLS_STATIC_ASSERT(is_extent< Extent >::value, "wrong type");
-            const typename alias< accessor< ACC_ID, Intent, Extent, Size >, dimension< Size - 1 > >::template set< ID >
-                tmp_(arg.offsets());
-#else
             accessor< ACC_ID, Intent, Extent, Size > tmp_(arg);
-            tmp_.template set< 1 >(ID);
-#endif
+            tmp_.template set< 0 >(ID);
+
             return super::operator()(tmp_);
         }
-
-#ifdef CXX11_ENABLED
-        /** @brief method called in the Do methods of the functors. */
-        template < typename... Arguments, template < typename... Args > class Expression >
-        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg) const
-            -> decltype(evaluation::value(*this, arg)) {
-            // arg.to_string();
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
-            return evaluation::value((*this), arg);
-        }
-
-        /** @brief method called in the Do methods of the functors.
-            partial specializations for double (or float)*/
-        template < typename Argument,
-            template < typename Arg1, typename Arg2 > class Expression,
-            typename FloatType,
-            typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
-        GT_FUNCTION auto operator()(Expression< Argument, FloatType > const &arg) const
-            -> decltype(evaluation::value_scalar(*this, arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, FloatType > >::value), "invalid expression");
-            return evaluation::value_scalar((*this), arg);
-        }
-
-        /** @brief method called in the Do methods of the functors.
-            partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would
-           be polluted with casting
-            (the user would have to cast all the numbers (-1, 0, 1, 2 .... ) to int_t before using them in the
-           expression)*/
-        template < typename Argument,
-            template < typename Arg1, typename Arg2 > class Expression,
-            typename IntType,
-            typename boost::enable_if< typename boost::is_integral< IntType >::type, int >::type = 0 >
-        GT_FUNCTION auto operator()(Expression< Argument, IntType > const &arg) const
-            -> decltype(evaluation::value_int((*this), arg)) {
-
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, IntType > >::value), "invalid expression");
-            return evaluation::value_int((*this), arg);
-        }
-
-        template < typename Argument, template < typename Arg1, int Arg2 > class Expression, int exponent >
-        GT_FUNCTION auto operator()(Expression< Argument, exponent > const &arg) const
-            -> decltype(evaluation::value_int((*this), arg)) {
-
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Argument, exponent > >::value), "invalid expression");
-            return evaluation::value_int((*this), arg);
-        }
-#endif
     };
 
     template < typename T >

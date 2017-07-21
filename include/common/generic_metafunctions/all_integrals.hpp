@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,22 +35,29 @@
 */
 #pragma once
 #include "accumulate.hpp"
-namespace gridtools {
-#ifdef CXX11_ENABLED
+#include "is_pack_of.hpp"
 
+namespace gridtools {
     /**
        SFINAE for the case in which all the components of a parameter pack are of integral type
     */
     template < typename... IntTypes >
     using all_integers =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_pack_of< boost::is_integral, IntTypes... >;
+#else
         typename boost::enable_if_c< accumulate(logical_and(), boost::is_integral< IntTypes >::type::value...),
             bool >::type;
+#endif
 
     /**
        SFINAE for the case in which all the components of a parameter pack are of static integral type
     */
     template < typename... IntTypes >
     using all_static_integers =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_pack_of< is_static_integral, IntTypes... >;
+#else
         typename boost::enable_if_c< accumulate(logical_and(), is_static_integral< IntTypes >::type::value...),
             bool >::type;
 

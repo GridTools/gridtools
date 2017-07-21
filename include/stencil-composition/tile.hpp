@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,16 @@ namespace gridtools {
         typedef static_uint< s_minus > s_minus_t;
         typedef static_uint< s_plus > s_plus_t;
         typedef static_uint< s_tile > s_tile_t;
+    };
+
+    template < typename T >
+    struct get_minus_t_from_tile {
+        typedef typename T::s_minus_t type;
+    };
+
+    template < typename T >
+    struct get_plus_t_from_tile {
+        typedef typename T::s_plus_t type;
     };
 
     template < typename T >

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,19 +34,24 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 #include <boost/mpl/assert.hpp>
-#include "mss_metafunctions.hpp"
-#include "mss_components.hpp"
-#include "reductions/reduction_descriptor.hpp"
+
 #include "../common/meta_array.hpp"
+#include "./reductions/reduction_descriptor.hpp"
+#include "grid.hpp"
+#include "mss_components.hpp"
+#include "mss_metafunctions.hpp"
+#include "functor_decorator.hpp"
+#include "sfinae.hpp"
 
 namespace gridtools {
 
     template < typename T >
     struct mss_components_is_reduction;
 
-    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor >
-    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor > >
+    template < typename MssDescriptor, typename ExtentSizes, typename RepeatFunctor, typename Axis >
+    struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor, Axis > >
         : MssDescriptor::is_reduction_t {};
 
     // TODOCOSUNA unittest this
@@ -57,12 +62,11 @@ namespace gridtools {
      */
     template < typename MssArray >
     struct split_mss_into_independent_esfs {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssArray, is_computation_token >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssArray, is_computation_token >::value), GT_INTERNAL_ERROR);
 
         template < typename MssDescriptor >
         struct mss_split_esfs {
-            GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), GT_INTERNAL_ERROR);
 
             typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;
 
@@ -98,14 +102,18 @@ namespace gridtools {
      * @tparam MssDescriptorArray meta array of mss descriptors
      * @tparam extent_sizes sequence of sequence of extents
      */
-    template < enumtype::platform BackendId, typename MssDescriptorArray, typename ExtentSizes, typename RepeatFunctor >
+    template < enumtype::platform BackendId,
+        typename MssDescriptorArray,
+        typename ExtentSizes,
+        typename RepeatFunctor,
+        typename Axis >
     struct build_mss_components_array {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename MssDescriptorArray::elements >::value ==
                                     boost::mpl::size< ExtentSizes >::value),
-            "Internal Error: wrong size");
+            GT_INTERNAL_ERROR);
 
         template < typename _ExtentSizes_ >
         struct unroll_extent_sizes {
@@ -131,7 +139,7 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename mss_array_t::elements >::value ==
                                     boost::mpl::size< extent_sizes_unrolled_t >::value),
-            "wrong size of the arg_type vector defined inside at least one of the user functions");
+            "Wrong size of the arg_list vector defined inside at least one of the user functions");
 
         typedef meta_array< typename boost::mpl::fold<
                                 boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
@@ -139,7 +147,8 @@ namespace gridtools {
                                 boost::mpl::push_back< boost::mpl::_1,
                                     mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
                                                            boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
-                                                           RepeatFunctor > > >::type,
+                                                           RepeatFunctor,
+                                                           Axis > > >::type,
             boost::mpl::quote1< is_mss_components > > type;
     }; // struct build_mss_components_array
 
@@ -159,11 +168,13 @@ namespace gridtools {
         typename Condition,
         typename ExtentSizes1,
         typename ExtentSizes2,
-        typename RepeatFunctor >
+        typename RepeatFunctor,
+        typename Axis >
     struct build_mss_components_array< BackendId,
         meta_array< condition< MssDescriptorArray1, MssDescriptorArray2, Condition >, Predicate >,
         condition< ExtentSizes1, ExtentSizes2, Condition >,
-        RepeatFunctor > {
+        RepeatFunctor,
+        Axis > {
         // typedef typename pair<
         //     typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type
         //     , typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type >
@@ -171,11 +182,13 @@ namespace gridtools {
         typedef condition< typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray1, Predicate >,
                                ExtentSizes1,
-                               RepeatFunctor >::type,
+                               RepeatFunctor,
+                               Axis >::type,
             typename build_mss_components_array< BackendId,
                                meta_array< MssDescriptorArray2, Predicate >,
                                ExtentSizes2,
-                               RepeatFunctor >::type,
+                               RepeatFunctor,
+                               Axis >::type,
             Condition > type;
     }; // build_mss_components_array
 
@@ -184,14 +197,19 @@ namespace gridtools {
      */
     template < typename MssComponents, typename Grid >
     struct mss_functor_do_methods {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
 
         /**
          *  compute the functor do methods - This is the most computationally intensive part
          */
         template < typename Functor >
         struct inserter_ {
-            typedef typename compute_functor_do_methods< Functor, typename Grid::axis_type >::type type;
+
+            typedef typename boost::mpl::if_< typename sfinae::has_two_args< Functor >::type,
+                Functor,
+                functor_default_interval< Functor, typename Grid::axis_type > >::type functor_t;
+
+            typedef typename compute_functor_do_methods< functor_t, typename Grid::axis_type >::type type;
         };
 
         typedef typename boost::mpl::transform< typename MssComponents::functors_seq_t,
@@ -204,8 +222,8 @@ namespace gridtools {
      */
     template < typename MssComponents, typename Grid >
     struct mss_loop_intervals {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
         /**
          *  compute the functor do methods - This is the most computationally intensive part
@@ -221,7 +239,7 @@ namespace gridtools {
 
     template < typename MssComponents, typename Grid >
     struct mss_functor_do_method_lookup_maps {
-        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
         typedef typename mss_functor_do_methods< MssComponents, Grid >::type functor_do_methods;
 
         typedef typename mss_loop_intervals< MssComponents, Grid >::type loop_intervals;
@@ -232,6 +250,214 @@ namespace gridtools {
         typedef typename boost::mpl::transform< functor_do_methods,
             compute_functor_do_method_lookup_map< boost::mpl::_, loop_intervals > >::type
             type; // vector of maps, indexed by functors indices in Functor vector.
+    };
+
+    /**
+     * @brief metafunction class that replaces the storage info ID contained in all the
+     * placeholders of all temporaries used in Caches. This is needed because the ID is replaced
+     * in the aggregator and in order to be able to map the args contained in the aggregator to the
+     * args contained in the Cache types we have to replace them in the same way.
+     */
+    template < typename AggregatorType >
+    struct fix_cache_sequence {
+        template < typename T >
+        struct apply;
+
+        /**
+         * @brief specialization for cache_type
+         */
+        template < template < cache_type, typename, cache_io_policy, typename > class Cache,
+            cache_type CacheKind,
+            typename Arg,
+            cache_io_policy CacheStrategy,
+            typename Interval >
+        struct apply< Cache< CacheKind, Arg, CacheStrategy, Interval > > {
+            static_assert(
+                is_cache< Cache< CacheKind, Arg, CacheStrategy, Interval > >::value, "Given type is no cache.");
+            typedef typename boost::mpl::if_< is_tmp_arg< Arg >,
+                typename _impl::replace_arg_storage_info< typename AggregatorType::tmp_storage_info_id_t, Arg >::type,
+                Arg >::type new_arg_t;
+            typedef Cache< CacheKind, new_arg_t, CacheStrategy, Interval > type;
+        };
+
+        /**
+         * @brief specialization for independent ESF descriptor
+         */
+        template < template < typename > class IndependentEsfDescriptor, typename ESFVector >
+        struct apply< IndependentEsfDescriptor< ESFVector > > {
+            typedef typename boost::mpl::transform< ESFVector, fix_cache_sequence >::type fixed_cache_sequence_t;
+            typedef IndependentEsfDescriptor< fixed_cache_sequence_t > type;
+        };
+    };
+
+    /**
+     * @brief metafunction class that replaces the storage info ID contained in all the ESF
+     * placeholders of all temporaries. This is needed because the ID is replaced in the
+     * aggregator and in order to be able to map the args contained in the aggregator to the
+     * args contained in the ESF types we have to replace them in the same way.
+     */
+    template < typename AggregatorType, uint_t RepeatFunctor >
+    struct fix_esf_sequence {
+
+        template < typename ArgArray >
+        struct impl {
+            typedef typename boost::mpl::fold<
+                ArgArray,
+                boost::mpl::vector0<>,
+                boost::mpl::push_back<
+                    boost::mpl::_1,
+                    boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
+                        _impl::replace_arg_storage_info< typename AggregatorType::tmp_storage_info_id_t,
+                                         boost::mpl::_2 >,
+                        boost::mpl::_2 > > >::type new_arg_array_t;
+            typedef typename boost::mpl::transform< new_arg_array_t,
+                substitute_expandable_param< RepeatFunctor > >::type type;
+        };
+
+        template < typename T >
+        struct apply;
+
+        /**
+         * @brief specialization for structured grid ESF types
+         */
+        template < template < typename, typename, typename > class EsfDescriptor,
+            typename ESF,
+            typename ArgArray,
+            typename Staggering >
+        struct apply< EsfDescriptor< ESF, ArgArray, Staggering > > {
+            static_assert(is_esf_descriptor< EsfDescriptor< ESF, ArgArray, Staggering > >::value,
+                "Given type is no esf_descriptor.");
+            typedef EsfDescriptor< ESF, typename impl< ArgArray >::type, Staggering > type;
+        };
+
+        /**
+         * @brief specialization for icosahedral grid ESF types
+         */
+        template < template < template < uint_t > class, typename, typename, typename, typename > class EsfDescriptor,
+            template < uint_t > class ESF,
+            typename Topology,
+            typename LocationType,
+            typename Color,
+            typename ArgArray >
+        struct apply< EsfDescriptor< ESF, Topology, LocationType, Color, ArgArray > > {
+            static_assert(is_esf_descriptor< EsfDescriptor< ESF, Topology, LocationType, Color, ArgArray > >::value,
+                "Given type is no esf_descriptor.");
+            typedef EsfDescriptor< ESF, Topology, LocationType, Color, typename impl< ArgArray >::type > type;
+        };
+
+        /**
+         * @brief specialization for independent ESF descriptor
+         */
+        template < template < typename > class IndependentEsfDescriptor, typename ESFVector >
+        struct apply< IndependentEsfDescriptor< ESFVector > > {
+            typedef typename boost::mpl::transform< ESFVector, fix_esf_sequence >::type fixed_esf_sequence_t;
+            typedef IndependentEsfDescriptor< fixed_esf_sequence_t > type;
+        };
+    };
+
+    /**
+     * @brief metafunction that replaces the storage info ID contained in all the ESF
+     * placeholders of all temporaries. This metafunction is taking an MSS descriptor
+     * and iterates (and modifies) all the ESFs.
+     */
+    template < typename MssDesc, typename Functor >
+    struct fix_arg_sequences {
+        typedef typename boost::mpl::fold< MssDesc,
+            boost::mpl::vector<>,
+            boost::mpl::push_back< boost::mpl::_1, fix_arg_sequences< boost::mpl::_2, Functor > > >::type type;
+    };
+
+    /**
+     * @brief specialization for mss_descriptor types
+     */
+    template < typename ExecutionEngine, typename ESFSeq, typename CacheSeq, typename Functor >
+    struct fix_arg_sequences< mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq >, Functor > {
+        typedef mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq > MssDesc;
+        static_assert(is_mss_descriptor< MssDesc >::value, "Given type is no mss_descriptor.");
+        typedef typename boost::mpl::transform< ESFSeq, Functor >::type new_esf_sequence_t;
+        typedef mss_descriptor< ExecutionEngine, new_esf_sequence_t, CacheSeq > type;
+    };
+
+    /**
+     * @brief specialization for reduction_descriptor types
+     */
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence, typename Functor >
+    struct fix_arg_sequences< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence >, Functor > {
+        typedef reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > MssDesc;
+        static_assert(is_reduction_descriptor< MssDesc >::value, "Given type is no mss_descriptor.");
+        typedef typename boost::mpl::transform< EsfDescrSequence, Functor >::type new_esf_sequence_t;
+        typedef reduction_descriptor< ReductionType, BinOp, new_esf_sequence_t > type;
+    };
+
+    /**
+     * @brief specialization for condition types
+     */
+    template < typename Sequence1, typename Sequence2, typename Tag, typename Functor >
+    struct fix_arg_sequences< condition< Sequence1, Sequence2, Tag >, Functor > {
+        typedef condition< Sequence1, Sequence2, Tag > MssDesc;
+        static_assert(is_condition< MssDesc >::value, "Given type is no mss_descriptor.");
+        typedef typename fix_arg_sequences< Sequence1, Functor >::type sequence1_t;
+        typedef typename fix_arg_sequences< Sequence2, Functor >::type sequence2_t;
+        typedef condition< sequence1_t, sequence2_t, Tag > type;
+    };
+
+    /**
+     * @brief metafunction that replaces the storage info ID contained in all the
+     * placeholders of all temporaries. This metafunction is taking an MSS descriptor
+     * and iterates (and modifies) all the Caches.
+     */
+    template < typename MssDesc, typename Functor >
+    struct fix_cache_sequences {
+        typedef typename boost::mpl::fold< MssDesc,
+            boost::mpl::vector<>,
+            boost::mpl::push_back< boost::mpl::_1, fix_cache_sequences< boost::mpl::_2, Functor > > >::type type;
+    };
+
+    /**
+     * @brief specialization for reduction_descriptor types
+     */
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence, typename Functor >
+    struct fix_cache_sequences< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence >, Functor > {
+        typedef reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > type;
+    };
+
+    /**
+     * @brief specialization for mss_descriptor types
+     */
+    template < typename ExecutionEngine, typename ESFSeq, typename CacheSeq, typename Functor >
+    struct fix_cache_sequences< mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq >, Functor > {
+        typedef mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq > MssDesc;
+        static_assert(is_mss_descriptor< MssDesc >::value, "Given type is no mss_descriptor.");
+        typedef typename boost::mpl::transform< CacheSeq, Functor >::type new_cache_sequence_t;
+        typedef mss_descriptor< ExecutionEngine, ESFSeq, new_cache_sequence_t > type;
+    };
+
+    /**
+     * @brief specialization for condition types
+     */
+    template < typename Sequence1, typename Sequence2, typename Tag, typename Functor >
+    struct fix_cache_sequences< condition< Sequence1, Sequence2, Tag >, Functor > {
+        typedef condition< Sequence1, Sequence2, Tag > MssDesc;
+        static_assert(is_condition< MssDesc >::value, "Given type is no mss_descriptor.");
+        typedef typename fix_cache_sequences< Sequence1, Functor >::type sequence1_t;
+        typedef typename fix_cache_sequences< Sequence2, Functor >::type sequence2_t;
+        typedef condition< sequence1_t, sequence2_t, Tag > type;
+    };
+
+    /**
+     * @brief metafunction that fixes the storage info type IDs that is contained in
+     * all temporary placeholders used in ESF types and Cache types.
+     */
+    template < typename MetaArray, typename AggregatorType, uint_t RepeatFunctor >
+    struct fix_mss_arg_indices;
+
+    template < typename Sequence, typename TPred, typename AggregatorType, uint_t RepeatFunctor >
+    struct fix_mss_arg_indices< meta_array< Sequence, TPred >, AggregatorType, RepeatFunctor > {
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+        typedef
+            typename fix_arg_sequences< Sequence, fix_esf_sequence< AggregatorType, RepeatFunctor > >::type tmp_mss_t;
+        typedef typename fix_cache_sequences< tmp_mss_t, fix_cache_sequence< AggregatorType > >::type mss_t;
+        typedef meta_array< mss_t, TPred > type;
     };
 
 } // namespace gridtools

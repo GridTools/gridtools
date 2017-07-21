@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -40,13 +40,10 @@
 
 using namespace gridtools;
 
-TEST(is_not_same, test)
-{
-    GRIDTOOLS_STATIC_ASSERT((is_not_same<int, float>::value),"ERROR");
-    GRIDTOOLS_STATIC_ASSERT((! is_not_same<int, int>::value),"ERROR");
-    GRIDTOOLS_STATIC_ASSERT((is_not_same<double, float>::value),"ERROR");
+TEST(is_not_same, test) {
+    GRIDTOOLS_STATIC_ASSERT((is_not_same< int, float >::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((!is_not_same< int, int >::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((is_not_same< double, float >::value), "ERROR");
 
     ASSERT_TRUE(true);
 }
-
-

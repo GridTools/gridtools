@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,8 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "extent.hpp"
-#include "location_type.hpp"
+#include "../extent.hpp"
+#include "../location_type.hpp"
 #include "../accessor_base.hpp"
 
 namespace gridtools {
@@ -46,14 +46,14 @@ namespace gridtools {
     template < uint_t ID,
         enumtype::intend Intend,
         typename LocationType,
-        typename Extent = extent< 0 >,
+        typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t FieldDimensions = 4 >
     struct accessor : public accessor_base< ID, Intend, Extent, FieldDimensions > {
         GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: wrong type");
         using type = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
         using location_type = LocationType;
         static const uint_t value = ID;
-        using index_type = static_uint< ID >;
+        using index_t = static_uint< ID >;
         using extent_t = Extent;
         location_type location() const { return location_type(); }
 
@@ -62,8 +62,8 @@ namespace gridtools {
         GT_FUNCTION
         constexpr accessor() : super() {}
 
-    /**inheriting all constructors from offset_tuple*/
-        using super::accessor_base;
+        /**inheriting all constructors from offset_tuple*/
+        using accessor_base< ID, Intend, Extent, FieldDimensions >::accessor_base;
 
         GT_FUNCTION
         constexpr explicit accessor(array< int_t, FieldDimensions > const &offsets) : super(offsets) {}

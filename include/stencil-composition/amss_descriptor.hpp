@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,9 @@
 #include "reductions/reduction_descriptor.hpp"
 
 namespace gridtools {
+
+    template < typename T1, typename T2, typename T3 >
+    struct mss_descriptor;
     /**
      * type traits for a-mss descriptor. Amss descriptor is any descriptor that implements the concept
      * a MSS: currently mss_descriptor and reduction_descriptor
@@ -45,8 +48,9 @@ namespace gridtools {
     template < typename T >
     struct amss_descriptor_is_reduction;
 
-    template < typename ExecutionEngine, typename EsfDescrSequence >
-    struct amss_descriptor_is_reduction< mss_descriptor< ExecutionEngine, EsfDescrSequence > > : boost::mpl::false_ {};
+    template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSeq >
+    struct amss_descriptor_is_reduction< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSeq > >
+        : boost::mpl::false_ {};
 
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
     struct amss_descriptor_is_reduction< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > >

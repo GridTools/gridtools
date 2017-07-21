@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@
 
 using namespace gridtools;
 
-#ifdef NDEBUG
 TEST(variadic_typedef, test) {
 
     typedef variadic_typedef< int, double, unsigned int > tt;
@@ -65,4 +64,14 @@ TEST(variadic_typedef, get_from_variadic_pack) {
 
     ASSERT_TRUE(true);
 }
-#endif
+
+TEST(variadic_typedef, find) {
+
+    typedef variadic_typedef< int, double, unsigned int, double > tt;
+
+    static_assert((tt::find< int >() == 0), "ERROR");
+    static_assert((tt::find< double >() == 1), "ERROR");
+    static_assert((tt::find< unsigned int >() == 2), "ERROR");
+
+    ASSERT_TRUE(true);
+}

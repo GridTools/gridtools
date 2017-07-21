@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ namespace gridtools {
         template < typename EsfsVector, typename PushRegular, typename PushIndependent = PushRegular >
         struct linearize_esf_array {
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfsVector, is_esf_descriptor >::value), "Wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< EsfsVector, is_esf_descriptor >::value), GT_INTERNAL_ERROR);
 
             template < typename Vector, typename Element >
             struct push_into {
@@ -107,17 +107,49 @@ namespace gridtools {
     };
 
     /**
+       @brief pushes an element in a vector based on the fact that an ESF is independent or not
+
+       Helper metafunction, used by other metafunctions
+    */
+    template < typename State, typename SubArray, typename VectorComponent >
+    struct keep_scanning_lambda
+        : boost::mpl::fold< typename SubArray::esf_list,
+              State,
+              boost::mpl::if_< is_independent< boost::mpl::_2 >,
+                                keep_scanning_lambda< boost::mpl::_1, boost::mpl::_2, VectorComponent >,
+                                boost::mpl::push_back< boost::mpl::_1, VectorComponent > > > {};
+
+    /**
+       @brief linearizes the ESF tree and returns a vector
+
+       Helper metafunction, used by other metafunctions
+    */
+    template < typename Array, typename Argument, template < typename, typename > class KeepScanning >
+    struct linearize_esf_array_lambda : boost::mpl::fold< Array,
+                                            boost::mpl::vector0<>,
+                                            boost::mpl::if_< is_independent< boost::mpl::_2 >,
+                                                              KeepScanning< boost::mpl::_1, boost::mpl::_2 >,
+                                                              boost::mpl::push_back< boost::mpl::_1, Argument > > > {};
+
+    /**
        @brief constructs an mpl vector of booleans, linearizing the mss tree and attachnig a true or false flag
        depending wether the esf is independent or not
 
        the code is very similar as in the metafunction above
-     */
+    */
     template < typename T >
     struct sequence_of_is_independent_esf;
 
     template < typename ExecutionEngine, typename EsfDescrSequence, typename CacheSequence >
     struct sequence_of_is_independent_esf< mss_descriptor< ExecutionEngine, EsfDescrSequence, CacheSequence > > {
-        typedef typename _impl::linearize_esf_array< EsfDescrSequence, boost::false_type, boost::true_type >::type type;
+
+        template < typename State, typename SubArray >
+        struct keep_scanning : keep_scanning_lambda< State, SubArray, boost::mpl::true_ > {};
+
+        template < typename Array >
+        struct linearize_esf_array : linearize_esf_array_lambda< Array, boost::mpl::false_, keep_scanning > {};
+
+        typedef typename linearize_esf_array< EsfDescrSequence >::type type;
     };
 
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence >

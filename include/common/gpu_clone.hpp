@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -43,7 +43,7 @@
 
 namespace gridtools {
 
-#ifdef __CUDACC__
+#if defined(_USE_GPU_) || defined(__CUDACC__)
 
     /**
        @brief this struct is necessary because otherwise the object would be copied to a temporary storage on the GPU
@@ -84,44 +84,23 @@ namespace gridtools {
     template < typename DerivedType >
     struct clonable_to_gpu {
         typedef boost::true_type actually_clonable;
-        DerivedType *gpu_object_ptr;
+        typedef DerivedType derived_type;
+        derived_type *gpu_object_ptr;
 
-        GT_FUNCTION
-        clonable_to_gpu() {
-#ifndef __CUDA_ARCH__
-            cudaMalloc(&gpu_object_ptr, sizeof(DerivedType));
-#endif
-        }
+        __host__ __device__ clonable_to_gpu();
 
-        GT_FUNCTION
-        DerivedType *device_pointer() const { return gpu_object_ptr; }
+        derived_type *device_pointer() const;
         /** Member function to update the object to the gpu calling the copy constructor of the
             derived type.
          */
-        void clone_to_device() const {
-            const mask_object< const DerivedType > *maskT =
-                reinterpret_cast< const mask_object< const DerivedType > * >(
-                    (static_cast< const DerivedType * >(this)));
-
-            // clang-format off
-            construct<<<1,1>>>(*maskT);
-            // clang-format on
-            cudaDeviceSynchronize();
-        }
+        void clone_to_device() const;
 
         /** Member function to update the object from the gpu calling the copy constructor of the
             derived type.
         */
-        void clone_from_device() {
-            mask_object< DerivedType > space;
-            cudaMemcpy(&space, gpu_object_ptr, sizeof(DerivedType), cudaMemcpyDeviceToHost);
-            DerivedType *x = reconstruct(this, reinterpret_cast< const DerivedType * >(&space));
-        }
+        void clone_from_device();
 
-        ~clonable_to_gpu() {
-            cudaFree(gpu_object_ptr);
-            gpu_object_ptr = NULL;
-        }
+        ~clonable_to_gpu();
     };
 #else
     template < typename DerivedType >
@@ -130,5 +109,58 @@ namespace gridtools {
         void clone_to_device() const {}
         void clone_from_device() const {}
     };
+#endif
+
+#ifdef __CUDACC__
+    template < typename T >
+    __host__ __device__ clonable_to_gpu< T >::clonable_to_gpu() {
+#ifndef __CUDA_ARCH__
+        cudaMalloc(&gpu_object_ptr, sizeof(clonable_to_gpu< T >::derived_type));
+#endif
+    }
+
+    template < typename T >
+    clonable_to_gpu< T >::derived_type *clonable_to_gpu< T >::device_pointer() const {
+        return gpu_object_ptr;
+    }
+    /** Member function to update the object to the gpu calling the copy constructor of the
+        derived type.
+    */
+
+    template < typename T >
+    void clonable_to_gpu< T >::clone_to_device() const {
+        const mask_object< const clonable_to_gpu< T >::derived_type > *maskT =
+            reinterpret_cast< const mask_object< const clonable_to_gpu< T >::derived_type > * >(
+                (static_cast< const clonable_to_gpu< T >::derived_type * >(this)));
+
+        construct<<< 1, 1 >>>(*maskT);
+
+        cudaDeviceSynchronize(); // if you want to remove this, then move it in the #ifndef NDEBUG
+
+#ifndef NDEBUG
+        cudaError_t error = cudaGetLastError();
+        if (error != cudaSuccess) {
+            fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+            exit(-1);
+        }
+#endif
+    }
+
+    /** Member function to update the object from the gpu calling the copy constructor of the
+        derived type.
+    */
+    template < typename T >
+    void clonable_to_gpu< T >::clone_from_device() {
+        mask_object< clonable_to_gpu< T >::derived_type > space;
+        cudaMemcpy(&space, gpu_object_ptr, sizeof(clonable_to_gpu< T >::derived_type), cudaMemcpyDeviceToHost);
+        clonable_to_gpu< T >::derived_type *x =
+            reconstruct(this, reinterpret_cast< const clonable_to_gpu< T >::derived_type * >(&space));
+    }
+
+    template < typename T >
+    clonable_to_gpu< T >::~clonable_to_gpu() {
+        cudaFree(gpu_object_ptr);
+        gpu_object_ptr = NULL;
+    }
 #endif
 } // namespace gridtools

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,11 +36,7 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#ifdef CXX11_ENABLED
 #include "stencil-composition/structured_grids/make_stage_cxx11.hpp"
-#else
-#include "stencil-composition/structured_grids/make_stage_cxx03.hpp"
-#endif
 #else
 #include "stencil-composition/icosahedral_grids/make_stage.hpp"
 #endif

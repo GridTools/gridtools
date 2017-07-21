@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -44,26 +44,28 @@ using namespace enumtype;
 using namespace expressions;
 
 #ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
+template < unsigned Id, typename Layout >
+using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
+typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
+typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< 3, 2, 1, 0 > > metadata_local_quad_t;
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 #else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 #endif
+template < unsigned Id, typename Layout >
+using special_metadata_t = gridtools::host_storage_info< Id, Layout >;
+typedef special_metadata_t< 0, gridtools::layout_map< 3, 4, 5, 0, 1, 2 > > metadata_t;
+typedef special_metadata_t< 1, gridtools::layout_map< 1, 2, 3, 0 > > metadata_global_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< 1, 2, 3, 0 > > metadata_local_quad_t;
 #endif
 
-//                      dims  x y z  qp
-//                   strides  1 x xy xyz
-typedef gridtools::layout_map< 3, 2, 1, 0 > layout4_t;
-typedef gridtools::layout_map< 2, 1, 0, 3, 4, 5 > layout_t;
-
-typedef BACKEND::storage_info< __COUNTER__, layout_t > metadata_t;
-typedef BACKEND::storage_info< __COUNTER__, layout4_t > metadata_global_quad_t;
-typedef BACKEND::storage_info< __COUNTER__, layout4_t > metadata_local_quad_t;
-typedef BACKEND::storage_type< float_type, metadata_t >::type storage_type;
-typedef BACKEND::storage_type< float_type, metadata_global_quad_t >::type storage_global_quad_t;
-typedef BACKEND::storage_type< float_type, metadata_local_quad_t >::type storage_local_quad_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_t > storage_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_global_quad_t > storage_global_quad_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad_t > storage_local_quad_t;
 
 /**
   @file
@@ -92,34 +94,62 @@ typedef BACKEND::storage_type< float_type, metadata_local_quad_t >::type storage
   With this information we perform the projection (i.e. perform an integral) by looping on the
   quadrature points in an innermost loop, with stride given by the layout_map (I*J*K in this case).
 
-  In this example we introduce also another syntactic element in the high level expression: the operator exclamation
-  mark (!). This operator prefixed to a placeholder means that the corresponding storage index is not considered, and
-  only the offsets are used to get the absolute address. This allows to perform operations which are not stencil-like.
-  It is used in this case to address the basis functions values.
+  Note that the fields phi and psi are passed through as global_parameters and taken in the stencil
+  operator as global_accessors. This is the czse since the base functions do not change when the
+  iteration point moves, so their values are constant. This is a typical example of global_parameter/
+  global_accessor use.
 */
 
 namespace assembly {
+
+    /**this is a user-defined class which will be used from whithin the user functor
+     by calling its  operator(). It can represent in this case values which are local to the elements
+     e.g. values of the basis functions in the quad points. */
+    template < typename ValueType, typename Layout, uint_t... Dims >
+    struct elemental {
+        typedef ValueType value_type;
+        typedef meta_storage_cache< Layout, Dims... > meta_t;
+
+        // default constructor useless, but required in the storage implementation
+        GT_FUNCTION
+        constexpr elemental() : m_values{0} {}
+
+        GT_FUNCTION
+        elemental(ValueType init_) : m_values{} {
+            for (int i = 0; i < accumulate(multiplies(), Dims...); ++i)
+                m_values[i] = init_;
+        }
+
+        template < typename... Ints >
+        GT_FUNCTION value_type &operator()(Ints &&... args_) {
+            return m_values[meta_t{}.index(args_...)];
+        }
+
+        value_type m_values[accumulate(multiplies(), Dims...)];
+    };
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
     typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct integration {
-        typedef in_accessor< 0, extent<>, 4 > phi;
-        typedef in_accessor< 1, extent<>, 4 > psi; // how to detect when index is wrong??
+        typedef global_accessor< 0 > phi_t;
+        typedef global_accessor< 1 > psi_t;
         typedef in_accessor< 2, extent<>, 4 > jac;
         typedef in_accessor< 3, extent<>, 6 > f;
         typedef inout_accessor< 4, extent<>, 6 > result;
-        typedef boost::mpl::vector< phi, psi, jac, f, result > arg_list;
+        typedef boost::mpl::vector< phi_t, psi_t, jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
-            x i;
-            y j;
-            z k;
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            dimension< 1 > i;
+            dimension< 2 > j;
+            dimension< 3 > k;
             dimension< 4 > di;
             dimension< 5 > dj;
             dimension< 6 > dk;
             quad qp;
+            phi_t phi;
+            psi_t psi;
             // projection of f on a (e.g.) P1 FE space:
             // loop on quadrature nodes, and on nodes of the P1 element (i,j,k) with i,j,k\in {0,1}
             // computational complexity in the order of  {(I) x (J) x (K) x (i) x (j) x (k) x (nq)}
@@ -127,25 +157,24 @@ namespace assembly {
                 for (short_t J = 0; J < 2; ++J)
                     for (short_t K = 0; K < 2; ++K) {
                         // check the initialization to 0
-                        assert(eval(result{i, j, k, di + I, dj + J, dk + K}) == 0.);
+                        assert(eval(result(i, j, k, di + I, dj + J, dk + K)) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
-                            eval(result{di + I, dj + J, dk + K, qp}) +=
-                                eval(!phi{i + I, j + J, k + K, qp + q} * !psi{i, j, k, qp + q} * jac{i, j, k, qp + q} *
-                                         f{i, j, k, di, dj, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{j + 1, j, k, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{k + 1, j, k, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, k, k, di, dj, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j, k + 1, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i, j + 1, k + 1, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di, dj + 1, dk + 1} +
-                                     !phi{i + I, j + J, k + K, qp + q} * !psi{i + 1, j + 1, k + 1, qp + q} *
-                                         jac{i, j, k, qp + q} * f{i, j, k, di + 1, dj + 1, dk + 1}) /
+                            eval(result(di + I, dj + J, dk + K, qp)) +=
+                                eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
+                                     phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj, dk} +
+                                     phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di, dj + 1, dk} +
+                                     phi(I, J, K, q) * psi(1, 0, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, k, k, di, dj, dk + 1} +
+                                     phi(I, J, K, q) * psi(1, 1, 0, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj + 1, dk} +
+                                     phi(I, J, K, q) * psi(1, 0, 1, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj, dk + 1} +
+                                     phi(I, J, K, q) * psi(0, 1, 1, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di, dj + 1, dk + 1} +
+                                     phi(I, J, K, q) * psi(1, 1, 1, q) * jac{i, j, k, qp + q} *
+                                         f{i, j, k, di + 1, dj + 1, dk + 1}) /
                                 8;
                         }
                     }
@@ -156,48 +185,36 @@ namespace assembly {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        typedef arg< 0, storage_local_quad_t > p_phi;
-        typedef arg< 1, storage_local_quad_t > p_psi;
-        typedef arg< 2, storage_global_quad_t > p_jac;
-        typedef arg< 3, storage_type > p_f;
-        typedef arg< 4, storage_type > p_result;
-
-        typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
-
-        uint_t nbQuadPt = 2; // referenceFE_Type::nbQuadPt;
-        uint_t b1 = 2;
-        uint_t b2 = 2;
-        uint_t b3 = 2;
+        static const uint_t nbQuadPt = 2; // referenceFE_Type::nbQuadPt;
+        static const uint_t b1 = 2;
+        static const uint_t b2 = 2;
+        static const uint_t b3 = 2;
         // basis functions available in a 2x2x2 cell, because of P1 FE
-        metadata_local_quad_t local_metadata(b1, b2, b3, nbQuadPt);
-
-        storage_local_quad_t phi(local_metadata, 0., "phi");
-        storage_local_quad_t psi(local_metadata, 0., "psi");
+        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > phi(10.);
+        elemental< double, layout_map< 0, 1, 2, 3 >, b1, b2, b3, nbQuadPt > psi(11.);
 
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU
         metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
-        storage_global_quad_t jac(integration_metadata, 0., "jac");
+        storage_global_quad_t jac(integration_metadata, [](int i, int j, int k, int q) { return 1. + q; }, "jac");
 
-        for (uint_t i = 0; i < d1; ++i)
-            for (uint_t j = 0; j < d2; ++j)
-                for (uint_t k = 0; k < d3; ++k)
-                    for (uint_t q = 0; q < nbQuadPt; ++q) {
-                        jac(i, j, k, q) = 1. + q;
-                    }
-        for (uint_t i = 0; i < b1; ++i)
-            for (uint_t j = 0; j < b2; ++j)
-                for (uint_t k = 0; k < b3; ++k)
-                    for (uint_t q = 0; q < nbQuadPt; ++q) {
-                        phi(i, j, k, q) = 10.;
-                        psi(i, j, k, q) = 11.;
-                    }
+        auto g_phi = BACKEND::make_global_parameter(phi);
+        auto g_psi = BACKEND::make_global_parameter(psi);
 
         metadata_t meta_(d1, d2, d3, b1, b2, b3);
-        storage_type f(meta_, (float_type)1.3, "f");
-        storage_type result(meta_, (float_type)0., "result");
+        storage_t f(meta_, (float_type)1.3, "f");
+        storage_t result(meta_, (float_type)0., "result");
 
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&phi, &psi, &jac, &f, &result));
+        typedef arg< 0, decltype(g_phi) > p_phi;
+        typedef arg< 1, decltype(g_psi) > p_psi;
+        typedef arg< 2, decltype(jac) > p_jac;
+        typedef arg< 3, decltype(f) > p_f;
+        typedef arg< 4, decltype(result) > p_result;
+
+        typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
+
+        gridtools::aggregator_type< accessor_list > domain(
+            (p_phi() = g_phi), (p_psi() = g_psi), (p_jac() = jac), (p_f() = f), (p_result() = result));
         /**
            - Definition of the physical dimensions of the problem.
            The grid constructor takes the horizontal plane dimensions,
@@ -209,21 +226,12 @@ namespace assembly {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 2;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            fe_comp = make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                make_multistage               //! \todo all the arguments in the call to make_mss are actually dummy.
-                (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                    make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+        auto fe_comp = make_computation< gridtools::BACKEND >(
+            domain,
+            grid,
+            make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
+            (execute< forward >(), //!\todo parameter used only for overloading purpose?
+                make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp->ready();
         fe_comp->steady();

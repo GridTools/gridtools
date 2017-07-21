@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,14 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/utility/enable_if.hpp>
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../../common/generic_metafunctions/replace_template_arguments.hpp"
-#include "stencil-composition/backend_host/iterate_domain_host.hpp"
-#include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
-#include "../../iteration_policy.hpp"
+#include "../../../common/generic_metafunctions/replace_template_arguments.hpp"
+#include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits_fwd.hpp"
+#include "../../iteration_policy.hpp"
+#include "stencil-composition/backend_host/iterate_domain_host.hpp"
+#include "stencil-composition/icosahedral_grids/esf_metafunctions.hpp"
+#include <boost/utility/enable_if.hpp>
 
 namespace gridtools {
 
@@ -54,17 +54,18 @@ namespace gridtools {
          */
         template < typename RunFunctorArguments, typename Index >
         struct colorize_run_functor_arguments {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "Error");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename replace_template_arguments< RunFunctorArguments,
                 typename RunFunctorArguments::color_t,
                 color_type< (uint_t)Index::value > >::type type;
         };
 
-        template < typename RunFunctorArguments, typename IterateDomain, typename Grid >
+        template < typename RunFunctorArguments, typename IterateDomain, typename Grid, typename Extent >
         struct color_execution_functor {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), "ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), "ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< IterateDomain >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
 
             typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
@@ -78,16 +79,13 @@ namespace gridtools {
             Grid const &m_grid;
             gridtools::array< const uint_t, 2 > const &m_first_pos;
             gridtools::array< const uint_t, 2 > const &m_loop_size;
-            const uint_t m_addon;
 
           public:
             color_execution_functor(IterateDomain &it_domain,
                 Grid const &grid,
                 gridtools::array< const uint_t, 2 > const &first_pos,
-                gridtools::array< const uint_t, 2 > const &loop_size,
-                const uint_t addon)
-                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_loop_size(loop_size), m_addon(addon) {
-            }
+                gridtools::array< const uint_t, 2 > const &loop_size)
+                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_loop_size(loop_size) {}
 
             template < typename Index >
             void operator()(Index const &,
@@ -97,7 +95,9 @@ namespace gridtools {
                 array_index_t memorized_index;
                 array_position_t memorized_position;
 
-                for (uint_t j = m_first_pos[1]; j <= m_first_pos[1] + m_loop_size[1] + m_addon; ++j) {
+                for (uint_t j = m_first_pos[1] + Extent::jminus::value;
+                     j <= m_first_pos[1] + m_loop_size[1] + Extent::jplus::value;
+                     ++j) {
                     m_it_domain.get_index(memorized_index);
                     m_it_domain.get_position(memorized_position);
 
@@ -112,7 +112,7 @@ namespace gridtools {
                         static_int< 1 > >();
                 }
                 m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
-                    -(m_loop_size[1] + 1 + m_addon));
+                    -(m_loop_size[1] + 1 + (Extent::jplus::value - Extent::jminus::value)));
                 m_it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                     static_int< 1 > >();
             }
@@ -132,8 +132,7 @@ namespace gridtools {
         */
         template < typename RunFunctorArguments >
         struct execute_kernel_functor_host {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
@@ -175,10 +174,10 @@ namespace gridtools {
                 using grid_topology_t = typename grid_t::grid_topology_t;
 
                 // in the host backend there should be only one esf per mss
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1),
-                    "Internal Error: wrong size");
+                GRIDTOOLS_STATIC_ASSERT(
+                    (boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1), GT_INTERNAL_ERROR);
                 typedef typename boost::mpl::back< typename RunFunctorArguments::extent_sizes_t >::type extent_t;
-                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), GT_INTERNAL_ERROR);
 
                 typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
                 typedef backend_traits_from_id< enumtype::Host > backend_traits_t;
@@ -194,7 +193,7 @@ namespace gridtools {
                 //        }
                 //#endif
 
-                typename iterate_domain_t::data_pointer_array_t data_pointer;
+                typename iterate_domain_t::data_ptr_cached_t data_pointer;
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
                 strides_t strides;
 
@@ -221,26 +220,21 @@ namespace gridtools {
                 //                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value,
                 //                m_block_id[0]);
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
-                    m_first_pos[0], m_block_id[0]);
+                    m_first_pos[0] + extent_t::iminus::value, m_block_id[0]);
 
                 // initialize color dim
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value >(0);
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_j_t::value >(
-                    m_first_pos[1], m_block_id[1]);
+                    m_first_pos[1] + extent_t::jminus::value, m_block_id[1]);
                 it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_k_t::value >(
                     m_grid.template value_at< typename iteration_policy_t::from >());
 
-                int addon = 0;
-                // the iterate domain over vertexes has one more grid point
-                // TODO specify the loop bounds from the grid_tolopogy to avoid this hack here
-                if (location_type_t::value == grid_topology_t::vertexes::value) {
-                    addon++;
-                }
-
-                for (uint_t i = m_first_pos[0]; i <= m_first_pos[0] + m_loop_size[0]; ++i) {
+                for (uint_t i = m_first_pos[0] + extent_t::iminus::value;
+                     i <= m_first_pos[0] + m_loop_size[0] + extent_t::iplus::value;
+                     ++i) {
                     boost::mpl::for_each< boost::mpl::range_c< uint_t, 0, n_colors_t::value > >(
-                        color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t >(
-                            it_domain, m_grid, m_first_pos, m_loop_size, addon));
+                        color_execution_functor< RunFunctorArguments, iterate_domain_t, grid_t, extent_t >(
+                            it_domain, m_grid, m_first_pos, m_loop_size));
 
                     it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value,
                         static_int< -((int_t)n_colors_t::value) > >();
@@ -249,7 +243,7 @@ namespace gridtools {
                         static_int< 1 > >();
                 }
                 it_domain.template increment< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
-                    -(m_loop_size[0] + 1));
+                    -(m_loop_size[0] + 1 + (extent_t::iplus::value - extent_t::iminus::value)));
             }
 
           private:

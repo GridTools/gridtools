@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 #pragma once
 
 #ifdef STRUCTURED_GRIDS
-#include "structured_grids/iterate_domain.hpp"
+#include "structured_grids/positional_iterate_domain.hpp"
 #else
 #include "icosahedral_grids/iterate_domain.hpp"
 #endif

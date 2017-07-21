@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@
 
 #pragma once
 #include "../accessor_fwd.hpp"
+#include "../extent.hpp"
+
 /** @file vector accessor */
 
 namespace gridtools {
@@ -56,14 +58,9 @@ namespace gridtools {
     template < uint_t ID, enumtype::intend Intent = enumtype::in, typename Extent = extent< 0 >, ushort_t NDim = 5 >
     struct vector_accessor : accessor< ID, Intent, Extent, NDim > {
 
-#ifdef CXX11_ENABLED
         using super = accessor< ID, Intent, Extent, NDim >;
         using super::accessor;
-        static const ushort_t n_dim = NDim;
-#else
-        GRIDTOOLS_STATIC_ASSERT(
-            NDim > 0, "EYou are using a vector_accessor and compiling with C++03, switch to C++11 (-DENABLE_CXX11=ON)");
-#endif
+        static const ushort_t n_dimensions = NDim;
     };
 
     template < typename T >

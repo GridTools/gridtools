@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -58,21 +58,18 @@
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/make_stencils.hpp"
 
+namespace positional_when_debug_test {
 
-namespace positional_when_debug_test{
-
-    typedef gridtools::interval<gridtools::level<0,-1>, gridtools::level<1,-1> > x_interval;
-    typedef gridtools::interval<gridtools::level<0,-2>, gridtools::level<1,1> > axis_t;
-    typedef gridtools::grid<axis_t> grid_t;
-
+    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
+    typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis_t;
+    typedef gridtools::grid< axis_t > grid_t;
 
     struct test_functor {
         typedef gridtools::accessor< 0, gridtools::enumtype::inout > in;
-        typedef boost::mpl::vector1<in> arg_list;
+        typedef boost::mpl::vector1< in > arg_list;
 
-        template <typename Evaluation>
-        GT_FUNCTION
-        static void Do(Evaluation const & eval, x_interval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval.i();
             eval.j();
             eval.k();
@@ -90,34 +87,24 @@ TEST(test_make_computation, positional_when_debug) {
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #endif
 
-    typedef layout_map<2,1,0> layout_t;
-    typedef BACKEND::storage_type<int, BACKEND::storage_info<0,layout_t> >::type storage_type;
-    BACKEND::storage_info<0,layout_t> sinfo(3,3,3);
-    storage_type a_storage(sinfo, 0, "test");
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    meta_data_t sinfo(3, 3, 3);
+    storage_t a_storage(sinfo, 0);
 
-    typedef arg<0, storage_type> p_in;
-    typedef boost::mpl::vector<p_in> accessor_list_t;
+    typedef arg< 0, storage_t > p_in;
+    typedef boost::mpl::vector< p_in > accessor_list_t;
 
     /* canot use the assignment since with a single placeholder the wrong constructor is picked.
        This is a TODO in aggregator_type.hpp */
-    aggregator_type< accessor_list_t > dm(boost::fusion::make_vector(&a_storage));
-#ifdef CXX11_ENABLED
-    auto
-#else
-#ifdef __CUDACC__
-    computation *
-#else
-    boost::shared_ptr< gridtools::computation >
-#endif
-#endif
-        test_computation = make_computation< BACKEND >(dm,
-            positional_when_debug_test::grid_t({0, 0, 0, 0, 0}, {0, 0, 0, 0, 0}),
-            make_multistage // mss_descriptor
-            (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
+    aggregator_type< accessor_list_t > dm(a_storage);
+    auto test_computation = make_computation< BACKEND >(dm,
+        positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}),
+        make_multistage // mss_descriptor
+        (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
 
     EXPECT_TRUE(true);
 }
-
 
 #ifdef __WAS_DEBUG
 #undef __WAS_DEBUG

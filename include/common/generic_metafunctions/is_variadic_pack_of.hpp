@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,15 +34,17 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "accumulate.hpp"
+#include "binary_ops.hpp"
+
+#include "../defs.hpp"
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
     /**@brief specialization to stop the recursion*/
     template < typename... Args >
     GT_FUNCTION static constexpr bool is_variadic_pack_of(Args... args) {
         return accumulate(logical_and(), args...);
     }
 
-#endif
 } // namespace gridtools

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -63,12 +63,12 @@ namespace soc {
 
     template < uint_t Color >
     struct test_on_cells_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
+        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< -1, 1, -1, 1 > > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](const double _in, const double _res) -> double { return _in + _res; };
 
             /**
@@ -84,7 +84,7 @@ namespace soc {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -94,28 +94,31 @@ namespace soc {
         auto in_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("in_cell");
         auto out_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("out");
         auto ref_on_cells = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("ref_on_cells");
+        in_cells = cell_storage_type(*in_cells.get_storage_info_ptr(), 0.0);
+
+        auto icv = make_host_view(in_cells);
+        auto ocv = make_host_view(out_cells);
+        auto rcv = make_host_view(ref_on_cells);
 
         for (int i = 1; i < d1 - 1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                 for (int j = 1; j < d2 - 1; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        in_cells(i, c, j, k) =
-                            in_cells.meta_data().index(array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
+                        icv(i, c, j, k) = in_cells.get_storage_info_ptr()->index(i, c, j, k);
+                        ocv(i, c, j, k) = 0.0;
+                        rcv(i, c, j, k) = 0.0;
                     }
                 }
             }
         }
 
-        out_cells.initialize(0.0);
-        ref_on_cells.initialize(0.0);
-
-        typedef arg< 0, cell_storage_type > p_in_cells;
-        typedef arg< 1, cell_storage_type > p_out_cells;
+        typedef arg< 0, cell_storage_type, icosahedral_topology_t::cells > p_in_cells;
+        typedef arg< 1, cell_storage_type, icosahedral_topology_t::cells > p_out_cells;
 
         typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_cells_t;
 
         gridtools::aggregator_type< accessor_list_cells_t > domain_cells(
-            boost::fusion::make_vector(&in_cells, &out_cells));
+            (p_in_cells() = in_cells), (p_out_cells() = out_cells));
 
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
@@ -135,10 +138,8 @@ namespace soc {
         stencil_cells->steady();
         stencil_cells->run();
 
-#ifdef __CUDACC__
-        out_cells.d2h_update();
-        in_cells.d2h_update();
-#endif
+        out_cells.sync();
+        in_cells.sync();
 
         bool result = true;
         if (verify) {
@@ -151,14 +152,18 @@ namespace soc {
                                 ugrid.neighbours_of< icosahedral_topology_t::cells, icosahedral_topology_t::cells >(
                                     {i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                                ref_on_cells(i, c, j, k) += in_cells(*iter);
+                                rcv(i, c, j, k) += icv((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]);
                             }
                         }
                     }
                 }
             }
 
+#if FLOAT_PRECISION == 4
+            verifier ver(1e-6);
+#else
             verifier ver(1e-10);
+#endif
 
             array< array< uint_t, 2 >, 4 > halos = {{{halo_nc, halo_nc}, {0, 0}, {halo_mc, halo_mc}, {halo_k, halo_k}}};
             result = ver.verify(grid_, ref_on_cells, out_cells, halos);

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/push_front.hpp>
+#include "../../common/defs.hpp"
 
 namespace gridtools {
 
@@ -52,12 +53,8 @@ namespace gridtools {
         int_t JMinus = 0,
         int_t JPlus = 0,
         int_t KMinus = 0,
-        int_t KPlus = 0
-#ifdef CXX11_ENABLED
-        ,
-        int_t... Rest
-#endif
-        >
+        int_t KPlus = 0,
+        int_t... Rest >
     struct extent {
         typedef static_int< IMinus > iminus;
         typedef static_int< IPlus > iplus;
@@ -65,37 +62,17 @@ namespace gridtools {
         typedef static_int< JPlus > jplus;
         typedef static_int< KMinus > kminus;
         typedef static_int< KPlus > kplus;
+        typedef boost::mpl::vector6< iminus, iplus, jminus, jplus, kminus, kplus > extent_vec_t;
     };
 
     template < typename In >
     struct is_staggered : public boost::false_type {};
 
-#ifdef CXX11_ENABLED
     template < int_t... Grid >
     struct staggered : public extent< Grid... > {};
 
     template < int_t... Grid >
     struct is_staggered< staggered< Grid... > > : public boost::true_type {};
-
-#else
-
-    template < int_t Coord1Minus,
-        int_t Coord1Plus,
-        int_t Coord2Minus,
-        int_t Coord2Plus,
-        int_t Coord3Minus = 0,
-        int_t Coord3Plus = 0 >
-    struct staggered : public extent< Coord1Minus, Coord1Plus, Coord2Minus, Coord2Plus, Coord3Minus, Coord3Plus > {};
-
-    template < int_t Coord1Minus,
-        int_t Coord1Plus,
-        int_t Coord2Minus,
-        int_t Coord2Plus,
-        int_t Coord3Minus,
-        int_t Coord3Plus >
-    struct is_staggered< staggered< Coord1Minus, Coord1Plus, Coord2Minus, Coord2Plus, Coord3Minus, Coord3Plus > >
-        : public boost::true_type {};
-#endif
     /**
      * Output operator for extents - for debug purposes
      *
@@ -160,9 +137,9 @@ namespace gridtools {
     template < typename Extent1, typename Extent2 >
     struct sum_extent {
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::or_< is_extent< Extent1 >, is_staggered< Extent1 > >::value), "wrong type");
+            (boost::mpl::or_< is_extent< Extent1 >, is_staggered< Extent1 > >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::or_< is_extent< Extent2 >, is_staggered< Extent2 > >::value), "wrong type");
+            (boost::mpl::or_< is_extent< Extent2 >, is_staggered< Extent2 > >::value), GT_INTERNAL_ERROR);
 
         typedef extent< boost::mpl::plus< typename Extent1::iminus, typename Extent2::iminus >::type::value,
             boost::mpl::plus< typename Extent1::iplus, typename Extent2::iplus >::type::value,
@@ -170,6 +147,27 @@ namespace gridtools {
             boost::mpl::plus< typename Extent1::jplus, typename Extent2::jplus >::type::value,
             boost::mpl::plus< typename Extent1::kminus, typename Extent2::kminus >::type::value,
             boost::mpl::plus< typename Extent1::kplus, typename Extent2::kplus >::type::value > type;
+    };
+
+    template < typename Extent >
+    struct extent_get_iminus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
+        static const int_t value = Extent::iminus::value;
+    };
+    template < typename Extent >
+    struct extent_get_iplus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
+        static const int_t value = Extent::iplus::value;
+    };
+    template < typename Extent >
+    struct extent_get_jminus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
+        static const int_t value = Extent::jminus::value;
+    };
+    template < typename Extent >
+    struct extent_get_jplus {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
+        static const int_t value = Extent::jplus::value;
     };
 
 } // namespace gridtools

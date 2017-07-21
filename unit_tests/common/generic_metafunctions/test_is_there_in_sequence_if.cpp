@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,14 +39,12 @@
 
 using namespace gridtools;
 
-TEST(is_there_in_sequence_if, is_there_in_sequence_if)
-{
-    typedef boost::mpl::vector<int, float, char> seq_t;
+TEST(is_there_in_sequence_if, is_there_in_sequence_if) {
+    typedef boost::mpl::vector< int, float, char > seq_t;
 
-    GRIDTOOLS_STATIC_ASSERT((is_there_in_sequence_if<seq_t, boost::is_same<boost::mpl::_, char> >::value),"ERROR");
-    GRIDTOOLS_STATIC_ASSERT((is_there_in_sequence_if<seq_t, boost::is_same<boost::mpl::_, int> >::value),"ERROR");
-    GRIDTOOLS_STATIC_ASSERT((! is_there_in_sequence_if<seq_t, boost::is_same<boost::mpl::_, long> >::value),"ERROR");
+    GRIDTOOLS_STATIC_ASSERT((is_there_in_sequence_if< seq_t, boost::is_same< boost::mpl::_, char > >::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((is_there_in_sequence_if< seq_t, boost::is_same< boost::mpl::_, int > >::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((!is_there_in_sequence_if< seq_t, boost::is_same< boost::mpl::_, long > >::value), "ERROR");
 
     ASSERT_TRUE(true);
 }
-
