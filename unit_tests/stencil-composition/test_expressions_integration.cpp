@@ -181,12 +181,12 @@ namespace {
 #else
             EXPRESSION_TEST(val3(i, j, k) * 3.)
 #endif
-            EXPRESSION_TEST_DISABLED(3. * val3())
+            EXPRESSION_TEST(3. * val3())
             EXPRESSION_TEST_DISABLED(val3() * 3) // accessor<double> mult int
             EXPRESSION_TEST_DISABLED(3 * val3()) // int mult accessor<double>
 
             EXPRESSION_TEST(val3() + 3.)
-            EXPRESSION_TEST_DISABLED(3. + val3())
+            EXPRESSION_TEST(3. + val3())
             EXPRESSION_TEST_DISABLED(val3() + 3) // accessor<double> plus int
             EXPRESSION_TEST_DISABLED(3 + val3()) // int plus accessor<double>
 
@@ -194,7 +194,7 @@ namespace {
             EXPRESSION_TEST_DISABLED(3. - val2())
             EXPRESSION_TEST_DISABLED(val3() - 2) // accessor<double> minus int
             EXPRESSION_TEST_DISABLED(3 - val2()) // int minus accessor<double>
-
+                                                 //
             EXPRESSION_TEST(val3() / 2.)
             EXPRESSION_TEST_DISABLED(3. / val2())
             EXPRESSION_TEST_DISABLED(val3() / 2) // accessor<double> div int
@@ -213,7 +213,7 @@ namespace {
 }
 
 TEST_F(test_expressions, integration_test) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_positional_computation< gridtools::BACKEND >(
         domain,
         grid,
         gridtools::make_multistage(
@@ -235,12 +235,12 @@ TEST_F(test_expressions, integration_test) {
     EXPRESSION_TEST_RESULT(1.5);
 
     EXPRESSION_TEST_RESULT(9.);
-    EXPRESSION_TEST_RESULT_DISABLED(9.);
+    EXPRESSION_TEST_RESULT(9.);
     EXPRESSION_TEST_RESULT_DISABLED(9.);
     EXPRESSION_TEST_RESULT_DISABLED(9.);
 
     EXPRESSION_TEST_RESULT(6.);
-    EXPRESSION_TEST_RESULT_DISABLED(6.);
+    EXPRESSION_TEST_RESULT(6.);
     EXPRESSION_TEST_RESULT_DISABLED(6.);
     EXPRESSION_TEST_RESULT_DISABLED(6.);
 
