@@ -182,23 +182,23 @@ namespace {
             EXPRESSION_TEST(val3(i, j, k) * 3.)
 #endif
             EXPRESSION_TEST(3. * val3())
-            EXPRESSION_TEST_DISABLED(val3() * 3) // accessor<double> mult int
-            EXPRESSION_TEST_DISABLED(3 * val3()) // int mult accessor<double>
+            EXPRESSION_TEST(val3() * 3) // accessor<double> mult int
+            EXPRESSION_TEST(3 * val3()) // int mult accessor<double>
 
             EXPRESSION_TEST(val3() + 3.)
             EXPRESSION_TEST(3. + val3())
-            EXPRESSION_TEST_DISABLED(val3() + 3) // accessor<double> plus int
-            EXPRESSION_TEST_DISABLED(3 + val3()) // int plus accessor<double>
+            EXPRESSION_TEST(val3() + 3) // accessor<double> plus int
+            EXPRESSION_TEST(3 + val3()) // int plus accessor<double>
 
             EXPRESSION_TEST(val3() - 2.)
-            EXPRESSION_TEST_DISABLED(3. - val2())
-            EXPRESSION_TEST_DISABLED(val3() - 2) // accessor<double> minus int
-            EXPRESSION_TEST_DISABLED(3 - val2()) // int minus accessor<double>
-                                                 //
+            EXPRESSION_TEST(3. - val2())
+            EXPRESSION_TEST(val3() - 2) // accessor<double> minus int
+            EXPRESSION_TEST(3 - val2()) // int minus accessor<double>
+                                        //
             EXPRESSION_TEST(val3() / 2.)
-            EXPRESSION_TEST_DISABLED(3. / val2())
-            EXPRESSION_TEST_DISABLED(val3() / 2) // accessor<double> div int
-            EXPRESSION_TEST_DISABLED(3 / val2()) // int div accessor<double>
+            EXPRESSION_TEST(3. / val2())
+            EXPRESSION_TEST(val3() / 2) // accessor<double> div int
+            EXPRESSION_TEST(3 / val2()) // int div accessor<double>
 
             EXPRESSION_TEST_DISABLED(-val2())
             EXPRESSION_TEST_DISABLED(+val2())
@@ -236,23 +236,23 @@ TEST_F(test_expressions, integration_test) {
 
     EXPRESSION_TEST_RESULT(9.);
     EXPRESSION_TEST_RESULT(9.);
-    EXPRESSION_TEST_RESULT_DISABLED(9.);
-    EXPRESSION_TEST_RESULT_DISABLED(9.);
+    EXPRESSION_TEST_RESULT(9.);
+    EXPRESSION_TEST_RESULT(9.);
 
     EXPRESSION_TEST_RESULT(6.);
     EXPRESSION_TEST_RESULT(6.);
-    EXPRESSION_TEST_RESULT_DISABLED(6.);
-    EXPRESSION_TEST_RESULT_DISABLED(6.);
+    EXPRESSION_TEST_RESULT(6.);
+    EXPRESSION_TEST_RESULT(6.);
 
     EXPRESSION_TEST_RESULT(1.);
-    EXPRESSION_TEST_RESULT_DISABLED(1.);
-    EXPRESSION_TEST_RESULT_DISABLED(1.);
-    EXPRESSION_TEST_RESULT_DISABLED(1.);
+    EXPRESSION_TEST_RESULT(1.);
+    EXPRESSION_TEST_RESULT(1.);
+    EXPRESSION_TEST_RESULT(1.);
 
     EXPRESSION_TEST_RESULT(1.5);
-    EXPRESSION_TEST_RESULT_DISABLED(1.5);
-    EXPRESSION_TEST_RESULT_DISABLED(1.5);
-    EXPRESSION_TEST_RESULT_DISABLED(1.5);
+    EXPRESSION_TEST_RESULT(1.5);
+    EXPRESSION_TEST_RESULT(1.5);
+    EXPRESSION_TEST_RESULT(1.5);
 
     EXPRESSION_TEST_RESULT_DISABLED(-2.);
     EXPRESSION_TEST_RESULT_DISABLED(+2.);
