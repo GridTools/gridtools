@@ -149,7 +149,7 @@ __host__ __device__ void setTestTransporterValue(TestTransporter *transporter, b
         cudaMemcpy(dTestTransporter, testTransporter, sizeof(TestTransporter), cudaMemcpyHostToDevice); \
         CUDA_LAST_ERROR("memcopyhosttodevice");                                                         \
         CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name) test;                                       \
-        CUDA_TEST_CLASS_NAME_(test_case_name, test_name)<<< 1, 1 >>>(test, dTestTransporter);           \
+        CUDA_TEST_CLASS_NAME_(test_case_name, test_name)<<< 1, 1 >>>(test, dTestTransporter);       \
         CUDA_LAST_ERROR("kernel call");                                                                 \
         cudaMemcpy(testTransporter, dTestTransporter, sizeof(TestTransporter), cudaMemcpyDeviceToHost); \
         CUDA_LAST_ERROR("memcopydevicetohost");                                                         \
@@ -165,6 +165,5 @@ __host__ __device__ void setTestTransporterValue(TestTransporter *transporter, b
     __host__ __device__ void CUDA_TEST_FUNCTION_NAME_(test_case_name, test_name)::operator()(           \
         TestTransporter * testTransporter)
 #else
-#warning "To enable CUDA tests compile with nvcc"
 #define CUDA_TEST(test_case_name, test_name) TEST(test_case_name, test_name)
 #endif
