@@ -62,16 +62,16 @@ struct iterate_domain_mock {
     template < typename... Ts >
     GT_FUNCTION iterate_domain_mock(Ts...) {}
 
-    using iterate_domain_t = iterate_domain_mock;
-
-    template < typename Accessor >
-    struct accessor_return_type {
-        using type = typename Accessor::return_type;
-    };
-
-    template < typename Accessor >
+    // trivial evaluation of the accessor_mock
+    template < typename Accessor, typename std::enable_if< is_accessor< Accessor >::value, int >::type = 0 >
     GT_FUNCTION typename Accessor::return_type operator()(Accessor const &val) const {
         return val.value;
+    }
+
+    // copy of the iterate_domain for expr
+    template < typename Expression, typename std::enable_if< is_expr< Expression >::value, int >::type = 0 >
+    GT_FUNCTION auto operator()(Expression const &arg) -> decltype(expressions::evaluation::value((*this), arg)) {
+        return expressions::evaluation::value((*this), arg);
     }
 };
 
@@ -80,14 +80,13 @@ namespace gridtools {
     struct is_iterate_domain< iterate_domain_mock > : boost::mpl::true_ {};
 }
 
-using mocked_domain = gridtools::iterate_domain_expandable_parameters< iterate_domain_mock, 0 >;
 using val = accessor_mock< float >;
 
 /*
  * User API tests
  */
 CUDA_TEST(test_expressions, add_accessors) {
-    mocked_domain eval(0);
+    iterate_domain_mock eval(0);
 
     auto add = val{1} + val{2};
 
@@ -96,7 +95,7 @@ CUDA_TEST(test_expressions, add_accessors) {
 }
 
 CUDA_TEST(test_expressions, sub_accessors) {
-    mocked_domain eval(0);
+    iterate_domain_mock eval(0);
 
     auto add = val{1} - val{2};
 
@@ -105,7 +104,7 @@ CUDA_TEST(test_expressions, sub_accessors) {
 }
 
 CUDA_TEST(test_expressions, with_parenthesis) {
-    mocked_domain eval(0);
+    iterate_domain_mock eval(0);
 
     auto add = (val{1} + val{2}) * (val{1} - val{2});
 
