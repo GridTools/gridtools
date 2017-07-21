@@ -37,7 +37,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "../cuda_gtest_plugin.hpp"
+#include "../../cuda_gtest_plugin.hpp"
 #include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
