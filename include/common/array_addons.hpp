@@ -47,7 +47,17 @@ namespace gridtools {
 
         return s;
     }
+    namespace impl {
+        template < int Idx >
+        struct array_initializer {
+            constexpr array_initializer() {}
 
+            template < long unsigned int ndims >
+            constexpr static unsigned int apply(const std::array< unsigned int, ndims > data) {
+                return data[Idx];
+            }
+        };
+    }
 } // namespace gridtools
 
 template < typename T, typename U, size_t D >
@@ -67,16 +77,4 @@ bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > c
 template < typename T, typename U, size_t D >
 bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
     return std::equal(a.begin(), a.end(), b.begin());
-}
-
-namespace impl {
-    template < int Idx >
-    struct array_initializer {
-        constexpr array_initializer() {}
-
-        template < long unsigned int ndims >
-        constexpr static unsigned int apply(const std::array< unsigned int, ndims > data) {
-            return data[Idx];
-        }
-    };
 }
