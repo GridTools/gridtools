@@ -57,8 +57,13 @@
 
     #define AUXBOOST_VECTOR_HEADER BOOST_PP_CAT(vector, GT_VECTOR_LIMIT_SIZE).hpp /**/
 
-    #include "boost/mpl/vector/vector120.hpp"
-    #include "boost/fusion/vector/vector120.hpp"
+    #if GT_VECTOR_LIMIT_SIZE > 80
+      #include "boost/mpl/vector/vector120.hpp"
+      #include "boost/fusion/vector/vector120.hpp"
+    #else
+      #include "boost/mpl/vector/vector80.hpp"
+      #include "boost/fusion/vector/vector80.hpp"
+    #endif
 
 //    #include BOOST_PP_STRINGIZE(boost/mpl/AUXBOOST_VECTOR_HEADER)
 //    #include BOOST_PP_STRINGIZE(boost/fusion/AUXBOOST_VECTOR_HEADER)
@@ -73,7 +78,11 @@
 
     #define AUXBOOST_MAP_HEADER BOOST_PP_CAT(map, GT_VECTOR_LIMIT_SIZE).hpp /**/
 
-    #include "boost/mpl/map/map120.hpp"
+    #if GT_VECTOR_LIMIT_SIZE > 80
+      #include "boost/mpl/map/map120.hpp"
+    #else
+      #include "boost/mpl/map/map80.hpp"
+    #endif
 
 //    #include BOOST_PP_STRINGIZE(boost/fusion/AUXBOOST_MAP_HEADER)
     #undef AUXBOOST_MAP_HEADER
