@@ -43,7 +43,7 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
 template < unsigned Id, typename Layout >
 using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
@@ -94,10 +94,10 @@ typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad
   With this information we perform the projection (i.e. perform an integral) by looping on the
   quadrature points in an innermost loop, with stride given by the layout_map (I*J*K in this case).
 
-  In this example we introduce also another syntactic element in the high level expression: the operator exclamation
-  mark (!). This operator prefixed to a placeholder means that the corresponding storage index is not considered, and
-  only the offsets are used to get the absolute address. This allows to perform operations which are not stencil-like.
-  It is used in this case to address the basis functions values.
+  Note that the fields phi and psi are passed through as global_parameters and taken in the stencil
+  operator as global_accessors. This is the czse since the base functions do not change when the
+  iteration point moves, so their values are constant. This is a typical example of global_parameter/
+  global_accessor use.
 */
 
 namespace assembly {
