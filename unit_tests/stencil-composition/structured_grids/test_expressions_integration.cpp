@@ -137,14 +137,6 @@ class test_expressions : public testing::Test {
     make_host_view(reference)(index, 0, 0) = RESULT; \
     index++;
 
-#define EXPRESSION_TEST_DISABLED(EXPR)                                \
-    else if (eval.i() == index++ && eval.j() == 0 && eval.k() == 0) { \
-        eval(out()) = ::DEFAULT_VALUE;                                \
-    }
-#define EXPRESSION_TEST_RESULT_DISABLED(RESULT)               \
-    make_host_view(reference)(index, 0, 0) = ::DEFAULT_VALUE; \
-    index++;
-
 namespace {
     struct test_functor {
         typedef in_accessor< 0, extent<>, 3 > val2;
@@ -200,10 +192,10 @@ namespace {
             EXPRESSION_TEST(val3() / 2) // accessor<double> div int
             EXPRESSION_TEST(3 / val2()) // int div accessor<double>
 
-            EXPRESSION_TEST_DISABLED(-val2())
-            EXPRESSION_TEST_DISABLED(+val2())
+            EXPRESSION_TEST(-val2())
+            EXPRESSION_TEST(+val2())
 
-            EXPRESSION_TEST_DISABLED(val3() + 2. * val2())
+            EXPRESSION_TEST(val3() + 2. * val2())
 
             EXPRESSION_TEST(pow< 2 >(val3()))
 
@@ -254,10 +246,10 @@ TEST_F(test_expressions, integration_test) {
     EXPRESSION_TEST_RESULT(1.5);
     EXPRESSION_TEST_RESULT(1.5);
 
-    EXPRESSION_TEST_RESULT_DISABLED(-2.);
-    EXPRESSION_TEST_RESULT_DISABLED(+2.);
+    EXPRESSION_TEST_RESULT(-2.);
+    EXPRESSION_TEST_RESULT(+2.);
 
-    EXPRESSION_TEST_RESULT_DISABLED(7.);
+    EXPRESSION_TEST_RESULT(7.);
 
     EXPRESSION_TEST_RESULT(9.);
 

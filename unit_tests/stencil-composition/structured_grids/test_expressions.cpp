@@ -97,18 +97,36 @@ CUDA_TEST(test_expressions, add_accessors) {
 CUDA_TEST(test_expressions, sub_accessors) {
     iterate_domain_mock eval(0);
 
-    auto add = val{1} - val{2};
+    auto sub = val{1} - val{2};
 
-    auto result = eval(add);
+    auto result = eval(sub);
     ASSERT_FLOAT_EQ(result, (float)-1.);
+}
+
+CUDA_TEST(test_expressions, negate_accessor) {
+    iterate_domain_mock eval(0);
+
+    auto negate = -val{1};
+
+    auto result = eval(negate);
+    ASSERT_FLOAT_EQ(result, (float)-1.);
+}
+
+CUDA_TEST(test_expressions, plus_sign_accessor) {
+    iterate_domain_mock eval(0);
+
+    auto negate = +val{1};
+
+    auto result = eval(negate);
+    ASSERT_FLOAT_EQ(result, (float)1.);
 }
 
 CUDA_TEST(test_expressions, with_parenthesis) {
     iterate_domain_mock eval(0);
 
-    auto add = (val{1} + val{2}) * (val{1} - val{2});
+    auto expression = (val{1} + val{2}) * (val{1} - val{2});
 
-    auto result = eval(add);
+    auto result = eval(expression);
     ASSERT_FLOAT_EQ(result, (float)-3.);
 }
 
