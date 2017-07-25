@@ -34,62 +34,64 @@ using IJDataStore = typename storage_traits< enumtype::Host >::data_store_t< flo
 //#undef GT_REGISTER_FIELDTYPE
 //}
 
+#define FEL1(Action, X) Action(X)
+#define FEL2(Action, X, ...) Action(X), FEL1(Action, __VA_ARGS__)
+#define FEL3(Action, X, ...) Action(X), FEL2(Action, __VA_ARGS__)
+#define FEL4(Action, X, ...) Action(X), FEL3(Action, __VA_ARGS__)
+#define FEL5(Action, X, ...) Action(X), FEL4(Action, __VA_ARGS__)
+#define FEL6(Action, X, ...) Action(X), FEL5(Action, __VA_ARGS__)
+#define FEL7(Action, X, ...) Action(X), FEL6(Action, __VA_ARGS__)
+#define FEL8(Action, X, ...) Action(X), FEL7(Action, __VA_ARGS__)
+#define FEL9(Action, X, ...) Action(X), FEL8(Action, __VA_ARGS__)
+#define FEL10(Action, X, ...) Action(X), FEL9(Action, __VA_ARGS__)
+#define FEL11(Action, X, ...) Action(X), FEL10(Action, __VA_ARGS__)
+#define FEL12(Action, X, ...) Action(X), FEL11(Action, __VA_ARGS__)
+
+#define GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, Name, ...) Name
+#define FOR_EACH_LIST(Action, ...) \
+    GET_MACRO(__VA_ARGS__, FEL12, FEL11, FEL10, FEL9, FEL8, FEL7, FEL6, FEL5, FEL4, FEL3, FEL2, FEL1)(Action,__VA_ARGS__)
+
 class my_repository {
   private:
 #define GT_REGISTER_FIELD(Type, Name) Type m_##Name;
-#define GT_REGISTER_FIELDTYPE(Type)
+#define GT_REGISTER_FIELDTYPES(...)
 #include "my_repository.inc"
 #undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPE
+#undef GT_REGISTER_FIELDTYPES
     int dummy;
 
   public:
     std::unordered_map< std::string,
         boost::variant<
+#define JustForward(X) X
 #define GT_REGISTER_FIELD(Type, Name)
-#define GT_REGISTER_FIELDTYPE(Type) Type,
+#define GT_REGISTER_FIELDTYPES(...) FOR_EACH_LIST(JustForward, __VA_ARGS__)
 #include "my_repository.inc"
 #undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPE
-                            IJKDataStore > > data_store_map_; // TODO fix the comma
-
-//#define FEL1(Action, X) Action(X)
-//#define FEL2(Action, X, ...) Action(X), FEL1(Action, __VA_ARGS__)
-//#define FEL3(Action, X, ...) Action(X), FEL2(Action, __VA_ARGS__)
-//#define FEL4(Action, X, ...) Action(X), FEL3(Action, __VA_ARGS__)
-//#define FEL5(Action, X, ...) Action(X), FEL4(Action, __VA_ARGS__)
-//#define FEL6(Action, X, ...) Action(X), FEL5(Action, __VA_ARGS__)
-//#define FEL7(Action, X, ...) Action(X), FEL6(Action, __VA_ARGS__)
-//#define FEL8(Action, X, ...) Action(X), FEL7(Action, __VA_ARGS__)
-//#define FEL9(Action, X, ...) Action(X), FEL8(Action, __VA_ARGS__)
-//#define FEL10(Action, X, ...) Action(X), FEL9(Action, __VA_ARGS__)
-//#define FEL11(Action, X, ...) Action(X), FEL10(Action, __VA_ARGS__)
-//#define FEL12(Action, X, ...) Action(X), FEL11(Action, __VA_ARGS__)
-//
-//#define GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, Name, ...) Name
-//#define FOR_EACH_LIST(Action, ...) \
-//    GET_MACRO(__VA_ARGS__, FEL12, FEL11, FEL10, FEL9, FEL8, FEL7, FEL6, FEL5, FEL4, FEL3, FEL2, FEL1)(Action,__VA_ARGS__)
+#undef GT_REGISTER_FIELDTYPES
+                            > > data_store_map_; // TODO fix the comma
 
 #define GET_STORAGE_INFO(X) typename X::storage_info_t info_##X
     my_repository(
+#define MakeCtor(Type) typename Type::storage_info_t info_##Type
 #define GT_REGISTER_FIELD(Type, Name)
-#define GT_REGISTER_FIELDTYPE(Type) typename Type::storage_info_t info_##Type,
+#define GT_REGISTER_FIELDTYPES(...) FOR_EACH_LIST(MakeCtor, __VA_ARGS__)
 #include "my_repository.inc"
 #undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPE
-        int dummy = 0)
+#undef GT_REGISTER_FIELDTYPES
+        )
         :
 #define GT_REGISTER_FIELD(Type, Name) m_##Name(info_##Type),
-#define GT_REGISTER_FIELDTYPE(Type)
+#define GT_REGISTER_FIELDTYPES(...)
 #include "my_repository.inc"
 #undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPE
-          dummy(0) {
+#undef GT_REGISTER_FIELDTYPES
+          dummy(0) { // TODO FIXME
 #define GT_REGISTER_FIELD(Type, Name) data_store_map_.emplace(#Name, m_##Name);
-#define GT_REGISTER_FIELDTYPE(Type)
+#define GT_REGISTER_FIELDTYPES(...)
 #include "my_repository.inc"
 #undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPE
+#undef GT_REGISTER_FIELDTYPES
     }
 
     /// @brief Configuration is non-copyable/moveable
@@ -101,10 +103,10 @@ class my_repository {
     const Type &get_##Name() const noexcept { return this->m_##Name; }      \
     void set_##Name(const Type &value) noexcept { this->m_##Name = value; } \
     void init_##Name(const Type::storage_info_t &storage_info) { this->m_##Name.allocate(storage_info); }
-#define GT_REGISTER_FIELDTYPE(Type)
+#define GT_REGISTER_FIELDTYPES(...)
 #include "my_repository.inc"
 #undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPE
+#undef GT_REGISTER_FIELDTYPES
 
     //#define GT_REGISTER_FIELD(Type, Name)
     //#define GT_REGISTER_FIELDTYPE(Type) \
