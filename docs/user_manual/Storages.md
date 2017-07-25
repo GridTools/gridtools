@@ -356,8 +356,8 @@ Following type queries are available:
 * `storage_info_t< Id, Dims, Halo >`: Retrieve an n-dimensional storage info with the correct layout and memory alignment.
 * `custom_layout_storage_info_t< Id, LayoutMap, Halo >`: Retrieve an storage info with a specific memory layout.
 * `special_storage_info_t< Id, Selector, Halo >`: Retrieve an storage info with a masked dimensions. The selector defines which dimensions are masked (e.g., `selector<1,0,1>` I and K is not masked, J dimension is masked).
-* `data_store_t < ValueType, StorageInfo >: Get a data store type that contains a suitable storage type. 
-* data_store_field_t < ValueType, StorageInfo, Dims... >: Get a data store field type that contains a suitable storage type. 
+* `data_store_t < ValueType, StorageInfo >`: Get a data store type that contains a suitable storage type. 
+* `data_store_field_t < ValueType, StorageInfo, Dims... >`: Get a data store field type that contains a suitable storage type. 
 
 
 
