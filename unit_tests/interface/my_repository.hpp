@@ -99,10 +99,9 @@ class my_repository {
     my_repository(my_repository &&) = delete;
 
 // Getter & Setter
-#define GT_REGISTER_FIELD(Type, Name)                                       \
-    const Type &get_##Name() const noexcept { return this->m_##Name; }      \
-    void set_##Name(const Type &value) noexcept { this->m_##Name = value; } \
-    void init_##Name(const Type::storage_info_t &storage_info) { this->m_##Name.allocate(storage_info); }
+#define GT_REGISTER_FIELD(Type, Name)                                  \
+    const Type &get_##Name() const noexcept { return this->m_##Name; } \
+    void set_##Name(const Type &value) noexcept { this->m_##Name = value; }
 #define GT_REGISTER_FIELDTYPES(...)
 #include "my_repository.inc"
 #undef GT_REGISTER_FIELD
