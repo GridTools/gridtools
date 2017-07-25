@@ -24,22 +24,26 @@ no_dependency "common" "boundary-conditions"
 no_dependency "common" "communication"
 no_dependency "common" "storage"
 no_dependency "common" "tools"
+no_dependency "common" "interface"
 
 are_independent "stencil-composition" "boundary-conditions"
 are_independent "stencil-composition" "communication"
+are_independent "stencil-composition" "interface"
 no_dependency "stencil-composition" "tools"
 
 are_independent "boundary-conditions" "communication" #maybe they can have a dependency later?
 are_independent "boundary-conditions" "storage"
 are_independent "boundary-conditions" "tools"
+are_independent "boundary-conditions" "interface"
 
 are_independent "communication" "tools"
 no_dependency "communication" "storage"
 #are_independent "communication" "storage" #TODO: violated by partitioner
+are_independent "communication" "interface"
 
 no_dependency "storage" "stencil-composition"
 no_dependency "storage" "boundary-conditions"
 no_dependency "storage" "tools"
+no_dependency "storage" "interface"
 
 # we cannot use an exit code here because the git hook will terminate immediately
-
