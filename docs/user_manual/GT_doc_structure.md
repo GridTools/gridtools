@@ -8,6 +8,10 @@ Installation.md
 Quick_Start_Guide.md
 ```
 
+```include
+Storages.md
+```
+
 Storages
 ========
 
