@@ -36,7 +36,6 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
-#include <common/partitioner_trivial.hpp>
 #include <common/parallel_storage_info.hpp>
 #include <communication/low-level/proc_grids_3D.hpp>
 
@@ -163,9 +162,9 @@ namespace copy_stencil {
             halo[0] = halo[1] = 0;
 
         // Definition of the actual data fields that are used for input/output
-        he.add_halo< 0 >(halo[0], halo[0], halo[0], d1+halo[0]-1, d1+2*halo[0]);
-        he.add_halo< 0 >(halo[1], halo[1], halo[1], d2+halo[1]-1, d2+2*halo[1]);
-        he.add_halo< 0 >(0, 0, 0, d3-1, d3);
+        he.add_halo< 0 >(halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]);
+        he.add_halo< 0 >(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
+        he.add_halo< 0 >(0, 0, 0, d3 - 1, d3);
 
         he.setup(3);
 
@@ -175,27 +174,25 @@ namespace copy_stencil {
 
         auto c_grid = he.comm();
         int pi, pj, pk;
-        c_grid.coords(pi,pj,pk);
+        c_grid.coords(pi, pj, pk);
 
-        storage_info_t storage_info(d1+2*halo[0], d2+2*halo[1], d3);
+        storage_info_t storage_info(d1 + 2 * halo[0], d2 + 2 * halo[1], d3);
 
         storage_t in(storage_info,
-                     [&storage_info, pi, pj, pk](int i, int j, int k)
-                     {
-                         int I = i + storage_info.dim< 0 >() * pi;
-                         int J = j + storage_info.dim< 1 >() * pj;
-                         int K = k + storage_info.dim< 2 >() * pk;
-                         return I+J+K;
-                     },
-                     "in");
+            [&storage_info, pi, pj, pk](int i, int j, int k) {
+                int I = i + storage_info.dim< 0 >() * pi;
+                int J = j + storage_info.dim< 1 >() * pj;
+                int K = k + storage_info.dim< 2 >() * pk;
+                return I + J + K;
+            },
+            "in");
         storage_t out(storage_info, 0., "out");
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        gridtools::grid< axis > grid({halo[0], halo[0], halo[0], d1+halo[0]-1, d1+2*halo[0]},
-                                     {halo[1], halo[1], halo[1], d2+halo[1]-1, d2+2*halo[1]});
-        // k dimension not partitioned
+        gridtools::grid< axis > grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
+            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]});
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
@@ -239,17 +236,15 @@ namespace copy_stencil {
 #endif
 
         gridtools::array< gridtools::halo_descriptor, 3 > halos;
-        halos[0] = gridtools::halo_descriptor(halo[0], halo[0], halo[0], d1+halo[0]-1, d1+2*halo[0]);
-        halos[1] = gridtools::halo_descriptor(halo[1], halo[1], halo[1], d2+halo[1]-1, d2+2*halo[1]);
-        halos[2] = gridtools::halo_descriptor(0, 0, 0, d3-1, d3);
+        halos[0] = gridtools::halo_descriptor(halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]);
+        halos[1] = gridtools::halo_descriptor(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
+        halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
         auto v_out = make_host_view(out);
         auto v_in = make_host_view(in);
         typename gridtools::boundary_apply< boundary_conditions,
-                                            typename gridtools::proc_grid_predicate< decltype(c_grid) > >
-            (halos,
-             boundary_conditions(),
-             gridtools::proc_grid_predicate< decltype(c_grid) >(c_grid))
+            typename gridtools::proc_grid_predicate< decltype(c_grid) > >(
+            halos, boundary_conditions(), gridtools::proc_grid_predicate< decltype(c_grid) >(c_grid))
             .apply(v_in, v_out);
 
         auto inv = make_host_view(in);
@@ -288,8 +283,7 @@ namespace copy_stencil {
                         std::cout << gridtools::PID << " "
                                   << "i = " << i << ", j = " << j << ", k = " << k
                                   << "v_out(i, j, k) = " << v_out(i, j, k) << ", "
-                                  << "(I + J + K) = " << (i + j + k) * (gridtools::PID + 1)
-                                  << "\n";
+                                  << "(I + J + K) = " << (i + j + k) * (gridtools::PID + 1) << "\n";
                         return false;
                     }
                 }

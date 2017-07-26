@@ -35,7 +35,6 @@
 */
 #pragma once
 #include "partitioner.hpp"
-#include "../boundary-conditions/predicate.hpp"
 
 /**
 @file
@@ -53,6 +52,21 @@ be applied to multiple storages
 */
 
 namespace gridtools {
+
+    namespace boundary_function {
+        /**@brief taking the power of the component to identify the boundary
+
+           formula:
+           * compute \f$ flag_*2^{component_}\f$ , which will
+           be in binary representation a serie of 0s with a 1 at position either component_, or component_ +
+           n_dimensions
+           (depending on wether the flag is UP or LOW).
+        */
+        template < typename Flag >
+        GT_FUNCTION static uint_t compute_boundary_id(ushort_t const &component_, Flag flag_) {
+            return (((uint_t)flag_ * (1 << component_)));
+        }
+    }
 
     template < typename TopologyType >
     class cell_topology;
@@ -218,7 +232,7 @@ namespace gridtools {
                 m_halo[component],
                 m_halo[component],
                 tile_dimension + m_halo[component] - 1,
-                tile_dimension + m_halo[component]+m_halo[component] );
+                tile_dimension + m_halo[component] + m_halo[component]);
 
 #ifndef NDEBUG
             std::cout << "PID: " << PID << " coords[" << component << "]     " << coordinates[component] << std::endl;
