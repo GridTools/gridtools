@@ -33,7 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly
@@ -477,7 +476,10 @@ namespace gridtools {
         GT_FUNCTION
             typename boost::enable_if< cached< Accessor >, typename accessor_return_type< Accessor >::type >::type
             operator()(Accessor const &accessor_) {
-
+#ifndef NDEBUG
+            ASSERT_OR_THROW((check_accessor< grid_traits_t, typename Accessor::extent_t >::apply(accessor_)),
+                "Accessor out of bounds.");
+#endif
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             return static_cast< IterateDomainImpl const * >(this)
@@ -510,6 +512,10 @@ namespace gridtools {
                                                     is_global_accessor< Accessor > >,
             typename accessor_return_type< Accessor >::type >::type
         operator()(Accessor const &accessor) {
+#ifndef NDEBUG
+            ASSERT_OR_THROW((check_accessor< grid_traits_t, typename Accessor::extent_t >::apply(accessor)),
+                "Accessor out of bounds.");
+#endif
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
             GRIDTOOLS_STATIC_ASSERT(

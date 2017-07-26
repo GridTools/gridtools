@@ -600,6 +600,62 @@ namespace gridtools {
     };
 
     /**
+     * functions to check if an accessor instance is not exceeding the defined extents in the
+     * I,J, and K dimensions.
+     */
+    template < typename GridTraits, typename Extent >
+    struct check_accessor;
+
+    template < typename GridTraits, int_t... Vals >
+    struct check_accessor< GridTraits, extent< Vals... > > {
+        // get the position of I,J,K in the accessor
+        typedef GridTraits gridtraits_t;
+        static constexpr uint_t i_pos = gridtraits_t::dim_i_t::value;
+        static constexpr uint_t j_pos = gridtraits_t::dim_j_t::value;
+        static constexpr uint_t k_pos = gridtraits_t::dim_k_t::value;
+        // get all needed extents or 0 if no extent was defined
+        static constexpr int_t i_minus_extent =
+            (sizeof...(Vals) > 2 * i_pos) ? get_value_from_pack(2 * i_pos, Vals...) : 0;
+        static constexpr int_t i_plus_extent =
+            (sizeof...(Vals) > 2 * i_pos + 1) ? get_value_from_pack(2 * i_pos + 1, Vals...) : 0;
+        static constexpr int_t j_minus_extent =
+            (sizeof...(Vals) > 2 * j_pos) ? get_value_from_pack(2 * j_pos, Vals...) : 0;
+        static constexpr int_t j_plus_extent =
+            (sizeof...(Vals) > 2 * j_pos + 1) ? get_value_from_pack(2 * j_pos + 1, Vals...) : 0;
+        static constexpr int_t k_minus_extent =
+            (sizeof...(Vals) > 2 * k_pos) ? get_value_from_pack(2 * k_pos, Vals...) : 0;
+        static constexpr int_t k_plus_extent =
+            (sizeof...(Vals) > 2 * k_pos + 1) ? get_value_from_pack(2 * k_pos + 1, Vals...) : 0;
+
+        template < typename Accessor >
+        static bool apply(Accessor const &a) {
+            constexpr uint_t dims = Accessor::n_dimensions;
+            // check if given offsets are within the extents
+            bool i_check = (i_pos < dims)
+                               ? (a.offsets().template get< dims - 1 - i_pos >() <= i_plus_extent) &&
+                                     (a.offsets().template get< dims - 1 - i_pos >() >= i_minus_extent)
+                               : true;
+            bool j_check = (j_pos < dims)
+                               ? (a.offsets().template get< dims - 1 - j_pos >() <= j_plus_extent) &&
+                                     (a.offsets().template get< dims - 1 - j_pos >() >= j_minus_extent)
+                               : true;
+            bool k_check = (k_pos < dims)
+                               ? (a.offsets().template get< dims - 1 - k_pos >() <= k_plus_extent) &&
+                                     (a.offsets().template get< dims - 1 - k_pos >() >= k_minus_extent)
+                               : true;
+            // return result
+            if (!(i_check && j_check && k_check)) {
+                std::cout << i_minus_extent << " " << i_plus_extent << " " << j_minus_extent << " " << j_plus_extent
+                          << " " << k_minus_extent << " " << k_plus_extent << "\n";
+                std::cout << a.offsets().template get< dims - 1 - i_pos >() << " "
+                          << a.offsets().template get< dims - 1 - j_pos >() << " "
+                          << a.offsets().template get< dims - 1 - k_pos >() << "\n";
+            }
+            return i_check && j_check && k_check;
+        }
+    };
+
+    /**
      * metafunction that retrieves the arg type associated with an accessor
      */
     template < typename Accessor, typename IterateDomainArguments >
