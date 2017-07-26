@@ -34,10 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#define FUSION_MAX_VECTOR_SIZE 40
-#define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
-#define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
-#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
 
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
@@ -71,7 +67,7 @@ namespace test_expandable_parameters_icosahedral {
         typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(parameters_out{}) = eval(parameters_in{});
         }
     };
@@ -120,8 +116,8 @@ namespace test_expandable_parameters_icosahedral {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        using p_list_out = arg< 0, std::vector< decltype(storage1) > >;
-        using p_list_in = arg< 1, std::vector< decltype(storage10) > >;
+        using p_list_out = arg< 0, std::vector< decltype(storage1) >, enumtype::cells >;
+        using p_list_in = arg< 1, std::vector< decltype(storage10) >, enumtype::cells >;
 
         typedef boost::mpl::vector< p_list_out, p_list_in > args_t;
 

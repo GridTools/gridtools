@@ -62,11 +62,11 @@ struct lap_function {
 
     typedef boost::mpl::vector< out_acc, in_acc > arg_list;
 
-    template < typename t_domain >
-    GT_FUNCTION static void Do(t_domain const &dom, x_lap) {
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, x_lap) {
 
-        dom(out_acc()) = 4 * dom(in_acc()) -
-                         (dom(in_acc(1, 0, 0)) + dom(in_acc(0, 1, 0)) + dom(in_acc(-1, 0, 0)) + dom(in_acc(0, -1, 0)));
+        eval(out_acc()) = 4 * eval(in_acc()) - (eval(in_acc(1, 0, 0)) + eval(in_acc(0, 1, 0)) + eval(in_acc(-1, 0, 0)) +
+                                                   eval(in_acc(0, -1, 0)));
     }
 };
 
@@ -168,22 +168,13 @@ TEST(Laplace, test) {
         }
     }
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
     bool result = verif.verify(grid, ref, out, halos);
-#else
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6, halo_size);
-#else
-    verifier verif(1e-12, halo_size);
-#endif
-    bool result = verif.verify(grid, out, ref);
-#endif
 
 #ifdef BENCHMARK
     std::cout << laplace->print_meter() << std::endl;

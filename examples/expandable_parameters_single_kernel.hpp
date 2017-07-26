@@ -34,10 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#undef FUSION_MAX_VECTOR_SIZE
+#undef FUSION_MAX_MAP_SIZE
 #define FUSION_MAX_VECTOR_SIZE 40
 #define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS
+
+#pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
@@ -87,7 +91,7 @@ namespace test_expandable_parameters {
             parameters5_in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(parameters1_out()) = eval(parameters1_in());
             eval(parameters2_out()) = eval(parameters2_in());
             eval(parameters3_out()) = eval(parameters3_in());
@@ -161,31 +165,31 @@ namespace test_expandable_parameters {
 
         aggregator_type< args_t > domain_(
             storage1, storage2, storage3, storage4, storage5, storage10, storage20, storage30, storage40, storage50);
-        auto comp_ = make_computation< BACKEND >(
-            domain_,
+        auto comp_ = make_computation< BACKEND >(domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                define_caches(cache< IJ, local >(p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
-                make_stage< functor_single_kernel >(p_0_tmp(),
-                                p_1_tmp(),
-                                p_2_tmp(),
-                                p_3_tmp(),
-                                p_4_tmp(),
-                                p_0_in(),
-                                p_1_in(),
-                                p_2_in(),
-                                p_3_in(),
-                                p_4_in()),
-                make_stage< functor_single_kernel >(p_0_out(),
-                                p_1_out(),
-                                p_2_out(),
-                                p_3_out(),
-                                p_4_out(),
-                                p_0_tmp(),
-                                p_1_tmp(),
-                                p_2_tmp(),
-                                p_3_tmp(),
-                                p_4_tmp())));
+                                                     define_caches(cache< IJ, cache_io_policy::local >(
+                                                         p_0_tmp(), p_1_tmp(), p_2_tmp(), p_3_tmp(), p_4_tmp())),
+                                                     make_stage< functor_single_kernel >(p_0_tmp(),
+                                                         p_1_tmp(),
+                                                         p_2_tmp(),
+                                                         p_3_tmp(),
+                                                         p_4_tmp(),
+                                                         p_0_in(),
+                                                         p_1_in(),
+                                                         p_2_in(),
+                                                         p_3_in(),
+                                                         p_4_in()),
+                                                     make_stage< functor_single_kernel >(p_0_out(),
+                                                         p_1_out(),
+                                                         p_2_out(),
+                                                         p_3_out(),
+                                                         p_4_out(),
+                                                         p_0_tmp(),
+                                                         p_1_tmp(),
+                                                         p_2_tmp(),
+                                                         p_3_tmp(),
+                                                         p_4_tmp())));
 
         comp_->ready();
         comp_->steady();

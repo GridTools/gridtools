@@ -181,35 +181,28 @@ namespace gridtools {
             }
         }
 
-/**@brief computes the lower and upper index of the local interval
-   \param component the dimension being partitioned
-   \param size the total size of the quantity being partitioned
+        uint_t compute_tile(ushort_t component, uint_t const size_) const {
+            int_t low;
+            int_t high;
+            low_up_bounds(low, high, component, size_);
+            return high - low;
+        }
 
-   The bounds must be inclusive of the halo region
-*/
-#ifdef CXX11_ENABLED
+        /**@brief computes the lower and upprt index of the local interval
+           \param component the dimension being partitioned
+           \param size the total size of the quantity being partitioned
+
+           The bounds must be inclusive of the halo region
+        */
         template < typename... UInt >
-#endif
         uint_t compute_bounds(uint_t component,
             array< halo_descriptor, space_dimensions > &coordinates,
             array< halo_descriptor, space_dimensions > &coordinates_gcl,
             array< int_t, space_dimensions > &low_bound,
             array< int_t, space_dimensions > &up_bound,
-#ifdef CXX11_ENABLED
-            UInt const &... original_sizes
-#else
-            uint_t const &d1,
-            uint_t const &d2,
-            uint_t const &d3
-#endif
-            ) const {
-#ifdef CXX11_ENABLED
+            UInt const &... original_sizes) const {
             uint_t sizes[sizeof...(UInt)] = {original_sizes...};
             uint_t size_ = sizes[component];
-#else
-            uint_t sizes[3] = {d1, d2, d3};
-            uint_t size_ = sizes[component];
-#endif
 
             low_up_bounds(low_bound[component], up_bound[component], component, size_);
 

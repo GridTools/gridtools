@@ -34,15 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include <gridtools.hpp>
+#include "../unit_tests/communication/check_flags.hpp"
+#include "gtest/gtest.h"
 #include "copy_stencil_parallel.hpp"
 
-int main(int argc, char **argv) {
-
-#ifdef _USE_GPU_
-    device_binding();
-#endif
-
-    gridtools::GCL_Init(argc, argv);
-
-    return copy_stencil::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]));
+TEST(Communication, copy_stencil_parallel) {
+    bool passed = copy_stencil::test(23, 12, 7);
+    EXPECT_TRUE(passed);
 }

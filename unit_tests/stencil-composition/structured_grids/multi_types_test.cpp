@@ -35,7 +35,7 @@
 */
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <tools/verifier.hpp>
 #include "gtest/gtest.h"
 
@@ -95,7 +95,7 @@ namespace multi_types_test {
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > region;
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
+    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct type4;
 
@@ -187,7 +187,7 @@ namespace multi_types_test {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, region) {
+        GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()).i = eval(in()).i + 1;
             eval(out()).j = eval(in()).j + 1;
             eval(out()).k = eval(in()).k + 1;
@@ -201,7 +201,7 @@ namespace multi_types_test {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, region) {
+        GT_FUNCTION static void Do(Evaluation &eval, region) {
 #ifdef FUNCTIONS_PROCEDURES
             type1 result;
             call_proc< function0, region >::with(eval, in(), result);
@@ -230,12 +230,8 @@ namespace multi_types_test {
         typedef boost::mpl::vector< out, in, temp > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, region) {
+        GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()) = eval(temp()) + eval(in());
-            // std::cout << (eval(temp())+eval(in())).x << ", "
-            //           << (eval(temp())+eval(in())).y << ", "
-            //           << (eval(temp())+eval(in())).z << ": "
-            //           << " " << (eval(out())).xy << std::endl;
         }
     };
 
@@ -248,7 +244,7 @@ namespace multi_types_test {
         typedef boost::mpl::vector< out, temp, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, region) {
+        GT_FUNCTION static void Do(Evaluation &eval, region) {
             eval(out()) = eval(temp()) - eval(in());
         }
     };
@@ -358,4 +354,4 @@ namespace multi_types_test {
     }
 } // namespace multi_types_test
 
-TEST(multitypes, FTESTNAME(x)) { EXPECT_TRUE(multi_types_test::test(4, 4, 4)); }
+TEST(multitypes, FTESTNAME(x)) { EXPECT_TRUE(multi_types_test::test(4, 5, 6)); }

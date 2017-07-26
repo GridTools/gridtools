@@ -70,8 +70,7 @@ using namespace enumtype;
 namespace aligned_copy_stencil {
 
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
     typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
@@ -88,7 +87,7 @@ namespace aligned_copy_stencil {
             \param alignment ordinal number identifying the alignment
         */
         template < unsigned Index, typename ItDomain >
-        GT_FUNCTION static bool check_pointer_alignment(ItDomain const &it_domain, uint_t alignment) {
+        GT_FUNCTION static bool check_pointer_alignment(ItDomain &it_domain, uint_t alignment) {
             bool result_ = true;
             if (threadIdx.x == 0) {
                 auto ptr = (static_cast< float_type * >(it_domain.get().data_pointer().template get< Index >()[0]) +
@@ -104,7 +103,7 @@ namespace aligned_copy_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
 
 #ifdef __CUDACC__
 #ifndef NDEBUG
@@ -121,7 +120,7 @@ namespace aligned_copy_stencil {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-        meta_data_t meta_data_(d1, d2, d3);
+        meta_data_t meta_data_(d1 + 2 * halo_t::at< 0 >(), d2 + 2 * halo_t::at< 1 >(), d3 + 2 * halo_t::at< 2 >());
 
         // Definition of the actual data fields that are used for input/output
         storage_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");

@@ -42,7 +42,6 @@
 #include "variadic_typedef.hpp"
 
 namespace gridtools {
-#ifdef CXX11_ENABLED
     /*
      * converts a mpl sequence of types into a variadic_typedef of a variadic pack of types
      * Example sequence_unpacker< int,float >::type == variadic_typedef< int, float >
@@ -67,6 +66,5 @@ namespace gridtools {
             rec_unpack< Seq >,
             get_variadic_args< Args... > >::type type;
     };
-#endif
 
 } // namespace gridtools

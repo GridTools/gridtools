@@ -142,9 +142,9 @@ namespace gridtools {
             int jblock = max_extent_t::jminus::value - 1;
             if (threadIdx.y < jboundary_limit) {
                 i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x;
-                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.y + max_extent_t::jminus::value;
+                j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.y + max_extent_t::jminus::value;
                 iblock = threadIdx.x;
-                jblock = threadIdx.y + max_extent_t::jminus::value;
+                jblock = (int)threadIdx.y + max_extent_t::jminus::value;
             } else if (threadIdx.y < iminus_limit) {
                 const int padded_boundary_ = padded_boundary< -max_extent_t::iminus::value >::value;
                 // we dedicate one warp to execute regions (a,h,e), so here we make sure we have enough threads
@@ -153,10 +153,10 @@ namespace gridtools {
                        enumtype::vector_width);
 
                 i = blockIdx.x * block_size_t::i_size_t::value - padded_boundary_ + threadIdx.x % padded_boundary_;
-                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
+                j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.x / padded_boundary_ +
                     max_extent_t::jminus::value;
                 iblock = -padded_boundary_ + (int)threadIdx.x % padded_boundary_;
-                jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+                jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             } else if (threadIdx.y < iplus_limit) {
                 const int padded_boundary_ = padded_boundary< max_extent_t::iplus::value >::value;
                 // we dedicate one warp to execute regions (c,i,g), so here we make sure we have enough threads
@@ -166,10 +166,10 @@ namespace gridtools {
 
                 i = blockIdx.x * block_size_t::i_size_t::value + threadIdx.x % padded_boundary_ +
                     block_size_t::i_size_t::value;
-                j = blockIdx.y * block_size_t::j_size_t::value + threadIdx.x / padded_boundary_ +
+                j = (int)blockIdx.y * block_size_t::j_size_t::value + (int)threadIdx.x / padded_boundary_ +
                     max_extent_t::jminus::value;
                 iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
-                jblock = threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
+                jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
             it_domain.set_index(0);
 
@@ -287,7 +287,7 @@ namespace gridtools {
 
 // re-create the run functor arguments, replacing the processing elements block size
 // with the corresponding, recently computed, block size
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if !defined(__CUDACC__)
                 typedef typename replace_template_arguments< RunFunctorArguments,
                     typename RunFunctorArguments::processing_elements_block_size_t,
                     cuda_block_size_t >::type run_functor_arguments_cuda_t;

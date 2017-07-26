@@ -77,7 +77,7 @@ namespace positional_copy_stencil {
         typedef boost::mpl::vector< one, two > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(one()) = static_cast< float_type >(V) * (eval.i() + eval.j() + eval.k());
             eval(two()) = -1.1;
         }
@@ -93,7 +93,7 @@ namespace positional_copy_stencil {
         /* static const auto expression=in(1,0,0)-out(); */
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -179,7 +179,6 @@ namespace positional_copy_stencil {
 
         storage_t ref(meta_, [](int i, int j, int k) { return static_cast< double >(_value_) * (i + j + k); });
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
         verifier verif(1e-6);
 #else
@@ -187,14 +186,6 @@ namespace positional_copy_stencil {
 #endif
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
         bool result = verif.verify(grid, ref, out, halos);
-#else
-#if FLOAT_PRECISION == 4
-        verifier verif(1e-6, 0);
-#else
-        verifier verif(1e-12, 0);
-#endif
-        bool result = verif.verify(grid, ref, out);
-#endif
         return result;
     }
 

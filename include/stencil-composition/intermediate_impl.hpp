@@ -221,7 +221,7 @@ namespace gridtools {
 
             /**Elem is a local_domain*/
             template < typename Elem >
-            GT_FUNCTION void operator()(Elem &elem) const {
+            void operator()(Elem &elem) const {
                 // set all the storage ptrs
                 boost::mpl::for_each< typename Elem::storage_wrapper_list_t >(
                     assign_ptrs< Elem >(elem, m_storage_wrappers, m_aggregator));

@@ -38,8 +38,6 @@
 #include "../defs.hpp"
 #include "variadic_typedef.hpp"
 
-#ifdef CXX11_ENABLED
-
 namespace gridtools {
 
     namespace impl {
@@ -85,4 +83,3 @@ namespace gridtools {
     struct pack_get_elem
         : boost::mpl::if_c< (Idx < 0), impl::pack_get_elem_null< Idx >, impl::pack_get_elem_elem< Idx > >::type {};
 }
-#endif

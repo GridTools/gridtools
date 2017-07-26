@@ -14,7 +14,6 @@ function help {
    echo "-b      build type               [release|debug]"
    echo "-t      target                   [gpu|cpu]"
    echo "-f      floating point precision [float|double]"
-   echo "-c      cxx standard             [cxx11|cxx03]"
    echo "-l      compiler                 [gcc|clang]  "
    echo "-m      activate mpi                          "
    echo "-s      activate a silent build               "
@@ -46,8 +45,6 @@ while getopts "h:b:t:f:c:l:zmsidvq:x:in" opt; do
     t) TARGET_=$OPTARG
         ;;
     f) FLOAT_TYPE=$OPTARG
-        ;;
-    c) CXX_STD=$OPTARG
         ;;
     m) MPI="ON"
         ;;
@@ -91,14 +88,13 @@ if [[ "$FLOAT_TYPE" != "float" ]] && [[ "$FLOAT_TYPE" != "double" ]]; then
    help
 fi
 
-if [[ "$CXX_STD" != "cxx11" ]] && [[ "$CXX_STD" != "cxx03" ]]; then
-   help
-fi
-
 echo $@
 
 source ${ABSOLUTEPATH_SCRIPT}/machine_env.sh
 source ${ABSOLUTEPATH_SCRIPT}/env_${myhost}.sh
+
+echo "BOOST_ROOT=$BOOST_ROOT" 
+
 if [ "x$FORCE_BUILD" == "xON" ]; then
     echo Deleting all
     test -e build
@@ -124,13 +120,6 @@ else
     SINGLE_PRECISION=OFF
 fi
 echo "SINGLE_PRECISION=$SINGLE_PRECISION"
-
-if [[ "$CXX_STD" == "cxx11" ]]; then
-    CXX_11=ON
-else
-    CXX_11=OFF
-fi
-echo "C++ 11 = $CXX_11"
 
 if [[ "$MPI" == "ON" ]]; then
     USE_MPI=ON
@@ -164,15 +153,14 @@ if [[ "$BUILD_ON_CN" == "ON" ]]; then
     fi
 else
     echo "Building on `hostname`"
+    SRUN_BUILD_COMMAND=""
 fi
 
 cmake \
 -DBoost_NO_BOOST_CMAKE="true" \
--DCUDA_NVCC_FLAGS:STRING="--relaxed-constexpr" \
 -DCUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DGPU_ENABLED_FUSION:PATH=../fusion/include \
 -DUSE_GPU:BOOL=$USE_GPU \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
@@ -182,12 +170,12 @@ cmake \
 -DUSE_MPI:BOOL=$USE_MPI \
 -DUSE_MPI_COMPILER:BOOL=$USE_MPI_COMPILER  \
 -DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
--DENABLE_CXX11:BOOL=$CXX_11 \
 -DENABLE_PERFORMANCE_METERS:BOOL=ON \
 -DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
- ../
+-DBOOST_ROOT=$BOOST_ROOT \
+../
 
 exit_if_error $?
 
@@ -217,6 +205,12 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
           break # Skip the make repetitions
       fi
     done
+
+    nwarnings=`grep -i "warning" ${log_file} | wc -l`
+    if [ ${nwarnings} -ne 0 ]; then
+        echo "Treating warnings as errors! Build failed because of ${nwarnings} warnings!"
+        error_code=$((error_code || `echo "1"` ))    
+    fi
 
     if [ ${error_code} -ne 0 ]; then
         cat ${log_file};
@@ -248,37 +242,5 @@ else
 fi
 
 exit_if_error $?
-
-if [[ "$RUN_MPI_TESTS" == "ON" && ${myhost} == "greina" && ${STRUCTURED_GRIDS} == "ON" ]]
-then
-   if [ "x$CXX_STD" == "xcxx11" ]
-   then
-       if [ "x$TARGET" == "xcpu" ]
-       then
-           mpiexec -np 4 ./build/shallow_water_enhanced 8 8 1 10
-           exit_if_error $?
-
-           mpiexec -np 2 ./build/copy_stencil_parallel 62 53 15
-           exit_if_error $?
-       fi
-       if [ "x$TARGET" == "xgpu" ]
-       then
-            # problems in the execution of the copy_stencil_parallel_cuda
-            # TODO fix
-            # mpiexec -np 2 ./build/copy_stencil_parallel_cuda 62 53 15
-            # exit_if_error $?
-            # CUDA allocation error with more than 1 GPU in RELEASE mode
-            # To be fixed
-            # mpiexec -np 2 ./build/shallow_water_enhanced_cuda 8 8 1 2
-            # exit_if_error $?
-
-           mpiexec -np 1 ./build/shallow_water_enhanced_cuda 8 8 1 2
-           exit_if_error $?
-
-       fi
-       #TODO not updated to greina
-       #    ../examples/communication/run_communication_tests.sh
-   fi
-fi
 
 exit 0

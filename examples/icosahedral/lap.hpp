@@ -59,7 +59,7 @@ namespace ico_operators {
             vector< in_cells, dual_edge_length_reciprocal, in_vertices, edge_length_reciprocal, out_edges > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             constexpr auto neighbors_offsets_cell = connectivity< edges, cells, Color >::offsets();
 
             float_type grad_n{(eval(in_cells(neighbors_offsets_cell[1])) - eval(in_cells(neighbors_offsets_cell[0]))) *
@@ -155,14 +155,14 @@ namespace ico_operators {
             // div
             typedef arg< 0, edge_2d_storage_type, enumtype::edges > p_edge_length;
             typedef arg< 1, cell_2d_storage_type, enumtype::cells > p_cell_area_reciprocal;
-            typedef arg< 2, edges_of_cells_storage_type, enumtype::edges > p_orientation_of_normal;
+            typedef arg< 2, edges_of_cells_storage_type, enumtype::cells > p_orientation_of_normal;
             typedef arg< 3, cells_4d_storage_type, enumtype::cells > p_div_weights;
 
             // curl
             typedef arg< 4, vertex_2d_storage_type, enumtype::vertices > p_dual_area_reciprocal;
             typedef arg< 5, edge_2d_storage_type, enumtype::edges > p_dual_edge_length;
             typedef arg< 6, vertices_4d_storage_type, enumtype::vertices > p_curl_weights;
-            typedef arg< 7, edges_of_vertices_storage_type, enumtype::edges > p_edge_orientation;
+            typedef arg< 7, edges_of_vertices_storage_type, enumtype::vertices > p_edge_orientation;
 
             typedef boost::mpl::vector< p_edge_length,
                 p_cell_area_reciprocal,
@@ -316,7 +316,7 @@ namespace ico_operators {
                 grid_,
                 gridtools::make_multistage(
                     execute< forward >(),
-                    define_caches(cache< IJ, local >(p_div_on_cells())), // p_curl_on_vertices())),
+                    define_caches(cache< IJ, cache_io_policy::local >(p_div_on_cells())), // p_curl_on_vertices())),
                     make_stage< div_functor_flow_convention_connectivity,
                         icosahedral_topology_t,
                         icosahedral_topology_t::cells >(

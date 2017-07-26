@@ -67,7 +67,7 @@ namespace rw_test {
         typedef boost::mpl::vector8< i0, o0, i1, o1, i2, o2, i3, o3 > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
     };
 } // namespace rw_test
 

@@ -74,6 +74,7 @@ int main(int argc, char **argv) {
 
     MPI_Allreduce(&result, &global_result, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
 
+    MPI_Barrier(MPI_COMM_WORLD);
     MPI_Finalize();
     // perform global collective, to ensure that all ranks return
     // the same exit code

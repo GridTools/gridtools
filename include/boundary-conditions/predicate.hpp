@@ -81,4 +81,18 @@ namespace gridtools {
                    (m_part.at_boundary(2, ((K == minus_) ? Partitioner::UP : Partitioner::LOW)));
         }
     };
+
+    /**@brief predicate returning whether I am or not at the global boundary, based on a processor grid
+     */
+    template < typename ProcGrid >
+    struct proc_grid_predicate {
+        ProcGrid const &m_grid; // see storage/partitioner_trivial.hpp
+
+        proc_grid_predicate(ProcGrid const &g) : m_grid{g} {}
+
+        template < sign I, sign J, sign K >
+        bool operator()(direction< I, J, K >) const {
+            return (m_grid.template proc<I,J,K>() == -1);
+        }
+    };
 } // namespace gridtools

@@ -39,7 +39,7 @@
 #include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/filter_if.hpp>
 
-#include "../storage/storage-facility.hpp"
+#include "../../storage/storage-facility.hpp"
 #include "../intermediate.hpp"
 
 #include "intermediate_expand_impl.hpp"
@@ -237,7 +237,10 @@ namespace gridtools {
            does not take into account the remainder kernel executed when the number of parameters is
            not multiple of the expand factor
          */
-        virtual std::string print_meter() { assert(false); }
+        virtual std::string print_meter() {
+            assert(false);
+            return {};
+        }
 
         /**
            @brief forwards to the m_intermediate and m_intermediate_remainder members

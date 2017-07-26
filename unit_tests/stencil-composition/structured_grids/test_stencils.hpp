@@ -77,9 +77,9 @@ namespace copy_stencils_3D_2D_1D_0D {
         typedef accessor< 1, enumtype::inout > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_interval) {
-            dom(out()) = dom(in());
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in());
         }
     };
 
@@ -92,11 +92,6 @@ namespace copy_stencils_3D_2D_1D_0D {
 
     template < typename SrcLayout, typename DstLayout, typename T >
     bool test(int x, int y, int z) {
-
-#ifdef USE_PAPI_WRAP
-        int collector_init = pw_new_collector("Init");
-        int collector_execute = pw_new_collector("Execute");
-#endif
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -155,38 +150,6 @@ namespace copy_stencils_3D_2D_1D_0D {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-/*
-  Here we do lot of stuff
-  1) We pass to the intermediate representation ::run function the description
-  of the stencil, which is a multi-stage stencil (mss)
-  The mss includes (in order of execution) a laplacian, two fluxes which are independent
-  and a final step that is the out_function
-  2) The logical physical domain with the fields to use
-  3) The actual domain dimensions
-*/
-
-#ifdef USE_PAPI
-        int event_set = PAPI_NULL;
-        int retval;
-        long long values[1] = {-1};
-
-        /* Initialize the PAPI library */
-        retval = PAPI_library_init(PAPI_VER_CURRENT);
-        if (retval != PAPI_VER_CURRENT) {
-            fprintf(stderr, "PAPI library init error!\n");
-            exit(1);
-        }
-
-        if (PAPI_create_eventset(&event_set) != PAPI_OK)
-            handle_error(1);
-        if (PAPI_add_event(event_set, PAPI_FP_INS) != PAPI_OK) // floating point operations
-            handle_error(1);
-#endif
-
-#ifdef USE_PAPI_WRAP
-        pw_start_collector(collector_init);
-#endif
-
         auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
             grid_,
             gridtools::make_multistage                                                    // mss_descriptor
@@ -196,40 +159,9 @@ namespace copy_stencils_3D_2D_1D_0D {
         copy->ready();
         copy->steady();
 
-#ifdef USE_PAPI_WRAP
-        pw_stop_collector(collector_init);
-#endif
-
-/* boost::timer::cpu_timer time; */
-#ifdef USE_PAPI
-        if (PAPI_start(event_set) != PAPI_OK)
-            handle_error(1);
-#endif
-#ifdef USE_PAPI_WRAP
-        pw_start_collector(collector_execute);
-#endif
         copy->run();
 
-#ifdef USE_PAPI
-        double dummy = 0.5;
-        double dummy2 = 0.8;
-        if (PAPI_read(event_set, values) != PAPI_OK)
-            handle_error(1);
-        printf("%f After reading the counters: %lld\n", dummy, values[0]);
-        PAPI_stop(event_set, values);
-#endif
-#ifdef USE_PAPI_WRAP
-        pw_stop_collector(collector_execute);
-#endif
-        /* boost::timer::cpu_times lapse_time = time.elapsed(); */
-
         copy->finalize();
-
-#ifdef USE_PAPI_WRAP
-        pw_print();
-#endif
-
-        // out.print();
 
         bool ok = true;
         auto outv = make_host_view(out);

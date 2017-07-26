@@ -40,7 +40,7 @@
 #include "horizontal_diffusion_repository.hpp"
 #include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
-#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/stencil-functions/stencil-functions.hpp>
 #include "./cache_flusher.hpp"
 #include "./defs.hpp"
 
@@ -57,16 +57,10 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-// Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
-//  for any type, which breaks most of the code after using expressions
-#ifdef CXX11_ENABLED
-// using namespace expressions;
-#endif
-
 namespace horizontal_diffusion_functions {
     // This is the definition of the special regions in the "vertical" direction
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
@@ -75,8 +69,8 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
             auto x = (gridtools::float_type)4.0 * eval(in()) -
                      (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
             eval(out()) = x;
@@ -91,10 +85,9 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
 #ifdef FUNCTIONS_MONOLITHIC
-#pragma message "monolithic version"
             gridtools::float_type _x_ =
                 (gridtools::float_type)4.0 * eval(in()) -
                 (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
@@ -137,11 +130,10 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
 
 #ifdef FUNCTIONS_MONOLITHIC
-#pragma message "monolithic version"
             gridtools::float_type _x_ =
                 (gridtools::float_type)4.0 * eval(in()) -
                 (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
@@ -186,8 +178,8 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) =
                 eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
         }
@@ -262,7 +254,7 @@ namespace horizontal_diffusion_functions {
             grid_,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                define_caches(cache< IJ, local >(p_flx(), p_fly())),
+                define_caches(cache< IJ, cache_io_policy::local >(p_flx(), p_fly())),
                 // gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
                 gridtools::make_independent // independent_esf
                 (gridtools::make_stage< flx_function >(p_flx(), p_in()),
@@ -287,13 +279,9 @@ namespace horizontal_diffusion_functions {
             verifier verif(1e-12);
 #endif
 
-#ifdef CXX11_ENABLED
             array< array< uint_t, 2 >, 3 > halos{
                 {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
             bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
-#else
-            result = verif.verify(repository.out_ref(), repository.out());
-#endif
         }
         if (!result) {
             std::cout << "ERROR" << std::endl;

@@ -51,7 +51,7 @@ namespace gridtools {
             typedef typename boost::mpl::if_< is_array< Accessor >,
                 boost::mpl::int_< N >,
                 boost::mpl::int_< ((Accessor::n_dimensions - 1) - N) > >::type offset_t;
-            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
+            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[(uint_t)val_t::value])) *
                    acc.template get< offset_t::value >();
         }
 
@@ -67,22 +67,44 @@ namespace gridtools {
             typedef typename boost::mpl::if_< is_array< Accessor >,
                 boost::mpl::int_< N >,
                 boost::mpl::int_< ((Accessor::n_dimensions - 1) - N) > >::type offset_t;
-            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[val_t::value])) *
+            return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[(uint_t)val_t::value])) *
                        acc.template get< offset_t::value >() +
                    apply_accessor< Max, StridesCached, Accessor, StorageInfo, N + 1 >(strides, acc);
         }
 
+        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
+        GT_FUNCTION typename boost::enable_if_c< (From == To), void >::type check_bounds_cache_offset_(Accessor acc) {
+            return;
+        }
+
+        /** helper function checking if cache storage is being accesses out of bounds */
+        template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
+        GT_FUNCTION typename boost::enable_if_c< (From < To), void >::type check_bounds_cache_offset_(Accessor acc) {
+            // check if accessin cache metastorage out of bounds
+            assert((acc.template get< Accessor::n_dimensions - 1 - From >() <= StorageInfo::template dim< From >()));
+        }
+
+        template < typename StorageInfo, typename Accessor >
+        GT_FUNCTION void check_bounds_cache_offset(Accessor acc) {
+            check_bounds_cache_offset_< 0, StorageInfo::layout_t::masked_length, StorageInfo >(acc);
+        }
+
         /** helper function (base case) computing sum(offset*stride ...) for cached fields */
         template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From == To), int_t >::type get_cache_offset(Accessor acc) {
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From == To), int_t >::type get_cache_offset_(Accessor acc) {
             return 0;
         }
 
         /** helper function (step case) computing sum(offset*stride ...) for cached fields */
         template < unsigned From = 0, unsigned To = 0, typename StorageInfo, typename Accessor >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From < To), int_t >::type get_cache_offset(Accessor acc) {
+        GT_FUNCTION constexpr typename boost::enable_if_c< (From < To), int_t >::type get_cache_offset_(Accessor acc) {
             return StorageInfo::template stride< From >() * acc.template get< Accessor::n_dimensions - 1 - From >() +
-                   get_cache_offset< From + 1, To, StorageInfo, Accessor >(acc);
+                   get_cache_offset_< From + 1, To, StorageInfo, Accessor >(acc);
+        }
+        /** helper function (step case) computing sum(offset*stride ...) for cached fields */
+        template < typename StorageInfo, typename Accessor >
+        GT_FUNCTION constexpr int_t get_cache_offset(Accessor acc) {
+            return get_cache_offset_< 0, StorageInfo::layout_t::masked_length, StorageInfo >(acc);
         }
     }
 

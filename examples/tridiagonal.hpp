@@ -72,9 +72,7 @@ namespace tridiagonal {
     using namespace gridtools;
     using namespace enumtype;
 
-#ifdef CXX11_ENABLED
     using namespace expressions;
-#endif
 
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > x_internal;
@@ -92,31 +90,26 @@ namespace tridiagonal {
         typedef accessor< 4, enumtype::inout > rhs; // d
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
 
-        template < typename Domain >
-        GT_FUNCTION static void shared_kernel(Domain const &dom) {
-#if (defined(CXX11_ENABLED))
-            dom(sup{}) = dom(sup{} / (diag{} - sup{z{-1}} * inf{}));
-            dom(rhs{}) = dom((rhs{} - inf{} * rhs{z(-1)}) / (diag{} - sup{z(-1)} * inf{}));
-#else
-            dom(sup()) = dom(sup()) / (dom(diag()) - dom(sup(z(-1))) * dom(inf()));
-            dom(rhs()) = (dom(rhs()) - dom(inf()) * dom(rhs(z(-1)))) / (dom(diag()) - dom(sup(z(-1))) * dom(inf()));
-#endif
+        template < typename Evaluation >
+        GT_FUNCTION static void shared_kernel(Evaluation &eval) {
+            eval(sup{}) = eval(sup{} / (diag{} - sup{z{-1}} * inf{}));
+            eval(rhs{}) = eval((rhs{} - inf{} * rhs{z(-1)}) / (diag{} - sup{z(-1)} * inf{}));
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_internal) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_internal) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_last) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_last) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_first) {
-            dom(sup()) = dom(sup()) / dom(diag());
-            dom(rhs()) = dom(rhs()) / dom(diag());
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_first) {
+            eval(sup()) = eval(sup()) / eval(diag());
+            eval(rhs()) = eval(rhs()) / eval(diag());
         }
     };
 
@@ -128,28 +121,24 @@ namespace tridiagonal {
         typedef accessor< 4, enumtype::inout > rhs; // d
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
 
-        template < typename Domain >
-        GT_FUNCTION static void shared_kernel(Domain &dom) {
-#if (defined(CXX11_ENABLED))
-            dom(out()) = dom(rhs{} - sup{} * out{0, 0, 1});
-#else
-            dom(out()) = dom(rhs()) - dom(sup()) * dom(out(0, 0, 1));
-#endif
+        template < typename Evaluation >
+        GT_FUNCTION static void shared_kernel(Evaluation &eval) {
+            eval(out()) = eval(rhs{} - sup{} * out{0, 0, 1});
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_internal) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_internal) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_first) {
-            shared_kernel(dom);
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_first) {
+            shared_kernel(eval);
         }
 
-        template < typename Domain >
-        GT_FUNCTION static void Do(Domain const &dom, x_last) {
-            dom(out()) = dom(rhs());
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_last) {
+            eval(out()) = eval(rhs());
         }
     };
 
@@ -264,7 +253,6 @@ namespace tridiagonal {
         std::cout << solver->print_meter() << std::endl;
 #endif
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
         verifier verif(1e-6);
 #else
@@ -272,14 +260,6 @@ namespace tridiagonal {
 #endif
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
         bool result = verif.verify(grid, solution, out, halos);
-#else
-#if FLOAT_PRECISION == 4
-        verifier verif(1e-6, 0);
-#else
-        verifier verif(1e-12, 0);
-#endif
-        bool result = verif.verify(grid, solution, out);
-#endif
 
         return result;
     }

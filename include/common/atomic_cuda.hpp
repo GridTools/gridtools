@@ -50,7 +50,7 @@ namespace gridtools {
         * @param val value added to var
         * @return the old value contained in var
         */
-        __device__ static T atomic_add(T &var, const T val) { return ::atomicAdd(&var, val); }
+        GT_FUNCTION_DEVICE static T atomic_add(T &var, const T val) { return ::atomicAdd(&var, val); }
 
         /**
         * Function computing an atomic substraction
@@ -58,7 +58,7 @@ namespace gridtools {
         * @param val value added to var
         * @return the old value contained in var
         */
-        __device__ static T atomic_sub(T &var, const T val) { return ::atomicSub(&var, val); }
+        GT_FUNCTION_DEVICE static T atomic_sub(T &var, const T val) { return ::atomicSub(&var, val); }
 
         /**
         * Function computing an atomic exchange of value of a variable
@@ -66,7 +66,7 @@ namespace gridtools {
         * @param val value inserted in variable var
         * @return the old value contained in var
         */
-        __device__ static T atomic_exch(T &var, const T val) { return ::atomicExch(&var, val); }
+        GT_FUNCTION_DEVICE static T atomic_exch(T &var, const T val) { return ::atomicExch(&var, val); }
 
         /**
         * Function computing an atomic min operation
@@ -74,7 +74,7 @@ namespace gridtools {
         * @param val value used in the min comparison
         * @return the old value contained in var
         */
-        __device__ static T atomic_min(T &var, const T val) { return ::atomicMin(&var, val); }
+        GT_FUNCTION_DEVICE static T atomic_min(T &var, const T val) { return ::atomicMin(&var, val); }
 
         /**
         * Function computing an atomic max operation
@@ -82,7 +82,7 @@ namespace gridtools {
         * @param val value used in the min comparison
         * @return the old value contained in var
         */
-        __device__ static T atomic_max(T &var, const T val) { return ::atomicMax(&var, val); }
+        GT_FUNCTION_DEVICE static T atomic_max(T &var, const T val) { return ::atomicMax(&var, val); }
     };
 
     /**
@@ -98,7 +98,7 @@ namespace gridtools {
         * @param val value added to var
         * @return the old value contained in var
         */
-        __device__ static float atomic_add(float &var, const float val) { return ::atomicAdd(&var, val); }
+        GT_FUNCTION_DEVICE static float atomic_add(float &var, const float val) { return ::atomicAdd(&var, val); }
 
         /**
         * Function computing an atomic substraction
@@ -106,7 +106,7 @@ namespace gridtools {
         * @param val value added to var
         * @return the old value contained in var
         */
-        __device__ static float atomic_sub(float &var, const float val) { return ::atomicAdd(&var, -val); }
+        GT_FUNCTION_DEVICE static float atomic_sub(float &var, const float val) { return ::atomicAdd(&var, -val); }
 
         /**
         * Function computing an atomic exchange of value of a variable
@@ -114,7 +114,7 @@ namespace gridtools {
         * @param val value inserted in variable var
         * @return the old value contained in var
         */
-        __device__ static float atomic_exch(float &var, const float val) { return ::atomicExch(&var, val); }
+        GT_FUNCTION_DEVICE static float atomic_exch(float &var, const float val) { return ::atomicExch(&var, val); }
 
         /**
         * Function computing an atomic min operation
@@ -122,7 +122,7 @@ namespace gridtools {
         * @param val value used in the min comparison
         * @return the old value contained in var
         */
-        __device__ static float atomic_min(float &var, const float val) {
+        GT_FUNCTION_DEVICE static float atomic_min(float &var, const float val) {
             float old = var;
             float assumed;
             if (old <= val)
@@ -141,7 +141,7 @@ namespace gridtools {
         * @param val value used in the min comparison
         * @return the old value contained in var
         */
-        __device__ static float atomic_max(float &var, const float val) {
+        GT_FUNCTION_DEVICE static float atomic_max(float &var, const float val) {
             float old = var;
             float assumed;
             if (old >= val)
@@ -168,7 +168,7 @@ namespace gridtools {
         * @param val value added to var
         * @return the old value contained in var
         */
-        __device__ static double atomic_add(double &var, const double val) {
+        GT_FUNCTION_DEVICE static double atomic_add(double &var, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&var);
             unsigned long long int old = *address_as_ull, assumed;
             do {
@@ -184,7 +184,7 @@ namespace gridtools {
         * @param val value added to var
         * @return the old value contained in var
         */
-        __device__ static double atomic_sub(double &var, const double val) {
+        GT_FUNCTION_DEVICE static double atomic_sub(double &var, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&var);
             unsigned long long int old = *address_as_ull, assumed;
             do {
@@ -200,7 +200,7 @@ namespace gridtools {
         * @param val value inserted in variable var
         * @return the old value contained in var
         */
-        __device__ static double atomic_exch(double &x, const double val) {
+        GT_FUNCTION_DEVICE static double atomic_exch(double &x, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&x);
             unsigned long long int old = *address_as_ull, assumed;
             do {
@@ -216,7 +216,7 @@ namespace gridtools {
         * @param val value used in the min comparison
         * @return the old value contained in var
         */
-        __device__ static double atomic_min(double &var, const double val) {
+        GT_FUNCTION_DEVICE static double atomic_min(double &var, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&var);
 
             double old = var;
@@ -238,7 +238,7 @@ namespace gridtools {
         * @param val value used in the min comparison
         * @return the old value contained in var
         */
-        __device__ static double atomic_max(double &var, const double val) {
+        GT_FUNCTION_DEVICE static double atomic_max(double &var, const double val) {
             unsigned long long int *address_as_ull = (unsigned long long int *)(&var);
 
             double old = var;

@@ -67,8 +67,6 @@ namespace gridtools {
 
         explicit parallel_storage_info(partitioner_t const &part) : m_partitioner(&part), m_metadata() {}
 
-#ifdef CXX11_ENABLED
-
 #ifndef __CUDACC__
 
         /**
@@ -163,7 +161,6 @@ namespace gridtools {
 #endif
             return -1;
         }
-#endif
 
         /**
            @brief given a local (to the current subdomain) index (i,j,k) it returns the global corresponding index
@@ -185,7 +182,7 @@ namespace gridtools {
            The halo descriptors are computed in the setup phase using the partitioner
         */
         template < ushort_t dimension >
-        halo_descriptor const &get_halo_descriptor() const {
+        GT_FUNCTION halo_descriptor const &get_halo_descriptor() const {
             GRIDTOOLS_STATIC_ASSERT(dimension < metadata_t::layout_t::masked_length,
                 "only positive integers smaller than the number of dimensions are accepted as template arguments of "
                 "get_halo_descriptor");

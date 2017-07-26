@@ -36,49 +36,47 @@
 #ifndef _DESCRIPTOR_GENERIC_MANUAL_H_
 #define _DESCRIPTOR_GENERIC_MANUAL_H_
 
-#include <common/numerics.hpp>
-
-#include "descriptor_base.hpp"
-#include "gcl_parameters.hpp"
-#include "descriptor_base.hpp"
+#include "../../common/numerics.hpp"
+#include "communication/high-level/gcl_parameters.hpp"
+#include "communication/high-level/descriptor_base.hpp"
 
 #ifdef __CUDACC__
-#include "m_packZL_generic.hpp"
-#include "m_packZU_generic.hpp"
-#include "m_packYL_generic.hpp"
-#include "m_packYU_generic.hpp"
-#include "m_packXL_generic.hpp"
-#include "m_packXU_generic.hpp"
+#include "communication/high-level/m_packZL_generic.hpp"
+#include "communication/high-level/m_packZU_generic.hpp"
+#include "communication/high-level/m_packYL_generic.hpp"
+#include "communication/high-level/m_packYU_generic.hpp"
+#include "communication/high-level/m_packXL_generic.hpp"
+#include "communication/high-level/m_packXU_generic.hpp"
 
-#include "m_unpackZL_generic.hpp"
-#include "m_unpackZU_generic.hpp"
-#include "m_unpackYL_generic.hpp"
-#include "m_unpackYU_generic.hpp"
-#include "m_unpackXL_generic.hpp"
-#include "m_unpackXU_generic.hpp"
+#include "communication/high-level/m_unpackZL_generic.hpp"
+#include "communication/high-level/m_unpackZU_generic.hpp"
+#include "communication/high-level/m_unpackYL_generic.hpp"
+#include "communication/high-level/m_unpackYU_generic.hpp"
+#include "communication/high-level/m_unpackXL_generic.hpp"
+#include "communication/high-level/m_unpackXU_generic.hpp"
 
 #define KERNEL_TYPE ZL
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE ZU
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE YL
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE YU
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE XL
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 
 #define KERNEL_TYPE XU
-#include "call_generic.hpp"
+#include "communication/high-level/call_generic.hpp"
 #undef KERNEL_TYPE
 #endif
 #include <common/make_array.hpp>
@@ -249,7 +247,6 @@ namespace gridtools {
             }
         }
 
-#ifdef CXX11_ENABLED
         template < typename... FIELDS >
         void pack(const FIELDS &... _fields) const {
             for (int ii = -1; ii <= 1; ++ii) {
@@ -261,26 +258,7 @@ namespace gridtools {
                 }
             }
         }
-//}
-#else
-#define MACRO_IMPL(z, n, _)                                                                                            \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                                            \
-    void pack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {                         \
-        for (int ii = -1; ii <= 1; ++ii) {                                                                             \
-            for (int jj = -1; jj <= 1; ++jj) {                                                                         \
-                for (int kk = -1; kk <= 1; ++kk) {                                                                     \
-                    char *it = reinterpret_cast< char * >(&(send_buffer[translate()(ii, jj, kk)][0]));                 \
-                    pack_dims< DIMS, 0 >()(*this, ii, jj, kk, it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
-                }                                                                                                      \
-            }                                                                                                          \
-        }                                                                                                              \
-    }
 
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
-
-#ifdef CXX11_ENABLED
         template < typename... FIELDS >
         void unpack(const FIELDS &... _fields) const {
             for (int ii = -1; ii <= 1; ++ii) {
@@ -292,25 +270,6 @@ namespace gridtools {
                 }
             }
         }
-
-#else
-#define MACRO_IMPL(z, n, _)                                                                            \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                            \
-    void unpack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {       \
-        for (int ii = -1; ii <= 1; ++ii) {                                                             \
-            for (int jj = -1; jj <= 1; ++jj) {                                                         \
-                for (int kk = -1; kk <= 1; ++kk) {                                                     \
-                    char *it = reinterpret_cast< char * >(&(recv_buffer[translate()(ii, jj, kk)][0])); \
-                    unpack_dims< DIMS, 0 >()(                                                          \
-                        *this, ii, jj, kk, it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));    \
-                }                                                                                      \
-            }                                                                                          \
-        }                                                                                              \
-    }
-
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
 
         /**
            Function to unpack received data
@@ -362,7 +321,6 @@ namespace gridtools {
             template < typename T, typename iterator >
             void operator()(const T &, int, int, int, iterator &) const {}
 
-#ifdef CXX11_ENABLED
             template < typename T, typename iterator, typename FIRST, typename... FIELDS >
             void operator()(
                 const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
@@ -376,34 +334,6 @@ namespace gridtools {
                     operator()(hm, ii, jj, kk, it, _fields...);
                 }
             }
-#else
-//#define MBUILD(n) _field ## n
-#define _CALLNEXT_INST(z, m, n) , _field##m
-#define CALLNEXT_INST(m) BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(m), _CALLNEXT_INST, m)
-
-#define MACRO_IMPL(z, n, _)                                                                                       \
-    template < typename T, typename iterator, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >        \
-    void operator()(const T &hm,                                                                                  \
-        int ii,                                                                                                   \
-        int jj,                                                                                                   \
-        int kk,                                                                                                   \
-        iterator &it,                                                                                             \
-        BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {                          \
-        typedef typename layout_transform< typename FIELD0::inner_layoutmap, proc_layout_abs >::type proc_layout; \
-        const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);                     \
-        const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);                     \
-        const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);                     \
-        if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {         \
-            _field0.pack(make_array(ii, jj, kk), _field0.ptr, it);                                                \
-            operator()(hm, ii, jj, kk, it CALLNEXT_INST(n));                                                      \
-        }                                                                                                         \
-    }
-
-            BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#undef CALLNEXT_INST
-#undef _CALLNEXT_INST
-#endif
         };
 
         template < int, int >
@@ -415,7 +345,6 @@ namespace gridtools {
             template < typename T, typename iterator >
             void operator()(const T &, int, int, int, iterator &) const {}
 
-#ifdef CXX11_ENABLED
             template < typename T, typename iterator, typename FIRST, typename... FIELDS >
             void operator()(
                 const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
@@ -429,35 +358,6 @@ namespace gridtools {
                     operator()(hm, ii, jj, kk, it, _fields...);
                 }
             }
-#else
-//#define MBUILD(n) _field ## n
-#define _CALLNEXT_INST(z, m, n) , _field##m
-#define CALLNEXT_INST(m) BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(m), _CALLNEXT_INST, m)
-
-#define MACRO_IMPL(z, n, _)                                                                                       \
-    template < typename T, typename iterator, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >        \
-    void operator()(const T &hm,                                                                                  \
-        int ii,                                                                                                   \
-        int jj,                                                                                                   \
-        int kk,                                                                                                   \
-        iterator &it,                                                                                             \
-        BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {                          \
-        typedef typename layout_transform< typename FIELD0::inner_layoutmap, proc_layout_abs >::type proc_layout; \
-        const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);                     \
-        const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);                     \
-        const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);                     \
-        if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {         \
-            _field0.unpack(make_array(ii, jj, kk), _field0.ptr, it);                                              \
-            operator()(hm, ii, jj, kk, it CALLNEXT_INST(n));                                                      \
-        }                                                                                                         \
-    }
-
-            BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-
-#undef MACRO_IMPL
-#undef CALLNEXT_INST
-#undef _CALLNEXT_INST
-#endif
         };
 
         template < int, int >
@@ -974,7 +874,7 @@ namespace gridtools {
             }
         }
 
-#include <non_vect_interface.hpp>
+#include <communication/high-level/non_vect_interface.hpp>
     };
 #endif // cudacc
 }

@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#undef FUSION_MAX_VECTOR_SIZE
+#undef FUSION_MAX_MAP_SIZE
 #define FUSION_MAX_VECTOR_SIZE 40
 #define FUSION_MAX_MAP_SIZE FUSION_MAX_VECTOR_SIZE
 #define BOOST_MPL_LIMIT_VECTOR_SIZE FUSION_MAX_VECTOR_SIZE
@@ -73,7 +75,7 @@ namespace test_expandable_parameters {
         typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(parameters_out{}) = eval(parameters_in{});
         }
     };
@@ -119,7 +121,7 @@ namespace test_expandable_parameters {
             domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                                                     define_caches(cache< IJ, local >(p_list_tmp())),
+                                                     define_caches(cache< IJ, cache_io_policy::local >(p_list_tmp())),
                                                      make_stage< functor_exp >(p_list_tmp(), p_list_in()),
                                                      make_stage< functor_exp >(p_list_out(), p_list_tmp())));
 

@@ -33,39 +33,14 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/*
- * test_computation.cpp
- *
- *  Created on: Mar 9, 2015
- *      Author: carlosos
- */
-
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
-
-#include <gridtools.hpp>
-#include <boost/mpl/equal.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-
 #include "gtest/gtest.h"
-
-#include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
+#include <stencil-composition/extent_metafunctions.hpp>
 
 using namespace gridtools;
+using namespace enumtype;
 
-namespace make_computation_test {
-
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
-    struct test_functor {
-        typedef accessor< 0 > in;
-        typedef boost::mpl::vector1< in > arg_list;
-
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
-    };
+TEST(extent_metafunctions, enclosing_extent_test) {
+    using enc_extent_t =
+        enclosing_extent_full< extent< 4, 5, 6, 7, 1, 1, -3 >, extent< -1, 2, -3, 4, -1, 2, -5 > >::type;
+    GRIDTOOLS_STATIC_ASSERT((boost::is_same< enc_extent_t, extent< -1, 5, -3, 7, -1, 2, -5 > >::value), "ERROR");
 }
-
-TEST(MakeComputation, Basic) {}

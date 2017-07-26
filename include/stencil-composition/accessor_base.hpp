@@ -58,7 +58,6 @@ namespace gridtools {
     template < int_t Index, int_t NDim >
     struct offset_tuple;
 
-#ifdef CXX11_ENABLED
     // metafunction that determines if a type is a valid accessor ctr argument
     template < typename T >
     struct is_accessor_ctr_args {
@@ -71,7 +70,6 @@ namespace gridtools {
     using all_accessor_ctr_args =
         typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
             bool >::type;
-#endif
 
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
@@ -123,15 +121,13 @@ namespace gridtools {
         GT_FUNCTION
         constexpr explicit accessor_base() : m_offsets() {}
 
-#ifdef CXX11_ENABLED
         template < size_t ArrayDim,
             typename... Dimensions,
             typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
         GT_FUNCTION constexpr explicit accessor_base(array< int_t, ArrayDim > const &offsets, Dimensions... d)
             : m_offsets(0, offsets, d...) {}
-#endif
 
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if !defined(__CUDACC__)
         // move ctor
         GT_FUNCTION
         constexpr accessor_base(const type &&other) : m_offsets(other.m_offsets) {}
@@ -150,11 +146,10 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
             : m_offsets(other.offsets()) {}
 
-/**@brief constructor taking the dimension class as argument.
-   This allows to specify the extra arguments out of order. Note that 'dimension' is a
-   language keyword used at the interface level.
-*/
-#if defined(CXX11_ENABLED)
+        /**@brief constructor taking the dimension class as argument.
+           This allows to specify the extra arguments out of order. Note that 'dimension' is a
+           language keyword used at the interface level.
+        */
         template < typename... Indices, typename Dummy = all_accessor_ctr_args< Indices... > >
         GT_FUNCTION constexpr accessor_base(Indices... x)
             : m_offsets(x...) {
@@ -179,34 +174,6 @@ namespace gridtools {
                 "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
                 "D of the accessor (accessor<Id, extent, D>)");
         }
-#else
-        template < typename X, typename Y, typename Z, typename T, typename U, typename V >
-        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, U u, V v)
-            : m_offsets(x, y, z, t, u, v) {}
-
-        template < typename X, typename Y, typename Z, typename T, typename U >
-        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t, U u)
-            : m_offsets(x, y, z, t, u) {}
-
-        template < typename X, typename Y, typename Z, typename T >
-        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z, T t)
-            : m_offsets(x, y, z, t) {}
-
-        template < typename X, typename Y, typename Z >
-        GT_FUNCTION constexpr accessor_base(X x, Y y, Z z)
-            : m_offsets(x, y, z) {}
-
-        template < typename X, typename Y >
-        GT_FUNCTION constexpr accessor_base(X x, Y y)
-            : m_offsets(x, y) {}
-
-        template < ushort_t DimIndex >
-        GT_FUNCTION constexpr accessor_base(dimension< DimIndex > x)
-            : m_offsets(x) {}
-
-        GT_FUNCTION constexpr accessor_base(int_t x) : m_offsets(x) {}
-
-#endif
 
         static void info() { std::cout << "Arg_type storage with index " << I << " and extent " << Extend() << " "; }
 

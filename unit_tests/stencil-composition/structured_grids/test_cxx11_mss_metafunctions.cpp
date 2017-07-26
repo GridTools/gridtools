@@ -52,7 +52,7 @@ struct functor1 {
     typedef boost::mpl::vector< in, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 #ifdef __CUDACC__
@@ -77,7 +77,7 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
 
     typedef decltype(make_multistage // mss_descriptor
         (execute< forward >(),
-            define_caches(cache< IJ, local >(p_buff(), p_out())),
+            define_caches(cache< IJ, cache_io_policy::local >(p_buff(), p_out())),
             esf1_t(), // esf_descriptor
             esf2_t()  // esf_descriptor
             )) mss_t;
@@ -87,8 +87,8 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
 #ifndef __DISABLE_CACHING__
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal< mss_t::cache_sequence_t,
-            boost::mpl::vector2< detail::cache_impl< IJ, p_buff, local, boost::mpl::void_ >,
-                                detail::cache_impl< IJ, p_out, local, boost::mpl::void_ > > >::value),
+            boost::mpl::vector2< detail::cache_impl< IJ, p_buff, cache_io_policy::local, boost::mpl::void_ >,
+                                detail::cache_impl< IJ, p_out, cache_io_policy::local, boost::mpl::void_ > > >::value),
         "ERROR\nLists do not match");
 #else
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::empty< mss_t::cache_sequence_t >::value), "ERROR\nList not empty");

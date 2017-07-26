@@ -139,9 +139,7 @@ namespace gridtools {
          */
         template < typename Accessor >
         struct accessor_holds_data_field {
-            typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
-                arg_holds_data_field_h< get_arg_from_accessor< Accessor, iterate_domain_arguments_t > >,
-                boost::mpl::identity< boost::mpl::false_ > >::type type;
+            typedef typename aux::accessor_holds_data_field< Accessor, iterate_domain_arguments_t >::type type;
         };
 
         /**
@@ -274,7 +272,8 @@ namespace gridtools {
                 increment_index_functor< local_domain_t, Coordinate, strides_cached_t, array_index_t >(
                                         Steps::value, m_index, strides()));
             static_cast< IterateDomainImpl * >(this)->template increment_impl< Coordinate, Steps >();
-            m_grid_position[Coordinate] += Steps::value;
+            m_grid_position[Coordinate] =
+                (uint_t)((int_t)m_grid_position[Coordinate] + Steps::value); // suppress warning
         }
 
         /**@brief method for incrementing the index when moving forward along the given direction
@@ -456,11 +455,6 @@ namespace gridtools {
                 m_index[storage_info_index_t::value] +
                 compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
-            // the following assert fails when an out of bound access is observed, i.e. either one of
-            // i+offset_i or j+offset_j or k+offset_k is too large.
-            // Most probably this is due to you specifying a positive offset which is larger than expected,
-            // or maybe you did a mistake when specifying the ranges in the placehoders definition
-            GTASSERT(static_cast< int >(storage_info->size()) > static_cast< int >(pointer_offset));
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
                     typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
@@ -494,7 +488,6 @@ namespace gridtools {
             const storage_info_t *storage_info =
                 boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
 
-            GTASSERT(static_cast< int >(storage_info->size()) > static_cast< int >(offset));
 #endif
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<

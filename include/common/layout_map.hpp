@@ -77,9 +77,20 @@ namespace gridtools {
 
         template < int I >
         GT_FUNCTION static constexpr int at() {
-            static_assert((I <= masked_length), "Out of bounds access");
+            static_assert((I >= 0) && (I <= masked_length), "Out of bounds access");
             return boost::mpl::at< static_layout_vector, boost::mpl::int_< I > >::type::value;
         }
+
+        /**
+           @brief Version of at that does not check the index bound.
+           This is useful to check killed-dimensions. The return value
+           is -1 if the access is out of bound. The interface is left
+           unappealing since it is discouraged.
+        */
+        template < int I >
+        struct at_ {
+            static const int value = (I < masked_length && I >= 0) ? at< I >() : -1;
+        };
 
         GT_FUNCTION static constexpr int at(int i) { return get_value_from_pack(i, Args...); }
 

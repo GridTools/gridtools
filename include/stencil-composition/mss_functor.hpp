@@ -51,7 +51,6 @@
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
     template < typename MssComponents, typename IntervalsMapSeq >
     struct mss_components_functors_return_type {
         GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error");
@@ -62,7 +61,8 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((has_do< EsfFunction, interval_t >::type::value),
                 "Error: Do method does not contain signature with specified interval");
-            using rtype = decltype(EsfFunction::Do(int(), interval_t()));
+            int dumm;
+            using rtype = decltype(EsfFunction::Do(dumm, interval_t()));
             typedef typename boost::mpl::if_< boost::is_same< void, rtype >, notype, rtype >::type type;
         };
 
@@ -89,7 +89,6 @@ namespace gridtools {
             esfs_functor_return_type< typename MssComponents::mss_descriptor_t::esf_sequence_t >,
             boost::mpl::identity< notype > >::type type;
     };
-#endif
 
     /**
      * @brief functor that executes all the functors contained within the mss
@@ -110,7 +109,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-#ifdef CXX11_ENABLED
         template < typename MssComponents, typename FunctorsMap >
         struct check_reduction_types {
             GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
@@ -132,7 +130,6 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((type::value), GT_INTERNAL_ERROR);
         };
-#endif
 
       private:
         MssLocalDomainArray &m_local_domain_lists;
@@ -196,11 +193,6 @@ namespace gridtools {
             // Map between interval and actual arguments to pass to Do methods
             typedef typename mss_functor_do_method_lookup_maps< mss_components_t, Grid >::type functors_map_t;
 
-// we check that the return types of the reduction user functor matcheds the value provided in the initial value
-// extracted from the make_reduction api (only available for CXX11)
-#ifdef CXX11_ENABLED
-            typedef typename check_reduction_types< mss_components_t, functors_map_t >::type reduction_type_check_t;
-#endif
             typedef backend_traits_from_id< BackendIds::s_backend_id > backend_traits_t;
 
             typedef typename backend_traits_t::template get_block_size< BackendIds::s_strategy_id >::type block_size_t;
@@ -288,8 +280,6 @@ namespace gridtools {
                 typename mss_components_is_reduction< mss_components_t >::type,
                 ReductionData,
                 nocolor > run_functor_args_t;
-
-            typedef boost::mpl::range_c< uint_t, 0, boost::mpl::size< functors_list_t >::type::value > iter_range;
 
             // now the corresponding backend has to execute all the functors of the mss
             backend_traits_from_id< BackendIds::s_backend_id >::template mss_loop< run_functor_args_t >::template run(

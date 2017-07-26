@@ -43,7 +43,7 @@
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../interval.hpp"           // to check if region is valid
 #include "../iterate_domain_fwd.hpp" // to statically check arguments
-#include "./accessor.hpp"
+#include "../accessor.hpp"
 #include "./call_interfaces_metafunctions.hpp"
 #include "../functor_decorator.hpp"
 
@@ -85,7 +85,7 @@ namespace gridtools {
                 (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
                 "The first argument must be an iterate_domain or a function_aggregator");
 
-            CallerAggregator const &m_caller_aggregator;
+            CallerAggregator &m_caller_aggregator;
             ReturnType *__restrict__ m_result;
 
             template < typename Accessor >
@@ -94,7 +94,7 @@ namespace gridtools {
             };
 
             GT_FUNCTION
-            function_aggregator(CallerAggregator const &caller_aggregator, ReturnType &result)
+            function_aggregator(CallerAggregator &caller_aggregator, ReturnType &result)
                 : m_caller_aggregator(caller_aggregator), m_result(&result) {}
 
             template < typename Accessor >
@@ -147,7 +147,6 @@ namespace gridtools {
             }
         };
 
-        /**
         /** In the context of stencil_functions, this type represents
            the aggregator/domain/evaluator to be passed to a stencil
            function, called within a stencil operator or another
@@ -181,9 +180,9 @@ namespace gridtools {
                 "The first argument must be an iterate_domain or a function_aggregator");
 
             typedef typename boost::fusion::result_of::as_vector< PassedAccessors >::type accessors_list_t;
-            CallerAggregator const &m_caller_aggregator;
+            CallerAggregator &m_caller_aggregator;
             ReturnType *__restrict__ m_result;
-            accessors_list_t const &m_accessors_list;
+            accessors_list_t const m_accessors_list;
 
             template < typename Accessor >
             struct accessor_return_type {
@@ -192,7 +191,7 @@ namespace gridtools {
 
             GT_FUNCTION
             constexpr function_aggregator_offsets(
-                CallerAggregator const &caller_aggregator, ReturnType &result, accessors_list_t const &list)
+                CallerAggregator &caller_aggregator, ReturnType &result, accessors_list_t const &list)
                 : m_caller_aggregator(caller_aggregator), m_result(&result), m_accessors_list(list) {}
 
             template < typename Accessor >
@@ -289,7 +288,7 @@ namespace gridtools {
          */
         template < typename Evaluator, typename... Args >
         GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with_offsets(
-            Evaluator const &eval, Args const &... args) {
+            Evaluator &eval, Args const &... args) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
@@ -309,7 +308,8 @@ namespace gridtools {
 
             result_type result;
 
-            Functor::Do(f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...)), Region());
+            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
+            Functor::Do(agg_p, Region());
 
             return result;
         }
@@ -318,8 +318,7 @@ namespace gridtools {
             the offsets specified in the passed accessors are ignored.
          */
         template < typename Evaluator, typename... Args >
-        GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(
-            Evaluator const &eval, Args const &...) {
+        GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(Evaluator &eval, Args const &...) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
@@ -339,7 +338,8 @@ namespace gridtools {
                 result_type,
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
-            Functor::Do(f_aggregator_t(eval, result), Region());
+            auto agg_p = f_aggregator_t(eval, result);
+            Functor::Do(agg_p, Region());
 
             return result;
         }
@@ -386,7 +386,7 @@ namespace gridtools {
          */
         template < typename Evaluator, typename... Args >
         GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with_offsets(
-            Evaluator const &eval, Args const &... args) {
+            Evaluator &eval, Args const &... args) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
@@ -406,7 +406,8 @@ namespace gridtools {
 
             result_type result;
 
-            Functor::Do(f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...)));
+            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
+            Functor::Do(agg_p);
 
             return result;
         }
@@ -415,8 +416,7 @@ namespace gridtools {
             the offsets specified in the passed accessors are ignored.
          */
         template < typename Evaluator, typename... Args >
-        GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(
-            Evaluator const &eval, Args const &...) {
+        GT_FUNCTION static typename get_result_type< Evaluator, Functor >::type with(Evaluator &eval, Args const &...) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
@@ -436,7 +436,9 @@ namespace gridtools {
                 result_type,
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
-            Functor::Do(f_aggregator_t(eval, result));
+            auto agg_p = f_aggregator_t(eval, result);
+
+            Functor::Do(agg_p);
 
             return result;
         }
@@ -484,8 +486,8 @@ namespace gridtools {
             typedef typename boost::fusion::result_of::as_vector<
                 typename mpl_sequence_to_fusion_vector< PassedArguments >::type >::type accessors_list_t;
 
-            CallerAggregator const &m_caller_aggregator;
-            accessors_list_t const &m_accessors_list;
+            CallerAggregator &m_caller_aggregator;
+            accessors_list_t const m_accessors_list;
 
             template < typename Accessor >
             struct accessor_return_type {
@@ -494,7 +496,7 @@ namespace gridtools {
 
             GT_FUNCTION
             constexpr function_aggregator_procedure_offsets(
-                CallerAggregator const &caller_aggregator, accessors_list_t const &list)
+                CallerAggregator &caller_aggregator, accessors_list_t const &list)
                 : m_caller_aggregator(caller_aggregator), m_accessors_list(list) {}
 
             template < typename Accessor >
@@ -561,8 +563,8 @@ namespace gridtools {
             typedef typename boost::fusion::result_of::as_vector<
                 typename mpl_sequence_to_fusion_vector< PassedArguments >::type >::type accessors_list_t;
 
-            CallerAggregator const &m_caller_aggregator;
-            accessors_list_t const &m_accessors_list;
+            CallerAggregator &m_caller_aggregator;
+            accessors_list_t const m_accessors_list;
 
             template < typename Accessor >
             struct accessor_return_type {
@@ -570,7 +572,7 @@ namespace gridtools {
             };
 
             GT_FUNCTION
-            function_aggregator_procedure(CallerAggregator const &caller_aggregator, accessors_list_t const &list)
+            function_aggregator_procedure(CallerAggregator &caller_aggregator, accessors_list_t const &list)
                 : m_caller_aggregator(caller_aggregator), m_accessors_list(list) {}
 
             template < typename Accessor >
@@ -639,7 +641,7 @@ namespace gridtools {
             the offsets specified in the passed accessors are ignored.
          */
         template < typename Evaluator, typename... Args >
-        GT_FUNCTION static void with(Evaluator const &eval, Args const &... args) {
+        GT_FUNCTION static void with(Evaluator &eval, Args const &... args) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
@@ -653,7 +655,8 @@ namespace gridtools {
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-            Functor::Do(f_aggregator_t(eval, y), Region());
+            auto agg_p = f_aggregator_t(eval, y);
+            Functor::Do(agg_p, Region());
         }
 
         /** With this interface a stencil function can be invoked and
@@ -662,7 +665,7 @@ namespace gridtools {
             at<..> statement.
          */
         template < typename Evaluator, typename... Args >
-        GT_FUNCTION static void with_offsets(Evaluator const &eval, Args const &... args) {
+        GT_FUNCTION static void with_offsets(Evaluator &eval, Args const &... args) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
@@ -676,7 +679,8 @@ namespace gridtools {
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-            Functor::Do(f_aggregator_t(eval, y), Region());
+            auto agg_p = f_aggregator_t(eval, y);
+            Functor::Do(agg_p, Region());
         }
     };
 
@@ -703,7 +707,7 @@ namespace gridtools {
             the offsets specified in the passed accessors are ignored.
          */
         template < typename Evaluator, typename... Args >
-        GT_FUNCTION static void with(Evaluator const &eval, Args const &... args) {
+        GT_FUNCTION static void with(Evaluator &eval, Args const &... args) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
@@ -715,7 +719,8 @@ namespace gridtools {
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-            Functor::Do(f_aggregator_t(eval, y));
+            auto agg_p = f_aggregator_t(eval, y);
+            Functor::Do(agg_p);
         }
 
         /** With this interface a stencil function can be invoked and
@@ -724,7 +729,7 @@ namespace gridtools {
             at<..> statement.
          */
         template < typename Evaluator, typename... Args >
-        GT_FUNCTION static void with_offsets(Evaluator const &eval, Args const &... args) {
+        GT_FUNCTION static void with_offsets(Evaluator &eval, Args const &... args) {
 
             GRIDTOOLS_STATIC_ASSERT(
                 (is_iterate_domain< Evaluator >::value or _impl::is_function_aggregator< Evaluator >::value),
@@ -738,7 +743,8 @@ namespace gridtools {
 
             auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
 
-            Functor::Do(f_aggregator_t(eval, y));
+            auto agg_p = f_aggregator_t(eval, y);
+            Functor::Do(agg_p);
         }
     };
 

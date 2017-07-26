@@ -41,6 +41,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/push_front.hpp>
+#include "../../common/defs.hpp"
 
 namespace gridtools {
 
@@ -52,12 +53,8 @@ namespace gridtools {
         int_t JMinus = 0,
         int_t JPlus = 0,
         int_t KMinus = 0,
-        int_t KPlus = 0
-#ifdef CXX11_ENABLED
-        ,
-        int_t... Rest
-#endif
-        >
+        int_t KPlus = 0,
+        int_t... Rest >
     struct extent {
         typedef static_int< IMinus > iminus;
         typedef static_int< IPlus > iplus;
@@ -71,32 +68,11 @@ namespace gridtools {
     template < typename In >
     struct is_staggered : public boost::false_type {};
 
-#ifdef CXX11_ENABLED
     template < int_t... Grid >
     struct staggered : public extent< Grid... > {};
 
     template < int_t... Grid >
     struct is_staggered< staggered< Grid... > > : public boost::true_type {};
-
-#else
-
-    template < int_t Coord1Minus,
-        int_t Coord1Plus,
-        int_t Coord2Minus,
-        int_t Coord2Plus,
-        int_t Coord3Minus = 0,
-        int_t Coord3Plus = 0 >
-    struct staggered : public extent< Coord1Minus, Coord1Plus, Coord2Minus, Coord2Plus, Coord3Minus, Coord3Plus > {};
-
-    template < int_t Coord1Minus,
-        int_t Coord1Plus,
-        int_t Coord2Minus,
-        int_t Coord2Plus,
-        int_t Coord3Minus,
-        int_t Coord3Plus >
-    struct is_staggered< staggered< Coord1Minus, Coord1Plus, Coord2Minus, Coord2Plus, Coord3Minus, Coord3Plus > >
-        : public boost::true_type {};
-#endif
     /**
      * Output operator for extents - for debug purposes
      *

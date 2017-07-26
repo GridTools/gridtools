@@ -85,28 +85,20 @@ namespace copy_stencil {
         /* static const auto expression=in(1,0,0)-out(); */
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
 
     /** @brief example of boundary conditions with predicate
-
-        The predicate here is used to get the information on wether we are at the global boundary, and on which global
-       boundary.
-        This information is stored in the partitioner object.
      */
-    template < typename Partitioner >
     struct boundary_conditions {
-        Partitioner const &m_partitioner;
-
-        boundary_conditions(Partitioner const &p) : m_partitioner(p) {}
 
         template < typename Direction, typename DataField0, typename DataField1 >
         GT_FUNCTION void operator()(
             Direction, DataField0 &data_field0, DataField1 &data_field1, uint_t i, uint_t j, uint_t k) const {
-            data_field0(i, j, k) = -(float_type)m_partitioner.boundary();
-            data_field1(i, j, k) = -(float_type)m_partitioner.boundary();
+            data_field0(i, j, k) = -1;
+            data_field1(i, j, k) = -1;
         }
     };
 
@@ -117,7 +109,7 @@ namespace copy_stencil {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
@@ -136,15 +128,6 @@ namespace copy_stencil {
         typedef gridtools::layout_map< 0, 1, 2 > layout_t;
         typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
         typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > storage_t;
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
 
         typedef gridtools::halo_exchange_dynamic_ut< typename storage_info_t::layout_t,
             gridtools::layout_map< 0, 1, 2 >,
@@ -172,26 +155,17 @@ namespace copy_stencil {
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_in, p_out > accessor_list;
 
-        // Definition of the actual data fields that are used for input/output
         array< ushort_t, 3 > padding{0, 0, 0};
-        array< ushort_t, 3 > halo{1, 1, 1};
+
+        array< ushort_t, 2 > halo{1, 1};
 
         if (PROCS == 1) // serial execution
-            halo[0] = halo[1] = halo[2] = 0;
+            halo[0] = halo[1] = 0;
 
-        typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
-            pattern_type::grid_type > partitioner_t;
-        partitioner_t part(he.comm(), halo, padding);
-        parallel_storage_info< storage_info_t, partitioner_t > meta_(part, d1, d2, d3);
-        auto &metadata_ = meta_.get_metadata();
-
-        storage_t in(metadata_, [](int i, int j, int k) { return (i + j + k) * (gridtools::PID + 1); }, "in");
-        storage_t out(metadata_, 0., "out");
-
-        // COMMUNICATION SETUP
-        he.add_halo< 0 >(meta_.template get_halo_gcl< 0 >());
-        he.add_halo< 1 >(meta_.template get_halo_gcl< 1 >());
-        he.add_halo< 2 >(meta_.template get_halo_gcl< 2 >());
+        // Definition of the actual data fields that are used for input/output
+        he.add_halo< 0 >(halo[0], halo[0], halo[0], d1+halo[0]-1, d1+2*halo[0]);
+        he.add_halo< 0 >(halo[1], halo[1], halo[1], d2+halo[1]-1, d2+2*halo[1]);
+        he.add_halo< 0 >(0, 0, 0, d3-1, d3);
 
         he.setup(3);
 
@@ -199,18 +173,28 @@ namespace copy_stencil {
         printf("halo set up\n");
 #endif
 
-        auto v_in = make_host_view(in);
-        for (uint_t i = 0; i < metadata_.template dim< 0 >(); ++i) {
-            for (uint_t j = 0; j < metadata_.template dim< 1 >(); ++j) {
-                for (uint_t k = 0; k < metadata_.template dim< 2 >(); ++k) {
-                    v_in(i, j, k) = (i + j + k) * (gridtools::PID + 1);
-                }
-            }
-        }
+        auto c_grid = he.comm();
+        int pi, pj, pk;
+        c_grid.coords(pi,pj,pk);
+
+        storage_info_t storage_info(d1+2*halo[0], d2+2*halo[1], d3);
+
+        storage_t in(storage_info,
+                     [&storage_info, pi, pj, pk](int i, int j, int k)
+                     {
+                         int I = i + storage_info.dim< 0 >() * pi;
+                         int J = j + storage_info.dim< 1 >() * pj;
+                         int K = k + storage_info.dim< 2 >() * pk;
+                         return I+J+K;
+                     },
+                     "in");
+        storage_t out(storage_info, 0., "out");
+
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        gridtools::grid< axis, partitioner_t > grid(part, meta_);
+        gridtools::grid< axis > grid({halo[0], halo[0], halo[0], d1+halo[0]-1, d1+2*halo[0]},
+                                     {halo[1], halo[1], halo[1], d2+halo[1]-1, d2+2*halo[1]});
         // k dimension not partitioned
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
@@ -255,14 +239,17 @@ namespace copy_stencil {
 #endif
 
         gridtools::array< gridtools::halo_descriptor, 3 > halos;
-        halos[0] = meta_.template get_halo_descriptor< 0 >();
-        halos[1] = meta_.template get_halo_descriptor< 1 >();
-        halos[2] = meta_.template get_halo_descriptor< 2 >();
+        halos[0] = gridtools::halo_descriptor(halo[0], halo[0], halo[0], d1+halo[0]-1, d1+2*halo[0]);
+        halos[1] = gridtools::halo_descriptor(halo[1], halo[1], halo[1], d2+halo[1]-1, d2+2*halo[1]);
+        halos[2] = gridtools::halo_descriptor(0, 0, 0, d3-1, d3);
 
         auto v_out = make_host_view(out);
-        typename gridtools::boundary_apply< boundary_conditions< partitioner_t >,
-            typename gridtools::bitmap_predicate< partitioner_t > >(
-            halos, boundary_conditions< partitioner_t >(part), gridtools::bitmap_predicate< partitioner_t >(part))
+        auto v_in = make_host_view(in);
+        typename gridtools::boundary_apply< boundary_conditions,
+                                            typename gridtools::proc_grid_predicate< decltype(c_grid) > >
+            (halos,
+             boundary_conditions(),
+             gridtools::proc_grid_predicate< decltype(c_grid) >(c_grid))
             .apply(v_in, v_out);
 
         auto inv = make_host_view(in);
@@ -290,17 +277,24 @@ namespace copy_stencil {
 
         MPI_Barrier(GCL_WORLD);
 
-        for (uint_t i = 1; i < metadata_.template dim< 0 >() - 1; ++i)
-            for (uint_t j = 1; j < metadata_.template dim< 1 >() - 1; ++j)
-                for (uint_t k = 1; k < metadata_.template dim< 2 >() - 1; ++k) {
-                    if (v_out(i, j, k) != (i + j + k) * (gridtools::PID + 1)) {
-                        GCL_Finalize();
+        for (uint_t i = 1; i < storage_info.template dim< 0 >() - 1; ++i)
+            for (uint_t j = 1; j < storage_info.template dim< 1 >() - 1; ++j)
+                for (uint_t k = 1; k < storage_info.template dim< 2 >() - 1; ++k) {
+                    int I = i + storage_info.dim< 0 >() * pi;
+                    int J = j + storage_info.dim< 1 >() * pj;
+                    int K = k + storage_info.dim< 2 >() * pk;
+
+                    if (v_out(i, j, k) != (I + J + K)) {
+                        std::cout << gridtools::PID << " "
+                                  << "i = " << i << ", j = " << j << ", k = " << k
+                                  << "v_out(i, j, k) = " << v_out(i, j, k) << ", "
+                                  << "(I + J + K) = " << (i + j + k) * (gridtools::PID + 1)
+                                  << "\n";
                         return false;
                     }
                 }
-        GCL_Finalize();
 
-        printf("copy parallel test executed\n");
+        std::cout << "(" << gridtools::PID << ") Completed\n";
 
         return true;
     }
