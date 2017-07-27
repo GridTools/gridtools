@@ -85,7 +85,7 @@ namespace gridtools {
         bool >::type
     check_consistency(DataStore const &ds, DataView const &dv) {
         static_assert(is_data_view< DecayedDV >::value, "Passed type is no data_view type");
-        return ds.valid() && (dv.m_raw_ptrs[0] == ds.get_storage_ptr()->get_cpu_ptr()) &&
+        return ds.valid() && (advanced::get_raw_pointer_of(dv) == ds.get_storage_ptr()->get_cpu_ptr()) &&
                (dv.m_storage_info && ds.get_storage_info_ptr());
     }
 }

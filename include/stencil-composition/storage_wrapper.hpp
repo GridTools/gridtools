@@ -93,7 +93,7 @@ namespace gridtools {
         // tell me how I should initialize the ptr_t member called m_data_ptrs
         void initialize(view_t v) {
             for (unsigned i = 0; i < num_of_storages; ++i)
-                this->m_data_ptrs[i] = v.m_raw_ptrs[i];
+                this->m_data_ptrs[i] = advanced::get_raw_pointer_of(v, i);
         }
 
         // data ptrs

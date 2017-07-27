@@ -124,11 +124,11 @@ namespace gridtools {
         if (!d.valid())
             return false;
         // if ptrs do not match anymore return false
-        if ((v.m_raw_ptrs[0] != d.get_storage_ptr()->get_gpu_ptr()) &&
-            (v.m_raw_ptrs[0] != d.get_storage_ptr()->get_cpu_ptr()))
+        if ((advanced::get_raw_pointer_of(v) != d.get_storage_ptr()->get_gpu_ptr()) &&
+            (advanced::get_raw_pointer_of(v) != d.get_storage_ptr()->get_cpu_ptr()))
             return false;
         // check if we have a device view
-        const bool device_view = (v.m_raw_ptrs[0] == d.get_storage_ptr()->get_cpu_ptr()) ? false : true;
+        const bool device_view = (advanced::get_raw_pointer_of(v) == d.get_storage_ptr()->get_cpu_ptr()) ? false : true;
         // read-only? if yes, take early exit
         if (DecayedDV::mode == access_mode::ReadOnly)
             return device_view ? !d.get_storage_ptr()->get_state_machine_ptr()->m_dnu
