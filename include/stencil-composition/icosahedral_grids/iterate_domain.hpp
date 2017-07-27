@@ -462,8 +462,8 @@ namespace gridtools {
                 backend_traits_t::template fields_offset<local_domain_t, processing_elements_block_size_t, arg_t, grid_traits_t>(storage_info); 
             data_t* base_address = real_storage_pointer - ptr_offset;
             // assert that the distance between the base address and the requested address is not exceeding the limits
-            int_t dist_to_first = std::distance(base_address+storage_info->total_begin(), real_storage_pointer+pointer_offset);
-            int_t dist_to_last = std::distance(base_address+storage_info->total_end(), real_storage_pointer+pointer_offset);
+            int_t dist_to_first = (real_storage_pointer + pointer_offset) - (base_address + storage_info->total_begin());
+            int_t dist_to_last = (real_storage_pointer + pointer_offset) - (base_address + storage_info->total_end());
             GTASSERT((dist_to_last <= 0 && dist_to_first >= 0));
 #endif
 
@@ -505,8 +505,8 @@ namespace gridtools {
                 backend_traits_t::template fields_offset<local_domain_t, processing_elements_block_size_t, arg_t, grid_traits_t>(storage_info); 
             data_t* base_address = real_storage_pointer - ptr_offset;
             // assert that the distance between the base address and the requested address is not exceeding the limits
-            int_t dist_to_first = std::distance(base_address+storage_info->total_begin(), real_storage_pointer+offset);
-            int_t dist_to_last = std::distance(base_address+storage_info->total_end(), real_storage_pointer+offset);
+            int_t dist_to_first = (real_storage_pointer + offset) - (base_address + storage_info->total_begin());
+            int_t dist_to_last = (real_storage_pointer + offset) - (base_address + storage_info->total_end());
             GTASSERT((dist_to_last <= 0 && dist_to_first >= 0));
 #endif
             return static_cast< const IterateDomainImpl * >(this)
