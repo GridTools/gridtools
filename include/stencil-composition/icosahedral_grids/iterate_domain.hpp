@@ -75,7 +75,8 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
-
+        
+        typedef backend_traits_from_id< backend_ids_t::s_backend_id > backend_traits_t;
         typedef typename backend_traits_from_id< backend_ids_t::s_backend_id >::template select_iterate_domain_cache<
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
 
@@ -454,6 +455,18 @@ namespace gridtools {
                 m_index[storage_info_index_t::value] +
                 compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
+#ifndef NDEBUG
+            // check if access is not out of bounds
+            // get the field offset in order to compute the address of the first non-padding point
+            int_t ptr_offset = 
+                backend_traits_t::template fields_offset<local_domain_t, processing_elements_block_size_t, arg_t, grid_traits_t>(storage_info); 
+            data_t* base_address = real_storage_pointer - ptr_offset;
+            // assert that the distance between the base address and the requested address is not exceeding the limits
+            int_t dist_to_first = std::distance(base_address+storage_info->total_begin(), real_storage_pointer+pointer_offset);
+            int_t dist_to_last = std::distance(base_address+storage_info->total_end(), real_storage_pointer+pointer_offset);
+            GTASSERT((dist_to_last <= 0 && dist_to_first >= 0));
+#endif
+
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
                     typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
@@ -483,10 +496,18 @@ namespace gridtools {
 #ifndef NDEBUG
             typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
                 const storage_info_t * >::type::pos storage_info_index_t;
-
             const storage_info_t *storage_info =
                 boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
 
+            // check if access is not out of bounds
+            // get the field offset in order to compute the address of the first non-padding point
+            int_t ptr_offset = 
+                backend_traits_t::template fields_offset<local_domain_t, processing_elements_block_size_t, arg_t, grid_traits_t>(storage_info); 
+            data_t* base_address = real_storage_pointer - ptr_offset;
+            // assert that the distance between the base address and the requested address is not exceeding the limits
+            int_t dist_to_first = std::distance(base_address+storage_info->total_begin(), real_storage_pointer+offset);
+            int_t dist_to_last = std::distance(base_address+storage_info->total_end(), real_storage_pointer+offset);
+            GTASSERT((dist_to_last <= 0 && dist_to_first >= 0));
 #endif
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<

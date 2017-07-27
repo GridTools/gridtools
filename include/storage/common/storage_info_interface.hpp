@@ -310,7 +310,7 @@ namespace gridtools {
         }
 
         /*
-         * @brief member function to retrieve the position of the first point.
+         * @brief member function to retrieve the position of the last point.
          * This could also be a halo point.
          * @return position of last accessible point
          */
@@ -324,7 +324,7 @@ namespace gridtools {
         GT_FUNCTION constexpr unsigned begin() const { return index(Halos...); }
 
         /*
-         * @brief member function to retrieve the position of the first point.
+         * @brief member function to retrieve the position of the last point.
          * This could also be a halo point.
          * @return position of last accessible point
          */
