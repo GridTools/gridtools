@@ -40,7 +40,11 @@
 #include <communication/low-level/proc_grids_3D.hpp>
 
 #include <communication/halo_exchange.hpp>
+#ifdef __CUDACC__
+#include <boundary-conditions/apply_gpu.hpp>
+#else
 #include <boundary-conditions/apply.hpp>
+#endif
 #include <iostream>
 #include <fstream>
 
@@ -61,15 +65,11 @@ using namespace enumtype;
 
 #ifdef __CUDACC__
 #define BACKEND_ARCH Cuda
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #define BACKEND_ARCH Host
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
-#endif
+
+#define BACKEND backend< BACKEND_ARCH, GRIDBACKEND, Block >
 
 namespace copy_stencil {
     // This is the definition of the special regions in the "vertical" direction
@@ -96,8 +96,8 @@ namespace copy_stencil {
         template < typename Direction, typename DataField0, typename DataField1 >
         GT_FUNCTION void operator()(
             Direction, DataField0 &data_field0, DataField1 &data_field1, uint_t i, uint_t j, uint_t k) const {
-            data_field0(i, j, k) = -1;
-            data_field1(i, j, k) = -1;
+            data_field0(i, j, k) = -1.11111111;
+            data_field1(i, j, k) = -1.11111111;
         }
     };
 
@@ -108,23 +108,11 @@ namespace copy_stencil {
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
         //! [proc_grid_dims]
         array< int, 3 > dimensions{0, 0, 1};
         MPI_Dims_create(PROCS, 2, &dimensions[0]);
         dimensions[2] = 1;
 
-        //                   strides  1 x xy
-        //                      dims  x y z
-        typedef gridtools::layout_map< 0, 1, 2 > layout_t;
         typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
         typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > storage_t;
 
@@ -154,8 +142,6 @@ namespace copy_stencil {
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_in, p_out > accessor_list;
 
-        array< ushort_t, 3 > padding{0, 0, 0};
-
         array< ushort_t, 2 > halo{1, 1};
 
         if (PROCS == 1) // serial execution
@@ -175,6 +161,7 @@ namespace copy_stencil {
         auto c_grid = he.comm();
         int pi, pj, pk;
         c_grid.coords(pi, pj, pk);
+        assert(pk == 0);
 
         storage_info_t storage_info(d1 + 2 * halo[0], d2 + 2 * halo[1], d3);
 
@@ -182,11 +169,11 @@ namespace copy_stencil {
             [&storage_info, pi, pj, pk](int i, int j, int k) {
                 int I = i + storage_info.dim< 0 >() * pi;
                 int J = j + storage_info.dim< 1 >() * pj;
-                int K = k + storage_info.dim< 2 >() * pk;
+                int K = k;
                 return I + J + K;
             },
             "in");
-        storage_t out(storage_info, 0., "out");
+        storage_t out(storage_info, -2.2222222, "out");
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
@@ -240,18 +227,32 @@ namespace copy_stencil {
         halos[1] = gridtools::halo_descriptor(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
         halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
+#ifdef __CUDACC__
+        auto v_out = make_device_view(out);
+        auto v_in = make_device_view(in);
+        typename gridtools::boundary_apply_gpu< boundary_conditions,
+            typename gridtools::proc_grid_predicate< decltype(c_grid) > >(
+            halos, boundary_conditions(), gridtools::proc_grid_predicate< decltype(c_grid) >(c_grid))
+            .apply(v_in, v_out);
+#else
         auto v_out = make_host_view(out);
         auto v_in = make_host_view(in);
         typename gridtools::boundary_apply< boundary_conditions,
             typename gridtools::proc_grid_predicate< decltype(c_grid) > >(
             halos, boundary_conditions(), gridtools::proc_grid_predicate< decltype(c_grid) >(c_grid))
             .apply(v_in, v_out);
+#endif
 
+#ifdef __CUDACC__
+        auto inv = make_device_view(in);
+        auto outv = make_device_view(out);
+#else
         auto inv = make_host_view(in);
         auto outv = make_host_view(out);
+#endif
         std::vector< float_type * > vec(2);
-        vec[0] = &inv(0, 0, 0);
-        vec[1] = &outv(0, 0, 0);
+        vec[0] = inv.raw_ptr();
+        vec[1] = outv.raw_ptr();
 
         he.pack(vec);
 
@@ -272,17 +273,20 @@ namespace copy_stencil {
 
         MPI_Barrier(GCL_WORLD);
 
-        for (uint_t i = 1; i < storage_info.template dim< 0 >() - 1; ++i)
-            for (uint_t j = 1; j < storage_info.template dim< 1 >() - 1; ++j)
-                for (uint_t k = 1; k < storage_info.template dim< 2 >() - 1; ++k) {
+        out.sync();
+        auto v_out_h = make_host_view< access_mode::ReadOnly >(out);
+
+        for (uint_t i = halo[0]; i < d1 - halo[0]; ++i)
+            for (uint_t j = halo[1]; j < d2 - halo[1]; ++j)
+                for (uint_t k = 1; k < d3; ++k) {
                     int I = i + storage_info.dim< 0 >() * pi;
                     int J = j + storage_info.dim< 1 >() * pj;
-                    int K = k + storage_info.dim< 2 >() * pk;
+                    int K = k;
 
-                    if (v_out(i, j, k) != (I + J + K)) {
+                    if (v_out_h(i, j, k) != (I + J + K)) {
                         std::cout << gridtools::PID << " "
                                   << "i = " << i << ", j = " << j << ", k = " << k
-                                  << "v_out(i, j, k) = " << v_out(i, j, k) << ", "
+                                  << "v_out_h(i, j, k) = " << v_out_h(i, j, k) << ", "
                                   << "(I + J + K) = " << (i + j + k) * (gridtools::PID + 1) << "\n";
                         return false;
                     }

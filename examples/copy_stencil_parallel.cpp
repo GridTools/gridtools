@@ -39,6 +39,6 @@
 #include "copy_stencil_parallel.hpp"
 
 TEST(Communication, copy_stencil_parallel) {
-    bool passed = copy_stencil::test(23, 12, 7);
+    bool passed = copy_stencil::test(8, 8, 8);
     EXPECT_TRUE(passed);
 }
