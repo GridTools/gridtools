@@ -597,16 +597,8 @@ namespace gridtools {
             compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
 #ifndef NDEBUG
-        // check if access is not out of bounds
-        // get the field offset in order to compute the address of the first non-padding point
-        int_t ptr_offset = backend_traits_t::
-            template fields_offset< local_domain_t, processing_elements_block_size_t, arg_t, grid_traits_t >(
-                storage_info);
-        data_t *base_address = real_storage_pointer - ptr_offset;
-        // assert that the distance between the base address and the requested address is not exceeding the limits
-        int_t dist_to_first = (real_storage_pointer + pointer_offset) - (base_address + storage_info->total_begin());
-        int_t dist_to_last = (real_storage_pointer + pointer_offset) - (base_address + storage_info->total_end());
-        GTASSERT((dist_to_last <= 0 && dist_to_first >= 0));
+        GTASSERT((pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t, 
+            arg_t, grid_traits_t>(storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
         if (DirectGMemAccess) {
