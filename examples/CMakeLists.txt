@@ -53,14 +53,13 @@ else()
 
       add_custom_mpi_host_test(copy_stencil_parallel ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ${ccflags} ${ldflags})
 
-      add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
-      target_link_libraries(shallow_water_enhanced ${exe_LIBS} gtest_main)
-      set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+     # add_custom_mpi_host_test(shallow_water_enhanced ${CMAKE_CURRENT_SOURCE_DIR}/./shallow_water_enhanced.cpp  ${ccflags} ${ldflags})
 
   endif()
 
   if(CUDA_FOUND)
-    if(COMPILE_TO_PTX)
+
+      if(COMPILE_TO_PTX)
         CUDA_COMPILE_PTX(generated_files interface1.cu simple_hori_diff.cu copy_stencil.cu tridiagonal.cu boundary-condition.cu)
     else()
 
@@ -82,11 +81,12 @@ else()
         gridtools_add_test( tests.interface1_functions_cuda_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/interface1_functions_cuda_${var_suffix}" "23 11 23")
     endforeach(variation)
     if( GCL_MPI )
-        cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS "${GPU_SPECIFIC_FLAGS} -D_GCL_MPI_" )
-        target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS} gtest_main)
+        set(ccflags " ")
+        set(ldflags " ")
+        add_custom_mpi_gpu_test(copy_stencil_parallel_cuda ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cu  ${ccflags} ${ldflags})
 
-        cuda_add_executable(copy_stencil_parallel_cuda  copy_stencil_parallel.cu OPTIONS "${GPU_SPECIFIC_FLAGS} -D_GCL_MPI_" )
-        target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gtest_main)
+      #  add_custom_mpi_gpu_test(shallow_water_enhanced_cuda ${CMAKE_CURRENT_SOURCE_DIR}/./shallow_water_enhanced.cpp  ${ccflags} ${ldflags})
+
      endif()
 
     add_subdirectory( communication )
