@@ -53,7 +53,7 @@ else()
 
       add_custom_mpi_host_test(copy_stencil_parallel ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ${ccflags} ${ldflags})
 
-     # add_custom_mpi_host_test(shallow_water_enhanced ${CMAKE_CURRENT_SOURCE_DIR}/./shallow_water_enhanced.cpp  ${ccflags} ${ldflags})
+      add_custom_mpi_host_test(shallow_water_enhanced ${CMAKE_CURRENT_SOURCE_DIR}/./shallow_water_enhanced.cpp  ${ccflags} ${ldflags})
 
   endif()
 
@@ -85,7 +85,7 @@ else()
         set(ldflags " ")
         add_custom_mpi_gpu_test(copy_stencil_parallel_cuda ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cu  ${ccflags} ${ldflags})
 
-      #  add_custom_mpi_gpu_test(shallow_water_enhanced_cuda ${CMAKE_CURRENT_SOURCE_DIR}/./shallow_water_enhanced.cpp  ${ccflags} ${ldflags})
+       add_custom_mpi_gpu_test(shallow_water_enhanced_cuda ${CMAKE_CURRENT_SOURCE_DIR}/./shallow_water_enhanced.cu  ${ccflags} ${ldflags})
 
      endif()
 

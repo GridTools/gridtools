@@ -34,15 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "shallow_water_enhanced.hpp"
+#include "../unit_tests/communication/check_flags.hpp"
+#include "gtest/gtest.h"
 #include <iostream>
 
-int main(int argc, char **argv) {
-
-#ifdef _USE_GPU_
-#ifdef _GCL_MPI_
-    device_binding();
-#endif
-#endif
-
-    return !shallow_water::test(60, 83, 1, 1);
+TEST(Communication, shallow_water_enhanced) {
+    bool passed = shallow_water::test(60, 83, 1, 1);
+    EXPECT_TRUE(passed);
 }

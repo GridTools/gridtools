@@ -42,7 +42,7 @@
 #include <common/partitioner_trivial.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #include <boundary-conditions/apply_gpu.hpp>
 #else
 #include <boundary-conditions/apply.hpp>
@@ -340,10 +340,6 @@ namespace shallow_water {
 
     bool test(uint_t x, uint_t y, uint_t z, uint_t t) {
 
-#ifdef _GCL_MPI_
-        gridtools::GCL_Init();
-#endif
-
 #ifndef __CUDACC__
         // testing the static printing
         typedef string_c< print, s1, s2, s1, s1 > s;
@@ -355,7 +351,7 @@ namespace shallow_water {
         uint_t d3 = z;
 
 //! [main]
-#ifdef CUDA_EXAMPLE
+#ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
@@ -382,8 +378,6 @@ namespace shallow_water {
         // typedef arg<1, sol_type > p_tmpy;
         typedef arg< 2, sol_type > p_sol;
         typedef boost::mpl::vector< p_tmpx, p_tmpy, p_sol > accessor_list;
-        //! [args]
-        uint_t halo_size = 1;
 
 #ifdef _GCL_MPI_
         //! [proc_grid_dims]
@@ -551,6 +545,7 @@ namespace shallow_water {
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
+            sol.sync();
             auto view = make_field_host_view(sol);
             auto view00 = view.get< 0, 0 >();
             auto view10 = view.get< 1, 0 >();
@@ -581,9 +576,6 @@ namespace shallow_water {
 
         shallow_water_stencil->finalize();
 
-#ifdef _GCL_MPI_
-        GCL_Finalize();
-#endif
         bool retval = true;
 //! [finalize]
 
