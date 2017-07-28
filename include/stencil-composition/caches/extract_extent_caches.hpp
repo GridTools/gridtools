@@ -85,26 +85,6 @@ namespace gridtools {
         struct insert_extent_for_cache {
             GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
 
-            template < typename Esf, typename Arg >
-            struct arg_is_output_accessor_of_esf {
-                using arg_pos = typename boost::mpl::find< typename Esf::args_t, Arg >::type;
-                GRIDTOOLS_STATIC_ASSERT(
-                    (!boost::is_same< arg_pos, typename boost::mpl::end< typename Esf::args_t >::type >::value),
-                    GT_INTERNAL_ERROR);
-
-                using accessor_t =
-                    typename boost::mpl::at< typename Esf::esf_function::arg_list, typename arg_pos::pos >::type;
-
-                using type = typename boost::mpl::not_< typename is_accessor_readonly< accessor_t >::type >::type;
-            };
-            template < typename Esf, typename Arg >
-            struct contains_output_accessor {
-                using type =
-                    typename boost::mpl::eval_if< typename boost::mpl::contains< typename Esf::args_t, Arg >::type,
-                        arg_is_output_accessor_of_esf< Esf, Arg >,
-                        boost::mpl::identity< boost::mpl::false_ > >::type;
-            };
-
             // given an Id within the sequence of esf and extents, extract the extent associated an inserted into
             // the map if the cache is used by the esf with that Id.
             template < typename ExtendsMap_, typename EsfIdx >
