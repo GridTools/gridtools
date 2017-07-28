@@ -64,6 +64,15 @@ namespace gridtools {
                 type;
         };
     }
+
+    template < typename Extent >
+    struct ijfy_extent;
+
+    template < int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus, int_t... Rest >
+    struct ijfy_extent< extent< IMinus, IPlus, JMinus, JPlus, KMinus, KPlus, Rest... > > {
+        using type = extent< IMinus, IPlus, JMinus, JPlus, 0, 0 >;
+    };
+
     /**
      * @struct extract_ij_extents_for_caches
      * metafunction that extracts the extents associated to each cache of the sequence of caches provided by the user.
@@ -96,8 +105,10 @@ namespace gridtools {
                 typedef typename boost::mpl::at< esf_sequence_t, EsfIdx >::type esf_t;
 
                 typedef typename boost::mpl::if_< boost::mpl::has_key< typename esf_t::args_with_extents, cache_arg_t >,
-                    typename boost::mpl::at< typename esf_t::args_with_extents, cache_arg_t >::type,
-                    typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type extent_t;
+                    typename boost::mpl::at< extents_t, EsfIdx >::type,
+                    typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type fextent_t;
+
+                using extent_t = typename ijfy_extent< fextent_t >::type;
 
                 GRIDTOOLS_STATIC_ASSERT((extent_t::kminus::value == 0 && extent_t::kplus::value == 0),
                     "Error: IJ Caches can not have k extent values");
