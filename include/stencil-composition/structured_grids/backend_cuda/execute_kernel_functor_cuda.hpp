@@ -39,7 +39,8 @@
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
-#include "stencil-composition/iterate_domain.hpp"
+#include "../../const_iterate_domain.hpp" 
+#include "../../iterate_domain.hpp"
 
 namespace gridtools {
 
@@ -51,8 +52,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(VBoundary >= 0 && VBoundary <= 8, GT_INTERNAL_ERROR);
         };
 
-        template < typename RunFunctorArguments, typename LocalDomain >
+        template < typename RunFunctorArguments, typename LocalDomain, typename ConstItDomain >
         __global__ void do_it_on_gpu(LocalDomain const *RESTRICT l_domain,
+            ConstItDomain const const_it_domain_,         
             typename RunFunctorArguments::grid_t const *grid,
             const int starti,
             const int startj,
@@ -93,10 +95,10 @@ namespace gridtools {
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
 
-            it_domain.template assign_storage_pointers< backend_traits_t >();
-            it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
+            //it_domain.template assign_storage_pointers< backend_traits_t >();
+            //it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
 
-            __syncthreads();
+            //__syncthreads();
 
             // computing the global position in the physical domain
             /*
@@ -172,6 +174,8 @@ namespace gridtools {
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
             it_domain.set_index(0);
+
+            it_domain.template assign_index< backend_traits_t >();
 
             // initialize the indices
             it_domain.template initialize< 0 >(i + starti, blockIdx.x);
@@ -317,9 +321,22 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
+                typedef backend_traits_from_id< enumtype::Cuda > backend_traits_t;
+
+                typedef typename run_functor_arguments_cuda_t::iterate_domain_t iterate_domain_t;
+                typedef const_iterate_domain< typename iterate_domain_t::data_ptr_cached_t,
+                    typename iterate_domain_t::strides_cached_t,
+                    backend_traits_from_id< enumtype::Cuda >,
+                    typename iterate_domain_t::grid_traits_t > const_it_domain_t;
+
+                const_it_domain_t const_it_domain;
+                const_it_domain.template assign_storage_pointers< cuda_block_size_t >(m_local_domain);
+                const_it_domain.template assign_stride_pointers< cuda_block_size_t >(m_local_domain);
+
+
                 _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t,
                     local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
-                    (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
+                    (local_domain_gp, const_it_domain, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
 
 #ifndef NDEBUG
                 cudaDeviceSynchronize();
