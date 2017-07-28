@@ -78,9 +78,15 @@ class PrintDim : public boost::static_visitor<> {
 TEST(repository, iterate) {
     my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
 
-    for (auto &elem : repo.data_store_map_) {
+    for (auto &elem : repo.data_stores()) {
         boost::apply_visitor(PrintDim(), elem.second);
     }
+}
+
+TEST(repository, two_repos) {
+    my_repository2 repo(IJStorageInfo(11, 22));
+
+    ASSERT_EQ(2, repo.data_stores().size());
 }
 
 // int dims[3] {...};

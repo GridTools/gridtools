@@ -1,0 +1,8 @@
+#if !defined(GT_REGISTER_FIELD) || !defined(GT_REGISTER_FIELDTYPES)
+#error "GT_REGISTER_FIELD or GT_REGISTER_FIELDTYPES is not defined"
+#endif
+
+GT_REGISTER_FIELDTYPES(IJDataStore)
+
+GT_REGISTER_FIELD(IJDataStore, crlat0)
+GT_REGISTER_FIELD(IJDataStore, crlat1)
