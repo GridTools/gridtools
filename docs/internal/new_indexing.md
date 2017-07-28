@@ -1,4 +1,4 @@
-## New indexing algorithm
+## Indexing algorithm (pointer offset computation)
 
 On the $\GT$ frontend side we are using `storage_info`, `data_store` and `data_view` objects when we deal with data.
 Once this information is passed to the `aggregator_type` and the `intermediate` the information how to access the different
@@ -12,7 +12,7 @@ information from the `data_store` and `storage_info` objects and is feeding the 
 
 ![Storage handling](figures/flow.png){width="0.6\columnwidth"}
 
-###Current indexing
+###Old indexing approach
 
 As seen before the backend contains stride information and raw data pointers. Unfortunately this is not enough.
 The backend additionally has to store an offset (called index). The reason for this is that the compute domain is
@@ -74,7 +74,7 @@ __Passing huge types down to the offset computation__
 In order to fix the alignment when using different halos we have to pass a lot of type information from the `intermediate` down to the backend. This is exhaustive for the compiler and the performance suffers. This could lead to problems, especially when trying to compile computations with many stages and
 a high number of fields.
 
-###New indexing proposal
+###Updated indexing algorithm
 
 The new indexing approach tries to avoid the strategy of setting the base pointer to the first point of the block. The new approach is to set the
 pointer to the first non-halo point of the block. The method that is setting the index of each cuda thread has to be modified. Figure [Fig. \[fig:new\_indexing:new_temporary_block_contents\]]{} shows the new indexing. As shown, the first non halo point is used as base pointer. The index
