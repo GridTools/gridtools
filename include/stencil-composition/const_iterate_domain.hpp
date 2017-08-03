@@ -94,12 +94,8 @@ namespace gridtools {
             typedef LocalDomain local_domain_t;
 
             boost::fusion::for_each(local_domain_.m_local_data_ptrs,
-                assign_storage_init_ptrs< Backend,
-                                        data_pointer_array_t,
-                                        LocalDomain,
-                                        PEBlock,
-                                        typename LocalDomain::extents_map_t,
-                                        grid_traits_t >(data_pointer(), local_domain_.m_local_storage_info_ptrs));
+                assign_storage_init_ptrs< data_pointer_array_t, LocalDomain, PEBlock >(
+                                        data_pointer(), local_domain_.m_local_storage_info_ptrs));
         }
 
         /**

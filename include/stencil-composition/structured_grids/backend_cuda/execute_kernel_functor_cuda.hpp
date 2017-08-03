@@ -39,7 +39,7 @@
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
 #include "../../iteration_policy.hpp"
-#include "../../const_iterate_domain.hpp" 
+#include "../../const_iterate_domain.hpp"
 #include "../../iterate_domain.hpp"
 
 namespace gridtools {
@@ -54,7 +54,7 @@ namespace gridtools {
 
         template < typename RunFunctorArguments, typename LocalDomain, typename ConstItDomain >
         __global__ void do_it_on_gpu(LocalDomain const *RESTRICT l_domain,
-            ConstItDomain const const_it_domain_,         
+            ConstItDomain const const_it_domain_,
             typename RunFunctorArguments::grid_t const *grid,
             const int starti,
             const int startj,
@@ -94,9 +94,10 @@ namespace gridtools {
             iterate_domain_t it_domain(*l_domain, 0, block_size_i, block_size_j);
 
             it_domain.set_shared_iterate_domain_pointer_impl(&shared_iterate_domain);
+            it_domain.set_const_iterate_domain_pointer_impl(&const_it_domain_);
 
-            //it_domain.template assign_storage_pointers< backend_traits_t >();
-            //it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
+            // it_domain.template assign_storage_pointers< backend_traits_t >();
+            // it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
 
             //__syncthreads();
 
@@ -175,9 +176,8 @@ namespace gridtools {
             }
             it_domain.set_index(0);
 
-            it_domain.template assign_index< backend_traits_t >();
-
             // initialize the indices
+            it_domain.template assign_index< backend_traits_t >();
             it_domain.template initialize< 0 >(i + starti, blockIdx.x);
             it_domain.template initialize< 1 >(j + startj, blockIdx.y);
 
@@ -332,7 +332,6 @@ namespace gridtools {
                 const_it_domain_t const_it_domain;
                 const_it_domain.template assign_storage_pointers< cuda_block_size_t >(m_local_domain);
                 const_it_domain.template assign_stride_pointers< cuda_block_size_t >(m_local_domain);
-
 
                 _impl_strcuda::do_it_on_gpu< run_functor_arguments_cuda_t,
                     local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>

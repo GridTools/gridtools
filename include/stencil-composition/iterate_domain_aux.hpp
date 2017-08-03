@@ -162,13 +162,6 @@ namespace gridtools {
             data_array_t,
             typename super::template return_t< Idx > >::type;
 
-        /**@brief constructor, doing nothing more than allocating the space*/
-        GT_FUNCTION
-        strides_cached() : super() {}
-
-        GT_FUNCTION
-        strides_cached(strides_cached const &other) : super(other), m_data(other.get< ID >()) {}        
-
         template < short_t Idx >
         GT_FUNCTION return_t< Idx > const &RESTRICT get() const {
             return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
@@ -178,6 +171,13 @@ namespace gridtools {
         GT_FUNCTION return_t< Idx > &RESTRICT get() {
             return static_if< (Idx == ID) >::apply(m_data, super::template get< Idx >());
         }
+
+        /**@brief constructor, doing nothing more than allocating the space*/
+        GT_FUNCTION
+        strides_cached() : super() {}
+
+        GT_FUNCTION
+        strides_cached(strides_cached const &other) : super(other), m_data(other.get< ID >()) {}
 
       protected:
         data_array_t m_data;
@@ -192,6 +192,9 @@ namespace gridtools {
 
         GT_FUNCTION
         strides_cached() {}
+
+        GT_FUNCTION
+        strides_cached(strides_cached const &other) : m_data(other.get< 0 >()) {}
 
         typedef array< int_t, storage_info_t::layout_t::masked_length - 1 > data_array_t;
 
@@ -210,7 +213,6 @@ namespace gridtools {
 
       private:
         data_array_t m_data;
-        strides_cached(strides_cached const &);
     };
 
     template < typename T >
@@ -274,9 +276,7 @@ namespace gridtools {
         }
     };
 
-    template < typename DataPtrCached,
-        typename LocalDomain,
-        typename PEBlockSize >
+    template < typename DataPtrCached, typename LocalDomain, typename PEBlockSize >
     struct assign_storage_init_ptrs {
 
         GRIDTOOLS_STATIC_ASSERT((is_data_ptr_cached< DataPtrCached >::value), GT_INTERNAL_ERROR);
@@ -335,10 +335,9 @@ namespace gridtools {
             typedef typename boost::mpl::find< typename LocalDomain::storage_info_ptr_list,
                 const typename storage_wrapper_t::storage_info_t * >::type::pos si_index_t;
 
-            const int offset = BackendTraits::template fields_offset< LocalDomain,
-                PEBlockSize,
-                typename storage_wrapper_t::arg_t,
-                GridTraits >(boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
+            const int offset = BackendTraits::
+                template fields_offset< LocalDomain, PEBlockSize, typename storage_wrapper_t::arg_t, GridTraits >(
+                    boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
             m_index[si_index_t::value] = offset;
         }
     };
@@ -434,8 +433,10 @@ namespace gridtools {
               m_index_array(other.m_index_array) {}
 
         GT_FUNCTION
-        initialize_index_functor(
-            Strides const &RESTRICT strides, const int_t initial_pos, const uint_t block, ArrayIndex &RESTRICT index_array)
+        initialize_index_functor(Strides const &RESTRICT strides,
+            const int_t initial_pos,
+            const uint_t block,
+            ArrayIndex &RESTRICT index_array)
             : m_strides(strides), m_initial_pos(initial_pos), m_block(block), m_index_array(index_array) {}
 
         template < typename StorageInfo,
@@ -522,8 +523,7 @@ namespace gridtools {
                 template fields_offset< LocalDomain, PEBlockSize, typename storage_wrapper_t::arg_t, GridTraits >(
                     boost::fusion::at< si_index_t >(m_storageinfo_fusion_list));
             for (unsigned i = 0; i < storage_wrapper_t::num_of_storages; ++i) {
-                BackendTraits::template once_per_block< pos_in_storage_wrapper_list_t::value, PEBlockSize >::assign(
-                    m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i], sw.second[i] + offset);
+                m_data_ptr_cached.template get< pos_in_storage_wrapper_list_t::value >()[i] = sw.second[i] + offset;
             }
         }
     };
@@ -575,9 +575,8 @@ namespace gridtools {
                     (pos < SInfo::layout_t::masked_length),
                     GT_INTERNAL_ERROR_MSG(
                         "Error when trying to assign the strides in iterate domain. Access out of bounds."));
-                BackendType::template once_per_block< index_t::value, PEBlockSize >::assign(
-                    (m_strides_cached.template get< index_t::value >())[Coordinate::value],
-                    m_storage_info->template stride< pos >());
+                (m_strides_cached.template get< index_t::value >())[Coordinate::value] =
+                    m_storage_info->template stride< pos >();
             }
         };
 
@@ -600,15 +599,18 @@ namespace gridtools {
     /**
      * function that checks a given pointer and offset combination results in an out of bounds access.
      * the check is computing the fields offset in order to get the base address of the accessed storage.
-     * once the base address is known it can be checked if the requested access lies within the 
+     * once the base address is known it can be checked if the requested access lies within the
      * storages allocated memory.
      */
-    template < typename BackendTraits, typename BlockSize, typename LocalDomain, 
-        typename ArgT, typename GridTraits, typename StorageInfo, typename T >
-    GT_FUNCTION
-    bool pointer_oob_check(StorageInfo const* sinfo, T* ptr, int_t offset) {
-        int_t ptr_offset = BackendTraits::
-            template fields_offset< LocalDomain, BlockSize, ArgT, GridTraits >(sinfo);
+    template < typename BackendTraits,
+        typename BlockSize,
+        typename LocalDomain,
+        typename ArgT,
+        typename GridTraits,
+        typename StorageInfo,
+        typename T >
+    GT_FUNCTION bool pointer_oob_check(StorageInfo const *sinfo, T *ptr, int_t offset) {
+        int_t ptr_offset = BackendTraits::template fields_offset< LocalDomain, BlockSize, ArgT, GridTraits >(sinfo);
         T *base_address = ptr - ptr_offset;
         // assert that the distance between the base address and the requested address is not exceeding the limits
         int_t dist_to_first = (ptr + offset) - (base_address + sinfo->total_begin());

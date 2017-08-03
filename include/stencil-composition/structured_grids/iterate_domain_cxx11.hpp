@@ -188,7 +188,7 @@ namespace gridtools {
             return static_cast< const IterateDomainImpl * >(this)->strides_impl();
         }
 
- #ifndef __CUDACC__ 
+#ifndef __CUDACC__
         /**
            @brief returns the array of pointers to the raw data
         */
@@ -202,11 +202,8 @@ namespace gridtools {
            only for host initialization
         */
         GT_FUNCTION
-        strides_cached_t &RESTRICT strides() {
-            return static_cast< IterateDomainImpl * >(this)->strides_impl();
-        }
+        strides_cached_t &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
 #endif
-
 
       public:
         /**@brief constructor of the iterate_domain struct
@@ -222,7 +219,6 @@ namespace gridtools {
             : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain_), m_index{
                                                                                                     0,
                                                                                                 } {}
-
 
         template < typename BackendType >
         GT_FUNCTION void assign_index() {
@@ -614,8 +610,8 @@ namespace gridtools {
             compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
 #ifndef NDEBUG
-        GTASSERT((pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t, 
-            arg_t, grid_traits_t>(storage_info, real_storage_pointer, pointer_offset)));
+//        GTASSERT((pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t,
+//            arg_t, grid_traits_t>(storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
         if (DirectGMemAccess) {
