@@ -36,7 +36,7 @@
 
 #include <gtest/gtest.h>
 #include <boost/variant/apply_visitor.hpp>
-#include "my_repository4.hpp"
+#include "my_repository5.hpp"
 
 // TEST(repository, init_a_member) {
 //    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
@@ -89,16 +89,16 @@
 //    ASSERT_EQ(2, repo.data_stores().size());
 //}
 
-TEST(repository, repo4) {
-    my_repository4 repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+TEST(repository, repo5) {
+    my_repository5 repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
 
-    ASSERT_EQ(4, repo.data_stores().size());
+    ASSERT_EQ(2, repo.data_stores().size());
 }
 
 TEST(repository, inherit) {
     my_useful_repo repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
 
-    ASSERT_EQ(4, repo.data_stores().size());
+    ASSERT_EQ(2, repo.data_stores().size());
 }
 
 // int dims[3] {...};

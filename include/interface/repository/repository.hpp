@@ -34,22 +34,15 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#if !defined(GT_REPOSITORY_FIELDTYPES) || !defined(GT_REPOSITORY_FIELDS) || !defined(GT_REPOSITORY_NAME)
-#error "GT_REPOSITORY_NAME, GT_REPOSITORY_FIELDTYPES or GT_REPOSITORY_FIELDS is not defined"
-#endif
-
 #include <unordered_map>
 #include "boost/variant.hpp"
 #include "boost/preprocessor/seq.hpp"
 
-// internal
 #define PP_DETAIL_SEQ_DOUBLE_PARENS_0(...) ((__VA_ARGS__)) PP_DETAIL_SEQ_DOUBLE_PARENS_1
 #define PP_DETAIL_SEQ_DOUBLE_PARENS_1(...) ((__VA_ARGS__)) PP_DETAIL_SEQ_DOUBLE_PARENS_0
 #define PP_DETAIL_SEQ_DOUBLE_PARENS_0_END
 #define PP_DETAIL_SEQ_DOUBLE_PARENS_1_END
 #define PP_SEQ_DOUBLE_PARENS(seq) BOOST_PP_CAT(PP_DETAIL_SEQ_DOUBLE_PARENS_0 seq, _END)
-
-#define GTREPO_FIELDS_internal PP_SEQ_DOUBLE_PARENS(GT_REPOSITORY_FIELDS)
 
 #define GTREPO_name(name) BOOST_PP_CAT(name, _)
 #define GTREPO_make_members(r, data, tuple) BOOST_PP_TUPLE_ELEM(0, tuple) GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple));
@@ -74,41 +67,23 @@
     GRIDTOOLS_STATIC_ASSERT((is_data_store< data_store >::value), \
         "At least one of the arguments passed to the repository in GT_REPOSITORY_FIELDTYPES is not a data_store");
 
-class GT_REPOSITORY_NAME {
-  private:
-    BOOST_PP_SEQ_FOR_EACH(GTREPO_make_members, ~, GTREPO_FIELDS_internal)
-    std::unordered_map< std::string, boost::variant< BOOST_PP_SEQ_ENUM(GT_REPOSITORY_FIELDTYPES) > > data_store_map_;
+#define GT_MAKE_REPOSITORY_HELPER(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ)                               \
+    class GTREPO_NAME {                                                                                                \
+      private:                                                                                                         \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_members, ~, GTREPO_FIELDS_SEQ)                                               \
+        std::unordered_map< std::string, boost::variant< BOOST_PP_SEQ_ENUM(GTREPO_FIELDTYPES_SEQ) > > data_store_map_; \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_is_data_store, ~, GTREPO_FIELDTYPES_SEQ)                                          \
+      public:                                                                                                          \
+        GTREPO_NAME(BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_args, ~, GTREPO_FIELDTYPES_SEQ))                          \
+            : BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_init, ~, GTREPO_FIELDS_SEQ) {                                   \
+            BOOST_PP_SEQ_FOR_EACH(GTREPO_init_map, ~, GTREPO_FIELDS_SEQ)                                               \
+        }                                                                                                              \
+        /*non-copyable/moveable*/                                                                                      \
+        GTREPO_NAME(const GTREPO_NAME &) = delete;                                                                     \
+        GTREPO_NAME(GTREPO_NAME &&) = delete;                                                                          \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_getters, ~, GTREPO_FIELDS_SEQ)                                               \
+        auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; }                                  \
+    };
 
-    // check that types are data_stores
-    BOOST_PP_SEQ_FOR_EACH(GTREPO_is_data_store, ~, GT_REPOSITORY_FIELDTYPES)
-  public:
-    // ctor
-    GT_REPOSITORY_NAME(BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_args, ~, GT_REPOSITORY_FIELDTYPES))
-        : BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_init, ~, GTREPO_FIELDS_internal) {
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_init_map, ~, GTREPO_FIELDS_internal)
-    }
-
-    // non-copyable/moveable
-    GT_REPOSITORY_NAME(const GT_REPOSITORY_NAME &) = delete;
-    GT_REPOSITORY_NAME(GT_REPOSITORY_NAME &&) = delete;
-
-    // getter
-    BOOST_PP_SEQ_FOR_EACH(GTREPO_make_getters, ~, GTREPO_FIELDS_internal)
-
-    auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; }
-};
-
-#undef GTREPO_name
-#undef GTREPO_make_members
-#undef GTREPO_as_string_helper
-#undef GTREPO_as_string
-#undef GTREPO_make_ctor_args
-#undef GTREPO_make_ctor_init
-#undef GTREPO_init_map
-#undef GTREPO_make_getters
-#undef GTREPO_FIELDS_internal
-
-// These is user-defined input to this file, we undef them for safety
-#undef GT_REPOSITORY_FIELDTYPES
-#undef GT_REPOSITORY_FIELDS
-#undef GT_REPOSITORY_NAME
+#define GT_MAKE_REPOSITORY(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ) \
+    GT_MAKE_REPOSITORY_HELPER(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, PP_SEQ_DOUBLE_PARENS(GTREPO_FIELDS_SEQ))
