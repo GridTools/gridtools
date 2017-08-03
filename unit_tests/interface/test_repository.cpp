@@ -35,15 +35,15 @@
 */
 
 #include <gtest/gtest.h>
-#include "my_repository.hpp"
 #include <boost/variant/apply_visitor.hpp>
+#include "my_repository4.hpp"
 
-TEST(repository, init_a_member) {
-    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
-
-    ASSERT_EQ(10, repo.get_u().dim< 0 >());
-    ASSERT_EQ(11, repo.get_crlat().dim< 0 >());
-}
+// TEST(repository, init_a_member) {
+//    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+//
+//    ASSERT_EQ(10, repo.get_u().dim< 0 >());
+//    ASSERT_EQ(11, repo.get_crlat().dim< 0 >());
+//}
 
 // TEST(repository, type_to_id_and_back) {
 //    GRIDTOOLS_STATIC_ASSERT((std::is_same< typename id_to_type< static_int< type_to_id< IJKDataStore >::value >
@@ -51,42 +51,54 @@ TEST(repository, init_a_member) {
 //                                IJKDataStore >::value),
 //        "ERROR");
 //}
+//
+// TEST(test_variant, test1) {
+//    boost::variant< int, double, float > test(5);
+//    //    float as_f = boost::get< float >(test);
+//    int as_int = boost::get< int >(test);
+//    std::cout << test << std::endl;
+//}
+//
+// TEST(repository, access_map) {
+//    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+//
+//    auto u = boost::get< IJKDataStore >(repo.data_store_map_["u"]);
+//
+//    ASSERT_EQ(10, u.dim< 0 >());
+//}
+//
+// class PrintDim : public boost::static_visitor<> {
+//  public:
+//    template < typename T >
+//    void operator()(T &t) const {
+//        std::cout << t.template dim< 0 >() << std::endl;
+//    }
+//};
+//
+// TEST(repository, iterate) {
+//    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+//
+//    for (auto &elem : repo.data_stores()) {
+//        boost::apply_visitor(PrintDim(), elem.second);
+//    }
+//}
+//
+// TEST(repository, two_repos) {
+//    my_repository2 repo(IJStorageInfo(11, 22));
+//
+//    ASSERT_EQ(2, repo.data_stores().size());
+//}
 
-TEST(test_variant, test1) {
-    boost::variant< int, double, float > test(5);
-    //    float as_f = boost::get< float >(test);
-    int as_int = boost::get< int >(test);
-    std::cout << test << std::endl;
+TEST(repository, repo4) {
+    my_repository4 repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+
+    ASSERT_EQ(4, repo.data_stores().size());
 }
 
-TEST(repository, access_map) {
-    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+TEST(repository, inherit) {
+    my_useful_repo repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
 
-    auto u = boost::get< IJKDataStore >(repo.data_store_map_["u"]);
-
-    ASSERT_EQ(10, u.dim< 0 >());
-}
-
-class PrintDim : public boost::static_visitor<> {
-  public:
-    template < typename T >
-    void operator()(T &t) const {
-        std::cout << t.template dim< 0 >() << std::endl;
-    }
-};
-
-TEST(repository, iterate) {
-    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
-
-    for (auto &elem : repo.data_stores()) {
-        boost::apply_visitor(PrintDim(), elem.second);
-    }
-}
-
-TEST(repository, two_repos) {
-    my_repository2 repo(IJStorageInfo(11, 22));
-
-    ASSERT_EQ(2, repo.data_stores().size());
+    ASSERT_EQ(4, repo.data_stores().size());
 }
 
 // int dims[3] {...};

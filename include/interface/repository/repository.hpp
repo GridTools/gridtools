@@ -34,112 +34,81 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#if !defined(GT_REPOSITORY_FIELDTYPES) || !defined(GT_REPOSITORY_FIELDS) || !defined(GT_REPOSITORY_NAME)
+#error "GT_REPOSITORY_NAME, GT_REPOSITORY_FIELDTYPES or GT_REPOSITORY_FIELDS is not defined"
+#endif
+
 #include <unordered_map>
-#include "storage/storage-facility.hpp"
 #include "boost/variant.hpp"
+#include "boost/preprocessor/seq.hpp"
 
-namespace gridtools {
-// namespace {
-//    template < typename T >
-//    struct type_to_id {
-//        GRIDTOOLS_STATIC_ASSERT(sizeof(T) < 0, GT_INTERNAL_ERROR);
-//    };
-//    template < typename T >
-//    struct id_to_type {
-//        GRIDTOOLS_STATIC_ASSERT(sizeof(T) < 0, GT_INTERNAL_ERROR);
-//    };
-//#define GT_REGISTER_FIELDTYPE(TYPE)                      \
-//    static const int uniqueid_##TYPE = __COUNTER__;      \
-//    template <>                                          \
-//    struct type_to_id< TYPE > {                          \
-//        const static int value = uniqueid_##TYPE;        \
-//    };                                                   \
-//    template <>                                          \
-//    struct id_to_type< static_int< uniqueid_##TYPE > > { \
-//        using type = TYPE;                               \
-//    };
-//#define GT_REGISTER_FIELD(TYPE, NAME)
-//#include "my_repository.inc"
-//#undef GT_REGISTER_FIELD
-//#undef GT_REGISTER_FIELDTYPE
-//}
+// internal
+#define PP_DETAIL_SEQ_DOUBLE_PARENS_0(...) ((__VA_ARGS__)) PP_DETAIL_SEQ_DOUBLE_PARENS_1
+#define PP_DETAIL_SEQ_DOUBLE_PARENS_1(...) ((__VA_ARGS__)) PP_DETAIL_SEQ_DOUBLE_PARENS_0
+#define PP_DETAIL_SEQ_DOUBLE_PARENS_0_END
+#define PP_DETAIL_SEQ_DOUBLE_PARENS_1_END
+#define PP_SEQ_DOUBLE_PARENS(seq) BOOST_PP_CAT(PP_DETAIL_SEQ_DOUBLE_PARENS_0 seq, _END)
 
-#define FEL1(Action, X) Action(X)
-#define FEL2(Action, X, ...) Action(X), FEL1(Action, __VA_ARGS__)
-#define FEL3(Action, X, ...) Action(X), FEL2(Action, __VA_ARGS__)
-#define FEL4(Action, X, ...) Action(X), FEL3(Action, __VA_ARGS__)
-#define FEL5(Action, X, ...) Action(X), FEL4(Action, __VA_ARGS__)
-#define FEL6(Action, X, ...) Action(X), FEL5(Action, __VA_ARGS__)
-#define FEL7(Action, X, ...) Action(X), FEL6(Action, __VA_ARGS__)
-#define FEL8(Action, X, ...) Action(X), FEL7(Action, __VA_ARGS__)
-#define FEL9(Action, X, ...) Action(X), FEL8(Action, __VA_ARGS__)
-#define FEL10(Action, X, ...) Action(X), FEL9(Action, __VA_ARGS__)
-#define FEL11(Action, X, ...) Action(X), FEL10(Action, __VA_ARGS__)
-#define FEL12(Action, X, ...) Action(X), FEL11(Action, __VA_ARGS__)
+#define GTREPO_FIELDS_internal PP_SEQ_DOUBLE_PARENS(GT_REPOSITORY_FIELDS)
 
-#define GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, Name, ...) Name
-#define FOR_EACH_LIST(Action, ...) \
-    GET_MACRO(__VA_ARGS__, FEL12, FEL11, FEL10, FEL9, FEL8, FEL7, FEL6, FEL5, FEL4, FEL3, FEL2, FEL1)(Action,__VA_ARGS__)
+#define GTREPO_name(name) BOOST_PP_CAT(name, _)
+#define GTREPO_make_members(r, data, tuple) BOOST_PP_TUPLE_ELEM(0, tuple) GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple));
+#define GTREPO_as_string_helper(name) #name
+#define GTREPO_as_string(name) GTREPO_as_string_helper(name)
 
-    class GT_REPOSITORY_NAME {
-      private:
-#define GT_REGISTER_FIELD(Type, Name) Type m_##Name;
-#define GT_REGISTER_FIELDTYPES(...)
-#include GT_REPOSITORY_INC
-#undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPES
-        int dummy__; // HACK fix the trailing comma, see below
+#define GTREPO_make_ctor_args(r, data, n, data_store) \
+    BOOST_PP_COMMA_IF(n) typename data_store::storage_info_t BOOST_PP_CAT(data_store, _info)
+#define GTREPO_make_ctor_init(r, data, n, tuple) \
+    BOOST_PP_COMMA_IF(n) GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple))(BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(0, tuple), _info))
 
-      public:
-        std::unordered_map< std::string,
-            boost::variant<
-#define JustForward(X) X
-#define GT_REGISTER_FIELD(Type, Name)
-#define GT_REGISTER_FIELDTYPES(...) FOR_EACH_LIST(JustForward, __VA_ARGS__)
-#include GT_REPOSITORY_INC
-#undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPES
-                                > > data_store_map_; // TODO fix the comma
+#define GTREPO_init_map(r, data, tuple) \
+    data_store_map_.emplace(            \
+        GTREPO_as_string(BOOST_PP_TUPLE_ELEM(1, tuple)), GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple)));
 
-#define GET_STORAGE_INFO(X) typename X::storage_info_t info_##X
-        GT_REPOSITORY_NAME(
-#define MakeCtor(Type) typename Type::storage_info_t info_##Type
-#define GT_REGISTER_FIELD(Type, Name)
-#define GT_REGISTER_FIELDTYPES(...) FOR_EACH_LIST(MakeCtor, __VA_ARGS__)
-#include GT_REPOSITORY_INC
-#undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPES
-            )
-            :
-#define GT_REGISTER_FIELD(Type, Name) m_##Name(info_##Type),
-#define GT_REGISTER_FIELDTYPES(...)
-#include GT_REPOSITORY_INC
-#undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPES
-              dummy__(0) { // HACK fix the trailing comma
-#define GT_REGISTER_FIELD(Type, Name) data_store_map_.emplace(#Name, m_##Name);
-#define GT_REGISTER_FIELDTYPES(...)
-#include GT_REPOSITORY_INC
-#undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPES
-        }
+#define GTREPO_make_getters(r, data, tuple)                                               \
+    BOOST_PP_TUPLE_ELEM(0, tuple) & BOOST_PP_CAT(get_, BOOST_PP_TUPLE_ELEM(1, tuple))() { \
+        return GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple));                                \
+    }
 
-        /// @brief Configuration is non-copyable/moveable
-        GT_REPOSITORY_NAME(const GT_REPOSITORY_NAME &) = delete;
-        GT_REPOSITORY_NAME(GT_REPOSITORY_NAME &&) = delete;
+#define GTREPO_is_data_store(r, data, data_store)                 \
+    GRIDTOOLS_STATIC_ASSERT((is_data_store< data_store >::value), \
+        "At least one of the arguments passed to the repository in GT_REPOSITORY_FIELDTYPES is not a data_store");
 
-// Getter & Setter
-#define GT_REGISTER_FIELD(Type, Name)                                  \
-    const Type &get_##Name() const noexcept { return this->m_##Name; } \
-    void set_##Name(const Type &value) noexcept { this->m_##Name = value; }
-#define GT_REGISTER_FIELDTYPES(...)
-#include GT_REPOSITORY_INC
-#undef GT_REGISTER_FIELD
-#undef GT_REGISTER_FIELDTYPES
+class GT_REPOSITORY_NAME {
+  private:
+    BOOST_PP_SEQ_FOR_EACH(GTREPO_make_members, ~, GTREPO_FIELDS_internal)
+    std::unordered_map< std::string, boost::variant< BOOST_PP_SEQ_ENUM(GT_REPOSITORY_FIELDTYPES) > > data_store_map_;
 
-        auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; }
-    };
-}
+    // check that types are data_stores
+    BOOST_PP_SEQ_FOR_EACH(GTREPO_is_data_store, ~, GT_REPOSITORY_FIELDTYPES)
+  public:
+    // ctor
+    GT_REPOSITORY_NAME(BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_args, ~, GT_REPOSITORY_FIELDTYPES))
+        : BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_init, ~, GTREPO_FIELDS_internal) {
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_init_map, ~, GTREPO_FIELDS_internal)
+    }
 
+    // non-copyable/moveable
+    GT_REPOSITORY_NAME(const GT_REPOSITORY_NAME &) = delete;
+    GT_REPOSITORY_NAME(GT_REPOSITORY_NAME &&) = delete;
+
+    // getter
+    BOOST_PP_SEQ_FOR_EACH(GTREPO_make_getters, ~, GTREPO_FIELDS_internal)
+
+    auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; }
+};
+
+#undef GTREPO_name
+#undef GTREPO_make_members
+#undef GTREPO_as_string_helper
+#undef GTREPO_as_string
+#undef GTREPO_make_ctor_args
+#undef GTREPO_make_ctor_init
+#undef GTREPO_init_map
+#undef GTREPO_make_getters
+#undef GTREPO_FIELDS_internal
+
+// These is user-defined input to this file, we undef them for safety
+#undef GT_REPOSITORY_FIELDTYPES
+#undef GT_REPOSITORY_FIELDS
 #undef GT_REPOSITORY_NAME
-#undef GT_REPOSITORY_INC
