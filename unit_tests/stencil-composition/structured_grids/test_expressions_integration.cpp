@@ -168,11 +168,7 @@ namespace {
             EXPRESSION_TEST(val3(i, j, k) - val2(i, j, k))
             EXPRESSION_TEST(val3(i, j, k) / val2(i, j, k))
 
-#ifdef CUDA8 // workaround for issue #342
             EXPRESSION_TEST(val3() * 3.)
-#else
-            EXPRESSION_TEST(val3(i, j, k) * 3.)
-#endif
             EXPRESSION_TEST(3. * val3())
             EXPRESSION_TEST(val3() * 3) // accessor<double> mult int
             EXPRESSION_TEST(3 * val3()) // int mult accessor<double>
