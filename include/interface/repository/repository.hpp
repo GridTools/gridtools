@@ -69,6 +69,8 @@
     GRIDTOOLS_STATIC_ASSERT((is_data_store< data_store >::value), \
         "At least one of the arguments passed to the repository in GT_REPOSITORY_FIELDTYPES is not a data_store");
 
+// TODO add protection that all FieldTypes are present in GTREPO_FIELDTYPES_SEQ which are passed in GTREPOS_FIELDS_SEQ
+
 #define GT_MAKE_REPOSITORY_HELPER(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ)                               \
     class GTREPO_NAME {                                                                                                \
       private:                                                                                                         \
