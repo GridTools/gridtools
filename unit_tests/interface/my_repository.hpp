@@ -1,6 +1,6 @@
-#include <unordered_map>
+
 #include "storage/storage-facility.hpp"
-#include "boost/variant.hpp"
+#include "interface/repository/repository.hpp"
 
 using namespace gridtools;
 
@@ -9,10 +9,11 @@ using IJKDataStore = typename storage_traits< enumtype::Host >::data_store_t< fl
 using IJStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 1, 2 >;
 using IJDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJStorageInfo >;
 
-#define GT_REPOSITORY_NAME my_repository
-#define GT_REPOSITORY_INC "../../../unit_tests/interface/my_repository.inc"
-#include "interface/repository/repository.hpp"
+#define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
+#define MY_FIELDS (IJKDataStore, u)(IJDataStore, crlat)
+GT_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
 
-#define GT_REPOSITORY_NAME my_repository2
-#define GT_REPOSITORY_INC "../../../unit_tests/interface/my_repository2.inc"
-#include "interface/repository/repository.hpp"
+class my_extended_repo : public my_repository {
+    using my_repository::my_repository;
+    void some_extra_function() {}
+};
