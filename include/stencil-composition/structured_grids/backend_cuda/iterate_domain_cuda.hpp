@@ -40,6 +40,7 @@
 #include "../../iterate_domain_metafunctions.hpp"
 #include "../../backend_cuda/iterate_domain_cache.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "../../const_iterate_domain.hpp"
 #include "../../../common/cuda_type_traits.hpp"
 
 namespace gridtools {
@@ -83,6 +84,11 @@ namespace gridtools {
             typename IterateDomainArguments::max_extent_t,
             typename iterate_domain_cache_t::ij_caches_tuple_t > shared_iterate_domain_t;
 
+        typedef const_iterate_domain< data_ptr_cached_t,
+             strides_cached_t,
+             backend_traits_from_id< enumtype::Cuda >,
+             typename super::grid_traits_t > const_iterate_domain_t;
+
         typedef typename iterate_domain_cache_t::ij_caches_map_t ij_caches_map_t;
         typedef typename iterate_domain_cache_t::k_caches_map_t k_caches_map_t;
         typedef typename iterate_domain_cache_t::bypass_caches_set_t bypass_caches_set_t;
@@ -95,6 +101,7 @@ namespace gridtools {
         const uint_t m_block_size_j;
         shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
         iterate_domain_cache_t m_iterate_domain_cache;
+        const_iterate_domain_t const *RESTRICT m_pconst_iterate_domain;         
 
       public:
         GT_FUNCTION
@@ -155,26 +162,19 @@ namespace gridtools {
         void set_shared_iterate_domain_pointer_impl(shared_iterate_domain_t *ptr) { m_pshared_iterate_domain = ptr; }
 
         GT_FUNCTION
-        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
-        }
+        void set_const_iterate_domain_pointer_impl(const_iterate_domain_t const *ptr) { m_pconst_iterate_domain = ptr; } 
 
         GT_FUNCTION
-        data_ptr_cached_t &RESTRICT data_pointer_impl() {
-            //        assert(m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->data_pointer();
+        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
+             //        assert(m_pshared_iterate_domain);
+             //        assert(m_pshared_iterate_domain);
+            return m_pconst_iterate_domain->data_pointer();
         }
 
         GT_FUNCTION
         strides_cached_t const &RESTRICT strides_impl() const {
             //        assert((m_pshared_iterate_domain);
-            return m_pshared_iterate_domain->strides();
-        }
-        GT_FUNCTION
-        strides_cached_t &RESTRICT strides_impl() {
-            //        assert((m_pshared_iterate_domain));
-            return m_pshared_iterate_domain->strides();
+            return m_pconst_iterate_domain->strides();
         }
 
         template < ushort_t Coordinate, typename Execution >

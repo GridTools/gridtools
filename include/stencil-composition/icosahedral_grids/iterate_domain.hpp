@@ -76,6 +76,7 @@ namespace gridtools {
 
         typedef typename local_domain_t::esf_args esf_args_t;
 
+        typedef backend_traits_from_id< backend_ids_t::s_backend_id > backend_traits_t;
         typedef typename backend_traits_from_id< backend_ids_t::s_backend_id >::template select_iterate_domain_cache<
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
 
@@ -187,13 +188,22 @@ namespace gridtools {
             : m_local_domain(local_domain_), m_grid_topology(grid_topology) {}
 
         /**
-           @brief returns the array of pointers to the raw data
+           @brief returns the array of pointers to the raw data as const reference
         */
         GT_FUNCTION
         data_ptr_cached_t const &RESTRICT data_pointer() const {
-            return static_cast< IterateDomainImpl const * >(this)->data_pointer_impl();
+            return static_cast< const IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
+        /**
+           @brief returns the strides as const reference
+        */
+        GT_FUNCTION
+        strides_cached_t const &RESTRICT strides() const {
+            return static_cast< const IterateDomainImpl * >(this)->strides_impl();
+        }
+
+#ifndef __CUDACC__
         /**
            @brief returns the array of pointers to the raw data
         */
@@ -203,18 +213,22 @@ namespace gridtools {
         }
 
         /**
-           @brief returns the strides as const reference
-        */
-        GT_FUNCTION
-        strides_cached_t const &RESTRICT strides() const {
-            return static_cast< IterateDomainImpl const * >(this)->strides_impl();
-        }
-
-        /**
-           @brief returns the strides as const reference
+           @brief TODO remove
+           only for host initialization
         */
         GT_FUNCTION
         strides_cached_t &RESTRICT strides() { return static_cast< IterateDomainImpl * >(this)->strides_impl(); }
+#endif
+
+        template < typename BackendType >
+        GT_FUNCTION void assign_index() {
+            boost::fusion::for_each(m_local_domain.m_local_data_ptrs,
+                assign_index_functor< BackendType,
+                                        array_index_t,
+                                        local_domain_t,
+                                        processing_elements_block_size_t,
+                                        grid_traits_t >(m_index, m_local_domain.m_local_storage_info_ptrs));
+        }
 
         /** This functon set the addresses of the data values  before the computation
             begins.
@@ -230,7 +244,6 @@ namespace gridtools {
                                         data_ptr_cached_t,
                                         local_domain_t,
                                         processing_elements_block_size_t,
-                                        typename local_domain_t::extents_map_t,
                                         grid_traits_t >(data_pointer(), m_local_domain.m_local_storage_info_ptrs));
         }
 
@@ -439,9 +452,6 @@ namespace gridtools {
             typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
                 const storage_info_t * >::type::pos storage_info_index_t;
 
-            const storage_info_t *storage_info =
-                boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
-
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
 
@@ -454,6 +464,11 @@ namespace gridtools {
             const int_t pointer_offset =
                 m_index[storage_info_index_t::value] +
                 compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
+
+#ifndef NDEBUG
+// GTASSERT((pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t, arg_t,
+// grid_traits_t>(storage_info, real_storage_pointer, pointer_offset)));
+#endif
 
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
@@ -481,14 +496,6 @@ namespace gridtools {
             data_t *RESTRICT real_storage_pointer =
                 static_cast< data_t * >(data_pointer().template get< index_t::value >()[0]);
 
-#ifndef NDEBUG
-            typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
-                const storage_info_t * >::type::pos storage_info_index_t;
-
-            const storage_info_t *storage_info =
-                boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
-
-#endif
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
                     typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
@@ -526,9 +533,6 @@ namespace gridtools {
             // storage info id)
             typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
                 const storage_info_t * >::type::pos storage_info_index_t;
-
-            const storage_info_t *storage_info =
-                boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
 
             using location_type_t = typename accessor_t::location_type;
             // control your instincts: changing the following
