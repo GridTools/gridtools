@@ -50,9 +50,9 @@ namespace gridtools {
 
     template < typename T, size_t D >
     std::vector< T > to_vector(array< T, D > const &a) {
-        std::vector< T > v;
-        for (const auto &elem : a) {
-            v.push_back(elem);
+        std::vector< T > v(D);
+        for (int i = 0; i < D; ++i) {
+            v.at(i) = a[i];
         }
         return v;
     }
