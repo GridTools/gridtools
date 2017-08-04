@@ -111,17 +111,14 @@ class serialization_setup : public ::testing::Test {
             if (!serializer.has_field(it->first))
                 return ::testing::AssertionFailure() << "storage " << it->first << " is not present";
 
-            // TODO recover test
-            //            const auto &info = serializer.get_field_meta_info(it->first);
-            //            const auto &dims_array = it->second->meta_data().m_unaligned_dims;
-            //            std::vector< int > dims(&dims_array[0], &dims_array[0] + dims_array.size());
-            //
-            //            if (dims != info.dims())
-            //                return ::testing::AssertionFailure() << "dimension mismatch of storage" << it->first
-            //                                                     << "\nRegistered: " <<
-            //                                                     serialbox::ArrayUtil::toString(info.dims())
-            //                                                     << "\nGiven     : " <<
-            //                                                     serialbox::ArrayUtil::toString(dims);
+            const auto &info = serializer.get_field_meta_info(it->first);
+            const auto &dims_array = to_vector(make_unaligned_dims_array(*it->second->get_storage_info_ptr()));
+            std::vector< int > dims(&dims_array[0], &dims_array[0] + dims_array.size());
+
+            if (dims != info.dims())
+                return ::testing::AssertionFailure() << "dimension mismatch of storage" << it->first
+                                                     << "\nRegistered: " << serialbox::ArrayUtil::toString(info.dims())
+                                                     << "\nGiven     : " << serialbox::ArrayUtil::toString(dims);
         }
         return ::testing::AssertionSuccess();
     }
