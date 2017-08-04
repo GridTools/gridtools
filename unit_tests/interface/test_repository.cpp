@@ -36,71 +36,82 @@
 
 #include <gtest/gtest.h>
 #include <boost/variant/apply_visitor.hpp>
-#include "my_repository5.hpp"
 
-// TEST(repository, init_a_member) {
-//    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
-//
-//    ASSERT_EQ(10, repo.get_u().dim< 0 >());
-//    ASSERT_EQ(11, repo.get_crlat().dim< 0 >());
-//}
+#include "storage/storage-facility.hpp"
+#include "interface/repository/repository.hpp"
 
-// TEST(repository, type_to_id_and_back) {
-//    GRIDTOOLS_STATIC_ASSERT((std::is_same< typename id_to_type< static_int< type_to_id< IJKDataStore >::value >
-//    >::type,
-//                                IJKDataStore >::value),
-//        "ERROR");
-//}
-//
-// TEST(test_variant, test1) {
-//    boost::variant< int, double, float > test(5);
-//    //    float as_f = boost::get< float >(test);
-//    int as_int = boost::get< int >(test);
-//    std::cout << test << std::endl;
-//}
-//
-// TEST(repository, access_map) {
-//    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
-//
-//    auto u = boost::get< IJKDataStore >(repo.data_store_map_["u"]);
-//
-//    ASSERT_EQ(10, u.dim< 0 >());
-//}
-//
-// class PrintDim : public boost::static_visitor<> {
-//  public:
-//    template < typename T >
-//    void operator()(T &t) const {
-//        std::cout << t.template dim< 0 >() << std::endl;
-//    }
-//};
-//
-// TEST(repository, iterate) {
-//    my_repository repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
-//
-//    for (auto &elem : repo.data_stores()) {
-//        boost::apply_visitor(PrintDim(), elem.second);
-//    }
-//}
-//
-// TEST(repository, two_repos) {
-//    my_repository2 repo(IJStorageInfo(11, 22));
-//
-//    ASSERT_EQ(2, repo.data_stores().size());
-//}
+using namespace gridtools;
 
-TEST(repository, repo5) {
-    my_repository5 repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+using IJKStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 0, 3 >;
+using IJKDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJKStorageInfo >;
+using IJStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 1, 2 >;
+using IJDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJStorageInfo >;
 
-    ASSERT_EQ(2, repo.data_stores().size());
+#define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
+#define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)
+GT_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
+#undef MY_FIELDTYPES
+#undef MY_FIELDS
+
+class simple_repository : public ::testing::Test {
+  public:
+    my_repository repo;
+    simple_repository() : repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22)) {}
+};
+
+TEST_F(simple_repository, access_fields) {
+    ASSERT_EQ("u", repo.get_u().name());
+    ASSERT_EQ(10, repo.get_u().dim< 0 >());
+    ASSERT_EQ(11, repo.get_crlat().dim< 0 >());
 }
 
-TEST(repository, inherit) {
-    my_useful_repo repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+TEST_F(simple_repository, access_field_from_map) {
+    // needs a cast
+    auto u = boost::get< IJKDataStore >(repo.data_stores()["u"]);
 
-    ASSERT_EQ(2, repo.data_stores().size());
+    ASSERT_EQ(10, u.dim< 0 >());
 }
 
+class DemonstrateIterationOverMap : public boost::static_visitor<> {
+  public:
+    std::vector< std::string > names = {"u", "v", "crlat"};
+    template < typename T >
+    void operator()(T &t) const {
+        ASSERT_TRUE(std::find(std::begin(names), std::end(names), t.name()) != std::end(names));
+    }
+};
+
+TEST_F(simple_repository, iterate_map_with_visitor) {
+    for (auto &elem : repo.data_stores()) {
+        // can iterate without manual cast
+        boost::apply_visitor(DemonstrateIterationOverMap(), elem.second);
+    }
+}
+
+#define MY_FIELDTYPES (IJKDataStore)
+#define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)
+GT_MAKE_REPOSITORY(my_repository2, MY_FIELDTYPES, MY_FIELDS)
+
+TEST(two_repository, test) {
+    my_repository repo1(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+    my_repository2 repo2(IJKStorageInfo(22, 33, 44));
+
+    ASSERT_EQ(3, repo1.data_stores().size());
+    ASSERT_EQ(2, repo2.data_stores().size());
+}
+
+class my_extended_repo : public my_repository {
+    using my_repository::my_repository;
+    void some_extra_function() {}
+};
+
+TEST(extended_repo, inherited_functions) {
+    my_extended_repo repo(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
+
+    ASSERT_EQ(10, repo.get_u().dim< 0 >());
+}
+
+// TODO notes form discussion with Carlos
 // int dims[3] {...};
 // wrap = init_wrappable( "dycore", dims );
 //

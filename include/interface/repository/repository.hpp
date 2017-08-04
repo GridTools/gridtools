@@ -52,7 +52,9 @@
 #define GTREPO_make_ctor_args(r, data, n, data_store) \
     BOOST_PP_COMMA_IF(n) typename data_store::storage_info_t BOOST_PP_CAT(data_store, _info)
 #define GTREPO_make_ctor_init(r, data, n, tuple) \
-    BOOST_PP_COMMA_IF(n) GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple))(BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(0, tuple), _info))
+    BOOST_PP_COMMA_IF(n)                         \
+    GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple))(  \
+        BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(0, tuple), _info), GTREPO_as_string(BOOST_PP_TUPLE_ELEM(1, tuple)))
 
 #define GTREPO_init_map(r, data, tuple) \
     data_store_map_.emplace(            \
