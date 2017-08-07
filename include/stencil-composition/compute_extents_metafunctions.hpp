@@ -40,6 +40,7 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/reverse.hpp>
 
+#include "../common/gt_assert.hpp"
 #include "./amss_descriptor.hpp"
 #include "./conditionals/condition.hpp"
 #include "./esf_metafunctions.hpp"
