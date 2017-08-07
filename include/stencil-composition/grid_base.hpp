@@ -33,6 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 #include "../common/halo_descriptor.hpp"
 #include "../common/array.hpp"
@@ -73,6 +74,7 @@ namespace gridtools {
               m_direction_i(direction_i), m_direction_j(direction_j) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            delete &m_partitioner; // HACK
         }
 
         template < typename ParallelStorage >
@@ -91,6 +93,7 @@ namespace gridtools {
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "You have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            delete &m_partitioner; // HACK
         }
 
         GT_FUNCTION
@@ -125,11 +128,7 @@ namespace gridtools {
          * The total length of the k dimension as defined by the axis.
          */
         GT_FUNCTION
-        uint_t k_total_length() const {
-            const uint_t begin_of_k = value_at< typename Axis::FromLevel >();
-            const uint_t end_of_k = value_at< typename Axis::ToLevel >() - 1;
-            return k_max() - k_min() + 1;
-        }
+        uint_t k_total_length() const { return k_max() - k_min() + 1; }
 
         GT_FUNCTION halo_descriptor const &direction_i() const { return m_direction_i; }
 

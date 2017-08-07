@@ -85,7 +85,9 @@ namespace gridtools {
                 (!boost::is_same< typename Arg::location_t, enumtype::default_location_type >::value),
                 "args in irregular grids require a location type");
 #endif
+            typedef Interval interval_t;
             typedef enumtype::enum_type< cache_type, cacheType > cache_type_t;
+            static constexpr cache_io_policy ccacheIOPolicy = cacheIOPolicy;
         };
 
         /**
@@ -100,7 +102,6 @@ namespace gridtools {
         };
     }
 
-#ifdef CXX11_ENABLED
     /**
      *	@brief function that forms a vector of caches that share the same cache type and input/output policy  (c++11
      *version)
@@ -117,10 +118,10 @@ namespace gridtools {
         detail::force_arg_resolution< cacheType, cacheIOPolicy, Interval > >::type
     cache(Args &&...) {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, "Cannot build cache sequence without argument");
-        static_assert(((boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType == K),
+        GRIDTOOLS_STATIC_ASSERT(((boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType == K),
             "Passing an interval to the cache<> construct is only allowed and required by the K caches");
-        static_assert(
-            (!(boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType != K || cacheIOPolicy == local),
+        GRIDTOOLS_STATIC_ASSERT((!(boost::is_same< Interval, boost::mpl::void_ >::value) || cacheType != K ||
+                                    cacheIOPolicy == cache_io_policy::local),
             "cache<K, ... > construct requires an interval (unless the IO policy is local)");
 
         static_assert((boost::is_same< Interval, boost::mpl::void_ >::value || is_interval< Interval >::value),
@@ -129,27 +130,4 @@ namespace gridtools {
             detail::force_arg_resolution< cacheType, cacheIOPolicy, Interval > >::type res_ty;
         return res_ty();
     }
-#else
-
-/*
- * This macro is providing the same functionality as the cache(Args&&) function above.
- * Just used because of c++03 compatibility.
- */
-#define _CREATE_CACHE(z, n, nil)                                                                                \
-    template < cache_type cacheType,                                                                            \
-        cache_io_policy cacheIOPolicy,                                                                          \
-        BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), typename T) >                                                     \
-    typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >,             \
-        detail::force_arg_resolution< cacheType, cacheIOPolicy, boost::mpl::void_ > >::type                     \
-        cache(BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T)) {                                                       \
-        typedef typename boost::mpl::transform< boost::mpl::vector< BOOST_PP_ENUM_PARAMS(BOOST_PP_INC(n), T) >, \
-            detail::force_arg_resolution< cacheType, cacheIOPolicy, boost::mpl::void_ > >::type res_type;       \
-        GRIDTOOLS_STATIC_ASSERT(                                                                                \
-            (boost::mpl::size< res_type >::value > 0), "Cannot build cache sequence without argument");         \
-        return res_type();                                                                                      \
-    }
-    BOOST_PP_REPEAT(GT_MAX_ARGS, _CREATE_CACHE, _)
-#undef _CREATE_CACHE
-
-#endif
 }

@@ -36,8 +36,6 @@
 #pragma once
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
-
     namespace impl_ {
         template < short_t Pre,
             typename InSequence,
@@ -72,5 +70,4 @@ namespace gridtools {
         typedef typename impl_::recursive_expansion< Pre, InSequence, Sequence, Post... >::type type;
     };
 
-#endif
 } // namespace gridtools

@@ -35,9 +35,7 @@
 */
 #pragma once
 
-#ifndef CXX11_ENABLED
 #include <boost/typeof/typeof.hpp>
-#endif
 #include <boost/fusion/include/size.hpp>
 #include <boost/mpl/size.hpp>
 #include <boost/mpl/at.hpp>
@@ -54,9 +52,7 @@
 #include <boost/mpl/modulus.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/utility/enable_if.hpp>
-#ifdef CXX11_ENABLED
 #include "expressions/expressions.hpp"
-#endif
 #include "../common/array.hpp"
 #include "../common/meta_array.hpp"
 #include "../common/generic_metafunctions/reversed_range.hpp"
@@ -638,5 +634,16 @@ namespace gridtools {
             typename boost::add_const< accessor_value_type >::type,
             typename boost::add_reference< accessor_value_type >::type RESTRICT >::type type;
     };
+    namespace aux {
+        /**
+         * metafunction that determines if a given accessor is associated with an placeholder holding a data field
+         */
+        template < typename Accessor, typename IterateDomainArguments >
+        struct accessor_holds_data_field {
+            typedef typename boost::mpl::eval_if< is_accessor< Accessor >,
+                arg_holds_data_field_h< get_arg_from_accessor< Accessor, IterateDomainArguments > >,
+                boost::mpl::identity< boost::mpl::false_ > >::type type;
+        };
 
+    } // namespace aux
 } // namespace gridtools

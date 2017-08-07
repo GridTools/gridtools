@@ -128,7 +128,7 @@ int main(int argc, char **argv) {
     typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
-    meta_data_t meta_(d1 - 2, d2 - 2, d3 - 2);
+    meta_data_t meta_(d1, d2, d3);
     storage_t in_s(meta_, [](int i, int j, int k) { return i + j + k; }, "in");
     storage_t out_s(meta_, 0, "out");
 
@@ -152,6 +152,12 @@ int main(int argc, char **argv) {
     auto in = make_host_view(in_s);
     auto out = make_host_view(out_s);
 
+    assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
+    assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
+
+    // reactivate views and check consistency
+    in_s.reactivate_host_write_views();
+    out_s.reactivate_host_write_views();
     assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
     assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
 

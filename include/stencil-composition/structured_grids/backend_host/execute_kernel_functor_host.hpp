@@ -114,36 +114,16 @@ namespace gridtools {
                 const uint_t last_j,
                 const uint_t block_idx_i,
                 const uint_t block_idx_j)
-                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data)
-#ifdef CXX11_ENABLED
-                  ,
-                  m_first_pos{first_i, first_j}, m_last_pos{last_i, last_j}, m_block_id {
-                block_idx_i, block_idx_j
-            }
-#else
-                  ,
-                  m_first_pos(first_i, first_j), m_last_pos(last_i, last_j), m_block_id(block_idx_i, block_idx_j)
-#endif
-            {}
+                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data),
+                  m_first_pos{first_i, first_j}, m_last_pos{last_i, last_j}, m_block_id{block_idx_i, block_idx_j} {}
 
             // Naive strategy
             explicit execute_kernel_functor_host(
                 const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
-                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data)
-#ifdef CXX11_ENABLED
-                  ,
+                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data),
                   m_first_pos{grid.i_low_bound(), grid.j_low_bound()},
                   m_last_pos{grid.i_high_bound() - grid.i_low_bound(), grid.j_high_bound() - grid.j_low_bound()},
-                  m_block_id {
-                0, 0
-            }
-#else
-                  ,
-                  m_first_pos(grid.i_low_bound(), grid.j_low_bound()),
-                  m_last_pos(grid.i_high_bound() - grid.i_low_bound(), grid.j_high_bound() - grid.j_low_bound()),
-                  m_block_id(0, 0)
-#endif
-            {}
+                  m_block_id{0, 0} {}
 
             void operator()() {
                 typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;

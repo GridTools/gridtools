@@ -55,6 +55,7 @@ namespace gridtools {
         typename Halo = zero_halo< Layout::masked_length >,
         typename Alignment = alignment< 1 > >
     struct host_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
+
         /*
          * @brief host_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
