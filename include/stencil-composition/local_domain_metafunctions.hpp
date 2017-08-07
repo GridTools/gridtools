@@ -55,8 +55,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< LocalDomainSequence, is_local_domain >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< LocalDomainSequence >::value > 0), GT_INTERNAL_ERROR);
 
-        // get extents map from first element
-        typedef typename boost::mpl::at_c< LocalDomainSequence, 0 >::type::extents_map_t extents_map_t;
         // get all the storage wrapper lists from all local domains
         typedef typename boost::mpl::transform< LocalDomainSequence, get_storage_wrapper >::type all_storage_wrappers;
         // flatten the vector of vectors to a single vector
@@ -76,8 +74,7 @@ namespace gridtools {
             boost::mpl::push_back< boost::mpl::_1, arg_from_storage_wrapper< boost::mpl::_2 > > >::type new_args_t;
 
         // return the new local domain type
-        typedef boost::mpl::vector< local_domain< merged_storage_wrappers, new_args_t, extents_map_t, IsStateful > >
-            type;
+        typedef boost::mpl::vector< local_domain< merged_storage_wrappers, new_args_t, IsStateful > > type;
     };
 
     /**
