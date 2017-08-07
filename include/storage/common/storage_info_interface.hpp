@@ -182,7 +182,7 @@ namespace gridtools {
          */
         template < typename... Args >
         GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) == layout_t::masked_length), int >::type
-        index_part(std::array< int, layout_t::masked_length > const &idx, Args... indices) const {
+        index_part(gridtools::array< int, layout_t::masked_length > const &idx, Args... indices) const {
             return index(indices...);
         }
 
@@ -196,8 +196,8 @@ namespace gridtools {
          */
         template < typename... Args >
         GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) < layout_t::masked_length), int >::type
-        index_part(std::array< int, layout_t::masked_length > const &idx, Args... indices) const {
-            return index_part(idx, indices..., idx[sizeof...(Args)]);
+        index_part(gridtools::array< int, layout_t::masked_length > const &idx, Args... indices) const {
+            return index_part(idx, indices..., idx.template get< sizeof...(Args) >());
         }
 
         /*
@@ -231,7 +231,7 @@ namespace gridtools {
          */
         template < bool HaloIncluded, typename... Args >
         GT_FUNCTION constexpr
-            typename boost::enable_if_c< (sizeof...(Args) == layout_t::masked_length), int >::type end_part(
+            typename boost::enable_if_c< (sizeof...(Args) >= layout_t::masked_length), int >::type end_part(
                 Args... indices) const {
             return index(indices...);
         }
@@ -244,10 +244,11 @@ namespace gridtools {
         GT_FUNCTION constexpr
             typename boost::enable_if_c< (sizeof...(Args) < layout_t::masked_length), int >::type end_part(
                 Args... indices) const {
-            return HaloIncluded
-                       ? end_part< HaloIncluded >(indices...,
-                             (unaligned_dim< sizeof...(Args) >() - 1 - halo_t::template at< sizeof...(Args) >()))
-                       : end_part< HaloIncluded >(indices..., (unaligned_dim< sizeof...(Args) >() - 1));
+            return HaloIncluded ? end_part< HaloIncluded, Args..., int >(indices...,
+                                      static_cast< int >(unaligned_dim< sizeof...(Args) >() - 1 -
+                                                                             halo_t::template at< sizeof...(Args) >()))
+                                : end_part< HaloIncluded, Args..., int >(
+                                      indices..., static_cast< int >(unaligned_dim< sizeof...(Args) >() - 1));
         }
 
       public:
@@ -312,7 +313,7 @@ namespace gridtools {
         }
 
         /*
-         * @brief member function to retrieve the position of the first point.
+         * @brief member function to retrieve the position of the last point.
          * This could also be a halo point.
          * @return position of last accessible point
          */
@@ -326,7 +327,7 @@ namespace gridtools {
         GT_FUNCTION constexpr uint_t begin() const { return index(Halos...); }
 
         /*
-         * @brief member function to retrieve the position of the first point.
+         * @brief member function to retrieve the position of the last point.
          * This could also be a halo point.
          * @return position of last accessible point
          */
@@ -421,7 +422,7 @@ namespace gridtools {
          * @param offsets given offset array
          * @return index
          */
-        GT_FUNCTION constexpr int index(std::array< int, layout_t::masked_length > const &offsets) const {
+        GT_FUNCTION constexpr int index(gridtools::array< int, layout_t::masked_length > const &offsets) const {
             return index_part(offsets);
         }
 
