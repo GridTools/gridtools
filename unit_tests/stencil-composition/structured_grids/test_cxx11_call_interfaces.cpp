@@ -249,7 +249,8 @@ class call_interface : public testing::Test {
 
     data_store_t in;
     data_store_t out;
-    const float_type default_value = -1;
+
+    static constexpr float_type default_value = -1;
     data_store_t reference_unchanged;
     data_store_t reference_shifted;
     data_store_t reference_smaller_interval;
