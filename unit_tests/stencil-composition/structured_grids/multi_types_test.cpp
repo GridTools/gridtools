@@ -44,32 +44,16 @@
 #define FTESTNAME(x) CALL_GPU
 #endif
 
-#ifdef FUNCTIONS_OFFSETS
-#define FTESTNAME(x) OFFSETS_GPU
-#endif
-
 #ifdef FUNCTIONS_PROCEDURES
 #define FTESTNAME(x) PROCEDURES_GPU
-#endif
-
-#ifdef FUNCTIONS_PROCEDURES_OFFSETS
-#define FTESTNAME(x) PROCEDURESOFFSETS_GPU
 #endif
 #else
 #ifdef FUNCTIONS_CALL
 #define FTESTNAME(x) CALL
 #endif
 
-#ifdef FUNCTIONS_OFFSETS
-#define FTESTNAME(x) OFFSETS
-#endif
-
 #ifdef FUNCTIONS_PROCEDURES
 #define FTESTNAME(x) PROCEDURES
-#endif
-
-#ifdef FUNCTIONS_PROCEDURES_OFFSETS
-#define FTESTNAME(x) PROCEDURESOFFSETS
 #endif
 #endif
 
@@ -205,17 +189,9 @@ namespace multi_types_test {
 #ifdef FUNCTIONS_PROCEDURES
             type1 result;
             call_proc< function0, region >::with(eval, in(), result);
-#else
-#ifdef FUNCTIONS_PROCEDURES_OFFSETS
-            type1 result;
-            call_proc< function0, region >::with_offsets(eval, in(), result);
-#else
-#ifdef FUNCTIONS_OFFSETS
-            auto result = call< function0, region >::with_offsets(eval, in());
+            call_proc< function0, region >::with(eval, in(), result);
 #else
             auto result = call< function0, region >::with(eval, in());
-#endif
-#endif
 #endif
             eval(out()) = result;
         }
