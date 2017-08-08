@@ -38,7 +38,6 @@
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/vector.hpp>
-#include <boost/mpl/or.hpp>
 
 #include "../../common/generic_metafunctions/mpl_sequence_to_fusion_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
@@ -133,9 +132,7 @@ namespace gridtools {
                 return *m_result;
             }
         };
-    } // namespace _impl
 
-    namespace _impl {
         template < typename Functor, typename Region >
         struct do_caller {
             template < typename Aggregator >
@@ -152,7 +149,7 @@ namespace gridtools {
                 Functor::Do(agg);
             }
         };
-    }
+    } // namespace _impl
 
     /** Main interface for calling stencil operators as functions.
 
