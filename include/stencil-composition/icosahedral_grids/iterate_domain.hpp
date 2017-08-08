@@ -75,7 +75,8 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
-
+        
+        typedef backend_traits_from_id< backend_ids_t::s_backend_id > backend_traits_t;
         typedef typename backend_traits_from_id< backend_ids_t::s_backend_id >::template select_iterate_domain_cache<
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
 
@@ -230,7 +231,6 @@ namespace gridtools {
                                         data_ptr_cached_t,
                                         local_domain_t,
                                         processing_elements_block_size_t,
-                                        typename local_domain_t::extents_map_t,
                                         grid_traits_t >(data_pointer(), m_local_domain.m_local_storage_info_ptrs));
         }
 
@@ -455,6 +455,10 @@ namespace gridtools {
                 m_index[storage_info_index_t::value] +
                 compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
+#ifndef NDEBUG
+            GTASSERT((pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t, arg_t, grid_traits_t>(storage_info, real_storage_pointer, pointer_offset)));
+#endif
+
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
                     typename iterate_domain< IterateDomainImpl >::template accessor_return_type< Accessor >::type,
@@ -484,10 +488,10 @@ namespace gridtools {
 #ifndef NDEBUG
             typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
                 const storage_info_t * >::type::pos storage_info_index_t;
-
             const storage_info_t *storage_info =
                 boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
 
+            GTASSERT((pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t, arg_t, grid_traits_t>(storage_info, real_storage_pointer, offset)));
 #endif
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<

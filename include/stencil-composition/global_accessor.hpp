@@ -88,6 +88,12 @@ namespace gridtools {
 
         typedef empty_extent extent_t;
 
+        GT_FUNCTION constexpr global_accessor() {}
+
+        // copy ctor from another global_accessor with different index
+        template < uint_t OtherIndex >
+        GT_FUNCTION constexpr global_accessor(const global_accessor< OtherIndex, Intend > &other) {}
+
         /** @brief generates a global_accessor_with_arguments and returns it by value */
         template < typename... Args >
         GT_FUNCTION global_accessor_with_arguments< global_accessor, Args... > operator()(Args &&... args_) {

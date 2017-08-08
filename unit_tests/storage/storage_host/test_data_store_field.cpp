@@ -36,11 +36,12 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/data_store_field.hpp"
-#include "storage/storage_host/data_field_view_helpers.hpp"
-#include "storage/storage_host/data_view_helpers.hpp"
-#include "storage/storage_host/storage.hpp"
-#include "storage/storage_host/storage_info.hpp"
+#include <common/gt_assert.hpp>
+#include <storage/data_store_field.hpp>
+#include <storage/storage_host/data_field_view_helpers.hpp>
+#include <storage/storage_host/data_view_helpers.hpp>
+#include <storage/storage_host/host_storage.hpp>
+#include <storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 
@@ -72,7 +73,7 @@ TEST(DataStoreFieldTest, FillAndReadData) {
     data_store_field< data_store< host_storage< double >, storage_info_t >, 2, 1, 1 > f(si);
     // access the first storage of the first dimension and set the first value to 5
     auto hv = make_field_host_view(f);
-    static_assert(is_data_field_view< decltype(hv) >::value, "is_data_field_view is not working anymore");
+    GRIDTOOLS_STATIC_ASSERT(is_data_field_view< decltype(hv) >::value, "is_data_field_view is not working anymore");
     hv.get< 0, 0 >()(0, 0, 0) = 5;
     hv.get< 0, 1 >()(0, 0, 0) = -5;
     // manually get the view of the first storage element in the data view (equivalent to get<0,0>...)
@@ -105,10 +106,9 @@ TEST(DataStoreFieldTest, GetSet) {
 #ifndef NDEBUG
     storage_info_t si1(5, 5, 5);
     data_store< host_storage< double >, storage_info_t > ds1;
-    ASSERT_DEATH((f.set< 0, 0 >(ds1)), "Passed invalid data store.");
+    EXPECT_THROW((f.set< 0, 0 >(ds1)), std::runtime_error);
     ds1.allocate(si1);
-    ASSERT_DEATH(
-        (f.set< 0, 0 >(ds1)), "Passed data store cannot be inserted into data store field because storage infos.*");
+    EXPECT_THROW((f.set< 0, 0 >(ds1)), std::runtime_error);
 #endif
     // get a storage and compare ptrs
     data_store< host_storage< double >, storage_info_t > st = f.get< 1, 0 >();
