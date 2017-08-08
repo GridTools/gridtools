@@ -38,7 +38,6 @@
 
 #include "gtest/gtest.h"
 
-#include <stencil-composition/global_accessor.hpp>
 #include <stencil-composition/stencil-functions/call_interfaces.hpp>
 #include <stencil-composition/stencil-functions/call_interfaces_metafunctions.hpp>
 #include <type_traits>

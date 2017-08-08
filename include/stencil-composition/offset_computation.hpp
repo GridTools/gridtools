@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include "../common/gt_assert.hpp"
+
 namespace gridtools {
 
     namespace _impl {
@@ -44,8 +46,8 @@ namespace gridtools {
             typename boost::enable_if_c< (N == (StorageInfo::layout_t::masked_length - 1)), int_t >::type
             apply_accessor(StridesCached const &RESTRICT strides, Accessor const &RESTRICT acc) {
             typedef boost::mpl::int_< (StorageInfo::layout_t::template at< N >()) > val_t;
-            static_assert((val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length),
-                "invalid stride array access");
+            GRIDTOOLS_STATIC_ASSERT((val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length),
+                GT_INTERNAL_ERROR_MSG("invalid stride array access"));
             typedef boost::mpl::bool_< (val_t::value == Max::value) > is_max_t;
             typedef boost::mpl::bool_< (val_t::value == -1) > is_masked_t;
             typedef typename boost::mpl::if_< is_array< Accessor >,
@@ -60,8 +62,8 @@ namespace gridtools {
             typename boost::enable_if_c< (N < (StorageInfo::layout_t::masked_length - 1)), int_t >::type
             apply_accessor(StridesCached const &RESTRICT strides, Accessor const &RESTRICT acc) {
             typedef boost::mpl::int_< (StorageInfo::layout_t::template at< N >()) > val_t;
-            static_assert((val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length),
-                "invalid stride array access");
+            GRIDTOOLS_STATIC_ASSERT((val_t::value == Max::value) || (N < StorageInfo::layout_t::masked_length),
+                GT_INTERNAL_ERROR_MSG("invalid stride array access"));
             typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == Max::value) > is_max_t;
             typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == -1) > is_masked_t;
             typedef typename boost::mpl::if_< is_array< Accessor >,
