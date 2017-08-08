@@ -98,7 +98,7 @@ void complex_test(Args &... args) {
             typename boost::mpl::at_c< packtype, 3 >::type >::value),
         "3");
 
-    typedef _impl::function_aggregator_procedure< pretent_aggregator, 0, 0, 0, packtype > f_aggregator_t;
+    typedef _impl::function_aggregator_procedure_offsets< pretent_aggregator, 0, 0, 0, packtype > f_aggregator_t;
 
     GRIDTOOLS_STATIC_ASSERT((_impl::contains_value< typename f_aggregator_t::non_accessor_indices,
                                 boost::mpl::integral_c< int, 3 > >::type::value),
