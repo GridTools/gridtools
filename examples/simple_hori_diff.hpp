@@ -191,6 +191,9 @@ namespace shorizontal_diffusion {
             array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
         }
+#ifdef BENCHMARK
+        benchmarker::run(simple_hori_diff, t_steps);
+#endif
 
         simple_hori_diff->finalize();
 

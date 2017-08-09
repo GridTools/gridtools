@@ -36,10 +36,11 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/data_store.hpp"
-#include "storage/storage_cuda/data_view_helpers.hpp"
-#include "storage/storage_cuda/storage.hpp"
-#include "storage/storage_cuda/storage_info.hpp"
+#include <common/gt_assert.hpp>
+#include <storage/data_store.hpp>
+#include <storage/storage_cuda/data_view_helpers.hpp>
+#include <storage/storage_cuda/cuda_storage.hpp>
+#include <storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 
@@ -59,7 +60,7 @@ TEST(DataViewTest, Simple) {
     data_store_t ds(si);
     // create a rw view and fill with some data
     data_view< data_store_t > dv = make_host_view(ds);
-    static_assert(is_data_view< decltype(dv) >::value, "is_data_view check failed");
+    GRIDTOOLS_STATIC_ASSERT((is_data_view< decltype(dv) >::value), "is_data_view check failed");
     dv(0, 0, 0) = 50;
     dv(1, 0, 0) = 60;
 
@@ -91,7 +92,7 @@ TEST(DataViewTest, Simple) {
     // sync, create a device view and call kernel
     ds.sync();
     auto devv = make_device_view(ds);
-    static_assert(is_data_view< decltype(devv) >::value, "is_data_view check failed");
+    GRIDTOOLS_STATIC_ASSERT((is_data_view< decltype(devv) >::value), "is_data_view check failed");
     EXPECT_TRUE(check_consistency(ds, devv));
     EXPECT_FALSE(check_consistency(ds, dv));
     EXPECT_FALSE(check_consistency(ds, dvro));

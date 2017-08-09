@@ -40,9 +40,9 @@
 */
 
 #pragma once
+#include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_metafunctions.hpp"
 #include "stencil-composition/accessor.hpp"
-#include "../iterate_domain_fwd.hpp"
 
 namespace gridtools {
 

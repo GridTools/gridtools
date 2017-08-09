@@ -74,6 +74,7 @@ namespace gridtools {
               m_direction_i(direction_i), m_direction_j(direction_j) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            delete &m_partitioner; // HACK
         }
 
         template < typename ParallelStorage >
@@ -92,6 +93,7 @@ namespace gridtools {
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "You have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            delete &m_partitioner; // HACK
         }
 
         GT_FUNCTION

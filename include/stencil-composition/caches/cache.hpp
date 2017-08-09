@@ -47,13 +47,14 @@
 #include <boost/preprocessor.hpp>
 #include <boost/type_traits/is_same.hpp>
 
-#include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/variadic_to_vector.hpp"
-#include "../../common/generic_metafunctions/mpl_vector_flatten.hpp"
-#include "../../stencil-composition/caches/cache_definitions.hpp"
-#include "../../stencil-composition/accessor.hpp"
-#include "../../stencil-composition/interval.hpp"
-#include "../../stencil-composition/location_type.hpp"
+#include <common/defs.hpp>
+#include <common/gt_assert.hpp>
+#include <common/generic_metafunctions/variadic_to_vector.hpp>
+#include <common/generic_metafunctions/mpl_vector_flatten.hpp>
+#include <stencil-composition/caches/cache_definitions.hpp>
+#include <stencil-composition/accessor.hpp>
+#include <stencil-composition/interval.hpp>
+#include <stencil-composition/location_type.hpp>
 
 namespace gridtools {
 
@@ -124,7 +125,8 @@ namespace gridtools {
                                     cacheIOPolicy == cache_io_policy::local),
             "cache<K, ... > construct requires an interval (unless the IO policy is local)");
 
-        static_assert((boost::is_same< Interval, boost::mpl::void_ >::value || is_interval< Interval >::value),
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::is_same< Interval, boost::mpl::void_ >::value || is_interval< Interval >::value),
             "Invalid Interval type passed to cache construct");
         typedef typename boost::mpl::transform< boost::mpl::vector< Args... >,
             detail::force_arg_resolution< cacheType, cacheIOPolicy, Interval > >::type res_ty;
