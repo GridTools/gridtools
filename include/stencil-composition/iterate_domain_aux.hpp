@@ -624,45 +624,32 @@ namespace gridtools {
 
     template < typename GridTraits, int_t... Vals >
     struct check_accessor< GridTraits, extent< Vals... > > {
-        // get the position of I,J,K in the accessor
-        typedef GridTraits gridtraits_t;
-        static constexpr uint_t i_pos = gridtraits_t::dim_i_t::value;
-        static constexpr uint_t j_pos = gridtraits_t::dim_j_t::value;
-        static constexpr uint_t k_pos = gridtraits_t::dim_k_t::value;
-        // get all needed extents or 0 if no extent was defined
-        static constexpr int_t i_minus_extent =
-            (sizeof...(Vals) > 2 * i_pos) ? get_value_from_pack(2 * i_pos, Vals...) : 0;
-        static constexpr int_t i_plus_extent =
-            (sizeof...(Vals) > 2 * i_pos + 1) ? get_value_from_pack(2 * i_pos + 1, Vals...) : 0;
-        static constexpr int_t j_minus_extent =
-            (sizeof...(Vals) > 2 * j_pos) ? get_value_from_pack(2 * j_pos, Vals...) : 0;
-        static constexpr int_t j_plus_extent =
-            (sizeof...(Vals) > 2 * j_pos + 1) ? get_value_from_pack(2 * j_pos + 1, Vals...) : 0;
-        static constexpr int_t k_minus_extent =
-            (sizeof...(Vals) > 2 * k_pos) ? get_value_from_pack(2 * k_pos, Vals...) : 0;
-        static constexpr int_t k_plus_extent =
-            (sizeof...(Vals) > 2 * k_pos + 1) ? get_value_from_pack(2 * k_pos + 1, Vals...) : 0;
+        using ext = typename GridTraits::template retrieve_accessor_extents< extent< Vals... > >;
 
         template < typename Accessor >
         static bool apply(Accessor const &a) {
             constexpr uint_t dims = Accessor::n_dimensions;
+            constexpr int_t i_pos = GridTraits::dim_i_t::value;
+            constexpr int_t j_pos = GridTraits::dim_j_t::value;
+            constexpr int_t k_pos = GridTraits::dim_k_t::value;
+
             // check if given offsets are within the extents
             bool i_check = (i_pos < dims)
-                               ? (a.offsets().template get< dims - 1 - i_pos >() <= i_plus_extent) &&
-                                     (a.offsets().template get< dims - 1 - i_pos >() >= i_minus_extent)
+                               ? (a.offsets().template get< dims - 1 - i_pos >() <= ext::i_plus_extent) &&
+                                     (a.offsets().template get< dims - 1 - i_pos >() >= ext::i_minus_extent)
                                : true;
             bool j_check = (j_pos < dims)
-                               ? (a.offsets().template get< dims - 1 - j_pos >() <= j_plus_extent) &&
-                                     (a.offsets().template get< dims - 1 - j_pos >() >= j_minus_extent)
+                               ? (a.offsets().template get< dims - 1 - j_pos >() <= ext::j_plus_extent) &&
+                                     (a.offsets().template get< dims - 1 - j_pos >() >= ext::j_minus_extent)
                                : true;
             bool k_check = (k_pos < dims)
-                               ? (a.offsets().template get< dims - 1 - k_pos >() <= k_plus_extent) &&
-                                     (a.offsets().template get< dims - 1 - k_pos >() >= k_minus_extent)
+                               ? (a.offsets().template get< dims - 1 - k_pos >() <= ext::k_plus_extent) &&
+                                     (a.offsets().template get< dims - 1 - k_pos >() >= ext::k_minus_extent)
                                : true;
             // return result
             if (!(i_check && j_check && k_check)) {
-                std::cout << i_minus_extent << " " << i_plus_extent << " " << j_minus_extent << " " << j_plus_extent
-                          << " " << k_minus_extent << " " << k_plus_extent << "\n";
+                std::cout << ext::i_minus_extent << " " << ext::i_plus_extent << " " << ext::j_minus_extent << " " << ext::j_plus_extent
+                          << " " << ext::k_minus_extent << " " << ext::k_plus_extent << "\n";
                 std::cout << a.offsets().template get< dims - 1 - i_pos >() << " "
                           << a.offsets().template get< dims - 1 - j_pos >() << " "
                           << a.offsets().template get< dims - 1 - k_pos >() << "\n";

@@ -401,6 +401,10 @@ namespace gridtools {
         GT_FUNCTION typename boost::disable_if< typename cache_access_accessor< Accessor >::type,
             typename accessor_return_type< Accessor >::type >::type
         operator()(static_uint< Color >, Accessor const &accessor_) const {
+#ifndef NDEBUG
+            ASSERT_OR_THROW((check_accessor< grid_traits_t, typename Accessor::extent_t >::apply(accessor_)),
+                "Accessor out of bounds.");
+#endif
             return get_value(accessor_, get_data_pointer(accessor_));
         }
 
