@@ -36,11 +36,12 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/data_store_field.hpp"
-#include "storage/storage_cuda/data_field_view_helpers.hpp"
-#include "storage/storage_cuda/data_view_helpers.hpp"
-#include "storage/storage_cuda/storage.hpp"
-#include "storage/storage_cuda/storage_info.hpp"
+#include <common/gt_assert.hpp>
+#include <storage/data_store_field.hpp>
+#include <storage/storage_cuda/data_field_view_helpers.hpp>
+#include <storage/storage_cuda/data_view_helpers.hpp>
+#include <storage/storage_cuda/cuda_storage.hpp>
+#include <storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 
@@ -82,7 +83,7 @@ TEST(DataStoreFieldTest, FillAndReadData) {
 
     // access the first storage of the first dimension and set the first value to 5
     auto hv = make_field_host_view(f);
-    static_assert(is_data_field_view< decltype(hv) >::value, "is_data_field_view is not working anymore");
+    GRIDTOOLS_STATIC_ASSERT(is_data_field_view< decltype(hv) >::value, "is_data_field_view is not working anymore");
     EXPECT_TRUE(check_consistency(f, hv));
     hv.get< 0, 0 >()(0, 0, 0) = 5;
     hv.get< 0, 1 >()(0, 0, 0) = -5;
@@ -97,7 +98,7 @@ TEST(DataStoreFieldTest, FillAndReadData) {
     EXPECT_FALSE(check_consistency(f, hv));
     // creating a device write view will make the view valid, but host view is still invalid
     auto dv = make_field_device_view(f);
-    static_assert(is_data_field_view< decltype(dv) >::value, "is_data_field_view is not working anymore");
+    GRIDTOOLS_STATIC_ASSERT(is_data_field_view< decltype(dv) >::value, "is_data_field_view is not working anymore");
     EXPECT_FALSE(check_consistency(f, hv));
     EXPECT_TRUE(check_consistency(f, dv));
     mul2<<< 1, 1 >>>(dv);

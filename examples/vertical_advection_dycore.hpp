@@ -308,6 +308,11 @@ namespace vertical_advection_dycore {
             array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
         }
+
+#ifdef BENCHMARK
+        benchmarker::run(vertical_advection, t_steps);
+#endif
+
         vertical_advection->finalize();
 
         return result;
