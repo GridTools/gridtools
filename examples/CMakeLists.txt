@@ -51,9 +51,9 @@ else()
       set(ccflags " ${HOST_SPECIFIC_OPTIONS}" )
       set(ldflags " ")
 
-      add_custom_mpi_host_test(copy_stencil_parallel ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ${ccflags} ${ldflags})
-
       add_custom_mpi_host_test(shallow_water_enhanced ${CMAKE_CURRENT_SOURCE_DIR}/./shallow_water_enhanced.cpp  ${ccflags} ${ldflags})
+
+      add_custom_mpi_host_test(copy_stencil_parallel ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ${ccflags} ${ldflags})
 
   endif()
 

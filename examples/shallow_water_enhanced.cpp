@@ -33,12 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "shallow_water_enhanced.hpp"
+#include <gridtools.hpp>
 #include "../unit_tests/communication/check_flags.hpp"
 #include "gtest/gtest.h"
-#include <iostream>
+#include "shallow_water_enhanced.hpp"
 
 TEST(Communication, shallow_water_enhanced) {
-    bool passed = shallow_water::test(60, 83, 1, 1);
+    bool passed = shallow_water::test(8, 8, 1);
     EXPECT_TRUE(passed);
 }

@@ -36,7 +36,6 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
-#include <common/parallel_storage_info.hpp>
 #include <communication/low-level/proc_grids_3D.hpp>
 
 #include <communication/halo_exchange.hpp>
