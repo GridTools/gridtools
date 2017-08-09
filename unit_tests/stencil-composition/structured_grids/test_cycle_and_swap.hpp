@@ -37,6 +37,7 @@
 // disabling pedantic mode because I want to use a 2D layout map
 //(to test the case in which the 3rd dimension is not k)
 #define PEDANTIC_DISABLED
+#define ALLOW_EMPTY_EXTENTS
 
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
@@ -63,7 +64,7 @@ namespace test_cycle_and_swap {
     constexpr dimension< 1 > i;
 
     struct functor_avg {
-        typedef inout_accessor< 0, extent<>, 5 > p_data;
+        typedef inout_accessor< 0, extent< -1, 1 >, 5 > p_data;
         typedef dimension< 5 > time;
 
         typedef boost::mpl::vector< p_data > arg_list;

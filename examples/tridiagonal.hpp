@@ -86,8 +86,8 @@ namespace tridiagonal {
         typedef accessor< 0, enumtype::inout > out;
         typedef accessor< 1 > inf;                  // a
         typedef accessor< 2 > diag;                 // b
-        typedef accessor< 3, enumtype::inout > sup; // c
-        typedef accessor< 4, enumtype::inout > rhs; // d
+        typedef accessor< 3, enumtype::inout, extent<0,0,0,0,-1,0> > sup; // c
+        typedef accessor< 4, enumtype::inout, extent<0,0,0,0,-1,0> > rhs; // d
         typedef boost::mpl::vector< out, inf, diag, sup, rhs > arg_list;
 
         template < typename Evaluation >
@@ -114,7 +114,7 @@ namespace tridiagonal {
     };
 
     struct backward_thomas {
-        typedef accessor< 0, enumtype::inout > out;
+        typedef accessor< 0, enumtype::inout, extent<0,0,0,0,0,1> > out;
         typedef accessor< 1 > inf;                  // a
         typedef accessor< 2 > diag;                 // b
         typedef accessor< 3, enumtype::inout > sup; // c

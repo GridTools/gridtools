@@ -60,7 +60,7 @@ namespace cs_test {
 
     template < uint_t Color >
     struct test_functor {
-        typedef in_accessor< 0, icosahedral_topology_t::cells, extent< 1 > > in;
+        typedef in_accessor< 0, icosahedral_topology_t::cells, extent<> > in;
         typedef inout_accessor< 1, icosahedral_topology_t::cells > out;
         typedef boost::mpl::vector2< in, out > arg_list;
 

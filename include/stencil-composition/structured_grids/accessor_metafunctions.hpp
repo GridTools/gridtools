@@ -86,6 +86,38 @@ namespace gridtools {
         typedef typename Accessor::index_t type;
     };
 
+    template < int_t Coord, int_t Val >
+    struct extend_accessor {
+        template < typename T >
+        struct apply {
+            typedef T type;   
+        };
+
+        template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+        struct apply<  accessor< ID, Intend, Extend, Number > > {
+            typedef typename extend_extent< Coord, Val, Extend >::type new_extent_t;
+            typedef accessor< ID, Intend, new_extent_t, Number > type;
+        };
+    };
+
+    template < int OffI, int OffJ, int OffK, typename Accessor >
+    constexpr typename boost::enable_if_c<is_accessor<Accessor>::value,
+            accessor< Accessor::index_t::value, Accessor::intend_v,
+                typename extend_extent< 0, OffI, typename extend_extent< 1, OffJ, typename extend_extent< 2, OffK, typename Accessor::extent_t >::type >::type >::type,
+    Accessor::n_dimensions > >::type extend_accessor_instance(Accessor a) {
+        typedef typename boost::enable_if_c<is_accessor<Accessor>::value,
+            accessor< Accessor::index_t::value, Accessor::intend_v,
+                typename extend_extent< 0, OffI, typename extend_extent< 1, OffJ, typename extend_extent< 2, OffK, typename Accessor::extent_t >::type >::type >::type,
+            Accessor::n_dimensions > >::type NewAcc;
+        return NewAcc(a.offsets());
+    }
+
+    template < int OffI, int OffJ, int OffK, typename Accessor >
+    constexpr typename boost::enable_if_c<!is_accessor<Accessor>::value, Accessor >::type
+    extend_accessor_instance(Accessor a) {
+        return a;
+    }
+
     /**
      * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
      * to the corresponding entry in ArgsMap

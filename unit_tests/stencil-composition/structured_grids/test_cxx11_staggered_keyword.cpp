@@ -33,6 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#define ALLOW_EMPTY_EXTENTS
+
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
 
@@ -57,8 +59,8 @@ namespace test_staggered_keyword {
         static uint_t ok_i;
         static uint_t ok_j;
 
-        typedef accessor< 0, gridtools::enumtype::inout > p_i;
-        typedef accessor< 1 > p_j;
+        typedef accessor< 0, gridtools::enumtype::inout, extent< -5, 0, -5, 0 > > p_i;
+        typedef accessor< 1, gridtools::enumtype::inout, extent< -5, 0, -5, 0 > > p_j;
         typedef boost::mpl::vector< p_i, p_j > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {

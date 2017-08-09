@@ -101,7 +101,9 @@ namespace gridtools {
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value < OutArg), ReturnType >::type const
                 operator()(Accessor const &accessor) const {
-                return m_caller_aggregator(typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type(
+                typedef typename select_accessor<Accessor, typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type>::type 
+                    acc_t;
+                return m_caller_aggregator(acc_t(
                     accessor.template get< 2 >() + Offi,
                     accessor.template get< 1 >() + Offj,
                     accessor.template get< 0 >() + Offk));
@@ -111,8 +113,9 @@ namespace gridtools {
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value > OutArg), ReturnType >::type const
                 operator()(Accessor const &accessor) const {
-                return m_caller_aggregator(
-                    typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value - 1 >::type(
+                typedef typename select_accessor<Accessor, typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value - 1 >::type>::type 
+                    acc_t;
+                return m_caller_aggregator(acc_t(
                         accessor.template get< 2 >() + Offi,
                         accessor.template get< 1 >() + Offj,
                         accessor.template get< 0 >() + Offk));
@@ -198,7 +201,9 @@ namespace gridtools {
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value < OutArg), ReturnType >::type const
                 operator()(Accessor const &accessor) const {
-                return m_caller_aggregator(typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type(
+                typedef typename select_accessor<Accessor, typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type>::type 
+                    acc_t;
+                return m_caller_aggregator(acc_t(
                     accessor.template get< 2 >() + Offi +
                         boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 2 >(),
                     accessor.template get< 1 >() + Offj +
@@ -211,8 +216,9 @@ namespace gridtools {
             GT_FUNCTION constexpr
                 typename boost::enable_if_c< (Accessor::index_t::value > OutArg), ReturnType >::type const
                 operator()(Accessor const &accessor) const {
-                return m_caller_aggregator(
-                    typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value - 1 >::type(
+                typedef typename select_accessor<Accessor, typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value - 1 >::type>::type 
+                    acc_t;
+                return m_caller_aggregator(acc_t(
                         accessor.template get< 2 >() + Offi +
                             boost::fusion::at_c< Accessor::index_t::value - 1 >(m_accessors_list).template get< 2 >(),
                         accessor.template get< 1 >() + Offj +
@@ -298,17 +304,20 @@ namespace gridtools {
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
             typedef typename get_result_type< Evaluator, Functor >::type result_type;
+            typedef typename gridtools::variadic_to_vector< Args... >::type vec_t;
+            typedef typename _impl::extend_accessors <Offi, Offj, Offk, vec_t>::type accs_t;
+
             typedef _impl::function_aggregator_offsets< Evaluator,
                 Offi,
                 Offj,
                 Offk,
-                typename gridtools::variadic_to_vector< Args... >::type,
+                accs_t,
                 result_type,
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
             result_type result;
 
-            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
+            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, Offk>(args)...));
             Functor::Do(agg_p, Region());
 
             return result;
@@ -328,13 +337,15 @@ namespace gridtools {
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
             typedef typename get_result_type< Evaluator, Functor >::type result_type;
-
             result_type result;
+
+            typedef typename gridtools::variadic_to_vector< Args... >::type vec_t;
+            typedef typename _impl::extend_accessors <Offi, Offj, Offk, vec_t>::type accs_t;
             typedef _impl::function_aggregator< Evaluator,
                 Offi,
                 Offj,
                 Offk,
-                typename gridtools::variadic_to_vector< Args... >::type,
+                accs_t,
                 result_type,
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
@@ -395,18 +406,20 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(_impl::can_be_a_function< Functor >::value,
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
+            typedef typename gridtools::variadic_to_vector< Args... >::type vec_t;
+            typedef typename _impl::extend_accessors <Offi, Offj, 0, vec_t>::type accs_t;
             typedef typename get_result_type< Evaluator, Functor >::type result_type;
             typedef _impl::function_aggregator_offsets< Evaluator,
                 Offi,
                 Offj,
                 0,
-                typename gridtools::variadic_to_vector< Args... >::type,
+                accs_t,
                 result_type,
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
             result_type result;
 
-            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(args...));
+            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, 0>(args)...));
             Functor::Do(agg_p);
 
             return result;
@@ -426,13 +439,15 @@ namespace gridtools {
                 "Trying to invoke stencil operator with more than one output as a function\n");
 
             typedef typename get_result_type< Evaluator, Functor >::type result_type;
-
             result_type result;
+
+            typedef typename gridtools::variadic_to_vector< Args... >::type vec_t;
+            typedef typename _impl::extend_accessors <Offi, Offj, 0, vec_t>::type accs_t;
             typedef _impl::function_aggregator< Evaluator,
                 Offi,
                 Offj,
                 0,
-                typename gridtools::variadic_to_vector< Args... >::type,
+                accs_t,
                 result_type,
                 _impl::_get_index_of_first_non_const< Functor >::value > f_aggregator_t;
 
@@ -505,7 +520,9 @@ namespace gridtools {
                 typename CallerAggregator::template accessor_return_type<
                     typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type >::type >::type
             operator()(Accessor const &accessor) const {
-                return m_caller_aggregator(typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type(
+                typedef typename select_accessor<Accessor, typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type>::type 
+                    acc_t;
+                return m_caller_aggregator(acc_t(
                     accessor.template get< 2 >() + Offi +
                         boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 2 >(),
                     accessor.template get< 1 >() + Offj +
@@ -582,7 +599,9 @@ namespace gridtools {
                     typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type > //::type
                 >::type
             operator()(Accessor const &accessor) const {
-                return m_caller_aggregator(typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type(
+                typedef typename select_accessor<Accessor, typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type>::type 
+                    acc_t;
+                return m_caller_aggregator(acc_t(
                     accessor.template get< 2 >() + Offi,
                     accessor.template get< 1 >() + Offj,
                     accessor.template get< 0 >() + Offk));
@@ -651,9 +670,10 @@ namespace gridtools {
                 Offi,
                 Offj,
                 Offk,
-                typename _impl::package_args< Args... >::type > f_aggregator_t;
+                typename _impl::extend_accessors<Offi,Offj,Offk, 
+                    typename _impl::package_args< Args... >::type >::type > f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
+            auto y = typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, Offk>(_impl::make_wrap(args))...);
 
             auto agg_p = f_aggregator_t(eval, y);
             Functor::Do(agg_p, Region());
@@ -675,9 +695,10 @@ namespace gridtools {
                 Offi,
                 Offj,
                 Offk,
-                typename _impl::package_args< Args... >::type > f_aggregator_t;
+                typename _impl::extend_accessors<Offi,Offj,Offk, 
+                    typename _impl::package_args< Args... >::type >::type > f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
+            auto y = typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, Offk>(_impl::make_wrap(args))...);
 
             auto agg_p = f_aggregator_t(eval, y);
             Functor::Do(agg_p, Region());
@@ -714,10 +735,11 @@ namespace gridtools {
                 "The first argument must be the Evaluator/Aggregator of the stencil operator.");
 
             typedef _impl::
-                function_aggregator_procedure< Evaluator, Offi, Offj, 0, typename _impl::package_args< Args... >::type >
-                    f_aggregator_t;
+                function_aggregator_procedure< Evaluator, Offi, Offj, 0, 
+                    typename _impl::extend_accessors<Offi,Offj,0, 
+                        typename _impl::package_args< Args... >::type >::type > f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
+            auto y = typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, 0>(_impl::make_wrap(args))...);
 
             auto agg_p = f_aggregator_t(eval, y);
             Functor::Do(agg_p);
@@ -739,9 +761,10 @@ namespace gridtools {
                 Offi,
                 Offj,
                 0,
-                typename _impl::package_args< Args... >::type > f_aggregator_t;
+                typename _impl::extend_accessors<Offi,Offj,0, 
+                    typename _impl::package_args< Args... >::type >::type > f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(_impl::make_wrap(args)...);
+            auto y = typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, 0>(_impl::make_wrap(args))...);
 
             auto agg_p = f_aggregator_t(eval, y);
             Functor::Do(agg_p);

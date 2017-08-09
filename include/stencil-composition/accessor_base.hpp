@@ -104,7 +104,7 @@ namespace gridtools {
 
         typedef accessor_base< I, Intend, Extend, Dim > base_t;
         static const ushort_t n_dimensions = Dim;
-
+        static const enumtype::intend intend_v = Intend;
         typedef static_uint< I > index_t;
         typedef enumtype::enum_type< enumtype::intend, Intend > intend_t;
         typedef Extend extent_t;
@@ -140,6 +140,9 @@ namespace gridtools {
         // copy ctor
         GT_FUNCTION
         constexpr accessor_base(type const &other) : m_offsets(other.m_offsets) {}
+
+        GT_FUNCTION
+        constexpr accessor_base(offset_tuple_t const &other) : m_offsets(other) {}
 
         // copy ctor from another accessor_base with different index
         template < uint_t OtherIndex >

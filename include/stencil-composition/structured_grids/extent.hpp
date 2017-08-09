@@ -65,6 +65,21 @@ namespace gridtools {
         typedef boost::mpl::vector6< iminus, iplus, jminus, jplus, kminus, kplus > extent_vec_t;
     };
 
+    template < int_t Coord, int_t Val, typename Extent >
+    struct extend_extent;
+
+    template < int_t Coord, int_t Val, int_t IM, int_t IP, int_t JM, int_t JP, int_t KM, int_t KP, int_t... Rest >
+    struct extend_extent< Coord, Val, extent< IM, IP, JM, JP, KM, KP, Rest... > > {
+        static constexpr int_t val = (Val<0) ? -Val : Val;
+        static constexpr int_t NIM = (Coord==0) ? IM-val : IM;
+        static constexpr int_t NIP = (Coord==0) ? IP+val : IP;
+        static constexpr int_t NJM = (Coord==1) ? JM-val : JM;
+        static constexpr int_t NJP = (Coord==1) ? JP+val : JP;
+        static constexpr int_t NKM = (Coord==2) ? KM-val : KM;
+        static constexpr int_t NKP = (Coord==2) ? KP+val : KP;
+        typedef extent<NIM, NIP, NJM, NJP, NKM, NKP, Rest...> type;
+    };
+
     template < typename In >
     struct is_staggered : public boost::false_type {};
 

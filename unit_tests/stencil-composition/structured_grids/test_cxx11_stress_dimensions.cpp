@@ -187,7 +187,7 @@ namespace assembly {
     typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct integration {
-        typedef in_accessor< 0, extent<>, 7 > phi;
+        typedef in_accessor< 0, extent< 0, 2, 0, 2, 0, 2 >, 7 > phi;
         typedef in_accessor< 1, extent<>, 7 > psi; // how to detect when index is wrong??
         typedef in_accessor< 2, extent<>, 4 > jac;
         typedef in_accessor< 3, extent<>, 6 > f;

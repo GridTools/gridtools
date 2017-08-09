@@ -78,7 +78,7 @@ namespace call_interface_functors {
     };
 
     struct call_with_offsets_copy_functor {
-        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef in_accessor< 0, extent<0,1,0,1>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
@@ -148,7 +148,7 @@ namespace call_interface_functors {
     };
 
     struct call_with_offsets_call_at_copy_functor {
-        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef in_accessor< 0, extent<-1,0,-1,0>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
@@ -168,7 +168,7 @@ namespace call_interface_functors {
     };
 
     struct call_with_offsets_call_with_offsets_copy_functor {
-        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef in_accessor< 0, extent<-1,0,-1,0>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
@@ -494,7 +494,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_with_offsets_copy_twice_functor {
-        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef in_accessor< 0, extent<0, 1, 0, 1>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out1;
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
@@ -528,7 +528,7 @@ namespace call_proc_interface_functors {
     };
 
     struct call_with_offsets_call_copy_twice_functor {
-        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef in_accessor< 0, extent<0, 1, 0, 1>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out1;
         typedef inout_accessor< 2, extent<>, 3 > out2;
         typedef boost::mpl::vector< in, out1, out2 > arg_list;

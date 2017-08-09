@@ -285,37 +285,37 @@ namespace test_iterate_domain {
 
         assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >()) == 0.);
         assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(dimension< 4 >(1))) == 1.);
-        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(dimension< 3 >(1))) == 10.);
-        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(
+        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 >, 4 >(dimension< 3 >(1))) == 10.);
+        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 >, 4 >(
                    dimension< 4 >(1), dimension< 3 >(1))) == 11.);
-        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(dimension< 3 >(2))) == 20.);
-        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(
+        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0, 0, 2 >, 4 >(dimension< 3 >(2))) == 20.);
+        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0, 0, 2 >, 4 >(
                    dimension< 3 >(2), dimension< 4 >(1))) == 21.);
 
         assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 0, 0)) == 0.);
         assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 0, 1)) == 1.);
-        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 1, 0)) == 10.);
-        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 1, 1)) == 11.);
-        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 2, 0)) == 20.);
-        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 2, 1)) == 21.);
+        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 1 >, 4 >(0, 0, 1, 0)) == 10.);
+        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 1 >, 4 >(0, 0, 1, 1)) == 11.);
+        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 2 >, 4 >(0, 0, 2, 0)) == 20.);
+        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 2 >, 4 >(0, 0, 2, 1)) == 21.);
 
         // check index initialization and increment
 
         assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >()) == 0.);
         assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(dimension< 4 >(1))) == 1.);
-        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(dimension< 3 >(1))) == 10.);
-        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(
+        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 >, 4 >(dimension< 3 >(1))) == 10.);
+        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 >, 4 >(
                    dimension< 4 >(1), dimension< 3 >(1))) == 11.);
-        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(dimension< 3 >(2))) == 20.);
-        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >(
+        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0, 0, 2 >, 4 >(dimension< 3 >(2))) == 20.);
+        assert(it_domain(accessor< 2, enumtype::inout, extent< 0, 0, 0, 0, 0, 2 >, 4 >(
                    dimension< 3 >(2), dimension< 4 >(1))) == 21.);
 
         assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 0, 0)) == 0.);
         assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 0, 1)) == 1.);
-        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 1, 0)) == 10.);
-        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 1, 1)) == 11.);
-        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 2, 0)) == 20.);
-        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >(0, 0, 2, 1)) == 21.);
+        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 1 >, 4 >(0, 0, 1, 0)) == 10.);
+        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 1 >, 4 >(0, 0, 1, 1)) == 11.);
+        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 2 >, 4 >(0, 0, 2, 0)) == 20.);
+        assert(it_domain(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 2 >, 4 >(0, 0, 2, 1)) == 21.);
 
         // check index initialization and increment
 
@@ -353,7 +353,7 @@ namespace test_iterate_domain {
         assert(index[2] + mdo->template stride< 0 >() + mdo->template stride< 1 >() == new_index[2]);
 
         // check offsets for the space dimensions
-        using in_1_1 = alias< accessor< 0, enumtype::inout, extent< 0, 0, 0, 0, 0, 0 >, 6 >,
+        using in_1_1 = alias< accessor< 0, enumtype::inout, extent< 0, 1, 0, 1, 0, 1 >, 6 >,
             dimension< 6 >,
             dimension< 5 > >::set< 1, 1 >;
 
@@ -376,7 +376,7 @@ namespace test_iterate_domain {
         // check offsets for the space dimensions
 
         using buff_1_1 =
-            alias< accessor< 1, enumtype::inout, extent< 0, 0, 0, 0, 0 >, 5 >, dimension< 5 >, dimension< 4 > >::set< 1,
+            alias< accessor< 1, enumtype::inout, extent< 0, 1, 0, 1, 0, 1 >, 5 >, dimension< 5 >, dimension< 4 > >::set< 1,
                 1 >;
         auto b1_ = buff_1_1{dimension< 1 >{1}};
         auto b2_ = buff_1_1{dimension< 2 >{1}};
@@ -392,7 +392,7 @@ namespace test_iterate_domain {
                                &it_domain(b3_))));
 
         using out_1 =
-            alias< inout_accessor< 2, extent< 0, 0, 0, 0 >, 4 >, dimension< 4 >, dimension< 3 > >::set< 1, 1 >;
+            alias< inout_accessor< 2, extent< 0, 1, 0, 1, 0, 1 >, 4 >, dimension< 4 >, dimension< 3 > >::set< 1, 1 >;
 
         auto c1_ = out_1{dimension< 1 >{1}};
         auto c2_ = out_1{dimension< 2 >{1}};
@@ -404,9 +404,9 @@ namespace test_iterate_domain {
             (float_type *)(&outv.get< 1, 1 >()(0, 0) + new_index[2] + mdo->template stride< 1 >() == &it_domain(c2_))));
 
         // check runtime alias arguments
-        alias< accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >, dimension< 3 >, dimension< 4 > > acc_(1, 1);
+        alias< accessor< 2, enumtype::inout, extent< 0, 1, 0, 1, 0, 1 >, 4 >, dimension< 3 >, dimension< 4 > > acc_(1, 1);
         using acc_t =
-            alias< accessor< 2, enumtype::inout, extent< 0, 0, 0, 0 >, 4 >, dimension< 3 >, dimension< 4 > >::set< 1,
+            alias< accessor< 2, enumtype::inout, extent< 0, 1, 0, 0, 0, 1 >, 4 >, dimension< 3 >, dimension< 4 > >::set< 1,
                 1 >;
         assert(&it_domain(acc_t(dimension< 1 >(1))) == &it_domain(acc_(dimension< 1 >(1))));
 

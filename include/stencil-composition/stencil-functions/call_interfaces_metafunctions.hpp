@@ -214,5 +214,34 @@ namespace gridtools {
             return _impl::wrap_reference< typename std::decay< T >::type >(v);
         }
 
+        template <typename Acc1, typename Acc2>
+        struct select_accessor {
+            typedef Acc1 type;
+        };
+
+        template < uint_t I1, enumtype::intend Intend1, typename Extend1, ushort_t Dim1, 
+            uint_t I2, enumtype::intend Intend2, typename Extend2, ushort_t Dim2 >
+        struct select_accessor< accessor<I1, Intend1, Extend1, Dim1>, accessor<I2, Intend2, Extend2, Dim2> > {
+            typedef typename enclosing_extent< Extend1, Extend2 >::type new_extent_t;
+            typedef typename boost::mpl::if_< boost::is_same< Extend1, new_extent_t >, 
+                accessor<I2, Intend1, Extend1, Dim1>, 
+                accessor<I2, Intend2, Extend2, Dim2> >::type type;
+        };
+
+        template < int_t Offi, int_t Offj, int_t Offk, typename Vec >
+        struct extend_accessors {
+            typedef Vec acc_t;
+            typedef typename boost::mpl::transform< acc_t, extend_accessor< 0, Offi > >::type mod_acc_i_t;
+            typedef typename boost::mpl::transform< mod_acc_i_t, extend_accessor< 1, Offj > >::type mod_acc_j_t;
+            typedef typename boost::mpl::transform< mod_acc_j_t, extend_accessor< 2, Offk > >::type type;
+        };
+
+        template < int_t Offi, int_t Offj, int_t Offk, uint_t I, enumtype::intend Intend, typename Extend, ushort_t Dim >
+        struct extend_accessors< Offi, Offj, Offk, accessor<I, Intend, Extend, Dim> > {
+            typedef typename extend_accessor< 0, Offi >::template apply< accessor<I, Intend, Extend, Dim> >::type mod_acc_i_t;
+            typedef typename extend_accessor< 1, Offj >::template apply<mod_acc_i_t>::type mod_acc_j_t;
+            typedef typename extend_accessor< 2, Offk >::template apply<mod_acc_j_t>::type type;
+        };        
+
     } // namespace _impl
 } // namespace gridtools
