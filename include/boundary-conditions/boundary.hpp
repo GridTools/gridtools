@@ -50,8 +50,7 @@ namespace gridtools {
         struct select_apply;
 
         template < typename BoundaryFunction, typename Predicate >
-        struct select_apply< enumtype::Host, BoundaryFunction, Predicate >
-        {
+        struct select_apply< enumtype::Host, BoundaryFunction, Predicate > {
             using type = boundary_apply< BoundaryFunction, Predicate >;
         };
 
