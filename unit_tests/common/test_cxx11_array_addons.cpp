@@ -33,47 +33,21 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "array.hpp"
+#include "gtest/gtest.h"
+#include "common/defs.hpp"
+#include "common/array.hpp"
+#include "common/array_addons.hpp"
 
-namespace gridtools {
-    template < typename T, size_t D >
-    std::ostream &operator<<(std::ostream &s, array< T, D > const &a) {
-        s << " {  ";
-        for (int i = 0; i < D - 1; ++i) {
-            s << a[i] << ", ";
-        }
-        s << a[D - 1] << "  } ";
+using namespace gridtools;
 
-        return s;
+TEST(array, to_vector) {
+    array< uint_t, 4 > a{1, 2, 3, 4};
+
+    auto v = to_vector(a);
+
+    ASSERT_EQ(4, v.size());
+
+    for (size_t i = 0; i < 4; ++i) {
+        ASSERT_EQ(a[i], v[i]);
     }
-
-    template < typename T, size_t D >
-    std::vector< T > to_vector(array< T, D > const &a) {
-        std::vector< T > v(D);
-        for (int i = 0; i < D; ++i) {
-            v.at(i) = a[i];
-        }
-        return v;
-    }
-
-} // namespace gridtools
-
-template < typename T, typename U, size_t D >
-bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-    // shortcut
-    if (a.size() != b.size())
-        return false;
-
-    // sort and check for equivalence
-    gridtools::array< T, D > a0 = a;
-    gridtools::array< U, D > b0 = b;
-    std::sort(a0.begin(), a0.end());
-    std::sort(b0.begin(), b0.end());
-    return std::equal(a0.begin(), a0.end(), b0.begin());
-}
-
-template < typename T, typename U, size_t D >
-bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-    return std::equal(a.begin(), a.end(), b.begin());
 }

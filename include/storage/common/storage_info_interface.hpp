@@ -113,7 +113,7 @@ namespace gridtools {
             is_alignment< Align >::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type"));
 
       private:
-        typedef storage_info_interface< Id, layout_map< LayoutArgs... >, halo< Halos... >, Align > this_t;
+        using this_t = storage_info_interface< Id, layout_map< LayoutArgs... >, halo< Halos... >, Align >;
         array< uint_t, layout_t::masked_length > m_dims;
         array< uint_t, layout_t::masked_length > m_strides;
         alignment_impl< alignment_t, layout_t, halo_t > m_alignment;
@@ -337,6 +337,11 @@ namespace gridtools {
         }
 
         /*
+         * @brief return the array of (aligned) dims, see dim() for details.
+         */
+        GT_FUNCTION constexpr const array< uint_t, layout_t::masked_length > &dims() const { return m_dims; }
+
+        /*
          * @brief member function to retrieve the (aligned) size of a dimension (e.g., I, J, or K)
          * If an alignment is set the "first" dimension is aligned to a given value (e.g., 32). For example
          * a storage info with layout_map<1,2,0> and dimensions 100x110x80 and an alignment of 32 will result
@@ -362,6 +367,11 @@ namespace gridtools {
                 GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info stride call."));
             return m_strides.template get< Coord >();
         }
+
+        /*
+         * @brief return the array of (aligned) strides, see stride() for details.
+         */
+        GT_FUNCTION constexpr const array< uint_t, layout_t::masked_length > &strides() const { return m_strides; }
 
         /*
          * @brief member function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).

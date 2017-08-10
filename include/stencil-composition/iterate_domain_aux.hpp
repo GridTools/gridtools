@@ -529,15 +529,18 @@ namespace gridtools {
     /**
      * function that checks a given pointer and offset combination results in an out of bounds access.
      * the check is computing the fields offset in order to get the base address of the accessed storage.
-     * once the base address is known it can be checked if the requested access lies within the 
+     * once the base address is known it can be checked if the requested access lies within the
      * storages allocated memory.
      */
-    template < typename BackendTraits, typename BlockSize, typename LocalDomain, 
-        typename ArgT, typename GridTraits, typename StorageInfo, typename T >
-    GT_FUNCTION
-    bool pointer_oob_check(StorageInfo const* sinfo, T* ptr, int_t offset) {
-        int_t ptr_offset = BackendTraits::
-            template fields_offset< LocalDomain, BlockSize, ArgT, GridTraits >(sinfo);
+    template < typename BackendTraits,
+        typename BlockSize,
+        typename LocalDomain,
+        typename ArgT,
+        typename GridTraits,
+        typename StorageInfo,
+        typename T >
+    GT_FUNCTION bool pointer_oob_check(StorageInfo const *sinfo, T *ptr, int_t offset) {
+        int_t ptr_offset = BackendTraits::template fields_offset< LocalDomain, BlockSize, ArgT, GridTraits >(sinfo);
         T *base_address = ptr - ptr_offset;
         // assert that the distance between the base address and the requested address is not exceeding the limits
         int_t dist_to_first = (ptr + offset) - (base_address + sinfo->total_begin());

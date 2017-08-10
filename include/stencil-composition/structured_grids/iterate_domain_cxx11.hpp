@@ -601,8 +601,11 @@ namespace gridtools {
             compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
 #ifndef NDEBUG
-        GTASSERT((pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t, 
-            arg_t, grid_traits_t>(storage_info, real_storage_pointer, pointer_offset)));
+        GTASSERT((pointer_oob_check< backend_traits_t,
+            processing_elements_block_size_t,
+            local_domain_t,
+            arg_t,
+            grid_traits_t >(storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
         if (DirectGMemAccess) {

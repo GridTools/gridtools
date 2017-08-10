@@ -75,7 +75,7 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
 
         typedef typename local_domain_t::esf_args esf_args_t;
-        
+
         typedef backend_traits_from_id< backend_ids_t::s_backend_id > backend_traits_t;
         typedef typename backend_traits_from_id< backend_ids_t::s_backend_id >::template select_iterate_domain_cache<
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
@@ -460,7 +460,11 @@ namespace gridtools {
                 compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
 
 #ifndef NDEBUG
-            GTASSERT((pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t, arg_t, grid_traits_t>(storage_info, real_storage_pointer, pointer_offset)));
+            GTASSERT((pointer_oob_check< backend_traits_t,
+                processing_elements_block_size_t,
+                local_domain_t,
+                arg_t,
+                grid_traits_t >(storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
             return static_cast< const IterateDomainImpl * >(this)
@@ -495,7 +499,11 @@ namespace gridtools {
             const storage_info_t *storage_info =
                 boost::fusion::at< storage_info_index_t >(m_local_domain.m_local_storage_info_ptrs);
 
-            GTASSERT((pointer_oob_check<backend_traits_t, processing_elements_block_size_t, local_domain_t, arg_t, grid_traits_t>(storage_info, real_storage_pointer, offset)));
+            GTASSERT((pointer_oob_check< backend_traits_t,
+                processing_elements_block_size_t,
+                local_domain_t,
+                arg_t,
+                grid_traits_t >(storage_info, real_storage_pointer, offset)));
 #endif
             return static_cast< const IterateDomainImpl * >(this)
                 ->template get_value_impl<
