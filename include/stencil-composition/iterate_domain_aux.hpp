@@ -630,34 +630,21 @@ namespace gridtools {
         using ext = typename GridTraits::template retrieve_accessor_extents< extent< Vals... > >;
 
         template < typename Accessor >
-        static bool apply(Accessor const &a) {
-            constexpr uint_t dims = Accessor::n_dimensions;
-            constexpr int_t i_pos = GridTraits::dim_i_t::value;
-            constexpr int_t j_pos = GridTraits::dim_j_t::value;
-            constexpr int_t k_pos = GridTraits::dim_k_t::value;
-
+        GT_FUNCTION
+        static constexpr bool apply(Accessor const &a) {
             // check if given offsets are within the extents
-            bool i_check = (i_pos < dims)
-                               ? (a.offsets().template get< dims - 1 - i_pos >() <= ext::i_plus_extent) &&
-                                     (a.offsets().template get< dims - 1 - i_pos >() >= ext::i_minus_extent)
-                               : true;
-            bool j_check = (j_pos < dims)
-                               ? (a.offsets().template get< dims - 1 - j_pos >() <= ext::j_plus_extent) &&
-                                     (a.offsets().template get< dims - 1 - j_pos >() >= ext::j_minus_extent)
-                               : true;
-            bool k_check = (k_pos < dims)
-                               ? (a.offsets().template get< dims - 1 - k_pos >() <= ext::k_plus_extent) &&
-                                     (a.offsets().template get< dims - 1 - k_pos >() >= ext::k_minus_extent)
-                               : true;
-            // return result
-            if (!(i_check && j_check && k_check)) {
-                std::cout << ext::i_minus_extent << " " << ext::i_plus_extent << " " << ext::j_minus_extent << " " << ext::j_plus_extent
-                          << " " << ext::k_minus_extent << " " << ext::k_plus_extent << "\n";
-                std::cout << a.offsets().template get< dims - 1 - i_pos >() << " "
-                          << a.offsets().template get< dims - 1 - j_pos >() << " "
-                          << a.offsets().template get< dims - 1 - k_pos >() << "\n";
-            }
-            return i_check && j_check && k_check;
+            return ((GridTraits::dim_i_t::value < Accessor::n_dimensions)
+                               ? (a.offsets().template get< Accessor::n_dimensions - 1 - GridTraits::dim_i_t::value >() <= ext::i_plus_extent) &&
+                                     (a.offsets().template get< Accessor::n_dimensions - 1 - GridTraits::dim_i_t::value >() >= ext::i_minus_extent)
+                               : true) &&
+            ((GridTraits::dim_j_t::value < Accessor::n_dimensions)
+                               ? (a.offsets().template get< Accessor::n_dimensions - 1 - GridTraits::dim_j_t::value >() <= ext::j_plus_extent) &&
+                                     (a.offsets().template get< Accessor::n_dimensions - 1 - GridTraits::dim_j_t::value >() >= ext::j_minus_extent)
+                               : true) &&
+            ((GridTraits::dim_k_t::value < Accessor::n_dimensions)
+                               ? (a.offsets().template get< Accessor::n_dimensions - 1 - GridTraits::dim_k_t::value >() <= ext::k_plus_extent) &&
+                                     (a.offsets().template get< Accessor::n_dimensions - 1 - GridTraits::dim_k_t::value >() >= ext::k_minus_extent)
+                               : true);
         }
     };
 
