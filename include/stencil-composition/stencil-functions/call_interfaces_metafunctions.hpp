@@ -38,6 +38,7 @@
 #include <boost/mpl/count_if.hpp>
 #include <boost/mpl/find_if.hpp>
 #include <boost/mpl/if.hpp>
+#include <boost/mpl/transform.hpp>
 #include <boost/type_traits/is_same.hpp>
 #include "../../common/defs.hpp"
 #include "../structured_grids/accessor_metafunctions.hpp"
@@ -214,34 +215,112 @@ namespace gridtools {
             return _impl::wrap_reference< typename std::decay< T >::type >(v);
         }
 
+        /**
+        *  Metafunction used to select the right accessor. When using nested 
+        *  call interfaces we have to select the accessor with the correct extent.
+        *  Case: one of the given types is not an accessor type
+        *  @tparam Acc1 Accessor type 1
+        *  @tparam Acc2 Accessor type 2
+        */
         template <typename Acc1, typename Acc2>
         struct select_accessor {
             typedef Acc1 type;
         };
 
+        /**
+        *  Metafunction used to select the right accessor. When using nested 
+        *  call interfaces we have to select the accessor with the correct extent.
+        *  @tparam I1 Index of accessor 1
+        *  @tparam Intend1 intend of accessor 1
+        *  @tparam Extend1 extend of accessor 1
+        *  @tparam Dim1 dimension of accessor 1
+        *  @tparam I2 Index of accessor 2
+        *  @tparam Intend2 intend of accessor 2
+        *  @tparam Extend2 extend of accessor 2
+        *  @tparam Dim2 dimension of accessor 2
+        */
         template < uint_t I1, enumtype::intend Intend1, typename Extend1, ushort_t Dim1, 
             uint_t I2, enumtype::intend Intend2, typename Extend2, ushort_t Dim2 >
         struct select_accessor< accessor<I1, Intend1, Extend1, Dim1>, accessor<I2, Intend2, Extend2, Dim2> > {
+            // get the enclosing extent
             typedef typename enclosing_extent< Extend1, Extend2 >::type new_extent_t;
+            // check which of the accessor matches the enclosing extent
             typedef typename boost::mpl::if_< boost::is_same< Extend1, new_extent_t >, 
                 accessor<I2, Intend1, Extend1, Dim1>, 
                 accessor<I2, Intend2, Extend2, Dim2> >::type type;
         };
 
+        /**
+        *  Metafunction used to extend the extent of a list of accessors.
+        *  Case: given type is an mpl vector of accessors.
+        *  @tparam Offi offset in I direction
+        *  @tparam Offj offset in J direction
+        *  @tparam Offk offset in K direction
+        *  @tparam Vec mpl vector of accessor types
+        */
         template < int_t Offi, int_t Offj, int_t Offk, typename Vec >
         struct extend_accessors {
             typedef Vec acc_t;
+            // modify extents
             typedef typename boost::mpl::transform< acc_t, extend_accessor< 0, Offi > >::type mod_acc_i_t;
             typedef typename boost::mpl::transform< mod_acc_i_t, extend_accessor< 1, Offj > >::type mod_acc_j_t;
             typedef typename boost::mpl::transform< mod_acc_j_t, extend_accessor< 2, Offk > >::type type;
         };
 
+        /**
+        *  Metafunction used to extend the extent an accessor.
+        *  Case: given type is a single accessor.
+        *  @tparam Offi offset in I direction
+        *  @tparam Offj offset in J direction
+        *  @tparam Offk offset in K direction
+        *  @tparam I accessor index
+        *  @tparam Intend accessor intend
+        *  @tparam Extend accessor extend
+        *  @tparam Dim accessor dimension
+        */
         template < int_t Offi, int_t Offj, int_t Offk, uint_t I, enumtype::intend Intend, typename Extend, ushort_t Dim >
         struct extend_accessors< Offi, Offj, Offk, accessor<I, Intend, Extend, Dim> > {
+            // modify extents
             typedef typename extend_accessor< 0, Offi >::template apply< accessor<I, Intend, Extend, Dim> >::type mod_acc_i_t;
             typedef typename extend_accessor< 1, Offj >::template apply<mod_acc_i_t>::type mod_acc_j_t;
             typedef typename extend_accessor< 2, Offk >::template apply<mod_acc_j_t>::type type;
         };        
+
+        /**
+        *  Function used to reinstantiate accessors. In case we are 
+        *  using call interfaces it is required to reinstantiate the accessor
+        *  from e.g., accessor<..., extent<0,0> > to accessor<..., extent<-1,1> >
+        *  Case: passed element is accessor type        
+        *  @tparam Offi offset in I direction
+        *  @tparam Offj offset in J direction
+        *  @tparam Offk offset in K direction
+        *  @tparam Accessor Input Accessor type
+        *  @param a Accessor instance
+        *  @return new accessor instance with extended extents
+        */
+        template < int OffI, int OffJ, int OffK, typename Accessor >
+        GT_FUNCTION constexpr typename boost::enable_if_c<is_accessor<Accessor>::value, accessor< Accessor::index_t::value, Accessor::intend_v, typename extend_extent< 0, OffI, typename extend_extent< 1, OffJ, typename extend_extent< 2, OffK, typename Accessor::extent_t >::type >::type >::type,
+        Accessor::n_dimensions > >::type extend_accessor_instance(Accessor a) {
+            typedef typename boost::enable_if_c<is_accessor<Accessor>::value, accessor< Accessor::index_t::value, Accessor::intend_v, typename extend_extent< 0, OffI, typename extend_extent< 1, OffJ, typename extend_extent< 2, OffK, typename Accessor::extent_t >::type >::type >::type, Accessor::n_dimensions > >::type new_acc_t;
+            return new_acc_t(a.offsets());
+        }
+
+        /**
+        *  Function used to reinstantiate accessors. In case we are 
+        *  using call interfaces it is required to reinstantiate the accessor
+        *  from e.g., accessor<..., extent<0,0> > to accessor<..., extent<-1,1> >
+        *  Case: passed element is no accessor type
+        *  @tparam Offi offset in I direction
+        *  @tparam Offj offset in J direction
+        *  @tparam Offk offset in K direction
+        *  @tparam T Input type
+        *  @return unmodified value
+        */
+        template < int OffI, int OffJ, int OffK, typename T >
+        GT_FUNCTION constexpr typename boost::enable_if_c<!is_accessor<T>::value, T >::type
+        extend_accessor_instance(T a) {
+            return a;
+        }
 
     } // namespace _impl
 } // namespace gridtools

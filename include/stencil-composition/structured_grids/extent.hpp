@@ -65,6 +65,9 @@ namespace gridtools {
         typedef boost::mpl::vector6< iminus, iplus, jminus, jplus, kminus, kplus > extent_vec_t;
     };
 
+    /**
+     * Metafunction to extend a coordinate of a given extent by a certain value
+     */
     template < int_t Coord, int_t Val, typename Extent >
     struct extend_extent;
 

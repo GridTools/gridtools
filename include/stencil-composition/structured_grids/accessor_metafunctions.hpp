@@ -86,6 +86,11 @@ namespace gridtools {
         typedef typename Accessor::index_t type;
     };
 
+    /**
+     * Metafunction used to extend an accessor extend at a given coordinate by a given value.
+     * @tparam Coord coordinate where the extension should be applied
+     * @tparam Val extension value
+     */
     template < int_t Coord, int_t Val >
     struct extend_accessor {
         template < typename T >
@@ -99,24 +104,6 @@ namespace gridtools {
             typedef accessor< ID, Intend, new_extent_t, Number > type;
         };
     };
-
-    template < int OffI, int OffJ, int OffK, typename Accessor >
-    constexpr typename boost::enable_if_c<is_accessor<Accessor>::value,
-            accessor< Accessor::index_t::value, Accessor::intend_v,
-                typename extend_extent< 0, OffI, typename extend_extent< 1, OffJ, typename extend_extent< 2, OffK, typename Accessor::extent_t >::type >::type >::type,
-    Accessor::n_dimensions > >::type extend_accessor_instance(Accessor a) {
-        typedef typename boost::enable_if_c<is_accessor<Accessor>::value,
-            accessor< Accessor::index_t::value, Accessor::intend_v,
-                typename extend_extent< 0, OffI, typename extend_extent< 1, OffJ, typename extend_extent< 2, OffK, typename Accessor::extent_t >::type >::type >::type,
-            Accessor::n_dimensions > >::type NewAcc;
-        return NewAcc(a.offsets());
-    }
-
-    template < int OffI, int OffJ, int OffK, typename Accessor >
-    constexpr typename boost::enable_if_c<!is_accessor<Accessor>::value, Accessor >::type
-    extend_accessor_instance(Accessor a) {
-        return a;
-    }
 
     /**
      * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according

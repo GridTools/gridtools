@@ -317,7 +317,7 @@ namespace gridtools {
 
             result_type result;
 
-            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, Offk>(args)...));
+            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(_impl::extend_accessor_instance<Offi, Offj, Offk>(args)...));
             Functor::Do(agg_p, Region());
 
             return result;
@@ -419,7 +419,7 @@ namespace gridtools {
 
             result_type result;
 
-            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, 0>(args)...));
+            auto agg_p = f_aggregator_t(eval, result, typename f_aggregator_t::accessors_list_t(_impl::extend_accessor_instance<Offi, Offj, 0>(args)...));
             Functor::Do(agg_p);
 
             return result;
@@ -673,7 +673,7 @@ namespace gridtools {
                 typename _impl::extend_accessors<Offi,Offj,Offk, 
                     typename _impl::package_args< Args... >::type >::type > f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, Offk>(_impl::make_wrap(args))...);
+            auto y = typename f_aggregator_t::accessors_list_t(_impl::extend_accessor_instance<Offi, Offj, Offk>(_impl::make_wrap(args))...);
 
             auto agg_p = f_aggregator_t(eval, y);
             Functor::Do(agg_p, Region());
@@ -698,7 +698,7 @@ namespace gridtools {
                 typename _impl::extend_accessors<Offi,Offj,Offk, 
                     typename _impl::package_args< Args... >::type >::type > f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, Offk>(_impl::make_wrap(args))...);
+            auto y = typename f_aggregator_t::accessors_list_t(_impl::extend_accessor_instance<Offi, Offj, Offk>(_impl::make_wrap(args))...);
 
             auto agg_p = f_aggregator_t(eval, y);
             Functor::Do(agg_p, Region());
@@ -739,7 +739,7 @@ namespace gridtools {
                     typename _impl::extend_accessors<Offi,Offj,0, 
                         typename _impl::package_args< Args... >::type >::type > f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, 0>(_impl::make_wrap(args))...);
+            auto y = typename f_aggregator_t::accessors_list_t(_impl::extend_accessor_instance<Offi, Offj, 0>(_impl::make_wrap(args))...);
 
             auto agg_p = f_aggregator_t(eval, y);
             Functor::Do(agg_p);
@@ -764,7 +764,7 @@ namespace gridtools {
                 typename _impl::extend_accessors<Offi,Offj,0, 
                     typename _impl::package_args< Args... >::type >::type > f_aggregator_t;
 
-            auto y = typename f_aggregator_t::accessors_list_t(extend_accessor_instance<Offi, Offj, 0>(_impl::make_wrap(args))...);
+            auto y = typename f_aggregator_t::accessors_list_t(_impl::extend_accessor_instance<Offi, Offj, 0>(_impl::make_wrap(args))...);
 
             auto agg_p = f_aggregator_t(eval, y);
             Functor::Do(agg_p);
