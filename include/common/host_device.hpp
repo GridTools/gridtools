@@ -71,4 +71,3 @@
 #define GT_KERNEL
 #endif
 #endif
-

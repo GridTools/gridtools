@@ -39,7 +39,7 @@
 #include <boost/type_traits.hpp>
 #include <boost/mpl/and.hpp>
 
-#include "../common/gt_assert.hpp"
+#include "../../common/gt_assert.hpp"
 #include "../common/storage_info_interface.hpp"
 
 namespace gridtools {

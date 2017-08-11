@@ -69,9 +69,6 @@ namespace gridtools {
         template < typename... Dims, typename = gridtools::all_integers< Dims... > >
         explicit constexpr cuda_storage_info(Dims... dims_)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, GT_INTERNAL_ERROR_MSG("Given type is not a halo type."));
-            GRIDTOOLS_STATIC_ASSERT(
-                is_alignment< Alignment >::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type."));
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                                         typename is_all_integral_or_enum< Dims... >::type >::value),
                 GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
