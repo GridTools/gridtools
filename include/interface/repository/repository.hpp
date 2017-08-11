@@ -34,6 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#if (!defined(BOOST_PP_VARIADICS) || (BOOST_PP_VARIADICS < 1))
+// defining BOOST_PP_VARIADICS 1 here might be too late, therefore we leave it to the user
+#error \
+    "GRIDTOOLS ERROR=> For the repository you need to \"#define BOOST_PP_VARIADICS 1\" before the first include of any boost preprocessor file.")
+#endif
+
 #include <unordered_map>
 #include "boost/variant.hpp"
 #include "boost/preprocessor/seq.hpp"
