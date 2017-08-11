@@ -59,7 +59,7 @@ namespace gridtools {
     /** @brief function called by the device, it allocates the storage on the GPU, given an object on the CPU.
     The template argument T is supposed to be of mask_object type */
     template < class T >
-    __global__ void construct(T object) {
+    GT_KERNEL void construct(T object) {
         typedef typename T::type derived_type;
         derived_type *p = reinterpret_cast< derived_type * >(&object);
         derived_type *x = new (p->gpu_object_ptr) derived_type(*p);
@@ -87,7 +87,7 @@ namespace gridtools {
         typedef DerivedType derived_type;
         derived_type *gpu_object_ptr;
 
-        __host__ __device__ clonable_to_gpu();
+        GT_FUNCTION clonable_to_gpu();
 
         derived_type *device_pointer() const;
         /** Member function to update the object to the gpu calling the copy constructor of the
@@ -113,7 +113,7 @@ namespace gridtools {
 
 #ifdef __CUDACC__
     template < typename T >
-    __host__ __device__ clonable_to_gpu< T >::clonable_to_gpu() {
+    GT_FUNCTION clonable_to_gpu< T >::clonable_to_gpu() {
 #ifndef __CUDA_ARCH__
         cudaMalloc(&gpu_object_ptr, sizeof(clonable_to_gpu< T >::derived_type));
 #endif

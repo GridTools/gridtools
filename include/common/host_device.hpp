@@ -65,4 +65,12 @@
 #endif
 #endif
 
+#ifndef GT_KERNEL
+#ifdef __CUDACC__
+#define GT_KERNEL __global__
+#else
+#define GT_KERNEL
+#endif
+#endif
+
 #define GT_FUNCTION_WARNING __host__ __device__
