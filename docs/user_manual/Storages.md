@@ -1,7 +1,7 @@
 Storage module {#sec:storage}
 =================
 
-The storage module is one of the main modules in $\GT$. Main target of this module is to provide proper means to access, view, and modify data. The underlying hardware is abstracted as far as possible.
+The storage module is one of the main modules in $\GT$. Main target of this module is to provide proper means to access, view, and modify data. The detail of the hardware is hidden to the user, but the user is responsible for indicating what storage is needed, and this is indicated by the name of the storage class.
 Different backends are available for different kinds of storages (e.g., Cuda or Host). Following subsections will explain the different basic elements that are used in the storage module. 
 
 ##Storage info
@@ -30,14 +30,14 @@ multiple `storage_info` with the same halo, alignment, layout
 but with different dimensionality you must use a different ID.                                
 ```
 
-* **Layout map:** Information about the memory layout. For instance a C array `X[i][j][k]` layout would be equivalent to `layout_map<0,1,2>`. The innermost dimension has the highest index. A Fortran style array `X[i][j][k]` layout would be equivalent to `layout_map<2,1,0>`.
+* **Layout map:** Information about the memory layout. The `layout_map` template takes a permuation of the value from `0` to `N-1`, where `N` is the number of dimensions of the storage. The values indicate the order of the dimensions by decreasing strides. For instance a C array `X[i][j][k]` layout would be equivalent to `layout_map<0,1,2>`. The dimension with stride 1 has the highest index. A Fortran style array `X[i][j][k]` layout would be equivalent to `layout_map<2,1,0>`.
 There is also the possibility to mask dimensions. This means that the storage appears as n-dimensional but the masked dimensions are ignored.
-For instance a `storage_info` with `layout_map<1,-1,0>` describes a 3-dimensional storage but the j dimension is masked. 
+For instance a `storage_info` with `layout_map<1,-1,0>` describes a 3-dimensional storage but the j dimension is masked. In this case the storage behave as a 3D array whose sizes are `(N,1,L)`, when accessing an element `(i,j,k)`, the `j` index is ignored. 
 
-* **Alignment:** Information about the alignment. There is the possibility to provide information about how the data points should be aligned in memory. This provides a huge performance gain for some architectures (e.g., GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data points of the innermost dimension in memory. The Host backend uses no alignment (`alignment<1>`) by default. The Cuda backend uses a default alignment of 32 data elements (`alignment<32>`).  
+* **Alignment:** Information about the alignment. There is the possibility to provide information about how the data points should be aligned in memory. This provides a huge performance gain for some architectures (e.g., GPUs). The storage module combines the alignment, layout, and halo information in order to align the non-halo data points of the stride-one dimension in memory. The Host backend uses no alignment (`alignment<1>`) by default. The Cuda backend uses a default alignment of 32 data elements (`alignment<32>`).  
 
 * **Halo:**
-The halo information has to be passed as type information to the storage info. Reason for this is that the proper alignment can only be computed with given halo information. The storage info object provides aligned data points (non-halo points) for the innermost dimensions. The halo information is given as follows: `halo< Sizes... >` where sizes is the halo size of the corresponding dimension. E.g.,
+The halo information has to be passed as type information to the storage info. Reason for this is that the proper alignment can only be computed with given halo information. The storage info object provides aligned data points (non-halo points) for the stride 1 dimension. The halo information is given as follows: `halo< Sizes... >` where sizes is the halo size of the corresponding dimension. E.g.,
 `halo<2,4,0>` is a halo of size 2 in direction I+ and I-, halo of size 4 in direction J+ and J-, and no halo in K.
 
 **Example**:
@@ -74,7 +74,7 @@ The `storage_info` object provides methods for querying following information:
 
 ##Data store
 
-Once the `storage_info` object is created a `data_store` can be created. A `data_store` is keeping together the `storage_info` object and the actual memory allocation. The main purpose of the `data_store` is to provide means for synchronizing, keeping consistency, cleaning up memory, etc. A `data_store` can be copied and moved. When copying a `data_store` both instances will point to the same data. Basically it has the same behaviour as a shared pointer.  
+Once the `storage_info` object is created a `data_store` can be created. A `data_store` is keeping together the `storage_info` object and the actual memory allocation. The main purpose of the `data_store` is to provide means for synchronizing, keeping consistency, cleaning up memory, etc. A `data_store` can be copied and moved (shallow copy), but the underlying allocated storage in not copied (no deep-copy). When copying a `data_store` both instances will point to the same data. Basically it has the same behaviour as a shared pointer.  
 
 ![Data store](figures/data_store.png){width=300}
 
@@ -86,8 +86,8 @@ is invalid because a `cuda_storage` is not compatible with a `host_storage_info`
 
 **Example**:
 Following codes snippets show how data stores can be created. At first the user has to identify if the memory management is
-done externally or not. If it is done externally the data store won't deallocate the memory. The standard use-case is to
-use managed data stores. The data store can be initialized with a value or lambda and can optionally be named. 
+done externally or not. If it is done externally the data store won't allocate nor deallocate the memory. The standard use-case is to
+use managed data stores. The data store can be initialized with a value or lambda and can optionally be named by passing an additional  string. 
 ```c++
     typedef host_storage_info<0, layout_map<1,0>, halo<1,0>, alignment<8> > storage_info_t;
     typedef data_store< host_storage<double>, storage_info_t > data_store_t;
@@ -189,8 +189,8 @@ The `data_store_field` object provides methods for performing following things:
 The storage module provides special operations that can be applied to a `data_store_field`.
 
 * `swap< I, J >::with< M, N >(data_store_field)`: operation to swap the data store located at component I snapshot J with the data store located at component M snapshot N.
-* `cycle< I >::by< N >(data_store_field)`: operation to cycle all snapshots of component I by N positions.
-* `cycle_all::by< N >(data_store_field)`: operation to cycle all snapshots of all components by N positions. 
+* `cycle< I >::by< N >(data_store_field)`: operation to cycle all snapshots of component I by N positions. Speficically, snaopshot `i` will be placed in position `(i-N) mod S`, where `S` is the number of shapshots of component `I`.
+* `cycle_all::by< N >(data_store_field)`: operation to cycle all snapshots of all components by N positions. The rotation follows the same direction as above.
  
 ##Data view
 
@@ -198,8 +198,8 @@ The view provides means to modify the data stored in a `data_store`.
 Views can be generated (at the moment) for both Host (cpu) and Device (gpu).
 Internally the view is a very simple struct that contains a pointer to the 
 data and provides an `operator()(...)` in order to access and modify the data 
-at a given coordinate. The view can be created in a read only mode. This 
-can be benefitial because read only views do not trigger synchronizations.
+at a given coordinate. The view can be created in a read only mode or read-write. The read-only views 
+can be benefitial because read only views do not trigger synchronizations with the devices.
 
 **Example**:
 
@@ -327,7 +327,7 @@ creating the views afterwards.
 ##Storage facility
 
 Writing the types all the time is cumbersome and unneeded. To get rid of this effort the storage module provides 
-a `storage-facility` that provides the correct types for a chosen backend. Currently there are storage traits available
+a `storage-facility` that provides the correct types for a chosen computation backend. Currently there are storage traits available
 for the CUDA and the Host backend. 
 
 The only header that has to be included to use the storage infrastructure is `storage/storage-facility.hpp`. This provides
