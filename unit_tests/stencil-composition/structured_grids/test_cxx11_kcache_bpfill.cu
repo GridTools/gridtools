@@ -43,8 +43,8 @@ using namespace enumtype;
 
 struct shift_acc_forward_bpfilll {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, -2, 0 > > in;
-    typedef accessor< 1, inout, extent<> > out;
+    typedef accessor< 0, in, extent< > > in;
+    typedef accessor< 1, inout, extent< 0, 0, 0, 0, -2, 0 > > out;
 
     typedef boost::mpl::vector< in, out > arg_list;
 
@@ -66,8 +66,8 @@ struct shift_acc_forward_bpfilll {
 
 struct shift_acc_backward_bpfilll {
 
-    typedef accessor< 0, in, extent< 0, 0, 0, 0, 0, 2 > > in;
-    typedef accessor< 1, inout, extent<> > out;
+    typedef accessor< 0, in, extent< > > in;
+    typedef accessor< 1, inout, extent< 0, 0, 0, 0, 0, 2 > > out;
 
     typedef boost::mpl::vector< in, out > arg_list;
 
