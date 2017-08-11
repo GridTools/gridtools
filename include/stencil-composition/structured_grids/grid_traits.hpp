@@ -156,12 +156,12 @@ namespace gridtools {
 
         template < int_t... Vals >
         struct retrieve_accessor_extents< extent< Vals... > > {
-            static constexpr int_t i_minus_extent = (sizeof...(Vals) > 1) ? get_value_from_pack(0, Vals...) : 0;
-            static constexpr int_t i_plus_extent = (sizeof...(Vals) > 2) ? get_value_from_pack(1, Vals...) : 0;
-            static constexpr int_t j_minus_extent = (sizeof...(Vals) > 3) ? get_value_from_pack(2, Vals...) : 0;
-            static constexpr int_t j_plus_extent = (sizeof...(Vals) > 4) ? get_value_from_pack(3, Vals...) : 0;
-            static constexpr int_t k_minus_extent = (sizeof...(Vals) > 5) ? get_value_from_pack(4, Vals...) : 0;
-            static constexpr int_t k_plus_extent = (sizeof...(Vals) > 6) ? get_value_from_pack(5, Vals...) : 0;
+            static constexpr int_t i_minus_extent = (sizeof...(Vals) > 0) ? get_value_from_pack(0, Vals...) : 0;
+            static constexpr int_t i_plus_extent = (sizeof...(Vals) > 1) ? get_value_from_pack(1, Vals...) : 0;
+            static constexpr int_t j_minus_extent = (sizeof...(Vals) > 2) ? get_value_from_pack(2, Vals...) : 0;
+            static constexpr int_t j_plus_extent = (sizeof...(Vals) > 3) ? get_value_from_pack(3, Vals...) : 0;
+            static constexpr int_t k_minus_extent = (sizeof...(Vals) > 4) ? get_value_from_pack(4, Vals...) : 0;
+            static constexpr int_t k_plus_extent = (sizeof...(Vals) > 5) ? get_value_from_pack(5, Vals...) : 0;
         };
         
     };
