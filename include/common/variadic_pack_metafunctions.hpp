@@ -39,6 +39,7 @@
 
 #include <boost/utility.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/mpl/or.hpp>
 #include <boost/type_traits.hpp>
 
 #include "host_device.hpp"
