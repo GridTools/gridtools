@@ -243,7 +243,8 @@ namespace gridtools {
         GT_FUNCTION
         constexpr storage_info_interface(
             std::array< unsigned int, ndims > dims, std::array< unsigned int, ndims > strides)
-            : m_dims(seq::template apply< array< unsigned, ndims >, impl::array_initializer >(dims)),
+            : m_dims(seq::template apply< array< unsigned, ndims >,
+                  typename impl::array_initializer< unsigned int >::apply >(dims)),
               m_strides(seq::template apply< array< unsigned int, ndims >, impl::array_initializer >(strides)),
               m_alignment(m_dims, m_strides) {}
 

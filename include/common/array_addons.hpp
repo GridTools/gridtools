@@ -48,14 +48,17 @@ namespace gridtools {
         return s;
     }
     namespace impl {
-        template < int Idx >
+        template < typename Value >
         struct array_initializer {
-            constexpr array_initializer() {}
+            template < int Idx >
+            struct apply {
+                constexpr apply() {}
 
-            template < long unsigned int ndims >
-            constexpr static unsigned int apply(const std::array< unsigned int, ndims > data) {
-                return data[Idx];
-            }
+                template < long unsigned int ndims >
+                constexpr static Value apply(const std::array< Value, ndims > data) {
+                    return data[Idx];
+                }
+            };
         };
     }
 } // namespace gridtools
