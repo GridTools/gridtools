@@ -68,6 +68,7 @@ namespace gridtools {
     template < typename Extent >
     struct ijfy_extent;
 
+    // nullify any extent that is not ij
     template < int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus, int_t... Rest >
     struct ijfy_extent< extent< IMinus, IPlus, JMinus, JPlus, KMinus, KPlus, Rest... > > {
         using type = extent< IMinus, IPlus, JMinus, JPlus, 0, 0 >;
@@ -104,6 +105,8 @@ namespace gridtools {
                 typedef typename cache_parameter< Cache >::type cache_arg_t;
                 typedef typename boost::mpl::at< esf_sequence_t, EsfIdx >::type esf_t;
 
+                // only extract the extent of the esf and push it into the cache if the arg of the cache is used in the
+                // extent
                 typedef typename boost::mpl::if_< boost::mpl::has_key< typename esf_t::args_with_extents, cache_arg_t >,
                     typename boost::mpl::at< extents_t, EsfIdx >::type,
                     typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type fextent_t;
