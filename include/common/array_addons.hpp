@@ -51,8 +51,8 @@ namespace gridtools {
         template < typename Value >
         struct array_initializer {
             template < int Idx >
-            struct apply {
-                constexpr apply() {}
+            struct type {
+                constexpr type() {}
 
                 template < long unsigned int ndims >
                 constexpr static Value apply(const std::array< Value, ndims > data) {

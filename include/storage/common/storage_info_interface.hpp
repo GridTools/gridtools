@@ -51,6 +51,7 @@
 #include "../../common/array_addons.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/layout_map.hpp"
+#include "../../common/generic_metafunctions/all_integrals.hpp"
 
 namespace gridtools {
 
@@ -244,8 +245,9 @@ namespace gridtools {
         constexpr storage_info_interface(
             std::array< unsigned int, ndims > dims, std::array< unsigned int, ndims > strides)
             : m_dims(seq::template apply< array< unsigned, ndims >,
-                  typename impl::array_initializer< unsigned int >::apply >(dims)),
-              m_strides(seq::template apply< array< unsigned int, ndims >, impl::array_initializer >(strides)),
+                  impl::array_initializer< unsigned int >::template type >(dims)),
+              m_strides(seq::template apply< array< unsigned int, ndims >,
+                  impl::array_initializer< unsigned int >::template type >(strides)),
               m_alignment(m_dims, m_strides) {}
 
         /*
