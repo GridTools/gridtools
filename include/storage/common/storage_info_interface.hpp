@@ -445,7 +445,9 @@ namespace gridtools {
          * @param offsets given offset array
          * @return index
          */
-        GT_FUNCTION constexpr int index(std::array< int, ndims > const &offsets) const { return index_part(offsets); }
+        GT_FUNCTION constexpr int index(gridtools::array< int, ndims > const &offsets) const {
+            return index_part(offsets);
+        }
 
         /*
          * @brief function that returns the initial offset. The initial offset
