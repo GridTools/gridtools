@@ -40,6 +40,7 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/reverse.hpp>
 
+#include "../common/gt_assert.hpp"
 #include "./amss_descriptor.hpp"
 #include "./conditionals/condition.hpp"
 #include "./esf_metafunctions.hpp"
@@ -83,6 +84,17 @@ namespace gridtools {
     template < typename PlaceholderArray, uint_t Size >
     struct substitute_expandable_params {
         typedef typename boost::mpl::transform< PlaceholderArray, substitute_expandable_param< Size > >::type type;
+    };
+
+    /** metafunction removing global accessors from an mpl_vector of pairs <extent, placeholders>.
+        Note: the global accessors do not have extents (have mpl::void_ instead). */
+    template < typename PlaceholderExtentPair >
+    struct remove_global_accessors {
+        typedef typename boost::mpl::fold< PlaceholderExtentPair,
+            boost::mpl::vector0<>,
+            boost::mpl::if_< is_extent< boost::mpl::second< boost::mpl::_2 > >,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
+                                               boost::mpl::_1 > >::type type;
     };
 
     /** This funciton initializes the map between placeholders and extents by
@@ -259,13 +271,19 @@ namespace gridtools {
                     "check that each stage has at least one accessor "
                     "defined as \'inout\'");
                 // substitute the types for expandable parameters arg
-                typedef typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs;
+                typedef
+                    typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs_with_globals;
+
+                // substitute the types for expandable parameters arg
+                typedef typename remove_global_accessors< outputs_with_globals >::type outputs;
+
 #ifndef __CUDACC__
-                static_assert((check_all_extents_are_same_upto< outputs, extent<>, 4 >::type::value),
+#ifndef ALLOW_EMPTY_EXTENTS
+                GRIDTOOLS_STATIC_ASSERT((check_all_extents_are_same_upto< outputs, extent<>, 4 >::type::value),
                     "Horizontal extents of the outputs of ESFs are not all empty. "
                     "All outputs must have empty (horizontal) extents");
 #endif
-
+#endif
                 GRIDTOOLS_STATIC_ASSERT((is_sequence_of< outputs, pair_arg_extent >::value), GT_INTERNAL_ERROR);
 
                 // We need to check the map here: if the outputs of a

@@ -38,11 +38,13 @@
 
 #include <array>
 #include <assert.h>
+
 #include <boost/mpl/bool.hpp>
 
+#include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
-#include "../storage_host/storage.hpp"
+#include "../storage_host/host_storage.hpp"
 
 namespace gridtools {
 
@@ -69,7 +71,7 @@ namespace gridtools {
         data_t *m_gpu_ptr;
         data_t *m_cpu_ptr;
         state_machine m_state;
-        unsigned m_size;
+        uint_t m_size;
         ownership m_ownership = ownership::Full;
 
       public:
@@ -77,9 +79,9 @@ namespace gridtools {
          * @brief cuda_storage constructor. Just allocates enough memory on Host and Device.
          * @param size defines the size of the storage and the allocated space.
          */
-        cuda_storage(unsigned size) : m_cpu_ptr(new data_t[size]), m_size(size) {
+        cuda_storage(uint_t size) : m_cpu_ptr(new data_t[size]), m_size(size) {
             cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(data_t));
-            assert((err == cudaSuccess) && "failed to allocate GPU memory.");
+            ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
         }
 
         /*
@@ -90,9 +92,9 @@ namespace gridtools {
          * @param external_ptr a pointer to the external data
          * @param own ownership information (external CPU pointer, or external GPU pointer)
          */
-        explicit cuda_storage(unsigned size, data_t *external_ptr, ownership own) : m_size(size), m_ownership(own) {
-            assert(((own == ownership::ExternalGPU) || (own == ownership::ExternalCPU)) &&
-                   "external pointer cuda_storage ownership must be either ExternalGPU or ExternalCPU.");
+        explicit cuda_storage(uint_t size, data_t *external_ptr, ownership own) : m_size(size), m_ownership(own) {
+            ASSERT_OR_THROW(((own == ownership::ExternalGPU) || (own == ownership::ExternalCPU)),
+                "external pointer cuda_storage ownership must be either ExternalGPU or ExternalCPU.");
             if (own == ownership::ExternalGPU) {
                 m_cpu_ptr = new data_t[size];
                 m_gpu_ptr = external_ptr;
@@ -100,10 +102,10 @@ namespace gridtools {
             } else if (own == ownership::ExternalCPU) {
                 m_cpu_ptr = external_ptr;
                 cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(data_t));
-                assert((err == cudaSuccess) && "failed to allocate GPU memory.");
+                ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
                 m_state.m_dnu = true;
             }
-            assert((m_gpu_ptr && m_cpu_ptr) && "Failed to create cuda_storage.");
+            ASSERT_OR_THROW((m_gpu_ptr && m_cpu_ptr), "Failed to create cuda_storage.");
         }
 
         /*
@@ -112,12 +114,12 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        cuda_storage(unsigned size, data_t initializer) : m_cpu_ptr(new data_t[size]), m_size(size) {
-            for (unsigned i = 0; i < size; ++i) {
+        cuda_storage(uint_t size, data_t initializer) : m_cpu_ptr(new data_t[size]), m_size(size) {
+            for (uint_t i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer;
             }
             cudaError_t err = cudaMalloc(&m_gpu_ptr, size * sizeof(data_t));
-            assert((err == cudaSuccess) && "failed to allocate GPU memory.");
+            ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
             this->clone_to_device();
         }
 
@@ -125,11 +127,11 @@ namespace gridtools {
          * @brief cuda_storage destructor.
          */
         ~cuda_storage() {
-            assert(m_gpu_ptr && "This would end up in a double-free.");
-            assert(m_cpu_ptr && "This would end up in a double-free.");
-            if ((m_ownership == ownership::ExternalGPU || m_ownership == ownership::Full))
+            ASSERT_OR_THROW(m_gpu_ptr, "This would end up in a double-free.");
+            ASSERT_OR_THROW(m_cpu_ptr, "This would end up in a double-free.");
+            if (m_ownership == ownership::ExternalGPU || m_ownership == ownership::Full)
                 delete[] m_cpu_ptr;
-            if ((m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full))
+            if (m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full)
                 cudaFree(m_gpu_ptr);
         }
 
@@ -138,7 +140,7 @@ namespace gridtools {
          * @return device pointer
          */
         data_t *get_gpu_ptr() const {
-            assert(m_gpu_ptr && "This storage has never been initialized.");
+            ASSERT_OR_THROW(m_gpu_ptr, "This storage has never been initialized.");
             return m_gpu_ptr;
         }
 
@@ -147,7 +149,7 @@ namespace gridtools {
          * @return host pointer
          */
         data_t *get_cpu_ptr() const {
-            assert(m_cpu_ptr && "This storage has never been initialized.");
+            ASSERT_OR_THROW(m_cpu_ptr, "This storage has never been initialized.");
             return m_cpu_ptr;
         }
 
@@ -157,7 +159,7 @@ namespace gridtools {
         void clone_to_device_impl() {
             cudaError_t err =
                 cudaMemcpy((void *)m_gpu_ptr, (void *)this->m_cpu_ptr, m_size * sizeof(data_t), cudaMemcpyHostToDevice);
-            assert((err == cudaSuccess) && "failed to clone data to the device.");
+            ASSERT_OR_THROW((err == cudaSuccess), "failed to clone data to the device.");
             m_state.m_hnu = false;
             m_state.m_dnu = false;
         }
@@ -168,7 +170,7 @@ namespace gridtools {
         void clone_from_device_impl() {
             cudaError_t err =
                 cudaMemcpy((void *)this->m_cpu_ptr, (void *)m_gpu_ptr, m_size * sizeof(data_t), cudaMemcpyDeviceToHost);
-            assert((err == cudaSuccess) && "failed to clone data from the device.");
+            ASSERT_OR_THROW((err == cudaSuccess), "failed to clone data from the device.");
             m_state.m_hnu = false;
             m_state.m_dnu = false;
         }
@@ -181,7 +183,7 @@ namespace gridtools {
             if (!m_state.m_hnu && !m_state.m_dnu)
                 return;
             // invalid state occurs when both host and device would need an update.
-            assert((m_state.m_hnu ^ m_state.m_dnu) && "invalid state detected.");
+            ASSERT_OR_THROW((m_state.m_hnu ^ m_state.m_dnu), "invalid state detected.");
             // sync
             if (m_state.m_hnu) { // if host needs update clone the data from the device
                 this->clone_from_device();
@@ -204,7 +206,7 @@ namespace gridtools {
          * @brief reactivate_device_write_views implementation for cuda_storage.
          */
         void reactivate_device_write_views_impl() {
-            assert(!m_state.m_dnu && "host views are in write mode");
+            ASSERT_OR_THROW(!m_state.m_dnu, "host views are in write mode");
             m_state.m_hnu = 1;
         }
 
@@ -212,7 +214,7 @@ namespace gridtools {
          * @brief reactivate_host_write_views implementation for cuda_storage.
          */
         void reactivate_host_write_views_impl() {
-            assert(!m_state.m_hnu && "device views are in write mode");
+            ASSERT_OR_THROW(!m_state.m_hnu, "device views are in write mode");
             m_state.m_dnu = 1;
         }
 

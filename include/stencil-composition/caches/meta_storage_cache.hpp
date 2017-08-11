@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include "../../common/gt_assert.hpp"
 #include "../../common/generic_metafunctions/unzip.hpp"
 
 namespace gridtools {
@@ -44,16 +45,24 @@ namespace gridtools {
 
         typedef storage_info_interface< 0, Layout > meta_storage_t;
         typedef Layout layout_t;
-        static_assert(
-            layout_t::masked_length == sizeof...(Dims), "Mismatch in layout length and passed number of dimensions.");
+        GRIDTOOLS_STATIC_ASSERT(layout_t::masked_length == sizeof...(Dims),
+            GT_INTERNAL_ERROR_MSG("Mismatch in layout length and passed number of dimensions."));
 
       public:
         GT_FUNCTION
-        static constexpr uint_t size() { return meta_storage_t(Dims...).size(); }
+        constexpr meta_storage_cache() {}
+
+        GT_FUNCTION
+        static constexpr uint_t padded_total_length() { return meta_storage_t(Dims...).padded_total_length(); }
 
         template < ushort_t Id >
         GT_FUNCTION static constexpr int_t stride() {
             return meta_storage_t(Dims...).template stride< Id >();
+        }
+
+        template < typename... D, typename Dummy = all_integers< typename std::remove_reference< D >::type... > >
+        GT_FUNCTION constexpr int_t index(D &&... args_) const {
+            return meta_storage_t(Dims...).index(args_...);
         }
 
         template < ushort_t Id >

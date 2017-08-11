@@ -40,6 +40,7 @@
 #include "defs.hpp"
 #include "array.hpp"
 #include "dimension.hpp"
+#include "gt_assert.hpp"
 #include "generic_metafunctions/binary_ops.hpp"
 #include "generic_metafunctions/accumulate.hpp"
 #include "generic_metafunctions/is_variadic_pack_of.hpp"
@@ -62,7 +63,6 @@ namespace gridtools {
         return (X::direction == N ? x.value : 0);
     }
 
-#ifdef CXX11_ENABLED
     /**@brief method for initializing the offsets in the placeholder
        Version valid for arbitrary dimension
        \param x is an instance of the \ref gridtools::dimension class, which contains the offset (x.value) and the
@@ -75,53 +75,8 @@ namespace gridtools {
             "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
         return X::direction == N ? x.value : initialize< N >(rest...);
     }
-#else
-
-    /**@brief method for initializing the offsets in the placeholder
-       Version valid for two dimension
-       \param x is an instance of the \ref gridtools::dimension class, which contains the offset (x.value) and the
-       dimension index (X::direction)
-       \param y is an instance of the \ref gridtools::dimension class, which contains the offset (y.value) and the
-       dimension index (Y::direction)
-    */
-    template < ushort_t N, typename X, typename Y >
-    GT_FUNCTION constexpr int_t initialize(X const &x, Y const &y) {
-        return X::direction == N ? x.value : Y::direction == N ? y.value : 0;
-    }
-
-    /**@brief method for initializing the offsets in the placeholder
-       Version valid for three dimension
-       \param x is an instance of the \ref gridtools::dimension class, which contains the offset (x.value) and the
-       dimension index (X::direction)
-       \param y is an instance of the \ref gridtools::dimension class, which contains the offset (y.value) and the
-       dimension index (Y::direction)
-       \param z is an instance of the \ref gridtools::dimension class, which contains the offset (z.value) and the
-       dimension index (Z::direction)
-    */
-    template < ushort_t N, typename X, typename Y, typename Z >
-    GT_FUNCTION constexpr int_t initialize(X const &x, Y const &y, Z const &z) {
-        return X::direction == N ? x.value : Y::direction == N ? y.value : Z::direction == N ? z.value : 0;
-    }
-
-    /**@brief method for initializing the offsets in the placeholder
-       Version valid for three dimension
-       \param x is an instance of the \ref gridtools::dimension class, which contains the offset (x.value) and the
-       dimension index (X::direction)
-       \param y is an instance of the \ref gridtools::dimension class, which contains the offset (y.value) and the
-       dimension index (Y::direction)
-       \param z is an instance of the \ref gridtools::dimension class, which contains the offset (z.value) and the
-       dimension index (Z::direction)
-    */
-    template < ushort_t N, typename X, typename Y, typename Z, typename T >
-    GT_FUNCTION constexpr int_t initialize(X const &x, Y const &y, Z const &z, T const &t) {
-        return X::direction == N ? x.value : Y::direction == N ? y.value : Z::direction == N
-                                                                               ? z.value
-                                                                               : T::direction == N ? t.value : 0;
-    }
-#endif
 
     namespace _impl {
-#ifdef CXX11_ENABLED
         template < typename... GenericElements >
         struct contains_array {
             typedef typename boost::mpl::fold<
@@ -134,8 +89,6 @@ namespace gridtools {
         GT_FUNCTION static constexpr int_t assign_offset(uint_t pos, array< int_t, ArrayDim > const &offsets) {
             return (pos < ArrayDim) ? offsets[pos] : 0;
         }
-
-#endif
     }
 
     //################################################################################
@@ -184,7 +137,6 @@ namespace gridtools {
 
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, NDim > const &offsets)
             : super(pos + 1, offsets), m_offset(offsets[pos]) {}
-#ifdef CXX11_ENABLED
 
         template < size_t ArrayDim,
             typename... Dimensions,
@@ -192,8 +144,8 @@ namespace gridtools {
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d)
             : super(pos + 1, offsets, d...),
               m_offset(_impl::assign_offset(pos, offsets) + initialize< super::n_dimensions - n_args >(d...)) {
-            static_assert(
-                (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
+            GRIDTOOLS_STATIC_ASSERT((ArrayDim <= NDim),
+                GT_INTERNAL_ERROR_MSG("ERROR, can not speficy offsets with larger dimension than accessor dimensions"));
         }
 
         /**@brief constructor taking an integer as the first argument, and then other optional arguments.
@@ -217,57 +169,9 @@ namespace gridtools {
             typename Dummy = typename all_dimensions< dimension< Idx >, GenericElements... >::type >
         GT_FUNCTION constexpr offset_tuple(dimension< Idx > const &t, GenericElements const &... x)
             : super(t, x...), m_offset(initialize< super::n_dimensions - n_args + 1 >(t, x...)) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (Idx <= n_dimensions), "overflow in offset_tuple. Check that the accessor dimension is valid.");
+            GRIDTOOLS_STATIC_ASSERT((Idx <= n_dimensions),
+                GT_INTERNAL_ERROR_MSG("overflow in offset_tuple. Check that the accessor dimension is valid."));
         }
-#else
-        /**@brief constructor taking an integer as the first argument, and then other optional arguments.
-           The integer gets assigned to the current extra dimension and the other arguments are passed to the base
-           class
-           (in order to get assigned to the other dimensions).
-           When this constructor is used all the arguments have to be specified and passed to the function call in
-           order. No check is done on the order*/
-        GT_FUNCTION offset_tuple(int const i, int const j, int const k) : super(j, k), m_offset(i) {}
-        GT_FUNCTION
-        offset_tuple(int const i, int const j) : super(j), m_offset(i) {}
-        GT_FUNCTION
-        offset_tuple(int const i) : m_offset(i) {}
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::dimension' is a
-           language keyword used at the interface level.
-        */
-        template < ushort_t Idx1, ushort_t Idx2, ushort_t Idx3, ushort_t Idx4 >
-        GT_FUNCTION offset_tuple(dimension< Idx1 > const &t,
-            dimension< Idx2 > const &u,
-            dimension< Idx3 > const &v,
-            dimension< Idx4 > const &h)
-            : super(t, u, v, h), m_offset(initialize< super::n_dimensions - n_args + 1 >(t, u, v, h)) {}
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'enumtype::dimension' is a
-           language keyword used at the interface level.
-        */
-        template < ushort_t Idx1, ushort_t Idx2, ushort_t Idx3 >
-        GT_FUNCTION offset_tuple(dimension< Idx1 > const &t, dimension< Idx2 > const &u, dimension< Idx3 > const &v)
-            : super(t, u, v), m_offset(initialize< super::n_dimensions - n_args + 1 >(t, u, v)) {}
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'dimension' is a
-           language keyword used at the interface level.
-        */
-        template < ushort_t Idx1, ushort_t Idx2 >
-        GT_FUNCTION offset_tuple(dimension< Idx1 > const &t, dimension< Idx2 > const &u)
-            : super(t, u), m_offset(initialize< super::n_dimensions - n_args + 1 >(t, u)) {}
-
-        /**@brief constructor taking the Dimension class as argument.
-           This allows to specify the extra arguments out of order. Note that 'dimension' is a
-           language keyword used at the interface level.
-        */
-        template < ushort_t Idx >
-        GT_FUNCTION offset_tuple(dimension< Idx > const &t)
-            : super(t), m_offset(initialize< super::n_dimensions - n_args + 1 >(t)) {}
-#endif
 
         // initializes recursively all the offsets to 0
         GT_FUNCTION
@@ -317,13 +221,12 @@ namespace gridtools {
     struct offset_tuple< 0, NDim > {
         static const int_t n_dimensions = NDim;
 
-#ifdef CXX11_ENABLED
         template < size_t ArrayDim,
             typename... Dimensions,
             typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d) {
-            static_assert(
-                (ArrayDim <= NDim), "ERROR, can not speficy offsets with larger dimension than accessor dimensions");
+            GRIDTOOLS_STATIC_ASSERT((ArrayDim <= NDim),
+                GT_INTERNAL_ERROR_MSG("ERROR, can not speficy offsets with larger dimension than accessor dimensions"));
         }
 
         template < typename... GenericElements,
@@ -331,26 +234,12 @@ namespace gridtools {
                 typename boost::disable_if< typename _impl::contains_array< GenericElements... >::type, bool >::type >
         GT_FUNCTION constexpr offset_tuple(GenericElements const &... x) {
             GRIDTOOLS_STATIC_ASSERT(is_variadic_pack_of(is_dimension< GenericElements >::type::value...),
-                "wrong type for the argument of an offset_tuple");
+                GT_INTERNAL_ERROR_MSG("wrong type for the argument of an offset_tuple"));
         }
 
         // copy ctor
         GT_FUNCTION
         constexpr offset_tuple(const offset_tuple &other) {}
-
-#else
-        template < typename X, typename Y, typename Z, typename T >
-        GT_FUNCTION constexpr offset_tuple(X const &x, Y const &y, Z const &z, T const &t) {}
-
-        template < typename X, typename Y, typename Z >
-        GT_FUNCTION constexpr offset_tuple(X const &x, Y const &y, Z const &z) {}
-
-        template < typename X, typename Y >
-        GT_FUNCTION constexpr offset_tuple(X const &x, Y const &y) {}
-
-        template < typename X >
-        GT_FUNCTION constexpr offset_tuple(X const &x) {}
-#endif
 
         GT_FUNCTION
         constexpr offset_tuple() {}

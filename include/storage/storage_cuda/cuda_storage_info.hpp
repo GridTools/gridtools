@@ -36,54 +36,81 @@
 
 #pragma once
 
-#include <boost/type_traits.hpp>
-#include <boost/mpl/and.hpp>
+#include <assert.h>
 
+#include "../../common/gt_assert.hpp"
 #include "../common/storage_info_interface.hpp"
 
 namespace gridtools {
 
     /*
-     * @brief The host storage info implementation.
+     * @brief The cuda storage info implementation.
      * @tparam Id unique ID that should be shared among all storage infos with the same dimensionality.
      * @tparam Layout information about the memory layout
      * @tparam Halo information about the halo sizes (by default no halo is set)
-     * @tparam Alignment information about the alignment (host_storage_info is not aligned by default)
+     * @tparam Alignment information about the alignment (cuda_storage_info is aligned to 32 by default)
      */
-    template < unsigned Id,
+    template < uint_t Id,
         typename Layout,
         typename Halo = zero_halo< Layout::masked_length >,
-        typename Alignment = alignment< 1 > >
-    struct host_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
+        typename Alignment = alignment< 32 > >
+    struct cuda_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
+      private:
+        mutable cuda_storage_info< Id, Layout, Halo, Alignment > *m_gpu_ptr;
         GRIDTOOLS_STATIC_ASSERT((is_halo< Halo >::value), "Given type is not a halo type.");
         GRIDTOOLS_STATIC_ASSERT((is_alignment< Alignment >::value), "Given type is not an alignment type.");
 
       public:
         static constexpr unsigned int ndims = storage_info_interface< Id, Layout, Halo, Alignment >::ndims;
-
         /*
-         * @brief host_storage_info constructor.
+         * @brief cuda_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
         template < typename... Dims, typename = gridtools::all_integers< Dims... > >
-        explicit constexpr host_storage_info(Dims... dims_)
-            : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...) {
-            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                              typename is_all_integral< Dims... >::type >::value,
-                "Dimensions have to be integral types.");
+        explicit constexpr cuda_storage_info(Dims... dims_)
+            : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
+            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, GT_INTERNAL_ERROR_MSG("Given type is not a halo type."));
+            GRIDTOOLS_STATIC_ASSERT(
+                is_alignment< Alignment >::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type."));
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
+                                        typename is_all_integral_or_enum< Dims... >::type >::value),
+                GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
         }
 
         /*
          * @brief cuda_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        constexpr host_storage_info(std::array< unsigned int, ndims > dims, std::array< unsigned int, ndims > strides)
-            : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides) {}
+        constexpr cuda_storage_info(std::array< unsigned int, ndims > dims, std::array< unsigned int, ndims > strides)
+            : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides), m_gpu_ptr(nullptr) {}
+
+        /*
+         * @brief cuda_storage_info destructor.
+         */
+        ~cuda_storage_info() = default;
+
+        /*
+         * @brief retrieve the device pointer. This information is needed when the storage information should be passed
+         * to a kernel.
+         * @return a storage info device pointer
+         */
+        cuda_storage_info< Id, Layout, Halo, Alignment > *get_gpu_ptr() const {
+            if (!m_gpu_ptr) {
+                cudaError_t err = cudaMalloc(&m_gpu_ptr, sizeof(cuda_storage_info< Id, Layout, Halo, Alignment >));
+                ASSERT_OR_THROW((err == cudaSuccess), "failed to allocate GPU memory.");
+                err = cudaMemcpy((void *)m_gpu_ptr,
+                    (void *)this,
+                    sizeof(cuda_storage_info< Id, Layout, Halo, Alignment >),
+                    cudaMemcpyHostToDevice);
+                ASSERT_OR_THROW((err == cudaSuccess), "failed to clone storage_info to the device.");
+            }
+            return m_gpu_ptr;
+        }
     };
 
     template < typename T >
-    struct is_host_storage_info : boost::mpl::false_ {};
+    struct is_cuda_storage_info : boost::mpl::false_ {};
 
-    template < unsigned Id, typename Layout, typename Halo, typename Alignment >
-    struct is_host_storage_info< host_storage_info< Id, Layout, Halo, Alignment > > : boost::mpl::true_ {};
+    template < uint_t Id, typename Layout, typename Halo, typename Alignment >
+    struct is_cuda_storage_info< cuda_storage_info< Id, Layout, Halo, Alignment > > : boost::mpl::true_ {};
 }

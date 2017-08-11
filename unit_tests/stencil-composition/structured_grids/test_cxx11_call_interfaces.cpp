@@ -35,7 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <tools/verifier.hpp>
 
 using namespace gridtools;

@@ -35,8 +35,10 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
+
+#include <common/defs.hpp>
+#include <common/gt_assert.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -126,10 +128,12 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     uint_t dj[5] = {4, 4, 4, d2 - 4 - 1, d2};
 
     gridtools::grid< axis > grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = d3 - 1;
 
-    using caches_t = decltype(define_caches(cache< bypass, local >(p_read_only_bypass_arg()),
-        cache< IJ, local >(p_shared_mem_arg()),
-        cache< K, local >(p_kcache_arg())));
+    using caches_t = decltype(define_caches(cache< bypass, cache_io_policy::local >(p_read_only_bypass_arg()),
+        cache< IJ, cache_io_policy::local >(p_shared_mem_arg()),
+        cache< K, cache_io_policy::local >(p_kcache_arg())));
 
     auto computation_ =
         gridtools::make_computation< backend_t >(domain,
@@ -164,45 +168,48 @@ TEST(test_iterate_domain, accessor_metafunctions) {
             boost::mpl::vector1< extent< 0, 0, 0, 0 > >,
             extent< 1, -1, 1, -1 >,
             caches_t,
-            block_size< 32, 4, 0 >,
-            block_size< 32, 4, 0 >,
+            block_size< 32, 4, 1 >,
+            block_size< 32, 4, 1 >,
             gridtools::grid< axis >,
             boost::mpl::false_,
             notype > > it_domain_t;
 
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::read_only_texture_arg >::type::value),
         "Error");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::read_only_bypass_arg >::type::value),
         "Error");
 
-    static_assert(!(it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::out >::type::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        !(it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::out >::type::value), "Error");
 
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_read_from_texture< dummy_functor::read_only_texture_arg >::type::value),
         "Error");
 
     // because is output field
-    static_assert(!(it_domain_t::template accessor_read_from_texture< dummy_functor::out >::type::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        !(it_domain_t::template accessor_read_from_texture< dummy_functor::out >::type::value), "Error");
     // because is being bypass
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_read_from_texture< dummy_functor::read_only_bypass_arg >::type::value),
         "Error");
     // because is not a texture supported type
-    static_assert(!(it_domain_t::template accessor_read_from_texture<
-                      dummy_functor::read_only_non_texture_type_arg >::type::value),
+    GRIDTOOLS_STATIC_ASSERT(!(it_domain_t::template accessor_read_from_texture<
+                                dummy_functor::read_only_non_texture_type_arg >::type::value),
         "Error");
 
     // access via shared mem
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_from_shared_mem< dummy_functor::shared_mem_arg >::type::value), "Error");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_from_shared_mem< dummy_functor::read_only_bypass_arg >::type::value), "Error");
 
     // access via kcache reg
-    static_assert((it_domain_t::template accessor_from_kcache_reg< dummy_functor::kcache_arg >::type::value), "Error");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
+        (it_domain_t::template accessor_from_kcache_reg< dummy_functor::kcache_arg >::type::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_from_kcache_reg< dummy_functor::shared_mem_arg >::type::value), "Error");
 
     ASSERT_TRUE(true);

@@ -36,10 +36,11 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/data_store.hpp"
-#include "storage/storage_host/data_view_helpers.hpp"
-#include "storage/storage_host/storage.hpp"
-#include "storage/storage_host/storage_info.hpp"
+#include <common/gt_assert.hpp>
+#include <storage/data_store.hpp>
+#include <storage/storage_host/data_view_helpers.hpp>
+#include <storage/storage_host/host_storage.hpp>
+#include <storage/storage_host/host_storage_info.hpp>
 
 using namespace gridtools;
 
@@ -53,7 +54,7 @@ TEST(DataViewTest, Simple) {
     // create a rw view and fill with some data
     data_view< data_store_t > dv = make_host_view(ds);
     EXPECT_TRUE(dv.valid());
-    static_assert(is_data_view< decltype(dv) >::value, "is_data_view check failed");
+    GRIDTOOLS_STATIC_ASSERT(is_data_view< decltype(dv) >::value, "is_data_view check failed");
     dv(0, 0, 0) = 50;
     dv(0, 0, 1) = 60;
 
@@ -61,13 +62,15 @@ TEST(DataViewTest, Simple) {
     ASSERT_TRUE((si.dim< 0 >() == dv.dim< 0 >()));
     ASSERT_TRUE((si.dim< 1 >() == dv.dim< 1 >()));
     ASSERT_TRUE((si.dim< 2 >() == dv.dim< 2 >()));
-    ASSERT_TRUE((si.size() == dv.size()));
+    ASSERT_TRUE((si.total_length() == dv.total_length()));
+    ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
+    ASSERT_TRUE((si.length() == dv.length()));
 
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
     EXPECT_EQ(dv(0, 0, 1), 60);
     // check if the user protections are working
-    static_assert(si.index(1, 0, 0) == 1, "constexpr index method call failed");
+    GRIDTOOLS_STATIC_ASSERT(si.index(1, 0, 0) == 1, "constexpr index method call failed");
 
     std::cout << "Execute death tests.\n";
 

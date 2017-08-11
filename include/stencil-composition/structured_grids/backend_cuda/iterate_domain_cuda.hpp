@@ -35,12 +35,12 @@
 */
 #pragma once
 
-#include "../../../common/cuda_type_traits.hpp"
-#include "../../backend_cuda/iterate_domain_cache.hpp"
-#include "../../backend_cuda/shared_iterate_domain.hpp"
+#include <boost/type_traits/is_arithmetic.hpp>
 #include "../../iterate_domain.hpp"
 #include "../../iterate_domain_metafunctions.hpp"
-#include <boost/type_traits/is_arithmetic.hpp>
+#include "../../backend_cuda/iterate_domain_cache.hpp"
+#include "../../backend_cuda/shared_iterate_domain.hpp"
+#include "../../../common/cuda_type_traits.hpp"
 
 namespace gridtools {
 
@@ -94,6 +94,7 @@ namespace gridtools {
         const uint_t m_block_size_i;
         const uint_t m_block_size_j;
         shared_iterate_domain_t *RESTRICT m_pshared_iterate_domain;
+        iterate_domain_cache_t m_iterate_domain_cache;
 
       public:
         GT_FUNCTION
@@ -275,11 +276,11 @@ namespace gridtools {
         * specialization where cache is explicitly disabled by user
         */
         template < typename ReturnType, typename Accessor >
-        GT_FUNCTION
-            typename boost::enable_if< boost::mpl::has_key< bypass_caches_set_t,
-                                           static_uint< boost::remove_reference< Accessor >::type::index_t::value > >,
-                ReturnType >::type
-            get_cache_value_impl(Accessor const &accessor_) const {
+        GT_FUNCTION typename boost::enable_if<
+            boost::mpl::has_key< bypass_caches_set_t,
+                static_uint< boost::remove_reference< Accessor >::type::index_type::value > >,
+            ReturnType >::type
+        get_cache_value_impl(Accessor const &accessor_) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
             return super::template get_value< Accessor, void * RESTRICT >(
                 accessor_, super::template get_data_pointer< Accessor >(accessor_));
@@ -291,11 +292,11 @@ namespace gridtools {
         */
         template < typename ReturnType, typename Accessor >
         GT_FUNCTION typename boost::enable_if< accessor_from_kcache_reg< Accessor >, ReturnType >::type
-        get_cache_value_impl(Accessor const &accessor_) const {
-            // Actual Kcache needs to be implemented
-            GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
-            return super::template get_value< Accessor, void * RESTRICT >(
-                accessor_, super::template get_data_pointer< Accessor >(accessor_));
+        get_cache_value_impl(Accessor const &accessor_) {
+            typedef typename boost::remove_const< typename boost::remove_reference< Accessor >::type >::type acc_t;
+            GRIDTOOLS_STATIC_ASSERT((is_accessor< acc_t >::value), GT_INTERNAL_ERROR);
+
+            return m_iterate_domain_cache.template get_k_cache< static_uint< acc_t::index_t::value > >().at(accessor_);
         }
 
         /** @brief return a the value in memory pointed to by an accessor
@@ -323,6 +324,64 @@ namespace gridtools {
             get_value_impl(StoragePointer RESTRICT &storage_pointer, const uint_t pointer_offset) const {
             GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
             return super::template get_gmem_value< ReturnType >(storage_pointer, pointer_offset);
+        }
+
+        template < typename IterationPolicy >
+        GT_FUNCTION void slide_caches() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
+            m_iterate_domain_cache.template slide_caches< IterationPolicy >();
+        }
+
+        /**
+         * fill next k level from main memory for all k caches. The position of the kcache being filled
+         * depends on the iteration policy
+         * \tparam IterationPolicy forward: backward
+         * \param klevel current k level index
+         * \param grid a grid with loop bounds information
+         */
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void fill_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+
+            m_iterate_domain_cache.template fill_caches< IterationPolicy >(*this, klevel, grid);
+        }
+
+        /**
+         * flush the last k level of the ring buffer into main memory. The position of the kcache being flushed
+         * depends on the iteration policy
+         * \tparam IterationPolicy forward: backward
+         * \param klevel current k level index
+         * \param grid a grid with loop bounds information
+         */
+        template < typename IterationPolicy, typename Grid >
+        GT_FUNCTION void flush_caches(const int_t klevel, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "error");
+
+            m_iterate_domain_cache.template flush_caches< IterationPolicy >(*this, klevel, grid);
+        }
+
+        /**
+         * Final flush of the of the kcaches. After the iteration over k is done, we still need to flush the remaining
+         * k levels of the cache with k > 0 (<0) for the backward (forward) iteration policy
+         * \tparam IterationPolicy forward: backward
+         */
+        template < typename IterationPolicy >
+        GT_FUNCTION void final_flush() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
+            m_iterate_domain_cache.template final_flush< IterationPolicy >(*this);
+        }
+
+        /**
+         * Initial fill of the of the kcaches. Before the iteration over k starts, we need to prefill the k level
+         * of the cache with k > 0 (<0) for the forward (backward) iteration policy
+         * \tparam IterationPolicy forward: backward
+         */
+        template < typename IterationPolicy >
+        GT_FUNCTION void begin_fill() {
+            GRIDTOOLS_STATIC_ASSERT((is_iteration_policy< IterationPolicy >::value), GT_INTERNAL_ERROR);
+            m_iterate_domain_cache.template begin_fill< IterationPolicy >(*this);
         }
 
       private:
