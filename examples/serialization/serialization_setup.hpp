@@ -51,6 +51,12 @@ using namespace gridtools;
 using namespace enumtype;
 
 class serialization_setup : public ::testing::Test {
+  private:
+    std::string m_prefix;
+    std::string m_directory;
+    std::unordered_map< std::string, storage_t > m_storage_map;
+    std::shared_ptr< verifier > m_verifier;
+
   public:
     using backend_t = backend< Host, structured, Naive >;
     using storage_info_t = backend_t::storage_traits_t::storage_info_t< 0, 3 >;
@@ -123,12 +129,6 @@ class serialization_setup : public ::testing::Test {
         m_verifier = std::make_shared< verifier >(1e-12);
 #endif
     }
-
-  private:
-    std::string m_prefix;
-    std::string m_directory;
-    std::unordered_map< std::string, storage_t > m_storage_map;
-    std::shared_ptr< verifier > m_verifier;
 };
 
 #endif
