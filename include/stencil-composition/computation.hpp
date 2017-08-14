@@ -36,8 +36,19 @@
 #pragma once
 // //\todo this struct becomes redundant when the auto keyword is used
 namespace gridtools {
-    template < typename ReductionType = int >
-    struct computation {
+
+    struct stencil {
+        virtual void ready() = 0;
+        virtual void steady() = 0;
+        virtual void finalize() = 0;
+        virtual notype run() = 0;
+        virtual std::string print_meter() = 0;
+        virtual double get_meter() = 0;
+        virtual void reset_meter() = 0;
+    };
+
+    template < typename ReductionType >
+    struct reduction {
         virtual void ready() = 0;
         virtual void steady() = 0;
         virtual void finalize() = 0;
@@ -45,6 +56,33 @@ namespace gridtools {
         virtual std::string print_meter() = 0;
         virtual double get_meter() = 0;
         virtual void reset_meter() = 0;
+    };
+
+    template < typename Aggregator, typename ReductionType >
+    struct computation
+        : public boost::mpl::if_< boost::is_same< ReductionType, notype >, stencil, reduction< ReductionType > >::type {
+
+      public:
+        computation(Aggregator const &domain) : m_domain(domain) {}
+
+        template < typename... DataStores,
+            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
+                0 >
+        void reassign(DataStores &... stores) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
+            m_domain.reassign_storages_impl(stores...);
+        }
+
+        template < typename... ArgStoragePairs,
+            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+                int >::type = 0 >
+        void reassign(ArgStoragePairs... pairs) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
+            m_domain.reassign_arg_storage_pairs_impl(pairs...);
+        }
+
+      protected:
+        Aggregator m_domain;
     };
 
 } // namespace gridtools

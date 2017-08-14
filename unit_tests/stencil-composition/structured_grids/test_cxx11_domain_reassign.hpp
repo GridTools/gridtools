@@ -149,7 +149,6 @@ namespace domain_reassign {
                         success = false;
                     }
                 }
-
         copy->reassign(in2, out2);
         copy->ready();
         copy->steady();

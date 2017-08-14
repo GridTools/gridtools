@@ -77,7 +77,7 @@ namespace gridtools {
         typename ReductionType,
         bool IsStateful,
         typename ExpandFactor >
-    struct intermediate_expand : public computation< ReductionType > {
+    struct intermediate_expand : public computation< DomainType, ReductionType > {
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
