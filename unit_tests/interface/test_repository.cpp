@@ -47,7 +47,7 @@ using IJKDataStore = typename storage_traits< enumtype::Host >::data_store_t< fl
 using IJStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 1, 2 >;
 using IJDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJStorageInfo >;
 
-#define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
+#define MY_FIELDTYPES (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1))
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)
 GT_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
@@ -91,6 +91,8 @@ TEST_F(simple_repository, iterate_map_with_visitor) {
 #define MY_FIELDTYPES (IJKDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)
 GT_MAKE_REPOSITORY(my_repository2, MY_FIELDTYPES, MY_FIELDS)
+#undef MY_FIELDTYPES
+#undef MY_FIELDS
 
 TEST(two_repository, test) {
     my_repository repo1(IJKStorageInfo(10, 20, 30), IJStorageInfo(11, 22));
@@ -111,36 +113,36 @@ TEST(extended_repo, inherited_functions) {
     ASSERT_EQ(10, repo.get_u().dim< 0 >());
 }
 
-// TODO notes form discussion with Carlos
-// int dims[3] {...};
-// wrap = init_wrappable( "dycore", dims );
-//
-//
-// class wrappable : repository
-//{}
-//
-// class dycore: input_output_repo:wrappable
-//{
-//	dycore( std::vector<int> dims ): wrappable( storage_info1(dim[0],dim[1],dim[2]),
-// storage_info2(dim[0],dim[1],dim[2]+1))
-//	{
-//
-//	}
-//};
-//
-// MAKE_REPO(const)
-//
-////class const_repository;
-////class const_wrappable_repo
-//
-// class wrappable: repository
-//
-// class const_repository: wrappable
-//{
-//	constantFields( std::vector<int> dims ): wrappable( storage_info1(dim[0]), storage_info2(3))
-//	{
-//
-//	}
-// private:
-//
-//};
+using IJKWStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 2, 3 >;
+using IJKWDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJKWStorageInfo >;
+using IKStorageInfo = typename storage_traits< enumtype::Host >::special_storage_info_t< 2, selector< 1, 0, 1 > >;
+using IKDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IKStorageInfo >;
+
+#define MY_FIELDTYPES (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1))(IJKWDataStore, (0, 1, 3))(IKDataStore, (0, 0, 2))
+#define MY_FIELDS (IJKDataStore, u)(IJDataStore, crlat)(IJKWDataStore, w)(IKDataStore, ikfield)
+GT_MAKE_REPOSITORY(my_repository3, MY_FIELDTYPES, MY_FIELDS)
+#undef MY_FIELDTYPES
+#undef MY_FIELDS
+
+TEST(repository_with_dims, constructor) {
+    int Ni = 12;
+    int Nj = 13;
+    int Nk = 14;
+    int Nk_plus1 = Nk + 1;
+
+    my_repository3 repo(Ni, Nj, Nk, Nk_plus1);
+
+    ASSERT_EQ(Ni, repo.get_u().dim< 0 >());
+    ASSERT_EQ(Nj, repo.get_u().dim< 1 >());
+    ASSERT_EQ(Nk, repo.get_u().dim< 2 >());
+
+    ASSERT_EQ(Ni, repo.get_w().dim< 0 >());
+    ASSERT_EQ(Nj, repo.get_w().dim< 1 >());
+    ASSERT_EQ(Nk_plus1, repo.get_w().dim< 2 >());
+
+    ASSERT_EQ(Ni, repo.get_crlat().dim< 0 >());
+    ASSERT_EQ(Nj, repo.get_crlat().dim< 1 >());
+
+    ASSERT_EQ(Ni, repo.get_ikfield().dim< 0 >());
+    ASSERT_EQ(Nk, repo.get_ikfield().dim< 2 >());
+}
