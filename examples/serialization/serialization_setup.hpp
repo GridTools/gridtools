@@ -51,6 +51,11 @@ using namespace gridtools;
 using namespace enumtype;
 
 class serialization_setup : public ::testing::Test {
+  public:
+    using backend_t = backend< Host, structured, Naive >;
+    using storage_info_t = backend_t::storage_traits_t::storage_info_t< 0, 3 >;
+    using storage_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_t >;
+
   private:
     std::string m_prefix;
     std::string m_directory;
@@ -58,10 +63,6 @@ class serialization_setup : public ::testing::Test {
     std::shared_ptr< verifier > m_verifier;
 
   public:
-    using backend_t = backend< Host, structured, Naive >;
-    using storage_info_t = backend_t::storage_traits_t::storage_info_t< 0, 3 >;
-    using storage_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_t >;
-
     /**
      * @brief Allocate the storage `name` of dimensions `dims`
      */
