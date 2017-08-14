@@ -34,23 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include <common/defs.hpp>
-#include <common/gt_assert.hpp>
-#include <common/generic_metafunctions/accumulate_tparams_until.hpp>
-#include <common/generic_metafunctions/binary_ops.hpp>
+#include "common/defs.hpp"
+#include "common/array.hpp"
+#include "common/array_addons.hpp"
 
 using namespace gridtools;
 
-namespace gridtools {
+TEST(array, to_vector) {
+    array< uint_t, 4 > a{1, 2, 3, 4};
 
-    template < int_t... Vals >
-    struct test_container {};
-}
+    auto v = to_vector(a);
 
-TEST(accumulate_tparams_until, first_few_vals) {
-    using ref = test_container< 1, -2, 3, -3, 4, 5 >;
-    using test = test_container< 1, -2, 3, -2, 4, 5 >;
+    ASSERT_EQ(4, v.size());
 
-    GRIDTOOLS_STATIC_ASSERT((accumulate_tparams_until< int_t, equal, logical_and, ref, test, 3 >::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((!accumulate_tparams_until< int_t, equal, logical_and, ref, test, 4 >::value), "ERROR");
+    for (size_t i = 0; i < 4; ++i) {
+        ASSERT_EQ(a[i], v[i]);
+    }
 }
