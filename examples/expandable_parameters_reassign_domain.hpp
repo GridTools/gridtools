@@ -64,8 +64,8 @@ namespace test_expandable_parameters {
 
     struct functor_exp {
 
-        typedef accessor< 0, enumtype::inout > parameters_out;
-        typedef accessor< 1, enumtype::in > parameters_in;
+        typedef vector_accessor< 0, enumtype::inout > parameters_out;
+        typedef vector_accessor< 1, enumtype::in > parameters_in;
 
         typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
 
@@ -94,7 +94,14 @@ namespace test_expandable_parameters {
         storage_t storage40(meta_data_, -4., "storage40");
         storage_t storage50(meta_data_, -5., "storage50");
 
+        storage_t storage11(meta_data_, -1., "storage11");
+        storage_t storage21(meta_data_, -2., "storage21");
+        storage_t storage31(meta_data_, -3., "storage31");
+        storage_t storage41(meta_data_, -4., "storage41");
+        storage_t storage51(meta_data_, -5., "storage51");
+
         std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
+        std::vector< storage_t > list_out2_ = {storage11, storage21, storage31, storage41, storage51};
         std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
@@ -104,47 +111,44 @@ namespace test_expandable_parameters {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        typedef arg< 0, storage_t > p_out;
-        typedef arg< 1, storage_t > p_in;
-        typedef tmp_arg< 2, storage_t > p_tmp;
+        typedef arg< 0, std::vector< storage_t > > p_list_out;
+        typedef arg< 1, std::vector< storage_t > > p_list_in;
+        typedef tmp_arg< 2, std::vector< storage_t > > p_list_tmp;
 
-        typedef boost::mpl::vector< p_out, p_in, p_tmp > args_t;
+        typedef boost::mpl::vector< p_list_out, p_list_in, p_list_tmp > args_t;
 
-        aggregator_type< args_t > domain_(list_out_[0], list_in_[0]);
+        aggregator_type< args_t > domain_(list_out_, list_in_);
 
-        auto comp_ = make_computation< BACKEND >(domain_,
-            grid_,
-            make_multistage(enumtype::execute< enumtype::forward >(),
-                                                     define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
-                                                     make_stage< functor_exp >(p_tmp(), p_in()),
-                                                     make_stage< functor_exp >(p_out(), p_tmp())));
+        std::shared_ptr< computation< aggregator_type< args_t >, notype > > comp_ =
+            make_computation< BACKEND >(expand_factor< 2 >(),
+                domain_,
+                grid_,
+                make_multistage(enumtype::execute< enumtype::forward >(),
+                                            define_caches(cache< IJ, cache_io_policy::local >(p_list_tmp())),
+                                            make_stage< functor_exp >(p_list_tmp(), p_list_in()),
+                                            make_stage< functor_exp >(p_list_out(), p_list_tmp())));
 
-        // create the temporary
         comp_->ready();
-        // instantiate views, copy ptrs (e.g. to gpu), etc.
         comp_->steady();
+        comp_->run();
 
-        // reassign and run with different fields
-        for (uint_t i = 0; i < list_in_.size(); ++i) {
-            // reassign storages
-            comp_->reassign(list_in_[i], list_out_[i]);
-            // execute
-            comp_->run();
-        }
+        comp_->reassign(list_out2_, list_in_);
 
-        // sync storages, delete tmps, etc.
         comp_->finalize();
 
         bool success = true;
         for (uint_t l = 0; l < list_in_.size(); ++l) {
             auto inv = make_host_view(list_in_[l]);
             auto outv = make_host_view(list_out_[l]);
+            auto out2v = make_host_view(list_out2_[l]);
+
             assert(check_consistency(list_out_[l], outv) && "view cannot be used safely.");
+            assert(check_consistency(list_out2_[l], out2v) && "view cannot be used safely.");
             assert(check_consistency(list_in_[l], inv) && "view cannot be used safely.");
             for (uint_t i = 0; i < d1; ++i)
                 for (uint_t j = 0; j < d2; ++j)
                     for (uint_t k = 0; k < d3; ++k) {
-                        if (inv(i, j, k) != outv(i, j, k)) {
+                        if (inv(i, j, k) != outv(i, j, k) || inv(i, j, k) != out2v(i, j, k)) {
                             std::cout << "error in " << i << ", " << j << ", " << k << ": "
                                       << "in = " << inv(i, j, k) << ", out = " << outv(i, j, k) << std::endl;
                             success = false;
@@ -154,4 +158,4 @@ namespace test_expandable_parameters {
 
         return success;
     }
-} // namespace test_expandable_parameters
+} // namespace test_expandable_parameters_reassign

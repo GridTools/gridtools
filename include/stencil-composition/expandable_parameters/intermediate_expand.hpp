@@ -85,6 +85,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
 
+        using base_t = computation< DomainType, ReductionType >;
+
         // create an mpl vector of @ref gridtools::arg, substituting the large
         // expandable parameters list with a chunk
         typedef typename boost::mpl::fold<
@@ -133,19 +135,20 @@ namespace gridtools {
             IsStateful,
             1 > intermediate_remainder_t;
 
+        using base_t::m_domain;
+
       private:
         // private members
-        DomainType const &m_domain_full;
         std::unique_ptr< aggregator_type< expand_arg_list > > m_domain_chunk;
         std::unique_ptr< aggregator_type< expand_arg_list_remainder > > m_domain_chunk_remainder;
         std::unique_ptr< intermediate_t > m_intermediate;
         std::unique_ptr< intermediate_remainder_t > m_intermediate_remainder;
         ushort_t m_size;
-
         // fusion vector of storage lists
         typedef aggregator_type< expand_arg_list > aggregator_t;
         typedef aggregator_type< expand_arg_list_remainder > aggregator_remainder_t;
         typedef typename aggregator_t::arg_storage_pair_fusion_list_t expand_vec_t;
+
         typedef typename aggregator_remainder_t::arg_storage_pair_fusion_list_t expand_vec_remainder_t;
         expand_vec_t expand_vec;
         expand_vec_remainder_t expand_vec_remainder;
@@ -158,7 +161,7 @@ namespace gridtools {
            dimension given by  @ref gridtools::expand_factor
          */
         intermediate_expand(DomainType &domain, Grid const &grid, ConditionalsSet conditionals_)
-            : m_domain_full(domain), m_domain_chunk(), m_domain_chunk_remainder(), m_intermediate(),
+            : base_t(domain), m_domain_chunk(), m_domain_chunk_remainder(), m_intermediate(),
               m_intermediate_remainder(), m_size(0) {
 
             // initialize the storage list objects, whithout allocating the storage for the data snapshots
@@ -217,7 +220,7 @@ namespace gridtools {
                 boost::mpl::for_each< expandable_params_t >(_impl::assign_expandable_params< ExpandFactor,
                     Backend,
                     DomainType,
-                    aggregator_type< expand_arg_list > >(m_domain_full, *m_domain_chunk, i));
+                    aggregator_type< expand_arg_list > >(m_domain, *m_domain_chunk, i));
                 m_intermediate->run();
             }
             for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
@@ -225,7 +228,7 @@ namespace gridtools {
                     Backend,
                     DomainType,
                     aggregator_type< expand_arg_list_remainder > >(
-                    m_domain_full, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
+                    m_domain, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
                 m_intermediate_remainder->run();
             }
             return 0.; // reduction disabled
@@ -276,7 +279,7 @@ namespace gridtools {
                 boost::mpl::for_each< expandable_params_t >(_impl::assign_expandable_params< ExpandFactor,
                     Backend,
                     DomainType,
-                    aggregator_type< expand_arg_list > >(m_domain_full, *m_domain_chunk, i));
+                    aggregator_type< expand_arg_list > >(m_domain, *m_domain_chunk, i));
                 m_intermediate->steady();
             }
             for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
@@ -284,7 +287,7 @@ namespace gridtools {
                     Backend,
                     DomainType,
                     aggregator_type< expand_arg_list_remainder > >(
-                    m_domain_full, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
+                    m_domain, *m_domain_chunk_remainder, m_size - m_size % ExpandFactor::value + i));
                 m_intermediate_remainder->steady();
             }
         }
@@ -294,7 +297,7 @@ namespace gridtools {
          */
         virtual void finalize() {
             // sync all data stores
-            boost::fusion::for_each(m_domain_full.m_arg_storage_pair_list, _impl::sync_data_stores());
+            boost::fusion::for_each(m_domain.m_arg_storage_pair_list, _impl::sync_data_stores());
             if (m_size >= ExpandFactor::value)
                 m_intermediate->finalize();
 

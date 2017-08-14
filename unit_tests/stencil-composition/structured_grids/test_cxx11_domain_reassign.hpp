@@ -120,7 +120,7 @@ namespace domain_reassign {
 
         typedef boost::mpl::vector< p_in, p_out > accessor_list;
 
-        gridtools::aggregator_type< accessor_list > domain(in, out);
+        aggregator_type< accessor_list > domain(in, out);
 
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
@@ -129,10 +129,11 @@ namespace domain_reassign {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
-            grid,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(), gridtools::make_stage< test_functor >(p_in(), p_out())));
+        std::shared_ptr< computation< aggregator_type< accessor_list >, notype > > copy =
+            gridtools::make_computation< gridtools::BACKEND >(domain,
+                grid,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(), gridtools::make_stage< test_functor >(p_in(), p_out())));
 
         copy->ready();
         copy->steady();
