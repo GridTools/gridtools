@@ -46,8 +46,7 @@
 using namespace gridtools;
 using namespace enumtype;
 
-typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
 struct copy_to_temporaries {
     typedef accessor< 0, enumtype::in, extent<>, 3 > in;
@@ -57,7 +56,7 @@ struct copy_to_temporaries {
     typedef boost::mpl::vector< in, tmp1, tmp2 > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
         eval(tmp1()) = 0.25 * eval(in());
         eval(tmp2()) = 0.75 * eval(in());
     }
@@ -70,7 +69,7 @@ struct copy_from_temporaries {
     typedef boost::mpl::vector< tmp1, tmp2, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
         eval(out()) = eval(tmp1()) + eval(tmp2());
     }
 };
@@ -80,14 +79,8 @@ TEST_F(serialization_setup, temporaries) {
     uint_t d1 = 5, d2 = 6, d3 = 7;
 
     // Storages
-    storage_t &in = make_storage("in", d1, d2, d3);
-    storage_t &out = make_storage("out", d1, d2, d3);
-
-    auto in_view = make_host_view(in);
-    auto out_view = make_host_view(out);
-
-    for_each("in", [&in_view](int i, int j, int k) { in_view(i, j, k) = i + j + k; });
-    for_each("out", [&out_view](int i, int j, int k) { out_view(i, j, k) = -1; });
+    storage_t in = make_storage("in", [&](int i, int j, int k) { return i + j + k; }, d1, d2, d3);
+    storage_t out = make_storage("out", -1., d1, d2, d3);
 
     // Domain
     typedef tmp_arg< 0, storage_t > p_tmp1;
@@ -146,29 +139,33 @@ TEST_F(serialization_setup, temporaries) {
         // ====================
 
         // Savepoint: input of "copy_to_temporaries"
-        storage_t &copy_to_temporaries_input_in = make_storage("copy_to_temporaries_input_in", d1, d2, d3);
+        storage_t copy_to_temporaries_input_in = make_storage("copy_to_temporaries_input_in", -1., d1, d2, d3);
         ref_serializer.read("in", ref_serializer.savepoints()[0], copy_to_temporaries_input_in);
 
         // Savepoint: output of "copy_to_temporaries"
-        storage_t &copy_to_temporaries_output_in = make_storage("copy_to_temporaries_output_in", d1, d2, d3);
-        storage_t &copy_to_temporaries_output_tmp_0 = make_storage("copy_to_temporaries_output_tmp_0", d1, d2, d3);
-        storage_t &copy_to_temporaries_output_tmp_1 = make_storage("copy_to_temporaries_output_tmp_1", d1, d2, d3);
+        storage_t copy_to_temporaries_output_in = make_storage("copy_to_temporaries_output_in", -1., d1, d2, d3);
+        storage_t copy_to_temporaries_output_tmp_0 = make_storage("copy_to_temporaries_output_tmp_0", -1., d1, d2, d3);
+        storage_t copy_to_temporaries_output_tmp_1 = make_storage("copy_to_temporaries_output_tmp_1", -1., d1, d2, d3);
         ref_serializer.read("in", ref_serializer.savepoints()[1], copy_to_temporaries_output_in);
         ref_serializer.read("tmp_0", ref_serializer.savepoints()[1], copy_to_temporaries_output_tmp_0);
         ref_serializer.read("tmp_1", ref_serializer.savepoints()[1], copy_to_temporaries_output_tmp_1);
 
         // Savepoint: input of "copy_from_temporaries"
-        storage_t &copy_from_temporaries_input_out = make_storage("copy_from_temporaries_input_out", d1, d2, d3);
-        storage_t &copy_from_temporaries_input_tmp_0 = make_storage("copy_from_temporaries_input_tmp_0", d1, d2, d3);
-        storage_t &copy_from_temporaries_input_tmp_1 = make_storage("copy_from_temporaries_input_tmp_1", d1, d2, d3);
+        storage_t copy_from_temporaries_input_out = make_storage("copy_from_temporaries_input_out", -1., d1, d2, d3);
+        storage_t copy_from_temporaries_input_tmp_0 =
+            make_storage("copy_from_temporaries_input_tmp_0", -1., d1, d2, d3);
+        storage_t copy_from_temporaries_input_tmp_1 =
+            make_storage("copy_from_temporaries_input_tmp_1", -1., d1, d2, d3);
         ref_serializer.read("out", ref_serializer.savepoints()[2], copy_from_temporaries_input_out);
         ref_serializer.read("tmp_0", ref_serializer.savepoints()[2], copy_from_temporaries_input_tmp_0);
         ref_serializer.read("tmp_1", ref_serializer.savepoints()[2], copy_from_temporaries_input_tmp_1);
 
         // Savepoint: output of "copy_from_temporaries"
-        storage_t &copy_from_temporaries_output_out = make_storage("copy_from_temporaries_output_out", d1, d2, d3);
-        storage_t &copy_from_temporaries_output_tmp_0 = make_storage("copy_from_temporaries_output_tmp_0", d1, d2, d3);
-        storage_t &copy_from_temporaries_output_tmp_1 = make_storage("copy_from_temporaries_output_tmp_1", d1, d2, d3);
+        storage_t copy_from_temporaries_output_out = make_storage("copy_from_temporaries_output_out", -1., d1, d2, d3);
+        storage_t copy_from_temporaries_output_tmp_0 =
+            make_storage("copy_from_temporaries_output_tmp_0", -1., d1, d2, d3);
+        storage_t copy_from_temporaries_output_tmp_1 =
+            make_storage("copy_from_temporaries_output_tmp_1", -1., d1, d2, d3);
         ref_serializer.read("out", ref_serializer.savepoints()[3], copy_from_temporaries_output_out);
         ref_serializer.read("tmp_0", ref_serializer.savepoints()[3], copy_from_temporaries_output_tmp_0);
         ref_serializer.read("tmp_1", ref_serializer.savepoints()[3], copy_from_temporaries_output_tmp_1);
@@ -177,17 +174,18 @@ TEST_F(serialization_setup, temporaries) {
         // ======================
 
         // Verify: "copy_to_temporaries"
-        storage_t &copy_to_temporaries_output_tmp_0_ref =
-            make_storage("copy_to_temporaries_output_tmp_0_ref", d1, d2, d3);
-        storage_t &copy_to_temporaries_output_tmp_1_ref =
-            make_storage("copy_to_temporaries_output_tmp_1_ref", d1, d2, d3);
-
-        auto copy_to_temporaries_output_tmp_0_ref_view = make_host_view(copy_to_temporaries_output_tmp_0_ref);
-        for_each("copy_to_temporaries_output_tmp_0_ref",
-            [&](int i, int j, int k) { copy_to_temporaries_output_tmp_0_ref_view(i, j, k) = 0.25 * in_view(i, j, k); });
-        auto copy_to_temporaries_output_tmp_1_ref_view = make_host_view(copy_to_temporaries_output_tmp_1_ref);
-        for_each("copy_to_temporaries_output_tmp_1_ref",
-            [&](int i, int j, int k) { copy_to_temporaries_output_tmp_1_ref_view(i, j, k) = 0.75 * in_view(i, j, k); });
+        auto in_view = make_host_view(in);
+        storage_t copy_to_temporaries_output_tmp_0_ref = // TODO continue
+            make_storage("copy_to_temporaries_output_tmp_0_ref",
+                [&](int i, int j, int k) { return 0.25 * in_view(i, j, k); },
+                d1,
+                d2,
+                d3);
+        storage_t copy_to_temporaries_output_tmp_1_ref = make_storage("copy_to_temporaries_output_tmp_1_ref",
+            [&](int i, int j, int k) { return 0.75 * in_view(i, j, k); },
+            d1,
+            d2,
+            d3);
 
         ASSERT_TRUE(verify_storages(copy_to_temporaries_input_in, in, grid, halo_size));
         ASSERT_TRUE(verify_storages(copy_to_temporaries_output_in, in, grid, halo_size));
@@ -197,11 +195,8 @@ TEST_F(serialization_setup, temporaries) {
             verify_storages(copy_to_temporaries_output_tmp_1, copy_to_temporaries_output_tmp_1_ref, grid, halo_size));
 
         // Verify: "copy_from_temporaries"
-        storage_t &copy_from_temporaries_input_out_ref =
-            make_storage("copy_from_temporaries_input_out_ref", d1, d2, d3);
-        auto copy_from_temporaries_input_out_ref_view = make_host_view(copy_from_temporaries_input_out_ref);
-        for_each("copy_from_temporaries_input_out_ref",
-            [&](int i, int j, int k) { copy_from_temporaries_input_out_ref_view(i, j, k) = -1; });
+        storage_t copy_from_temporaries_input_out_ref =
+            make_storage("copy_from_temporaries_input_out_ref", -1., d1, d2, d3);
 
         ASSERT_TRUE(
             verify_storages(copy_from_temporaries_input_out, copy_from_temporaries_input_out_ref, grid, halo_size));

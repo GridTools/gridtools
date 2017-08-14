@@ -59,38 +59,12 @@ class serialization_setup : public ::testing::Test {
     /**
      * @brief Allocate the storage `name` of dimensions `dims`
      */
-    template < typename... Dims >
-    storage_t &make_storage(std::string name, Dims &&... dims) {
+    template < typename Initializer, typename... Dims >
+    storage_t make_storage(std::string name, Initializer &&F, Dims &&... dims) {
         storage_info_t storage_info(dims...);
-        auto it = m_storage_map.insert({name, std::make_shared< storage_t >(storage_info, name.c_str())}).first;
-        return *(it->second.get());
-    }
-
-    /**
-     * @brief Get storage `name`
-     */
-    storage_t &get_storage(const std::string &name) const {
-        auto it = m_storage_map.find(name);
-        if (it == m_storage_map.end())
-            throw std::runtime_error("invalid storage \"" + name + "\"");
-        return *(it->second.get());
-    }
-
-    /**
-     * @brief Apply `functor` to each element of the storage `name`
-     */
-    template < class FunctorType >
-    void for_each(const std::string &name, FunctorType &&functor) {
-        const auto &storage = get_storage(name);
-        const auto &storage_info = *storage.get_storage_info_ptr();
-        uint_t d1 = storage_info.dim< 0 >();
-        uint_t d2 = storage_info.dim< 1 >();
-        uint_t d3 = storage_info.dim< 2 >();
-
-        for (uint_t i = 0; i < d1; ++i)
-            for (uint_t j = 0; j < d2; ++j)
-                for (uint_t k = 0; k < d3; ++k)
-                    functor(i, j, k);
+        storage_t storage(storage_info, F, name.c_str());
+        m_storage_map[name] = storage;
+        return storage;
     }
 
     /**
@@ -112,7 +86,7 @@ class serialization_setup : public ::testing::Test {
                 return ::testing::AssertionFailure() << "storage " << it->first << " is not present";
 
             const auto &info = serializer.get_field_meta_info(it->first);
-            const auto &dims_array = to_vector(make_unaligned_dims_array(*it->second->get_storage_info_ptr()));
+            const auto &dims_array = to_vector(make_unaligned_dims_array(*it->second.get_storage_info_ptr()));
             std::vector< int > dims(&dims_array[0], &dims_array[0] + dims_array.size());
 
             if (dims != info.dims())
@@ -136,7 +110,7 @@ class serialization_setup : public ::testing::Test {
         return ::testing::AssertionSuccess();
     }
 
-    virtual void SetUp() override {
+    serialization_setup() {
         const ::testing::TestInfo *testInfo = ::testing::UnitTest::GetInstance()->current_test_info();
         assert(testInfo);
 
@@ -150,12 +124,10 @@ class serialization_setup : public ::testing::Test {
 #endif
     }
 
-    virtual void TearDown() override { m_storage_map.clear(); }
-
   private:
     std::string m_prefix;
     std::string m_directory;
-    std::unordered_map< std::string, std::shared_ptr< storage_t > > m_storage_map;
+    std::unordered_map< std::string, storage_t > m_storage_map;
     std::shared_ptr< verifier > m_verifier;
 };
 
