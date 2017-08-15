@@ -42,14 +42,35 @@
 
 using namespace gridtools;
 
+TEST(repository_macros, max_in_tuple) {
+#define my_tuple (0, 1, 4)
+    ASSERT_EQ(4, GTREPO_max_in_tuple(my_tuple));
+#undef my_tuple
+}
+
+TEST(repository_macros, max_dim) {
+#define my_field_types (IJKDataStore, (0, 1, 5))(IJDataStore, (0, 1))(AnotherDataStore, (8, 1))
+    ASSERT_EQ(8, GTREPO_max_dim(GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(my_field_types)));
+#undef my_field_types
+}
+
+TEST(repository_macros, has_dim) {
+#define my_field_types (IJKDataStore, (0, 1, 5))(IJDataStore, (0, 1))(AnotherDataStore, (8, 1))
+    ASSERT_GT(GTREPO_has_dim(GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(my_field_types)), 0);
+#undef my_field_types
+#define my_field_types (IJKDataStore)(IJDataStore)(AnotherDataStore)
+    ASSERT_EQ(0, GTREPO_has_dim(GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(my_field_types)));
+#undef my_field_types
+}
+
 using IJKStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 0, 3 >;
 using IJKDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJKStorageInfo >;
 using IJStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 1, 2 >;
 using IJDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJStorageInfo >;
 
-#define MY_FIELDTYPES (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1))
+#define MY_FIELDTYPES (IJKDataStore)(IJDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)(IJDataStore, crlat)
-GT_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
+GRIDTOOLS_MAKE_REPOSITORY(my_repository, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 
@@ -65,11 +86,20 @@ TEST_F(simple_repository, access_fields) {
     ASSERT_EQ(11, repo.get_crlat().dim< 0 >());
 }
 
-TEST_F(simple_repository, access_field_from_map) {
+TEST_F(simple_repository, assign_to_auto_from_map) {
     // needs a cast
     auto u = boost::get< IJKDataStore >(repo.data_stores()["u"]);
-
     ASSERT_EQ(10, u.dim< 0 >());
+}
+
+TEST_F(simple_repository, assign_to_type_from_map) {
+    // no cast needed
+    IJKDataStore u = repo.data_stores()["u"];
+    ASSERT_EQ(10, u.dim< 0 >());
+}
+
+TEST_F(simple_repository, access_wrong_type_from_map) {
+    ASSERT_THROW(boost::get< IJDataStore >(repo.data_stores()["u"]), boost::bad_get);
 }
 
 class DemonstrateIterationOverMap : public boost::static_visitor<> {
@@ -90,7 +120,7 @@ TEST_F(simple_repository, iterate_map_with_visitor) {
 
 #define MY_FIELDTYPES (IJKDataStore)
 #define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)
-GT_MAKE_REPOSITORY(my_repository2, MY_FIELDTYPES, MY_FIELDS)
+GRIDTOOLS_MAKE_REPOSITORY(my_repository2, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 
@@ -120,7 +150,7 @@ using IKDataStore = typename storage_traits< enumtype::Host >::data_store_t< flo
 
 #define MY_FIELDTYPES (IJKDataStore, (0, 1, 2))(IJDataStore, (0, 1))(IJKWDataStore, (0, 1, 3))(IKDataStore, (0, 0, 2))
 #define MY_FIELDS (IJKDataStore, u)(IJDataStore, crlat)(IJKWDataStore, w)(IKDataStore, ikfield)
-GT_MAKE_REPOSITORY(my_repository3, MY_FIELDTYPES, MY_FIELDS)
+GRIDTOOLS_MAKE_REPOSITORY(my_repository3, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 

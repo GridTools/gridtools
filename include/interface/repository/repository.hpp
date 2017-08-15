@@ -40,6 +40,7 @@
     "GRIDTOOLS ERROR=> For the repository you need to \"#define BOOST_PP_VARIADICS 1\" before the first include of any boost preprocessor file.")
 #endif
 
+#include "boost_pp_generic_macros.hpp"
 #include <unordered_map>
 #include "boost/variant.hpp"
 #include "boost/preprocessor/seq.hpp"
@@ -53,125 +54,205 @@
 #include <boost/mpl/contains.hpp>
 #include "../../common/defs.hpp"
 
-// helper: adds double parenthesis to make user-code sequences look nicer
-#define PP_DETAIL_SEQ_DOUBLE_PARENS_0(...) ((__VA_ARGS__)) PP_DETAIL_SEQ_DOUBLE_PARENS_1
-#define PP_DETAIL_SEQ_DOUBLE_PARENS_1(...) ((__VA_ARGS__)) PP_DETAIL_SEQ_DOUBLE_PARENS_0
-#define PP_DETAIL_SEQ_DOUBLE_PARENS_0_END
-#define PP_DETAIL_SEQ_DOUBLE_PARENS_1_END
-#define PP_SEQ_DOUBLE_PARENS(seq) BOOST_PP_CAT(PP_DETAIL_SEQ_DOUBLE_PARENS_0 seq, _END)
+/*
+ * @brief data_store_types_tuple is a tuple of the form (DataStoreType, DimTuple). The following macros
+ * provide named getters to the tuple elements.
+ */
+#define GTREPO_data_store_types_get_typename(data_store_types_tuple) BOOST_PP_TUPLE_ELEM(0, data_store_types_tuple)
+#define GTREPO_data_store_types_get_dim_tuple(data_store_types_tuple) BOOST_PP_TUPLE_ELEM(1, data_store_types_tuple)
+/*
+ * @brief data_stores_tuple is a tuple of the form (DataStoreType, MemberName). The following macros
+ * provide named getters to the tuple elements.
+ */
+#define GTREPO_data_stores_get_typename(data_stores_tuple) BOOST_PP_TUPLE_ELEM(0, data_stores_tuple)
+#define GTREPO_data_stores_get_member_name(data_stores_tuple) BOOST_PP_TUPLE_ELEM(1, data_stores_tuple)
 
-// getter for fieldtype_tuple
-// fieldtype_tuple = (name, tuple_of_dimensions)
-#define GTREPO_fieldtype_name(fieldtype_tuple) BOOST_PP_TUPLE_ELEM(0, fieldtype_tuple)
-#define GTREPO_fieldtype_dims_tuple(fieldtype_tuple) BOOST_PP_TUPLE_ELEM(1, fieldtype_tuple)
-// getter for field_tuple
-// field_tuple = (type, name)
-#define GTREPO_field_type(tuple) BOOST_PP_TUPLE_ELEM(0, tuple)
-#define GTREPO_field_name(tuple) BOOST_PP_TUPLE_ELEM(1, tuple)
+/*
+ * @brief makes a data_store data member from the tuple (DataStoreType, MemberName).
+ */
+#define GTREPO_make_members_data_stores(r, data, tuple) \
+    GTREPO_data_stores_get_typename(tuple) GTREPO_data_stores_get_member_name(tuple);
 
-#define GTREPO_name(name) BOOST_PP_CAT(name, _)
-#define GTREPO_make_members(r, data, tuple) BOOST_PP_TUPLE_ELEM(0, tuple) GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple));
-#define GTREPO_make_storage_info_members(r, data, tuple) \
-    typename GTREPO_fieldtype_name(tuple)::storage_info_t BOOST_PP_CAT(GTREPO_fieldtype_name(tuple), _info);
-#define GTREPO_as_string_helper(name) #name
-#define GTREPO_as_string(name) GTREPO_as_string_helper(name)
+/*
+ * @brief makes a storage_info data member from the tuple (DataStoreType, DimVector). The type is
+ * DataStoreType::storage_info_t, the member name is DataStoreType_info
+ */
+#define GTREPO_make_members_storage_infos(r, data, tuple)                              \
+    typename GTREPO_data_store_types_get_typename(tuple)::storage_info_t BOOST_PP_CAT( \
+        GTREPO_data_store_types_get_typename(tuple), _info);
 
-// helper for ctor with storage_infos
-#define GTREPO_make_ctor_args(r, data, n, data_store) \
-    BOOST_PP_COMMA_IF(n)                              \
-    typename GTREPO_fieldtype_name(data_store)::storage_info_t BOOST_PP_CAT(GTREPO_fieldtype_name(data_store), _info)
-#define GTREPO_make_ctor_init(r, data, n, tuple) \
-    BOOST_PP_COMMA_IF(n)                         \
-    GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple))(  \
-        BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(0, tuple), _info), GTREPO_as_string(BOOST_PP_TUPLE_ELEM(1, tuple)))
-#define GTREPO_make_ctor_init_member_storage_infos(r, data, n, tuple) \
-    BOOST_PP_COMMA_IF(n)                                              \
-    BOOST_PP_CAT(GTREPO_fieldtype_name(tuple), _info)(BOOST_PP_CAT(GTREPO_fieldtype_name(tuple), _info))
-
-// helper for ctor with dims
-#define GTREPO_make_dim_args_helper(r, data, n, dim_value) BOOST_PP_COMMA_IF(n) BOOST_PP_CAT(dim, dim_value)
-#define GTREPO_make_dim_args(tuple) \
-    (BOOST_PP_LIST_FOR_EACH_I(GTREPO_make_dim_args_helper, ~, BOOST_PP_TUPLE_TO_LIST(tuple)))
-#define GTREPO_make_ctor_with_dims_storage_infos(r, data, n, tuple) \
-    BOOST_PP_COMMA_IF(n)                                            \
-    BOOST_PP_CAT(GTREPO_fieldtype_name(tuple), _info)               \
-    GTREPO_make_dim_args(GTREPO_fieldtype_dims_tuple(tuple))
-
-#define GTREPO_init_map(r, data, tuple) \
-    data_store_map_.emplace(            \
-        GTREPO_as_string(BOOST_PP_TUPLE_ELEM(1, tuple)), GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple)));
-
-#define GTREPO_make_getters(r, data, tuple)                                               \
-    BOOST_PP_TUPLE_ELEM(0, tuple) & BOOST_PP_CAT(get_, BOOST_PP_TUPLE_ELEM(1, tuple))() { \
-        return GTREPO_name(BOOST_PP_TUPLE_ELEM(1, tuple));                                \
+/*
+ * @brief makes a getter for a data_store member variable
+ */
+#define GTREPO_make_data_store_getter(r, data, tuple)                                                          \
+    GTREPO_data_stores_get_typename(tuple) & BOOST_PP_CAT(get_, GTREPO_data_stores_get_member_name(tuple))() { \
+        return GTREPO_data_stores_get_member_name(tuple);                                                      \
     }
 
-#define GTREPO_is_data_store(r, data, fieldtype_tuple)                                        \
-    GRIDTOOLS_STATIC_ASSERT((is_data_store< GTREPO_fieldtype_name(fieldtype_tuple) >::value), \
-        "At least one of the arguments passed to the repository in GT_REPOSITORY_FIELDTYPES is not a data_store");
+/*
+ * @brief makes a comma separated list of data_store types
+ */
+#define GTREPO_enum_of_data_store_types_helper(r, data, n, tuple) \
+    BOOST_PP_COMMA_IF(n) GTREPO_data_store_types_get_typename(tuple)
+#define GTREPO_enum_of_data_store_types(data_store_types_seq) \
+    BOOST_PP_SEQ_FOR_EACH_I(GTREPO_enum_of_data_store_types_helper, ~, data_store_types_seq)
 
-#define GTREPO_enum_of_fieldtypes_helper(r, data, n, tuple) BOOST_PP_COMMA_IF(n) GTREPO_fieldtype_name(tuple)
-#define GTREPO_enum_of_fieldtypes(GTREPO_FIELDTYPES_SEQ) \
-    BOOST_PP_SEQ_FOR_EACH_I(GTREPO_enum_of_fieldtypes_helper, ~, GTREPO_FIELDTYPES_SEQ)
-
+/*
+ * GTREPO_max_in_tuple returns the maximum value in a BOOST_PP tuple
+ */
 #define GTREPO_max_fold_op(d, state, x) BOOST_PP_MAX_D(d, state, x)
 #define GTREPO_max_in_tuple_fold(list) BOOST_PP_LIST_FOLD_LEFT(GTREPO_max_fold_op, 0, list)
 #define GTREPO_max_in_tuple(tuple) GTREPO_max_in_tuple_fold(BOOST_PP_TUPLE_TO_LIST(tuple))
 
+/*
+ * GTREPO_max_dim returns the maximum dim in the DimensionTuple in the whole data_store_types sequence
+ */
 #define GTREPO_max_dim_fold_op(d, state, x) \
-    BOOST_PP_MAX_D(d, state, GTREPO_max_in_tuple(GTREPO_fieldtype_dims_tuple(x)))
-#define GTREPO_max_dim(GTREPO_FIELDTYPES_SEQ) BOOST_PP_SEQ_FOLD_LEFT(GTREPO_max_dim_fold_op, 0, GTREPO_FIELDTYPES_SEQ)
+    BOOST_PP_MAX_D(d, state, GTREPO_max_in_tuple(GTREPO_data_store_types_get_dim_tuple(x)))
+#define GTREPO_max_dim(data_store_types_seq) BOOST_PP_SEQ_FOLD_LEFT(GTREPO_max_dim_fold_op, 0, data_store_types_seq)
 
-// non-zero if all fieldtypes have dimensions specified
+/*
+ * @brief GTREPO_has_dim returns 0 if no dimensions are provided in at least one (DataStoreType, DimTuple) tuple
+ */
 #define GTREPO_has_dim_fold_op(d, state, x) BOOST_PP_MIN_D(d, state, BOOST_PP_DEC(BOOST_PP_TUPLE_SIZE(x)))
-#define GTREPO_has_dim(GTREPO_FIELDTYPES_SEQ) \
-    BOOST_PP_BOOL(BOOST_PP_SEQ_FOLD_LEFT(GTREPO_has_dim_fold_op, 1, GTREPO_FIELDTYPES_SEQ))
+#define GTREPO_has_dim(data_store_types_seq) \
+    BOOST_PP_BOOL(BOOST_PP_SEQ_FOLD_LEFT(GTREPO_has_dim_fold_op, 1, data_store_types_seq))
 
-#define GTREPO_EMPTY(...)
+/*
+ * @brief general helper for constructors
+ */
+// helper to create the initializer for data stores
+#define GTREPO_make_ctor_initializer_for_data_stores(r, data, n, tuple)                                    \
+    BOOST_PP_COMMA_IF(n)                                                                                   \
+    GTREPO_data_stores_get_member_name(tuple)(BOOST_PP_CAT(GTREPO_data_stores_get_typename(tuple), _info), \
+        BOOST_PP_STRINGIZE(GTREPO_data_stores_get_member_name(tuple)))
+// put a data_store in the data_store_map_
+#define GTREPO_ctor_init_map(r, data, tuple) \
+    data_store_map_.emplace(                 \
+        BOOST_PP_STRINGIZE(GTREPO_data_stores_get_member_name(tuple)), GTREPO_data_stores_get_member_name(tuple));
 
-#define GTREPO_make_dims_ctor(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ)                      \
-    GTREPO_NAME(BOOST_PP_ENUM_PARAMS(BOOST_PP_ADD(GTREPO_max_dim(GTREPO_FIELDTYPES_SEQ), 1), uint_t dim)) \
-        : BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_with_dims_storage_infos, ~, GTREPO_FIELDTYPES_SEQ),    \
-          BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_init, ~, GTREPO_FIELDS_SEQ) {}
+/*
+ * @brief GTREPO_make_ctor_storage_infos makes a constructor with storage-infos for each of the data_store types
+ * provided in data_store_types_seq
+ */
+// helper to create the parameters
+#define GTREPO_make_ctor_storage_infos_params(r, data, n, data_store)                       \
+    BOOST_PP_COMMA_IF(n)                                                                    \
+    typename GTREPO_data_store_types_get_typename(data_store)::storage_info_t BOOST_PP_CAT( \
+        GTREPO_data_store_types_get_typename(data_store), _info)
+// helper to create the initializer for the storage_infos from storage_infos
+#define GTREPO_make_ctor_storage_infos_initializer_for_storage_infos(r, data, n, tuple) \
+    BOOST_PP_COMMA_IF(n)                                                                \
+    BOOST_PP_CAT(GTREPO_data_store_types_get_typename(tuple), _info)(BOOST_PP_CAT(GTREPO_data_store_types_get_typename(tuple), _info))
 
-#define GTREPO_make_dims_ctor_if_has_dim(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ) \
-    BOOST_PP_IF(GTREPO_has_dim(GTREPO_FIELDTYPES_SEQ),                                     \
-        GTREPO_make_dims_ctor,GTREPO_EMPTY)(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ)
-
-#define GTREPO_make_storage_info_ctor(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ)             \
-    GTREPO_NAME(BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_args, ~, GTREPO_FIELDTYPES_SEQ))                \
-        : BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_init_member_storage_infos, ~, GTREPO_FIELDTYPES_SEQ), \
-          BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_init, ~, GTREPO_FIELDS_SEQ) {                         \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_init_map, ~, GTREPO_FIELDS_SEQ)                                     \
+#define GTREPO_make_ctor_storage_infos(name, data_store_types_seq, data_stores_seq)                   \
+    name(BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_storage_infos_params, ~, data_store_types_seq))     \
+        : BOOST_PP_SEQ_FOR_EACH_I(                                                                    \
+              GTREPO_make_ctor_storage_infos_initializer_for_storage_infos, ~, data_store_types_seq), \
+          BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_initializer_for_data_stores, ~, data_stores_seq) { \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_ctor_init_map, ~, data_stores_seq)                               \
     }
 
-#define GTREPO_make_mpl_vector_of_fieldtypes(GTREPO_FIELDTYPES_SEQ) \
-    using fieldtype_vector = boost::mpl::vector< GTREPO_enum_of_fieldtypes(GTREPO_FIELDTYPES_SEQ) >
-// TODO add protection that all FieldTypes are present in GTREPO_FIELDTYPES_SEQ which are passed in GTREPOS_FIELDS_SEQ
+/*
+ * @brief GTREPO_make_ctor_dims makes a constructor with uint_t for dimensions as described below
+ */
+// helper to generate the arguments of the form (dim0, dim1, ...) from the DimTuple (0,1,...)
+#define GTREPO_make_dim_args_helper(r, data, n, dim_value) BOOST_PP_COMMA_IF(n) BOOST_PP_CAT(dim, dim_value)
+#define GTREPO_make_dim_args(tuple) \
+    (BOOST_PP_LIST_FOR_EACH_I(GTREPO_make_dim_args_helper, ~, BOOST_PP_TUPLE_TO_LIST(tuple)))
+// helper to create the initializer for the storage_infos from dimensions
+#define GTREPO_make_ctor_dims_initializer_for_storage_infos_from_dims(r, data, n, tuple) \
+    BOOST_PP_COMMA_IF(n)                                                                 \
+    BOOST_PP_CAT(GTREPO_data_store_types_get_typename(tuple), _info)                     \
+    GTREPO_make_dim_args(GTREPO_data_store_types_get_dim_tuple(tuple))
+#define GTREPO_make_ctor_dims(name, data_store_types_seq, data_stores_seq)                             \
+    name(BOOST_PP_ENUM_PARAMS(BOOST_PP_ADD(GTREPO_max_dim(data_store_types_seq), 1), uint_t dim))      \
+        : BOOST_PP_SEQ_FOR_EACH_I(                                                                     \
+              GTREPO_make_ctor_dims_initializer_for_storage_infos_from_dims, ~, data_store_types_seq), \
+          BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_initializer_for_data_stores, ~, data_stores_seq) {  \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_ctor_init_map, ~, data_stores_seq)                                \
+    }
+/*
+ * @brief makes the dims constructor only if a DimTuple is provided in the data_store_types sequence of tuples
+ * (DataStoreType, DimTuple)
+ */
+#define GTREPO_make_ctor_dims_if_has_dims(name, data_store_types_seq, data_stores_seq) \
+    BOOST_PP_IF(GTREPO_has_dim(data_store_types_seq),                                     \
+        GTREPO_make_ctor_dims,GRIDTOOLS_PP_EMPTY)(name, data_store_types_seq, data_stores_seq)
 
-#define GTREPO_is_valid_fieldtype(r, data, tuple)                                                              \
-    GRIDTOOLS_STATIC_ASSERT((boost::mpl::contains< fieldtype_vector, GTREPO_field_type(tuple) >::type::value), \
-        "At least one of the types in the fields sequence is not defined in the fieldtypes sequence.");
+/*
+ * @brief defines "data_store_type_vector" as boost::mpl::vector of data_store types. Used to assert that all
+ * data_stores are present in the sequence of data_store types
+ */
+#define GTREPO_make_member_vector_of_data_store_types(data_store_types_seq) \
+    using data_store_type_vector = boost::mpl::vector< GTREPO_enum_of_data_store_types(data_store_types_seq) >
 
-#define GT_MAKE_REPOSITORY_HELPER(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ)                      \
-    class GTREPO_NAME {                                                                                       \
-      private:                                                                                                \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_storage_info_members, ~, GTREPO_FIELDTYPES_SEQ)                     \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_members, ~, GTREPO_FIELDS_SEQ)                                      \
-        std::unordered_map< std::string, boost::variant< GTREPO_enum_of_fieldtypes(GTREPO_FIELDTYPES_SEQ) > > \
-            data_store_map_;                                                                                  \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_is_data_store, ~, GTREPO_FIELDTYPES_SEQ)                                 \
-        GTREPO_make_mpl_vector_of_fieldtypes(GTREPO_FIELDTYPES_SEQ);                                          \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_is_valid_fieldtype, ~, GTREPO_FIELDS_SEQ)                                \
-      public:                                                                                                 \
-        GTREPO_make_storage_info_ctor(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ)                  \
-            GTREPO_make_dims_ctor_if_has_dim(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ)           \
-                GTREPO_NAME(const GTREPO_NAME &) = delete; /*non-copyable/moveable*/                          \
-        GTREPO_NAME(GTREPO_NAME &&) = delete;                                                                 \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_getters, ~, GTREPO_FIELDS_SEQ)                                      \
-        auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; }                         \
+/*
+ * @brief assert that all data_stores are present in the sequence of data_store types
+ */
+#define GTREPO_is_valid_data_store_type(r, data, tuple)                                                        \
+    GRIDTOOLS_STATIC_ASSERT(                                                                                   \
+        (boost::mpl::contains< data_store_type_vector, GTREPO_data_stores_get_typename(tuple) >::type::value), \
+        "At least one of the types in the data_store sequence is not defined in the sequence of data_store types.");
+
+/*
+ * @brief assert that all types which are passed in the sequence of data_store types are actually data_stores
+ */
+#define GTREPO_is_data_store(r, data, data_store_type_tuple)                                                       \
+    GRIDTOOLS_STATIC_ASSERT((is_data_store< GTREPO_data_store_types_get_typename(data_store_type_tuple) >::value), \
+        "At least one of the arguments passed to the repository as data_store type is not a data_store");
+
+/*
+ * @brief main macro to generate a repository
+ * @see GRIDTOOLS_MAKE_REPOSITORY
+ */
+#define GRIDTOOLS_MAKE_REPOSITORY_helper(name, data_store_types_seq, data_stores_seq)                                 \
+    class name {                                                                                                      \
+      private:                                                                                                        \
+        GRIDTOOLS_PP_MAKE_VARIANT(                                                                                    \
+            BOOST_PP_CAT(name, _variant), data_store_types_seq) /* in class definition of a special boost::variant    \
+                                                                   class with automatic type conversion*/             \
+        BOOST_PP_SEQ_FOR_EACH(                                                                                        \
+            GTREPO_make_members_storage_infos, ~, data_store_types_seq)            /* generate storage_info members*/ \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_members_data_stores, ~, data_stores_seq) /* generate data_store members*/   \
+        std::unordered_map< std::string, BOOST_PP_CAT(name, _variant) > data_store_map_; /* map for data_stores */    \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_is_data_store,                                                                   \
+            ~,                                                                                                        \
+            data_store_types_seq) /*assert that all types passed in data_store_types are actually data_stores*/       \
+        GTREPO_make_member_vector_of_data_store_types(data_store_types_seq); /* mpl vector of data_store types */     \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_is_valid_data_store_type,                                                        \
+            ~,                                                                                                        \
+            data_stores_seq) /*assert that the type of each data_store is provided in the data_store_types seq*/      \
+      public:                                                                                                         \
+        GTREPO_make_ctor_storage_infos(                                                                               \
+            name, data_store_types_seq, data_stores_seq); /* generate ctor with storage_infos */                      \
+        GTREPO_make_ctor_dims_if_has_dims(                                                                            \
+            name, data_store_types_seq, data_stores_seq)                         /* generate ctor with dimensions */  \
+            name(const name &) = delete;                                         /* non-copyable */                   \
+        name(name &&) = delete;                                                  /* non-movable */                    \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_data_store_getter, ~, data_stores_seq) /* getter for each data_store */     \
+        auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; } /* getter for data_store map */ \
     };
 
-#define GT_MAKE_REPOSITORY(GTREPO_NAME, GTREPO_FIELDTYPES_SEQ, GTREPO_FIELDS_SEQ) \
-    GT_MAKE_REPOSITORY_HELPER(                                                    \
-        GTREPO_NAME, PP_SEQ_DOUBLE_PARENS(GTREPO_FIELDTYPES_SEQ), PP_SEQ_DOUBLE_PARENS(GTREPO_FIELDS_SEQ))
+/*
+ * @brief entry for the user
+ * @param name class name for the repository
+ * @param data_store_types_seq BOOST_PP sequence of tuples of the form (DataStoreType, DimensionTuple)
+ * @param data_stores_seq BOOST_PP sequence of tuples of the form (DataStoreType, VariableName)
+ *
+ * The DimensionTuple is optional.
+ * Example with Dimensions:
+ * (IJKDataStore,(0,1,2))(IKDataStore(0,2)) will generate a repository with two constructors
+ * a) repository( IJKDataStore::storage_info_t, IJDataStore::storage_info_t )
+ *    to initialize all data_stores with their respective storage_infos
+ * b) repository( uint_t dim0, uint_t dim1, uint_t dim2 )
+ *    will initialize storage_infos:
+ *      IJKDataStore::storage_info_t(dim0,dim1,dim2) and
+ *      IKDataStore::storage_info_t(dim0,dim2)
+ *
+ * Main macro is GRIDTOOLS_MAKE_REPOSITORY_helper. Here we just add extra parenthesis to the input to make user-code
+ * look nicer (no double parenthesis)
+ */
+#define GRIDTOOLS_MAKE_REPOSITORY(name, data_store_types_seq, data_stores_seq) \
+    GRIDTOOLS_MAKE_REPOSITORY_helper(                                          \
+        name, GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(data_store_types_seq), GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(data_stores_seq))

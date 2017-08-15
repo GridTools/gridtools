@@ -35,25 +35,49 @@
 */
 
 #include <gtest/gtest.h>
+#include "interface/repository/boost_pp_generic_macros.hpp"
 #include "interface/repository/repository.hpp"
 
-TEST(repository_macros, max_in_tuple) {
-#define my_tuple (0, 1, 4)
-    ASSERT_EQ(4, GTREPO_max_in_tuple(my_tuple));
-#undef my_tuple
+TEST(double_parenthesis, check) {
+#define my_types (int, 2)(double, 3)
+#define my_types_double_parenthesis GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(my_types)
+    ASSERT_EQ(std::string("((int, 2)) ((double, 3))"), std::string(BOOST_PP_STRINGIZE(my_types_double_parenthesis)));
+#undef my_types
+#undef my_types_double_parenthesis
 }
 
-TEST(repository_macros, max_dim) {
-#define my_field_types (IJKDataStore, (0, 1, 5))(IJDataStore, (0, 1))(AnotherDataStore, (8, 1))
-    ASSERT_EQ(8, GTREPO_max_dim(PP_SEQ_DOUBLE_PARENS(my_field_types)));
-#undef my_field_types
+#define my_types ((int))((double))
+GRIDTOOLS_PP_MAKE_VARIANT(myvariant, my_types);
+#undef my_types
+TEST(variant, automatic_conversion) {
+    myvariant v = 3;
+    int i = v;
+
+    v = 3.;
+    double d = v;
+
+    try {
+        int j = v;
+        ASSERT_TRUE(false);
+    } catch (const boost::bad_get &e) {
+        ASSERT_TRUE(true);
+    }
 }
 
-TEST(repository_macros, has_dim) {
-#define my_field_types (IJKDataStore, (0, 1, 5))(IJDataStore, (0, 1))(AnotherDataStore, (8, 1))
-    ASSERT_GT(GTREPO_has_dim(PP_SEQ_DOUBLE_PARENS(my_field_types)), 0);
-#undef my_field_types
-#define my_field_types (IJKDataStore)(IJDataStore)(AnotherDataStore)
-    ASSERT_EQ(0, GTREPO_has_dim(PP_SEQ_DOUBLE_PARENS(my_field_types)));
-#undef my_field_types
+#define my_types ((int, 3))((double, 1))
+GRIDTOOLS_PP_MAKE_VARIANT(myvariant_tuple, my_types);
+#undef my_types
+TEST(variant_with_tuple, automatic_conversion) {
+    myvariant_tuple v = 3;
+    int i = v;
+
+    v = 3.;
+    double d = v;
+
+    try {
+        int j = v;
+        ASSERT_TRUE(false);
+    } catch (const boost::bad_get &e) {
+        ASSERT_TRUE(true);
+    }
 }
