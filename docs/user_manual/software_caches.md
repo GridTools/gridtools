@@ -1,20 +1,30 @@
 # Software Managed Caches
 
-Software managed caches are provide significant optimization since
-they provide increased data locality for multi-stage stencils in
-architectures with user-managed address spaces with different
-performance tradeoffs. For instance, they allow the stencil algorithms
-to exploit texture memory, shared memory, and register files on GPUs
-in cases in which a compiler could not provide such optimizations.
+Software managed caches are syntax elements that are used
+to describe data reuse pattern of the stencil computations. 
+They are an essential functionality of the GridTools in order
+to deliver an efficient implementation of memory bound codes, 
+since the library uses
+this information to allocate cached fields in a fast on-chip
+scratch-pad memory.
 
-The user is responsible for
-detecting data reuse patterns and caching the corresponding fields in order to
-fully utilize the hardware resources 
-essential for a good performance.
-The syntax provided by $\GT$ is independent of the type of hardware resources used by
-the library to store data and depends only on the access patterns of 
-the fields by the
-stencil methods. An example of the syntax for caching certain fields of a
+In computing architectures like NVIDIA GPUs, where the use of 
+the different on-chip memory hierarchy must be explicitly 
+declared using the CUDA programming model, the use of software managed 
+caches of GridTools increases the data locality of stencil algorithms 
+and provides a significant performance speedup. 
+
+While the library is capable of exploiting several on-chip memory layers
+(like texture cache, const cache, shared memory, and registers of NVIDIA GPUs) 
+the GridTools language is abstracting these underlying memory layers and 
+exposes syntax elements that are computing architecture agnostic.   
+
+Therefore the software managed cache syntax should be used by the 
+user to describe *only* data reuse patterns, and not type of 
+on-chip memory that should be exploited (which is a decision delegated to 
+the computing architecture backend of the library).
+  
+An example of the syntax for caching certain fields of a
 `computation` is shown below
 
 ~~~~~~~~{.cpp}
@@ -40,9 +50,9 @@ access pattern.
 ![Tip](figures/hint.gif){ width=20px height=20px }
                                                       It is important to note that the `cache` specifications
                                                       are prescribing the behavior of the library: if a cache
-                                                      is specified a cache will be used. Using too many caches
-                                                      may cause over-use of hardware resources that may lead
-                                                      to decrease in performance.
+                                                      is specified, a cache will be used. In the rare case of
+                                                      using too many caches a decrease in performance might be
+                                                      observed due to saturation of available resources
 ---------------------------------------------------   --------------------------------------------------------
 
 
@@ -50,46 +60,71 @@ The `cache` construct adheres to the following syntax:
 
     cache< cache_type, io_policy, [interval] >( p_args... ) 
 
+Full examples on cache usages can be found in the source code 
+[examples/interface1.hpp](https://github.com/GridTools/gridtools/blob/master/examples/interface1.hpp) 
+and
+[examples/vertical_advection_dycore](https://github.com/GridTools/gridtools/blob/master/examples/vertical_advection_dycore.hpp)
+
 We now describe the details of each element of the cache constructs.
 
 ### Cache Type
 
-`cache_type` depends on the reuse pattern of the data fields. It's
+`cache_type` describes the type of access pattern present in our stencil for the field being cached. It's
 value can be one of the following (where we indicate the basic mean of implementation on the GPUs, so that the user can understand the amount of resources involved):
 
-1.  `IJ_caches`: cache data fields whose access pattern lies in the IJ-plane (Implemented using the shared memory
+1.  `cache_type::IJ`: cache data fields whose access pattern lies in the IJ-plane, i.e. only offsets of the type `i+-X` or `j+-Y` are allowed. 
+(the GPU backend will cached these fields in shared memory)
 
-2.  `K_caches`: cache data field whose access pattern is restricted to the
-    K-direction (implemented using the register file of GPUs)
+2.  `cache_type::K`: cache data field whose access pattern is restricted to the
+    K-direction, i.e. only offsets of the type `k+-Z` (the GPU backend will cached these fields in the register file of GPUs)
 
-3.  `IJK_caches`: for data fields that are accessed in a three dimensions (not fully supported yet)
+3.  `cache_type::IJK`: for data fields that are accessed in a three dimensions (not fully supported yet)
 
-4.  `Pointr_caches`: for data fields accessed multiple times in the point of evaluation only (not fully supported yet)
+4.  `bypass`: Special cache-type that express null or very little reuse
+    within the stencil. This can be specified to disable the default use of texture memory for read only data fields that the library would use.
+    This can be useful in case that type of GPU cache is saturated due to presence of many read only fields in the stencil computation. 
 
-5.  `bypass`: Special cache-type that express null or very little reuse
-    within the stencil. This can be specified to disable the default use of texture memory for read only data fields that the library would use. 
-
-Additionally the cache
+An error in the specification of the `cache_type`, for example using `cache_type::IJ` for a fields that is accessed with k offsets will lead to compile time 
+[protection errors](#syntax-compile-time-protections).
 
 ### Cache policy
 
-`cache_policy` specify what is the relation between the data in the cache and the data in the data fields. The possible values are:
+`cache_policy` specifies a synchronization policy between the data in the cache and the data in main memory. A scratch-pad can be used 
+in order to allocate temporary computations that do not require data persistency accross multiple stencils. However often the data that is
+being cached is already present in main memory fields. In this case, the software managed caches of GridTools gives the possibility 
+to specify a cache policy that allows to synchronize the main memory with the cached field. 
+The possible values are:
 
- 1. `fetch`: Before starting executing the stencil operators the data
- to be cached has to be fetched from the corresponding data fields
- into the corresponding cache
+ 1. `fill`: fill the scratch-pad buffer with data from main memory field before use.
 
  2. `flush`: After the execution of the stencil operators the data in
- the cache has to be written back into the data fields.
+ the cache is written back into the main memory fields.
 
- 3. `fetch_and_flush`: The combination of `fetch` and `flush`
+ 3. `fill_and_flush`: The combination of `fetch` and `flush`
 
- 4. `local`: The data will be produced by the stencil opertators and
- consumed by other operators of the multi-stage stencil.
+ 4. `local`: The scratch-pad data is not persistent and only available with the scope of a multi-stage.
+
+ 5. `bpfill`: Stands for begin-point-flush. This type of `cache_policy` is only valid for cache types with a `k` component. 
+Only the head of a kcache buffer is filled from main memory at the beginning of the vertical loop. 
+This policy can be used for iterative solvers that require only
+an initial seed of the data (few vertical k-levels). 
+ 
+ 6. `epflush`: Stands for end-point-flush. This type of `cache_policy` is only valid for cache types with a `k` component. 
+ Only the tail of a kcache buffer is flushed to main memory at the end of the vertical loop. This policy can be used to provide persistency of the field 
+ for another  multi-stage that contains a solver that requires only an initial seed of the field (few vertical k-levels) 
+ 
+ 
+ The following figure graphically depicts an example of all the ordered operations that are executed when a `fill_and_flush`
+  cache is used in a forward vertical loop. 
+ 
+ ![Representation of an implementation for a `cache_type::K` that is used within a 
+ stencil with extent `<-2,1>` in the vertical dimension and implemented as a ring-buffer with 4 levels (in order to allocate all possible offsetted accesses). The three operations 
+ are triggered automatically by the library for a `fill_and_flush` cache when the vertical loop transition from level 9 to level 10.    ](figures/kcache_ex.png){width="0.1\columnwidth"}
 
 ### Interval
 
-Not sure what to write here
+The interval is a [vertical interval](#vertical-regions-and-vertical-boundary-conditions) that specifies the region on which the scratch-pad of the cache
+will be synchronized with main memory, according to the [cache policy](#cache-policy)
 
 
 ### p_args
