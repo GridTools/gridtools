@@ -90,6 +90,19 @@ namespace gridtools {
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
         typedef typename IterateDomainArguments::backend_ids_t backend_ids_t;
 
+        // metafunction to extract the extent of an ESF where an Arg is used.
+        // If Arg is not used by the ESF, a null extent is returned, otherwise
+        // the extent of the ESF (where the non ij extents are nullified) is returned
+        template < typename ESFIdx, typename Arg >
+        struct esf_extent_of_arg {
+            using esf_t = typename boost::mpl::at< esf_sequence_t, ESFIdx >::type;
+
+            using extent_t = typename boost::mpl::if_< boost::mpl::has_key< typename esf_t::args_with_extents, Arg >,
+                typename boost::mpl::at< extents_t, ESFIdx >::type,
+                typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type;
+            using type = typename ijfy_extent< extent_t >::type;
+        };
+
         // insert the extent associated to a Cache into the map of <cache, extent>
         template < typename ExtendsMap, typename Cache >
         struct insert_extent_for_cache {
@@ -106,12 +119,8 @@ namespace gridtools {
                 typedef typename boost::mpl::at< esf_sequence_t, EsfIdx >::type esf_t;
 
                 // only extract the extent of the esf and push it into the cache if the arg of the cache is used in the
-                // extent
-                typedef typename boost::mpl::if_< boost::mpl::has_key< typename esf_t::args_with_extents, cache_arg_t >,
-                    typename boost::mpl::at< extents_t, EsfIdx >::type,
-                    typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type fextent_t;
-
-                using extent_t = typename ijfy_extent< fextent_t >::type;
+                // extent (note non ij extents are nullified for the ij caches)
+                using extent_t = typename esf_extent_of_arg< EsfIdx, cache_arg_t >::type;
 
                 GRIDTOOLS_STATIC_ASSERT((extent_t::kminus::value == 0 && extent_t::kplus::value == 0),
                     "Error: IJ Caches can not have k extent values");
