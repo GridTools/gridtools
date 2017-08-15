@@ -46,9 +46,9 @@ namespace gridtools {
         // insert the extent into a new entry of the map of <cache, extent>
         template < typename ExtendsMap_, typename Extend, typename Cache, typename BackendIds >
         struct update_extent_map {
-            GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), "ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::if_< boost::mpl::has_key< ExtendsMap_, Cache >,
                 typename boost::mpl::at< ExtendsMap_, Cache >::type,
                 typename grid_traits_from_id< BackendIds::s_grid_type_id >::null_extent_t >::type default_extent_t;
@@ -99,8 +99,8 @@ namespace gridtools {
             // the map if the cache is used by the esf with that Id.
             template < typename ExtendsMap_, typename EsfIdx >
             struct insert_extent_for_cache_esf {
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< extents_t >::value > EsfIdx::value), "ERROR");
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< esf_sequence_t >::value > EsfIdx::value), "ERROR");
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< extents_t >::value > EsfIdx::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< esf_sequence_t >::value > EsfIdx::value), GT_INTERNAL_ERROR);
 
                 typedef typename cache_parameter< Cache >::type cache_arg_t;
                 typedef typename boost::mpl::at< esf_sequence_t, EsfIdx >::type esf_t;
@@ -152,7 +152,7 @@ namespace gridtools {
         // insert the extent associated to a Cache into the map of <cache, extent>
         template < typename ExtendsMap, typename Cache >
         struct insert_extent_for_cache {
-            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
 
             typedef typename cache_parameter< Cache >::type cache_arg_t;
 
