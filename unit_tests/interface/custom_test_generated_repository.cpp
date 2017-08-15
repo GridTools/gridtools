@@ -47,6 +47,7 @@ using IJKDataStore = typename storage_traits< enumtype::Host >::data_store_t< fl
 using IJStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 1, 2 >;
 using IJDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJStorageInfo >;
 
+// We include a repository file which is generated from preprocessor output
 #include "generated_repository.cpp"
 
 TEST(generated_repository, simple_tests) {
