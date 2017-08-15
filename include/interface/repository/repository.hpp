@@ -41,7 +41,6 @@
 #endif
 
 #include "boost_pp_generic_macros.hpp"
-#include <unordered_map>
 #include "boost/variant.hpp"
 #include "boost/preprocessor/seq.hpp"
 #include <boost/preprocessor/tuple.hpp>
@@ -51,8 +50,12 @@
 #include <boost/preprocessor/control/expr_if.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/contains.hpp>
-#include "../../common/defs.hpp"
 #include "repository_macro_helpers.hpp"
+
+#ifndef GT_PARSE_PREPROCESSOR
+#include <unordered_map>
+#include "../../common/defs.hpp"
+#endif
 
 /*
  * @brief makes a data_store data member from the tuple (DataStoreType, MemberName).

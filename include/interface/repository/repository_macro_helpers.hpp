@@ -46,9 +46,6 @@
 #include <boost/preprocessor/list.hpp>
 #include <boost/preprocessor/selection/max.hpp>
 #include <boost/preprocessor/selection/min.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/contains.hpp>
-#include "../../common/defs.hpp"
 
 /*
  * @brief data_store_types_tuple is a tuple of the form (DataStoreType, DimTuple). The following macros
