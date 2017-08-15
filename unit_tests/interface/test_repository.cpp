@@ -42,27 +42,6 @@
 
 using namespace gridtools;
 
-TEST(repository_macros, max_in_tuple) {
-#define my_tuple (0, 1, 4)
-    ASSERT_EQ(4, GTREPO_max_in_tuple(my_tuple));
-#undef my_tuple
-}
-
-TEST(repository_macros, max_dim) {
-#define my_field_types (IJKDataStore, (0, 1, 5))(IJDataStore, (0, 1))(AnotherDataStore, (8, 1))
-    ASSERT_EQ(8, GTREPO_max_dim(GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(my_field_types)));
-#undef my_field_types
-}
-
-TEST(repository_macros, has_dim) {
-#define my_field_types (IJKDataStore, (0, 1, 5))(IJDataStore, (0, 1))(AnotherDataStore, (8, 1))
-    ASSERT_GT(GTREPO_has_dim(GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(my_field_types)), 0);
-#undef my_field_types
-#define my_field_types (IJKDataStore)(IJDataStore)(AnotherDataStore)
-    ASSERT_EQ(0, GTREPO_has_dim(GRIDTOOLS_PP_SEQ_DOUBLE_PARENS(my_field_types)));
-#undef my_field_types
-}
-
 using IJKStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 0, 3 >;
 using IJKDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJKStorageInfo >;
 using IJStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 1, 2 >;

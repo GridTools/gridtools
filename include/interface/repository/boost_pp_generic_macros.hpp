@@ -44,14 +44,6 @@
 #include "boost/variant.hpp"
 #include "boost/preprocessor/seq.hpp"
 #include <boost/preprocessor/tuple.hpp>
-#include <boost/preprocessor/list.hpp>
-#include <boost/preprocessor/selection/max.hpp>
-#include <boost/preprocessor/selection/min.hpp>
-#include <boost/preprocessor/control/expr_if.hpp>
-#include <boost/preprocessor/facilities/identity.hpp>
-#include <boost/mpl/vector.hpp>
-#include <boost/mpl/contains.hpp>
-#include "../../common/defs.hpp"
 
 /*
  * @brief GRIDTOOLS_PP_SEQ_DOUBLE_PARENS adds extra parenthesis to a make a valid BOOST_PP sequence
