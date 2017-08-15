@@ -8,14 +8,14 @@
   modification, are permitted provided that the following conditions are
   met:
 
-  1. Redistributions of source code must retain the above copyright
+  1. Redistributions of source code must retain the above m_stencilright
   notice, this list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright
+  2. Redistributions in binary form must reproduce the above m_stencilright
   notice, this list of conditions and the following disclaimer in the
   documentation and/or other materials provided with the distribution.
 
-  3. Neither the name of the copyright holder nor the names of its
+  3. Neither the name of the m_stencilright holder nor the names of its
   contributors may be used to endorse or promote products derived from
   this software without specific prior written permission.
 
@@ -38,7 +38,7 @@
 
 /**
   @file
-  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
+  This file shows an implementation of the "m_stencil" stencil, simple m_stencil of one field done on the backend
 */
 
 using gridtools::level;
@@ -50,38 +50,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace domain_reassign {
-#ifdef __CUDACC__
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
-#else
-    //                   strides  1 x xy
-    //                      dims  x y z
-    typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
-#endif
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
-    struct test_functor {
-
-        typedef accessor< 0, enumtype::in, extent<>, 3 > in;
-        typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
-
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = eval(in());
-        }
-    };
-
-    std::ostream &operator<<(std::ostream &s, test_functor const) { return s << "test_functor"; }
-
-    void handle_error(int_t) { std::cout << "error" << std::endl; }
-
-    bool test() {
-
-        uint_t d1 = 32;
-        uint_t d2 = 32;
-        uint_t d3 = 32;
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -93,9 +61,66 @@ namespace domain_reassign {
 #endif
 #endif
 
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >
-            storage_t;
+    struct test_functor {
+
+        typedef accessor< 0, enumtype::in, extent<>, 3 > in;
+        typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            eval(out()) = eval(in());
+        }
+    };
+    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > storage_t;
+
+    class gt_example {
+
+        typedef arg< 0, storage_t > p_in;
+        typedef arg< 1, storage_t > p_out;
+
+        typedef boost::mpl::vector< p_in, p_out > accessor_list;
+
+      public:
+        gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t in, storage_t out) {
+            uint_t di[5] = {0, 0, 0, d1 - 1, d1};
+            uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+
+            grid< axis > grid(di, dj);
+            grid.value_list[0] = 0;
+            grid.value_list[1] = d3 - 1;
+
+            aggregator_type< accessor_list > domain(in, out);
+
+            m_stencil = make_computation< gridtools::BACKEND >(domain,
+                grid,
+                make_multistage // mss_descriptor
+                (execute< forward >(), make_stage< test_functor >(p_in(), p_out())));
+
+            m_stencil->ready();
+            m_stencil->steady();
+        }
+        ~gt_example() { m_stencil->finalize(); }
+
+        void run(storage_t in, storage_t out) {
+
+            m_stencil->reassign(in, out);
+            m_stencil->run();
+        }
+
+        void run_on(storage_t in, storage_t out) { m_stencil->run_on(in, out); }
+
+      private:
+        std::shared_ptr< computation< aggregator_type< accessor_list >, notype > > m_stencil;
+    };
+
+    bool test() {
+
+        uint_t d1 = 32;
+        uint_t d2 = 32;
+        uint_t d3 = 32;
 
         storage_info_t meta_data_(d1, d2, d3);
 
@@ -115,32 +140,11 @@ namespace domain_reassign {
                     in2v(i, j, k) = i + j + k + 3;
                 }
 
-        typedef arg< 0, storage_t > p_in;
-        typedef arg< 1, storage_t > p_out;
-
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
-
-        aggregator_type< accessor_list > domain(in, out);
-
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
-
-        std::shared_ptr< computation< aggregator_type< accessor_list >, notype > > copy =
-            gridtools::make_computation< gridtools::BACKEND >(domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(), gridtools::make_stage< test_functor >(p_in(), p_out())));
-
-        copy->ready();
-        copy->steady();
-        copy->run();
-        copy->finalize();
-
         bool success = true;
+
+        gt_example stex(d1, d2, d3, in, out);
+        stex.run(in, out);
+
         for (uint_t i = 0; i < d1; ++i)
             for (uint_t j = 0; j < d2; ++j)
                 for (uint_t k = 0; k < d3; ++k) {
@@ -150,11 +154,8 @@ namespace domain_reassign {
                         success = false;
                     }
                 }
-        copy->reassign(in2, out2);
-        copy->ready();
-        copy->steady();
-        copy->run();
-        copy->finalize();
+
+        stex.run(in2, out2);
 
         for (uint_t i = 0; i < d1; ++i)
             for (uint_t j = 0; j < d2; ++j)

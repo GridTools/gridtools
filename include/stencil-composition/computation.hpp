@@ -45,6 +45,12 @@ namespace gridtools {
     struct computation
         : public boost::mpl::if_< boost::is_same< ReductionType, notype >, stencil, reduction< ReductionType > >::type {
 
+        using base_t = typename boost::mpl::if_< boost::is_same< ReductionType, notype >,
+            stencil,
+            reduction< ReductionType > >::type;
+        using base_t::return_t;
+        using base_t::run;
+
       public:
         computation(Aggregator const &domain) : m_domain(domain) {}
 
@@ -56,12 +62,31 @@ namespace gridtools {
             m_domain.reassign_storages_impl(stores...);
         }
 
+        template < typename... DataStores,
+            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
+                0 >
+        typename base_t::return_t run_on(DataStores &... stores) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
+            m_domain.reassign_storages_impl(stores...);
+            return run();
+        }
+
         template < typename... ArgStoragePairs,
             typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
                 int >::type = 0 >
         void reassign(ArgStoragePairs... pairs) {
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             m_domain.reassign_arg_storage_pairs_impl(pairs...);
+        }
+
+        template < typename... ArgStoragePairs,
+            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+                int >::type = 0 >
+        typename base_t::return_t run_on(ArgStoragePairs... pairs) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
+            m_domain.reassign_arg_storage_pairs_impl(pairs...);
+
+            return run();
         }
 
       protected:

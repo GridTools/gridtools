@@ -37,10 +37,11 @@
 
 namespace gridtools {
     struct stencil {
+        using return_t = notype;
         virtual void ready() = 0;
         virtual void steady() = 0;
         virtual void finalize() = 0;
-        virtual notype run() = 0;
+        virtual return_t run() = 0;
         virtual std::string print_meter() = 0;
         virtual double get_meter() = 0;
         virtual void reset_meter() = 0;
@@ -48,10 +49,12 @@ namespace gridtools {
 
     template < typename ReductionType >
     struct reduction {
+        using return_t = ReductionType;
+
         virtual void ready() = 0;
         virtual void steady() = 0;
         virtual void finalize() = 0;
-        virtual ReductionType run() = 0;
+        virtual return_t run() = 0;
         virtual std::string print_meter() = 0;
         virtual double get_meter() = 0;
         virtual void reset_meter() = 0;
