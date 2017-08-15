@@ -81,7 +81,7 @@ namespace gridtools {
 
         /**@brief generic expression constructor*/
         GT_FUNCTION
-        constexpr unary_expr(ArgType1 const &first_operand) : first_operand{first_operand} {}
+        constexpr unary_expr(ArgType1 const &first_operand) : first_operand(first_operand) {}
 
         template < typename Arg1 >
         GT_FUNCTION constexpr unary_expr(unary_expr< Arg1 > const &other)
@@ -174,7 +174,7 @@ namespace gridtools {
         using no_global_accessor_types =
             boost::mpl::bool_< (!is_global_accessor< Arg1 >::value && !is_global_accessor< Arg2 >::value) >;
 
-        template < typename Arg1, typename Arg2 >
+        template < typename Arg1, typename Arg2 = Arg1 >
         using no_expr_nor_accessor_types =
             boost::mpl::bool_< (no_global_accessor_types< Arg1, Arg2 >::value &&
                                 no_accessor_types< Arg1, Arg2 >::value && no_expr_types< Arg1, Arg2 >::value) >;
