@@ -37,6 +37,7 @@
 #include <stencil-composition/stencil-composition.hpp>
 
 #include "../../../examples/Options.hpp"
+#include "test_cxx11_domain_reassign.hpp"
 #include <tools/verifier.hpp>
 
 using gridtools::level;
@@ -48,16 +49,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace domain_reassign {
-
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
 
     struct test_functor {
 
@@ -71,56 +62,42 @@ namespace domain_reassign {
         }
     };
     typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
-    typedef storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > storage_t;
 
-    class gt_example {
+    gt_example::gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t in, storage_t out) {
+        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
+        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
-        typedef arg< 0, storage_t > p_in;
-        typedef arg< 1, storage_t > p_out;
+        grid< axis > grid(di, dj);
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3 - 1;
 
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
+        aggregator_type< accessor_list > domain(in, out);
 
-      public:
-        gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t in, storage_t out) {
-            uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-            uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        m_stencil = make_computation< gridtools::BACKEND >(domain,
+            grid,
+            make_multistage // mss_descriptor
+            (execute< forward >(), make_stage< test_functor >(p_in(), p_out())));
 
-            grid< axis > grid(di, dj);
-            grid.value_list[0] = 0;
-            grid.value_list[1] = d3 - 1;
+        m_stencil->ready();
+        m_stencil->steady();
+    }
+    gt_example::~gt_example() { m_stencil->finalize(); }
 
-            aggregator_type< accessor_list > domain(in, out);
+    void gt_example::run(storage_t in, storage_t out) {
 
-            m_stencil = make_computation< gridtools::BACKEND >(domain,
-                grid,
-                make_multistage // mss_descriptor
-                (execute< forward >(), make_stage< test_functor >(p_in(), p_out())));
+        m_stencil->reassign(in, out);
+        m_stencil->run();
+    }
 
-            m_stencil->ready();
-            m_stencil->steady();
-        }
-        ~gt_example() { m_stencil->finalize(); }
+    void gt_example::run_plch(storage_t in, storage_t out) {
 
-        void run(storage_t in, storage_t out) {
+        m_stencil->reassign((p_in() = in), (p_out() = out));
+        m_stencil->run();
+    }
 
-            m_stencil->reassign(in, out);
-            m_stencil->run();
-        }
+    void gt_example::run_on(storage_t in, storage_t out) { m_stencil->run_on(in, out); }
 
-        void run_plch(storage_t in, storage_t out) {
-
-            m_stencil->reassign((p_in() = in), (p_out() = out));
-            m_stencil->run();
-        }
-
-        void run_on(storage_t in, storage_t out) { m_stencil->run_on(in, out); }
-
-        void run_on_plch(storage_t in, storage_t out) { m_stencil->run_on((p_in() = in), (p_out() = out)); }
-
-      private:
-        std::shared_ptr< computation< aggregator_type< accessor_list >, notype > > m_stencil;
-    };
+    void gt_example::run_on_plch(storage_t in, storage_t out) { m_stencil->run_on((p_in() = in), (p_out() = out)); }
 }
 
 using namespace domain_reassign;
