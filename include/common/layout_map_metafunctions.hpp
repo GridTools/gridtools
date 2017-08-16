@@ -45,7 +45,6 @@
 #include "generic_metafunctions/replace.hpp"
 #include "generic_metafunctions/sequence_unpacker.hpp"
 
-#ifdef CXX11_ENABLED
 namespace gridtools {
 
     template < typename LayoutMap >
@@ -219,4 +218,3 @@ namespace gridtools {
         typedef typename build_ext_layout< seq, impl::inc_< Args, NExtraDim >::value... >::type type;
     };
 }
-#endif

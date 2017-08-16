@@ -115,22 +115,25 @@ namespace test_expandable_parameters {
         auto comp_ = make_computation< BACKEND >(domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
-                                                     define_caches(cache< IJ, local >(p_tmp())),
+                                                     define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
                                                      make_stage< functor_exp >(p_tmp(), p_in()),
                                                      make_stage< functor_exp >(p_out(), p_tmp())));
 
+        // create the temporary
+        comp_->ready();
+        // instantiate views, copy ptrs (e.g. to gpu), etc.
+        comp_->steady();
+
+        // reassign and run with different fields
         for (uint_t i = 0; i < list_in_.size(); ++i) {
             // reassign storages
             comp_->reassign(list_in_[i], list_out_[i]);
-            // create the temporary
-            comp_->ready();
-            // instantiate views, copy ptrs (e.g. to gpu), etc.
-            comp_->steady();
             // execute
             comp_->run();
-            // sync storages, delete tmps, etc.
-            comp_->finalize();
         }
+
+        // sync storages, delete tmps, etc.
+        comp_->finalize();
 
         bool success = true;
         for (uint_t l = 0; l < list_in_.size(); ++l) {

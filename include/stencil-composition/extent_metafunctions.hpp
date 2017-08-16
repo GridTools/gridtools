@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  Copyright (c) 2016, GridTools Consortium
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,39 +33,39 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/*
- * test_computation.cpp
- *
- *  Created on: Mar 9, 2015
- *      Author: carlosos
- */
+#pragma once
+#include "../common/defs.hpp"
+#include "../common/host_device.hpp"
+#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
+#include "../common/generic_metafunctions/variadic_typedef.hpp"
+#include "../common/pair.hpp"
+#include "extent.hpp"
 
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
+namespace gridtools {
 
-#include <gridtools.hpp>
-#include <boost/mpl/equal.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+    namespace impl {
+        template < int Idx, typename Pair >
+        struct get_component {
 
-#include "gtest/gtest.h"
+            static constexpr int value = (Idx % 2) ? (Pair::first > Pair::second ? Pair::first : Pair::second)
+                                                   : (Pair::first < Pair::second ? Pair::first : Pair::second);
+        };
+    }
 
-#include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
+    /**
+     * Metafunction taking two extents and yielding a extent containing them
+     */
+    template < typename Extent1, typename Extent2 >
+    struct enclosing_extent_full;
 
-using namespace gridtools;
+    template < int_t... Vals1, int_t... Vals2 >
+    struct enclosing_extent_full< extent< Vals1... >, extent< Vals2... > > {
+        GRIDTOOLS_STATIC_ASSERT((sizeof...(Vals1) == sizeof...(Vals2)), "Error: size of the two extents need to match");
 
-namespace make_computation_test {
+        using seq = gridtools::apply_gt_integer_sequence<
+            typename gridtools::make_gt_integer_sequence< int, sizeof...(Vals1) >::type >;
 
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
-    struct test_functor {
-        typedef accessor< 0 > in;
-        typedef boost::mpl::vector1< in > arg_list;
-
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+        using type = typename seq::
+            template apply_t< int_t, extent, impl::get_component, ipair_type< int_t, Vals1, Vals2 >... >::type;
     };
 }
-
-TEST(MakeComputation, Basic) {}

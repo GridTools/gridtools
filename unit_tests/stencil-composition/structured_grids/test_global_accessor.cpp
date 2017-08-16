@@ -65,7 +65,7 @@ struct boundary {
     double value() const { return 10.; }
 };
 
-struct functor {
+struct functor1 {
     typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
     typedef global_accessor< 1, enumtype::inout > bd;
 
@@ -74,6 +74,19 @@ struct functor {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
         eval(sol()) += eval(bd()).value() + eval(bd()).int_value;
+    }
+};
+
+struct functor2 {
+    typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
+    typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 > > in;
+    typedef global_accessor< 2, enumtype::inout > bd;
+
+    typedef boost::mpl::vector< sol, in, bd > arg_list;
+
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        eval(sol()) += eval(in()) + eval(bd()).int_value;
     }
 };
 
@@ -98,27 +111,26 @@ TEST(test_global_accessor, boundary_conditions) {
 
     /*****RUN 1 WITH bd int_value set to 20****/
     auto bc_eval = make_computation< backend_t >(
-        domain, coords_bc, make_multistage(execute< forward >(), make_stage< functor >(p_sol(), p_bd())));
+        domain, coords_bc, make_multistage(execute< forward >(), make_stage< functor1 >(p_sol(), p_bd())));
 
     bc_eval->ready();
     bc_eval->steady();
     bc_eval->run();
     // fetch data and check
-    sol_.sync();
+    sol_.clone_from_device();
     auto solv = make_host_view(sol_);
-    bool result = true;
-    for (int i = 0; i < 10; ++i)
-        for (int j = 0; j < 10; ++j)
+    for (int i = 0; i < 10; ++i) {
+        for (int j = 0; j < 10; ++j) {
             for (int k = 0; k < 10; ++k) {
                 double value = 2.;
                 if (i > 0 && j == 1 && k < 2) {
                     value += 10.;
                     value += 20;
                 }
-                if (solv(i, j, k) != value) {
-                    result = false;
-                }
+                ASSERT_TRUE((solv(i, j, k) == value));
             }
+        }
+    }
 
     // get the configuration object from the gpu
     // modify configuration object (boundary)
@@ -135,26 +147,117 @@ TEST(test_global_accessor, boundary_conditions) {
         }
     }
 
-    sol_.sync();
-    sol_.reactivate_host_write_views();
+    sol_.clone_to_device();
 
     // run again and finalize
     bc_eval->run();
-    bc_eval->finalize();
+
+    sol_.clone_from_device();
+    sol_.reactivate_host_write_views();
 
     // check result of second run
-    for (int i = 0; i < 10; ++i)
-        for (int j = 0; j < 10; ++j)
+    for (int i = 0; i < 10; ++i) {
+        for (int j = 0; j < 10; ++j) {
             for (int k = 0; k < 10; ++k) {
                 double value = 2.;
                 if (i > 0 && j == 1 && k < 2) {
                     value += 10.;
                     value += 30;
                 }
-                if (solv(i, j, k) != value) {
-                    result = false;
-                }
+                ASSERT_TRUE((solv(i, j, k) == value));
             }
+        }
+    }
+    bc_eval->finalize();
+}
 
-    EXPECT_TRUE(result);
+// The following will test the global accessor in a context of multiple
+// stages, where global placeholders need to be remapped to local accessor
+// of the various user functors
+TEST(test_global_accessor, multiple_stages) {
+    storage_info_t sinfo(10, 10, 10);
+    data_store_t sol_(sinfo, 2.);
+    data_store_t tmp_(sinfo, 2.);
+
+    boundary bd(20);
+
+    auto bd_ = backend_t::make_global_parameter(bd);
+
+    halo_descriptor di = halo_descriptor(1, 0, 1, 9, 10);
+    halo_descriptor dj = halo_descriptor(1, 0, 1, 1, 2);
+    grid< axis > coords_bc(di, dj);
+    coords_bc.value_list[0] = 0;
+    coords_bc.value_list[1] = 1;
+
+    typedef arg< 0, data_store_t > p_sol;
+    typedef arg< 1, data_store_t > p_tmp;
+    typedef arg< 2, decltype(bd_) > p_bd;
+
+    aggregator_type< boost::mpl::vector< p_sol, p_tmp, p_bd > > domain(sol_, tmp_, bd_);
+
+    /*****RUN 1 WITH bd int_value set to 20****/
+    auto bc_eval = make_computation< backend_t >(domain,
+        coords_bc,
+        make_multistage(execute< forward >(),
+                                                     make_stage< functor1 >(p_tmp(), p_bd()),
+                                                     make_stage< functor2 >(p_sol(), p_tmp(), p_bd())));
+
+    bc_eval->ready();
+    bc_eval->steady();
+    bc_eval->run();
+    // fetch data and check
+    sol_.clone_from_device();
+    auto solv = make_host_view(sol_);
+    for (int i = 0; i < 10; ++i) {
+        for (int j = 0; j < 10; ++j) {
+            for (int k = 0; k < 10; ++k) {
+                double value = 2.;
+                if (i > 0 && j == 1 && k < 2) {
+                    value += 52.;
+                }
+                ASSERT_TRUE(solv(i, j, k) == value);
+            }
+        }
+    }
+
+    // get the configuration object from the gpu
+    // modify configuration object (boundary)
+    bd.int_value = 30;
+    backend_t::update_global_parameter(bd_, bd);
+
+    tmp_.sync();
+    auto tmpv = make_host_view(tmp_);
+
+    // get the storage object from the gpu
+    // modify storage object
+    for (unsigned i = 0; i < 10; ++i) {
+        for (unsigned j = 0; j < 10; ++j) {
+            for (unsigned k = 0; k < 10; ++k) {
+                tmpv(i, j, k) = 2.;
+                solv(i, j, k) = 2.;
+            }
+        }
+    }
+
+    sol_.clone_to_device();
+    tmp_.clone_to_device();
+
+    // run again and finalize
+    bc_eval->run();
+    sol_.clone_from_device();
+    sol_.reactivate_host_write_views();
+
+    // check result of second run
+    for (int i = 0; i < 10; ++i) {
+        for (int j = 0; j < 10; ++j) {
+            for (int k = 0; k < 10; ++k) {
+                double value = 2.;
+                if (i > 0 && j == 1 && k < 2) {
+                    value += 72.;
+                }
+                ASSERT_TRUE((solv(i, j, k) == value));
+            }
+        }
+    }
+    bc_eval->finalize();
 }

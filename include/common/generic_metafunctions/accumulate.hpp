@@ -97,7 +97,6 @@ namespace gridtools {
         }
     };
 
-#ifdef CXX11_ENABLED
     /**@brief accumulator recursive implementation*/
     template < typename Operator, typename First, typename... Args >
     GT_FUNCTION static constexpr First accumulate(Operator op, First first, Args... args) {
@@ -124,8 +123,6 @@ namespace gridtools {
     GT_FUNCTION static constexpr First accumulate(add_functor op, First first) {
         return first;
     }
-#endif
-
 #endif
 
 } // namespace gridtools

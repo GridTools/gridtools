@@ -54,11 +54,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-// Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
-//  for any type, which breaks most of the code after using expressions
-#ifdef CXX11_ENABLED
 using namespace expressions;
-#endif
 
 namespace horizontal_diffusion {
     // This is the definition of the special regions in the "vertical" direction
@@ -128,7 +124,7 @@ namespace horizontal_diffusion {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_out) {
-#if defined(CXX11_ENABLED) && !defined(CUDA_EXAMPLE)
+#if !defined(CUDA_EXAMPLE)
             eval(out()) = eval(in()) - eval(coeff()) * (eval(flx() - flx(-1, 0, 0) + fly() - fly(0, -1, 0)));
 #else
             eval(out()) =
@@ -202,36 +198,27 @@ namespace horizontal_diffusion {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-/*
-  Here we do lot of stuff
-  1) We pass to the intermediate representation ::run function the description
-  of the stencil, which is a multi-stage stencil (mss)
-  The mss includes (in order of execution) a laplacian, two fluxes which are independent
-  and a final step that is the out_function
-  2) The logical physical domain with the fields to use
-  3) The actual grid dimensions
- */
+        /*
+          Here we do lot of stuff
+          1) We pass to the intermediate representation ::run function the description
+          of the stencil, which is a multi-stage stencil (mss)
+          The mss includes (in order of execution) a laplacian, two fluxes which are independent
+          and a final step that is the out_function
+          2) The logical physical domain with the fields to use
+          3) The actual grid dimensions
+        */
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
-                    gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
-                    gridtools::make_independent(                            // independent_esf
-                        gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
-                        gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
-                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+        auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                define_caches(cache< IJ, cache_io_policy::local >(p_lap(), p_flx(), p_fly())),
+                gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
+                gridtools::make_independent(                            // independent_esf
+                    gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
+                    gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
+                gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         horizontal_diffusion->ready();
         horizontal_diffusion->steady();
@@ -242,23 +229,13 @@ namespace horizontal_diffusion {
         bool result = true;
 
         if (verify) {
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
             verifier verif(1e-6);
 #else
             verifier verif(1e-12);
 #endif
-            array< array< uint_t, 2 >, 3 > halos{
-                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
-#else
-#if FLOAT_PRECISION == 4
-            verifier verif(1e-6, halo_size);
-#else
-            verifier verif(1e-12, halo_size);
-#endif
-            result = verif.verify(grid, repository.out_ref(), repository.out());
-#endif
         }
 
 #ifdef BENCHMARK

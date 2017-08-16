@@ -386,47 +386,25 @@ namespace gridtools {
             hd.halo.add_halo(layout_map::template at< DI >(), halo);
         }
 
-/**
-   Function to pack data to be sent
+        /**
+           Function to pack data to be sent
 
-   \param[in] _fields data fields to be packed
-*/
-#ifdef CXX11_ENABLED
+           \param[in] _fields data fields to be packed
+        */
         template < typename... FIELDS >
         void pack(const FIELDS &... _fields) const {
             hd.pack(_fields...);
         }
-#else
-#define MACRO_IMPL(z, n, _)                                                                    \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                    \
-    void pack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const { \
-        hd.pack(BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));                           \
-    }
 
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
+        /**
+           Function to unpack received data
 
-/**
-   Function to unpack received data
-
-   \param[in] _fields data fields where to unpack data
-*/
-#ifdef CXX11_ENABLED
+           \param[in] _fields data fields where to unpack data
+        */
         template < typename... FIELDS >
         void unpack(const FIELDS &... _fields) const {
             hd.unpack(_fields...);
         }
-#else
-#define MACRO_IMPL(z, n, _)                                                                      \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                      \
-    void unpack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const { \
-        hd.unpack(BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));                           \
-    }
-
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
 
         /**
            Function to unpack received data
@@ -653,47 +631,25 @@ namespace gridtools {
             hd.setup(max_fields_n, halo_example, typesize);
         }
 
-/**
-   Function to pack data to be sent
+        /**
+           Function to pack data to be sent
 
-   \param[in] _fields data fields to be packed
-*/
-#ifdef CXX11_ENABLED
+           \param[in] _fields data fields to be packed
+        */
         template < typename... FIELDS >
         void pack(const FIELDS &... _fields) const {
             hd.pack(_fields...);
         }
-#else
-#define MACRO_IMPL(z, n, _)                                                              \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >              \
-    void pack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) { \
-        hd.pack(BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));                     \
-    }
 
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
+        /**
+           Function to unpack received data
 
-/**
-   Function to unpack received data
-
-   \param[in] _fields data fields where to unpack data
-*/
-#ifdef CXX11_ENABLED
+           \param[in] _fields data fields where to unpack data
+        */
         template < typename... FIELDS >
         void unpack(const FIELDS &... _fields) const {
             hd.unpack(_fields...);
         }
-#else
-#define MACRO_IMPL(z, n, _)                                                                \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                \
-    void unpack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) { \
-        hd.unpack(BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));                     \
-    }
-
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
 
         /**
            Function to unpack received data

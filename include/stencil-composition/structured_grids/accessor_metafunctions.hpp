@@ -38,26 +38,27 @@
 #include "../global_accessor.hpp"
 #include "./accessor.hpp"
 #include "./accessor_mixed.hpp"
-#ifdef CXX11_ENABLED
 #include "../expressions/expressions.hpp"
-#endif
 
 namespace gridtools {
 
     template < typename T >
     struct is_accessor : boost::mpl::false_ {};
 
-    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
 
-    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
+    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
     struct is_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_accessor< const T > : is_accessor< T > {};
 
-    template < ushort_t ID, enumtype::intend Intend >
+    template < uint_t ID, enumtype::intend Intend >
     struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
+
+    template < typename GlobalAcc, typename... Args >
+    struct is_accessor< global_accessor_with_arguments< GlobalAcc, Args... > > : boost::mpl::true_ {};
 
 #ifdef CUDA8
     template < typename ArgType >
@@ -138,7 +139,25 @@ namespace gridtools {
         typedef global_accessor< boost::mpl::at< ArgsMap, index_t >::type::value, Intend > type;
     };
 
-#ifdef CXX11_ENABLED
+    template < typename GlobalAcc, typename ArgsMap, typename... Args >
+    struct remap_accessor_type< global_accessor_with_arguments< GlobalAcc, Args... >, ArgsMap > {
+
+        typedef global_accessor_with_arguments< GlobalAcc, Args... > accessor_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), GT_INTERNAL_ERROR);
+        // check that the key type is an int (otherwise the later has_key would never find the key)
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::is_same<
+                typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
+                int >::value),
+            GT_INTERNAL_ERROR);
+
+        typedef typename boost::mpl::integral_c< int, GlobalAcc::index_t::value > index_type_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), GT_INTERNAL_ERROR);
+        typedef global_accessor_with_arguments<
+            global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, GlobalAcc::intent >,
+            Args... > type;
+    };
+
     template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
     struct remap_accessor_type< Expression< Arguments... >,
         ArgsMap,
@@ -153,10 +172,12 @@ namespace gridtools {
         typedef Expression< typename remap_accessor_type< Arguments, ArgsMap >::type... > type;
     };
 
-    template < typename ArgsMap >
-    struct remap_accessor_type< float_type, ArgsMap > {
-        // when a leaf is a float don't do anything
-        typedef float_type type;
+    template < typename T, typename ArgsMap >
+    struct remap_accessor_type< T,
+        ArgsMap,
+        typename boost::enable_if< typename boost::is_arithmetic< T >::type, void >::type > {
+        // when a leaf don't do anything
+        typedef T type;
     };
 
     template < typename ArgsMap, template < typename Acc, int N > class Expression, typename Accessor, int Number >
@@ -165,8 +186,6 @@ namespace gridtools {
         // integer (the exponent)
         typedef Expression< typename remap_accessor_type< Accessor, ArgsMap >::type, Number > type;
     };
-
-#endif
 
     template < typename Accessor >
     struct is_accessor_readonly : boost::mpl::false_ {};

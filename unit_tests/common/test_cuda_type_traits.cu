@@ -67,9 +67,7 @@ TEST(texture_type_traits, restrict_int_ptr_is_texture_type) {
     ASSERT_TRUE(gridtools::is_texture_type< int *__restrict__ >::value);
 }
 
-#ifdef CXX11_ENABLED
 TEST(texture_type_traits, is_texture_type_t) {
     using result = gridtools::is_texture_type_t< int >;
     ASSERT_TRUE(result::value);
 }
-#endif

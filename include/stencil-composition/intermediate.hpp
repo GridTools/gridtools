@@ -46,6 +46,7 @@
 #include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/transform.hpp>
+#include <boost/fusion/include/any.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/bool.hpp>
@@ -132,11 +133,7 @@ namespace gridtools {
     /**
      * @brief metafunction that create the mss local domain type
      */
-    template < enumtype::platform BackendId,
-        typename MssComponentsArray,
-        typename StorageWrapperList,
-        typename ExtentMap,
-        bool IsStateful >
+    template < enumtype::platform BackendId, typename MssComponentsArray, typename StorageWrapperList, bool IsStateful >
     struct create_mss_local_domains {
 
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
@@ -144,7 +141,7 @@ namespace gridtools {
         struct get_the_mss_local_domain {
             template < typename T >
             struct apply {
-                typedef mss_local_domain< BackendId, T, StorageWrapperList, ExtentMap, IsStateful > type;
+                typedef mss_local_domain< BackendId, T, StorageWrapperList, IsStateful > type;
             };
         };
 
@@ -157,19 +154,13 @@ namespace gridtools {
         typename MssArray2,
         typename Cond,
         typename StorageWrapperList,
-        typename ExtentMap,
         bool IsStateful >
     struct create_mss_local_domains< BackendId,
         condition< MssArray1, MssArray2, Cond >,
         StorageWrapperList,
-        ExtentMap,
         IsStateful > {
-        typedef
-            typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, ExtentMap, IsStateful >::type
-                type1;
-        typedef
-            typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, ExtentMap, IsStateful >::type
-                type2;
+        typedef typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, IsStateful >::type type1;
+        typedef typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, IsStateful >::type type2;
         typedef condition< type1, type2, Cond > type;
     };
 
@@ -302,6 +293,128 @@ namespace gridtools {
         typedef typename extract_mss_domains< Vec1 >::type type;
     };
 
+    // function that checks if the given extents (I+- and J+-)
+    // are within the halo that was defined when creating the grid.
+    template < typename ExtentsVec, typename Grid >
+    void check_grid_against_extents(Grid const &grid) {
+        typedef ExtentsVec all_extents_vecs_t;
+        // get smallest i_minus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 0 > > >::type >::type >::type >::
+            type IM_t;
+        // get smallest j_minus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::min_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 2 > > >::type >::type >::type >::
+            type JM_t;
+        // get largest i_plus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 1 > > >::type >::type >::type >::
+            type IP_t;
+        // get largest j_plus extent
+        typedef typename boost::mpl::deref<
+            typename boost::mpl::max_element< typename boost::mpl::transform< all_extents_vecs_t,
+                boost::mpl::lambda< boost::mpl::at< boost::mpl::_1, boost::mpl::int_< 3 > > >::type >::type >::type >::
+            type JP_t;
+        const bool check = (IM_t::value >= -static_cast< int >(grid.direction_i().minus())) &&
+                           (IP_t::value <= static_cast< int >(grid.direction_i().plus())) &&
+                           (JM_t::value >= -static_cast< int >(grid.direction_j().minus())) &&
+                           (JP_t::value <= static_cast< int >(grid.direction_j().plus()));
+        assert(check && "One of the stencil accessor extents is exceeding the halo region.");
+    }
+
+    namespace _impl {
+        /**
+           This is a functor used to iterate with boost::fusion::any
+           to check that grid size is small enough to not make the
+           stencil go out of bound on data fields.
+
+           \tparam GridTraits The grid traits of the grid in question to get the indices of relevant coordinates
+           \tparam Grid The Grid
+        */
+        template < typename GridTraits, typename Grid >
+        struct check_with {
+            Grid const &grid;
+
+            check_with(Grid const &grid) : grid(grid) {}
+
+            /**
+               The element of the metadata set that describe the sizes
+               of the storages. boost::fusion::any is stopping
+               iteration when a `true` is returned, so the iteration
+               returns `false` when the check passes.
+
+               \tparam The type element of a metadata_set which is a gridtools::pointer to a metadata
+               \param mde The element of a metadata_set which is a gridtools::pointer to a metadata
+             */
+            template < typename MetaDataElem >
+            bool operator()(MetaDataElem const &mde) const {
+                bool result = true;
+
+                // Here we need to use the at_ interface instead of
+                // the at, since at_ does not assert out-of-bound
+                // queries, but actually returns -1.
+
+                // TODO: This check may be not accurate since there is
+                // an ongoing change in the convention for storage and
+                // grid. Before the storage had the conventions that
+                // there was not distinction between halo and core
+                // region in the storage. The distinction was made
+                // solely in the grid. Now the storage makes that
+                // distinction, ad when aqllocating the data the halo
+                // is also allocated. So for instance a stoage of
+                // 3x3x3 with halo of <1,1,1> will allocate a 5x5x5
+                // storage. The grid is the same as before. The first
+                // step will be to update the storage to point as
+                // first eleent the (1,1,1) element and then to get
+                // the grid to not specifying halos (at least in the
+                // simple cases). This is why the check is left as
+                // before here, but may be updated with more accurate
+                // ones when the convention is updated
+                if (MetaDataElem::value_type::layout_t::template at_< GridTraits::dim_k_t::value >::value >= 0) {
+                    result = result && (grid.k_max() + 1 <= mde->template dim< GridTraits::dim_k_t::value >());
+                }
+
+                if (MetaDataElem::value_type::layout_t::template at_< GridTraits::dim_j_t::value >::value >= 0) {
+                    result = result && (grid.j_high_bound() + 1 <= mde->template dim< GridTraits::dim_j_t::value >());
+                }
+
+                if (MetaDataElem::value_type::layout_t::template at_< GridTraits::dim_i_t::value >::value >= 0) {
+                    result = result && (grid.i_high_bound() + 1 <= mde->template dim< GridTraits::dim_i_t::value >());
+                }
+
+                return !result;
+            }
+        };
+    } // namespace _impl
+
+    /**
+       Given the Aggregator this function checks that the
+       iteration space of the grid would not cause out of bound
+       accesses from the stencil execution. This function is
+       automatically called when constructing a computation.
+
+       \tparam GridTraits The traits in the grid in question to get the indices of the relevant coordinates
+       \tparam Grid The type of the grid (normally deduced by the argument)
+       \tparam Aggregator The aggregator (normally deduced by the argument)
+
+       \param grid The grid to check
+       \param aggrs The aggregator
+    */
+    template < typename GridTraits, typename Grid, typename Aggregator >
+    void check_fields_sizes(Grid const &grid, Aggregator const &aggr) {
+        auto metadata_view = aggr.metadata_set_view().sequence_view();
+        bool is_wrong = boost::fusion::any(metadata_view, _impl::check_with< GridTraits, Grid >(grid));
+        if (is_wrong) {
+            throw std::runtime_error(
+                "Error: Iteration space size is bigger than some storages sizes, this would likely "
+                "result in access violation. Please check storage sizes against grid sizes, "
+                "including the axis levels.");
+        }
+    }
+
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -344,7 +457,6 @@ namespace gridtools {
             grid_traits_t,
             placeholders_t,
             RepeatFunctor >::type extent_map_t;
-
         // Second we need to associate an extent to each esf, so that
         // we can associate loop bounds to the functors.
         typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
@@ -389,7 +501,6 @@ namespace gridtools {
         typedef typename create_mss_local_domains< backend_id< Backend >::value,
             mss_components_array_t,
             storage_wrapper_list_t,
-            extent_map_t,
             IsStateful >::type mss_local_domains_t;
 
         // creates a fusion vector of local domains
@@ -400,7 +511,7 @@ namespace gridtools {
         mss_local_domain_list_t m_mss_local_domain_list;
 
         DomainType m_domain;
-        const Grid &m_grid;
+        const Grid m_grid;
 
         bool is_storage_ready;
         performance_meter_t m_meter;
@@ -411,12 +522,21 @@ namespace gridtools {
         storage_wrapper_fusion_list_t m_storage_wrapper_list;
 
       public:
-        intermediate(DomainType &domain,
+        intermediate(DomainType const &domain,
             Grid const &grid,
             ConditionalsSet conditionals_,
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
             : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
-              m_reduction_data(reduction_initial_value) {}
+              m_reduction_data(reduction_initial_value) {
+            // check_grid_against_extents< all_extents_vecs_t >(grid);
+            // check_fields_sizes< grid_traits_t >(grid, domain);
+        }
+        /**
+           @brief This method allocates on the heap the temporary variables.
+           Calls heap_allocated_temps::prepare_temporaries(...).
+           It allocates the memory for the list of extents defined in the temporary placeholders.
+           Further it takes care of updating the global_parameters
+        */
 
         virtual void ready() {
             // instantiate all the temporaries
@@ -482,6 +602,7 @@ namespace gridtools {
             typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
                 0 >
         void reassign(DataStores &... stores) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             m_domain.reassign_storages_impl(stores...);
         }
 
@@ -489,6 +610,7 @@ namespace gridtools {
             typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
                 int >::type = 0 >
         void reassign(ArgStoragePairs... pairs) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             m_domain.reassign_arg_storage_pairs_impl(pairs...);
         }
 
