@@ -1,6 +1,6 @@
 # generate a repository to inspect the preprocessor hackery and add it as a custom test (to be able to add a dependency)
 add_custom_command(OUTPUT generated_repository.cpp
-    COMMAND ${CMAKE_CXX_COMPILER} -DGT_PARSE_PREPROCESSOR -DBOOST_PP_VARIADICS=1 -E ${CMAKE_CURRENT_SOURCE_DIR}/plain_repository_generator.cpp -I${CMAKE_SOURCE_DIR}/include > ${CMAKE_CURRENT_SOURCE_DIR}/generated_repository_tmp.cpp
+    COMMAND ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_FLAGS} -DGT_PARSE_PREPROCESSOR -DBOOST_PP_VARIADICS=1 -E ${CMAKE_CURRENT_SOURCE_DIR}/plain_repository_generator.cpp -I${CMAKE_SOURCE_DIR}/include > ${CMAKE_CURRENT_SOURCE_DIR}/generated_repository_tmp.cpp
     COMMAND sed -i "/^#/d" ${CMAKE_CURRENT_SOURCE_DIR}/generated_repository_tmp.cpp
     COMMAND awk "/class my_repository/,0" ${CMAKE_CURRENT_SOURCE_DIR}/generated_repository_tmp.cpp | clang-format > ${CMAKE_CURRENT_SOURCE_DIR}/generated_repository.cpp
     COMMAND rm ${CMAKE_CURRENT_SOURCE_DIR}/generated_repository_tmp.cpp 
