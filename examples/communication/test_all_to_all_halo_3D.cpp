@@ -52,7 +52,7 @@ namespace test_all_to_all_halo_3D {
             cout << "---------------------------------------------------------------------------------------\n\n";
             for (int i = 0; i < n; ++i) {
                 for (int j = 0; j < m; ++j) {
-                    // cout << "@" << gridtools::PID << "@ (" << i << ", " << j << ")\n";
+                    cout << "@" << gridtools::PID << "@ (" << i << ", " << j << ")\n";
                     cout << "@" << gridtools::PID << "@ ";
                     for (int k = 0; k < l; ++k) {
                         cout << v[i * m * l + j * l + k] << " ";
