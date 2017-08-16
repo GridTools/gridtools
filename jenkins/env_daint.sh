@@ -10,6 +10,7 @@ function exit_if_error {
 
 module load daint-gpu
 module load cudatoolkit
+module load CMake
 module rm   PrgEnv-cray
 module load PrgEnv-gnu/6.0.3
 module load Boost/1.63.0-CrayGNU-2016.11-Python-3.5.2
