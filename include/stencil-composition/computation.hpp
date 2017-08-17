@@ -63,9 +63,10 @@ namespace gridtools {
         }
 
         template < typename... DataStores,
-            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
-                0 >
-        typename base_t::return_t run_on(DataStores &... stores) {
+            typename boost::enable_if_c< _impl::aggregator_storage_check< DataStores... >::type::value &&
+                                             (sizeof...(DataStores) > 0),
+                int >::type = 0 >
+        typename base_t::return_t run(DataStores &... stores) {
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             m_domain.reassign_storages_impl(stores...);
             return run();
@@ -80,9 +81,10 @@ namespace gridtools {
         }
 
         template < typename... ArgStoragePairs,
-            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+            typename boost::enable_if_c< _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type::value &&
+                                             (sizeof...(ArgStoragePairs) > 0),
                 int >::type = 0 >
-        typename base_t::return_t run_on(ArgStoragePairs... pairs) {
+        typename base_t::return_t run(ArgStoragePairs... pairs) {
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             m_domain.reassign_arg_storage_pairs_impl(pairs...);
 

@@ -95,9 +95,9 @@ namespace domain_reassign {
         m_stencil->run();
     }
 
-    void gt_example::run_on(storage_t in, storage_t out) { m_stencil->run_on(in, out); }
+    void gt_example::run_on(storage_t in, storage_t out) { m_stencil->run(in, out); }
 
-    void gt_example::run_on_plch(storage_t in, storage_t out) { m_stencil->run_on((p_in() = in), (p_out() = out)); }
+    void gt_example::run_on_plch(storage_t in, storage_t out) { m_stencil->run((p_in() = in), (p_out() = out)); }
 }
 
 using namespace domain_reassign;
@@ -131,62 +131,63 @@ class ReassignDomain : public ::testing::Test {
     {
         m_grid.value_list[0] = 0;
         m_grid.value_list[1] = m_d3 - 1;
+        sync();
+    }
 
-        init_fields();
+    void sync() {
+        m_out1.sync();
+        m_out2.sync();
+        m_in1.sync();
+        m_in2.sync();
     }
 
     storage_t create_new_field(std::string name) { return storage_t(m_meta, -1, name); }
-
-    void init_fields() {
-        for (gridtools::uint_t i = 0; i < m_d1; ++i) {
-            for (gridtools::uint_t j = 0; j < m_d2; ++j) {
-                for (gridtools::uint_t k = 0; k < m_d3; ++k) {
-                    m_out1v(i, j, k) = -1;
-                    m_out2v(i, j, k) = -1;
-                }
-            }
-        }
-        m_out1.clone_to_device();
-        m_out2.clone_to_device();
-    }
 };
 
 TEST_F(ReassignDomain, TestRun) {
     m_stex.run(m_in1, m_out1);
 
+    sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
 
     m_stex.run(m_in2, m_out2);
 
+    sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
 }
 
 TEST_F(ReassignDomain, TestRunPlchr) {
     m_stex.run_plch(m_in1, m_out1);
 
+    sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
 
     m_stex.run_plch(m_in2, m_out2);
 
+    sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
 }
 
 TEST_F(ReassignDomain, TestRunOn) {
     m_stex.run_on(m_in1, m_out1);
 
+    sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
 
     m_stex.run_on(m_in2, m_out2);
 
+    sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
 }
 
 TEST_F(ReassignDomain, TestRunOnPlchr) {
     m_stex.run_on_plch(m_in1, m_out1);
 
+    sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
 
     m_stex.run_on_plch(m_in2, m_out2);
 
+    sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
 }
