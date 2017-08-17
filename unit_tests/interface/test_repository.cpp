@@ -71,11 +71,13 @@ TEST_F(simple_repository, assign_to_auto_from_map) {
     ASSERT_EQ(10, u.dim< 0 >());
 }
 
+#ifdef GRIDTOOLS_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
 TEST_F(simple_repository, assign_to_type_from_map) {
     // no cast needed
     IJKDataStore u = repo.data_stores()["u"];
     ASSERT_EQ(10, u.dim< 0 >());
 }
+#endif
 
 TEST_F(simple_repository, access_wrong_type_from_map) {
     ASSERT_THROW(boost::get< IJDataStore >(repo.data_stores()["u"]), boost::bad_get);

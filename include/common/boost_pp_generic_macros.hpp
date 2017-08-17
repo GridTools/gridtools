@@ -77,8 +77,8 @@
 #define GRIDTOOLS_PP_MAKE_VARIANT_conversion(r, data, tuple) \
     operator BOOST_PP_TUPLE_ELEM(0, tuple)() const { return boost::get< BOOST_PP_TUPLE_ELEM(0, tuple) >(*this); }
 
-#define GRIDTOOLS_PP_MAKE_VARIANT_conversions_loop(GTREPO_FIELDTYPES_SEQ) \
-    BOOST_PP_SEQ_FOR_EACH(GRIDTOOLS_PP_MAKE_VARIANT_conversion, ~, GTREPO_FIELDTYPES_SEQ)
+#define GRIDTOOLS_PP_MAKE_VARIANT_conversions_loop(types) \
+    BOOST_PP_SEQ_FOR_EACH(GRIDTOOLS_PP_MAKE_VARIANT_conversion, ~, types)
 
 #define GRIDTOOLS_PP_MAKE_VARIANT(variant_name, types)                                                 \
     class variant_name : public boost::variant< GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, types) > { \

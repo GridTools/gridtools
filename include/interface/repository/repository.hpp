@@ -172,35 +172,53 @@
         "At least one of the arguments passed to the repository as data_store type is not a data_store");
 
 /*
+ * @brief creates a boost::variant with implicit conversion to its types (if the compiler supports it)
+ */
+#if ((defined(__GNUC__) && (__GNUC__ >= 5)) || \
+     (defined(__clang__) && (((__clang_major__ == 3) && (__clang_minor__ >= 9)) || (__clang_major__ > 4))))
+// this choice of host compilers implies CUDA >= 8
+#define GRIDTOOLS_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
+#endif
+
+#ifdef GRIDTOOLS_REPOSITORY_HAS_VARIANT_WITH_IMPLICIT_CONVERSION
+#define GTREPO_make_variant(name, data_store_types_seq) GRIDTOOLS_PP_MAKE_VARIANT(name, data_store_types_seq)
+#else
+// use "normal" boost::variant on unsupported compilers
+#define GTREPO_make_variant(name, data_store_types_seq) \
+    using name = boost::variant< GRIDTOOLS_PP_TUPLE_ELEM_FROM_SEQ_AS_ENUM(0, data_store_types_seq) >;
+#endif
+
+/*
  * @brief main macro to generate a repository
  * @see GRIDTOOLS_MAKE_REPOSITORY
  */
-#define GRIDTOOLS_MAKE_REPOSITORY_helper(name, data_store_types_seq, data_stores_seq)                                 \
-    class name {                                                                                                      \
-      private:                                                                                                        \
-        GRIDTOOLS_PP_MAKE_VARIANT(                                                                                    \
-            BOOST_PP_CAT(name, _variant), data_store_types_seq) /* in class definition of a special boost::variant    \
-                                                                   class with automatic type conversion*/             \
-        BOOST_PP_SEQ_FOR_EACH(                                                                                        \
-            GTREPO_make_members_storage_infos, ~, data_store_types_seq)            /* generate storage_info members*/ \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_members_data_stores, ~, data_stores_seq) /* generate data_store members*/   \
-        std::unordered_map< std::string, BOOST_PP_CAT(name, _variant) > data_store_map_; /* map for data_stores */    \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_is_data_store,                                                                   \
-            ~,                                                                                                        \
-            data_store_types_seq) /*assert that all types passed in data_store_types are actually data_stores*/       \
-        GTREPO_make_member_vector_of_data_store_types(data_store_types_seq); /* mpl vector of data_store types */     \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_is_valid_data_store_type,                                                        \
-            ~,                                                                                                        \
-            data_stores_seq) /*assert that the type of each data_store is provided in the data_store_types seq*/      \
-      public:                                                                                                         \
-        GTREPO_make_ctor_storage_infos(                                                                               \
-            name, data_store_types_seq, data_stores_seq); /* generate ctor with storage_infos */                      \
-        GTREPO_make_ctor_dims_if_has_dims(                                                                            \
-            name, data_store_types_seq, data_stores_seq)                         /* generate ctor with dimensions */  \
-            name(const name &) = delete;                                         /* non-copyable */                   \
-        name(name &&) = delete;                                                  /* non-movable */                    \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_data_store_getter, ~, data_stores_seq) /* getter for each data_store */     \
-        auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; } /* getter for data_store map */ \
+#define GRIDTOOLS_MAKE_REPOSITORY_helper(name, data_store_types_seq, data_stores_seq)                                  \
+    class name {                                                                                                       \
+      private:                                                                                                         \
+        GTREPO_make_variant(                                                                                           \
+            BOOST_PP_CAT(name, _variant), data_store_types_seq) /* in class definition of a special boost::variant     \
+                                                                   class with automatic type conversion*/              \
+            BOOST_PP_SEQ_FOR_EACH(                                                                                     \
+                GTREPO_make_members_storage_infos, ~, data_store_types_seq) /* generate storage_info members*/         \
+            BOOST_PP_SEQ_FOR_EACH(                                                                                     \
+                GTREPO_make_members_data_stores, ~, data_stores_seq) /* generate data_store members*/                  \
+            std::unordered_map< std::string, BOOST_PP_CAT(name, _variant) > data_store_map_; /* map for data_stores */ \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_is_data_store,                                                                    \
+            ~,                                                                                                         \
+            data_store_types_seq) /*assert that all types passed in data_store_types are actually data_stores*/        \
+        GTREPO_make_member_vector_of_data_store_types(data_store_types_seq); /* mpl vector of data_store types */      \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_is_valid_data_store_type,                                                         \
+            ~,                                                                                                         \
+            data_stores_seq) /*assert that the type of each data_store is provided in the data_store_types seq*/       \
+      public:                                                                                                          \
+        GTREPO_make_ctor_storage_infos(                                                                                \
+            name, data_store_types_seq, data_stores_seq); /* generate ctor with storage_infos */                       \
+        GTREPO_make_ctor_dims_if_has_dims(                                                                             \
+            name, data_store_types_seq, data_stores_seq)                         /* generate ctor with dimensions */   \
+            name(const name &) = delete;                                         /* non-copyable */                    \
+        name(name &&) = delete;                                                  /* non-movable */                     \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_make_data_store_getter, ~, data_stores_seq) /* getter for each data_store */      \
+        auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; } /* getter for data_store map */  \
     };
 
 /*
