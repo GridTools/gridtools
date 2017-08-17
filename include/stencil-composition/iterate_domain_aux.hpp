@@ -627,6 +627,7 @@ namespace gridtools {
 
     template < typename GridTraits, int_t... Vals >
     struct check_accessor< GridTraits, extent< Vals... > > {
+        // retrieve the IJK accessor extents. The position of IJK in the extent can be grid dependent.
         using ext = typename GridTraits::template retrieve_accessor_extents< extent< Vals... > >;
 
         template < typename Accessor >
