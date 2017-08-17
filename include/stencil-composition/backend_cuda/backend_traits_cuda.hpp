@@ -178,20 +178,17 @@ namespace gridtools {
            regions for each block. This method calculates the offset for temporaries and takes the private halo and
            alignment information into account.
         */
-        template < typename LocalDomain,
-            typename PEBlockSize,
-            typename Arg,
-            typename CurrentExtent,
-            typename GridTraits,
-            typename StorageInfo >
+        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         GT_FUNCTION static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(
             StorageInfo const *sinfo) {
             typedef GridTraits grid_traits_t;
             typedef typename LocalDomain::max_i_extent_t max_i_t;
+            // halo in I and J direction
+            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
+            constexpr int halo_j = StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >();
             // calculate the blocksize in I and J direction
             constexpr int block_size_i = 2 * max_i_t::value + PEBlockSize::i_size_t::value;
-            constexpr int block_size_j =
-                2 * StorageInfo::halo_t::template at< grid_traits_t::dim_j_t::value >() + PEBlockSize::j_size_t::value;
+            constexpr int block_size_j = 2 * halo_j + PEBlockSize::j_size_t::value;
 
             // protect against div. by 0 and compute the distance between two blocks
             constexpr int diff_between_blocks =
@@ -201,11 +198,11 @@ namespace gridtools {
                         : block_size_i);
 
             // compute offset in I and J
-            const uint_t i = processing_element_i() * diff_between_blocks;
+            const uint_t i = processing_element_i() * diff_between_blocks + halo_i;
             const uint_t j = Arg::location_t::n_colors::value *
                              (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
             // return field offset (Initial storage offset + Alignment correction value + I offset + J offset)
-            return (int)StorageInfo::get_initial_offset() - CurrentExtent::iminus::value + i + j;
+            return (int)StorageInfo::get_initial_offset() + i + j;
         }
 
         /**
@@ -213,15 +210,9 @@ namespace gridtools {
            storage in the shared memory. In addition to this each CUDA thread stores an integer that indicates
            the offset of this pointer. This function computes the field offset for non temporary storages.
         */
-        template < typename LocalDomain,
-            typename PEBlockSize,
-            typename Arg,
-            typename CurrentExtent,
-            typename GridTraits,
-            typename StorageInfo >
+        template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
             StorageInfo const *sinfo) {
-            // return field offset (Initial storage offset in order to be aligned)
             return StorageInfo::get_initial_offset();
         }
 

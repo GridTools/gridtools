@@ -36,17 +36,18 @@
 
 #include "gtest/gtest.h"
 
-#include "storage/data_store.hpp"
-#include "storage/storage_cuda/data_view_helpers.hpp"
-#include "storage/storage_cuda/storage.hpp"
-#include "storage/storage_cuda/storage_info.hpp"
+#include <common/gt_assert.hpp>
+#include <storage/data_store.hpp>
+#include <storage/storage_cuda/data_view_helpers.hpp>
+#include <storage/storage_cuda/cuda_storage.hpp>
+#include <storage/storage_cuda/cuda_storage_info.hpp>
 
 using namespace gridtools;
 
 template < typename View >
 __global__ void mul2(View s) {
     bool correct_dims = (s.template dim< 0 >() == 32) && (s.template dim< 1 >() == 3) && (s.template dim< 2 >() == 3);
-    bool correct_size = (s.size() == 32 * 3 * 3);
+    bool correct_size = (s.padded_total_length() == 32 * 3 * 3);
     s(0, 0, 0) *= (2 * correct_dims * correct_size);
     s(1, 0, 0) *= (2 * correct_dims * correct_size);
 }
@@ -59,7 +60,7 @@ TEST(DataViewTest, Simple) {
     data_store_t ds(si);
     // create a rw view and fill with some data
     data_view< data_store_t > dv = make_host_view(ds);
-    static_assert(is_data_view< decltype(dv) >::value, "is_data_view check failed");
+    GRIDTOOLS_STATIC_ASSERT((is_data_view< decltype(dv) >::value), "is_data_view check failed");
     dv(0, 0, 0) = 50;
     dv(1, 0, 0) = 60;
 
@@ -67,7 +68,9 @@ TEST(DataViewTest, Simple) {
     ASSERT_TRUE((si.dim< 0 >() == dv.dim< 0 >()));
     ASSERT_TRUE((si.dim< 1 >() == dv.dim< 1 >()));
     ASSERT_TRUE((si.dim< 2 >() == dv.dim< 2 >()));
-    ASSERT_TRUE((si.size() == dv.size()));
+    ASSERT_TRUE((si.total_length() == dv.total_length()));
+    ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
+    ASSERT_TRUE((si.length() == dv.length()));
 
     // check if the user protections are working
     static_assert(si.index(1, 0, 0) == 1, "constexpr index method call failed");
@@ -89,7 +92,7 @@ TEST(DataViewTest, Simple) {
     // sync, create a device view and call kernel
     ds.sync();
     auto devv = make_device_view(ds);
-    static_assert(is_data_view< decltype(devv) >::value, "is_data_view check failed");
+    GRIDTOOLS_STATIC_ASSERT((is_data_view< decltype(devv) >::value), "is_data_view check failed");
     EXPECT_TRUE(check_consistency(ds, devv));
     EXPECT_FALSE(check_consistency(ds, dv));
     EXPECT_FALSE(check_consistency(ds, dvro));

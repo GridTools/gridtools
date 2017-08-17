@@ -38,7 +38,7 @@
 #include "accessor_fwd.hpp"
 
 namespace gridtools {
-#ifdef CUDA8 // (i.e. CXX11_ENABLED for cpu)
+#ifdef CUDA8
 
     /**@brief same as accessor but mixing run-time offsets with compile-time ones
 
@@ -132,5 +132,5 @@ the dimension is chosen
         // store the list of offsets which are already known on an array
         int_t m_knowns[sizeof...(Known)];
     };
-#endif // CUDA8 (i.e. CXX11_ENABLED for cpu)
+#endif // CUDA8
 } // namespace gridtools

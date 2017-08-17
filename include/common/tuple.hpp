@@ -45,7 +45,6 @@
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
     namespace _impl {
         template < ushort_t Idx, typename VariadicArgs, typename First, typename Super >
         struct return_helper {
@@ -128,5 +127,4 @@ namespace gridtools {
     tuple< Args... > make_tuple(Args... args) {
         return tuple< Args... >(args...);
     }
-#endif
 } // namespace gridtools

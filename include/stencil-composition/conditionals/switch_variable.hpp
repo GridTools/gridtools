@@ -35,11 +35,7 @@
 */
 
 #pragma once
-#ifdef CXX11_ENABLED
 #include <memory>
-#else
-#include <boost/scoped_ptr.hpp>
-#endif
 #include "condition.hpp"
 
 /**@file*/

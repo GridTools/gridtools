@@ -40,6 +40,7 @@
 
 #include <boost/mpl/vector_c.hpp>
 
+#include "../common/gt_assert.hpp"
 #include "data_store.hpp"
 #include "common/data_store_field_metafunctions.hpp"
 #include "common/storage_info_interface.hpp"
@@ -53,17 +54,18 @@ namespace gridtools {
      * @tparam N variadic list of coordinate sizes (e.g., 1,2,3 --> first coordinate contains 1 data_store, second 2,
      * third 3)
      */
-    template < typename DataStore, unsigned... N >
+    template < typename DataStore, uint_t... N >
     struct data_store_field {
-        static_assert(is_data_store< DataStore >::value, "Passed type is no data_store type");
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_data_store< DataStore >::value), GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
         using data_store_t = DataStore;
         using data_t = typename DataStore::data_t;
         using storage_t = typename DataStore::storage_t;
         using state_machine_t = typename DataStore::state_machine_t;
         using storage_info_t = typename DataStore::storage_info_t;
 
-        const static unsigned num_of_storages = get_accumulated_data_field_index(sizeof...(N), N...);
-        const static unsigned num_of_components = sizeof...(N);
+        const static uint_t num_of_storages = get_accumulated_data_field_index(sizeof...(N), N...);
+        const static uint_t num_of_components = sizeof...(N);
 
         // tuple of arrays (e.g., { {s00,s01,s02}, {s10, s11}, {s20} }, 3-dimensional field with snapshot sizes 3, 2,
         // and 1. All together we have 6 storages.)
@@ -87,10 +89,10 @@ namespace gridtools {
          * @tparam Snapshot requested snapshot
          * @return data_store instance
          */
-        template < unsigned Dim, unsigned Snapshot >
+        template < uint_t Dim, uint_t Snapshot >
         DataStore const &get() const {
-            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages,
-                "Data store field out of bounds access");
+            GRIDTOOLS_STATIC_ASSERT(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
+                GT_INTERNAL_ERROR_MSG("Data store field out of bounds access"));
             // return
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
@@ -101,9 +103,9 @@ namespace gridtools {
          * @param Snapshot requested snapshot
          * @return data_store instance
          */
-        DataStore const &get(unsigned Dim, unsigned Snapshot) const {
-            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages &&
-                   "Data store field out of bounds access");
+        DataStore const &get(uint_t Dim, uint_t Snapshot) const {
+            ASSERT_OR_THROW(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
+                "Data store field out of bounds access");
             // return
             return m_field[get_accumulated_data_field_index(Dim, N...) + Snapshot];
         }
@@ -114,17 +116,17 @@ namespace gridtools {
          * @tparam Snapshot requested snapshot
          * @param store data_store that should be inserted into the field
          */
-        template < unsigned Dim, unsigned Snapshot >
+        template < uint_t Dim, uint_t Snapshot >
         void set(DataStore const &store) {
-            static_assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages,
-                "Data store field out of bounds access");
+            GRIDTOOLS_STATIC_ASSERT(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
+                GT_INTERNAL_ERROR_MSG("Data store field out of bounds access"));
             // check equality of storage infos
             for (auto elem : get_field()) {
                 if (elem.valid()) {
-                    assert(store.valid() && "Passed invalid data store.");
-                    assert(*elem.get_storage_info_ptr() == *store.get_storage_info_ptr() &&
-                           "Passed data store cannot be inserted into data store field because storage infos are not "
-                           "compatible.");
+                    ASSERT_OR_THROW((store.valid()), "Passed invalid data store.");
+                    ASSERT_OR_THROW((*elem.get_storage_info_ptr() == *store.get_storage_info_ptr()),
+                        "Passed data store cannot be inserted into data store field because storage infos are not "
+                        "compatible.");
                 }
             }
             // set data store
@@ -137,16 +139,16 @@ namespace gridtools {
          * @param Snapshot requested snapshot
          * @param store data_store that should be inserted into the field
          */
-        void set(unsigned Dim, unsigned Snapshot, DataStore const &store) {
-            assert((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages &&
-                   "Data store field out of bounds access");
+        void set(uint_t Dim, uint_t Snapshot, DataStore const &store) {
+            ASSERT_OR_THROW(((get_accumulated_data_field_index(Dim, N...) + Snapshot) < num_of_storages),
+                "Data store field out of bounds access");
             // check equality of storage infos
             for (auto elem : get_field()) {
                 if (elem.valid()) {
-                    assert(store.valid() && "Passed invalid data store.");
-                    assert(*elem.get_storage_info_ptr() == *store.get_storage_info_ptr() &&
-                           "Passed data store cannot be inserted into data store field because storage infos do not "
-                           "match.");
+                    ASSERT_OR_THROW((store.valid()), "Passed invalid data store.");
+                    ASSERT_OR_THROW((*elem.get_storage_info_ptr() == *store.get_storage_info_ptr()),
+                        "Passed data store cannot be inserted into data store field because storage infos do not "
+                        "match.");
                 }
             }
             // set data store
@@ -191,7 +193,7 @@ namespace gridtools {
          * @brief retrieve the sizes of the data_store_field components
          * @return an array that contains the sizes of the data_store_field components
          */
-        constexpr std::array< unsigned, sizeof...(N) > get_dim_sizes() const { return {N...}; }
+        constexpr std::array< uint_t, sizeof...(N) > get_dim_sizes() const { return {N...}; }
 
         /**
          * @brief clone all elements of the field to the device
@@ -235,10 +237,10 @@ namespace gridtools {
     };
 
     // simple metafunction to check if a type is a data_store_field
-    template < typename T, unsigned... N >
+    template < typename T, uint_t... N >
     struct is_data_store_field : boost::mpl::false_ {};
 
-    template < typename S, unsigned... N >
+    template < typename S, uint_t... N >
     struct is_data_store_field< data_store_field< S, N... > > : boost::mpl::true_ {};
 
     /**
@@ -246,16 +248,16 @@ namespace gridtools {
      *  will swap the CPU and GPU pointers of storages 0,0 and 0,1.
      *  This operation invalidates the previously created views.
      **/
-    template < unsigned Dim_S, unsigned Snapshot_S >
+    template < uint_t Dim_S, uint_t Snapshot_S >
     struct swap {
-        template < unsigned Dim_T, unsigned Snapshot_T, typename T, unsigned... N >
+        template < uint_t Dim_T, uint_t Snapshot_T, typename T, uint_t... N >
         static void with(data_store_field< T, N... > &data_field) {
-            static_assert(Dim_S == Dim_T, "Inter-component swap is not allowed.");
-            static_assert(
-                is_data_store_field< data_store_field< T, N... > >::value, "Passed type is no data_store_field type.");
+            GRIDTOOLS_STATIC_ASSERT((Dim_S == Dim_T), GT_INTERNAL_ERROR_MSG("Inter-component swap is not allowed."));
+            GRIDTOOLS_STATIC_ASSERT((is_data_store_field< data_store_field< T, N... > >::value),
+                GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type."));
             typedef typename std::remove_pointer< decltype(
-                std::declval< typename data_store_field< T, N... >::data_store_t >().get_storage_ptr()) >::type::ptrs_t
-                ptrs_t;
+                std::declval< typename data_store_field< T, N... >::data_store_t >().get_storage_ptr().get()) >::type::
+                ptrs_t ptrs_t;
             auto &src = data_field.template get< Dim_S, Snapshot_S >();
             auto &trg = data_field.template get< Dim_T, Snapshot_T >();
             auto tmp_ptrs = src.get_storage_ptr()->template get_ptrs< ptrs_t >();
@@ -270,23 +272,23 @@ namespace gridtools {
      *  and shifting all others one position to the right.
      *  This operation invalidates the previously created views.
      **/
-    template < unsigned Dim >
+    template < uint_t Dim >
     struct cycle {
-        template < int F, typename T, unsigned... N >
+        template < int F, typename T, uint_t... N >
         static void by(data_store_field< T, N... > &data_field) {
-            static_assert(
-                is_data_store_field< data_store_field< T, N... > >::value, "Passed type is no data_store_field type.");
+            GRIDTOOLS_STATIC_ASSERT((is_data_store_field< data_store_field< T, N... > >::value),
+                GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type."));
             typedef typename data_store_field< T, N... >::data_store_t data_store_t;
             typedef typename std::remove_pointer< decltype(
-                std::declval< data_store_t >().get_storage_ptr()) >::type::ptrs_t ptrs_t;
+                std::declval< data_store_t >().get_storage_ptr().get()) >::type::ptrs_t ptrs_t;
             int size = get_value_from_pack(Dim, N...);
-            unsigned cnt = 0;
-            unsigned src = 0;
-            unsigned shift = (((F) % size) < 0) ? ((F) % size) + size : ((F) % size);
+            uint_t cnt = 0;
+            uint_t src = 0;
+            uint_t shift = (((F) % size) < 0) ? ((F) % size) + size : ((F) % size);
             ptrs_t src_ptrs = data_field.get(Dim, 0).get_storage_ptr()->template get_ptrs< ptrs_t >();
             while (cnt < size) {
                 // calculate the target position
-                unsigned trg = (src + shift) % size;
+                uint_t trg = (src + shift) % size;
                 // get both data_stores
                 auto &trg_ds = data_field.get(Dim, trg);
                 auto &src_ds = data_field.get(Dim, src);
@@ -310,19 +312,19 @@ namespace gridtools {
      **/
     struct cycle_all {
       private:
-        template < int I, int M, typename T, unsigned... N >
+        template < int I, int M, typename T, uint_t... N >
         static typename boost::enable_if_c< (I == 0), void >::type by_impl(data_store_field< T, N... > &data_field) {
             cycle< (I) >::template by< (M) >(data_field);
         }
 
-        template < int I, int M, typename T, unsigned... N >
+        template < int I, int M, typename T, uint_t... N >
         static typename boost::enable_if_c< (I > 0), void >::type by_impl(data_store_field< T, N... > &data_field) {
             cycle< (I) >::template by< (M) >(data_field);
             by_impl< I - 1, M >(data_field);
         }
 
       public:
-        template < int M, typename T, unsigned... N >
+        template < int M, typename T, uint_t... N >
         static void by(data_store_field< T, N... > &data_field) {
             by_impl< (sizeof...(N)-1), M >(data_field);
         }

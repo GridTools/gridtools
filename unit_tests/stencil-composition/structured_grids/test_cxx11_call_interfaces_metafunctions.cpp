@@ -36,8 +36,6 @@
 #include <gridtools.hpp>
 #include <common/defs.hpp>
 
-#ifdef CXX11_ENABLED
-
 #include "gtest/gtest.h"
 
 #include <stencil-composition/stencil-functions/call_interfaces.hpp>
@@ -209,4 +207,3 @@ TEST(call_interfaces_metafunctions, check_if_function) {
     GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function< another_non_function >::value == false), "");
     GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const< another_non_function >::value == 0), "");
 }
-#endif

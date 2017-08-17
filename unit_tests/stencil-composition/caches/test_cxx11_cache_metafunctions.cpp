@@ -110,8 +110,7 @@ TEST(cache_metafunctions, cache_used_by_esfs) {
 }
 
 TEST(cache_metafunctions, extract_ij_extents_for_caches) {
-    typedef boost::mpl::vector3< p_in, p_buff, p_out > esf_args_t;
-    typedef local_domain< boost::mpl::void_, boost::mpl::void_, esf_args_t, false > local_domain_t;
+    typedef local_domain< boost::mpl::void_, boost::mpl::void_, false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
     typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
@@ -141,9 +140,7 @@ TEST(cache_metafunctions, extract_ij_extents_for_caches) {
 }
 
 TEST(cache_metafunctions, extract_k_extents_for_caches) {
-
-    typedef boost::mpl::vector3< p_in, p_notin, p_out > esf_args_t;
-    typedef local_domain< boost::mpl::void_, boost::mpl::void_, esf_args_t, false > local_domain_t;
+    typedef local_domain< boost::mpl::void_, boost::mpl::void_, false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
     typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
@@ -178,12 +175,7 @@ TEST(cache_metafunctions, get_ij_cache_storage_tuple) {
     typedef boost::mpl::vector3< st_wrapper_in_t, st_wrapper_buff_t, st_wrapper_out_t > storages_t;
 
     typedef boost::mpl::vector3< p_in, p_buff, p_out > esf_args_t;
-    typedef local_domain< storages_t,
-        esf_args_t,
-        boost::mpl::map3< boost::mpl::pair< p_in, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_buff, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
-        false > local_domain_t;
+    typedef local_domain< storages_t, esf_args_t, false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
     typedef typename boost::mpl::fold< extents_t,
@@ -230,13 +222,7 @@ TEST(cache_metafunctions, get_k_cache_storage_tuple) {
     typedef boost::mpl::vector4< st_wrapper_in_t, st_wrapper_buff_t, st_wrapper_notin_t, st_wrapper_out_t > storages_t;
 
     typedef boost::mpl::vector4< p_in, p_buff, p_notin, p_out > esf_args_t;
-    typedef local_domain< storages_t,
-        esf_args_t,
-        boost::mpl::map4< boost::mpl::pair< p_in, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_buff, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_notin, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
-        false > local_domain_t;
+    typedef local_domain< storages_t, esf_args_t, false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
     typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
