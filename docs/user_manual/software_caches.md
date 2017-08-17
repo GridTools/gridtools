@@ -100,17 +100,19 @@ The possible values are:
  2. `flush`: After the execution of the stencil operators the data in
  the cache is written back into the main memory fields.
 
- 3. `fill_and_flush`: The combination of `fetch` and `flush`
+ 3. `fill_and_flush`: The combination of `fill` and `flush`
 
  4. `local`: The scratch-pad data is not persistent and only available with the scope of a multi-stage.
 
  5. `bpfill`: Stands for begin-point-flush. This type of `cache_policy` is only valid for cache types with a `k` component. 
-Only the head of a kcache buffer is filled from main memory at the beginning of the vertical loop. 
+Only the head (i.e. positive offsets for forward loop direction or negative offset for backward loop direction) of a kcache buffer is filled 
+from main memory at the beginning of the vertical loop. 
 This policy can be used for iterative solvers that require only
 an initial seed of the data (few vertical k-levels). 
  
  6. `epflush`: Stands for end-point-flush. This type of `cache_policy` is only valid for cache types with a `k` component. 
- Only the tail of a kcache buffer is flushed to main memory at the end of the vertical loop. This policy can be used to provide persistency of the field 
+ Only the tail (i.e. negative offsets for forward loop direction or positive offset for backward loop direction) of a kcache buffer is flushed to 
+main memory at the end of the vertical loop. This policy can be used to provide persistency of the field 
  for another  multi-stage that contains a solver that requires only an initial seed of the field (few vertical k-levels) 
  
  
