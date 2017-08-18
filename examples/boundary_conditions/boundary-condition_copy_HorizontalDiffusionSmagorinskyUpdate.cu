@@ -34,4 +34,4 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #define CUDA_EXAMPLE
-#include "boundary-condition_interpolation_FWSCPPDivergence.cpp"
+#include "boundary-condition_copy_HorizontalDiffusionSmagorinskyUpdate.cpp"
