@@ -38,6 +38,7 @@
 #include <common/halo_descriptor.hpp>
 
 #include <boundary-conditions/boundary.hpp>
+#include <boundary-conditions/direction.hpp>
 
 using gridtools::direction;
 using gridtools::sign;
@@ -63,14 +64,55 @@ using namespace enumtype;
 #endif
 
 #define BACKEND backend< GT_ARCH, GRIDBACKEND, Block >
+struct zero_grad_bc {
+    uint_t first_i, last_i, first_j, last_j;
 
-struct copy_bc {
+    GT_FUNCTION zero_grad_bc(uint_t first_i, uint_t last_i, uint_t first_j, uint_t last_j)
+        : first_i(first_i), last_i(last_i), first_j(first_j), last_j(last_j) {}
 
     // relative coordinates
-    template < typename Direction, typename DataField >
+    template < sign K, typename DataField >
     GT_FUNCTION void operator()(
-        Direction, DataField &data_field0, DataField const &data_field1, uint_t i, uint_t j, uint_t k) const {
-        data_field0(i, j, k) = data_field1(i, j, k);
+        gridtools::direction< minus_, minus_, K >, DataField &data_field, uint_t i, uint_t j, uint_t k) const {
+        data_field(i, j, k) = data_field(first_i, first_j, k);
+    }
+    template < sign K, typename DataField >
+    GT_FUNCTION void operator()(
+        gridtools::direction< minus_, zero_, K >, DataField &data_field, uint_t i, uint_t j, uint_t k) const {
+        data_field(i, j, k) = data_field(first_i, j, k);
+    }
+    template < sign K, typename DataField >
+    GT_FUNCTION void operator()(
+        gridtools::direction< minus_, plus_, K >, DataField &data_field, uint_t i, uint_t j, uint_t k) const {
+        data_field(i, j, k) = data_field(first_i, last_j, k);
+    }
+    template < sign K, typename DataField >
+    GT_FUNCTION void operator()(
+        gridtools::direction< zero_, minus_, K >, DataField &data_field, uint_t i, uint_t j, uint_t k) const {
+        data_field(i, j, k) = data_field(i, first_j, k);
+    }
+    template < sign K, typename DataField >
+    GT_FUNCTION void operator()(
+        gridtools::direction< zero_, zero_, K >, DataField &data_field, uint_t i, uint_t j, uint_t k) const {}
+    template < sign K, typename DataField >
+    GT_FUNCTION void operator()(
+        gridtools::direction< zero_, plus_, K >, DataField &data_field, uint_t i, uint_t j, uint_t k) const {
+        data_field(i, j, k) = data_field(i, last_j, k);
+    }
+    template < sign K, typename DataField >
+    GT_FUNCTION void operator()(
+        gridtools::direction< plus_, minus_, K >, DataField &data_field, uint_t i, uint_t j, uint_t k) const {
+        data_field(i, j, k) = data_field(last_i, first_j, k);
+    }
+    template < sign K, typename DataField >
+    GT_FUNCTION void operator()(
+        gridtools::direction< plus_, zero_, K >, DataField &data_field, uint_t i, uint_t j, uint_t k) const {
+        data_field(i, j, k) = data_field(last_i, j, k);
+    }
+    template < sign K, typename DataField >
+    GT_FUNCTION void operator()(
+        gridtools::direction< plus_, plus_, K >, DataField &data_field, uint_t i, uint_t j, uint_t k) const {
+        data_field(i, j, k) = data_field(last_i, last_j, k);
     }
 };
 
@@ -82,10 +124,6 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 
-    std::cout << "Only a copy of one field! To compare with HorizontalDiffusionSmagorinskyUpdate you need to do twice "
-                 "as many iterations. (Staggering is not taken into account.)"
-              << std::endl;
-
     uint_t d1 = atoi(argv[1]);
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
@@ -96,22 +134,51 @@ int main(int argc, char **argv) {
 
     // Definition of the actual data fields that are used for input/output
     meta_data_t meta_(d1, d2, d3);
-    storage_t in1(meta_,
+    storage_t out(meta_,
         [d1, d2](int i, int j, int k) {
             if (i < 3 || i > d1 - 4 || j < 3 || j > d2 - 4)
-                return 1.;
-            else
                 return -1.;
+            else if (i == 3 && j > 3 && j < d2 - 4)
+                return 1.;
+            else if (i == d1 - 4 && j > 3 && j < d2 - 4)
+                return 3.;
+            else if (j == 3 && i > 3 && i < d1 - 4)
+                return 2.;
+            else if (j == d2 - 4 && i > 3 && i < d1 - 4)
+                return 4.;
+            else if (i == 3 && j == 3)
+                return 5.;
+            else if (i == 3 && j == d2 - 4)
+                return 6.;
+            else if (i == d1 - 4 && j == 3)
+                return 7.;
+            else if (i == d1 - 4 && j == d2 - 4)
+                return 8.;
+            else
+                return 555.;
         },
-        "in1");
-    storage_t out(meta_, 0, "out");
+        "out");
 
     storage_t ref(meta_,
         [d1, d2](int i, int j, int k) {
-            if (i < 3 || i > d1 - 4 || j < 3 || j > d2 - 4)
+            if (i <= 3 && j <= 3)
+                return 5.;
+            else if (i <= 3 && j >= d2 - 4)
+                return 6.;
+            else if (i >= d1 - 4 && j <= 3)
+                return 7.;
+            else if (i >= d1 - 4 && j >= d2 - 4)
+                return 8.;
+            else if (i <= 3 && (j > 3 && j < d2 - 4))
                 return 1.;
+            else if (i >= d1 - 4 && (j > 3 && j < d2 - 4))
+                return 3.;
+            else if (j <= 3 && (i > 3 && i < d1 - 4))
+                return 2.;
+            else if (j >= d2 - 4 && (i > 3 && i < d1 - 4))
+                return 4.;
             else
-                return 0.;
+                return 555.;
         },
         "ref");
 
@@ -121,14 +188,13 @@ int main(int argc, char **argv) {
     halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
     // sync the data stores if needed
-    in1.sync();
     out.sync();
 
-    gridtools::boundary< copy_bc, GT_ARCH > bc(halos, copy_bc());
-    bc.apply(out, in1);
+    gridtools::boundary< zero_grad_bc, GT_ARCH > bc(
+        halos, zero_grad_bc(halos[0].begin(), halos[0].end(), halos[1].begin(), halos[1].end()));
+    bc.apply(out);
 
     // sync the data stores if needed
-    in1.sync();
     out.sync();
 
     bool success = true;
@@ -153,9 +219,8 @@ int main(int argc, char **argv) {
         exit(1);
 
 #ifdef BENCHMARK
-    in1.sync();
     out.sync();
-    benchmarker::run_bc(bc, t_steps, in1, out);
+    benchmarker::run_bc(bc, t_steps, out);
 #endif
 
     //    return error;
