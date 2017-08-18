@@ -1,0 +1,125 @@
+<!doctype html>
+<html >
+<head>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <!--[if lt IE 9]>
+                <script src="http://css3-mediaqueries-js.googlecode.com/svn/trunk/css3-mediaqueries.js"></script>
+        <![endif]-->
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+
+  <link rel="stylesheet" type="text/css" href="template.css" />
+
+   <link href="https://vjs.zencdn.net/5.4.4/video-js.css" rel="stylesheet" />
+
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script type='text/javascript' src='menu/js/jquery.cookie.js'></script>
+<script type='text/javascript' src='menu/js/jquery.hoverIntent.minified.js'></script>
+<script type='text/javascript' src='menu/js/jquery.dcjqaccordion.2.7.min.js'></script>
+
+<link href="menu/css/skins/blue.css" rel="stylesheet" type="text/css" />
+<link href="menu/css/skins/graphite.css" rel="stylesheet" type="text/css" />
+<link href="menu/css/skins/grey.css" rel="stylesheet" type="text/css" />
+  
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        
+  
+  <script src="script.js"></script>
+  
+    <script src="jquery.sticky-kit.js "></script>
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <link rel="stylesheet" href="../pandoc_tools/pandoc-bootstrap-adaptive-template/template.css" type="text/css" />
+</head>
+<body>
+
+    
+    <div class="container">
+    <div class="row">
+            <div id="TOC" class="span3">
+        <div class="well toc">
+
+        <ul>
+        <li><a href="#internal-features-and-algorithms-used-in-gridtools">Internal features and algorithms used in GridTools</a><ul>
+        <li><a href="#indexing-algorithm-pointer-offset-computation">Indexing algorithm (pointer offset computation)</a></li>
+        </ul></li>
+        </ul>
+
+        </div>
+      </div>
+            <div class="span9">
+            <link rel="stylesheet" href="../pandoc_tools/highlight.js/color-brewer.min.css">
+<script src="../pandoc_tools/highlight.js/highlight.min.js"></script>
+<script src="../pandoc_tools/highlight.js/jquery-2.1.3.min.js"></script>
+<script src="../pandoc_tools/highlight.js/cpp_gt.js"></script>
+<script>
+$(function() {
+    $("pre > code").each(function(i, block) {
+        var codeClass = $(this).parent().attr("class");
+        if (codeClass == null || codeClass === "") {
+            $(this).addClass("hljs");
+        } else {
+            var map = {
+                js: "javascript"
+            };
+            if (map[codeClass]) {
+                codeClass = map[codeClass];
+            }
+            $(this).addClass(codeClass);
+            hljs.highlightBlock(this);
+        }
+    });
+});
+</script>
+<h1 id="internal-features-and-algorithms-used-in-gridtools">Internal features and algorithms used in GridTools</h1>
+<p>Welcome to the &quot;internal&quot; section of GridTools. Here we document features and algorithms used in GridTools that cannot be documented properly in code only.</p>
+<h2 id="indexing-algorithm-pointer-offset-computation">Indexing algorithm (pointer offset computation)</h2>
+<p>On the <span class="math inline"><em>GridTools</em></span> frontend side we are using <code>storage_info</code>, <code>data_store</code> and <code>data_view</code> objects when we deal with data. Once this information is passed to the <code>aggregator_type</code> and the <code>intermediate</code> the information how to access the different fields is extracted. This means we extract the raw pointers to the data from the <code>data_store</code> objects and the stride information is from the <code>storage_info</code> objects. The pointers and the strides informations are stored in the <code>iterate_domain</code>. In order to save registers and not wasting resources different <code>storage_info</code> instances with a matching ID parameter are treated as a single instance. This can be done because the contained stride information has to be the same if the ID is equal. Figure <span>Fig. [fig:new_indexing:flow]</span> shows the storage flow from the frontend to the backend. In this example three data stores are created by the user, and two temporaries are created in the <code>intermediate</code>. The <code>intermediate</code> is extracting the needed information from the <code>data_store</code> and <code>storage_info</code> objects and is feeding the backend with raw data pointers and stride information.</p>
+<div class="figure">
+<img src="figures/flow.png" alt="Storage handling" />
+<p class="caption">Storage handling</p>
+</div>
+<h3 id="old-indexing-approach">Old indexing approach</h3>
+<p>As seen before the backend contains stride information and raw data pointers. Unfortunately this is not enough. The backend additionally has to store an offset (called index). The reason for this is that the compute domain is split up into several blocks. Each block is passed to a GPU streaming multiprocessor that contains several cores. Each core has to know its position within the block in order to compute at the right point. So additionally to the stride and pointer information that is shared per block an index is stored per core. Figure <span>Fig. [fig:new_indexing:block_contents]</span><br />
+shows the contents of two independent blocks. As visible the stride and pointer information is the same but the index is different for each thread.</p>
+<div class="figure">
+<img src="figures/block_contents.png" alt="Block contents" />
+<p class="caption">Block contents</p>
+</div>
+<p>The index is computed as follows. If there is no halo the index will be</p>
+<p><br /><span class="math display"><em>i</em> = (<em>b</em><em>l</em><em>o</em><em>c</em><em>k</em>_<em>i</em><em>d</em>_<em>x</em> * <em>b</em><em>l</em><em>o</em><em>c</em><em>k</em>_<em>s</em><em>i</em><em>z</em><em>e</em>_<em>x</em> + <em>t</em><em>h</em><em>r</em><em>e</em><em>a</em><em>d</em>_<em>i</em><em>d</em>_<em>x</em>)*<em>s</em><em>t</em><em>r</em><em>i</em><em>d</em><em>e</em>_<em>i</em> + (<em>b</em><em>l</em><em>o</em><em>c</em><em>k</em>_<em>i</em><em>d</em>_<em>y</em> * <em>b</em><em>l</em><em>o</em><em>c</em><em>k</em>_<em>s</em><em>i</em><em>z</em><em>e</em>_<em>y</em> + <em>t</em><em>h</em><em>r</em><em>e</em><em>a</em><em>d</em>_<em>i</em><em>d</em>_<em>y</em>)*<em>s</em><em>t</em><em>r</em><em>i</em><em>d</em><em>e</em>_<em>j</em></span><br /></p>
+<p>In case of a halo the index is shifted into the right direction (like visible in Figure <span>Fig. [fig:new_indexing:block_contents]</span>).</p>
+<h3 id="issues-regarding-temporaries">Issues regarding temporaries</h3>
+<p>Temporary storages share the same <code>storage_info</code> because they all have the same size. The problem with temporaries is that computations in the halo region have to be redundant because we don't know when the data will be available. To solve the problem with redundant computations the temporary storages, that are allocated in the <code>intermediate</code>, are extended by a certain number of elements. The size of the cuda block is known beforehand and also the size of the halo and the number of blocks/threads is known. With this information an extended temporary storage can be instantiated. For performance reasons we want the first non-halo data point of each block to be in an aligned memory position. Therefore we add a certain number of padding elements between the blocks. Figure <span>Fig. [fig:new_indexing:temporary]</span> compares the non-aligned versus the aligned storages. The green dots are marking the halo points. It can be seen that each block has its own halo region. The blue squares are padding elements and the yellow squares are data points. As visible on the right part of the drawing the first data point should be in an aligned memory position. In order to achieve this padding elements are added between the blocks.</p>
+<div class="figure">
+<img src="figures/temporary.png" alt="Temporary storages non-aligned/aligned" />
+<p class="caption">Temporary storages non-aligned/aligned</p>
+</div>
+<p><strong>Base pointer change</strong></p>
+<p>When the aligned temporary improvement was introduced the logic in the backend was slightly changed. As shown before the backend contains a pointer to each of the <code>storage</code>. In combination with an index the cuda thread can identify its compute position. When temporaries are used one cannot just simply use a base pointer for all the cuda blocks and just multiply the current block index with the block size like shown in the formula above. The base pointer has to be computed per block. So each block contains a pointer to its own temporary storage.</p>
+<div class="figure">
+<img src="figures/temporary_block_contents.png" alt="Temporary block contents" />
+<p class="caption">Temporary block contents</p>
+</div>
+<p>There is no difference in resource consumption when using the changed base pointer approach. It was mainly introduced for convenience and in order to smoothly integrate the aligned temporary block improvement.</p>
+<p><strong>Multiple temporaries with different halo</strong></p>
+<p>Formerly <span class="math inline"><em>GridTools</em></span> used one <code>storage_info</code> per temporary storage. This is convenient but consumes more resources than needed. Therefore it was replaced by the more resource efficient &quot;one <code>storage_info</code> for all temporaries&quot; solution. The temporaries are all having the same size. So the stride information can be shared in the backend. The only problem occurs when different temporaries (with the same size, as mentioned before) are accessing different halos. The base pointer is set correctly only for the temporary that is using the maximum halo. All the other temporaries are unaligned by <span class="math inline"><em>m</em><em>a</em><em>x</em>_<em>h</em><em>a</em><em>l</em><em>o</em> − <em>u</em><em>s</em><em>e</em><em>d</em>_<em>h</em><em>a</em><em>l</em><em>o</em></span> points. This happens for instance when computing the horizontal diffusion. The flx and fly temporaries use different halos. In this case the temporary written in the flx stage will be properly aligned because it is accessing the maximum halo in the aligned direction (x direction). The second temporary written in the fly stage will be unaligned because it does not use the halo points in x-direction. In order to fix this alignment mistake the missing offset is added when setting the base pointer. The information that is passed to the algorithm that extracts the base pointer knows about the used halo of each <code>storage</code> and also the maximum halo in the alinged direction. A value of <span class="math inline"><em>m</em><em>a</em><em>x</em>_<em>h</em><em>a</em><em>l</em><em>o</em> − <em>u</em><em>s</em><em>e</em><em>d</em>_<em>h</em><em>a</em><em>l</em><em>o</em></span> is added to each base pointer.</p>
+<p><strong>Passing huge types down to the offset computation</strong></p>
+<p>In order to fix the alignment when using different halos we have to pass a lot of type information from the <code>intermediate</code> down to the backend. This is exhaustive for the compiler and the performance suffers. This could lead to problems, especially when trying to compile computations with many stages and a high number of fields.</p>
+<h3 id="updated-indexing-algorithm">Updated indexing algorithm</h3>
+<p>The new indexing approach tries to avoid the strategy of setting the base pointer to the first point of the block. The new approach is to set the pointer to the first non-halo point of the block. The method that is setting the index of each cuda thread has to be modified. Figure <span>Fig. [fig:new_indexing:new_temporary_block_contents]</span> shows the new indexing. As shown, the first non halo point is used as base pointer. The index is also modified in order to point to the correct data location.</p>
+<div class="figure">
+<img src="figures/new_temporary_block_contents.png" alt="New temporary block contents" />
+<p class="caption">New temporary block contents</p>
+</div>
+            </div>
+    </div>
+  </div>
+  <script src="https://vjs.zencdn.net/5.4.4/video.js"></script>
+
+</body>
+</html>

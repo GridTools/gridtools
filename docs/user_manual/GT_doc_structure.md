@@ -8,6 +8,10 @@ Installation.md
 Quick_Start_Guide.md
 ```
 
+```include
+Storages.md
+```
+
 Storages
 ========
 
@@ -28,6 +32,18 @@ Detailed storage configuration
 
 DSL introduction
 ================
+
+Using GridTools
+---------------
+
+TODO: Explain the different modules and how to use
+them, i.e. reference the main headers of each components
+
+Syntax Compile-time Protections
+-------------------------------
+
+TODO: explain the errors obtained with GT_STATIC_ASSERT
+
 
 ```include
 ./stencil_operators.md
