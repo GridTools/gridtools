@@ -54,6 +54,8 @@ using gridtools::plus_;
 
 #include "../benchmarker.hpp"
 
+#include "ij_predicate.hpp"
+
 using namespace gridtools;
 using namespace enumtype;
 
@@ -189,9 +191,13 @@ int main(int argc, char **argv) {
 
     // sync the data stores if needed
     out.sync();
-
+#ifdef USE_IJ_PREDICATE
+    gridtools::boundary< zero_grad_bc, GT_ARCH, ij_predicate > bc(
+        halos, zero_grad_bc(halos[0].begin(), halos[0].end(), halos[1].begin(), halos[1].end()));
+#else
     gridtools::boundary< zero_grad_bc, GT_ARCH > bc(
         halos, zero_grad_bc(halos[0].begin(), halos[0].end(), halos[1].begin(), halos[1].end()));
+#endif
     bc.apply(out);
 
     // sync the data stores if needed

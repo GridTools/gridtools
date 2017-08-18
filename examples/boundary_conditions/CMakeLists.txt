@@ -13,6 +13,7 @@
 
   add_definitions("-DBENCHMARK")
 #  add_definitions("-DGT_CONCURRENT_BC")
+  add_definitions("-DUSE_IJ_PREDICATE")
 
   foreach(srcfile IN LISTS SRCFILES)
     add_executable(${srcfile}   ${srcfile}.cpp ${GTEST_FILES} ${INC_ALL})

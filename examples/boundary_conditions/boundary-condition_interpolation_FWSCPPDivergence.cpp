@@ -53,6 +53,8 @@ using gridtools::plus_;
 
 #include "../benchmarker.hpp"
 
+#include "ij_predicate.hpp"
+
 using namespace gridtools;
 using namespace enumtype;
 
@@ -140,7 +142,12 @@ int main(int argc, char **argv) {
     in2.sync();
     out.sync();
 
+#ifdef USE_IJ_PREDICATE
+    gridtools::boundary< interpolation_bc< float_type >, GT_ARCH, ij_predicate > bc(
+        halos, interpolation_bc< float_type >(0.5, 0.5));
+#else
     gridtools::boundary< interpolation_bc< float_type >, GT_ARCH > bc(halos, interpolation_bc< float_type >(0.5, 0.5));
+#endif
     bc.apply(out, in1, in2);
 
     // sync the data stores if needed

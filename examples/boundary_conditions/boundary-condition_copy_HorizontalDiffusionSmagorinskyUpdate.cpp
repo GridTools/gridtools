@@ -62,6 +62,8 @@ using namespace enumtype;
 #define GT_ARCH Host
 #endif
 
+#include "ij_predicate.hpp"
+
 #define BACKEND backend< GT_ARCH, GRIDBACKEND, Block >
 
 struct copy_bc {
@@ -124,7 +126,11 @@ int main(int argc, char **argv) {
     in1.sync();
     out.sync();
 
+#ifdef USE_IJ_PREDICATE
+    gridtools::boundary< copy_bc, GT_ARCH, ij_predicate > bc(halos, copy_bc());
+#else
     gridtools::boundary< copy_bc, GT_ARCH > bc(halos, copy_bc());
+#endif
     bc.apply(out, in1);
 
     // sync the data stores if needed
