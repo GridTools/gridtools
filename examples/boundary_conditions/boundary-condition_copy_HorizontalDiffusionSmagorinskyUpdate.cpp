@@ -65,22 +65,13 @@ using namespace enumtype;
 #define BACKEND backend< GT_ARCH, GRIDBACKEND, Block >
 
 template < typename T >
-struct interpolation_bc {
-    T weight1, weight2;
-
-    GT_FUNCTION
-    interpolation_bc(T weight1, T weight2) : weight1(weight1), weight2(weight2) {}
+struct copy_bc {
 
     // relative coordinates
     template < typename Direction, typename DataField >
-    GT_FUNCTION void operator()(Direction,
-        DataField &data_field0,
-        DataField const &data_field1,
-        DataField const &data_field2,
-        uint_t i,
-        uint_t j,
-        uint_t k) const {
-        data_field0(i, j, k) = data_field1(i, j, k) * weight1 + data_field2(i, j, k) * weight2;
+    GT_FUNCTION void operator()(
+        Direction, DataField &data_field0, DataField const &data_field1, uint_t i, uint_t j, uint_t k) const {
+        data_field0(i, j, k) = data_field1(i, j, k);
     }
 };
 
@@ -91,6 +82,10 @@ int main(int argc, char **argv) {
                   << std::endl;
         return EXIT_FAILURE;
     }
+
+    std::cout << "Only a copy of one field! To compare with HorizontalDiffusionSmagorinskyUpdate you need to do twice "
+                 "as many iterations. (Staggering is not taken into account.)"
+              << std::endl;
 
     uint_t d1 = atoi(argv[1]);
     uint_t d2 = atoi(argv[2]);
@@ -110,42 +105,31 @@ int main(int argc, char **argv) {
                 return -1.;
         },
         "in1");
-    storage_t in2(meta_,
-        [d1, d2](int i, int j, int k) {
-            if (i < 3 || i > d1 - 4 || j < 3 || j > d2 - 4)
-                return 2.;
-            else
-                return -1.;
-        },
-        "in2");
     storage_t out(meta_, 0, "out");
 
     storage_t ref(meta_,
         [d1, d2](int i, int j, int k) {
-            if ((i == 2 && j >= 2 && j <= d2 - 3) || (i == d1 - 3 && j >= 2 && j <= d2 - 3) ||
-                (j == 2 && i > 2 && i <= d1 - 3) || (j == d2 - 3 && i > 2 && i <= d1 - 3))
-                return 1.5;
+            if (i < 3 || i > d1 - 4 || j < 3 || j > d2 - 4)
+                return 1.;
             else
                 return 0.;
         },
         "ref");
 
     gridtools::array< gridtools::halo_descriptor, 3 > halos;
-    halos[0] = gridtools::halo_descriptor(1, 1, 3, d1 - 4, d1);
-    halos[1] = gridtools::halo_descriptor(1, 1, 3, d2 - 4, d2);
+    halos[0] = gridtools::halo_descriptor(3, 3, 3, d1 - 4, d1);
+    halos[1] = gridtools::halo_descriptor(3, 3, 3, d2 - 4, d2);
     halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
     // sync the data stores if needed
     in1.sync();
-    in2.sync();
     out.sync();
 
-    gridtools::boundary< interpolation_bc< float_type >, GT_ARCH > bc(halos, interpolation_bc< float_type >(0.5, 0.5));
-    bc.apply(out, in1, in2);
+    gridtools::boundary< interpolation_bc< float_type >, GT_ARCH > bc(halos, copy_bc< float_type >());
+    bc.apply(out, in1);
 
     // sync the data stores if needed
     in1.sync();
-    in2.sync();
     out.sync();
 
     bool success = true;
@@ -171,9 +155,8 @@ int main(int argc, char **argv) {
 
 #ifdef BENCHMARK
     in1.sync();
-    in2.sync();
     out.sync();
-    benchmarker::run_bc(bc, t_steps, in1, in2, out);
+    benchmarker::run_bc(bc, t_steps, in1, out);
 #endif
 
     //    return error;

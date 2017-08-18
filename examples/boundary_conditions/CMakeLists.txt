@@ -3,7 +3,7 @@
   file(GLOB_RECURSE INC_ALL_ "../../include/[a-z|A-Z|0-9]*.hpp")
   list ( APPEND INC_ALL ${INC_ALL_} )
 
-  list( APPEND SRCFILES boundary-condition_interpolation_FWSCPPDivergence)
+  list( APPEND SRCFILES boundary-condition_interpolation_FWSCPPDivergence boundary-condition_copy_HorizontalDiffusionSmagorinskyUpdate)
 
   set( GTEST_FILES ../Options.hpp ../Options.cpp)
 
