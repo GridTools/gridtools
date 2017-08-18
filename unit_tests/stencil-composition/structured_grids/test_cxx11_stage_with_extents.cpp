@@ -68,7 +68,7 @@ namespace test_iterate_domain {
     };
 } // namespace test_iterate_domain
 
-TEST(testdomain, iterate_domain) {
+TEST(testdomain, iterate_domain_with_extents) {
     using namespace test_iterate_domain;
     typedef backend< enumtype::Host, enumtype::structured, enumtype::Naive > backend_t;
 
@@ -114,6 +114,26 @@ TEST(testdomain, iterate_domain) {
         auto mss1_ = make_multistage(enumtype::execute< enumtype::forward >(),
             make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()),
             make_stage_with_extent< stage2, extent< 0, 1, -1, 2 > >(p_out(), p_in()));
+
+        auto mss2_ = make_multistage(enumtype::execute< enumtype::forward >(),
+            make_stage_with_extent< stage1, extent< -2, 1, 0, 0 > >(p_in(), p_out()),
+            make_stage_with_extent< stage2, extent< -2, 1, -1, 2 > >(p_out(), p_in()));
+
+        auto computation_ =
+            make_computation_impl< false, backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss1_, mss2_);
+
+        typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 0 >::type,
+                                    boost::mpl::vector2< extent< 0, 1, 0, 0 >, extent< 0, 1, -1, 2 > > >::value),
+            GT_INTERNAL_ERROR_MSG("wrong grid type"));
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 1 >::type,
+                                    boost::mpl::vector2< extent< -2, 1, 0, 0 >, extent< -2, 1, -1, 2 > > >::value),
+            GT_INTERNAL_ERROR_MSG("wrong grid type"));
+    }
+    {
+        auto mss1_ = make_multistage(enumtype::execute< enumtype::forward >(),
+            make_independent(make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()),
+                                         make_stage_with_extent< stage2, extent< 0, 1, -1, 2 > >(p_out(), p_in())));
 
         auto mss2_ = make_multistage(enumtype::execute< enumtype::forward >(),
             make_stage_with_extent< stage1, extent< -2, 1, 0, 0 > >(p_in(), p_out()),

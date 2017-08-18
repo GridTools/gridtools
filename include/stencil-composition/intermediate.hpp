@@ -296,14 +296,40 @@ namespace gridtools {
     template < typename MssDescriptorSequence >
     struct need_to_compute_extents {
 
+        /** helper function _ there is a specialization for
+            independent stages.
+        */
         template < typename Bool, typename EsfDescriptor >
         struct accumulate_and {
             typedef typename boost::mpl::and_< Bool, typename is_esf_with_extent< EsfDescriptor >::type >::type type;
         };
 
-        template < typename Bool, typename MssElem >
+        /** Specialization for independent stages
+         */
+        template < typename Bool, typename... EsfList >
+        struct accumulate_and< Bool, independent_esf< EsfList... > > {
+            using list = typename independent_esf< EsfList... >::esf_list;
+            using type = typename boost::mpl::fold< list,
+                Bool,
+                boost::mpl::and_< boost::mpl::_1, is_esf_with_extent< boost::mpl::_2 > > >::type;
+        };
+
+        /** helper function _ there is a specialization for
+            independent stages.
+        */
+        template < typename Bool, typename EsfDescriptor >
         struct accumulate_or {
-            typedef typename boost::mpl::or_< Bool, typename is_esf_with_extent< MssElem >::type >::type type;
+            typedef typename boost::mpl::or_< Bool, typename is_esf_with_extent< EsfDescriptor >::type >::type type;
+        };
+
+        /** Specialization for independent stages
+         */
+        template < typename Bool, typename... EsfList >
+        struct accumulate_or< Bool, independent_esf< EsfList... > > {
+            using list = typename independent_esf< EsfList... >::esf_list;
+            using type = typename boost::mpl::fold< list,
+                Bool,
+                boost::mpl::or_< boost::mpl::_1, is_esf_with_extent< boost::mpl::_2 > > >::type;
         };
 
         template < typename Acc, typename MssDescriptor >
@@ -356,11 +382,30 @@ namespace gridtools {
 
     template < typename MssElements, typename GridTraits, typename Placeholders, uint_t RepeatFunctor >
     struct obtain_extents_to_esfs_map< false, MssElements, GridTraits, Placeholders, RepeatFunctor > {
+
+        /** helper function _ there is a specialization for
+            independent stages.
+        */
+        template < typename CurrentList, typename EsfElem >
+        struct enqueue_extents {
+            using type = typename boost::mpl::push_back< CurrentList, typename esf_extent< EsfElem >::type >::type;
+        };
+
+        /** Specialization for independent stages
+         */
+        template < typename CurrentList, typename... EsfElems >
+        struct enqueue_extents< CurrentList, independent_esf< EsfElems... > > {
+            using list = typename independent_esf< EsfElems... >::esf_list;
+            using type = typename boost::mpl::fold< list,
+                CurrentList,
+                boost::mpl::push_back< boost::mpl::_1, esf_extent< boost::mpl::_2 > > >::type;
+        };
+
         template < typename MssDescriptor >
         struct get_esf_extents {
             using type = typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
                 boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1, esf_extent< boost::mpl::_2 > > >::type;
+                enqueue_extents< boost::mpl::_1, boost::mpl::_2 > >::type;
         };
 
         using type = typename boost::mpl::fold< MssElements,
