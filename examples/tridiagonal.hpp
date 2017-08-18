@@ -72,9 +72,7 @@ namespace tridiagonal {
     using namespace gridtools;
     using namespace enumtype;
 
-#ifdef CXX11_ENABLED
     using namespace expressions;
-#endif
 
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > x_internal;
@@ -94,14 +92,8 @@ namespace tridiagonal {
 
         template < typename Evaluation >
         GT_FUNCTION static void shared_kernel(Evaluation &eval) {
-#if (defined(CXX11_ENABLED))
             eval(sup{}) = eval(sup{} / (diag{} - sup{z{-1}} * inf{}));
             eval(rhs{}) = eval((rhs{} - inf{} * rhs{z(-1)}) / (diag{} - sup{z(-1)} * inf{}));
-#else
-            eval(sup()) = eval(sup()) / (eval(diag()) - eval(sup(z(-1))) * eval(inf()));
-            eval(rhs()) =
-                (eval(rhs()) - eval(inf()) * eval(rhs(z(-1)))) / (eval(diag()) - eval(sup(z(-1))) * eval(inf()));
-#endif
         }
 
         template < typename Evaluation >
@@ -131,11 +123,7 @@ namespace tridiagonal {
 
         template < typename Evaluation >
         GT_FUNCTION static void shared_kernel(Evaluation &eval) {
-#if (defined(CXX11_ENABLED))
             eval(out()) = eval(rhs{} - sup{} * out{0, 0, 1});
-#else
-            eval(out()) = eval(rhs()) - eval(sup()) * eval(out(0, 0, 1));
-#endif
         }
 
         template < typename Evaluation >
@@ -265,7 +253,6 @@ namespace tridiagonal {
         std::cout << solver->print_meter() << std::endl;
 #endif
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
         verifier verif(1e-6);
 #else
@@ -273,14 +260,6 @@ namespace tridiagonal {
 #endif
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
         bool result = verif.verify(grid, solution, out, halos);
-#else
-#if FLOAT_PRECISION == 4
-        verifier verif(1e-6, 0);
-#else
-        verifier verif(1e-12, 0);
-#endif
-        bool result = verif.verify(grid, solution, out);
-#endif
 
         return result;
     }

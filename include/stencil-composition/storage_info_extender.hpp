@@ -38,7 +38,6 @@
 #include "../storage/storage-facility.hpp"
 #include "../common/layout_map_metafunctions.hpp"
 
-#ifdef CXX11_ENABLED
 namespace gridtools {
 
     /**
@@ -127,9 +126,10 @@ namespace gridtools {
      */
     struct storage_info_extender {
 
-        template < typename StorageInfo >
+        template < typename StorageInfoPtr,
+            typename StorageInfo = typename boost::remove_cv< typename StorageInfoPtr::element_type >::type >
         typename storage_info_extender_impl< StorageInfo, 1 >::type operator()(
-            const StorageInfo *other, uint_t extradim_length) const {
+            StorageInfoPtr other, uint_t extradim_length) const {
             GRIDTOOLS_STATIC_ASSERT((is_storage_info< StorageInfo >::value), "Use with a StorageInfo type only");
             typedef typename storage_info_extender_impl< StorageInfo, 1 >::type type;
 
@@ -137,4 +137,3 @@ namespace gridtools {
         }
     };
 }
-#endif

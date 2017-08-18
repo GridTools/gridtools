@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <common/array.hpp>
+#include "array.hpp"
 
 namespace gridtools {
     template < typename T, size_t D >
@@ -46,6 +46,15 @@ namespace gridtools {
         s << a[D - 1] << "  } ";
 
         return s;
+    }
+
+    template < typename T, size_t D >
+    std::vector< T > to_vector(array< T, D > const &a) {
+        std::vector< T > v(D);
+        for (int i = 0; i < D; ++i) {
+            v.at(i) = a[i];
+        }
+        return v;
     }
 
 } // namespace gridtools

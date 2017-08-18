@@ -133,11 +133,7 @@ namespace gridtools {
     /**
      * @brief metafunction that create the mss local domain type
      */
-    template < enumtype::platform BackendId,
-        typename MssComponentsArray,
-        typename StorageWrapperList,
-        typename ExtentMap,
-        bool IsStateful >
+    template < enumtype::platform BackendId, typename MssComponentsArray, typename StorageWrapperList, bool IsStateful >
     struct create_mss_local_domains {
 
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
@@ -145,7 +141,7 @@ namespace gridtools {
         struct get_the_mss_local_domain {
             template < typename T >
             struct apply {
-                typedef mss_local_domain< BackendId, T, StorageWrapperList, ExtentMap, IsStateful > type;
+                typedef mss_local_domain< BackendId, T, StorageWrapperList, IsStateful > type;
             };
         };
 
@@ -158,19 +154,13 @@ namespace gridtools {
         typename MssArray2,
         typename Cond,
         typename StorageWrapperList,
-        typename ExtentMap,
         bool IsStateful >
     struct create_mss_local_domains< BackendId,
         condition< MssArray1, MssArray2, Cond >,
         StorageWrapperList,
-        ExtentMap,
         IsStateful > {
-        typedef
-            typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, ExtentMap, IsStateful >::type
-                type1;
-        typedef
-            typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, ExtentMap, IsStateful >::type
-                type2;
+        typedef typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, IsStateful >::type type1;
+        typedef typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, IsStateful >::type type2;
         typedef condition< type1, type2, Cond > type;
     };
 
@@ -582,7 +572,6 @@ namespace gridtools {
         typedef typename create_mss_local_domains< backend_id< Backend >::value,
             mss_components_array_t,
             storage_wrapper_list_t,
-            extent_map_t,
             IsStateful >::type mss_local_domains_t;
 
         // creates a fusion vector of local domains
@@ -684,6 +673,7 @@ namespace gridtools {
             typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
                 0 >
         void reassign(DataStores &... stores) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             m_domain.reassign_storages_impl(stores...);
         }
 
@@ -691,6 +681,7 @@ namespace gridtools {
             typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
                 int >::type = 0 >
         void reassign(ArgStoragePairs... pairs) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             m_domain.reassign_arg_storage_pairs_impl(pairs...);
         }
 
