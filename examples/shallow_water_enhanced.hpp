@@ -123,13 +123,7 @@ namespace shallow_water {
         //! [droplet]
         static constexpr float_type height = 2.;
         GT_FUNCTION
-        static float_type droplet(uint_t i, uint_t j) {
-            return droplet_(i, j, dx(), dy(), height);
-            // 1. +
-            //                    height *
-            //                        std::exp(-5 * (((i - 3) * dx()) * (((i - 3) * dx())) + ((j - 3) * dy()) * ((j - 3)
-            //                        * dy())));
-        }
+        static float_type droplet(uint_t i, uint_t j) { return droplet_(i, j, dx(), dy(), height); }
         //! [droplet]
     };
     // [boundary_conditions]
@@ -341,16 +335,7 @@ namespace shallow_water {
      */
     std::ostream &operator<<(std::ostream &s, final_step const) { return s << "final step"; }
 
-    // extern char const s1[] = "hello ";
-    // extern char const s2[] = "world\n";
-
     bool test(uint_t x, uint_t y, uint_t t) {
-
-        // #ifndef __CUDACC__
-        //         // testing the static printing
-        //         typedef string_c< print, s1, s2, s1, s1 > s;
-        //         s::apply();
-        // #endif
 
         uint_t d1 = x;
         uint_t d2 = y;
@@ -368,8 +353,7 @@ namespace shallow_water {
         //! [args]
         typedef tmp_arg< 0, sol_type > p_tmpx;
         typedef tmp_arg< 1, sol_type > p_tmpy;
-        // typedef arg<0, sol_type > p_tmpx;
-        // typedef arg<1, sol_type > p_tmpy;
+
         typedef arg< 2, sol_type > p_sol;
         typedef boost::mpl::vector< p_tmpx, p_tmpy, p_sol > accessor_list;
 
@@ -403,19 +387,11 @@ namespace shallow_water {
         assert(dk == 1);
 
         array< ushort_t, 3 > halo{1, 1, 0};
-        // if (c_grid.size() == 1) {
-        //     halo = array< ushort_t, 3 >{0, 0, 0};
-        // } else {
-        //     halo = array< ushort_t, 3 >{1, 1, 0};
-        // }
 
         //! [parallel_storage]
         storage_info_t storage_info(d1 + 2 * halo[0], d2 + 2 * halo[1], d3);
 
         sol_type sol(storage_info);
-
-        // sol_type tmpx(meta_.get_metadata(), "tmpx");
-        // sol_type tmpy(meta_.get_metadata(), "tmpy");
 
         //! [add_halo]
         he.add_halo< 0 >(halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]);
@@ -432,17 +408,7 @@ namespace shallow_water {
         auto view0 = make_host_view(ds0);
         auto view1 = make_host_view(ds1);
         auto view2 = make_host_view(ds2);
-        // #ifdef __CUDACC__
-        //         for (int i = 0; i < d1+2*halo[0]; ++i) {
-        //             for (int j = 0; j < d2+2*halo[1]; ++j) {
-        //                 for (int k = 0; k < d3; ++k) {
-        //                     view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
-        //                     view1(i, j, k) = 0.0;
-        //                     view2(i, j, k) = 0.0;
-        //                 }
-        //             }
-        //         }
-        // #else
+
         for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
             for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
                 view0(i, j, 0) = bc_periodic< 0, 0 >::droplet(i, j); // h
@@ -450,7 +416,6 @@ namespace shallow_water {
                 view2(i, j, 0) = 0.0;
             }
         }
-//#endif
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
