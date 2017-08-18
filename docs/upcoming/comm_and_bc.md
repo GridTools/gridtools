@@ -66,4 +66,33 @@ There are two communication patterns that we can use. First `halo_exchange_ut`, 
 
 ### A proposal for using the `_ut`
 
-A CABC class should contain a specific instantiated `halo_exchange_ut` object, constructed at the beginning.
+A CABC class should contain a specific instantiated `halo_exchange_ut` object, constructed at the beginning. The boundary condition application can be indicated with a bundled object when an operation is requested.
+
+```c++
+using cabc_t = CABC<comm_traits> // comm_traits obtained possibly from a prepackaged sets
+                                 // of traits containing layouts, data_types, processor grids,
+                                 // architecture and packing method
+                                 // In addition also the BC predicate
+
+
+
+cabc_t cabc(halo_decsriptors, // obtained by grid or storages: array<halo_decsriptor, 3>
+            periodicity,      // as in old GCL: Maybe this could be left as last argument ad defaulted
+            max_data_stores); // maximum number of data stores used at the same time in this pattern
+
+cabc.exchange(ds0, ds1, ds2); // Exchange data on those data stores
+
+cabc.exchange( bind_bc(bc_class0(...), ds0, ds1), bind_bc(bc_class1(...), ds2) );
+```
+
+Ideally, the pairing of calling `exchange` and `bind_bc` is extracting from the arguments passed to a boundary condition class the data stores that need to be updated. So in case of _correlated_ boundary apply, the read-only data stores should not be updated. Otherwise we could limit `bind_bc` to work on self applying boundary conditions.
+
+An alternative may be something like the following, using the standard way of binding arguments to functions.
+
+```c++
+bind_bc(bc_class(...), ds0, ds1, _1).associate(ds_read_only)
+```
+
+```note
+It may be that the use cases are much easier than that. If this is the case, the interface could be much easier. Seen next. It may make sense to have this simplified interface for some applications, but I'm not sure if they could be valid in a generic library.
+```
