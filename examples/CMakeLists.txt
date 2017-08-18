@@ -1,3 +1,5 @@
+add_subdirectory( boundary_conditions )
+
 if(NOT STRUCTURED_GRIDS)
     add_subdirectory(icosahedral)
 else()

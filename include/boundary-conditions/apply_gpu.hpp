@@ -84,14 +84,39 @@ namespace gridtools {
         Predicate predicate;
         static const uint_t ntx = 8, nty = 32, ntz = 1;
         const dim3 threads;
+#ifdef GT_CONCURRENT_BC
+        cudaStream_t stream[26];
+#endif
 
       public:
         boundary_apply_gpu(HaloDescriptors const &hd, Predicate predicate = Predicate())
             : halo_descriptors(hd), boundary_function(BoundaryFunction()), predicate(predicate),
-              threads(ntx, nty, ntz) {}
+              threads(ntx, nty, ntz) {
+
+#ifdef GT_CONCURRENT_BC
+            for (int i = 0; i < 26; ++i) {
+                cudaStreamCreate(&stream[i]);
+            }
+#endif
+        }
 
         boundary_apply_gpu(HaloDescriptors const &hd, BoundaryFunction const &bf, Predicate predicate = Predicate())
-            : halo_descriptors(hd), boundary_function(bf), predicate(predicate), threads(ntx, nty, ntz) {}
+            : halo_descriptors(hd), boundary_function(bf), predicate(predicate), threads(ntx, nty, ntz) {
+
+#ifdef GT_CONCURRENT_BC
+            for (int i = 0; i < 26; ++i) {
+                cudaStreamCreate(&stream[i]);
+            }
+#endif
+        }
+
+        ~boundary_apply_gpu() {
+#ifdef GT_CONCURRENT_BC
+            for (int i = 0; i < 26; ++i) {
+                cudaStreamDestroy(stream[i]);
+            }
+#endif
+        }
 
         /**
            @brief applies the boundary conditions looping on the halo region defined by the member parameter, in all
@@ -100,7 +125,7 @@ namespace gridtools {
         (DataField0, Datafield1, DataField2, ...)
         */
         template < typename Direction, typename... DataFieldViews >
-        void apply_it(DataFieldViews &... data_field_views) const {
+        void apply_it(int stream_id, DataFieldViews &... data_field_views) const {
             uint_t nx = halo_descriptors[0].loop_high_bound_outside(Direction::I) -
                         halo_descriptors[0].loop_low_bound_outside(Direction::I) + 1;
             uint_t ny = halo_descriptors[1].loop_high_bound_outside(Direction::J) -
@@ -112,6 +137,18 @@ namespace gridtools {
             uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);
             assert(nx > 0 || ny > 0 || nz > 0 && "all boundary extents are empty");
             dim3 blocks(nbx, nby, nbz);
+#ifdef GT_CONCURRENT_BC
+
+            loop_kernel<<< blocks, threads, 0, stream[stream_id] >>>(boundary_function,
+                Direction(),
+                halo_descriptors[0].loop_low_bound_outside(Direction::I),
+                halo_descriptors[1].loop_low_bound_outside(Direction::J),
+                halo_descriptors[2].loop_low_bound_outside(Direction::K),
+                nx,
+                ny,
+                nz,
+                data_field_views...);
+#else
             loop_kernel<<< blocks, threads >>>(boundary_function,
                 Direction(),
                 halo_descriptors[0].loop_low_bound_outside(Direction::I),
@@ -121,8 +158,9 @@ namespace gridtools {
                 ny,
                 nz,
                 data_field_views...);
-            cudaDeviceSynchronize();
+#endif
 #ifndef NDEBUG
+            cudaDeviceSynchronize();
             cudaError_t error = cudaGetLastError();
             if (error != cudaSuccess) {
                 fprintf(stderr, "CUDA ERROR: %s in %s at line %dn", cudaGetErrorString(error), __FILE__, __LINE__);
@@ -138,69 +176,66 @@ namespace gridtools {
         */
         template < typename... DataFieldViews >
         void apply(DataFieldViews const &... data_field_views) const {
-
             if (predicate(direction< minus_, minus_, minus_ >()))
-                apply_it< direction< minus_, minus_, minus_ > >(data_field_views...);
+                apply_it< direction< minus_, minus_, minus_ > >(0, data_field_views...);
             if (predicate(direction< minus_, minus_, zero_ >()))
-                apply_it< direction< minus_, minus_, zero_ > >(data_field_views...);
+                apply_it< direction< minus_, minus_, zero_ > >(1, data_field_views...);
             if (predicate(direction< minus_, minus_, plus_ >()))
-                apply_it< direction< minus_, minus_, plus_ > >(data_field_views...);
+                apply_it< direction< minus_, minus_, plus_ > >(2, data_field_views...);
 
             if (predicate(direction< minus_, zero_, minus_ >()))
-                apply_it< direction< minus_, zero_, minus_ > >(data_field_views...);
+                apply_it< direction< minus_, zero_, minus_ > >(3, data_field_views...);
             if (predicate(direction< minus_, zero_, zero_ >()))
-                apply_it< direction< minus_, zero_, zero_ > >(data_field_views...);
+                apply_it< direction< minus_, zero_, zero_ > >(4, data_field_views...);
             if (predicate(direction< minus_, zero_, plus_ >()))
-                apply_it< direction< minus_, zero_, plus_ > >(data_field_views...);
+                apply_it< direction< minus_, zero_, plus_ > >(5, data_field_views...);
 
             if (predicate(direction< minus_, plus_, minus_ >()))
-                apply_it< direction< minus_, plus_, minus_ > >(data_field_views...);
+                apply_it< direction< minus_, plus_, minus_ > >(6, data_field_views...);
             if (predicate(direction< minus_, plus_, zero_ >()))
-                apply_it< direction< minus_, plus_, zero_ > >(data_field_views...);
+                apply_it< direction< minus_, plus_, zero_ > >(7, data_field_views...);
             if (predicate(direction< minus_, plus_, plus_ >()))
-                apply_it< direction< minus_, plus_, plus_ > >(data_field_views...);
+                apply_it< direction< minus_, plus_, plus_ > >(8, data_field_views...);
 
             if (predicate(direction< zero_, minus_, minus_ >()))
-                apply_it< direction< zero_, minus_, minus_ > >(data_field_views...);
+                apply_it< direction< zero_, minus_, minus_ > >(9, data_field_views...);
             if (predicate(direction< zero_, minus_, zero_ >()))
-                apply_it< direction< zero_, minus_, zero_ > >(data_field_views...);
+                apply_it< direction< zero_, minus_, zero_ > >(10, data_field_views...);
             if (predicate(direction< zero_, minus_, plus_ >()))
-                apply_it< direction< zero_, minus_, plus_ > >(data_field_views...);
+                apply_it< direction< zero_, minus_, plus_ > >(11, data_field_views...);
 
             if (predicate(direction< zero_, zero_, minus_ >()))
-                apply_it< direction< zero_, zero_, minus_ > >(data_field_views...);
+                apply_it< direction< zero_, zero_, minus_ > >(12, data_field_views...);
             if (predicate(direction< zero_, zero_, plus_ >()))
-                apply_it< direction< zero_, zero_, plus_ > >(data_field_views...);
+                apply_it< direction< zero_, zero_, plus_ > >(13, data_field_views...);
 
             if (predicate(direction< zero_, plus_, minus_ >()))
-                apply_it< direction< zero_, plus_, minus_ > >(data_field_views...);
+                apply_it< direction< zero_, plus_, minus_ > >(14, data_field_views...);
             if (predicate(direction< zero_, plus_, zero_ >()))
-                apply_it< direction< zero_, plus_, zero_ > >(data_field_views...);
+                apply_it< direction< zero_, plus_, zero_ > >(15, data_field_views...);
             if (predicate(direction< zero_, plus_, plus_ >()))
-                apply_it< direction< zero_, plus_, plus_ > >(data_field_views...);
+                apply_it< direction< zero_, plus_, plus_ > >(16, data_field_views...);
 
             if (predicate(direction< plus_, minus_, minus_ >()))
-                apply_it< direction< plus_, minus_, minus_ > >(data_field_views...);
+                apply_it< direction< plus_, minus_, minus_ > >(17, data_field_views...);
             if (predicate(direction< plus_, minus_, zero_ >()))
-                apply_it< direction< plus_, minus_, zero_ > >(data_field_views...);
+                apply_it< direction< plus_, minus_, zero_ > >(18, data_field_views...);
             if (predicate(direction< plus_, minus_, plus_ >()))
-                apply_it< direction< plus_, minus_, plus_ > >(data_field_views...);
+                apply_it< direction< plus_, minus_, plus_ > >(19, data_field_views...);
 
             if (predicate(direction< plus_, zero_, minus_ >()))
-                apply_it< direction< plus_, zero_, minus_ > >(data_field_views...);
+                apply_it< direction< plus_, zero_, minus_ > >(20, data_field_views...);
             if (predicate(direction< plus_, zero_, zero_ >()))
-                apply_it< direction< plus_, zero_, zero_ > >(data_field_views...);
+                apply_it< direction< plus_, zero_, zero_ > >(21, data_field_views...);
             if (predicate(direction< plus_, zero_, plus_ >()))
-                apply_it< direction< plus_, zero_, plus_ > >(data_field_views...);
+                apply_it< direction< plus_, zero_, plus_ > >(22, data_field_views...);
 
             if (predicate(direction< plus_, plus_, minus_ >()))
-                apply_it< direction< plus_, plus_, minus_ > >(data_field_views...);
+                apply_it< direction< plus_, plus_, minus_ > >(23, data_field_views...);
             if (predicate(direction< plus_, plus_, zero_ >()))
-                apply_it< direction< plus_, plus_, zero_ > >(data_field_views...);
+                apply_it< direction< plus_, plus_, zero_ > >(24, data_field_views...);
             if (predicate(direction< plus_, plus_, plus_ >()))
-                apply_it< direction< plus_, plus_, plus_ > >(data_field_views...);
-
-            cudaDeviceSynchronize();
+                apply_it< direction< plus_, plus_, plus_ > >(25, data_field_views...);
         }
     };
 

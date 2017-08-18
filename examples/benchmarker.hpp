@@ -35,6 +35,9 @@
 */
 #include <memory>
 
+#include "../include/stencil-composition/timer.hpp"
+#include "../include/stencil-composition/timer_dummy.hpp"
+#include "../include/stencil-composition/backend_cuda/timer_cuda.hpp"
 #include "stencil-composition/stencil.hpp"
 #include "cache_flusher.hpp"
 #include "defs.hpp"
@@ -68,6 +71,33 @@ namespace gridtools {
                     << "\t[s]\t" << time;
 
             std::cout << out.str() << std::endl;
+        }
+
+        template < typename BC, typename... Args >
+        static void run_bc(BC bc, uint_t tsteps, Args &&... args) {
+            cache_flusher flusher(cache_flusher_size);
+            bc.apply(args...);
+            flusher.flush();
+
+// TODO fix
+// using performance_meter_t = typename Backend::backend_traits_t::performance_meter_t;
+#ifdef ENABLE_METERS
+            using performance_meter_t = timer_cuda;
+#else
+            using performance_meter_t = timer_dummy;
+#endif
+
+            performance_meter_t meter("NoName");
+
+            meter.reset();
+            for (uint_t t = 0; t < tsteps; ++t) {
+                flusher.flush();
+                meter.start();
+                bc.apply(args...);
+                meter.pause();
+            }
+
+            std::cout << meter.to_string() << std::endl;
         }
     };
 }
