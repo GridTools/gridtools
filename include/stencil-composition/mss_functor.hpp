@@ -51,7 +51,6 @@
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
     template < typename MssComponents, typename IntervalsMapSeq >
     struct mss_components_functors_return_type {
         GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), "Internal Error");
@@ -90,7 +89,6 @@ namespace gridtools {
             esfs_functor_return_type< typename MssComponents::mss_descriptor_t::esf_sequence_t >,
             boost::mpl::identity< notype > >::type type;
     };
-#endif
 
     /**
      * @brief functor that executes all the functors contained within the mss
@@ -111,7 +109,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-#ifdef CXX11_ENABLED
         template < typename MssComponents, typename FunctorsMap >
         struct check_reduction_types {
             GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
@@ -133,7 +130,6 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT((type::value), GT_INTERNAL_ERROR);
         };
-#endif
 
       private:
         MssLocalDomainArray &m_local_domain_lists;

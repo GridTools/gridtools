@@ -48,6 +48,7 @@
 
 #include "../gridtools.hpp"
 #include "../common/vector_traits.hpp"
+#include "../common/gt_assert.hpp"
 #include "accessor.hpp"
 #include "arg.hpp"
 #include "../storage/storage-facility.hpp"
@@ -82,7 +83,7 @@ namespace gridtools {
                 std::cout << t.ptr.get() << std::endl;
                 if (t.ptr.get())
                     for (unsigned i = 0; i < t.ptr.get()->size(); ++i) {
-                        std::cout << "\t" << &(*t.ptr.get())[i] << " -> " << (*t.ptr.get())[i].get_storage_ptr()
+                        std::cout << "\t" << &(*t.ptr.get())[i] << " -> " << (*t.ptr.get())[i].get_storage_ptr().get()
                                   << std::endl;
                     }
             }
@@ -96,7 +97,7 @@ namespace gridtools {
                 std::cout << t.ptr.get() << std::endl;
                 if (t.ptr.get())
                     for (auto &e : t.ptr->get_field()) {
-                        auto *ptr = (e.valid() ? e.get_storage_ptr() : 0x0);
+                        auto *ptr = (e.valid() ? e.get_storage_ptr().get() : 0x0);
                         std::cout << "\t" << &e << " -> " << ptr << std::endl;
                     }
             }
@@ -160,10 +161,11 @@ namespace gridtools {
         struct extract_storage_info_id_from_arg {
             template < typename Arg >
             struct apply {
-                static_assert(is_arg< Arg >::value, "given type is no arg type");
+                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR_MSG("given type is no arg type"));
                 typedef typename get_storage_from_arg< Arg >::type storage_t;
                 typedef typename storage_t::storage_info_t storage_info_t;
-                static_assert(is_storage_info< storage_info_t >::value, "given type is no arg type");
+                GRIDTOOLS_STATIC_ASSERT(
+                    (is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR_MSG("given type is no arg type"));
                 typedef boost::mpl::int_< storage_info_t::id > type;
             };
         };
@@ -240,12 +242,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
         struct l_get_index {
             template < typename U >
             struct apply {
-#ifndef CXX11_ENABLED
-                typedef typename static_uint< U::index_t::value >::type
-#else
-                typedef static_uint< U::index_t::value >
-#endif
-                    type;
+                typedef static_uint< U::index_t::value > type;
             };
         };
 
@@ -269,7 +266,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
 
         template < typename Arg >
         struct create_arg_storage_pair_type {
-            static_assert(is_arg< Arg >::value, "The given type is not an arg type");
+            GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR_MSG("The given type is not an arg type"));
             typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
         };
 
@@ -322,7 +319,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 GRIDTOOLS_STATIC_ASSERT(
                     (boost::mpl::not_< typename boost::is_same< iter,
                             typename boost::mpl::end< TempsPerFunctor >::type >::type >::type::value),
-                    "Temporary not found in the list of temporaries");
+                    GT_INTERNAL_ERROR_MSG("Temporary not found in the list of temporaries"));
 
                 typedef typename boost::mpl::at< ExtendSizes, typename iter::pos >::type type;
             };
@@ -430,7 +427,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 typedef typename VectorType::value_type::storage_info_t storage_info_t;
                 GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_t;
-                m_storageinfo_set.insert(ptr_t(ds[0].get_storage_info_ptr()));
+                m_storageinfo_set.insert(ptr_t(ds[0].get_storage_info_ptr().get()));
             }
 
             // specialization for data store type
@@ -440,7 +437,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 typedef typename DataStoreType::storage_info_t storage_info_t;
                 GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_ty;
-                m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr()));
+                m_storageinfo_set.insert(ptr_ty(ds.get_storage_info_ptr().get()));
             }
 
             // specialization for data store field type
@@ -450,7 +447,7 @@ the continuous_indices_check template argument must be an MPL vector of placehol
                 typedef typename DataStoreFieldType::storage_info_t storage_info_t;
                 GRIDTOOLS_STATIC_ASSERT((is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR);
                 typedef pointer< const storage_info_t > ptr_ty;
-                m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr()));
+                m_storageinfo_set.insert(ptr_ty(ds.template get< 0, 0 >().get_storage_info_ptr().get()));
             }
 
             // reset metadata_set with fresh storage info ptrs contained in storages (either data_store,

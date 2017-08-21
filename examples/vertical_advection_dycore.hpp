@@ -261,42 +261,33 @@ namespace vertical_advection_dycore {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
-                        cache< K, cache_io_policy::flush, kfull >(p_dcol()),
-                        cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
-                    gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
-                        p_wcon(),
-                        p_u_stage(),
-                        p_u_pos(),
-                        p_utens(),
-                        p_dtr_stage(),
-                        p_acol(),
-                        p_bcol(),
-                        p_ccol(),
-                        p_dcol()) // esf_descriptor
-                    ),
-                gridtools::make_multistage(execute< backward >(),
-                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
-                    gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
-                                               p_u_pos(),
-                                               p_dtr_stage(),
-                                               p_ccol(),
-                                               p_dcol(),
-                                               p_data_col())));
+        auto vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
+                    cache< K, cache_io_policy::flush, kfull >(p_dcol()),
+                    cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
+                gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
+                    p_wcon(),
+                    p_u_stage(),
+                    p_u_pos(),
+                    p_utens(),
+                    p_dtr_stage(),
+                    p_acol(),
+                    p_bcol(),
+                    p_ccol(),
+                    p_dcol()) // esf_descriptor
+                ),
+            gridtools::make_multistage(execute< backward >(),
+                define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
+                gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
+                                           p_u_pos(),
+                                           p_dtr_stage(),
+                                           p_ccol(),
+                                           p_dcol(),
+                                           p_data_col())));
 
         vertical_advection->ready();
 
@@ -308,7 +299,7 @@ namespace vertical_advection_dycore {
 
         bool result = true;
         if (verify) {
-#ifdef CXX11_ENABLED
+
 #if FLOAT_PRECISION == 4
             verifier verif(1e-6);
 #else
@@ -316,18 +307,12 @@ namespace vertical_advection_dycore {
 #endif
             array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
-#else
-#if FLOAT_PRECISION == 4
-            verifier verif(1e-6, halo_size);
-#else
-            verifier verif(1e-11, halo_size);
-#endif
-            result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage());
-#endif
         }
+
 #ifdef BENCHMARK
         benchmarker::run(vertical_advection, t_steps);
 #endif
+
         vertical_advection->finalize();
 
         return result;

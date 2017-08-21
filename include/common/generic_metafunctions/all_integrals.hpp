@@ -38,7 +38,6 @@
 #include "is_pack_of.hpp"
 
 namespace gridtools {
-#ifdef CXX11_ENABLED
     /**
        SFINAE for the case in which all the components of a parameter pack are of integral type
     */
@@ -61,8 +60,6 @@ namespace gridtools {
 #else
         typename boost::enable_if_c< accumulate(logical_and(), is_static_integral< IntTypes >::type::value...),
             bool >::type;
-
-#endif
 
 #endif
 }

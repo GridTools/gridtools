@@ -39,8 +39,6 @@
 #include "is_not_same.hpp"
 
 namespace gridtools {
-#ifdef CXX11_ENABLED
-
     template < typename... Args >
     struct variadic_typedef;
     template < typename Value, Value First, Value... Args >
@@ -151,5 +149,4 @@ namespace gridtools {
             return first;
         }
     };
-#endif
 } // namespace gridtools
