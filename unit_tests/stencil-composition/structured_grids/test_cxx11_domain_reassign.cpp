@@ -76,7 +76,9 @@ namespace domain_reassign {
         m_stencil = make_computation< gridtools::BACKEND >(domain,
             grid,
             make_multistage // mss_descriptor
-            (execute< forward >(), make_stage< test_functor >(p_in(), p_out())));
+            (execute< forward >(),
+                                                               make_stage< test_functor >(p_in(), p_tmp()),
+                                                               make_stage< test_functor >(p_tmp(), p_out())));
 
         m_stencil->ready();
         m_stencil->steady();
@@ -111,7 +113,6 @@ class ReassignDomain : public ::testing::Test {
     gridtools::grid< axis > m_grid;
     storage_info_t m_meta;
     storage_t m_in1, m_out1, m_in2, m_out2;
-    gridtools::data_view< storage_t, gridtools::access_mode::ReadWrite > m_in1v, m_out1v, m_in2v, m_out2v;
     gt_example m_stex;
     array< array< uint_t, 2 >, 3 > m_halos;
     verifier m_verif;
@@ -120,9 +121,7 @@ class ReassignDomain : public ::testing::Test {
         : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2}, m_grid(m_di, m_dj),
           m_meta(m_d1, m_d2, m_d3), m_in1(m_meta, [](int i, int j, int k) { return i + j + k + 3; }, "in"),
           m_in2(m_meta, [](int i, int j, int k) { return i + j + k + 7; }, "in2"), m_out1(m_meta, -1., "out"),
-          m_out2(m_meta, -1., "out"), m_in1v(make_host_view(m_in2)), m_in2v(make_host_view(m_in2)),
-          m_out1v(make_host_view(m_out1)), m_out2v(make_host_view(m_out2)), m_stex(m_d1, m_d2, m_d3, m_in1, m_out1),
-          m_halos{{{0, 0}, {0, 0}, {0, 0}}},
+          m_out2(m_meta, -1., "out"), m_stex(m_d1, m_d2, m_d3, m_in1, m_out1), m_halos{{{0, 0}, {0, 0}, {0, 0}}},
 #if FLOAT_PRECISION == 4
           m_verif(1e-6)
 #else

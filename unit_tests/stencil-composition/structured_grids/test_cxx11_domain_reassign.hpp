@@ -60,8 +60,9 @@ namespace domain_reassign {
 
         typedef gridtools::arg< 0, storage_t > p_in;
         typedef gridtools::arg< 1, storage_t > p_out;
+        typedef gridtools::tmp_arg< 2, storage_t > p_tmp;
 
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
+        typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
 
       public:
         gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t in, storage_t out);
