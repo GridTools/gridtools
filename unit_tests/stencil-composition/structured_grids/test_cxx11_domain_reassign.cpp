@@ -61,7 +61,7 @@ namespace domain_reassign {
             eval(out()) = eval(in());
         }
     };
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     gt_example::gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t in, storage_t out) {
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
