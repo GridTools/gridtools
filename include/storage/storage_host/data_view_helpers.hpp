@@ -63,7 +63,7 @@ namespace gridtools {
                                    is_data_store< DecayedDS > >,
         data_view< DataStore, AccessMode > >::type
     make_host_view(DataStore const &ds) {
-        assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
+        ASSERT_OR_THROW(ds.valid(), "Cannot create a data_view to an invalid data_store");
         return data_view< DecayedDS, AccessMode >(ds.get_storage_ptr()->get_cpu_ptr(),
             ds.get_storage_info_ptr().get(),
             ds.get_storage_ptr()->get_state_machine_ptr(),

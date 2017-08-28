@@ -76,7 +76,8 @@ namespace gridtools {
 
         /*
          * @brief cuda_storage_info constructor.
-         * @param dims_ the dimensionality (e.g., 128x128x80)
+         * @param dims the dimensionality (e.g., 128x128x80)
+         * @param strides the strides used to describe a layout of the data in memory
          */
         constexpr host_storage_info(std::array< unsigned int, ndims > dims, std::array< unsigned int, ndims > strides)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides) {}
