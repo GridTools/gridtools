@@ -59,6 +59,7 @@ namespace gridtools {
     struct data_view {
         GRIDTOOLS_STATIC_ASSERT(
             is_data_store< DataStore >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
+        using data_store_t = DataStore;
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
