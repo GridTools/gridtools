@@ -41,10 +41,11 @@
 #include <boost/type_traits.hpp>
 #include <boost/utility.hpp>
 
+#include "../../common/gt_assert.hpp"
 #include "../data_store.hpp"
 #include "../data_view.hpp"
-#include "storage.hpp"
-#include "storage_info.hpp"
+#include "host_storage.hpp"
+#include "host_storage_info.hpp"
 
 namespace gridtools {
 
@@ -62,9 +63,9 @@ namespace gridtools {
                                    is_data_store< DecayedDS > >,
         data_view< DataStore, AccessMode > >::type
     make_host_view(DataStore const &ds) {
-        assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
+        ASSERT_OR_THROW(ds.valid(), "Cannot create a data_view to an invalid data_store");
         return data_view< DecayedDS, AccessMode >(ds.get_storage_ptr()->get_cpu_ptr(),
-            ds.get_storage_info_ptr(),
+            ds.get_storage_info_ptr().get(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             false);
     }
@@ -84,8 +85,9 @@ namespace gridtools {
                                    is_data_store< DecayedDS > >,
         bool >::type
     check_consistency(DataStore const &ds, DataView const &dv) {
-        static_assert(is_data_view< DecayedDV >::value, "Passed type is no data_view type");
+        GRIDTOOLS_STATIC_ASSERT(
+            is_data_view< DecayedDV >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_view type"));
         return ds.valid() && (advanced::get_raw_pointer_of(dv) == ds.get_storage_ptr()->get_cpu_ptr()) &&
-               (dv.m_storage_info && ds.get_storage_info_ptr());
+               (dv.m_storage_info && ds.get_storage_info_ptr().get());
     }
 }

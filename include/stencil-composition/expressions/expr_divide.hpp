@@ -104,7 +104,7 @@ namespace gridtools {
             GT_FUNCTION auto static constexpr value(
                 IterateDomain &it_domain, expr_divide< FloatType, ArgType2 > const &arg)
                 -> decltype(arg.first_operand / it_domain(arg.second_operand)) {
-                return arg.second_operand / it_domain(arg.second_operand);
+                return arg.first_operand / it_domain(arg.second_operand);
             }
 
             // automatic differentiation

@@ -34,18 +34,13 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 // [includes]
 #include <iostream>
 #include <fstream>
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <storage/storage-facility.hpp>
-
-#ifdef __CUDACC__
-#include <boundary-conditions/apply_gpu.hpp>
-#else
-#include <boundary-conditions/apply.hpp>
-#endif
 
 #include <communication/halo_exchange.hpp>
 
@@ -71,13 +66,14 @@ using namespace expressions;
 // [namespaces]
 
 template < typename DX, typename DY, typename H >
-float_type droplet_(uint_t i, uint_t j, DX dx, DY dy, H height) {
+GT_FUNCTION float_type droplet_(uint_t i, uint_t j, DX dx, DY dy, H height) {
 #ifndef __CUDACC__
     return 1. + height * std::exp(-5 * (((i - 3) * dx) * (((i - 3) * dx)) + ((j - 7) * dy) * ((j - 7) * dy)));
 #else // if CUDA we test the serial case
     return 1. + height * std::exp(-5 * (((i - 3) * dx) * (((i - 3) * dx)) + ((j - 3) * dy) * ((j - 3) * dy)));
 #endif
 }
+
 #include "shallow_water_reference.hpp"
 
 #ifdef __CUDACC__
@@ -86,7 +82,7 @@ float_type droplet_(uint_t i, uint_t j, DX dx, DY dy, H height) {
 #define BACKEND_ARCH Host
 #endif
 
-#define BACKEND backend< BACKEND_ARCH, GRIDBACKEND, Block >
+using BACKEND = backend< BACKEND_ARCH, GRIDBACKEND, Block >;
 
 namespace shallow_water {
     // This is the definition of the special regions in the "vertical" direction
@@ -445,7 +441,7 @@ namespace shallow_water {
         //! [grid]
 
         //! [computation]
-        auto shallow_water_stencil = make_computation< gridtools::BACKEND >(
+        auto shallow_water_stencil = make_computation< BACKEND >(
             domain,
             grid,
             make_multistage // mss_descriptor
@@ -489,6 +485,7 @@ namespace shallow_water {
             auto view00 = view.get< 0, 0 >();
             auto view10 = view.get< 1, 0 >();
             auto view20 = view.get< 2, 0 >();
+
             myfile << "INITIALIZED VALUES view00" << std::endl;
             for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
                 for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
@@ -565,7 +562,7 @@ namespace shallow_water {
 
         verifier check_result(1e-8);
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-        shallow_water_reference reference(d1 + 2 * halo[0], d2 + 2 * halo[1]);
+        shallow_water_reference< BACKEND > reference(d1 + 2 * halo[0], d2 + 2 * halo[1]);
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE INIT ################" << std::endl;
@@ -612,6 +609,7 @@ namespace shallow_water {
         view00 = view.get< 0, 0 >();
         view10 = view.get< 1, 0 >();
         view20 = view.get< 2, 0 >();
+
         myfile << "REF VALUES view00" << std::endl;
         for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
             for (int j = 0; j < d2 + 2 * halo[1]; ++j) {

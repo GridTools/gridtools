@@ -49,7 +49,7 @@ namespace gridtools {
      */
     template < bool... Bitmask >
     struct selector {
-        static constexpr unsigned size = sizeof...(Bitmask);
+        static constexpr uint_t size = sizeof...(Bitmask);
     };
 
     template < typename T >
