@@ -60,7 +60,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_alignment< Alignment >::value), "Given type is not an alignment type.");
 
       public:
-        static constexpr unsigned int ndims = storage_info_interface< Id, Layout, Halo, Alignment >::ndims;
+        static constexpr uint_t ndims = storage_info_interface< Id, Layout, Halo, Alignment >::ndims;
 
         /*
          * @brief host_storage_info constructor.
@@ -79,7 +79,7 @@ namespace gridtools {
          * @param dims the dimensionality (e.g., 128x128x80)
          * @param strides the strides used to describe a layout of the data in memory
          */
-        constexpr host_storage_info(std::array< unsigned int, ndims > dims, std::array< unsigned int, ndims > strides)
+        constexpr host_storage_info(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides) {}
     };
 

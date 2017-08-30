@@ -152,8 +152,8 @@ namespace gridtools {
 
       public:
         // following members are declared in order to have same API as data_store_fields
-        const static unsigned num_of_storages = 1;
-        const static unsigned num_of_components = 1;
+        const static uint_t num_of_storages = 1;
+        const static uint_t num_of_components = 1;
 
         ~data_store() = default;
 

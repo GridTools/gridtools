@@ -114,7 +114,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             is_alignment< Align >::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type"));
 
-        static constexpr unsigned int ndims = layout_t::masked_length;
+        static constexpr uint_t ndims = layout_t::masked_length;
 
       private:
         using this_t = storage_info_interface< Id, layout_map< LayoutArgs... >, halo< Halos... >, Align >;
@@ -278,12 +278,11 @@ namespace gridtools {
             gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, ndims >::type >;
 
         GT_FUNCTION
-        constexpr storage_info_interface(
-            std::array< unsigned int, ndims > dims, std::array< unsigned int, ndims > strides)
-            : m_dims(seq::template apply< array< unsigned, ndims >,
-                  impl::array_initializer< unsigned int >::template type >(dims)),
-              m_strides(seq::template apply< array< unsigned int, ndims >,
-                  impl::array_initializer< unsigned int >::template type >(strides)),
+        constexpr storage_info_interface(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
+            : m_dims(seq::template apply< array< unsigned, ndims >, impl::array_initializer< uint_t >::template type >(
+                  dims)),
+              m_strides(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
+                  strides)),
               m_alignment(m_dims, m_strides) {}
 
         /*
