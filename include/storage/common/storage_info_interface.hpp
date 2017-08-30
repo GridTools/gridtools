@@ -168,7 +168,7 @@ namespace gridtools {
          * @param ints offsets
          * @return index
          */
-        template < unsigned N, typename... Ints >
+        template < uint_t N, typename... Ints >
         GT_FUNCTION constexpr typename boost::enable_if_c< (N == ndims), int >::type index_part(
             int first, Ints... ints) const {
             return 0;
@@ -279,7 +279,7 @@ namespace gridtools {
 
         GT_FUNCTION
         constexpr storage_info_interface(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
-            : m_dims(seq::template apply< array< unsigned, ndims >, impl::array_initializer< uint_t >::template type >(
+            : m_dims(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
                   dims)),
               m_strides(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
                   strides)),
