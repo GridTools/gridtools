@@ -126,12 +126,8 @@ namespace gridtools {
          * @param arr array of indices
          * @return reference to the queried value
          */
-        template < typename T, uint_t N >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
-        operator()(std::array< T, N > const &arr) const {
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::and_< boost::mpl::bool_< (N > 0) >, typename is_all_integral_or_enum< T >::type >::value),
-                GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
+        operator()(gridtools::array< int, storage_info_t::ndims > const &arr) const {
             return m_raw_ptrs[0][m_storage_info->index(arr)];
         }
 
