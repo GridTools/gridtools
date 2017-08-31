@@ -38,12 +38,10 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <communication/low-level/proc_grids_3D.hpp>
 
+#include <boundary-conditions/boundary.hpp>
+
 #include <communication/halo_exchange.hpp>
-#ifdef __CUDACC__
-#include <boundary-conditions/apply_gpu.hpp>
-#else
-#include <boundary-conditions/apply.hpp>
-#endif
+
 #include <iostream>
 #include <fstream>
 
@@ -226,21 +224,11 @@ namespace copy_stencil {
         halos[1] = gridtools::halo_descriptor(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
         halos[2] = gridtools::halo_descriptor(0, 0, 0, d3 - 1, d3);
 
-#ifdef __CUDACC__
-        auto v_out = make_device_view(out);
-        auto v_in = make_device_view(in);
-        typename gridtools::boundary_apply_gpu< boundary_conditions,
+        typename gridtools::boundary< boundary_conditions,
+            BACKEND_ARCH,
             typename gridtools::proc_grid_predicate< decltype(c_grid) > >(
             halos, boundary_conditions(), gridtools::proc_grid_predicate< decltype(c_grid) >(c_grid))
-            .apply(v_in, v_out);
-#else
-        auto v_out = make_host_view(out);
-        auto v_in = make_host_view(in);
-        typename gridtools::boundary_apply< boundary_conditions,
-            typename gridtools::proc_grid_predicate< decltype(c_grid) > >(
-            halos, boundary_conditions(), gridtools::proc_grid_predicate< decltype(c_grid) >(c_grid))
-            .apply(v_in, v_out);
-#endif
+            .apply(in, out);
 
 #ifdef __CUDACC__
         auto inv = make_device_view(in);

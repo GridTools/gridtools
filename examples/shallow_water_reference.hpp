@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 #include <gridtools.hpp>
 
 /**
@@ -53,12 +54,13 @@ namespace {
     }
 }
 
+template < typename RefBackend >
 struct shallow_water_reference {
 
-    using backend_ref = backend< Host, GRIDBACKEND, Block >;
-    typedef backend_ref::storage_traits_t::storage_info_t< 0, 3 > solution_meta_t;
-    typedef backend_ref::storage_traits_t::data_store_t< float_type, solution_meta_t > data_store_t;
-    typedef backend_ref::storage_traits_t::data_store_field_t< float_type, solution_meta_t, 1, 1, 1 > sol_type;
+    using solution_meta_t = typename RefBackend::storage_traits_t::template storage_info_t< 0, 3 >;
+    using data_store_t = typename RefBackend::storage_traits_t::template data_store_t< float_type, solution_meta_t >;
+    using sol_type =
+        typename RefBackend::storage_traits_t::template data_store_field_t< float_type, solution_meta_t, 1, 1, 1 >;
 
     uint_t DimI;
     uint_t DimJ;
