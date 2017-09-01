@@ -51,27 +51,11 @@ namespace gridtools {
         }
     };
 
-    /**@brief predicate returning whether I am or not at the global boundary, based on a bitmap flag which is set by the
-     * @ref gridtools::partitioner_trivial*/
-    template < typename Partitioner >
-    struct bitmap_predicate {
-        Partitioner const &m_part; // see storage/partitioner_trivial.hpp
-
-        bitmap_predicate(Partitioner const &p) : m_part{p} {}
-
-        template < sign I, sign J, sign K >
-        bool operator()(direction< I, J, K >) const {
-            return (m_part.at_boundary(0, ((I == minus_) ? Partitioner::UP : Partitioner::LOW))) ||
-                   (m_part.at_boundary(1, ((J == minus_) ? Partitioner::UP : Partitioner::LOW))) ||
-                   (m_part.at_boundary(2, ((K == minus_) ? Partitioner::UP : Partitioner::LOW)));
-        }
-    };
-
     /**@brief predicate returning whether I am or not at the global boundary, based on a processor grid
      */
     template < typename ProcGrid >
     struct proc_grid_predicate {
-        ProcGrid const &m_grid; // see storage/partitioner_trivial.hpp
+        ProcGrid const &m_grid;
 
         proc_grid_predicate(ProcGrid const &g) : m_grid{g} {}
 
