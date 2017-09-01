@@ -384,8 +384,9 @@ namespace shallow_water {
 
         array< ushort_t, 3 > halo{1, 1, 0};
 
-        //! [parallel_storage]
+        //! [storage]
         storage_info_t storage_info(d1 + 2 * halo[0], d2 + 2 * halo[1], d3);
+        //! [storage]
 
         sol_type sol(storage_info);
 
