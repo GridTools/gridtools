@@ -66,7 +66,7 @@ using namespace enumtype;
 #define BACKEND_ARCH Host
 #endif
 
-#define BACKEND backend< BACKEND_ARCH, GRIDBACKEND, Block >
+using BACKEND = backend< BACKEND_ARCH, GRIDBACKEND, Block >;
 
 namespace copy_stencil {
     // This is the definition of the special regions in the "vertical" direction
@@ -187,7 +187,7 @@ namespace copy_stencil {
         // order. (I don't particularly like this)
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto copy = gridtools::make_computation< BACKEND >(domain,
             grid,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
