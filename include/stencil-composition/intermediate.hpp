@@ -332,21 +332,34 @@ namespace gridtools {
                 boost::mpl::or_< boost::mpl::_1, is_esf_with_extent< boost::mpl::_2 > > >::type;
         };
 
-        template < typename Acc, typename MssDescriptor >
+        template < typename Actual, typename MssDescriptor >
         struct mss_has_stages_with_extent {
             using type =
-                typename boost::mpl::and_< Acc,
+                typename boost::mpl::and_< Actual,
                     typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
                                                boost::mpl::bool_< true >,
                                                accumulate_and< boost::mpl::_1, boost::mpl::_2 > >::type >::type;
         };
 
-        template < typename Acc, typename MssDescriptor >
+        template < typename Actual, typename Mss1, typename Mss2, typename Tag >
+        struct mss_has_stages_with_extent< Actual, condition< Mss1, Mss2, Tag > > {
+            using temp = typename mss_has_stages_with_extent< Actual, Mss1 >::type;
+            using type = typename mss_has_stages_with_extent< temp, Mss2 >::type;
+            // using type = boost::mpl::bool_< false >;
+        };
+
+        template < typename Actual, typename MssDescriptor >
         struct mss_has_a_stage_with_extent {
-            using type = typename boost::mpl::or_< Acc,
+            using type = typename boost::mpl::or_< Actual,
                 typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
                                                        boost::mpl::bool_< false >,
                                                        accumulate_or< boost::mpl::_1, boost::mpl::_2 > >::type >::type;
+        };
+
+        template < typename Actual, typename Mss1, typename Mss2, typename Tag >
+        struct mss_has_a_stage_with_extent< Actual, condition< Mss1, Mss2, Tag > > {
+            using temp = typename mss_has_a_stage_with_extent< Actual, Mss1 >::type;
+            using type = typename mss_has_a_stage_with_extent< temp, Mss2 >::type;
         };
 
         typedef typename boost::mpl::fold< MssDescriptorSequence,
@@ -357,6 +370,8 @@ namespace gridtools {
             boost::mpl::bool_< false >,
             mss_has_a_stage_with_extent< boost::mpl::_1, boost::mpl::_2 > >::type has_extent;
 
+        GRIDTOOLS_STATIC_ASSERT((!has_all_extents::value), "1");
+        GRIDTOOLS_STATIC_ASSERT((!has_extent::value), "2");
         GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
             "The computation appear to have stages with and without extents being specified at the same time. A "
             "computation shoule have all stages with extents or none.");
@@ -578,7 +593,6 @@ namespace gridtools {
             RepeatFunctor >::type extent_sizes_t;
 
         typedef typename init_map_of_extents< placeholders_t >::type extent_map_t;
-
         typedef typename boost::mpl::if_<
             boost::mpl::is_sequence< typename MssDescriptorArray::elements >,
             typename boost::mpl::fold< typename MssDescriptorArray::elements,
