@@ -36,8 +36,28 @@
 
 namespace gridtools {
 
+    /** This class prepare for the iteration over the esf+descriptors
+        of a computation. The Unary operator is applied to each esf_descriptor
+        encountered, while the Binary operator if used to "accumulate" to and
+        initial value the results obtained by the unary operator. This is
+        basically a map-reduce on the esf_descriptors of a computation.  The
+        binary operator is assumed need to be at least associative (the order
+        of the visit is the program order).
+
+        \tparam UnaryOp The unary opertor to apply to the esf_descriptors
+        \tparam BinaryOp The binaty operator for the reduction
+     */
     template < template < typename > class UnaryOp, template < typename, typename > class BinaryOp >
     struct with_operators {
+
+    private:
+        /** This class applies to binary operator to the first
+            argument and the resullt of the application of the unary
+            operator. It has a special implementation to handle
+            independent_esf. This is useful to simplify the mpl::fold
+            over the esf_sequence, so that we can just pass the
+            placeholders.
+         */
         struct compose {
             template < typename A, typename B >
             struct apply {
@@ -53,26 +73,34 @@ namespace gridtools {
             };
         };
 
-        template < typename Initial,
-                   typename MssDescriptorSeq >
-        struct iterate_on_esfs;
-
         template < typename Current, typename MssDescriptor >
-        struct apply {
+        struct apply_to_esfs {
             using type = typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
                                                     Current,
                                                     typename compose::template apply< boost::mpl::_1, boost::mpl::_2 > >::type;
         };
 
+    public:
+        /** Given the initial value and the sequence of
+            mss_descriptors (from the computation this us usually
+            obtained by requesting MssDescriptorArray::elements) it
+            traverses the structure to perform the visit described
+            above.
+
+            \tparam Initial The initial value of the reduction
+            \tparam The sequence of mss_descriptors
+         */
         template < typename Initial,
                    typename MssDescriptorSeq >
         struct iterate_on_esfs {
             typedef typename boost::mpl::fold< MssDescriptorSeq,
                                                Initial,
-                                               apply< boost::mpl::_1, boost::mpl::_2 > >::type
+                                               apply_to_esfs< boost::mpl::_1, boost::mpl::_2 > >::type
             type;
         };
 
+        /** Specialization for when conditionals are used.
+         */
         template < typename Initial,
                    typename MssArray1,
                    typename MssArray2,
