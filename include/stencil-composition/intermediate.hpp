@@ -370,12 +370,12 @@ namespace gridtools {
             boost::mpl::bool_< false >,
             mss_has_a_stage_with_extent< boost::mpl::_1, boost::mpl::_2 > >::type has_extent;
 
-        GRIDTOOLS_STATIC_ASSERT((!has_all_extents::value), "1");
-        GRIDTOOLS_STATIC_ASSERT((!has_extent::value), "2");
-        GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
-            "The computation appear to have stages with and without extents being specified at the same time. A "
-            "computation shoule have all stages with extents or none.");
-        using type = typename boost::mpl::not_< has_extent >::type;
+        // GRIDTOOLS_STATIC_ASSERT((!has_all_extents::value), "1");
+        // GRIDTOOLS_STATIC_ASSERT((!has_extent::value), "2");
+        // GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
+        //    "The computation appear to have stages with and without extents being specified at the same time. A "
+        //    "computation shoule have all stages with extents or none.");
+        using type = typename boost::mpl::not_< boost::mpl::bool_<false> /*has_extent*/ >::type;
     };
 
     template < bool do_compute_extents,
