@@ -86,6 +86,7 @@
 #include "./reductions/reduction_data.hpp"
 #include "./storage_wrapper.hpp"
 #include "./wrap_type.hpp"
+#include "iterate_on_esfs.hpp"
 
 /**
  * @file
@@ -296,86 +297,29 @@ namespace gridtools {
     template < typename MssDescriptorSequence >
     struct need_to_compute_extents {
 
-        /** helper function _ there is a specialization for
-            independent stages.
+        /* helper since boost::mpl::and_ fails in this case with nvcc
         */
-        template < typename Bool, typename EsfDescriptor >
-        struct accumulate_and {
-            typedef typename boost::mpl::and_< Bool, typename is_esf_with_extent< EsfDescriptor >::type >::type type;
+        template < typename BoolA, typename BoolB >
+        struct gt_and {
+            using type = typename boost::mpl::bool_< BoolA::value and BoolB::value >;
         };
 
-        /** Specialization for independent stages
-         */
-        template < typename Bool, typename... EsfList >
-        struct accumulate_and< Bool, independent_esf< EsfList... > > {
-            using list = typename independent_esf< EsfList... >::esf_list;
-            using type = typename boost::mpl::fold< list,
-                Bool,
-                boost::mpl::and_< boost::mpl::_1, is_esf_with_extent< boost::mpl::_2 > > >::type;
-        };
-
-        /** helper function _ there is a specialization for
-            independent stages.
+        /* helper since boost::mpl::or_ fails in this case with nvcc
         */
-        template < typename Bool, typename EsfDescriptor >
-        struct accumulate_or {
-            typedef typename boost::mpl::or_< Bool, typename is_esf_with_extent< EsfDescriptor >::type >::type type;
+        template < typename BoolA, typename BoolB >
+        struct gt_or {
+            using type = typename boost::mpl::bool_< BoolA::value or BoolB::value >;
         };
 
-        /** Specialization for independent stages
-         */
-        template < typename Bool, typename... EsfList >
-        struct accumulate_or< Bool, independent_esf< EsfList... > > {
-            using list = typename independent_esf< EsfList... >::esf_list;
-            using type = typename boost::mpl::fold< list,
-                Bool,
-                boost::mpl::or_< boost::mpl::_1, is_esf_with_extent< boost::mpl::_2 > > >::type;
-        };
+        using has_all_extents = typename with_operators< is_esf_with_extent,
+            gt_and >::template iterate_on_esfs< boost::mpl::bool_< true >, MssDescriptorSequence >::type;
+        using has_extent = typename with_operators< is_esf_with_extent,
+            gt_or >::template iterate_on_esfs< boost::mpl::bool_< false >, MssDescriptorSequence >::type;
 
-        template < typename Actual, typename MssDescriptor >
-        struct mss_has_stages_with_extent {
-            using type =
-                typename boost::mpl::and_< Actual,
-                    typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
-                                               boost::mpl::bool_< true >,
-                                               accumulate_and< boost::mpl::_1, boost::mpl::_2 > >::type >::type;
-        };
-
-        template < typename Actual, typename Mss1, typename Mss2, typename Tag >
-        struct mss_has_stages_with_extent< Actual, condition< Mss1, Mss2, Tag > > {
-            using temp = typename mss_has_stages_with_extent< Actual, Mss1 >::type;
-            using type = typename mss_has_stages_with_extent< temp, Mss2 >::type;
-            // using type = boost::mpl::bool_< false >;
-        };
-
-        template < typename Actual, typename MssDescriptor >
-        struct mss_has_a_stage_with_extent {
-            using type = typename boost::mpl::or_< Actual,
-                typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
-                                                       boost::mpl::bool_< false >,
-                                                       accumulate_or< boost::mpl::_1, boost::mpl::_2 > >::type >::type;
-        };
-
-        template < typename Actual, typename Mss1, typename Mss2, typename Tag >
-        struct mss_has_a_stage_with_extent< Actual, condition< Mss1, Mss2, Tag > > {
-            using temp = typename mss_has_a_stage_with_extent< Actual, Mss1 >::type;
-            using type = typename mss_has_a_stage_with_extent< temp, Mss2 >::type;
-        };
-
-        typedef typename boost::mpl::fold< MssDescriptorSequence,
-            boost::mpl::bool_< true >,
-            mss_has_stages_with_extent< boost::mpl::_1, boost::mpl::_2 > >::type has_all_extents;
-
-        typedef typename boost::mpl::fold< MssDescriptorSequence,
-            boost::mpl::bool_< false >,
-            mss_has_a_stage_with_extent< boost::mpl::_1, boost::mpl::_2 > >::type has_extent;
-
-        // GRIDTOOLS_STATIC_ASSERT((!has_all_extents::value), "1");
-        // GRIDTOOLS_STATIC_ASSERT((!has_extent::value), "2");
-        // GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
-        //    "The computation appear to have stages with and without extents being specified at the same time. A "
-        //    "computation shoule have all stages with extents or none.");
-        using type = typename boost::mpl::not_< boost::mpl::bool_<false> /*has_extent*/ >::type;
+        GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
+            "The computation appear to have stages with and without extents being specified at the same time. A "
+            "computation shoule have all stages with extents or none.");
+        using type = typename boost::mpl::not_< has_all_extents >::type;
     };
 
     template < bool do_compute_extents,

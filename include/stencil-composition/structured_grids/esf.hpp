@@ -157,7 +157,10 @@ namespace gridtools {
     struct is_esf_descriptor< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > : boost::mpl::true_ {};
 
     template < typename ESF >
-    struct is_esf_with_extent : boost::mpl::false_ {};
+    struct is_esf_with_extent : boost::mpl::false_ {
+        GRIDTOOLS_STATIC_ASSERT(is_esf_descriptor< ESF >::type::value,
+            GT_INTERNAL_ERROR_MSG("is_esf_with_extents expects an esf_descripto as template argument"));
+    };
 
     template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
     struct is_esf_with_extent< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > : boost::mpl::true_ {};

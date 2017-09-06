@@ -50,8 +50,8 @@ namespace test_iterate_domain {
     typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct stage1 {
-        typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0 >, 6 > in;
-        typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > out;
+        typedef accessor< 0, enumtype::in, extent< 42, 42, 42, 42 >, 6 > in;
+        typedef accessor< 1, enumtype::inout, extent<>, 4 > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
@@ -59,8 +59,8 @@ namespace test_iterate_domain {
     };
 
     struct stage2 {
-        typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0 >, 6 > in;
-        typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > out;
+        typedef accessor< 0, enumtype::in, extent< 42, 42, 42, 42 >, 6 > in;
+        typedef accessor< 1, enumtype::inout, extent<>, 4 > out;
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
@@ -97,7 +97,7 @@ TEST(testdomain, iterate_domain_with_extents) {
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 0 >::type,
                                     boost::mpl::vector1< extent< 0, 1, 0, 0 > > >::value),
-            GT_INTERNAL_ERROR_MSG("wrong grid type"));
+            GT_INTERNAL_ERROR_MSG("extent did not match"));
     }
     {
         auto mss_ = make_multistage(enumtype::execute< enumtype::forward >(),
@@ -108,7 +108,7 @@ TEST(testdomain, iterate_domain_with_extents) {
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 0 >::type,
                                     boost::mpl::vector2< extent< 0, 1, 0, 0 >, extent< 0, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("wrong grid type"));
+            GT_INTERNAL_ERROR_MSG("extent did not match"));
     }
     {
         auto mss1_ = make_multistage(enumtype::execute< enumtype::forward >(),
@@ -125,10 +125,10 @@ TEST(testdomain, iterate_domain_with_extents) {
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 0 >::type,
                                     boost::mpl::vector2< extent< 0, 1, 0, 0 >, extent< 0, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("wrong grid type"));
+            GT_INTERNAL_ERROR_MSG("extent did not match"));
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 1 >::type,
                                     boost::mpl::vector2< extent< -2, 1, 0, 0 >, extent< -2, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("wrong grid type"));
+            GT_INTERNAL_ERROR_MSG("extent did not match"));
     }
     {
         auto mss1_ = make_multistage(enumtype::execute< enumtype::forward >(),
@@ -145,9 +145,9 @@ TEST(testdomain, iterate_domain_with_extents) {
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 0 >::type,
                                     boost::mpl::vector2< extent< 0, 1, 0, 0 >, extent< 0, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("wrong grid type"));
+            GT_INTERNAL_ERROR_MSG("extent did not match"));
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 1 >::type,
                                     boost::mpl::vector2< extent< -2, 1, 0, 0 >, extent< -2, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("wrong grid type"));
+            GT_INTERNAL_ERROR_MSG("extent did not match"));
     }
 }
