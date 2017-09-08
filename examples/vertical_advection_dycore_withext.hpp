@@ -54,7 +54,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-namespace vertical_advection_dycore {
+namespace vertical_advection_dycore_ext {
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
     typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kbody_low;
@@ -265,7 +265,7 @@ namespace vertical_advection_dycore {
             grid,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(),
-                define_caches(cache< K, cache_io_policy::flush, kbody >(p_ccol())),
+                // Caches not yet supported  define_caches(cache< K, cache_io_policy::flush, kbody >(p_ccol())),
                 gridtools::make_stage_with_extent< u_forward_function< double >, extent< 0 > >(p_utens_stage(),
                     p_wcon(),
                     p_u_stage(),
