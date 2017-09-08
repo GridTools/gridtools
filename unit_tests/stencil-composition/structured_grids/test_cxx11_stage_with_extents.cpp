@@ -85,8 +85,8 @@ TEST(testdomain, iterate_domain_with_extents) {
 
     aggregator_type< accessor_list > domain(in, out);
 
-    uint_t di[5] = {0, 0, 0, 2, 1};
-    uint_t dj[5] = {0, 0, 0, 2, 1};
+    uint_t di[5] = {0, 0, 0, 2, 5};
+    uint_t dj[5] = {0, 0, 0, 2, 5};
 
     grid< axis > grid(di, dj);
     {
