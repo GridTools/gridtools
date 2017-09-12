@@ -34,10 +34,12 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <string>
 // //\todo this struct becomes redundant when the auto keyword is used
 namespace gridtools {
     template < typename ReductionType = int >
     struct computation {
+        virtual computation() {}
         virtual void ready() = 0;
         virtual void steady() = 0;
         virtual void finalize() = 0;
