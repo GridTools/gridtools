@@ -46,7 +46,7 @@ struct get_component {
 
     template < typename... Ints >
     GT_FUNCTION constexpr static int apply(int first, Ints... rest) {
-        return Idx ? get_component<Idx - 1>::apply(rest...) : first;
+        return Idx ? get_component< Idx - 1 >::apply(rest...) : first;
     }
 };
 
