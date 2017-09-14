@@ -116,4 +116,56 @@ namespace gridtools {
         typedef LocationType type;
     };
 
+    template < template < uint_t > class Functor,
+        typename Grid,
+        typename LocationType,
+        typename Extent,
+        typename Color,
+        typename ArgSequence >
+    struct esf_descriptor_with_extent : public esf_descriptor< Functor, Grid, LocationType, Color, ArgSequence > {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "stage descriptor is expecting a extent type");
+    };
+
+    template < template < uint_t > class Functor,
+        typename Grid,
+        typename LocationType,
+        typename Extent,
+        typename Color,
+        typename ArgSequence >
+    struct is_esf_descriptor< esf_descriptor_with_extent< Functor, Grid, LocationType, Extent, Color, ArgSequence > >
+        : boost::mpl::true_ {};
+
+    template < typename ESF >
+    struct is_esf_with_extent : boost::mpl::false_ {};
+
+    template < template < uint_t > class Functor,
+        typename Grid,
+        typename LocationType,
+        typename Extent,
+        typename Color,
+        typename ArgSequence >
+    struct is_esf_with_extent< esf_descriptor_with_extent< Functor, Grid, LocationType, Extent, Color, ArgSequence > >
+        : boost::mpl::true_ {};
+
+    /* The following metafunction sould belong to esf_metafunction.hpp but
+       its implementaiton is not the same for structured and icosahedral grids
+    */
+
+    /** Retrieve the extent in esf_descriptor_with_extents
+
+       \tparam Esf The esf_descriptor that must be the one speficying the extent
+    */
+    template < typename Esf >
+    struct esf_extent;
+
+    template < template < uint_t > class Functor,
+        typename Grid,
+        typename LocationType,
+        typename Extent,
+        typename Color,
+        typename ArgSequence >
+    struct esf_extent< esf_descriptor_with_extent< Functor, Grid, LocationType, Extent, Color, ArgSequence > > {
+        using type = Extent;
+    };
+
 } // namespace gridtools

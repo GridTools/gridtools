@@ -86,6 +86,7 @@
 #include "./reductions/reduction_data.hpp"
 #include "./storage_wrapper.hpp"
 #include "./wrap_type.hpp"
+#include "iterate_on_esfs.hpp"
 
 /**
  * @file
@@ -293,6 +294,84 @@ namespace gridtools {
         typedef typename extract_mss_domains< Vec1 >::type type;
     };
 
+    template < typename MssDescriptorSequence >
+    struct need_to_compute_extents {
+
+        /* helper since boost::mpl::and_ fails in this case with nvcc
+        */
+        template < typename BoolA, typename BoolB >
+        struct gt_and {
+            using type = typename boost::mpl::bool_< BoolA::value and BoolB::value >;
+        };
+
+        /* helper since boost::mpl::or_ fails in this case with nvcc
+        */
+        template < typename BoolA, typename BoolB >
+        struct gt_or {
+            using type = typename boost::mpl::bool_< BoolA::value or BoolB::value >;
+        };
+
+        using has_all_extents = typename with_operators< is_esf_with_extent,
+            gt_and >::template iterate_on_esfs< boost::mpl::bool_< true >, MssDescriptorSequence >::type;
+        using has_extent = typename with_operators< is_esf_with_extent,
+            gt_or >::template iterate_on_esfs< boost::mpl::bool_< false >, MssDescriptorSequence >::type;
+
+        GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
+            "The computation appear to have stages with and without extents being specified at the same time. A "
+            "computation shoule have all stages with extents or none.");
+        using type = typename boost::mpl::not_< has_all_extents >::type;
+    };
+
+    template < bool do_compute_extents,
+        typename MssElements,
+        typename GridTraits,
+        typename Placeholders,
+        uint_t RepeatFunctor >
+    struct obtain_extents_to_esfs_map {
+        // First we need to compute the association between placeholders and extents.
+        // This information is needed to allocate temporaries, and to provide the
+        // extent information to the user.
+        typedef typename placeholder_to_extent_map< MssElements, GridTraits, Placeholders, RepeatFunctor >::type
+            extent_map_t;
+
+        // Second we need to associate an extent to each esf, so that
+        // we can associate loop bounds to the functors.
+        typedef typename associate_extents_to_esfs< MssElements, extent_map_t, RepeatFunctor >::type type;
+    };
+
+    template < typename MssElements, typename GridTraits, typename Placeholders, uint_t RepeatFunctor >
+    struct obtain_extents_to_esfs_map< false, MssElements, GridTraits, Placeholders, RepeatFunctor > {
+
+        /** helper function _ there is a specialization for
+            independent stages.
+        */
+        template < typename CurrentList, typename EsfElem >
+        struct enqueue_extents {
+            using type = typename boost::mpl::push_back< CurrentList, typename esf_extent< EsfElem >::type >::type;
+        };
+
+        /** Specialization for independent stages
+         */
+        template < typename CurrentList, typename... EsfElems >
+        struct enqueue_extents< CurrentList, independent_esf< EsfElems... > > {
+            using list = typename independent_esf< EsfElems... >::esf_list;
+            using type = typename boost::mpl::fold< list,
+                CurrentList,
+                boost::mpl::push_back< boost::mpl::_1, esf_extent< boost::mpl::_2 > > >::type;
+        };
+
+        template < typename MssDescriptor >
+        struct get_esf_extents {
+            using type = typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
+                boost::mpl::vector0<>,
+                enqueue_extents< boost::mpl::_1, boost::mpl::_2 > >::type;
+        };
+
+        using type = typename boost::mpl::fold< MssElements,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back< boost::mpl::_1, get_esf_extents< boost::mpl::_2 > > >::type;
+    };
+
     // function that checks if the given extents (I+- and J+-)
     // are within the halo that was defined when creating the grid.
     template < typename ExtentsVec, typename Grid >
@@ -450,19 +529,14 @@ namespace gridtools {
         typedef typename substitute_expandable_params< typename DomainType::placeholders_t, RepeatFunctor >::type
             placeholders_t;
 
-        // First we need to compute the association between placeholders and extents.
-        // This information is needed to allocate temporaries, and to provide the
-        // extent information to the user.
-        typedef typename placeholder_to_extent_map< typename MssDescriptorArray::elements,
+        typedef typename obtain_extents_to_esfs_map<
+            need_to_compute_extents< typename MssDescriptorArray::elements >::type::value,
+            typename MssDescriptorArray::elements,
             grid_traits_t,
             placeholders_t,
-            RepeatFunctor >::type extent_map_t;
-        // Second we need to associate an extent to each esf, so that
-        // we can associate loop bounds to the functors.
-        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
-            extent_map_t,
             RepeatFunctor >::type extent_sizes_t;
 
+        typedef typename init_map_of_extents< placeholders_t >::type extent_map_t;
         typedef typename boost::mpl::if_<
             boost::mpl::is_sequence< typename MssDescriptorArray::elements >,
             typename boost::mpl::fold< typename MssDescriptorArray::elements,
