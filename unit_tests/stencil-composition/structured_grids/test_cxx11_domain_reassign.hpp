@@ -67,8 +67,6 @@ namespace domain_reassign {
       public:
         gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t in, storage_t out);
 
-        ~gt_example();
-
         void run(storage_t in, storage_t out);
 
         void run_plch(storage_t in, storage_t out);
@@ -77,6 +75,7 @@ namespace domain_reassign {
 
         void run_on_plch(storage_t in, storage_t out);
 
+        void finalize();
       private:
         std::shared_ptr< gridtools::computation< gridtools::aggregator_type< accessor_list >, gridtools::notype > >
             m_stencil;

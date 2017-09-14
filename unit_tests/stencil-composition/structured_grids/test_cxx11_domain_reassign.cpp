@@ -83,8 +83,10 @@ namespace domain_reassign {
         m_stencil->ready();
         m_stencil->steady();
     }
-    gt_example::~gt_example() { m_stencil->finalize(); }
 
+    void gt_example::finalize() {
+        m_stencil->finalize();
+    }
     void gt_example::run(storage_t in, storage_t out) {
 
         m_stencil->reassign(in, out);
@@ -112,6 +114,7 @@ class ReassignDomain : public ::testing::Test {
 
     gridtools::grid< axis > m_grid;
     storage_info_t m_meta;
+
     storage_t m_in1, m_out1, m_in2, m_out2;
     gt_example m_stex;
     array< array< uint_t, 2 >, 3 > m_halos;
@@ -133,6 +136,10 @@ class ReassignDomain : public ::testing::Test {
         sync();
     }
 
+    void finalize() {
+       m_stex.finalize();
+    }
+
     void sync() {
         m_out1.sync();
         m_out2.sync();
@@ -145,14 +152,16 @@ class ReassignDomain : public ::testing::Test {
 
 TEST_F(ReassignDomain, TestRun) {
     m_stex.run(m_in1, m_out1);
-
     sync();
+
     ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
 
     m_stex.run(m_in2, m_out2);
 
     sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
+
+    finalize();
 }
 
 TEST_F(ReassignDomain, TestRunPlchr) {
@@ -165,6 +174,7 @@ TEST_F(ReassignDomain, TestRunPlchr) {
 
     sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
+    finalize();
 }
 
 TEST_F(ReassignDomain, TestRunOn) {
@@ -177,6 +187,7 @@ TEST_F(ReassignDomain, TestRunOn) {
 
     sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
+    finalize();
 }
 
 TEST_F(ReassignDomain, TestRunOnPlchr) {
@@ -189,4 +200,6 @@ TEST_F(ReassignDomain, TestRunOnPlchr) {
 
     sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
+    finalize();
 }
+
