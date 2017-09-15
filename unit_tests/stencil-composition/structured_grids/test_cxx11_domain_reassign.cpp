@@ -63,7 +63,7 @@ namespace domain_reassign {
     };
     typedef interval< level< 0, -1 >, level< 1, 1 > > axis;
 
-    gt_example::gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t in, storage_t out) {
+    gt_example::gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t& in, storage_t& out) {
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
@@ -88,7 +88,6 @@ namespace domain_reassign {
         m_stencil->finalize();
     }
     void gt_example::run(storage_t in, storage_t out) {
-
         m_stencil->reassign(in, out);
         m_stencil->run();
     }
@@ -152,6 +151,7 @@ class ReassignDomain : public ::testing::Test {
 
 TEST_F(ReassignDomain, TestRun) {
     m_stex.run(m_in1, m_out1);
+
     sync();
 
     ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
@@ -160,8 +160,8 @@ TEST_F(ReassignDomain, TestRun) {
 
     sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
-
     finalize();
+
 }
 
 TEST_F(ReassignDomain, TestRunPlchr) {

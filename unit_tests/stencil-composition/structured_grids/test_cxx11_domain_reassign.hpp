@@ -65,7 +65,7 @@ namespace domain_reassign {
         typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
 
       public:
-        gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t in, storage_t out);
+        gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t& in, storage_t& out);
 
         void run(storage_t in, storage_t out);
 
