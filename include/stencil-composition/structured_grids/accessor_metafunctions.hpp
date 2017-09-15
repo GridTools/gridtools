@@ -172,10 +172,12 @@ namespace gridtools {
         typedef Expression< typename remap_accessor_type< Arguments, ArgsMap >::type... > type;
     };
 
-    template < typename ArgsMap >
-    struct remap_accessor_type< float_type, ArgsMap > {
-        // when a leaf is a float don't do anything
-        typedef float_type type;
+    template < typename T, typename ArgsMap >
+    struct remap_accessor_type< T,
+        ArgsMap,
+        typename boost::enable_if< typename boost::is_arithmetic< T >::type, void >::type > {
+        // when a leaf don't do anything
+        typedef T type;
     };
 
     template < typename ArgsMap, template < typename Acc, int N > class Expression, typename Accessor, int Number >
