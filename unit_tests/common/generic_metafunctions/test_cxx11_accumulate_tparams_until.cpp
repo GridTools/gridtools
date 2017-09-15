@@ -35,6 +35,7 @@
 */
 #include "gtest/gtest.h"
 #include <common/defs.hpp>
+#include <common/gt_assert.hpp>
 #include <common/generic_metafunctions/accumulate_tparams_until.hpp>
 #include <common/generic_metafunctions/binary_ops.hpp>
 
@@ -50,6 +51,6 @@ TEST(accumulate_tparams_until, first_few_vals) {
     using ref = test_container< 1, -2, 3, -3, 4, 5 >;
     using test = test_container< 1, -2, 3, -2, 4, 5 >;
 
-    static_assert(accumulate_tparams_until< int_t, equal, logical_and, ref, test, 3 >::value, "ERROR");
-    static_assert(!accumulate_tparams_until< int_t, equal, logical_and, ref, test, 4 >::value, "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((accumulate_tparams_until< int_t, equal, logical_and, ref, test, 3 >::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((!accumulate_tparams_until< int_t, equal, logical_and, ref, test, 4 >::value), "ERROR");
 }

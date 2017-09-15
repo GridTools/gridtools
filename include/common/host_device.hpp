@@ -40,9 +40,6 @@
 */
 #ifdef _USE_GPU_
 #include <cuda_runtime.h>
-#else
-#define __host__
-#define __device__
 #endif
 
 #ifdef __GNUC__
@@ -58,11 +55,19 @@
 #define GT_FUNCTION __host__ __device__ __forceinline__
 #define GT_FUNCTION_HOST __host__ __forceinline__
 #define GT_FUNCTION_DEVICE __device__ __forceinline__
+#define GT_FUNCTION_WARNING __host__ __device__
 #else
 #define GT_FUNCTION GT_FORCE_INLINE
 #define GT_FUNCTION_HOST GT_FORCE_INLINE
 #define GT_FUNCTION_DEVICE GT_FORCE_INLINE
+#define GT_FUNCTION_WARNING
 #endif
 #endif
 
-#define GT_FUNCTION_WARNING __host__ __device__
+#ifndef GT_KERNEL
+#ifdef __CUDACC__
+#define GT_KERNEL __global__
+#else
+#define GT_KERNEL
+#endif
+#endif

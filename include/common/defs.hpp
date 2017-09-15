@@ -37,23 +37,11 @@
 
 #define DEFS_GUARD
 
-#if __cplusplus > 199711L
-#ifndef CXX11_DISABLE
-#define CXX11_ENABLED
-#else
-#define CXX11_DISABLED
-#endif
-#else
-#define CXX11_DISABLED
-#endif
-
-#if defined(CXX11_ENABLED)
 #if !defined(__CUDACC__)
 #define CUDA8
 #else
 #if (CUDA_VERSION > 75)
 #define CUDA8
-#endif
 #endif
 #endif
 
@@ -127,10 +115,12 @@
 #if defined(_OPENMP)
 #include <omp.h>
 #else
-typedef int omp_int_t;
-inline omp_int_t omp_get_thread_num() { return 0; }
-inline omp_int_t omp_get_max_threads() { return 1; }
-inline double omp_get_wtime() { return 0; }
+namespace gridtools {
+    typedef int omp_int_t;
+    inline omp_int_t omp_get_thread_num() { return 0; }
+    inline omp_int_t omp_get_max_threads() { return 1; }
+    inline double omp_get_wtime() { return 0; }
+} // namespace gridtools
 #endif
 
 #include <boost/mpl/integral_c.hpp>
@@ -225,7 +215,6 @@ namespace gridtools {
     template <>
     struct is_backend_enum< enumtype::platform > : boost::mpl::true_ {};
 
-#ifdef CXX11_ENABLED
     struct error_no_operator_overload {};
 
     template < typename ArgType1,
@@ -255,7 +244,6 @@ namespace gridtools {
     error_no_operator_overload operator/(ArgType1 arg1, ArgType2 arg2) {
         return {};
     }
-#endif
 
     template < typename T >
     struct is_execution_engine : boost::mpl::false_ {};
@@ -263,17 +251,9 @@ namespace gridtools {
     template < enumtype::execution U >
     struct is_execution_engine< enumtype::execute< U > > : boost::mpl::true_ {};
 
-#ifndef CXX11_ENABLED
-#define constexpr
-#endif
-
 #define GT_WHERE_AM_I std::cout << __PRETTY_FUNCTION__ << " " << __FILE__ << ":" << __LINE__ << std::endl;
 
-#ifdef CXX11_ENABLED
 #define GRIDTOOLS_STATIC_ASSERT(Condition, Message) static_assert((Condition), "\n\nGRIDTOOLS ERROR=> " Message "\n\n")
-#else
-#define GRIDTOOLS_STATIC_ASSERT(Condition, Message) BOOST_STATIC_ASSERT(Condition)
-#endif
 
 #define GT_INTERNAL_ERROR                                                                                       \
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
@@ -315,7 +295,6 @@ namespace gridtools {
     // but still to point to a real integral type so that it can be passed as argument to functions
     typedef int notype;
 
-#ifdef CXX11_ENABLED
     using int_t = int;
     using short_t = int;
     using uint_t = unsigned int;
@@ -330,33 +309,7 @@ namespace gridtools {
     using static_ushort = boost::mpl::integral_c< ushort_t, N >;
     template < bool B >
     using static_bool = boost::mpl::integral_c< bool, B >;
-#else
-    typedef int int_t;
-    typedef int short_t;
-    typedef unsigned int uint_t;
-    typedef unsigned int ushort_t;
-    template < int_t N >
-    struct static_int : boost::mpl::integral_c< int_t, N > {
-        typedef boost::mpl::integral_c< int_t, N > type;
-    };
-    template < uint_t N >
-    struct static_uint : boost::mpl::integral_c< uint_t, N > {
-        typedef boost::mpl::integral_c< uint_t, N > type;
-    };
-    template < short_t N >
-    struct static_short : boost::mpl::integral_c< short_t, N > {
-        typedef boost::mpl::integral_c< short_t, N > type;
-    };
-    template < ushort_t N >
-    struct static_ushort : boost::mpl::integral_c< ushort_t, N > {
-        typedef boost::mpl::integral_c< ushort_t, N > type;
-    };
-    template < bool B >
-    struct static_bool : boost::mpl::integral_c< bool, B > {
-        typedef boost::mpl::integral_c< bool, B > type;
-    };
 
-#endif
     template < typename T >
     struct is_static_integral : boost::mpl::false_ {};
 

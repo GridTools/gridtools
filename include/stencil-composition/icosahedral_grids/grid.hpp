@@ -52,6 +52,8 @@ namespace gridtools {
         UnstructuredMesh &m_umesh;
 
       public:
+        static constexpr enumtype::grid_type c_grid_type = enumtype::icosahedral;
+
         GT_FUNCTION
         // TODO make grid const
         // TODO should be removed (use ctor with halo_descriptor)
@@ -73,6 +75,7 @@ namespace gridtools {
             m_umesh = m_umesh->gpu_object_ptr;
             clonable_to_gpu< grid< Axis, GridTopology, UnstructuredMesh > >::clone_to_device();
         }
+        GT_FUNCTION_DEVICE grid(grid const &other) : grid_base< Axis >(other), m_umesh(other.m_umesh) {}
 
         GT_FUNCTION
         UnstructuredMesh &umesh() {

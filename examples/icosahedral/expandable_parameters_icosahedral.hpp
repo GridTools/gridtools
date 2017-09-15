@@ -116,8 +116,8 @@ namespace test_expandable_parameters_icosahedral {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-        using p_list_out = arg< 0, std::vector< decltype(storage1) > >;
-        using p_list_in = arg< 1, std::vector< decltype(storage10) > >;
+        using p_list_out = arg< 0, std::vector< decltype(storage1) >, enumtype::cells >;
+        using p_list_in = arg< 1, std::vector< decltype(storage10) >, enumtype::cells >;
 
         typedef boost::mpl::vector< p_list_out, p_list_in > args_t;
 

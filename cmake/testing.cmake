@@ -15,7 +15,7 @@ if( NOT GCL_ONLY )
             include_directories ( "${CUDA_INCLUDE_DIRS}" )
         endif()
         add_library( mpi_gtest_main unit_tests/communication/mpi_test_driver.cpp )
-        #set_target_properties(mpi_gtest_main PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS}" )
+        set_target_properties(mpi_gtest_main PROPERTIES COMPILE_FLAGS "${GPU_SPECIFIC_FLAGS}" )
         #target_link_libraries(mpi_gtest_main ${exe_LIBS} )
     endif()
 endif()
@@ -29,20 +29,9 @@ set( exe_LIBS ${exe_LIBS} gtest)
 # Only used for gcc or clang compilations
 function(fetch_host_tests subfolder)
     # get all source files in the current directory
-    file(GLOB test_sources_cxx03 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx03_*.cpp" )
     file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
     file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
-
-    # remove files that should not be there
-    if(ENABLE_CXX11)
-        foreach( cxx03 ${test_sources_cxx03} )
-            list(REMOVE_ITEM test_sources ${cxx03})
-        endforeach()
-    else()
-        foreach( cxx11 ${test_sources_cxx11} )
-            list(REMOVE_ITEM test_sources ${cxx11})
-        endforeach()
-    endif()
+    file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
 
     # create all targets
     foreach( test_source ${test_sources} )
@@ -52,7 +41,7 @@ function(fetch_host_tests subfolder)
         # set binary output name and dir
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
         # create the test
-        add_executable (${unit_test} ${test_source})
+        add_executable (${unit_test} ${test_source} ${test_headers})
         target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
         add_test (NAME ${unit_test} COMMAND ${exe} )
         gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
@@ -66,20 +55,9 @@ function(fetch_gpu_tests subfolder)
     # don't care if USE_GPU is not set
     if(USE_GPU)
         # get all source files in the current directory
-        file(GLOB test_sources_cxx03 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx03_*.cu" )
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cu" )
         file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cu" )
-
-        # remove files that should not be there
-        if(ENABLE_CXX11)
-            foreach( cxx03 ${test_sources_cxx03} )
-                list(REMOVE_ITEM test_sources ${cxx03})
-            endforeach()
-        else()
-            foreach( cxx11 ${test_sources_cxx11} )
-                list(REMOVE_ITEM test_sources ${cxx11})
-            endforeach()
-        endif()
+        file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
 
         # create all targets
         foreach( test_source ${test_sources} )
@@ -91,7 +69,7 @@ function(fetch_gpu_tests subfolder)
             set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
             # create the gpu test
             set(CUDA_SEPARABLE_COMPILATION OFF)
-            cuda_add_executable (${unit_test} ${test_source} OPTIONS ${GPU_SPECIFIC_FLAGS})
+            cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS ${GPU_SPECIFIC_FLAGS})
             target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} )
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added gpu test " ${unit_test} )
@@ -147,6 +125,7 @@ function(add_custom_mpi_gpu_test name sources cc_flags ld_flags)
     # create the test
     #set(CUDA_SEPARABLE_COMPILATION OFF)
     cuda_add_executable (${name} ${sources} OPTIONS ${GPU_SPECIFIC_FLAGS} ${cc_flags})
+    set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags} ${GPU_SPECIFIC_FLAGS}" )
     target_link_libraries(${name} ${exe_LIBS} mpi_gtest_main)
     gridtools_add_cuda_mpi_test(${name} ${exe})
 endfunction(add_custom_mpi_gpu_test)

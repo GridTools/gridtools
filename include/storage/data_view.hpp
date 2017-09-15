@@ -43,6 +43,7 @@
 #include <boost/mpl/and.hpp>
 #include <boost/type_traits.hpp>
 
+#include "../common/gt_assert.hpp"
 #include "common/definitions.hpp"
 #include "common/storage_info_interface.hpp"
 
@@ -56,12 +57,14 @@ namespace gridtools {
      */
     template < typename DataStore, access_mode AccessMode = access_mode::ReadWrite >
     struct data_view {
-        static_assert(is_data_store< DataStore >::value, "Passed type is no data_store type");
+        GRIDTOOLS_STATIC_ASSERT(
+            is_data_store< DataStore >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
+        using data_store_t = DataStore;
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
         const static access_mode mode = AccessMode;
-        const static unsigned num_of_storages = 1;
+        const static uint_t num_of_storages = 1;
 
         data_t *m_raw_ptrs[1];
         state_machine_t *m_state_machine_ptr;
@@ -71,7 +74,8 @@ namespace gridtools {
         /**
          * @brief data_view constructor
          */
-        GT_FUNCTION data_view() {}
+        GT_FUNCTION data_view()
+            : m_raw_ptrs{NULL}, m_state_machine_ptr(NULL), m_storage_info(NULL), m_device_view(false) {}
 
         /**
          * @brief data_view constructor. This constructor is normally not called by the user because it is more
@@ -85,9 +89,23 @@ namespace gridtools {
             data_t *data_ptr, storage_info_t const *info_ptr, state_machine_t *state_ptr, bool device_view)
             : m_raw_ptrs{data_ptr}, m_state_machine_ptr(state_ptr), m_storage_info(info_ptr),
               m_device_view(device_view) {
-            assert(data_ptr && "Cannot create data_view with invalid data pointer");
-            assert(info_ptr && "Cannot create data_view with invalid storage info pointer");
+            ASSERT_OR_THROW(data_ptr, "Cannot create data_view with invalid data pointer");
+            ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
+
+        GT_FUNCTION storage_info_t const &storage_info() { return *m_storage_info; }
+
+        /**
+         * data getter
+         */
+        GT_FUNCTION
+        data_t *data() { return m_raw_ptrs[0]; }
+
+        /**
+         * data getter
+         */
+        GT_FUNCTION
+        data_t const *data() const { return m_raw_ptrs[0]; }
 
         /**
          * @brief operator() is used to access elements. E.g., view(0,0,2) will return the third element.
@@ -97,9 +115,9 @@ namespace gridtools {
         template < typename... Coords >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(Coords... c) const {
-            static_assert(boost::mpl::and_< boost::mpl::bool_< (sizeof...(Coords) > 0) >,
-                              typename is_all_integral< Coords... >::type >::value,
-                "Index arguments have to be integral types.");
+            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Coords) > 0) >,
+                                        typename is_all_integral_or_enum< Coords... >::type >::value),
+                GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
             return m_raw_ptrs[0][m_storage_info->index(c...)];
         }
 
@@ -108,11 +126,8 @@ namespace gridtools {
          * @param arr array of indices
          * @return reference to the queried value
          */
-        template < typename T, unsigned N >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
-        operator()(std::array< T, N > const &arr) const {
-            static_assert(boost::mpl::and_< boost::mpl::bool_< (N > 0) >, typename is_all_integral< T >::type >::value,
-                "Index arguments have to be integral types.");
+        operator()(gridtools::array< int, storage_info_t::ndims > const &arr) const {
             return m_raw_ptrs[0][m_storage_info->index(arr)];
         }
 
@@ -148,10 +163,32 @@ namespace gridtools {
         }
 
         /*
-         * @brief member function to retrieve the total size (dimensions, halos, initial_offset).
+         * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
+         * @tparam Coord queried coordinate
+         * @return size of dimension
+         */
+        template < int Coord >
+        GT_FUNCTION constexpr int unaligned_dim() const {
+            return m_storage_info->template unaligned_dim< Coord >();
+        }
+
+        /*
+         * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
          * @return total size
          */
-        GT_FUNCTION constexpr int size() const { return m_storage_info->size(); }
+        GT_FUNCTION constexpr int padded_total_length() const { return m_storage_info->padded_total_length(); }
+
+        /*
+         * @brief member function to retrieve the inner domain size + halo (dimensions, halos, no initial_offset).
+         * @return inner domain size + halo
+         */
+        GT_FUNCTION constexpr int total_length() const { return m_storage_info->total_length(); }
+
+        /*
+         * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
+         * @return inner domain size
+         */
+        GT_FUNCTION constexpr int length() const { return m_storage_info->length(); }
     };
 
     template < typename T >
