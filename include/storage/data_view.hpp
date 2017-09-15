@@ -59,6 +59,7 @@ namespace gridtools {
     struct data_view {
         GRIDTOOLS_STATIC_ASSERT(
             is_data_store< DataStore >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
+        using data_store_t = DataStore;
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
@@ -73,7 +74,8 @@ namespace gridtools {
         /**
          * @brief data_view constructor
          */
-        GT_FUNCTION data_view() {}
+        GT_FUNCTION data_view()
+            : m_raw_ptrs{NULL}, m_state_machine_ptr(NULL), m_storage_info(NULL), m_device_view(false) {}
 
         /**
          * @brief data_view constructor. This constructor is normally not called by the user because it is more
@@ -91,6 +93,20 @@ namespace gridtools {
             ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
+        GT_FUNCTION storage_info_t const &storage_info() { return *m_storage_info; }
+
+        /**
+         * data getter
+         */
+        GT_FUNCTION
+        data_t *data() { return m_raw_ptrs[0]; }
+
+        /**
+         * data getter
+         */
+        GT_FUNCTION
+        data_t const *data() const { return m_raw_ptrs[0]; }
+
         /**
          * @brief operator() is used to access elements. E.g., view(0,0,2) will return the third element.
          * @param c given indices
@@ -100,7 +116,7 @@ namespace gridtools {
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(Coords... c) const {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Coords) > 0) >,
-                                        typename is_all_integral< Coords... >::type >::value),
+                                        typename is_all_integral_or_enum< Coords... >::type >::value),
                 GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
             return m_raw_ptrs[0][m_storage_info->index(c...)];
         }
@@ -110,12 +126,8 @@ namespace gridtools {
          * @param arr array of indices
          * @return reference to the queried value
          */
-        template < typename T, uint_t N >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
-        operator()(std::array< T, N > const &arr) const {
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::and_< boost::mpl::bool_< (N > 0) >, typename is_all_integral< T >::type >::value),
-                GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
+        operator()(gridtools::array< int, storage_info_t::ndims > const &arr) const {
             return m_raw_ptrs[0][m_storage_info->index(arr)];
         }
 
