@@ -87,20 +87,20 @@ namespace domain_reassign {
     void gt_example::finalize() {
         m_stencil->finalize();
     }
-    void gt_example::run(storage_t in, storage_t out) {
+    void gt_example::run(storage_t& in, storage_t& out) {
         m_stencil->reassign(in, out);
         m_stencil->run();
     }
 
-    void gt_example::run_plch(storage_t in, storage_t out) {
+    void gt_example::run_plch(storage_t& in, storage_t& out) {
 
         m_stencil->reassign((p_in() = in), (p_out() = out));
         m_stencil->run();
     }
 
-    void gt_example::run_on(storage_t in, storage_t out) { m_stencil->run(in, out); }
+    void gt_example::run_on(storage_t& in, storage_t& out) { m_stencil->run(in, out); }
 
-    void gt_example::run_on_plch(storage_t in, storage_t out) { m_stencil->run((p_in() = in), (p_out() = out)); }
+    void gt_example::run_on_plch(storage_t& in, storage_t& out) { m_stencil->run((p_in() = in), (p_out() = out)); }
 }
 
 using namespace domain_reassign;

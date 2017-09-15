@@ -67,13 +67,13 @@ namespace domain_reassign {
       public:
         gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t& in, storage_t& out);
 
-        void run(storage_t in, storage_t out);
+        void run(storage_t& in, storage_t& out);
 
-        void run_plch(storage_t in, storage_t out);
+        void run_plch(storage_t& in, storage_t& out);
 
-        void run_on(storage_t in, storage_t out);
+        void run_on(storage_t& in, storage_t& out);
 
-        void run_on_plch(storage_t in, storage_t out);
+        void run_on_plch(storage_t& in, storage_t& out);
 
         void finalize();
       private:
