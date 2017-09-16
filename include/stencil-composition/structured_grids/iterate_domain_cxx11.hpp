@@ -429,7 +429,7 @@ namespace gridtools {
         GT_FUNCTION uint_t get_storage_dim(Accessor) const {
 
             GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
-            typedef typename Accessor::index_type index_t;
+            typedef typename Accessor::index_t index_t;
             typedef typename local_domain_t::template get_storage< index_t >::type::storage_info_t storage_info_t;
             typedef typename boost::mpl::find< typename local_domain_t::storage_info_ptr_list,
                 const storage_info_t * >::type::pos storage_info_index_t;

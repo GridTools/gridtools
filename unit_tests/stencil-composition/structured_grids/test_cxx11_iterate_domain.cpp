@@ -206,6 +206,20 @@ namespace test_iterate_domain {
                 out.get< 2, 0 >().get_storage_ptr()->get_cpu_ptr()));
         assert(((float_type *)it_domain.data_pointer().template get< 2 >()[5] ==
                 out.get< 2, 1 >().get_storage_ptr()->get_cpu_ptr()));
+
+        // check dimension via accessor getter
+        EXPECT_EQ(it_domain.get_storage_dim<0>(inout_accessor< 0, extent< 0, 0, 0, 0, 0, 0 >, 6 >()), d1+3);
+        EXPECT_EQ(it_domain.get_storage_dim<1>(inout_accessor< 0, extent< 0, 0, 0, 0, 0, 0 >, 6 >()), d2+2);
+        EXPECT_EQ(it_domain.get_storage_dim<2>(inout_accessor< 0, extent< 0, 0, 0, 0, 0, 0 >, 6 >()), d3+1);
+        EXPECT_EQ(it_domain.get_storage_dim<3>(inout_accessor< 0, extent< 0, 0, 0, 0, 0, 0 >, 6 >()), d4);
+
+        EXPECT_EQ(it_domain.get_storage_dim<0>(inout_accessor< 1, extent< 0, 0, 0, 0, 0, 0 >, 6 >()), d1);
+        EXPECT_EQ(it_domain.get_storage_dim<1>(inout_accessor< 1, extent< 0, 0, 0, 0, 0, 0 >, 6 >()), d2);
+        EXPECT_EQ(it_domain.get_storage_dim<2>(inout_accessor< 1, extent< 0, 0, 0, 0, 0, 0 >, 6 >()), d3); 
+
+        EXPECT_EQ(it_domain.get_storage_dim<0>(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 0 >, 6 >()), d1+2);
+        EXPECT_EQ(it_domain.get_storage_dim<1>(inout_accessor< 2, extent< 0, 0, 0, 0, 0, 0 >, 6 >()), d2+1);
+        
         // check field storage access
 
         // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
