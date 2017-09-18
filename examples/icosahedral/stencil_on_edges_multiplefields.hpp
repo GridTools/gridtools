@@ -131,7 +131,7 @@ namespace soem {
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-        gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
+        gridtools::grid< axis, icosahedral_topology_t > grid_(di, dj);
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 

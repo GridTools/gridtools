@@ -45,9 +45,11 @@
 
 #include "icosahedral_topology_metafunctions.hpp"
 
+#ifdef ENABLE_ATLAS
 #include "atlas/mesh/Mesh.h"
 #include "atlas/mesh/HybridElements.h"
 #include "atlas/mesh/Nodes.h"
+#endif
 
 namespace gridtools {
 

@@ -112,7 +112,7 @@ namespace test_expandable_parameters_icosahedral {
         array< uint_t, 5 > di = {0, 0, 0, d1 - 1, d1};
         array< uint_t, 5 > dj = {0, 0, 0, d2 - 1, d2};
 
-        gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
+        gridtools::grid< axis, icosahedral_topology_t > grid_(di, dj);
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
