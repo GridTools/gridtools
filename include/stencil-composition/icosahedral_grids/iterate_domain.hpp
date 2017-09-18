@@ -167,7 +167,6 @@ namespace gridtools {
 
       private:
         local_domain_t const &m_local_domain;
-        grid_topology_t const &m_grid_topology;
         typedef array< int_t, N_META_STORAGES > array_index_t;
         // TODOMEETING do we need m_index?
         array_index_t m_index;
@@ -184,8 +183,7 @@ namespace gridtools {
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(local_domain_t const &local_domain_, grid_topology_t const &grid_topology)
-            : m_local_domain(local_domain_), m_grid_topology(grid_topology) {}
+        iterate_domain(local_domain_t const &local_domain_) : m_local_domain(local_domain_) {}
 
         /**
            @brief returns the array of pointers to the raw data

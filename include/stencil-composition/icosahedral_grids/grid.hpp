@@ -59,7 +59,7 @@ namespace gridtools {
         // TODO should be removed (use ctor with halo_descriptor)
         explicit grid(const array< uint_t, 5 > &i,
             const array< uint_t, 5 > &j,
-            UnstructuredMesh &umesh = std::move(UnstructuredMesh()))
+            UnstructuredMesh &&umesh = std::move(UnstructuredMesh()))
             : grid_base< Axis >(halo_descriptor(i[minus], i[plus], i[begin], i[end], i[length]),
                   halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
               m_umesh(umesh) {}
@@ -78,12 +78,7 @@ namespace gridtools {
         GT_FUNCTION_DEVICE grid(grid const &other) : grid_base< Axis >(other), m_umesh(other.m_umesh) {}
 
         GT_FUNCTION
-        UnstructuredMesh &umesh() {
-            assert(m_umesh);
-            return *m_umesh;
-        }
-
-        __device__ grid(grid const &other) : grid_base< Axis >(other), m_umesh(other.m_umesh) {}
+        UnstructuredMesh &umesh() { return m_umesh; }
     };
 
     template < typename Grid >

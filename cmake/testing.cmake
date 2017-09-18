@@ -28,6 +28,7 @@ set( exe_LIBS ${exe_LIBS} gtest)
 # This function will fetch all test cases in the given directory.
 # Only used for gcc or clang compilations
 function(fetch_host_tests subfolder)
+    set(extra_libs ${ARGN})
     # get all source files in the current directory
     file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
     file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
@@ -42,7 +43,7 @@ function(fetch_host_tests subfolder)
         set(exe ${CMAKE_CURRENT_BINARY_DIR}/${unit_test})
         # create the test
         add_executable (${unit_test} ${test_source} ${test_headers})
-        target_link_libraries(${unit_test} ${exe_LIBS} gtest_main )
+        target_link_libraries(${unit_test} ${exe_LIBS} gtest_main ${extra_libs})
         add_test (NAME ${unit_test} COMMAND ${exe} )
         gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
         # message( "added test " ${unit_test} )
