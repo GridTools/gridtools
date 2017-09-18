@@ -72,14 +72,13 @@ TEST(icosahedral_topology, layout) {
         const int_t vals2[6] = {3, 5, 6, 7, 8, 2};
         cell_to_edge.add(3, 2, vals2);
     }
-    umesh_t umesh(mesh);
     uint_t halo_size = 2;
     uint_t d1 = 10;
     uint_t d2 = 10;
     grid< axis, icosahedral_topology< BACKEND >, umesh_t > grid_(
         array< uint_t, 5 >{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
         array< uint_t, 5 >{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
-        umesh);
+        umesh_t(mesh));
 
     ASSERT_TRUE(grid_.umesh().connectivity(unstructured_mesh::mb_connectivity_type::cell_to_vertex).size() == 6);
     ASSERT_TRUE(grid_.umesh().connectivity(unstructured_mesh::mb_connectivity_type::cell_to_vertex)(0, 1) == 4);
