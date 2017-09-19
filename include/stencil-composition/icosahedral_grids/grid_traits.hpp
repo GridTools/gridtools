@@ -76,6 +76,9 @@ namespace gridtools {
         instantiate_storage_info(Grid const &grid) {
             // get all the params (size in i,j,k and number of threads in i,j)
             typedef typename StorageWrapper::storage_info_t storage_info_t;
+            constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
+            constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
+
             const uint_t i_size = grid.direction_i().total_length();
             const uint_t j_size = grid.direction_j().total_length();
             const uint_t k_size = (grid.k_max() + 1);
@@ -94,12 +97,14 @@ namespace gridtools {
             const uint_t k_size = (grid.k_max() + 1);
             constexpr uint_t colors = StorageWrapper::arg_t::location_t::n_colors::value;
             constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
+            constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
+
             const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
             const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
             // create and return the storage info instance
-            return storage_info_t((StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads_i - 2 * halo_i,
+            return storage_info_t((StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads_i,
                 colors,
-                (StorageWrapper::tileJ_t::s_tile)*threads_j,
+                (StorageWrapper::tileJ_t::s_tile)*threads_j + 2 * halo_j,
                 k_size);
         }
 
@@ -110,7 +115,8 @@ namespace gridtools {
             typename StorageWrapper::storage_info_t >::type
         instantiate_storage_info(Grid const &grid) {
             typedef typename StorageWrapper::storage_info_t storage_info_t;
-            typedef boost::mpl::int_< storage_info_t::halo_t::template at< dim_j_t::value >() > halo_j;
+            constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
+            constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
 
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.k_max() + 1);
@@ -129,9 +135,9 @@ namespace gridtools {
                 threads_i * full_block_size - 2 * MaxExtent::value + (threads_i - 1) * padding;
 
             // create and return the storage info instance
-            return storage_info_t(inner_domain_size,
+            return storage_info_t(inner_domain_size + 2 * halo_i,
                 colors,
-                (StorageWrapper::tileJ_t::s_tile + 2 * halo_j::value) * threads_j - 2 * halo_j::value,
+                (StorageWrapper::tileJ_t::s_tile + 2 * halo_j) * threads_j,
                 k_size);
         }
     };

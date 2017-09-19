@@ -35,7 +35,9 @@
 */
 
 #include "gtest/gtest.h"
-#include "stencil-composition/stencil-composition.hpp"
+
+#include <common/gt_assert.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -81,11 +83,13 @@ namespace all_args_in_aggregator {
             make_stage< copy_functor >(p_in(), p_tmp()),
             make_stage< copy_functor >(p_tmp(), p_out()));
 
-        static_assert(_impl::all_args_in_aggregator< agg, decltype(good) >::type::value, "");
-        static_assert(!_impl::all_args_in_aggregator< agg, decltype(bad) >::type::value, "");
+        GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< agg, decltype(good) >::type::value), "");
+        GRIDTOOLS_STATIC_ASSERT((!_impl::all_args_in_aggregator< agg, decltype(bad) >::type::value), "");
 
-        static_assert(_impl::all_args_in_aggregator< agg, decltype(good), decltype(good) >::type::value, "");
-        static_assert(!_impl::all_args_in_aggregator< agg, decltype(bad), decltype(good) >::type::value, "");
+        GRIDTOOLS_STATIC_ASSERT(
+            (_impl::all_args_in_aggregator< agg, decltype(good), decltype(good) >::type::value), "");
+        GRIDTOOLS_STATIC_ASSERT(
+            (!_impl::all_args_in_aggregator< agg, decltype(bad), decltype(good) >::type::value), "");
     }
 
 } // namespace all_args_in_aggregator
