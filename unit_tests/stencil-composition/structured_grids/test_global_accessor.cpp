@@ -260,5 +260,4 @@ TEST(test_global_accessor, multiple_stages) {
         }
     }
     bc_eval->finalize();
-
 }

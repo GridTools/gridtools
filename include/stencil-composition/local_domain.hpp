@@ -48,6 +48,7 @@
 #include <boost/utility.hpp>
 #include <iosfwd>
 
+#include "../common/gt_assert.hpp"
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../common/gpu_clone.hpp"
 #include "../common/host_device.hpp"
@@ -149,8 +150,8 @@ namespace gridtools {
         struct get_storage {
             typedef typename boost::mpl::at< StorageWrapperList, IndexType >::type storage_wrapper_t;
             typedef typename storage_wrapper_t::storage_t type;
-            static_assert(
-                !boost::is_same< boost::mpl::false_, type >::value, "Cannot find storage type in local_domain.");
+            GRIDTOOLS_STATIC_ASSERT((!boost::is_same< boost::mpl::false_, type >::value),
+                GT_INTERNAL_ERROR_MSG("Cannot find storage type in local_domain."));
         };
 
         // get a storage wrapper from the list of storages
@@ -158,8 +159,8 @@ namespace gridtools {
         struct get_storage_wrapper {
             typedef typename boost::mpl::at< StorageWrapperList, IndexType >::type storage_wrapper_t;
             typedef storage_wrapper_t type;
-            static_assert(!boost::is_same< boost::mpl::false_, type >::value,
-                "Cannot find storage wrapper type in local_domain.");
+            GRIDTOOLS_STATIC_ASSERT((!boost::is_same< boost::mpl::false_, type >::value),
+                GT_INTERNAL_ERROR_MSG("Cannot find storage wrapper type in local_domain."));
         };
 
         // get a storage from the list of storages
@@ -167,7 +168,8 @@ namespace gridtools {
         struct get_arg {
             typedef typename boost::mpl::at< StorageWrapperList, IndexType >::type storage_wrapper_t;
             typedef typename storage_wrapper_t::arg_t type;
-            static_assert(!boost::is_same< boost::mpl::false_, type >::value, "Cannot find arg type in local_domain.");
+            GRIDTOOLS_STATIC_ASSERT((!boost::is_same< boost::mpl::false_, type >::value),
+                GT_INTERNAL_ERROR_MSG("Cannot find arg type in local_domain."));
         };
 
         //********** members *****************

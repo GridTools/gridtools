@@ -602,6 +602,7 @@ namespace gridtools {
             typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
                 0 >
         void reassign(DataStores &... stores) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             m_domain.reassign_storages_impl(stores...);
         }
 
@@ -609,6 +610,7 @@ namespace gridtools {
             typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
                 int >::type = 0 >
         void reassign(ArgStoragePairs... pairs) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             m_domain.reassign_arg_storage_pairs_impl(pairs...);
         }
 

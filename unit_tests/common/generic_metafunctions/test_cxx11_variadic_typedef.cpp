@@ -37,7 +37,8 @@
 
 #include "gtest/gtest.h"
 
-#include "common/generic_metafunctions/variadic_typedef.hpp"
+#include <common/gt_assert.hpp>
+#include <common/generic_metafunctions/variadic_typedef.hpp>
 
 using namespace gridtools;
 
@@ -69,9 +70,9 @@ TEST(variadic_typedef, find) {
 
     typedef variadic_typedef< int, double, unsigned int, double > tt;
 
-    static_assert((tt::find< int >() == 0), "ERROR");
-    static_assert((tt::find< double >() == 1), "ERROR");
-    static_assert((tt::find< unsigned int >() == 2), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((tt::find< int >() == 0), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((tt::find< double >() == 1), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((tt::find< unsigned int >() == 2), "ERROR");
 
     ASSERT_TRUE(true);
 }
