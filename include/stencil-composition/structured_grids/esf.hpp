@@ -148,37 +148,4 @@ namespace gridtools {
     template < typename ESF, typename ArgArray, typename Staggering >
     struct is_esf_descriptor< esf_descriptor< ESF, ArgArray, Staggering > > : boost::mpl::true_ {};
 
-    template < typename ESF, typename Extent, typename ArgArray, typename Staggering = staggered< 0, 0, 0, 0, 0, 0 > >
-    struct esf_descriptor_with_extent : public esf_descriptor< ESF, ArgArray, Staggering > {
-        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "stage descriptor is expecting a extent type");
-    };
-
-    template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
-    struct is_esf_descriptor< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > : boost::mpl::true_ {};
-
-    template < typename ESF >
-    struct is_esf_with_extent : boost::mpl::false_ {
-        GRIDTOOLS_STATIC_ASSERT(is_esf_descriptor< ESF >::type::value,
-            GT_INTERNAL_ERROR_MSG("is_esf_with_extents expects an esf_descripto as template argument"));
-    };
-
-    template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
-    struct is_esf_with_extent< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > : boost::mpl::true_ {};
-
-    /* The following metafunction sould belong to esf_metafunction.hpp but
-       its implementaiton is not the same for structured and icosahedral grids
-    */
-
-    /** Retrieve the extent in esf_descriptor_with_extents
-
-       \tparam Esf The esf_descriptor that must be the one speficying the extent
-    */
-    template < typename Esf >
-    struct esf_extent;
-
-    template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
-    struct esf_extent< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > {
-        using type = Extent;
-    };
-
 } // namespace gridtools

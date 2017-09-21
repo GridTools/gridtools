@@ -73,7 +73,5 @@ TEST(CopyStencil, Test) {
     if (t == 0)
         t = 1;
 
-    copy_stencil::copy_stencil_test copy_test(x, y, z, t, verify);
-    ASSERT_TRUE(copy_test.test());
-    ASSERT_TRUE(copy_test.test_with_extents());
+    ASSERT_TRUE(copy_stencil::test(x, y, z, t, verify));
 }
