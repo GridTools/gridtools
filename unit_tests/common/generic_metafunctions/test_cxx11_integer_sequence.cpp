@@ -42,12 +42,11 @@
 template < int Idx >
 struct get_component {
 
-    GT_FUNCTION
-    constexpr get_component() {}
+    GT_FUNCTION constexpr static int apply() { return 0; }
 
     template < typename... Ints >
-    GT_FUNCTION constexpr static int apply(Ints... args_) {
-        return std::get< Idx >(std::make_tuple(args_...));
+    GT_FUNCTION constexpr static int apply(int first, Ints... rest) {
+        return Idx ? get_component< Idx - 1 >::apply(rest...) : first;
     }
 };
 

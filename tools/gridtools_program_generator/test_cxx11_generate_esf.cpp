@@ -39,6 +39,19 @@
 #include <random>
 #include <cassert>
 #include <unordered_map>
+#include <boost/program_options.hpp>
+
+std::string add_define(std::string macro, int value) {
+    std::string def;
+    def += "#ifdef " + macro + "\n";
+    def += "#if " + macro + " < " + std::to_string(value) + "\n";
+    def += "#undef " + macro + "\n";
+    def += "#define " + macro + " " + std::to_string(value) + "\n";
+    def += "#endif\n#else\n";
+    def += "#define " + macro + " " + std::to_string(value) + "\n";
+    def += "#endif\n\n";
+    return def;
+}
 
 struct prelude {
     std::string out() const {
@@ -236,14 +249,45 @@ int find_input_close_to(int idx, generate_functor const &functor, std::vector< s
     return idx;
 }
 
-int main() {
+int main(int argc, char **argv) {
+
+    bool make_comp, explicit_extents;
+    unsigned seed;
+    int ops;
+
+    boost::program_options::options_description desc("Usage");
+    desc.add_options()("make,m",
+        boost::program_options::value< bool >(&make_comp)->default_value(false),
+        "It 1/yes/on/true the code will actually run make_computation instead of simply compiute_extents. This is "
+        "useful to benchmark the compiler. The check for correctness of the extents is turned off if this option is "
+        "set to 1/yes/on/true\n")("explicit,e",
+        boost::program_options::value< bool >(&explicit_extents)->default_value(false),
+        "If -m or --make is specified, this option tells if the make_computation should use explicit extents")("seed,s",
+        boost::program_options::value< unsigned >(&seed)->default_value(0),
+        "Random seed for the random number generation. A vlaue equal to 0 will let the seed unspecified")("ops,o",
+        boost::program_options::value< int >(&ops)->default_value(-1),
+        "Number of operators (<=0 for random)")("help,h", "Produce help");
+
+    boost::program_options::variables_map vm;
+    boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+    boost::program_options::notify(vm);
+
+    if (vm.count("help")) {
+        std::cout << desc << "\n";
+        return 0;
+    }
+
     std::random_device rd;
     std::mt19937 gen(rd());
+
+    if (seed != 0) {
+        gen.seed(seed);
+    }
 
     std::uniform_int_distribution<> functor_gen(1, 8);
     std::uniform_int_distribution<> arg_gen(2, 6);
 
-    std::vector< generate_functor > functors(functor_gen(gen));
+    std::vector< generate_functor > functors((ops <= 0) ? functor_gen(gen) : ops);
 
     // generating arguments + output index
     int n = 0;
@@ -340,11 +384,13 @@ int main() {
     }
 
     // boilerplate
-    program += "#define BACKEND backend<Host, GRIDBACKEND, Block >\n";
+    program += "using BACKEND = backend<Host, GRIDBACKEND, Block >;\n";
     program += "\n";
+    program += "    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;\n";
+
     program += "typedef layout_map<2,1,0> layout_t;\n";
-    program += "typedef BACKEND::storage_info<0, layout_t > storage_info_type;\n";
-    program += "typedef BACKEND::storage_type<float_type, storage_info_type >::type storage_type;\n";
+    program += "using storage_info_type = storage_tr::storage_info_t< 0, 3, gridtools::halo< 2, 2, 0 > >;\n";
+    program += "using storage_type = storage_tr::data_store_t< gridtools::float_type, storage_info_type >;\n";
     program += "\n";
     program += "\n";
 
@@ -370,41 +416,9 @@ int main() {
 
     list_of_plcs += "> placeholders;\n";
 
-    // additional boilerplate
-    program += "int main() {\n";
-
-    for (int i = 0; i < functors.size(); ++i) {
-        program += "    typedef decltype(make_stage<" + functors[i].name() + ">(";
-        for (int j = 0; j < names[i].size(); ++j) {
-            program += names[i][j] + "()";
-            if (j != names[i].size() - 1) {
-                program += ", ";
-            }
-        }
-        program += ")) " + functors[i].name() + "__;\n";
-    }
-
-    program += "    typedef decltype( make_multistage\n";
-    program += "        (\n";
-    program += "            execute<forward>(),\n";
-    for (int i = 0; i < functors.size(); ++i) {
-        program += "            " + functors[i].name() + "__()";
-        if (i != functors.size() - 1) {
-            program += ",\n";
-        }
-    }
-    program += "        )\n";
-    program += "    ) mss_t;\n";
-
-    program += "    " + list_of_plcs;
-
-    program += "\n    typedef "
-               "strgrid::compute_extents_of<strgrid::init_map_of_extents<placeholders>::type>::for_mss<mss_t>::type "
-               "final_map;\n";
-
-    program += "    std::cout << \"FINAL\" << std::endl;\n";
-    program += "    boost::mpl::for_each<final_map>(print_r());\n\n";
-
+    /********************************************************************************
+     This is the part that computes the extents given the computation to the check
+    ********************************************************************************/
     std::unordered_map< std::string, range > map;
 
     for (int i = 0; i < functors.size(); ++i) {
@@ -430,17 +444,90 @@ int main() {
             }
         }
     }
+    /********************************************************************************
+     End of the part that computes the extents given the computation to the check
+    ********************************************************************************/
+
+    // additional boilerplate
+    program += "int main() {\n";
 
     for (int i = 0; i < functors.size(); ++i) {
-        program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o" + std::to_string(i) +
-                   ">::type, " + map["o" + std::to_string(i)].out() + ">::type::value),\n";
-        program +=
-            "                          \"o" + std::to_string(i) + " " + map["o" + std::to_string(i)].out() + "\");\n";
+        if (explicit_extents) {
+            program += "    typedef decltype(make_stage_with_extent<" + functors[i].name() + ", " +
+                       map["o" + std::to_string(i)].out() + ">(";
+        } else {
+            program += "    typedef decltype(make_stage<" + functors[i].name() + ">(";
+        }
+        for (int j = 0; j < names[i].size(); ++j) {
+            program += names[i][j] + "()";
+            if (j != names[i].size() - 1) {
+                program += ", ";
+            }
+        }
+        program += ")) " + functors[i].name() + "__;\n";
     }
-    for (int i = 0; i < input_names.size(); ++i) {
-        program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, " + input_names[i] + ">::type, " +
-                   map[input_names[i]].out() + ">::type::value),\n";
-        program += "                          \"" + input_names[i] + " " + map[input_names[i]].out() + "\");\n";
+
+    program += "    auto mss = make_multistage\n";
+    program += "        (\n";
+    program += "            execute<forward>(),\n";
+    for (int i = 0; i < functors.size(); ++i) {
+        program += "            " + functors[i].name() + "__()";
+        if (i != functors.size() - 1) {
+            program += ",\n";
+        }
+    }
+    program += "        );\n";
+    program += "    using mss_t = decltype(mss);\n";
+
+    program += "    " + list_of_plcs;
+
+    if (make_comp) {
+        program += "    storage_info_type mock_info(3,3,3);\n";
+        program += "    storage_type mock_stor(mock_info, \"mock_storage\");\n";
+
+        std::string agg = "    aggregator_type< placeholders > agg(";
+
+        for (int i = 0; i < functors.size(); ++i) {
+            agg += "(o" + std::to_string(i) + "() = mock_stor), ";
+        }
+
+        for (int i = 0; i < input_names.size(); ++i) {
+            agg += "(" + input_names[i] + "() = mock_stor)";
+            if (i != input_names.size() - 1) {
+                agg += ", ";
+            }
+        }
+        program += agg + ");\n";
+
+        program += "    uint_t di[5] = {1,1,1,3,5};\n";
+        program += "    uint_t dj[5] = {1,1,1,3,5};\n";
+        program += "    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;\n";
+        program += "    grid< axis > grid(di, dj);\n";
+        program += "    grid.value_list[0] = 0;\n";
+        program += "    grid.value_list[1] = 3;\n\n";
+        program += "    auto stencil = make_computation<BACKEND>(\n";
+        program += "        agg,\n";
+        program += "        grid,\n";
+        program += "        mss);\n";
+    } else {
+        program += "\n    typedef "
+                   "compute_extents_of<init_map_of_extents<placeholders>::type,1>::for_mss<mss_t>::type "
+                   "final_map;\n";
+
+        program += "    std::cout << \"FINAL\" << std::endl;\n";
+        program += "    boost::mpl::for_each<final_map>(print_r());\n\n";
+
+        for (int i = 0; i < functors.size(); ++i) {
+            program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, o" + std::to_string(i) +
+                       ">::type, " + map["o" + std::to_string(i)].out() + ">::type::value),\n";
+            program += "                          \"o" + std::to_string(i) + " " + map["o" + std::to_string(i)].out() +
+                       "\");\n";
+        }
+        for (int i = 0; i < input_names.size(); ++i) {
+            program += "GRIDTOOLS_STATIC_ASSERT((std::is_same<boost::mpl::at<final_map, " + input_names[i] +
+                       ">::type, " + map[input_names[i]].out() + ">::type::value),\n";
+            program += "                          \"" + input_names[i] + " " + map[input_names[i]].out() + "\");\n";
+        }
     }
 
     int total_placeholders = functors.size() + input_names.size();
@@ -451,11 +538,14 @@ int main() {
     program += "/* total placeholders (rounded to 10) _SIZE = " + std::to_string(total_placeholders) + "*/\n";
 
     if (total_placeholders > 20) { // Adding macros in reverse!
-        program = "#define BOOST_MPL_LIMIT_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define BOOST_MPL_LIMIT_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define FUSION_MAX_VECTOR_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define FUSION_MAX_MAP_SIZE " + std::to_string(total_placeholders) + "\n" + program;
-        program = "#define BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS\n" + program;
+        std::string defines;
+        defines += add_define("BOOST_MPL_LIMIT_VECTOR_SIZE", total_placeholders);
+        defines += add_define("BOOST_MPL_LIMIT_MAP_SIZE", total_placeholders);
+        defines += add_define("FUSION_MAX_VECTOR_SIZE", total_placeholders);
+        defines += add_define("FUSION_MAX_MAP_SIZE", total_placeholders);
+        defines += add_define("BOOST_MPL_CFG_NO_PREPROCESSED_HEADERS", total_placeholders);
+
+        program = defines + program;
     }
 
     program += "    return 0;\n";

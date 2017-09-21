@@ -77,12 +77,6 @@ namespace copy_stencil {
 
     void handle_error(int_t) { std::cout << "error" << std::endl; }
 
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool verify) {
-
-        uint_t d1 = x;
-        uint_t d2 = y;
-        uint_t d3 = z;
-
 #ifdef __CUDACC__
 #define BACKEND_ARCH Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
@@ -95,76 +89,121 @@ namespace copy_stencil {
 #endif
 #endif
 
+    struct copy_stencil_test {
+        uint d1, d2, d3, t_steps;
+        bool m_verify;
+
         typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
         typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
-
-        storage_info_t meta_data_(x, y, z);
-
-        // Definition of the actual data fields that are used for input/output
-        data_store_t in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in");
-        data_store_t out(meta_data_, -1.0, "out");
+        storage_info_t meta_data_;
+        data_store_t in, out;
 
         typedef arg< 0, data_store_t > p_in;
         typedef arg< 1, data_store_t > p_out;
-
         typedef boost::mpl::vector< p_in, p_out > accessor_list;
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I don't particularly like this)
-        gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out));
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        gridtools::aggregator_type< accessor_list > domain;
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        uint_t di[5], dj[5];
+        gridtools::grid< axis > grid;
+        copy_stencil_test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool m_verify)
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
-            grid,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
+            : d1(x), d2(y), d3(z), t_steps(t_steps), m_verify(m_verify), meta_data_(x, y, z),
+              in(meta_data_, [](int i, int j, int k) { return i + j + k; }, "in"), out(meta_data_, -1.0, "out"),
+              // construction of the domain. The domain is the physical domain of the problem, with all the physical
+              // fields
+              // that are used, temporary and not
+              // It must be noted that the only fields to be passed to the constructor are the non-temporary.
+              // The order in which they have to be passed is the order in which they appear scanning the placeholders
+              // in
+              // order. (I don't particularly like this)
+              domain((p_in() = in), (p_out() = out)),
+              // Definition of the physical dimensions of the problem.
+              // The constructor takes the horizontal plane dimensions,
+              // while the vertical ones are set according the the axis property soon after
+              // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
+              di{0, 0, 0, d1 - 1, d1}, dj{0, 0, 0, d2 - 1, d2}, grid(di, dj)
 
-        copy->ready();
+        {
 
-        copy->steady();
+            grid.value_list[0] = 0;
+            grid.value_list[1] = d3 - 1;
+        }
 
-        copy->run();
+        bool verify() {
+            auto in_v = make_host_view(in);
+            auto out_v = make_host_view(out);
+            // check consistency
+            assert(check_consistency(in, in_v) && "view cannot be used safely.");
+            assert(check_consistency(out, out_v) && "view cannot be used safely.");
 
-        out.sync();
-        in.sync();
-
-        auto in_v = make_host_view(in);
-        auto out_v = make_host_view(out);
-        // check consistency
-        assert(check_consistency(in, in_v) && "view cannot be used safely.");
-        assert(check_consistency(out, out_v) && "view cannot be used safely.");
-
-        bool success = true;
-        if (verify) {
-            for (uint_t i = 0; i < d1; ++i) {
-                for (uint_t j = 0; j < d2; ++j) {
-                    for (uint_t k = 0; k < d3; ++k) {
-                        if ((in_v(i, j, k) != i + j + k) && (out_v(i, j, k) != i + j + k)) {
-                            std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                      << "in = " << in_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
-                            success = false;
+            bool success = true;
+            if (m_verify) {
+                for (uint_t i = 0; i < d1; ++i) {
+                    for (uint_t j = 0; j < d2; ++j) {
+                        for (uint_t k = 0; k < d3; ++k) {
+                            if ((in_v(i, j, k) != i + j + k) && (out_v(i, j, k) != i + j + k)) {
+                                std::cout << "error in " << i << ", " << j << ", " << k << ": "
+                                          << "in = " << in_v(i, j, k) << ", out = " << out_v(i, j, k) << std::endl;
+                                success = false;
+                            }
                         }
                     }
                 }
             }
+            return success;
         }
-#ifdef BENCHMARK
-        benchmarker::run(copy, t_steps);
-#endif
-        copy->finalize();
 
-        return success;
-    }
+        bool test_with_extents() {
+            auto copy = gridtools::make_computation< gridtools::BACKEND >(
+                domain,
+                grid,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                    gridtools::make_stage_with_extent< copy_functor, extent< 0, 0, 0, 0 > >(p_in(), p_out())));
+
+            copy->ready();
+
+            copy->steady();
+
+            copy->run();
+
+            out.sync();
+            in.sync();
+
+            bool success = verify();
+
+#ifdef BENCHMARK
+            benchmarker::run(copy, t_steps);
+#endif
+            copy->finalize();
+
+            return success;
+        }
+
+        bool test() {
+            auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+                grid,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
+
+            copy->ready();
+
+            copy->steady();
+
+            copy->run();
+
+            out.sync();
+            in.sync();
+
+            bool success = verify();
+
+#ifdef BENCHMARK
+            benchmarker::run(copy, t_steps);
+#endif
+            copy->finalize();
+
+            return success;
+        }
+    };
 } // namespace copy_stencil
