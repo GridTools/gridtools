@@ -101,6 +101,8 @@ namespace domain_reassign {
 
     void gt_example::run_on(std::vector< storage_t > &in, std::vector< storage_t > &out) { m_stencil->run(in, out); }
 
+    void gt_example::run_on_output(std::vector< storage_t > &out) { m_stencil->run(p_out() = out); }
+
     void gt_example::run_on_plch(std::vector< storage_t > &in, std::vector< storage_t > &out) {
         m_stencil->run((p_in() = in), (p_out() = out));
     }
@@ -225,4 +227,20 @@ TEST_F(ReassignDomain, TestRunOnPlchr) {
     ASSERT_TRUE(m_verif.verify(m_grid, m_tr2_in1, m_tr2_out1, m_halos));
     ASSERT_TRUE(m_verif.verify(m_grid, m_tr2_in2, m_tr2_out2, m_halos));
     ASSERT_TRUE(m_verif.verify(m_grid, m_tr2_in3, m_tr2_out3, m_halos));
+}
+
+TEST_F(ReassignDomain, TestRunOnOutput) {
+    m_stex.run_on_plch(m_tr1_in_list, m_tr1_out_list);
+
+    sync();
+    ASSERT_TRUE(m_verif.verify(m_grid, m_tr1_in1, m_tr1_out1, m_halos));
+    ASSERT_TRUE(m_verif.verify(m_grid, m_tr1_in2, m_tr1_out2, m_halos));
+    ASSERT_TRUE(m_verif.verify(m_grid, m_tr1_in3, m_tr1_out3, m_halos));
+
+    m_stex.run_on_output(m_tr2_out_list);
+
+    sync();
+    ASSERT_TRUE(m_verif.verify(m_grid, m_tr1_in1, m_tr2_out1, m_halos));
+    ASSERT_TRUE(m_verif.verify(m_grid, m_tr1_in2, m_tr2_out2, m_halos));
+    ASSERT_TRUE(m_verif.verify(m_grid, m_tr1_in3, m_tr2_out3, m_halos));
 }

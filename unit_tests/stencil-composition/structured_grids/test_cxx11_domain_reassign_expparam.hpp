@@ -64,6 +64,10 @@ namespace domain_reassign {
 
         typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
 
+      private:
+        std::shared_ptr< gridtools::computation< gridtools::aggregator_type< accessor_list >, gridtools::notype > >
+            m_stencil;
+
       public:
         gt_example(gridtools::uint_t d1,
             gridtools::uint_t d2,
@@ -79,10 +83,8 @@ namespace domain_reassign {
 
         void run_on(std::vector< storage_t > &in, std::vector< storage_t > &out);
 
-        void run_on_plch(std::vector< storage_t > &in, std::vector< storage_t > &out);
+        void run_on_output(std::vector< storage_t > &out);
 
-      private:
-        std::shared_ptr< gridtools::computation< gridtools::aggregator_type< accessor_list >, gridtools::notype > >
-            m_stencil;
+        void run_on_plch(std::vector< storage_t > &in, std::vector< storage_t > &out);
     };
 }

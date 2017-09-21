@@ -64,20 +64,23 @@ namespace domain_reassign {
 
         typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
 
-      public:
-        gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t& in, storage_t& out);
-
-        void run(storage_t& in, storage_t& out);
-
-        void run_plch(storage_t& in, storage_t& out);
-
-        void run_on(storage_t& in, storage_t& out);
-
-        void run_on_plch(storage_t& in, storage_t& out);
-
-        void finalize();
       private:
         std::shared_ptr< gridtools::computation< gridtools::aggregator_type< accessor_list >, gridtools::notype > >
             m_stencil;
+
+      public:
+        gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t &in, storage_t &out);
+
+        void run(storage_t &in, storage_t &out);
+
+        void run_plch(storage_t &in, storage_t &out);
+
+        void run_on(storage_t &in, storage_t &out);
+
+        void run_on_output(storage_t &out);
+
+        void run_on_plch(storage_t &in, storage_t &out);
+
+        void finalize();
     };
 }
