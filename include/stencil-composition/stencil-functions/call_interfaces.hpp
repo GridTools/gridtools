@@ -143,7 +143,7 @@ namespace gridtools {
         struct do_caller {
             template < typename Aggregator >
             GT_FUNCTION static void Do(Aggregator &agg) {
-                Functor::Do(agg, Region());
+                Functor::template Do< decltype(agg) & >(agg, Region());
             }
         };
 
@@ -152,7 +152,7 @@ namespace gridtools {
         struct do_caller< Functor, void > {
             template < typename Aggregator >
             GT_FUNCTION static void Do(Aggregator &agg) {
-                Functor::Do(agg);
+                Functor::template Do< decltype(agg) & >(agg);
             }
         };
     } // namespace _impl
