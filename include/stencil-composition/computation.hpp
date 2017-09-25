@@ -48,7 +48,7 @@ namespace gridtools {
         using base_t = typename boost::mpl::if_< boost::is_same< ReductionType, notype >,
             stencil,
             reduction< ReductionType > >::type;
-        using base_t::return_t;
+        using typename base_t::return_t;
         using base_t::run;
 
       public:

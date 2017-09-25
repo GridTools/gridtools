@@ -61,9 +61,9 @@ namespace domain_reassign {
             eval(out()) = eval(in());
         }
     };
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef interval< level< 0, -1 >, level< 1, 1 > > axis;
 
-    gt_example::gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t in, storage_t out) {
+    gt_example::gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t &in, storage_t &out) {
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
@@ -76,28 +76,31 @@ namespace domain_reassign {
         m_stencil = make_computation< gridtools::BACKEND >(domain,
             grid,
             make_multistage // mss_descriptor
-            (execute< forward >(), make_stage< test_functor >(p_in(), p_out())));
+            (execute< forward >(),
+                                                               make_stage< test_functor >(p_in(), p_tmp()),
+                                                               make_stage< test_functor >(p_tmp(), p_out())));
 
         m_stencil->ready();
         m_stencil->steady();
     }
-    gt_example::~gt_example() { m_stencil->finalize(); }
 
-    void gt_example::run(storage_t in, storage_t out) {
-
+    void gt_example::finalize() { m_stencil->finalize(); }
+    void gt_example::run(storage_t &in, storage_t &out) {
         m_stencil->reassign(in, out);
         m_stencil->run();
     }
 
-    void gt_example::run_plch(storage_t in, storage_t out) {
+    void gt_example::run_plch(storage_t &in, storage_t &out) {
 
         m_stencil->reassign((p_in() = in), (p_out() = out));
         m_stencil->run();
     }
 
-    void gt_example::run_on(storage_t in, storage_t out) { m_stencil->run(in, out); }
+    void gt_example::run_on(storage_t &in, storage_t &out) { m_stencil->run(in, out); }
 
-    void gt_example::run_on_plch(storage_t in, storage_t out) { m_stencil->run((p_in() = in), (p_out() = out)); }
+    void gt_example::run_on_output(storage_t &out) { m_stencil->run(p_out() = out); }
+
+    void gt_example::run_on_plch(storage_t &in, storage_t &out) { m_stencil->run((p_in() = in), (p_out() = out)); }
 }
 
 using namespace domain_reassign;
@@ -110,8 +113,8 @@ class ReassignDomain : public ::testing::Test {
 
     gridtools::grid< axis > m_grid;
     storage_info_t m_meta;
+
     storage_t m_in1, m_out1, m_in2, m_out2;
-    gridtools::data_view< storage_t, gridtools::access_mode::ReadWrite > m_in1v, m_out1v, m_in2v, m_out2v;
     gt_example m_stex;
     array< array< uint_t, 2 >, 3 > m_halos;
     verifier m_verif;
@@ -120,9 +123,7 @@ class ReassignDomain : public ::testing::Test {
         : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2}, m_grid(m_di, m_dj),
           m_meta(m_d1, m_d2, m_d3), m_in1(m_meta, [](int i, int j, int k) { return i + j + k + 3; }, "in"),
           m_in2(m_meta, [](int i, int j, int k) { return i + j + k + 7; }, "in2"), m_out1(m_meta, -1., "out"),
-          m_out2(m_meta, -1., "out"), m_in1v(make_host_view(m_in2)), m_in2v(make_host_view(m_in2)),
-          m_out1v(make_host_view(m_out1)), m_out2v(make_host_view(m_out2)), m_stex(m_d1, m_d2, m_d3, m_in1, m_out1),
-          m_halos{{{0, 0}, {0, 0}, {0, 0}}},
+          m_out2(m_meta, -1., "out"), m_stex(m_d1, m_d2, m_d3, m_in1, m_out1), m_halos{{{0, 0}, {0, 0}, {0, 0}}},
 #if FLOAT_PRECISION == 4
           m_verif(1e-6)
 #else
@@ -133,6 +134,8 @@ class ReassignDomain : public ::testing::Test {
         m_grid.value_list[1] = m_d3 - 1;
         sync();
     }
+
+    void finalize() { m_stex.finalize(); }
 
     void sync() {
         m_out1.sync();
@@ -148,12 +151,14 @@ TEST_F(ReassignDomain, TestRun) {
     m_stex.run(m_in1, m_out1);
 
     sync();
+
     ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
 
     m_stex.run(m_in2, m_out2);
 
     sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
+    finalize();
 }
 
 TEST_F(ReassignDomain, TestRunPlchr) {
@@ -166,6 +171,7 @@ TEST_F(ReassignDomain, TestRunPlchr) {
 
     sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
+    finalize();
 }
 
 TEST_F(ReassignDomain, TestRunOn) {
@@ -178,6 +184,7 @@ TEST_F(ReassignDomain, TestRunOn) {
 
     sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
+    finalize();
 }
 
 TEST_F(ReassignDomain, TestRunOnPlchr) {
@@ -190,4 +197,18 @@ TEST_F(ReassignDomain, TestRunOnPlchr) {
 
     sync();
     ASSERT_TRUE(m_verif.verify(m_grid, m_in2, m_out2, m_halos));
+    finalize();
+}
+
+TEST_F(ReassignDomain, TestRunOnOutput) {
+    m_stex.run_on_plch(m_in1, m_out1);
+
+    sync();
+    ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out1, m_halos));
+
+    m_stex.run_on_output(m_out2);
+
+    sync();
+    ASSERT_TRUE(m_verif.verify(m_grid, m_in1, m_out2, m_halos));
+    finalize();
 }
