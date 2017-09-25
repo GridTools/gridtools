@@ -628,7 +628,7 @@ namespace gridtools {
         hndlr_generic< DIMS, pattern_type, layout2proc_map, Gcl_Arch, version > hd;
 
       public:
-        /** constructor that takes the periodicity (mathcing the \link
+        /** constructor that takes the periodicity (matching the \link
             boollist_concept \endlink concept, and the MPI CART
             communicator in DIMS (specified as template argument to the
             pattern) dimensions of the processing grid. the periodicity is
