@@ -346,8 +346,6 @@ namespace gridtools {
         }
 
         /**
-         * \brief Calls the \ref gridtools::run_functor for each functor in the FunctorList.
-         *
          * \see
          *    gridtools::backend_base::run
          */

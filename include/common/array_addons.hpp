@@ -57,6 +57,20 @@ namespace gridtools {
         return v;
     }
 
+    namespace impl {
+        template < typename Value >
+        struct array_initializer {
+            template < int Idx >
+            struct type {
+                constexpr type() {}
+
+                template < long unsigned int ndims >
+                constexpr static Value apply(const std::array< Value, ndims > data) {
+                    return data[Idx];
+                }
+            };
+        };
+    }
 } // namespace gridtools
 
 template < typename T, typename U, size_t D >

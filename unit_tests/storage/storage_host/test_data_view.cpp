@@ -109,3 +109,24 @@ TEST(DataViewTest, Simple) {
     EXPECT_FALSE(check_consistency(ds, dv));
     EXPECT_FALSE(check_consistency(ds, dvro));
 }
+
+TEST(DataViewTest, ZeroSize) {
+    typedef host_storage_info< 0, layout_map< 0 > > storage_info_t;
+    typedef data_store< host_storage< double >, storage_info_t > data_store_t;
+    // create and allocate a data_store
+    data_store_t ds;
+    data_view< data_store_t, access_mode::ReadOnly > dvro = make_host_view< access_mode::ReadOnly >(ds);
+}
+
+TEST(DataViewTest, ArrayAPI) {
+    typedef host_storage_info< 0, layout_map< 0, 1, 2 > > storage_info_t;
+    storage_info_t si(2, 2, 2);
+
+    typedef data_store< host_storage< double >, storage_info_t > data_store_t;
+    // create and allocate a data_store
+    data_store_t ds(si);
+    auto dvro = make_host_view< access_mode::ReadWrite >(ds);
+
+    dvro({1, 1, 1}) = 2.0;
+    EXPECT_TRUE((dvro(array< int, 3 >{(int)1, (int)1, (int)1}) == 2.0));
+}

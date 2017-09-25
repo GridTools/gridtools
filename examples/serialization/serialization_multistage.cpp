@@ -46,8 +46,7 @@
 using namespace gridtools;
 using namespace enumtype;
 
-typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
 struct copy_to_foo {
     typedef accessor< 0, enumtype::in, extent<>, 3 > in;
@@ -56,11 +55,12 @@ struct copy_to_foo {
     typedef boost::mpl::vector< in, foo > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
         eval(foo()) = eval(in());
     }
 };
 
+// identical to copy_to_foo but duplicated to show a different stage name in the serialized data
 struct copy_from_foo {
     typedef accessor< 0, enumtype::in, extent<>, 3 > foo;
     typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
@@ -68,7 +68,7 @@ struct copy_from_foo {
     typedef boost::mpl::vector< foo, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
         eval(out()) = eval(foo());
     }
 };
@@ -78,17 +78,9 @@ TEST_F(serialization_setup, multistage) {
     uint_t d1 = 3, d2 = 4, d3 = 5;
 
     // Storages
-    storage_t &in = make_storage("in", d1, d2, d3);
-    storage_t &out = make_storage("out", d1, d2, d3);
-    storage_t &foo = make_storage("foo", d1, d2, d3);
-
-    auto in_view = make_host_view(in);
-    auto out_view = make_host_view(out);
-    auto foo_view = make_host_view(foo);
-
-    for_each("in", [&](int i, int j, int k) { in_view(i, j, k) = i + j + k; });
-    for_each("out", [&](int i, int j, int k) { out_view(i, j, k) = -1; });
-    for_each("foo", [&](int i, int j, int k) { foo_view(i, j, k) = -1; });
+    storage_t in = make_storage("in", [&](int i, int j, int k) { return i + j + k; }, d1, d2, d3);
+    storage_t out = make_storage("out", -1., d1, d2, d3);
+    storage_t foo = make_storage("foo", -1., d1, d2, d3);
 
     // Domain
     typedef arg< 0, storage_t > p_in;
@@ -141,37 +133,33 @@ TEST_F(serialization_setup, multistage) {
         // ====================
 
         // Savepoint: input of "copy_to_foo"
-        storage_t &copy_to_foo_input_in = make_storage("copy_to_foo_input_in", d1, d2, d3);
-        storage_t &copy_to_foo_input_foo = make_storage("copy_to_foo_input_foo", d1, d2, d3);
+        storage_t copy_to_foo_input_in = make_storage("copy_to_foo_input_in", -1., d1, d2, d3);
+        storage_t copy_to_foo_input_foo = make_storage("copy_to_foo_input_foo", -1., d1, d2, d3);
         ref_serializer.read("in", ref_serializer.savepoints()[0], copy_to_foo_input_in);
         ref_serializer.read("foo", ref_serializer.savepoints()[0], copy_to_foo_input_foo);
 
         // Savepoint: output of "copy_to_foo"
-        storage_t &copy_to_foo_output_in = make_storage("copy_to_foo_output_in", d1, d2, d3);
-        storage_t &copy_to_foo_output_foo = make_storage("copy_to_foo_output_foo", d1, d2, d3);
+        storage_t copy_to_foo_output_in = make_storage("copy_to_foo_output_in", -1., d1, d2, d3);
+        storage_t copy_to_foo_output_foo = make_storage("copy_to_foo_output_foo", -1., d1, d2, d3);
         ref_serializer.read("in", ref_serializer.savepoints()[1], copy_to_foo_output_in);
         ref_serializer.read("foo", ref_serializer.savepoints()[1], copy_to_foo_output_foo);
 
         // Savepoint: input of "copy_from_foo"
-        storage_t &copy_from_foo_input_out = make_storage("copy_from_foo_input_out", d1, d2, d3);
-        storage_t &copy_from_foo_input_foo = make_storage("copy_from_foo_input_foo", d1, d2, d3);
+        storage_t copy_from_foo_input_out = make_storage("copy_from_foo_input_out", -1., d1, d2, d3);
+        storage_t copy_from_foo_input_foo = make_storage("copy_from_foo_input_foo", -1., d1, d2, d3);
         ref_serializer.read("out", ref_serializer.savepoints()[2], copy_from_foo_input_out);
         ref_serializer.read("foo", ref_serializer.savepoints()[2], copy_from_foo_input_foo);
 
         // Savepoint: output of "copy_from_foo"
-        storage_t &copy_from_foo_output_out = make_storage("copy_from_foo_output_out", d1, d2, d3);
-        storage_t &copy_from_foo_output_foo = make_storage("copy_from_foo_output_foo", d1, d2, d3);
+        storage_t copy_from_foo_output_out = make_storage("copy_from_foo_output_out", -1., d1, d2, d3);
+        storage_t copy_from_foo_output_foo = make_storage("copy_from_foo_output_foo", -1., d1, d2, d3);
         ref_serializer.read("out", ref_serializer.savepoints()[3], copy_from_foo_output_out);
         ref_serializer.read("foo", ref_serializer.savepoints()[3], copy_from_foo_output_foo);
 
         // Verify serialized data
         // ======================
-        storage_t &input_out_ref = make_storage("input_out_ref", d1, d2, d3);
-        auto input_out_ref_view = make_host_view(input_out_ref);
-        storage_t &input_foo_ref = make_storage("input_foo_ref", d1, d2, d3);
-        auto input_foo_ref_view = make_host_view(input_foo_ref);
-        for_each("input_out_ref", [&input_out_ref_view](int i, int j, int k) { input_out_ref_view(i, j, k) = -1; });
-        for_each("input_foo_ref", [&input_foo_ref_view](int i, int j, int k) { input_foo_ref_view(i, j, k) = -1; });
+        storage_t input_out_ref = make_storage("input_out_ref", -1., d1, d2, d3);
+        storage_t input_foo_ref = make_storage("input_foo_ref", -1., d1, d2, d3);
 
         ASSERT_TRUE(verify_storages(copy_to_foo_input_in, in, grid));
         ASSERT_TRUE(verify_storages(copy_to_foo_input_foo, input_foo_ref, grid));

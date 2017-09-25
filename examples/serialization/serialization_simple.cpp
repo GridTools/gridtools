@@ -46,8 +46,7 @@
 using namespace gridtools;
 using namespace enumtype;
 
-typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
 struct copy_functor {
     typedef accessor< 0, enumtype::in, extent<>, 3 > in;
@@ -56,96 +55,86 @@ struct copy_functor {
     typedef boost::mpl::vector< in, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
         eval(out()) = eval(in());
     }
 };
 
-TEST_F(serialization_setup, simple) {
-    namespace ser = serialbox::gridtools;
-    uint_t d1 = 3, d2 = 4, d3 = 5;
+namespace ser = serialbox::gridtools;
 
-    // Storages
-    storage_t &in = make_storage("in", d1, d2, d3);
-    storage_t &out = make_storage("out", d1, d2, d3);
+class serialization_setup_simple : public serialization_setup {
+  private:
+  public:
+    using p_in = arg< 0, storage_t >;
+    using p_out = arg< 1, storage_t >;
+    using accessor_list = boost::mpl::vector< p_in, p_out >;
 
-    auto in_view = make_host_view(in);
-    auto out_view = make_host_view(out);
+    uint_t d1, d2, d3;
+    storage_t in, out;
+    gridtools::grid< axis > grid;
+    gridtools::aggregator_type< accessor_list > domain;
 
-    for_each("in", [&in_view](int i, int j, int k) { in_view(i, j, k) = i + j + k; });
-    for_each("out", [&out_view](int i, int j, int k) { out_view(i, j, k) = -1; });
+    decltype(make_computation< backend_t >(
+        domain, grid, make_multistage(execute< forward >(), make_stage< copy_functor >(p_in(), p_out())))) copy;
 
-    // Domain
-    typedef arg< 0, storage_t > p_in;
-    typedef arg< 1, storage_t > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+    serialization_setup_simple()
+        : d1(3), d2(4), d3(5),                                                               //
+          in(make_storage("in", [](int i, int j, int k) { return i + j + k; }, d1, d2, d3)), //
+          out(make_storage("out", -1., d1, d2, d3)),                                         //
+          grid(halo_descriptor{0, 0, 0, d1 - 1, d1}, halo_descriptor{0, 0, 0, d2 - 1, d2}),  //
+          domain((p_in() = in), (p_out() = out)) {
+        grid.value_list[0] = 0;
+        grid.value_list[1] = d3 - 1;
 
-    gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out));
+        copy = make_computation< backend_t >(
+            domain, grid, make_multistage(execute< forward >(), make_stage< copy_functor >(p_in(), p_out())));
+    }
 
-    // Grid
-    uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-    uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-    gridtools::grid< axis > grid(di, dj);
-    grid.value_list[0] = 0;
-    grid.value_list[1] = d3 - 1;
-
-    // Assemble stencil
-    auto copy = make_computation< backend_t >(
-        domain, grid, make_multistage(execute< forward >(), make_stage< copy_functor >(p_in(), p_out())));
-
-    try {
-        // Run & serialize
-        // ===============
+    void run_copy_and_serialize() {
         ser::serializer serializer(ser::open_mode::Write, directory(), prefix());
         copy->ready();
         copy->steady();
         copy->run(serializer, "copy");
         copy->finalize();
-
-        // Verify
-        // ======
-        ser::serializer ref_serializer(ser::open_mode::Read, directory(), prefix());
-
-        // Check functor
-        ASSERT_TRUE(verify_storages(in, out, grid));
-
-        // Check field meta-information
-        ASSERT_TRUE(verify_field_meta_info(ref_serializer));
-
-        // Check serialized data
-        ASSERT_EQ(ref_serializer.savepoints().size(), 2);
-        ASSERT_EQ(ref_serializer.fieldnames().size(), 2);
-        ASSERT_TRUE(ref_serializer.global_meta_info().has_key("stencils"));
-        ASSERT_EQ(ref_serializer.get_global_meta_info_as< std::vector< std::string > >("stencils")[0], "copy");
-
-        // Load serialized data
-        // ====================
-        storage_t &copy_input_in = make_storage("copy_input_in", d1, d2, d3);
-        storage_t &copy_input_out = make_storage("copy_input_out", d1, d2, d3);
-        storage_t &copy_output_in = make_storage("copy_output_in", d1, d2, d3);
-        storage_t &copy_output_out = make_storage("copy_output_out", d1, d2, d3);
-
-        ref_serializer.read("in", ref_serializer.savepoints()[0], copy_input_in);
-        ref_serializer.read("out", ref_serializer.savepoints()[0], copy_input_out);
-        ref_serializer.read("in", ref_serializer.savepoints()[1], copy_output_in);
-        ref_serializer.read("out", ref_serializer.savepoints()[1], copy_output_out);
-
-        // Verify serialized data
-        // ======================
-        storage_t &copy_input_out_ref = make_storage("copy_input_out_ref", d1, d2, d3);
-        auto copy_input_out_ref_view = make_host_view(copy_input_out_ref);
-        for_each("copy_input_out_ref",
-            [&copy_input_out_ref_view](int i, int j, int k) { copy_input_out_ref_view(i, j, k) = -1; });
-
-        ASSERT_TRUE(verify_storages(copy_input_in, in, grid));
-        ASSERT_TRUE(verify_storages(copy_input_out, copy_input_out_ref, grid));
-        ASSERT_TRUE(verify_storages(copy_output_in, in, grid));
-        ASSERT_TRUE(verify_storages(copy_output_out, out, grid));
-
-    } catch (std::exception &e) {
-        ASSERT_TRUE(false) << e.what();
     }
+};
+
+TEST_F(serialization_setup_simple, check_functor) {
+    run_copy_and_serialize();
+    ASSERT_TRUE(verify_storages(in, out, grid));
+}
+
+TEST_F(serialization_setup_simple, check_meta_info) {
+    run_copy_and_serialize();
+    ser::serializer ref_serializer(ser::open_mode::Read, directory(), prefix());
+
+    ASSERT_TRUE(verify_field_meta_info(ref_serializer));
+
+    ASSERT_EQ(ref_serializer.savepoints().size(), 2);
+    ASSERT_EQ(ref_serializer.fieldnames().size(), 2);
+    ASSERT_TRUE(ref_serializer.global_meta_info().has_key("stencils"));
+    ASSERT_EQ(ref_serializer.get_global_meta_info_as< std::vector< std::string > >("stencils")[0], "copy");
+}
+
+TEST_F(serialization_setup_simple, check_serialized_data) {
+    run_copy_and_serialize();
+    ser::serializer ref_serializer(ser::open_mode::Read, directory(), prefix());
+
+    storage_t copy_input_in = make_storage("copy_input_in", -1., d1, d2, d3);
+    storage_t copy_input_out = make_storage("copy_input_out", -1., d1, d2, d3);
+    storage_t copy_output_in = make_storage("copy_output_in", -1., d1, d2, d3);
+    storage_t copy_output_out = make_storage("copy_output_out", -1., d1, d2, d3);
+    ref_serializer.read("in", ref_serializer.savepoints()[0], copy_input_in);
+    ref_serializer.read("out", ref_serializer.savepoints()[0], copy_input_out);
+    ref_serializer.read("in", ref_serializer.savepoints()[1], copy_output_in);
+    ref_serializer.read("out", ref_serializer.savepoints()[1], copy_output_out);
+
+    storage_t copy_input_out_ref = make_storage("copy_input_out_ref", -1., d1, d2, d3);
+
+    ASSERT_TRUE(verify_storages(copy_input_in, in, grid));
+    ASSERT_TRUE(verify_storages(copy_input_out, copy_input_out_ref, grid));
+    ASSERT_TRUE(verify_storages(copy_output_in, in, grid));
+    ASSERT_TRUE(verify_storages(copy_output_out, out, grid));
 }
 
 #endif
