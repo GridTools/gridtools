@@ -68,6 +68,26 @@ namespace call_interface_functors {
         }
     };
 
+    struct copy_functor_with_expression {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in() + 0.);
+        }
+    };
+
+    struct call_copy_functor_with_expression {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = call< copy_functor_with_expression, x_interval >::with(eval, in());
+        }
+    };
+
     struct call_at_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
@@ -300,6 +320,18 @@ TEST_F(call_interface, call_to_copy_functor) {
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_copy_functor >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_with_expression) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_with_expression >(p_in(), p_out())));
 
     execute_computation(comp);
 
@@ -559,6 +591,26 @@ namespace call_proc_interface_functors {
         }
     };
 
+    struct copy_functor_with_expression {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in() + 0.);
+        }
+    };
+
+    struct call_copy_functor_with_expression {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            call_proc< copy_functor_with_expression, x_interval >::with(eval, in(), out());
+        }
+    };
+
     struct copy_twice_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out1;
@@ -685,6 +737,19 @@ namespace call_proc_interface_functors {
             }
         }
     };
+}
+
+TEST_F(call_proc_interface, call_to_copy_functor_with_expression) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_proc_interface_functors::call_copy_functor_with_expression >(
+                                       p_in(), p_out1())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
 }
 
 TEST_F(call_proc_interface, call_to_copy_twice_functor) {
