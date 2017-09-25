@@ -91,7 +91,7 @@ namespace test_expandable_parameters {
             parameters5_in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation eval, x_interval) {
             eval(parameters1_out()) = eval(parameters1_in());
             eval(parameters2_out()) = eval(parameters2_in());
             eval(parameters3_out()) = eval(parameters3_in());

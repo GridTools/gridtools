@@ -152,8 +152,8 @@ namespace gridtools {
 
       public:
         // following members are declared in order to have same API as data_store_fields
-        const static unsigned num_of_storages = 1;
-        const static unsigned num_of_components = 1;
+        const static uint_t num_of_storages = 1;
+        const static uint_t num_of_components = 1;
 
         ~data_store() = default;
 
@@ -367,6 +367,10 @@ namespace gridtools {
          * @brief reactivate all host read write views to storage
          */
         void reactivate_host_write_views() const { this->m_shared_storage->reactivate_host_write_views(); }
+
+        bool device_needs_update() const { return this->m_shared_storage->device_needs_update_impl(); }
+
+        bool host_needs_update() const { return this->m_shared_storage->host_needs_update_impl(); }
 
         /**
          * @brief retrieve the name of the storage

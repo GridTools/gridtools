@@ -19,7 +19,7 @@ else()
     fetch_host_tests(structured_grids)
     fetch_gpu_tests(structured_grids)
     # multi test is a custom test case that tests multiple variations
-    foreach( variation CALL OFFSETS PROCEDURES PROCEDURES_OFFSETS )
+    foreach( variation CALL PROCEDURES )
         string(TOLOWER ${variation} var_suffix)
         set(ccflags_block "-DFUNCTIONS_${variation} -DBACKEND_BLOCK")
         set(ccflags_naive "-DFUNCTIONS_${variation} ")
