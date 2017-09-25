@@ -39,8 +39,8 @@
 #include <boost/type_traits.hpp>
 #include <boost/mpl/and.hpp>
 
-#include <common/gt_assert.hpp>
-#include <storage/common/storage_info_interface.hpp>
+#include "../../common/gt_assert.hpp"
+#include "../common/storage_info_interface.hpp"
 
 namespace gridtools {
 
@@ -56,20 +56,31 @@ namespace gridtools {
         typename Halo = zero_halo< Layout::masked_length >,
         typename Alignment = alignment< 1 > >
     struct host_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
+        GRIDTOOLS_STATIC_ASSERT((is_halo< Halo >::value), "Given type is not a halo type.");
+        GRIDTOOLS_STATIC_ASSERT((is_alignment< Alignment >::value), "Given type is not an alignment type.");
+
+      public:
+        static constexpr uint_t ndims = storage_info_interface< Id, Layout, Halo, Alignment >::ndims;
 
         /*
          * @brief host_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        template < typename... Dims >
+        template < typename... Dims, typename = gridtools::all_integers< Dims... > >
         explicit constexpr host_storage_info(Dims... dims_)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...) {
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
-            GRIDTOOLS_STATIC_ASSERT(is_alignment< Alignment >::value, "Given type is not an alignment type.");
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                                         typename is_all_integral< Dims... >::type >::value),
                 "Dimensions have to be integral types.");
         }
+
+        /*
+         * @brief cuda_storage_info constructor.
+         * @param dims the dimensionality (e.g., 128x128x80)
+         * @param strides the strides used to describe a layout of the data in memory
+         */
+        constexpr host_storage_info(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
+            : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides) {}
     };
 
     template < typename T >

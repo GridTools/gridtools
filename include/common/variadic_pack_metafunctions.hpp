@@ -39,6 +39,7 @@
 
 #include <boost/utility.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/mpl/or.hpp>
 #include <boost/type_traits.hpp>
 
 #include "host_device.hpp"
@@ -141,6 +142,22 @@ namespace gridtools {
 
     template <>
     struct is_all_integral<> {
+        typedef boost::mpl::true_ type;
+    };
+
+    /* check if all given types are integral types */
+    template < typename... T >
+    struct is_all_integral_or_enum;
+
+    template < typename First, typename... T >
+    struct is_all_integral_or_enum< First, T... > {
+        typedef typename is_all_integral_or_enum< T... >::type rec_t;
+        typedef typename boost::mpl::and_< boost::mpl::or_< boost::is_integral< First >, boost::is_enum< First > >,
+            rec_t >::type type;
+    };
+
+    template <>
+    struct is_all_integral_or_enum<> {
         typedef boost::mpl::true_ type;
     };
 }

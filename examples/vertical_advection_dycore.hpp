@@ -193,16 +193,6 @@ namespace vertical_advection_dycore {
         }
     };
 
-    /*
-     * The following operators and structs are for debugging only
-     */
-    // std::ostream& operator<<(std::ostream& s, u_forward_function<double> const) {
-    //    return s << "u_forward_function";
-    //}
-    std::ostream &operator<<(std::ostream &s, u_backward_function< double > const) {
-        return s << "u_backward_function";
-    }
-
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps, bool verify) {
 
         const int halo_size = 3;
@@ -269,7 +259,7 @@ namespace vertical_advection_dycore {
                 define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
                     cache< K, cache_io_policy::flush, kfull >(p_dcol()),
                     cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
-                gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
+                gridtools::make_stage< u_forward_function< float_type > >(p_utens_stage(),
                     p_wcon(),
                     p_u_stage(),
                     p_u_pos(),
@@ -282,7 +272,7 @@ namespace vertical_advection_dycore {
                 ),
             gridtools::make_multistage(execute< backward >(),
                 define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
-                gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
+                gridtools::make_stage< u_backward_function< float_type > >(p_utens_stage(),
                                            p_u_pos(),
                                            p_dtr_stage(),
                                            p_ccol(),
