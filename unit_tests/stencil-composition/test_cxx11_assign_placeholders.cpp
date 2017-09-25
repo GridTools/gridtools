@@ -96,22 +96,22 @@ TEST(assign_placeholders, test) {
 
     gridtools::aggregator_type< accessor_list > domain(coeff, in, out);
 
-    using dst1_tmp = gridtools::data_store< gridtools::host_storage< double >,
+    using dst1_tmp = gridtools::data_store< gridtools::host_storage< float_type >,
         gridtools::host_storage_info< 1u,
                                                 gridtools::layout_map< 0, 1, 2 >,
                                                 gridtools::halo< 1u, 1u, 1u >,
                                                 gridtools::alignment< 1u > > >;
-    using dst1 = gridtools::data_store< gridtools::host_storage< double >,
+    using dst1 = gridtools::data_store< gridtools::host_storage< float_type >,
         gridtools::host_storage_info< 0u,
                                             gridtools::layout_map< 0, 1, 2 >,
                                             gridtools::halo< 1u, 1u, 1u >,
                                             gridtools::alignment< 1u > > >;
-    using dst2_tmp = gridtools::data_store< gridtools::host_storage< double >,
+    using dst2_tmp = gridtools::data_store< gridtools::host_storage< float_type >,
         gridtools::host_storage_info< 1u,
                                                 gridtools::layout_map< 0, 1, 2 >,
                                                 gridtools::halo< 2u, 2u, 2u >,
                                                 gridtools::alignment< 1u > > >;
-    using dst2 = gridtools::data_store< gridtools::host_storage< double >,
+    using dst2 = gridtools::data_store< gridtools::host_storage< float_type >,
         gridtools::host_storage_info< 0u,
                                             gridtools::layout_map< 0, 1, 2 >,
                                             gridtools::halo< 2u, 2u, 2u >,
