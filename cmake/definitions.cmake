@@ -165,10 +165,16 @@ endif()
 
 ## precision ##
 if(SINGLE_PRECISION)
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
+  if(USE_GPU)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
+  endif()
+  add_definitions("-DFLOAT_PRECISION=4")
   message(STATUS "Computations in single precision")
 else()
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
+  if(USE_GPU)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
+  endif()
+  add_definitions("-DFLOAT_PRECISION=8") 
   message(STATUS "Computations in double precision")
 endif()
 
