@@ -38,6 +38,8 @@
 namespace gridtools {
     struct stencil {
         using return_t = notype;
+
+        virtual ~stencil() {}
         virtual void ready() = 0;
         virtual void steady() = 0;
         virtual void finalize() = 0;
@@ -51,6 +53,7 @@ namespace gridtools {
     struct reduction {
         using return_t = ReductionType;
 
+        virtual ~reduction() {}
         virtual void ready() = 0;
         virtual void steady() = 0;
         virtual void finalize() = 0;
