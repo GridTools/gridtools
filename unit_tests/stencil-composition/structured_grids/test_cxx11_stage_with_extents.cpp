@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #define PEDANTIC_DISABLED // too stringent for this test
-#define protected public
+
 #include "common/defs.hpp"
 #include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/structured_grids/accessor.hpp"
