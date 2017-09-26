@@ -58,7 +58,7 @@
    - the addresses of the first element of all the data fields in the storages involved in this stencil are saved in an
    array (m_storage_pointers)
    - the index of the storages is saved in another array (m_index)
-   - when the functor gets called, the 'offsets' become visible (in the perfect world they could possibly be known at
+   - when the functor gets called, the 'offsets' become visible (in the perfect world they could possibly be knowpn at
    compile time). In particular the index is moved to point to the correct address, and the correct data snapshot is
    selected.
 
@@ -82,6 +82,14 @@
 */
 
 namespace gridtools {
+
+    namespace advanced {
+        template < typename IDomain >
+        inline typename IDomain::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(IDomain &id) {
+            return id.data_pointer();
+        }
+
+    } // namespace advanced
 
     /**@brief class managing the memory accesses, indices increment
 
@@ -201,6 +209,9 @@ namespace gridtools {
         data_ptr_cached_t &RESTRICT data_pointer() {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
+
+        template < typename T >
+        friend typename T::data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer(T &);
 
       public:
         /**@brief constructor of the iterate_domain struct
