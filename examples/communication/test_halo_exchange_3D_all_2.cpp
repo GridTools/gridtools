@@ -407,7 +407,7 @@ namespace halo_exchange_3D_all_2 {
         return passed;
     }
 
-    int test(int DIM1, int DIM2, int DIM3, int H1, int H2, int H3) {
+    int test(int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, int P0 = 0, int P1 = 0) {
 
         /* Here we compute the computing gris as in many applications
          */
@@ -426,6 +426,9 @@ namespace halo_exchange_3D_all_2 {
 
         file << pid << "  " << nprocs << "\n";
 
+        dims[0] = P0;
+        dims[1] = P1;
+        dims[2] = 0;
         MPI_Dims_create(nprocs, 3, dims);
         int period[3] = {1, 1, 1};
 
@@ -706,7 +709,15 @@ int main(int argc, char **argv) {
 }
 #else
 TEST(Communication, test_halo_exchange_3D_all_2) {
-    bool passed = halo_exchange_3D_all_2::test(234, 124, 67, 2, 4, 3);
+    bool passed = halo_exchange_3D_all_2::test(23, 12, 7, 2, 4, 3);
+    EXPECT_TRUE(passed);
+}
+TEST(Communication, test_halo_exchange_3D_all_2_2x1xZ) {
+    bool passed = halo_exchange_3D_all_2::test(23, 12, 7, 2, 4, 3, 2, 1);
+    EXPECT_TRUE(passed);
+}
+TEST(Communication, test_halo_exchange_3D_all_2_1x2xZ) {
+    bool passed = halo_exchange_3D_all_2::test(23, 12, 7, 2, 4, 3, 1, 2);
     EXPECT_TRUE(passed);
 }
 #endif

@@ -41,7 +41,7 @@
 #include "data_store.hpp"
 #include "data_store_field.hpp"
 
-#ifdef __CUDACC__
+#ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
 #endif
 #include "storage_traits_host.hpp"
@@ -60,22 +60,22 @@ namespace gridtools {
         using storage_t = typename gridtools::storage_traits_from_id< T >::template select_storage< ValueType >::type;
 
       public:
-        template < unsigned Id, unsigned Dims, typename Halo = zero_halo< Dims > >
+        template < uint_t Id, uint_t Dims, typename Halo = zero_halo< Dims > >
         using storage_info_t =
             typename gridtools::storage_traits_from_id< T >::template select_storage_info< Id, Dims, Halo >::type;
 
-        template < unsigned Id, typename LayoutMap, typename Halo = zero_halo< LayoutMap::masked_length > >
+        template < uint_t Id, typename LayoutMap, typename Halo = zero_halo< LayoutMap::masked_length > >
         using custom_layout_storage_info_t = typename gridtools::storage_traits_from_id<
             T >::template select_custom_layout_storage_info< Id, LayoutMap, Halo >::type;
 
-        template < unsigned Id, typename Selector, typename Halo = zero_halo< Selector::size > >
+        template < uint_t Id, typename Selector, typename Halo = zero_halo< Selector::size > >
         using special_storage_info_t = typename gridtools::storage_traits_from_id<
             T >::template select_special_storage_info< Id, Selector, Halo >::type;
 
         template < typename ValueType, typename StorageInfo >
         using data_store_t = data_store< storage_t< ValueType >, StorageInfo >;
 
-        template < typename ValueType, typename StorageInfo, unsigned... N >
+        template < typename ValueType, typename StorageInfo, uint_t... N >
         using data_store_field_t = data_store_field< data_store_t< ValueType, StorageInfo >, N... >;
     };
 }

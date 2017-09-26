@@ -37,11 +37,7 @@
 #include <gridtools.hpp>
 #include <common/halo_descriptor.hpp>
 
-#ifdef CUDA_EXAMPLE
-#include <boundary-conditions/apply_gpu.hpp>
-#else
-#include <boundary-conditions/apply.hpp>
-#endif
+#include <boundary-conditions/boundary.hpp>
 
 using gridtools::direction;
 using gridtools::sign;
@@ -59,14 +55,12 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define GT_ARCH Cuda
 #else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define GT_ARCH Host
 #endif
-#endif
+
+#define BACKEND backend< GT_ARCH, GRIDBACKEND, Block >
 
 template < typename T >
 struct direction_bc_input {
@@ -143,30 +137,21 @@ int main(int argc, char **argv) {
     halos[1] = gridtools::halo_descriptor(1, 1, 1, d2 - 2, d2);
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
+    // sync the data stores if needed
+    in_s.sync();
+    out_s.sync();
+
+    gridtools::template boundary< direction_bc_input< uint_t >, GT_ARCH >(halos, direction_bc_input< uint_t >(2))
+        .apply(in_s, out_s);
+
+    // sync the data stores if needed
+    in_s.sync();
+    out_s.sync();
+
+    // making the views to access and check correctness
     auto in = make_host_view(in_s);
     auto out = make_host_view(out_s);
-    // sync the data stores if needed
-    in_s.sync();
-    out_s.sync();
 
-#ifdef __CUDACC__
-    auto dvin = make_device_view(in_s);
-    auto dvout = make_device_view(out_s);
-
-    gridtools::boundary_apply_gpu< direction_bc_input< uint_t > >(halos, direction_bc_input< uint_t >(2))
-        .apply(dvin, dvout);
-#else
-
-    gridtools::boundary_apply< direction_bc_input< uint_t > >(halos, direction_bc_input< uint_t >(2)).apply(in, out);
-#endif
-
-    // sync the data stores if needed
-    in_s.sync();
-    out_s.sync();
-
-    // reactivate views and check consistency
-    in_s.reactivate_host_write_views();
-    out_s.reactivate_host_write_views();
     assert(check_consistency(in_s, in) && "view is in an inconsistent state.");
     assert(check_consistency(out_s, out) && "view is in an inconsistent state.");
 

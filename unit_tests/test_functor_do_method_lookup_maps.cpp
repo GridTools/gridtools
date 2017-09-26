@@ -123,7 +123,7 @@ struct PrintDoMethodLookupMap {
 
 // test method computing do method lookup maps
 int main(int argc, char *argv[]) {
-#if defined(CXX11_ENABLED) && (__CUDA_ARCH__ <= 350)
+#if (__CUDA_ARCH__ <= 350)
     std::cout << "Functor Do Method Lookup Map" << std::endl << "============================" << std::endl;
 
     // define the axis search interval

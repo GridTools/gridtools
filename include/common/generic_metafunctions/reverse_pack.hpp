@@ -35,15 +35,14 @@
 */
 #pragma once
 namespace gridtools {
-/**@brief metafunction for applying a parameter pack in reversed order
+    /**@brief metafunction for applying a parameter pack in reversed order
 
-   usage example:
-   reverse<4, 3, 2>::apply<ToBeReversed, ExtraArgument, 8>::type::type
-   gives
-   ToBeReversed<ExtraArgument, 8, 2, 3, 4>::type
- */
-// forward decl
-#ifdef CXX11_ENABLED
+       usage example:
+       reverse<4, 3, 2>::apply<ToBeReversed, ExtraArgument, 8>::type::type
+       gives
+       ToBeReversed<ExtraArgument, 8, 2, 3, 4>::type
+    */
+    // forward decl
     template < uint_t... Tn >
     struct reverse_pack;
 
@@ -67,5 +66,4 @@ namespace gridtools {
             typedef typename reverse_pack< Tn... >::template apply< ToBeReversed, ExtraArgument, T, Un... >::type type;
         };
     };
-#endif
 } // namespace gridtools
