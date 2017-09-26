@@ -110,7 +110,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
                                         is_arg_storage_pair >::type::value),
-                "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
+                GT_INTERNAL_ERROR_MSG("wrong type: the aggregator_type contains non arg_storage_pairs in "
+                                      "arg_storage_pair_fusion_list_t"));
             grid.clone_to_device();
             return GT_NO_ERRORS;
         }
@@ -125,7 +126,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
                                         is_arg_storage_pair >::type::value),
-                "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
+                GT_INTERNAL_ERROR_MSG("wrong type: the aggregator_type contains non arg_storage_pairs in "
+                                      "arg_storage_pair_fusion_list_t"));
 
             return GT_NO_ERRORS;
         }
@@ -167,8 +169,8 @@ namespace gridtools {
 
     template < typename AggregatorType >
     struct create_view_fusion_map {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_aggregator_type< AggregatorType >::value), "Internal Error: Given type is not an aggregator_type.");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value),
+            GT_INTERNAL_ERROR_MSG("Given type is not an aggregator_type."));
 
         // get all the storages from the placeholders
         typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
@@ -317,8 +319,8 @@ namespace gridtools {
             gt_or >::template iterate_on_esfs< boost::mpl::bool_< false >, MssDescriptorSequence >::type;
 
         GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
-            "The computation appear to have stages with and without extents being specified at the same time. A "
-            "computation shoule have all stages with extents or none.");
+            "The computation appears to have stages with and without extents being specified at the same time. A "
+            "computation should have all stages with extents or none.");
         using type = typename boost::mpl::not_< has_all_extents >::type;
     };
 
