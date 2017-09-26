@@ -343,7 +343,7 @@ namespace gridtools {
             typename Staggering >
         struct apply< EsfDescriptor< ESF, Extent, ArgArray, Staggering > > {
             static_assert(is_esf_descriptor< EsfDescriptor< ESF, Extent, ArgArray, Staggering > >::value,
-                "Given type is no esf_descriptor.");
+                          GRIDTOOLS_INTERNAL_ERROR_MSG("Type is not an EsfDescriptor");
             typedef EsfDescriptor< ESF, Extent, typename impl< ArgArray >::type, Staggering > type;
         };
 
