@@ -142,9 +142,7 @@ namespace test_all_to_all_halo_3D {
             for (int j = 0; j < PJ * N; ++j)
                 for (int k = 0; k < PK * N; ++k) {
                     dataout[i * (PJ * N) * (PK * N) + j * (PK * N) + k] = i * (PJ * N) * (PK * N) + j * (PK * N) + k;
-                    file << i * (PJ * N) * (PK * N) + j * (PK * N) + k << " ";
                 }
-        file << "\n";
         for (int i = 0; i < N + 2 * H; ++i)
             for (int j = 0; j < N + 2 * H; ++j)
                 for (int k = 0; k < N + 2 * H; ++k) {
@@ -229,7 +227,7 @@ int main(int argc, char **argv) {
 }
 #else
 TEST(Communication, test_all_to_all_halo_3D) {
-    bool passed = test_all_to_all_halo_3D::test(4, 2);
+    bool passed = test_all_to_all_halo_3D::test(13, 6);
     EXPECT_TRUE(passed);
 }
 #endif

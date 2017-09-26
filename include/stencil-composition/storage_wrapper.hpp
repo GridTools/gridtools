@@ -152,7 +152,7 @@ namespace gridtools {
     /** @brief get tiling information out of a given storage wrapper.
      *  @tparam Coord coordinate (I --> 0, J --> 1)
      */
-    template < unsigned Coord >
+    template < uint_t Coord >
     struct tile_from_storage_wrapper;
 
     template <>

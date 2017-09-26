@@ -46,9 +46,9 @@ namespace gridtools {
         // insert the extent into a new entry of the map of <cache, extent>
         template < typename ExtendsMap_, typename Extend, typename Cache, typename BackendIds >
         struct update_extent_map {
-            GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), "ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "ERROR");
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extend >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             typedef typename boost::mpl::if_< boost::mpl::has_key< ExtendsMap_, Cache >,
                 typename boost::mpl::at< ExtendsMap_, Cache >::type,
                 typename grid_traits_from_id< BackendIds::s_grid_type_id >::null_extent_t >::type default_extent_t;
@@ -64,6 +64,16 @@ namespace gridtools {
                 type;
         };
     }
+
+    template < typename Extent >
+    struct ijfy_extent;
+
+    // nullify any extent that is not ij
+    template < int_t IMinus, int_t IPlus, int_t JMinus, int_t JPlus, int_t KMinus, int_t KPlus, int_t... Rest >
+    struct ijfy_extent< extent< IMinus, IPlus, JMinus, JPlus, KMinus, KPlus, Rest... > > {
+        using type = extent< IMinus, IPlus, JMinus, JPlus, 0, 0 >;
+    };
+
     /**
      * @struct extract_ij_extents_for_caches
      * metafunction that extracts the extents associated to each cache of the sequence of caches provided by the user.
@@ -74,10 +84,24 @@ namespace gridtools {
      */
     template < typename IterateDomainArguments >
     struct extract_ij_extents_for_caches {
+
         typedef typename IterateDomainArguments::cache_sequence_t cache_sequence_t;
         typedef typename IterateDomainArguments::extent_sizes_t extents_t;
         typedef typename IterateDomainArguments::esf_sequence_t esf_sequence_t;
         typedef typename IterateDomainArguments::backend_ids_t backend_ids_t;
+
+        // metafunction to extract the extent of an ESF where an Arg is used.
+        // If Arg is not used by the ESF, a null extent is returned, otherwise
+        // the extent of the ESF (where the non ij extents are nullified) is returned
+        template < typename ESFIdx, typename Arg >
+        struct esf_extent_of_arg {
+            using esf_t = typename boost::mpl::at< esf_sequence_t, ESFIdx >::type;
+
+            using extent_t = typename boost::mpl::if_< boost::mpl::has_key< typename esf_t::args_with_extents, Arg >,
+                typename boost::mpl::at< extents_t, ESFIdx >::type,
+                typename grid_traits_from_id< backend_ids_t::s_grid_type_id >::null_extent_t >::type;
+            using type = typename ijfy_extent< extent_t >::type;
+        };
 
         // insert the extent associated to a Cache into the map of <cache, extent>
         template < typename ExtendsMap, typename Cache >
@@ -88,14 +112,18 @@ namespace gridtools {
             // the map if the cache is used by the esf with that Id.
             template < typename ExtendsMap_, typename EsfIdx >
             struct insert_extent_for_cache_esf {
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< extents_t >::value > EsfIdx::value), "ERROR");
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< esf_sequence_t >::value > EsfIdx::value), "ERROR");
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< extents_t >::value > EsfIdx::value), GT_INTERNAL_ERROR);
+                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< esf_sequence_t >::value > EsfIdx::value), GT_INTERNAL_ERROR);
 
-                typedef typename boost::mpl::at< extents_t, EsfIdx >::type extent_t;
+                typedef typename cache_parameter< Cache >::type cache_arg_t;
+                typedef typename boost::mpl::at< esf_sequence_t, EsfIdx >::type esf_t;
+
+                // only extract the extent of the esf and push it into the cache if the arg of the cache is used in the
+                // extent (note non ij extents are nullified for the ij caches)
+                using extent_t = typename esf_extent_of_arg< EsfIdx, cache_arg_t >::type;
+
                 GRIDTOOLS_STATIC_ASSERT((extent_t::kminus::value == 0 && extent_t::kplus::value == 0),
                     "Error: IJ Caches can not have k extent values");
-
-                typedef typename boost::mpl::at< esf_sequence_t, EsfIdx >::type esf_t;
 
                 typedef typename boost::mpl::if_<
                     boost::mpl::contains< typename esf_t::args_t, typename cache_parameter< Cache >::type >,
@@ -133,7 +161,7 @@ namespace gridtools {
         // insert the extent associated to a Cache into the map of <cache, extent>
         template < typename ExtendsMap, typename Cache >
         struct insert_extent_for_cache {
-            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), "ERROR");
+            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache >::value), GT_INTERNAL_ERROR);
 
             typedef typename cache_parameter< Cache >::type cache_arg_t;
 

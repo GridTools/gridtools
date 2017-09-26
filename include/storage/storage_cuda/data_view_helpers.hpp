@@ -65,7 +65,9 @@ namespace gridtools {
                                    is_data_store< DecayedCDS > >,
         data_view< DecayedCDS, AccessMode > >::type
     make_host_view(CudaDataStore const &ds) {
-        ASSERT_OR_THROW(ds.valid(), "Cannot create a data_view to an invalid data_store");
+        if (!ds.valid())
+            return data_view< DecayedCDS, AccessMode >();
+
         if (AccessMode != access_mode::ReadOnly) {
             ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu,
                 "There is already an active read-write "
@@ -93,7 +95,9 @@ namespace gridtools {
                                    is_data_store< DecayedCDS > >,
         data_view< DecayedCDS, AccessMode > >::type
     make_device_view(CudaDataStore const &ds) {
-        ASSERT_OR_THROW(ds.valid(), "Cannot create a data_view to an invalid data_store");
+        if (!ds.valid())
+            return data_view< DecayedCDS, AccessMode >();
+
         if (AccessMode != access_mode::ReadOnly) {
             ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu,
                 "There is already an active read-write "
