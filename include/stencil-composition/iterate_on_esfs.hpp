@@ -47,19 +47,19 @@ namespace gridtools {
         of the visit is the program order).
 
         The binary op is not actually binary, but accepts extra variadic
-        arguements, of which only two will be used. The reason is to make
+        arguments, of which only two will be used. The reason is to make
         boost::mpl::and_ and boost::mpl::or_ metafunctions working
         with this construct.
 
-        \tparam UnaryOp The unary opertor to apply to the esf_descriptors
-        \tparam BinaryOp The binaty operator for the reduction
+        \tparam UnaryOp The unary operator to apply to the esf_descriptors
+        \tparam BinaryOp The binary operator for the reduction
      */
     template < template < typename > class UnaryOp, template < typename, typename, typename... > class BinaryOp >
     struct with_operators {
 
       private:
         /** This class applies to binary operator to the first
-            argument and the resullt of the application of the unary
+            argument and the result of the application of the unary
             operator. It has a special implementation to handle
             independent_esf. This is useful to simplify the mpl::fold
             over the esf_sequence, so that we can just pass the
