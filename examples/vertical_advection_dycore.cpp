@@ -73,5 +73,7 @@ TEST(vertical_advection_dycore, test) {
     if (t == 0)
         t = 1;
 
-    ASSERT_TRUE(vertical_advection_dycore::test(x, y, z, t, verify));
+    auto va_test = vertical_advection_dycore::vertical_advection_test(x, y, z);
+    ASSERT_TRUE(va_test.test(t, verify));
+    ASSERT_TRUE(va_test.test_with_extents(t, verify));
 }

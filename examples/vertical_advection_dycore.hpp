@@ -203,18 +203,14 @@ namespace vertical_advection_dycore {
         return s << "u_backward_function";
     }
 
-    bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t_steps, bool verify) {
+    struct vertical_advection_test {
 
-        const int halo_size = 3;
+        const u_int halo_size = 3;
 
         typedef vertical_advection::repository::storage_type storage_type;
         typedef vertical_advection::repository::scalar_storage_type scalar_storage_type;
 
-        vertical_advection::repository repository(d1, d2, d3, halo_size);
-        repository.init_fields();
-
-        repository.generate_reference();
-
+        vertical_advection::repository repository;
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
         typedef arg< 0, storage_type > p_utens_stage;
@@ -243,79 +239,139 @@ namespace vertical_advection_dycore {
             p_dcol,
             p_data_col > accessor_list;
 
-        gridtools::aggregator_type< accessor_list > domain(repository.utens_stage(),
-            repository.u_stage(),
-            repository.wcon(),
-            repository.u_pos(),
-            repository.utens(),
-            repository.dtr_stage());
+        gridtools::aggregator_type< accessor_list > domain;
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        uint_t di[5];
+        uint_t dj[5];
+        gridtools::grid< axis > grid;
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        vertical_advection_test(u_int d1, u_int d2, u_int d3)
+            : repository(d1, d2, d3, halo_size), domain(repository.utens_stage(),
+                                                     repository.u_stage(),
+                                                     repository.wcon(),
+                                                     repository.u_pos(),
+                                                     repository.utens(),
+                                                     repository.dtr_stage()),
+              di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
+              dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2}, grid(di, dj) {
+            repository.init_fields();
 
-        auto vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
-            domain,
-            grid,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
-                    cache< K, cache_io_policy::flush, kfull >(p_dcol()),
-                    cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
-                gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
-                    p_wcon(),
-                    p_u_stage(),
-                    p_u_pos(),
-                    p_utens(),
-                    p_dtr_stage(),
-                    p_acol(),
-                    p_bcol(),
-                    p_ccol(),
-                    p_dcol()) // esf_descriptor
-                ),
-            gridtools::make_multistage(execute< backward >(),
-                define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
-                gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
-                                           p_u_pos(),
-                                           p_dtr_stage(),
-                                           p_ccol(),
-                                           p_dcol(),
-                                           p_data_col())));
+            repository.generate_reference();
 
-        vertical_advection->ready();
-
-        vertical_advection->steady();
-
-        vertical_advection->run();
-
-        repository.utens_stage().sync();
-
-        bool result = true;
-        if (verify) {
-
-#if FLOAT_PRECISION == 4
-            verifier verif(1e-6);
-#else
-            verifier verif(1e-11);
-#endif
-            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
-            result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
+            grid.value_list[0] = 0;
+            grid.value_list[1] = d3 - 1;
         }
 
+        bool test(uint_t t_steps, bool verify) {
+
+            auto vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
+                domain,
+                grid,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
+                        cache< K, cache_io_policy::flush, kfull >(p_dcol()),
+                        cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
+                    gridtools::make_stage< u_forward_function< double > >(p_utens_stage(),
+                        p_wcon(),
+                        p_u_stage(),
+                        p_u_pos(),
+                        p_utens(),
+                        p_dtr_stage(),
+                        p_acol(),
+                        p_bcol(),
+                        p_ccol(),
+                        p_dcol()) // esf_descriptor
+                    ),
+                gridtools::make_multistage(execute< backward >(),
+                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
+                    gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
+                                               p_u_pos(),
+                                               p_dtr_stage(),
+                                               p_ccol(),
+                                               p_dcol(),
+                                               p_data_col())));
+
+            vertical_advection->ready();
+
+            vertical_advection->steady();
+
+            vertical_advection->run();
+
+            repository.utens_stage().sync();
+
+            bool result = true;
+            if (verify) {
+
+#if FLOAT_PRECISION == 4
+                verifier verif(1e-6);
+#else
+                verifier verif(1e-11);
+#endif
+                array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+                result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
+            }
+
 #ifdef BENCHMARK
-        benchmarker::run(vertical_advection, t_steps);
+            benchmarker::run(vertical_advection, t_steps);
 #endif
 
-        vertical_advection->finalize();
+            vertical_advection->finalize();
 
-        return result;
-    }
+            return result;
+        }
+
+        bool test_with_extents(uint_t t_steps, bool verify) {
+
+            auto vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
+                domain,
+                grid,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                    // Caches not yet supported  define_caches(cache< K, cache_io_policy::flush, kbody >(p_ccol())),
+                    gridtools::make_stage_with_extent< u_forward_function< double >, extent< 0 > >(p_utens_stage(),
+                        p_wcon(),
+                        p_u_stage(),
+                        p_u_pos(),
+                        p_utens(),
+                        p_dtr_stage(),
+                        p_acol(),
+                        p_bcol(),
+                        p_ccol(),
+                        p_dcol()) // esf_descriptor
+                    ),
+                gridtools::make_multistage(
+                    execute< backward >(),
+                    gridtools::make_stage_with_extent< u_backward_function< double >, extent< 0 > >(
+                        p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
+
+            vertical_advection->ready();
+
+            vertical_advection->steady();
+
+            vertical_advection->run();
+
+            repository.utens_stage().sync();
+
+            bool result = true;
+            if (verify) {
+
+#if FLOAT_PRECISION == 4
+                verifier verif(1e-6);
+#else
+                verifier verif(1e-12);
+#endif
+                array< array< uint_t, 2 >, 3 > halos{
+                    {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+                result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
+            }
+#ifdef BENCHMARK
+            benchmarker::run(vertical_advection, t_steps);
+#endif
+            vertical_advection->finalize();
+
+            return result;
+        }
+    };
 
 } // namespace vertical_advection
