@@ -40,7 +40,7 @@
 #if !defined(__CUDACC__)
 #define CUDA8
 #else
-#if (CUDA_VERSION > 75)
+#if (GT_CUDA_VERSION > 75)
 #define CUDA8
 #endif
 #endif
