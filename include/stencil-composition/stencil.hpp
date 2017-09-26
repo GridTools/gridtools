@@ -34,8 +34,32 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "computation.hpp"
 
 namespace gridtools {
-    typedef computation< notype > stencil;
+    struct stencil {
+        using return_t = notype;
+
+        virtual ~stencil() {}
+        virtual void ready() = 0;
+        virtual void steady() = 0;
+        virtual void finalize() = 0;
+        virtual return_t run() = 0;
+        virtual std::string print_meter() = 0;
+        virtual double get_meter() = 0;
+        virtual void reset_meter() = 0;
+    };
+
+    template < typename ReductionType >
+    struct reduction {
+        using return_t = ReductionType;
+
+        virtual ~reduction() {}
+        virtual void ready() = 0;
+        virtual void steady() = 0;
+        virtual void finalize() = 0;
+        virtual return_t run() = 0;
+        virtual std::string print_meter() = 0;
+        virtual double get_meter() = 0;
+        virtual void reset_meter() = 0;
+    };
 }

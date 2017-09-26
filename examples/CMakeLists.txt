@@ -10,7 +10,7 @@ else()
   list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment advection_pdbott_prepare_tracers)
   list( APPEND X86_SRCFILES reduction)
 
-  list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage  expandable_parameters expandable_parameters_single_kernel expandable_parameters_reassign_domain data_store_field_test)
+  list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage  expandable_parameters expandable_parameters_single_kernel data_store_field_test)
 
   set( GTEST_FILES Options.hpp Options.cpp)
 
