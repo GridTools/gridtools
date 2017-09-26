@@ -41,7 +41,7 @@
 
 namespace gridtools {
 
-    template < typename Aggregator, typename ReductionType >
+    template < typename Aggregator, typename ReductionType = notype >
     struct computation
         : public boost::mpl::if_< boost::is_same< ReductionType, notype >, stencil, reduction< ReductionType > >::type {
 
