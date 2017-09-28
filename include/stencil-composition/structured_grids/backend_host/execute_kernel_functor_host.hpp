@@ -174,15 +174,16 @@ namespace gridtools {
                     execution_type_t::type::iteration > iteration_policy_t;
 
                 typedef array< int_t, iterate_domain_t::N_META_STORAGES > array_t;
-                loop_hierarchy< array_t, loop_item< 0, int_t, 1 >, loop_item< 1, int_t, 1 > > ij_loop(
-                    (int_t)(m_first_pos[0] + extent_t::iminus::value),
-                    (int_t)(m_first_pos[0] + m_last_pos[0] + extent_t::iplus::value),
-                    (int_t)(m_first_pos[1] + extent_t::jminus::value),
-                    (int_t)(m_first_pos[1] + m_last_pos[1] + extent_t::jplus::value));
+
+                const int_t ifirst = m_first_pos[0] + extent_t::iminus::value;
+                const int_t ilast = m_first_pos[0] + m_last_pos[0] + extent_t::iplus::value;
+                const int_t jfirst = m_first_pos[1] + extent_t::jminus::value;
+                const int_t jlast = m_first_pos[1] + m_last_pos[1] + extent_t::jplus::value;
 
                 // reset the index
                 it_domain.set_index(0);
-                ij_loop.initialize(it_domain, m_block_id);
+                it_domain.template initialize< 0 >(ifirst, m_block_id[0]);
+                it_domain.template initialize< 1 >(jfirst, m_block_id[1]);
 
                 // define the kernel functor
                 typedef innermost_functor< loop_intervals_t,
@@ -195,7 +196,26 @@ namespace gridtools {
                 innermost_functor_t f(it_domain, m_grid);
 
                 // run the nested ij loop
-                ij_loop.apply(it_domain, f);
+                array_t irestore_index, jrestore_index;
+                for (int_t i = ifirst; i <= ilast; ++i) {
+#if defined(VERBOSE) && !defined(NDEBUG)
+                    std::cout << "iteration " << i << ", index i" << std::endl;
+#endif
+                    _impl::reset_index_if_positional< 0 >(it_domain, i);
+                    it_domain.get_index(irestore_index);
+                    for (int_t j = jfirst; j <= jlast; ++j) {
+#if defined(VERBOSE) && !defined(NDEBUG)
+                        std::cout << "iteration " << j << ", index j" << std::endl;
+#endif
+                        _impl::reset_index_if_positional< 1 >(it_domain, j);
+                        it_domain.get_index(jrestore_index);
+                        f();
+                        it_domain.set_index(jrestore_index);
+                        it_domain.template increment< 1, static_uint< 1 > >();
+                    }
+                    it_domain.set_index(irestore_index);
+                    it_domain.template increment< 0, static_uint< 1 > >();
+                }
                 m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
                 m_reduction_data.reduce();
             }
