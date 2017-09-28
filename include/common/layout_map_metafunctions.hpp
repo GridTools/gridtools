@@ -47,35 +47,26 @@
 
 namespace gridtools {
 
-    template < typename LM >
+    template < typename LayoutMap >
     struct reverse_map;
 
-    template < short_t I1, short_t I2 >
-    struct reverse_map< layout_map< I1, I2 > > {
-        typedef layout_map< I2, I1 > type;
-    };
-
-    template < short_t I1, short_t I2, short_t I3 >
-    struct reverse_map< layout_map< I1, I2, I3 > > {
-        template < short_t I, short_t Dummy >
-        struct new_value;
-
-        template < short_t Dummy >
-        struct new_value< 0, Dummy > {
-            static const short_t value = 2;
+    template < short_t... Is >
+    struct reverse_map< layout_map< Is... > > {
+        template < short_t I, short_t Max >
+        struct new_value {
+            static const short_t value = (Max - I) > Max ? I : Max - I;
         };
 
-        template < short_t Dummy >
-        struct new_value< 1, Dummy > {
-            static const short_t value = 1;
+        template < typename Current, typename Next >
+        struct get_max {
+            using type = boost::mpl::int_< (Current::value > Next::value) ? Current::value : Next::value >;
         };
 
-        template < short_t Dummy >
-        struct new_value< 2, Dummy > {
-            static const short_t value = 0;
-        };
+        using max = typename boost::mpl::fold< typename layout_map< Is... >::static_layout_vector,
+            boost::mpl::int_< -1 >,
+            get_max< boost::mpl::_1, boost::mpl::_2 > >::type;
 
-        typedef layout_map< new_value< I1, 0 >::value, new_value< I2, 0 >::value, new_value< I3, 0 >::value > type;
+        typedef layout_map< new_value< Is, max::value >::value... > type;
     };
 
     template < typename DATALO, typename PROCLO >

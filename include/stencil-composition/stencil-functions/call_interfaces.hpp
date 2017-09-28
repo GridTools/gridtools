@@ -54,12 +54,12 @@ namespace gridtools {
         /** In the context of stencil_functions, this type represents
            the aggregator/domain/evaluator to be passed to a stencil
            function, called within a stencil operator or another
-           stencil function. In this version the accessors passed to
-           the function can have offsets different that 0.
+           stencil function. The accessors passed to
+           the function can have offsets.
 
            function_aggregator_offsets has a single ReturnType which
            corresponds to the output field of the called
-           stencil_operator. Such operator hasa single output field,
+           stencil_operator. Such operator has a single output field,
            as checked by the call template.
 
            \tparam CallerAggregator The argument passed to the callerd, also known as the Evaluator
@@ -131,13 +131,19 @@ namespace gridtools {
                 operator()(Accessor const &) const {
                 return *m_result;
             }
+
+            template < typename... Arguments, template < typename... Args > class Expression >
+            GT_FUNCTION constexpr auto operator()(Expression< Arguments... > const &arg) const
+                -> decltype(expressions::evaluation::value(*this, arg)) {
+                return expressions::evaluation::value((*this), arg);
+            }
         };
 
         template < typename Functor, typename Region >
         struct do_caller {
             template < typename Aggregator >
             GT_FUNCTION static void Do(Aggregator &agg) {
-                Functor::Do(agg, Region());
+                Functor::template Do< decltype(agg) & >(agg, Region());
             }
         };
 
@@ -146,7 +152,7 @@ namespace gridtools {
         struct do_caller< Functor, void > {
             template < typename Aggregator >
             GT_FUNCTION static void Do(Aggregator &agg) {
-                Functor::Do(agg);
+                Functor::template Do< decltype(agg) & >(agg);
             }
         };
     } // namespace _impl
@@ -227,8 +233,8 @@ namespace gridtools {
            In the context of stencil_functions, this type represents
            the aggregator/domain/evaluator to be passed to a stencil
            function, called within a stencil operator or another
-           stencil function. In this version the accessors passed to
-           the function can have offsets different that 0.
+           stencil function. The accessors passed to
+           the function can have offsets.
 
            function_aggregator_procedure_offsets does not have a
            single return value, as in
@@ -300,6 +306,12 @@ namespace gridtools {
                     Accessor::index_t::value >::type >::type::type >::type &
             operator()(Accessor const &) const {
                 return (boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).value());
+            }
+
+            template < typename... Arguments, template < typename... Args > class Expression >
+            GT_FUNCTION constexpr auto operator()(Expression< Arguments... > const &arg) const
+                -> decltype(expressions::evaluation::value(*this, arg)) {
+                return expressions::evaluation::value((*this), arg);
             }
         };
     } // namespace _impl

@@ -306,7 +306,7 @@ namespace gridtools {
                                              !is_vector< typename T::storage_t >::value,
                 void >::type
             operator()(T const &t) const {
-                t.ptr.get()->sync();
+                t.ptr->sync();
             }
 
             // temporary storages don't have to be synced.
