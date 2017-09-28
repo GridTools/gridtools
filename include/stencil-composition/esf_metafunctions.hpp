@@ -46,7 +46,7 @@
 #include "independent_esf.hpp"
 
 #ifdef STRUCTURED_GRIDS
-#include "structured_grids//accessor_metafunctions.hpp"
+#include "structured_grids/accessor_metafunctions.hpp"
 #include "structured_grids/esf_metafunctions.hpp"
 #else
 #include "icosahedral_grids/accessor_metafunctions.hpp"
@@ -343,17 +343,5 @@ namespace gridtools {
             boost::mpl::vector0<>,
             populate< boost::mpl::_1, boost::mpl::_2 > >::type type;
     }; // struct unwrap_independent
-
-    /** Retrieve the extent in esf_descriptor_with_extents
-
-       \tparam Esf The esf_descriptor that must be the one speficying the extent
-    */
-    template < typename Esf >
-    struct esf_extent;
-
-    template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
-    struct esf_extent< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > {
-        using type = Extent;
-    };
 
 } // namespace gridtools
