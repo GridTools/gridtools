@@ -13,7 +13,7 @@ module load daint-gpu
 module load cudatoolkit
 module rm   PrgEnv-cray
 module load PrgEnv-gnu
-module load Boost
+#module load Boost
 module load CMake
 
 if [[ ${COMPILER} == "gcc" ]]; then
@@ -36,7 +36,7 @@ else
   exit_if_error 444
 fi
 
-
+export BOOST_ROOT=/users/vogtha/boost_1_63_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
