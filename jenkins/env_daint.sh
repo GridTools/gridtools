@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash -l
 
 function exit_if_error {
     if [ "x$1" != "x0" ]

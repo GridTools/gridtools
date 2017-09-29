@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 
 if [ "`hostname | grep greina`" != "" ] ; then
     myhost="greina"
