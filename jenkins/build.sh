@@ -69,10 +69,6 @@ while getopts "h:b:t:f:c:l:zmsidvq:x:in" opt; do
     esac
 done
 
-if [[ "$VERSION_"  != "4.9" ]] && [[ "$VERSION_" != "5.3" ]]; then
-    echo "VERSION $VERSION_ not supported"
-    help
-fi
 export VERSION=${VERSION_}
 
 if [[ "$BUILD_TYPE" != "debug" ]] && [[ "$BUILD_TYPE" != "release" ]]; then

@@ -17,19 +17,38 @@ module load PrgEnv-gnu
 module load CMake
 
 if [[ ${COMPILER} == "gcc" ]]; then
-  if [[ ${VERSION} == "5.3" ]]; then
+  case ${VERSION} in
+    "5.3")
       module swap gcc/5.3.0
-  else
-    if [[ ${VERSION} == "6.1" ]]; then
-        module swap gcc/6.1.0
-    else
-        module swap gcc/4.9.3
-    fi
-  fi
+      ;;
+    "6.1")
+      module swap gcc/6.1.0
+      ;;
+    "6.2")
+      module swap gcc/6.2.0
+      ;;
+    "7.1")
+      module swap gcc/7.1.0
+      ;;
+    *)
+      module swap gcc/4.9.3
+  esac
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "clang" ]]; then
   module unload PrgEnv-gnu
-  module load /users/vogtha/modules/compilers/clang/3.8.1
+  case ${VERSION} in
+    "3.9")
+      module load /users/vogtha/modules/compilers/clang/3.9.1
+      ;;
+    "4.0RC2")
+      module load /users/vogtha/modules/compilers/clang/4.0.0rc2
+      ;;
+    "5.0RC2")
+      module load /users/vogtha/modules/compilers/clang/5.0.0rc2
+      ;;
+    *)
+      module load /users/vogtha/modules/compilers/clang/3.8.1
+  esac
   export HOST_COMPILER=`which clang++`
 else
   echo "compiler not supported in environment: ${COMPILER}"
