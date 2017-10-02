@@ -59,6 +59,8 @@
  */
 #define GTREPO_data_stores_get_typename(data_stores_tuple) BOOST_PP_TUPLE_ELEM(0, data_stores_tuple)
 #define GTREPO_data_stores_get_member_name(data_stores_tuple) BOOST_PP_TUPLE_ELEM(1, data_stores_tuple)
+#define GTREPO_data_stores_get_member_name_underscore(data_stores_tuple) \
+    BOOST_PP_CAT(BOOST_PP_TUPLE_ELEM(1, data_stores_tuple), _)
 
 /*
  * GTREPO_max_in_tuple returns the maximum value in a BOOST_PP tuple

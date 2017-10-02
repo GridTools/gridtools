@@ -164,3 +164,27 @@ TEST(repository_with_dims, constructor) {
     ASSERT_EQ(Ni, repo.get_ikfield().dim< 0 >());
     ASSERT_EQ(Nk, repo.get_ikfield().dim< 2 >());
 }
+
+#undef GTREPO_GETTER_PREFIX
+#define GTREPO_GETTER_PREFIX
+#define MY_FIELDTYPES (IJKDataStore)
+#define MY_FIELDS (IJKDataStore, u)(IJKDataStore, v)
+GRIDTOOLS_MAKE_REPOSITORY(my_repository4, MY_FIELDTYPES, MY_FIELDS)
+#undef MY_FIELDTYPES
+#undef MY_FIELDS
+
+TEST(repository_with_custom_getter_prefix, constructor) {
+    int Ni = 12;
+    int Nj = 13;
+    int Nk = 14;
+
+    my_repository4 repo(IJKStorageInfo(Ni, Nj, Nk));
+
+    ASSERT_EQ(Ni, repo.u().dim< 0 >());
+    ASSERT_EQ(Nj, repo.u().dim< 1 >());
+    ASSERT_EQ(Nk, repo.u().dim< 2 >());
+
+    ASSERT_EQ(Ni, repo.v().dim< 0 >());
+    ASSERT_EQ(Nj, repo.v().dim< 1 >());
+    ASSERT_EQ(Nk, repo.v().dim< 2 >());
+}

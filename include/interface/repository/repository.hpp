@@ -57,11 +57,15 @@
 #include "../../common/defs.hpp"
 #endif
 
+#ifndef GTREPO_GETTER_PREFIX
+#define GTREPO_GETTER_PREFIX get_
+#endif
+
 /*
  * @brief makes a data_store data member from the tuple (DataStoreType, MemberName).
  */
 #define GTREPO_make_members_data_stores(r, data, tuple) \
-    GTREPO_data_stores_get_typename(tuple) GTREPO_data_stores_get_member_name(tuple);
+    GTREPO_data_stores_get_typename(tuple) GTREPO_data_stores_get_member_name_underscore(tuple);
 
 /*
  * @brief makes a storage_info data member from the tuple (DataStoreType, DimVector). The type is
@@ -74,9 +78,10 @@
 /*
  * @brief makes a getter for a data_store member variable
  */
-#define GTREPO_make_data_store_getter(r, data, tuple)                                                          \
-    GTREPO_data_stores_get_typename(tuple) & BOOST_PP_CAT(get_, GTREPO_data_stores_get_member_name(tuple))() { \
-        return GTREPO_data_stores_get_member_name(tuple);                                                      \
+#define GTREPO_make_data_store_getter(r, data, tuple)                                     \
+    GTREPO_data_stores_get_typename(tuple) &                                              \
+        BOOST_PP_CAT(GTREPO_GETTER_PREFIX, GTREPO_data_stores_get_member_name(tuple))() { \
+        return GTREPO_data_stores_get_member_name_underscore(tuple);                      \
     }
 
 /*
@@ -91,14 +96,14 @@
  * @brief general helper for constructors
  */
 // helper to create the initializer for data stores
-#define GTREPO_make_ctor_initializer_for_data_stores(r, data, n, tuple)                                    \
-    BOOST_PP_COMMA_IF(n)                                                                                   \
-    GTREPO_data_stores_get_member_name(tuple)(BOOST_PP_CAT(GTREPO_data_stores_get_typename(tuple), _info), \
+#define GTREPO_make_ctor_initializer_for_data_stores(r, data, n, tuple)                                               \
+    BOOST_PP_COMMA_IF(n)                                                                                              \
+    GTREPO_data_stores_get_member_name_underscore(tuple)(BOOST_PP_CAT(GTREPO_data_stores_get_typename(tuple), _info), \
         BOOST_PP_STRINGIZE(GTREPO_data_stores_get_member_name(tuple)))
 // put a data_store in the data_store_map_
-#define GTREPO_ctor_init_map(r, data, tuple) \
-    data_store_map_.emplace(                 \
-        BOOST_PP_STRINGIZE(GTREPO_data_stores_get_member_name(tuple)), GTREPO_data_stores_get_member_name(tuple));
+#define GTREPO_ctor_init_map(r, data, tuple)                                               \
+    data_store_map_.emplace(BOOST_PP_STRINGIZE(GTREPO_data_stores_get_member_name(tuple)), \
+        GTREPO_data_stores_get_member_name_underscore(tuple));
 
 /*
  * @brief GTREPO_make_ctor_storage_infos makes a constructor with storage-infos for each of the data_store types
