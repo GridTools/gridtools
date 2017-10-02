@@ -134,12 +134,12 @@
     BOOST_PP_COMMA_IF(n)                                                                 \
     BOOST_PP_CAT(GTREPO_data_store_types_get_typename(tuple), _info)                     \
     GTREPO_make_dim_args(GTREPO_data_store_types_get_dim_tuple(tuple))
-#define GTREPO_make_ctor_dims(name, data_store_types_seq, data_stores_seq)                             \
-    name(BOOST_PP_ENUM_PARAMS(BOOST_PP_ADD(GTREPO_max_dim(data_store_types_seq), 1), uint_t dim))      \
-        : BOOST_PP_SEQ_FOR_EACH_I(                                                                     \
-              GTREPO_make_ctor_dims_initializer_for_storage_infos_from_dims, ~, data_store_types_seq), \
-          BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_initializer_for_data_stores, ~, data_stores_seq) {  \
-        BOOST_PP_SEQ_FOR_EACH(GTREPO_ctor_init_map, ~, data_stores_seq)                                \
+#define GTREPO_make_ctor_dims(name, data_store_types_seq, data_stores_seq)                                   \
+    name(BOOST_PP_ENUM_PARAMS(BOOST_PP_ADD(GTREPO_max_dim(data_store_types_seq), 1), gridtools::uint_t dim)) \
+        : BOOST_PP_SEQ_FOR_EACH_I(                                                                           \
+              GTREPO_make_ctor_dims_initializer_for_storage_infos_from_dims, ~, data_store_types_seq),       \
+          BOOST_PP_SEQ_FOR_EACH_I(GTREPO_make_ctor_initializer_for_data_stores, ~, data_stores_seq) {        \
+        BOOST_PP_SEQ_FOR_EACH(GTREPO_ctor_init_map, ~, data_stores_seq)                                      \
     }
 /*
  * @brief makes the dims constructor only if a DimTuple is provided in the data_store_types sequence of tuples
@@ -167,8 +167,9 @@
 /*
  * @brief assert that all types which are passed in the sequence of data_store types are actually data_stores
  */
-#define GTREPO_is_data_store(r, data, data_store_type_tuple)                                                       \
-    GRIDTOOLS_STATIC_ASSERT((is_data_store< GTREPO_data_store_types_get_typename(data_store_type_tuple) >::value), \
+#define GTREPO_is_data_store(r, data, data_store_type_tuple)                                              \
+    GRIDTOOLS_STATIC_ASSERT(                                                                              \
+        (gridtools::is_data_store< GTREPO_data_store_types_get_typename(data_store_type_tuple) >::value), \
         "At least one of the arguments passed to the repository as data_store type is not a data_store");
 
 /*
