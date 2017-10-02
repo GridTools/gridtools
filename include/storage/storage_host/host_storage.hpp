@@ -101,9 +101,7 @@ namespace gridtools {
         /*
          * @brief host_storage destructor.
          */
-        ~host_storage() noexcept(false) {
-            ASSERT_OR_THROW(
-                ((m_ownership == ownership::ExternalCPU) || m_cpu_ptr), "This would end up in a double-free.");
+        ~host_storage() {
             if (m_ownership == ownership::Full && m_cpu_ptr)
                 delete[] m_cpu_ptr;
         }
