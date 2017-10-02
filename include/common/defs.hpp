@@ -40,7 +40,7 @@
 #if !defined(__CUDACC__)
 #define CUDA8
 #else
-#if (CUDA_VERSION > 75)
+#if (GT_CUDA_VERSION > 75)
 #define CUDA8
 #endif
 #endif
@@ -115,10 +115,12 @@
 #if defined(_OPENMP)
 #include <omp.h>
 #else
-typedef int omp_int_t;
-inline omp_int_t omp_get_thread_num() { return 0; }
-inline omp_int_t omp_get_max_threads() { return 1; }
-inline double omp_get_wtime() { return 0; }
+namespace gridtools {
+    typedef int omp_int_t;
+    inline omp_int_t omp_get_thread_num() { return 0; }
+    inline omp_int_t omp_get_max_threads() { return 1; }
+    inline double omp_get_wtime() { return 0; }
+} // namespace gridtools
 #endif
 
 #include <boost/mpl/integral_c.hpp>

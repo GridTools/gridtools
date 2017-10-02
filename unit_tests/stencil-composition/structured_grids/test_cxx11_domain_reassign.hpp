@@ -34,138 +34,53 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <stencil-composition/stencil-composition.hpp>
-
-/**
-  @file
-  This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
-*/
-
-using gridtools::level;
-using gridtools::accessor;
-using gridtools::extent;
-using gridtools::arg;
-
-using namespace gridtools;
-using namespace enumtype;
+#include <storage/storage-facility.hpp>
+#include <stencil-composition/arg.hpp>
+#include <stencil-composition/aggregator_type.hpp>
+#include <common/defs.hpp>
+#include <stencil-composition/stencil.hpp>
 
 namespace domain_reassign {
-#ifdef __CUDACC__
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
-#else
-    //                   strides  1 x xy
-    //                      dims  x y z
-    typedef gridtools::layout_map< 0, 1, 2 > layout_t; // stride 1 on k
-#endif
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
-    struct test_functor {
-
-        typedef accessor< 0, enumtype::in, extent<>, 3 > in;
-        typedef accessor< 1, enumtype::inout, extent<>, 3 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
-
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = eval(in());
-        }
-    };
-
-    std::ostream &operator<<(std::ostream &s, test_functor const) { return s << "test_functor"; }
-
-    void handle_error(int_t) { std::cout << "error" << std::endl; }
-
-    bool test() {
-
-        uint_t d1 = 32;
-        uint_t d2 = 32;
-        uint_t d3 = 32;
 
 #ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
+#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
 #else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
 #endif
 #endif
 
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >
-            storage_t;
+    typedef gridtools::storage_traits< gridtools::BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< gridtools::BACKEND::s_backend_id >::data_store_t< gridtools::float_type,
+        storage_info_t > storage_t;
 
-        storage_info_t meta_data_(d1, d2, d3);
+    class gt_example {
 
-        // Definition of the actual data fields that are used for input/output
-        storage_t in(meta_data_, 0.);
-        storage_t out(meta_data_, float_type(-1.));
-        storage_t in2(meta_data_, 0.);
-        storage_t out2(meta_data_, float_type(-1.));
-        auto inv = make_host_view(in);
-        auto outv = make_host_view(out);
-        auto in2v = make_host_view(in2);
-        auto out2v = make_host_view(out2);
-        for (uint_t i = 0; i < d1; ++i)
-            for (uint_t j = 0; j < d2; ++j)
-                for (uint_t k = 0; k < d3; ++k) {
-                    inv(i, j, k) = i + j + k;
-                    in2v(i, j, k) = i + j + k + 3;
-                }
+        typedef gridtools::arg< 0, storage_t > p_in;
+        typedef gridtools::arg< 1, storage_t > p_out;
+        typedef gridtools::tmp_arg< 2, storage_t > p_tmp;
 
-        typedef arg< 0, storage_t > p_in;
-        typedef arg< 1, storage_t > p_out;
+        typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
 
-        typedef boost::mpl::vector< p_in, p_out > accessor_list;
+      private:
+        std::shared_ptr< gridtools::computation< gridtools::aggregator_type< accessor_list >, gridtools::notype > >
+            m_stencil;
 
-        gridtools::aggregator_type< accessor_list > domain(in, out);
+      public:
+        gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t &in, storage_t &out);
 
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        void run(storage_t &in, storage_t &out);
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        void run_plch(storage_t &in, storage_t &out);
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
-            grid,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(), gridtools::make_stage< test_functor >(p_in(), p_out())));
+        void run_on(storage_t &in, storage_t &out);
 
-        copy->ready();
-        copy->steady();
-        copy->run();
-        copy->finalize();
+        void run_on_output(storage_t &out);
 
-        bool success = true;
-        for (uint_t i = 0; i < d1; ++i)
-            for (uint_t j = 0; j < d2; ++j)
-                for (uint_t k = 0; k < d3; ++k) {
-                    if (inv(i, j, k) != outv(i, j, k)) {
-                        std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                  << "in = " << inv(i, j, k) << ", out = " << outv(i, j, k) << std::endl;
-                        success = false;
-                    }
-                }
+        void run_on_plch(storage_t &in, storage_t &out);
 
-        copy->reassign(in2, out2);
-        copy->ready();
-        copy->steady();
-        copy->run();
-        copy->finalize();
-
-        for (uint_t i = 0; i < d1; ++i)
-            for (uint_t j = 0; j < d2; ++j)
-                for (uint_t k = 0; k < d3; ++k) {
-                    if (in2v(i, j, k) != out2v(i, j, k)) {
-                        std::cout << "error in " << i << ", " << j << ", " << k << ": "
-                                  << "in = " << in2v(i, j, k) << ", out = " << out2v(i, j, k) << std::endl;
-                        success = false;
-                    }
-                }
-
-        return success;
-    }
-} // namespace
+        void finalize();
+    };
+}

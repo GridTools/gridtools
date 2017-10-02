@@ -39,7 +39,6 @@
 #include <boost/proto/traits.hpp>
 #include "common/defs.hpp"
 #include "common/host_device.hpp"
-#include "common/is_aggregate.hpp"
 
 namespace gridtools {
 
@@ -145,12 +144,9 @@ namespace gridtools {
            \tparam Lambda the lambda template callable
            \tparam ExtraTypes the types of the input arguments to the lambda
          */
-        template < typename Container,
-            template < UInt T > class Lambda,
-            typename... ExtraTypes,
-            typename boost::disable_if< typename is_aggregate< Container >::type, int >::type = 0 >
+        template < typename Container, template < UInt T > class Lambda, typename... ExtraTypes >
         GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
-            return Container(Lambda< Indices >::apply(args_...)...);
+            return Container{Lambda< Indices >::apply(args_...)...};
         }
 
         /**
@@ -190,17 +186,6 @@ namespace gridtools {
         template < template < UInt T > class MetaFunctor, typename... ExtraTypes >
         GT_FUNCTION static constexpr uint_t apply_void_lambda(ExtraTypes &... args_) {
             return impl::void_lambda(MetaFunctor< Indices >::apply(args_...)...);
-        }
-
-        /**
-           @brief duplicated interface for the case in which the container is an aggregator
-         */
-        template < typename Container,
-            template < UInt T > class Lambda,
-            typename... ExtraTypes,
-            typename boost::enable_if< typename is_aggregate< Container >::type, int >::type = 0 >
-        GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
-            return Container{Lambda< Indices >::apply(args_...)...};
         }
 
         /**
