@@ -52,5 +52,5 @@ using IJDataStore = typename storage_traits< enumtype::Host >::data_store_t< flo
 
 TEST(generated_repository, simple_tests) {
     my_repository repo(3, 4, 5);
-    ASSERT_EQ(3, repo.get_u().dim< 0 >());
+    ASSERT_EQ(3, repo.u().dim< 0 >());
 }

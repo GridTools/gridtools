@@ -58,7 +58,7 @@
 #endif
 
 #ifndef GTREPO_GETTER_PREFIX
-#define GTREPO_GETTER_PREFIX get_
+#define GTREPO_GETTER_PREFIX
 #endif
 
 /*
