@@ -58,7 +58,7 @@ using namespace expressions;
 
 namespace shorizontal_diffusion {
     // This is the definition of the special regions in the "vertical" direction
-    using axis_t = make_axis< 1 >;
+    using axis_t = axis< 1 >;
     using x_lap = axis_t::full_interval;
     using x_flx = axis_t::full_interval; // TODO why do we have the same intervals with different names?
     using x_out = axis_t::full_interval;
@@ -157,8 +157,8 @@ namespace shorizontal_diffusion {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
         auto grid = make_grid(di, dj, axis_t(d3));
 
