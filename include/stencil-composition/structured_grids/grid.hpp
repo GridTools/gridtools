@@ -52,7 +52,7 @@ namespace gridtools {
         GT_FUNCTION explicit grid(const Partitioner &part_, ParallelStorage const &storage_)
             : base_type(part_, storage_) {}
 
-        GT_FUNCTION grid(this_type &other) : base_type(other) {}
+        GT_FUNCTION grid(const this_type &other) : base_type(other) {}
 
         // TODO should be removed (use ctor with halo_descriptor)
         GT_FUNCTION
