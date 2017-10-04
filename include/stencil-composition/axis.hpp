@@ -47,7 +47,7 @@ namespace gridtools {
         // the old "axis" is hard coded to the following interval
         // TODO therefore we have to protect that we do not allow intervals outside of this axis_interval_t
         // This convention was usually respected before but was not a strict condition requirement.
-        using axis_interval_t = interval< level< 0, -1 >, level< NIntervals, 1 > >;
+        using axis_interval_t = interval< level< 0, -1 >, level< NIntervals, max_offsets_ > >;
 
         using full_interval = interval< level< 0, -1 >, level< NIntervals, -1 > >;
 
