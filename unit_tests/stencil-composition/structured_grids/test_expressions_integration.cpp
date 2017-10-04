@@ -56,7 +56,7 @@ using namespace gridtools::expressions;
 namespace {
     const double DEFAULT_VALUE = -999.;
 
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef interval< level< 0, -2 >, level< 1, 1 > > axis_t;
     typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 }
 
@@ -86,7 +86,7 @@ class test_expressions : public testing::Test {
 
     halo_descriptor di;
     halo_descriptor dj;
-    gridtools::grid<::axis > grid;
+    gridtools::grid<::axis_t > grid;
 
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;

@@ -59,6 +59,7 @@ namespace vertical_advection_dycore {
     using axis_t = axis< 1 >;
     using kbody = axis_t::full_interval::modify< 1, -1 >;
     using kbody_low = axis_t::full_interval::modify< 0, -1 >;
+    using kfull = axis_t::full_interval;
     using kminimum = axis_t::full_interval::first_level;
     using kmaximum = axis_t::full_interval::last_level;
 

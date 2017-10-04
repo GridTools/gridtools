@@ -52,7 +52,7 @@ namespace test_cache_stencil {
 
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
-    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, 1 > > axis;
+    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, 1 > > axis_t;
 
     struct functor1 {
         typedef accessor< 0, enumtype::in > in;
@@ -114,7 +114,7 @@ class cache_stencil : public ::testing::Test {
 
     halo_descriptor m_di, m_dj;
 
-    gridtools::grid< axis > m_grid;
+    gridtools::grid< axis_t > m_grid;
     storage_info_t m_meta;
     storage_t m_in, m_out;
 

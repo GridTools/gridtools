@@ -38,33 +38,35 @@
 
 namespace gridtools {
 
-    template < typename AxisInterval, typename Partitioner = partitioner_dummy >
-    struct grid : public grid_base< AxisInterval, Partitioner >,
-                  public clonable_to_gpu< grid< AxisInterval, Partitioner > > {
+    template < typename Axis, typename Partitioner = partitioner_dummy >
+    struct grid : public clonable_to_gpu< grid< Axis, Partitioner > >, public grid_base< Axis, Partitioner > {
+        using this_type = grid< Axis, Partitioner >;
+        using base_type = grid_base< Axis, Partitioner >;
+        static constexpr enumtype::grid_type c_grid_type = enumtype::structured;
+
         GT_FUNCTION
         explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            : grid_base< AxisInterval, Partitioner >(direction_i, direction_j) {}
+            : base_type(direction_i, direction_j) {}
 
         template < typename ParallelStorage >
         GT_FUNCTION explicit grid(const Partitioner &part_, ParallelStorage const &storage_)
-            : grid_base< AxisInterval, Partitioner >(part_, storage_) {}
+            : base_type(part_, storage_) {}
 
-        GT_FUNCTION grid(const grid< AxisInterval, Partitioner > &other)
-            : grid_base< AxisInterval, Partitioner >(other) {}
+        GT_FUNCTION grid(const grid< Axis, Partitioner > &other) : base_type(other) {}
 
         // TODO should be removed (use ctor with halo_descriptor)
         GT_FUNCTION
-        explicit grid(uint_t *i, uint_t *j) : grid_base< AxisInterval, Partitioner >(i, j) {}
+        explicit grid(uint_t *i, uint_t *j) : base_type(i, j) {}
     };
 
     template < typename Grid >
     struct is_grid : boost::mpl::false_ {};
 
-    template < typename AxisInterval >
-    struct is_grid< grid< AxisInterval > > : boost::mpl::true_ {};
+    template < typename Axis >
+    struct is_grid< grid< Axis > > : boost::mpl::true_ {};
 
-    template < typename AxisInterval, typename Partitioner >
-    struct is_grid< grid< AxisInterval, Partitioner > > : boost::mpl::true_ {};
+    template < typename Axis, typename Partitioner >
+    struct is_grid< grid< Axis, Partitioner > > : boost::mpl::true_ {};
 
     template < typename Axis >
     grid< typename Axis::axis_interval_t > make_grid(
