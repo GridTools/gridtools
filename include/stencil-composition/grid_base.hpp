@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,10 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 #include "../common/halo_descriptor.hpp"
 #include "../common/array.hpp"
-#include "../storage/partitioner.hpp"
+#include "../common/partitioner.hpp"
+#include "../common/gpu_clone.hpp"
 #include "interval.hpp"
 #include "axis.hpp"
 
@@ -51,7 +53,7 @@ namespace gridtools {
 
     template < typename AxisInterval, typename Partitioner = partitioner_dummy >
     struct grid_base {
-        GRIDTOOLS_STATIC_ASSERT((is_interval< AxisInterval >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_interval< AxisInterval >::value), GT_INTERNAL_ERROR);
         typedef AxisInterval axis_type;
         typedef Partitioner partitioner_t;
 
@@ -69,26 +71,17 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
-            :
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdangling-field"
-#endif
-              m_partitioner(partitioner_dummy())
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-              ,
+            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
               m_direction_i(direction_i), m_direction_j(direction_j) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            delete &m_partitioner; // HACK
         }
 
         template < typename ParallelStorage >
         GT_FUNCTION explicit grid_base(const Partitioner &part_, ParallelStorage const &storage_)
-            : m_partitioner(part_), m_direction_i(storage_.template get_halo_descriptor< 0 >()) // copy
-              ,
-              m_direction_j(storage_.template get_halo_descriptor< 1 >()) // copy
+            : m_partitioner(part_), m_direction_i(storage_.template get_halo_descriptor< 0 >()), // copy
+              m_direction_j(storage_.template get_halo_descriptor< 1 >())                        // copy
         {
             GRIDTOOLS_STATIC_ASSERT(!is_partitioner_dummy< Partitioner >::value,
                 "you have to add the partitioner to the grid template parameters");
@@ -96,20 +89,12 @@ namespace gridtools {
 
         GT_FUNCTION
         explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/)
-            :
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wdangling-field"
-#endif
-              m_partitioner(partitioner_dummy())
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-              ,
+            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
               m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
-                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+                "You have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            delete &m_partitioner; // HACK
         }
 
         GT_FUNCTION
@@ -126,7 +111,7 @@ namespace gridtools {
 
         template < typename Level >
         GT_FUNCTION uint_t value_at() const {
-            GRIDTOOLS_STATIC_ASSERT((is_level< Level >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_level< Level >::value), GT_INTERNAL_ERROR);
             int_t offs = Level::Offset::value;
             if (offs < 0)
                 offs += 1;
@@ -144,23 +129,19 @@ namespace gridtools {
          * The total length of the k dimension as defined by the axis.
          */
         GT_FUNCTION
-        uint_t k_total_length() const {
-            const uint_t begin_of_k = value_at< typename AxisInterval::FromLevel >();
-            const uint_t end_of_k = value_at< typename AxisInterval::ToLevel >() - 1;
-            return k_max() - k_min() + 1;
-        }
+        uint_t k_total_length() const { return k_max() - k_min() + 1; }
 
-        halo_descriptor const &direction_i() const { return m_direction_i; }
+        GT_FUNCTION halo_descriptor const &direction_i() const { return m_direction_i; }
 
-        halo_descriptor const &direction_j() const { return m_direction_j; }
+        GT_FUNCTION halo_descriptor const &direction_j() const { return m_direction_j; }
 
-        const Partitioner &partitioner() const {
+        GT_FUNCTION const Partitioner &partitioner() const {
             // the partitioner must be set
             return m_partitioner;
         }
 
         template < typename Flag >
-        bool at_boundary(ushort_t const &coordinate_, Flag const &flag_) const {
+        GT_FUNCTION bool at_boundary(ushort_t const &coordinate_, Flag const &flag_) const {
             return m_partitioner.at_boundary(coordinate_, flag_);
         }
 

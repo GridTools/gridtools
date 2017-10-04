@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,26 +34,29 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "functor_default_interval.hpp"
 
 namespace gridtools {
     /**
        @brief type list containing the user function type together with some meta information
 
        \tparam T1 an identifier for the user function
-       \tparam T2 the type of the user function
+       \tparam Functor the type of the user function
        \tparam Repeat a type specifying how many times to repeat the functor call
        (used for expandable parameters)
     */
-    template < typename T1, typename T2, typename Repeat >
+    template < typename T1, typename Functor, typename Repeat, typename Axis >
     struct functor_decorator {
         typedef Repeat repeat_t;
         typedef T1 id;
-        typedef T2 f_type;
+        typedef Functor f_type;
+        typedef functor_default_interval< Functor, Axis > f_with_default_interval;
+        typedef typename Functor::arg_list arg_list;
     };
 
     template < typename T >
     struct is_functor_decorator : boost::mpl::false_ {};
 
-    template < typename T1, typename T2, typename Repeat >
-    struct is_functor_decorator< functor_decorator< T1, T2, Repeat > > : boost::mpl::true_ {};
+    template < typename T1, typename Functor, typename Repeat, typename Axis >
+    struct is_functor_decorator< functor_decorator< T1, Functor, Repeat, Axis > > : boost::mpl::true_ {};
 } // namespace gridtools

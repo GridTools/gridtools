@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -109,16 +109,6 @@ namespace gridtools {
             static const bool value = has_do_impl< TFunctor, int, TInterval >::value;
         };
 
-        template < bool, typename Functor, typename Interval >
-        struct check_if_const {
-            static const bool value = sizeof((embed< Functor >::Do(int(), *(Interval *)0), yes())) == sizeof(yes);
-        };
-
-        template < typename Functor, typename Interval >
-        struct check_if_const< false, Functor, Interval > {
-            static const bool value = true;
-        };
-
     } // namespace HasDoDetails
 
     /**
@@ -134,9 +124,6 @@ namespace gridtools {
         BOOST_STATIC_CONSTANT(
             bool, value = (HasDoDetails::check_if< has_do_member< TFunctor >::value, TFunctor, TInterval >::value));
         typedef boost::mpl::bool_< bool(value) > type;
-
-        GRIDTOOLS_STATIC_ASSERT(
-            (HasDoDetails::check_if_const< value, TFunctor, TInterval >::value), "Functor signature not compliant");
     };
 
 } // namespace gridtools

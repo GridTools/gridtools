@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -42,5 +42,12 @@ TEST(offset_tuple, test_offset_tuple) {
 
     bool result;
     test_offset_tuple(&result);
+    ASSERT_TRUE(result);
+}
+
+TEST(offset_tuple, test_offset_tuple_array_and_dim) {
+
+    bool result;
+    test_offset_tuple_array_and_dim(&result);
     ASSERT_TRUE(result);
 }

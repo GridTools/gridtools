@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@
 #pragma once
 
 namespace gridtools {
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if !defined(__CUDACC__)
     template < typename Pattern, typename Repl, typename Arg >
     struct subs {
         typedef typename boost::mpl::if_< boost::is_same< Pattern, Arg >, Repl, Arg >::type type;

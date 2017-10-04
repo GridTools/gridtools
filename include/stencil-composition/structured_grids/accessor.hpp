@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,4 @@
 #include "../../common/generic_metafunctions/all_integrals.hpp"
 #include "../../common/generic_metafunctions/static_if.hpp"
 
-#ifdef CUDA8
 #include "accessor_cxx11.hpp"
-#else
-#include "accessor_cxx03.hpp"
-#endif // CUDA8

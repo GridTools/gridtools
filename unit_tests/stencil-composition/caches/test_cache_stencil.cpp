@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,8 @@
 #include "stencil-composition/make_computation.hpp"
 #include "tools/verifier.hpp"
 
+constexpr int halo_size = 1;
+
 namespace test_cache_stencil {
 
     using namespace gridtools;
@@ -58,7 +60,7 @@ namespace test_cache_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
         }
     };
@@ -69,7 +71,7 @@ namespace test_cache_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) =
                 (eval(in(-1, 0, 0)) + eval(in(1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0))) / (float_type)4.0;
         }
@@ -81,7 +83,7 @@ namespace test_cache_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in()) + 1;
         }
     };
@@ -92,17 +94,14 @@ namespace test_cache_stencil {
 #define BACKEND backend< Host, structured, Block >
 #endif
 
-    typedef layout_map< 2, 1, 0 > layout_ijk_t;
-    typedef gridtools::BACKEND::storage_type< float_type, gridtools::BACKEND::storage_info< 0, layout_ijk_t > >::type
-        storage_type;
-    typedef gridtools::BACKEND::temporary_storage_type< float_type,
-        gridtools::BACKEND::storage_info< 0, layout_ijk_t > >::type tmp_storage_type;
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo< halo_size, halo_size, 0 > > storage_info_t;
+    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
-    typedef arg< 2, tmp_storage_type > p_buff;
-    typedef arg< 3, tmp_storage_type > p_buff_2;
-    typedef arg< 4, tmp_storage_type > p_buff_3;
+    typedef arg< 0, storage_t > p_in;
+    typedef arg< 1, storage_t > p_out;
+    typedef tmp_arg< 2, storage_t > p_buff;
+    typedef tmp_arg< 3, storage_t > p_buff_2;
+    typedef tmp_arg< 4, storage_t > p_buff_3;
 }
 
 using namespace gridtools;
@@ -111,34 +110,30 @@ using namespace test_cache_stencil;
 
 class cache_stencil : public ::testing::Test {
   protected:
-    const uint_t m_halo_size;
     const uint_t m_d1, m_d2, m_d3;
 
     halo_descriptor m_di, m_dj;
 
     gridtools::grid< axis > m_grid;
-    typename storage_type::storage_info_type m_meta;
-    storage_type m_in, m_out;
+    storage_info_t m_meta;
+    storage_t m_in, m_out;
 
     cache_stencil()
-        : m_halo_size(1), m_d1(32 + 2 * m_halo_size), m_d2(32 + 2 * m_halo_size), m_d3(6),
-#ifdef CXX11_ENABLED
-          m_di{m_halo_size, m_halo_size, m_halo_size, m_d1 - m_halo_size - 1, m_d1},
-          m_dj{m_halo_size, m_halo_size, m_halo_size, m_d2 - m_halo_size - 1, m_d2},
-#else
-          m_di(m_halo_size, m_halo_size, m_halo_size, m_d1 - m_halo_size - 1, m_d1),
-          m_dj(m_halo_size, m_halo_size, m_halo_size, m_d2 - m_halo_size - 1, m_d2),
-#endif
-          m_grid(m_di, m_dj), m_meta(m_d1, m_d2, m_d3), m_in(m_meta, 0., "in"), m_out(m_meta, 0., "out") {
+        : m_d1(128), m_d2(128), m_d3(30), m_di{halo_size, halo_size, halo_size, m_d1 - halo_size - 1, m_d1},
+          m_dj{halo_size, halo_size, halo_size, m_d2 - halo_size - 1, m_d2}, m_grid(m_di, m_dj),
+          m_meta(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3), m_in(m_meta, 0.), m_out(m_meta, 0.) {
         m_grid.value_list[0] = 0;
         m_grid.value_list[1] = m_d3 - 1;
     }
 
     virtual void SetUp() {
+        m_in = storage_t(m_meta, 0.);
+        m_out = storage_t(m_meta, 0.);
+        auto m_inv = make_host_view(m_in);
         for (int i = m_di.begin(); i < m_di.end(); ++i) {
             for (int j = m_dj.begin(); j < m_dj.end(); ++j) {
                 for (int k = 0; k < m_d3; ++k) {
-                    m_in(i, j, k) = i + j * 100 + k * 10000;
+                    m_inv(i, j, k) = i + j * 100 + k * 10000;
                 }
             }
         }
@@ -148,24 +143,16 @@ class cache_stencil : public ::testing::Test {
 TEST_F(cache_stencil, ij_cache) {
     SetUp();
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-#ifdef CXX11_ENABLED
-    auto
-#else
-#ifdef __CUDACC__
-    gridtools::stencil *
-#else
-    boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-        pstencil = make_computation< gridtools::BACKEND >(domain,
+    auto pstencil =
+        make_computation< gridtools::BACKEND >(domain,
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                                              define_caches(cache< IJ, local >(p_buff())),
-                                                              make_stage< functor1 >(p_in(), p_buff()),
-                                                              make_stage< functor1 >(p_buff(), p_out())));
+                                                   define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+                                                   make_stage< functor1 >(p_in(), p_buff()),
+                                                   make_stage< functor1 >(p_buff(), p_out())));
 
     pstencil->ready();
 
@@ -175,60 +162,42 @@ TEST_F(cache_stencil, ij_cache) {
 
     pstencil->finalize();
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{
-        {{m_halo_size, m_halo_size}, {m_halo_size, m_halo_size}, {m_halo_size, m_halo_size}}};
+    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, m_in, m_out, halos));
-#else
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6, m_halo_size);
-#else
-    verifier verif(1e-12, m_halo_size);
-#endif
-    ASSERT_TRUE(verif.verify(m_grid, m_in, m_out));
-#endif
 }
 
 TEST_F(cache_stencil, ij_cache_offset) {
     SetUp();
-    typename storage_type::storage_info_type meta_(m_d1, m_d2, m_d3);
-    storage_type ref(meta_, 0.0, "ref");
-
-    for (int i = m_halo_size; i < m_d1 - m_halo_size; ++i) {
-        for (int j = m_halo_size; j < m_d2 - m_halo_size; ++j) {
+    storage_info_t meta_(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3);
+    storage_t ref(meta_, 0.0);
+    auto m_inv = make_host_view(m_in);
+    auto refv = make_host_view(ref);
+    for (int i = halo_size; i < m_d1 - halo_size; ++i) {
+        for (int j = halo_size; j < m_d2 - halo_size; ++j) {
             for (int k = 0; k < m_d3; ++k) {
-                ref(i, j, k) =
-                    (m_in(i - 1, j, k) + m_in(i + 1, j, k) + m_in(i, j - 1, k) + m_in(i, j + 1, k)) / (float_type)4.0;
+                refv(i, j, k) = (m_inv(i - 1, j, k) + m_inv(i + 1, j, k) + m_inv(i, j - 1, k) + m_inv(i, j + 1, k)) /
+                                (float_type)4.0;
             }
         }
     }
 
     typedef boost::mpl::vector3< p_in, p_out, p_buff > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-#ifdef CXX11_ENABLED
-    auto
-#else
-#ifdef __CUDACC__
-    gridtools::stencil *
-#else
-    boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-        pstencil =
-            make_computation< gridtools::BACKEND >(domain,
-                m_grid,
-                make_multistage // mss_descriptor
-                (execute< forward >(),
-                                                       define_caches(cache< IJ, local >(p_buff())),
-                                                       make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
-                                                       make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
-                                                       ));
+    auto pstencil =
+        make_computation< gridtools::BACKEND >(domain,
+            m_grid,
+            make_multistage // mss_descriptor
+            (execute< forward >(),
+                                                   // define_caches(cache< IJ, cache_io_policy::local >(p_buff())),
+                                                   make_stage< functor1 >(p_in(), p_buff()), // esf_descriptor
+                                                   make_stage< functor2 >(p_buff(), p_out()) // esf_descriptor
+                                                   ));
 
     pstencil->ready();
 
@@ -238,64 +207,48 @@ TEST_F(cache_stencil, ij_cache_offset) {
 
     pstencil->finalize();
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
     verifier verif(1e-12);
 #endif
-    array< array< uint_t, 2 >, 3 > halos{
-        {{m_halo_size, m_halo_size}, {m_halo_size, m_halo_size}, {m_halo_size, m_halo_size}}};
+    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
-#else
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6, m_halo_size);
-#else
-    verifier verif(1e-12, m_halo_size);
-#endif
-    ASSERT_TRUE(verif.verify(m_grid, ref, m_out));
-#endif
 }
 
 TEST_F(cache_stencil, multi_cache) {
     SetUp();
-    typename storage_type::storage_info_type meta_(m_d1, m_d2, m_d3);
-    storage_type ref(meta_, 0.0, "ref");
+    storage_info_t meta_(m_d1 + 2 * halo_size, m_d2 + 2 * halo_size, m_d3);
+    storage_t ref(meta_, 0.0);
+    auto m_inv = make_host_view(m_in);
+    auto refv = make_host_view(ref);
 
-    for (int i = m_halo_size; i < m_d1 - m_halo_size; ++i) {
-        for (int j = m_halo_size; j < m_d2 - m_halo_size; ++j) {
+    for (int i = halo_size; i < m_d1 - halo_size; ++i) {
+        for (int j = halo_size; j < m_d2 - halo_size; ++j) {
             for (int k = 0; k < m_d3; ++k) {
-                ref(i, j, k) = (m_in(i, j, k) + 4);
+                refv(i, j, k) = (m_inv(i, j, k) + 4);
             }
         }
     }
 
     typedef boost::mpl::vector5< p_in, p_out, p_buff, p_buff_2, p_buff_3 > accessor_list;
-    gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&m_in, &m_out));
+    gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-#ifdef CXX11_ENABLED
-    auto
-#else
-#ifdef __CUDACC__
-    gridtools::stencil *
-#else
-    boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-        stencil = make_computation< gridtools::BACKEND >(
-            domain,
-            m_grid,
-            make_multistage // mss_descriptor
-            (execute< forward >(),
-                // test if define_caches works properly with multiple vectors of caches.
-                // in this toy example two vectors are passed (IJ cache vector for p_buff
-                // and p_buff_2, IJ cache vector for p_buff_3)
-                define_caches(cache< IJ, local >(p_buff(), p_buff_2()), cache< IJ, local >(p_buff_3())),
-                make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
-                make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
-                make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
-                make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
-                ));
+    auto stencil = make_computation< gridtools::BACKEND >(
+        domain,
+        m_grid,
+        make_multistage // mss_descriptor
+        (execute< forward >(),
+            // test if define_caches works properly with multiple vectors of caches.
+            // in this toy example two vectors are passed (IJ cache vector for p_buff
+            // and p_buff_2, IJ cache vector for p_buff_3)
+            define_caches(cache< IJ, cache_io_policy::local >(p_buff(), p_buff_2()),
+                cache< IJ, cache_io_policy::local >(p_buff_3())),
+            make_stage< functor3 >(p_in(), p_buff()),       // esf_descriptor
+            make_stage< functor3 >(p_buff(), p_buff_2()),   // esf_descriptor
+            make_stage< functor3 >(p_buff_2(), p_buff_3()), // esf_descriptor
+            make_stage< functor3 >(p_buff_3(), p_out())     // esf_descriptor
+            ));
     stencil->ready();
 
     stencil->steady();
@@ -304,13 +257,7 @@ TEST_F(cache_stencil, multi_cache) {
 
     stencil->finalize();
 
-#ifdef CXX11_ENABLED
     verifier verif(1e-13);
-    array< array< uint_t, 2 >, 3 > halos{
-        {{m_halo_size, m_halo_size}, {m_halo_size, m_halo_size}, {m_halo_size, m_halo_size}}};
+    array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
     ASSERT_TRUE(verif.verify(m_grid, ref, m_out, halos));
-#else
-    verifier verif(1e-13, m_halo_size);
-    ASSERT_TRUE(verif.verify(m_grid, ref, m_out));
-#endif
 }

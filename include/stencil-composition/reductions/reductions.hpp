@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -37,11 +37,8 @@
 
 #include "../esf.hpp"
 #include "../make_stage.hpp"
-#ifdef CXX11_ENABLE
+
 #include "make_reduction_cxx11.hpp"
-#else
-#include "make_reduction_cxx03.hpp"
-#endif
 
 #include "../make_computation.hpp"
 #include "../../common/binops.hpp"

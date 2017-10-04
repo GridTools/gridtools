@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ using namespace gridtools;
 
 namespace make_computation_test {
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > axis;
     using backend_t = backend< enumtype::Host, enumtype::icosahedral, enumtype::Block >;
     using icosahedral_topology_t = gridtools::icosahedral_topology< backend_t >;
 
@@ -64,7 +64,7 @@ namespace make_computation_test {
         using arg_list = boost::mpl::vector1< in >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval, axis) {}
     };
 }
 

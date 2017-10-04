@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -46,11 +46,11 @@ TEST(test_grid, k_total_length) {
     uint_t splitter_end = 50;
 
     typedef interval< level< 0, offset_from >, level< 1, offset_to + 1 > > axis;
-    grid< axis > grid_(halo_descriptor(0, 0, 0, 0, 0), halo_descriptor(0, 0, 0, 0, 0));
+    grid< axis > grid_(halo_descriptor{}, halo_descriptor{});
     grid_.value_list[0] = splitter_begin;
     grid_.value_list[1] = splitter_end;
 
-    uint_t expected_total_length = splitter_end - splitter_begin - offset_from + offset_to;
+    uint_t expected_total_length = (int_t)splitter_end - (int_t)splitter_begin - offset_from + offset_to;
 
     ASSERT_EQ(expected_total_length, grid_.k_total_length());
 }
@@ -59,17 +59,17 @@ class test_grid_copy_ctor : public ::testing::Test {
   private:
     halo_descriptor halo_i;
     halo_descriptor halo_j;
-    const int value_0;
-    const int value_1;
+    const int splitter_0;
+    const int splitter_1;
 
   public:
     typedef interval< level< 0, -1 >, level< 1, -1 > > axis;
     grid< axis > grid_;
 
     test_grid_copy_ctor()
-        : halo_i(1, 2, 3, 4, 5), halo_j(6, 7, 8, 9, 10), value_0(2), value_1(5), grid_(halo_i, halo_j) {
-        grid_.value_list[0] = value_0;
-        grid_.value_list[1] = value_1;
+        : halo_i(1, 1, 1, 3, 5), halo_j(2, 2, 2, 7, 10), splitter_0(2), splitter_1(5), grid_(halo_i, halo_j) {
+        grid_.value_list[0] = splitter_0;
+        grid_.value_list[1] = splitter_1;
     }
 };
 

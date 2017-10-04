@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -49,22 +49,22 @@ namespace gridtools {
         DISALLOW_COPY_AND_ASSIGN(timer);
 
       protected:
-        __host__ timer(std::string name) {
+        GT_FUNCTION_HOST timer(std::string name) {
             m_name = name;
             reset();
         }
-        __host__ ~timer() {}
+        GT_FUNCTION_HOST ~timer() {}
 
       public:
         /**
         * Reset counters
         */
-        __host__ void reset() { set(0.0); }
+        GT_FUNCTION_HOST void reset() { set(0.0); }
 
         /**
         * Reset counters
         */
-        __host__ void set(double time_ = 0.0) {
+        GT_FUNCTION_HOST void set(double time_ = 0.0) {
             m_total_time = time_;
             static_cast< TimerImpl * >(this)->set_impl(time_);
         }
@@ -72,22 +72,22 @@ namespace gridtools {
         /**
         * Start the stop watch
         */
-        __host__ void start() { static_cast< TimerImpl * >(this)->start_impl(); }
+        GT_FUNCTION_HOST void start() { static_cast< TimerImpl * >(this)->start_impl(); }
 
         /**
         * Pause the stop watch
         */
-        __host__ void pause() { m_total_time += static_cast< TimerImpl * >(this)->pause_impl(); }
+        GT_FUNCTION_HOST void pause() { m_total_time += static_cast< TimerImpl * >(this)->pause_impl(); }
 
         /**
         * @return total elapsed time [s]
         */
-        __host__ double total_time() const { return m_total_time; }
+        GT_FUNCTION_HOST double total_time() const { return m_total_time; }
 
         /**
         * @return total elapsed time [s] as string
         */
-        __host__ std::string to_string() const {
+        GT_FUNCTION_HOST std::string to_string() const {
             std::ostringstream out;
             if (m_total_time < 0)
                 out << "\t[s]\t" << m_name << "NO_TIMES_AVAILABLE";

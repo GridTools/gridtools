@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -65,8 +65,8 @@ namespace gridtools {
     */
     template < typename Mss1, typename Mss2, typename Condition >
     condition< Mss1, Mss2, Condition > if_(Condition cond, Mss1 const &mss1_, Mss2 const &mss2_) {
-        GRIDTOOLS_STATIC_ASSERT(is_computation_token< Mss1 >::value, "wrong type");
-        GRIDTOOLS_STATIC_ASSERT(is_computation_token< Mss2 >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_computation_token< Mss1 >::value, GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(is_computation_token< Mss2 >::value, GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(is_conditional< Condition >::value,
             "you have to pass to gridtools::if_ an instance of type \"conditional\" as first argument.");
         return condition< Mss1, Mss2, Condition >(cond, mss1_, mss2_);

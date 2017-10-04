@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,20 @@ namespace interface {
     bool test_trivial() {
         accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(3, 2, -1);
         return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
+    }
+
+    bool test_array() {
+        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
+        GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1), "ERROR");
+        return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
+    }
+
+    bool test_array_and_dim() {
+        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(
+            array< int_t, 3 >{3, 2, -1}, dimension< 1 >(2));
+
+        GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1), "ERROR");
+        return first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1;
     }
 
     /** @brief interface with out-of-order optional arguments
@@ -134,6 +148,8 @@ TEST(Accessor, is_accessor) {
 }
 
 TEST(Accessor, Trivial) { EXPECT_TRUE(test_trivial()); }
+
+TEST(Accessor, Array) { EXPECT_TRUE(test_array()); }
 
 TEST(Accessor, Alternative) { EXPECT_TRUE(test_alternative1()); }
 

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include <boost/type_traits/is_same.hpp>
 #include "common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "common/array.hpp"
 #include "common/generic_metafunctions/variadic_typedef.hpp"
@@ -41,15 +42,26 @@
 template < int Idx >
 struct get_component {
 
-    GT_FUNCTION
-    constexpr get_component() {}
+    GT_FUNCTION constexpr static int apply() { return 0; }
 
     template < typename... Ints >
-    GT_FUNCTION constexpr static int apply(Ints... args_) {
-        return std::get< Idx >(std::make_tuple(args_...));
+    GT_FUNCTION constexpr static int apply(int first, Ints... rest) {
+        return Idx ? get_component< Idx - 1 >::apply(rest...) : first;
     }
 };
+
+template < int Idx, typename Elem >
+struct get_component_meta {
+    static constexpr int value = Elem::value;
+};
+
 using namespace gridtools;
+
+template < int Idx, typename Elem >
+struct get_component_type {
+
+    static constexpr int value = Elem::value;
+};
 
 TEST(integer_sequence, fill_array) {
 
@@ -61,6 +73,26 @@ TEST(integer_sequence, fill_array) {
 
     // verifying that the information is actually compile-time known and that it's correct
     GRIDTOOLS_STATIC_ASSERT(out[0] == 0 && out[1] == 1 && out[2] == 2 && out[3] == 3, "Error in test_integer_sequence");
+}
+
+template < int... v >
+struct extent_test {};
+
+TEST(integer_sequence, fill_templated_container) {
+
+    using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
+
+    // calling the array constexpr copy constructor
+    using extent_t = seq::template apply_t< int,
+        extent_test,
+        get_component_meta,
+        static_int< 0 >,
+        static_int< 1 >,
+        static_int< -2 >,
+        static_int< 3 > >::type;
+    // verifying that the information is actually compile-time known and that it's correct
+    GRIDTOOLS_STATIC_ASSERT(
+        (boost::is_same< extent_test< 0, 1, -2, 3 >, extent_t >::value), "Error in test_integer_sequence");
 }
 
 template < int Idx >
@@ -76,7 +108,7 @@ struct transform {
 };
 
 struct lambda {
-    constexpr int operator()(const int i, const int j, const int k, const int l, const int add) {
+    constexpr int operator()(const int i, const int j, const int k, const int l, const int add) const {
         return add * (i + j + k + l);
     }
 };
@@ -93,4 +125,3 @@ TEST(integer_sequence, apply_lambda) {
 
     ASSERT_TRUE(true);
 }
-

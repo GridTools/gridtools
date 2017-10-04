@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,8 @@
 #include <boost/mpl/range_c.hpp>
 #include "level.hpp"
 #include "../common/host_device.hpp"
+#include "sfinae.hpp"
+#include "../common/gt_assert.hpp"
 
 namespace gridtools {
 
@@ -60,6 +62,8 @@ namespace gridtools {
         // (due to this trick we can search all do method overloads starting at a given from position)
         GT_FUNCTION
         interval(){};
+
+        interval(sfinae::_impl::dummy_type) { assert(false); } // using this just for SFINAE
 
         GT_FUNCTION
         interval(TFromLevel){};

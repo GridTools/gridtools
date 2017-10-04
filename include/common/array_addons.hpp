@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <common/array.hpp>
+#include "array.hpp"
 
 namespace gridtools {
     template < typename T, size_t D >
@@ -48,6 +48,29 @@ namespace gridtools {
         return s;
     }
 
+    template < typename T, size_t D >
+    std::vector< T > to_vector(array< T, D > const &a) {
+        std::vector< T > v(D);
+        for (int i = 0; i < D; ++i) {
+            v.at(i) = a[i];
+        }
+        return v;
+    }
+
+    namespace impl {
+        template < typename Value >
+        struct array_initializer {
+            template < int Idx >
+            struct type {
+                constexpr type() {}
+
+                template < long unsigned int ndims >
+                constexpr static Value apply(const std::array< Value, ndims > data) {
+                    return data[Idx];
+                }
+            };
+        };
+    }
 } // namespace gridtools
 
 template < typename T, typename U, size_t D >

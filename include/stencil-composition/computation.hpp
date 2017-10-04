@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,17 +34,65 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-// //\todo this struct becomes redundant when the auto keyword is used
+
+#include "intermediate_impl.hpp"
+#include "aggregator_type.hpp"
+#include "stencil.hpp"
+
 namespace gridtools {
-    template < typename ReductionType = int >
-    struct computation {
-        virtual void ready() = 0;
-        virtual void steady() = 0;
-        virtual void finalize() = 0;
-        virtual ReductionType run() = 0;
-        virtual std::string print_meter() = 0;
-        virtual double get_meter() = 0;
-        virtual void reset_meter() = 0;
+
+    template < typename Aggregator, typename ReductionType = notype >
+    struct computation
+        : public boost::mpl::if_< boost::is_same< ReductionType, notype >, stencil, reduction< ReductionType > >::type {
+
+        using base_t = typename boost::mpl::if_< boost::is_same< ReductionType, notype >,
+            stencil,
+            reduction< ReductionType > >::type;
+        using typename base_t::return_t;
+        using base_t::run;
+
+      public:
+        computation(Aggregator const &domain) : m_domain(domain) {}
+
+        template < typename... DataStores,
+            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
+                0 >
+        void reassign(DataStores &... stores) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
+            m_domain.reassign_storages_impl(stores...);
+        }
+
+        template < typename... DataStores,
+            typename boost::enable_if_c< _impl::aggregator_storage_check< DataStores... >::type::value &&
+                                             (sizeof...(DataStores) > 0),
+                int >::type = 0 >
+        typename base_t::return_t run(DataStores &... stores) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
+            m_domain.reassign_storages_impl(stores...);
+            return run();
+        }
+
+        template < typename... ArgStoragePairs,
+            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+                int >::type = 0 >
+        void reassign(ArgStoragePairs... pairs) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
+            m_domain.reassign_arg_storage_pairs_impl(pairs...);
+        }
+
+        template < typename... ArgStoragePairs,
+            typename boost::enable_if_c< _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type::value &&
+                                             (sizeof...(ArgStoragePairs) > 0),
+                int >::type = 0 >
+        typename base_t::return_t run(ArgStoragePairs... pairs) {
+            boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
+            m_domain.reassign_arg_storage_pairs_impl(pairs...);
+
+            return run();
+        }
+
+      protected:
+        Aggregator m_domain;
     };
 
 } // namespace gridtools

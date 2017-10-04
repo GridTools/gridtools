@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,11 +41,11 @@
  */
 
 #pragma once
-#include "stencil-composition/backend_host/iterate_domain_host.hpp"
-#include "stencil-composition/loop_hierarchy.hpp"
-#include "../../iteration_policy.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits.hpp"
+#include "../../iteration_policy.hpp"
+#include "stencil-composition/backend_host/iterate_domain_host.hpp"
+#include "stencil-composition/loop_hierarchy.hpp"
 
 namespace gridtools {
 
@@ -86,8 +86,7 @@ namespace gridtools {
                 }
             };
 
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_run_functor_arguments< RunFunctorArguments >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
@@ -115,46 +114,26 @@ namespace gridtools {
                 const uint_t last_j,
                 const uint_t block_idx_i,
                 const uint_t block_idx_j)
-                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data)
-#ifdef CXX11_ENABLED
-                  ,
-                  m_first_pos{first_i, first_j}, m_last_pos{last_i, last_j}, m_block_id {
-                block_idx_i, block_idx_j
-            }
-#else
-                  ,
-                  m_first_pos(first_i, first_j), m_last_pos(last_i, last_j), m_block_id(block_idx_i, block_idx_j)
-#endif
-            {}
+                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data),
+                  m_first_pos{first_i, first_j}, m_last_pos{last_i, last_j}, m_block_id{block_idx_i, block_idx_j} {}
 
             // Naive strategy
             explicit execute_kernel_functor_host(
                 const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
-                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data)
-#ifdef CXX11_ENABLED
-                  ,
+                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data),
                   m_first_pos{grid.i_low_bound(), grid.j_low_bound()},
                   m_last_pos{grid.i_high_bound() - grid.i_low_bound(), grid.j_high_bound() - grid.j_low_bound()},
-                  m_block_id {
-                0, 0
-            }
-#else
-                  ,
-                  m_first_pos(grid.i_low_bound(), grid.j_low_bound()),
-                  m_last_pos(grid.i_high_bound() - grid.i_low_bound(), grid.j_high_bound() - grid.j_low_bound()),
-                  m_block_id(0, 0)
-#endif
-            {}
+                  m_block_id{0, 0} {}
 
             void operator()() {
                 typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
                 typedef typename RunFunctorArguments::execution_type_t execution_type_t;
 
                 // in the host backend there should be only one esf per mss
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1),
-                    "Internal Error: wrong size");
+                GRIDTOOLS_STATIC_ASSERT(
+                    (boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1), GT_INTERNAL_ERROR);
                 typedef typename boost::mpl::back< typename RunFunctorArguments::extent_sizes_t >::type extent_t;
-                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), "Internal Error: wrong type");
+                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), GT_INTERNAL_ERROR);
 
                 typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
                 typedef backend_traits_from_id< enumtype::Host > backend_traits_t;
@@ -174,7 +153,7 @@ namespace gridtools {
                 }
 #endif
 
-                typename iterate_domain_t::data_pointer_array_t data_pointer;
+                typename iterate_domain_t::data_ptr_cached_t data_pointer;
                 typedef typename iterate_domain_t::strides_cached_t strides_t;
                 strides_t strides;
 

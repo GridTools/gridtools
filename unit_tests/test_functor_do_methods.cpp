@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -45,7 +45,7 @@ using namespace gridtools;
 // test functor 1
 struct Functor0 {
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 3, -1 >, level< 3, -1 > >) {
+    static void Do(TArguments &args, interval< level< 3, -1 >, level< 3, -1 > >) {
         std::cout << "Functor0:Do(Interval<Level<3,-1>, Level<3,-1> >) called" << std::endl;
     }
 };
@@ -53,7 +53,7 @@ struct Functor0 {
 // test functor 1
 struct Functor1 {
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 0, 1 >, level< 2, -1 > >) {
+    static void Do(TArguments &args, interval< level< 0, 1 >, level< 2, -1 > >) {
         std::cout << "Functor1:Do(Interval<Level<0,1>, Level<2,-1> >) called" << std::endl;
     }
 };
@@ -61,12 +61,12 @@ struct Functor1 {
 // test functor 2
 struct Functor2 {
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 0, 1 >, level< 1, -1 > >) {
+    static void Do(TArguments &args, interval< level< 0, 1 >, level< 1, -1 > >) {
         std::cout << "Functor2:Do(Interval<Level<0,1>, Level<1,-1> >) called" << std::endl;
     }
 
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 1, 1 >, level< 3, -1 > >) {
+    static void Do(TArguments &args, interval< level< 1, 1 >, level< 3, -1 > >) {
         std::cout << "Functor2:Do(Interval<Level<1,1>, Level<3,-1> >) called" << std::endl;
     }
 };
@@ -74,11 +74,11 @@ struct Functor2 {
 // illegal functor
 struct IllegalFunctor {
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 1, 1 >, level< 2, -1 > >) {}
+    static void Do(TArguments &args, interval< level< 1, 1 >, level< 2, -1 > >) {}
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 1, 1 >, level< 3, -2 > >) {}
+    static void Do(TArguments &args, interval< level< 1, 1 >, level< 3, -2 > >) {}
     template < typename TArguments >
-    static void Do(TArguments const &args, interval< level< 3, -1 >, level< 3, -1 > >) {}
+    static void Do(TArguments &args, interval< level< 3, -1 >, level< 3, -1 > >) {}
 };
 
 // functor printing level and index

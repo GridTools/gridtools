@@ -1,5 +1,5 @@
-list( APPEND SRCFILES #laplace
-      copy_stencil_icosahedral expandable_parameters_icosahedral stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertexes stencil_on_edges_multiplefields)
+list( APPEND SRCFILES
+      copy_stencil_icosahedral expandable_parameters_icosahedral stencil_on_cells stencil_on_cells_color stencil_on_edges stencil_on_edges_of_cells stencil_fused stencil_on_neighcell_of_edges stencil_on_neighedge_of_cells stencil_manual_fold stencil_on_vertices stencil_on_edges_multiplefields curl div lap)
 
 file(GLOB_RECURSE INC_ALL_ "[a-z]*.hpp")
 list ( APPEND INC_ALL ${INC_ALL_} )
@@ -29,8 +29,7 @@ endforeach(srcfile)
 if(CUDA_FOUND)
     foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
          set(CUDA_SEPARABLE_COMPILATION OFF)
-         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
-         set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
+         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES} OPTIONS ${GPU_SPECIFIC_FLAGS})
          target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 
          if( ${srcfile} STREQUAL "stencil_on_vertexes")

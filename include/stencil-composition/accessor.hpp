@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,6 @@
 #pragma once
 
 #include "global_accessor.hpp"
-
-// TODOMEETING protect this with define and ifdef inside
-// TODOMEETING inline namespaces to protect grid backends
 
 #ifdef STRUCTURED_GRIDS
 #include "stencil-composition/structured_grids/accessor_metafunctions.hpp"

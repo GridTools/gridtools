@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -56,7 +56,7 @@ namespace gridtools {
     template < typename MssDescriptorArray >
     struct reduction_data< MssDescriptorArray, true > {
         GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), "Internal Error: wrong type");
+            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
 
         typedef typename boost::mpl::fold< typename MssDescriptorArray::elements,
             boost::mpl::vector0<>,
@@ -85,15 +85,9 @@ namespace gridtools {
 
         void reduce() {
             m_reduced_value = m_initial_value;
-#ifdef CXX11_ENABLED
             for (auto val : m_parallel_reduced_val) {
                 m_reduced_value = bin_op_t()(m_reduced_value, val);
             }
-#else
-            for (uint_t i = 0; i < m_parallel_reduced_val.size(); ++i) {
-                m_reduced_value = bin_op_t()(m_reduced_value, m_parallel_reduced_val[i]);
-            }
-#endif
         }
         reduction_type_t reduced_value() const { return m_reduced_value; }
 

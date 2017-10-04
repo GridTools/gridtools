@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,15 @@ namespace gridtools {
     struct pair_type {
         typedef T first;
         typedef U second;
+    };
+
+    /**
+       @brief simple wrapper for a pair of integral types
+     */
+    template < typename Value, Value T, Value U >
+    struct ipair_type {
+        static constexpr Value first = T;
+        static constexpr Value second = U;
     };
 
     /**

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,5 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#ifdef CXX11_ENABLED
 #define new_cond conditional< __COUNTER__ >
 #define new_switch_variable switch_variable< __COUNTER__, int >
-#else
-#define new_cond(a, b) conditional< __COUNTER__ > a(b)
-#endif

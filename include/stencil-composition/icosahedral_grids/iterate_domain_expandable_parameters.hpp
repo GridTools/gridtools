@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 */
 #pragma once
 #include "../iterate_domain.hpp"
-#include "extent.hpp"
+#include "../extent.hpp"
 
 /** @file iterate_domain for expandable parameters*/
 
@@ -60,7 +60,7 @@ namespace gridtools {
     template < typename IterateDomain, ushort_t Position >
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, GT_INTERNAL_ERROR);
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
         typedef IterateDomain iterate_domain_t;
@@ -96,9 +96,9 @@ namespace gridtools {
             typedef typename super::template accessor_return_type<
                 accessor< ACC_ID, Intent, LocationType, Extent, Size > >::type return_t;
 
-            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
             accessor< ACC_ID, Intent, LocationType, Extent, Size > tmp_(arg);
-            tmp_.template set< 1 >(ID);
+            tmp_.template set< 0 >(ID);
             return super::operator()(static_cast< const accessor< ACC_ID, Intent, LocationType, Extent, Size > >(tmp_));
         }
     };

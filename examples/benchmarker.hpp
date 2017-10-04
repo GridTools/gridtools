@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include <memory>
+
 #include "stencil-composition/stencil.hpp"
 #include "cache_flusher.hpp"
 #include "defs.hpp"
@@ -41,18 +43,7 @@ namespace gridtools {
 
     struct benchmarker {
 
-        static void run(
-#ifdef CXX11_ENABLED
-            std::shared_ptr< gridtools::stencil >
-#else
-#ifdef __CUDACC__
-            gridtools::stencil *
-#else
-            boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-                stencil,
-            uint_t tsteps) {
+        static void run(std::shared_ptr< gridtools::stencil > stencil, uint_t tsteps) {
             cache_flusher flusher(cache_flusher_size);
             // we run a first time the stencil, since if there is data allocation before by other codes, the first run
             // of the stencil

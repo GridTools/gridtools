@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,7 @@
 #pragma once
 
 // This file contains all header files required by the cuda backend
-#include "../../storage/hybrid_pointer.hpp"
 #include "../execution_policy.hpp"
-#include "../heap_allocated_temps.hpp"
 #include "../backend_fwd.hpp"
 #include "../../storage/storage-facility.hpp"
 #include "backend_traits_cuda.hpp"

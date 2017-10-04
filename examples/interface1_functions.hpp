@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@
 #include "horizontal_diffusion_repository.hpp"
 #include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
-#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/stencil-functions/stencil-functions.hpp>
 #include "./cache_flusher.hpp"
 #include "./defs.hpp"
 
@@ -57,19 +57,10 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-// Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
-//  for any type, which breaks most of the code after using expressions
-#ifdef CXX11_ENABLED
-// using namespace expressions;
-#endif
-
 namespace horizontal_diffusion_functions {
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_lap;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_flx;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_out;
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 3 > > axis;
+    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
@@ -78,8 +69,8 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval, x_lap) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation eval) {
             auto x = (gridtools::float_type)4.0 * eval(in()) -
                      (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
             eval(out()) = x;
@@ -94,10 +85,9 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval, x_flx) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation eval) {
 #ifdef FUNCTIONS_MONOLITHIC
-#pragma message "monolithic version"
             gridtools::float_type _x_ =
                 (gridtools::float_type)4.0 * eval(in()) -
                 (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
@@ -107,22 +97,22 @@ namespace horizontal_diffusion_functions {
 #else
 #ifdef FUNCTIONS_PROCEDURES
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function, x_flx >::at< 0, 0, 0 >::with(eval, _x_, in());
+            gridtools::call_proc< lap_function >::at< 0, 0, 0 >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function, x_flx >::at< 1, 0, 0 >::with(eval, _y_, in());
+            gridtools::call_proc< lap_function >::at< 1, 0, 0 >::with(eval, _y_, in());
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function, x_flx >::with_offsets(eval, _x_, in());
+            gridtools::call_proc< lap_function >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function, x_flx >::with_offsets(eval, _y_, in(1, 0, 0));
+            gridtools::call_proc< lap_function >::with(eval, _y_, in(1, 0, 0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-            gridtools::float_type _x_ = gridtools::call< lap_function, x_flx >::with_offsets(eval, in(0, 0, 0));
-            gridtools::float_type _y_ = gridtools::call< lap_function, x_flx >::with_offsets(eval, in(1, 0, 0));
+            gridtools::float_type _x_ = gridtools::call< lap_function >::with(eval, in(0, 0, 0));
+            gridtools::float_type _y_ = gridtools::call< lap_function >::with(eval, in(1, 0, 0));
 #else
-            gridtools::float_type _x_ = gridtools::call< lap_function, x_flx >::at< 0, 0, 0 >::with(eval, in());
-            gridtools::float_type _y_ = gridtools::call< lap_function, x_flx >::at< 1, 0, 0 >::with(eval, in());
+            gridtools::float_type _x_ = gridtools::call< lap_function >::at< 0, 0, 0 >::with(eval, in());
+            gridtools::float_type _y_ = gridtools::call< lap_function >::at< 1, 0, 0 >::with(eval, in());
 #endif
 #endif
 #endif
@@ -140,11 +130,10 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval, x_flx) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation eval) {
 
 #ifdef FUNCTIONS_MONOLITHIC
-#pragma message "monolithic version"
             gridtools::float_type _x_ =
                 (gridtools::float_type)4.0 * eval(in()) -
                 (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
@@ -154,22 +143,22 @@ namespace horizontal_diffusion_functions {
 #else
 #ifdef FUNCTIONS_PROCEDURES
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function, x_flx >::at< 0, 0, 0 >::with(eval, _x_, in());
+            gridtools::call_proc< lap_function >::at< 0, 0, 0 >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function, x_flx >::at< 0, 1, 0 >::with(eval, _y_, in());
+            gridtools::call_proc< lap_function >::at< 0, 1, 0 >::with(eval, _y_, in());
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function, x_flx >::with_offsets(eval, _x_, in());
+            gridtools::call_proc< lap_function >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function, x_flx >::with_offsets(eval, _y_, in(0, 1, 0));
+            gridtools::call_proc< lap_function >::with(eval, _y_, in(0, 1, 0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-            gridtools::float_type _x_ = gridtools::call< lap_function, x_flx >::with_offsets(eval, in(0, 0, 0));
-            gridtools::float_type _y_ = gridtools::call< lap_function, x_flx >::with_offsets(eval, in(0, 1, 0));
+            gridtools::float_type _x_ = gridtools::call< lap_function >::with(eval, in(0, 0, 0));
+            gridtools::float_type _y_ = gridtools::call< lap_function >::with(eval, in(0, 1, 0));
 #else
-            gridtools::float_type _x_ = gridtools::call< lap_function, x_flx >::at< 0, 0, 0 >::with(eval, in());
-            gridtools::float_type _y_ = gridtools::call< lap_function, x_flx >::at< 0, 1, 0 >::with(eval, in());
+            gridtools::float_type _x_ = gridtools::call< lap_function >::at< 0, 0, 0 >::with(eval, in());
+            gridtools::float_type _y_ = gridtools::call< lap_function >::at< 0, 1, 0 >::with(eval, in());
 #endif
 #endif
 #endif
@@ -189,8 +178,8 @@ namespace horizontal_diffusion_functions {
 
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
-        template < typename Evaluator >
-        GT_FUNCTION static void Do(Evaluator const &eval, x_out) {
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) =
                 eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
         }
@@ -224,7 +213,6 @@ namespace horizontal_diffusion_functions {
 #endif
 
         typedef horizontal_diffusion::repository::storage_type storage_type;
-        typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
 
         horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
         repository.init_fields();
@@ -238,8 +226,8 @@ namespace horizontal_diffusion_functions {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, tmp_storage_type > p_flx;
-        typedef arg< 1, tmp_storage_type > p_fly;
+        typedef tmp_arg< 0, storage_type > p_flx;
+        typedef tmp_arg< 1, storage_type > p_fly;
         typedef arg< 2, storage_type > p_coeff;
         typedef arg< 3, storage_type > p_in;
         typedef arg< 4, storage_type > p_out;
@@ -248,16 +236,8 @@ namespace horizontal_diffusion_functions {
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_flx, p_fly, p_coeff, p_in, p_out > accessor_list;
 
-// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
-// used, temporary and not
-// It must be noted that the only fields to be passed to the constructor are the non-temporary.
-// The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
-// don't particularly like this)
-#if defined(CXX11_ENABLED) && !defined(CUDA_EXAMPLE)
-        gridtools::aggregator_type< accessor_list > domain_((p_out() = out), (p_in() = in), (p_coeff() = coeff));
-#else
-        gridtools::aggregator_type< accessor_list > domain_(boost::fusion::make_vector(&coeff, &in, &out));
-#endif
+        gridtools::aggregator_type< accessor_list > domain_(coeff, in, out);
+
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -269,26 +249,17 @@ namespace horizontal_diffusion_functions {
         grid_.value_list[0] = 0;
         grid_.value_list[1] = d3 - 1;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
-                domain_,
-                grid_,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    define_caches(cache< IJ, local >(p_flx(), p_fly())),
-                    // gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
-                    gridtools::make_independent // independent_esf
-                    (gridtools::make_stage< flx_function >(p_flx(), p_in()),
-                        gridtools::make_stage< fly_function >(p_fly(), p_in())),
-                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+        auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
+            domain_,
+            grid_,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                define_caches(cache< IJ, cache_io_policy::local >(p_flx(), p_fly())),
+                // gridtools::make_stage<lap_function>(p_lap(), p_in()), // esf_descriptor
+                gridtools::make_independent // independent_esf
+                (gridtools::make_stage< flx_function >(p_flx(), p_in()),
+                    gridtools::make_stage< fly_function >(p_fly(), p_in())),
+                gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         horizontal_diffusion->ready();
 
@@ -298,9 +269,7 @@ namespace horizontal_diffusion_functions {
 
         horizontal_diffusion->run();
 
-#ifdef __CUDACC__
-        repository.update_cpu();
-#endif
+        repository.out().sync();
 
         bool result = true;
         if (verify) {
@@ -310,13 +279,9 @@ namespace horizontal_diffusion_functions {
             verifier verif(1e-12);
 #endif
 
-#ifdef CXX11_ENABLED
             array< array< uint_t, 2 >, 3 > halos{
                 {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
             bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
-#else
-            result = verif.verify(repository.out_ref(), repository.out());
-#endif
         }
         if (!result) {
             std::cout << "ERROR" << std::endl;
@@ -334,7 +299,7 @@ namespace horizontal_diffusion_functions {
         std::cout << horizontal_diffusion->print_meter() << std::endl;
 #endif
 
-        return result; /// lapse_time.wall<5000000 &&
+        return result;
     }
 
 } // namespace horizontal_diffusion_functions

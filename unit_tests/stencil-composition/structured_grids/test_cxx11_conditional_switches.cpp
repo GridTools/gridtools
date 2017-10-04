@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ namespace test_conditional_switches {
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(p_dummy()) += Id;
         }
     };
@@ -79,7 +79,7 @@ namespace test_conditional_switches {
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(p_dummy()) += Id;
         }
     };
@@ -91,23 +91,21 @@ namespace test_conditional_switches {
         auto nested_cond_ = new_switch_variable([]() { return 1; });
         auto other_cond_ = new_switch_variable([&p]() { return p ? 1 : 2; });
 
-        grid< axis > grid_({0, 0, 0, 6, 7}, {0, 0, 0, 6, 7});
+        grid< axis > grid_({0, 0, 0, 0, 1}, {0, 0, 0, 0, 1});
         grid_.value_list[0] = 0;
-        grid_.value_list[1] = 7;
+        grid_.value_list[1] = 1;
 
-        typedef gridtools::layout_map< 2, 1, 0 > layout_t; // stride 1 on i
-        typedef BACKEND::storage_info< __COUNTER__, layout_t > meta_data_t;
-        typedef BACKEND::storage_info< __COUNTER__, layout_t > tmp_meta_data_t;
-        typedef BACKEND::storage_type< uint_t, meta_data_t >::type storage_t;
-        typedef BACKEND::temporary_storage_type< uint_t, tmp_meta_data_t >::type tmp_storage_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >
+            data_store_t;
 
-        meta_data_t meta_data_(8, 8, 8);
-        storage_t dummy(meta_data_, 0, "dummy");
-        typedef arg< 0, storage_t > p_dummy;
-        typedef arg< 1, tmp_storage_t > p_dummy_tmp;
+        storage_info_t meta_data_(8, 8, 8);
+        data_store_t dummy(meta_data_, 0.);
+        typedef arg< 0, data_store_t > p_dummy;
+        typedef tmp_arg< 1, data_store_t > p_dummy_tmp;
 
         typedef boost::mpl::vector2< p_dummy, p_dummy_tmp > arg_list;
-        aggregator_type< arg_list > domain_(boost::fusion::make_vector(&dummy));
+        aggregator_type< arg_list > domain_(dummy);
 
         auto comp_ = make_computation< BACKEND >(
             domain_,
@@ -120,30 +118,8 @@ namespace test_conditional_switches {
                         make_multistage(enumtype::execute< enumtype::forward >(),
                             make_stage< functor1< 1 > >(p_dummy(), p_dummy_tmp()),
                             make_stage< functor2< 1 > >(p_dummy(), p_dummy_tmp()))),
-                // case_(1,
-                //         make_multistage(enumtype::execute< enumtype::forward >(),
-                //             make_stage< functor1< 2 > >(p_dummy(), p_dummy_tmp()),
-                //             make_stage< functor2< 2 > >(p_dummy(), p_dummy_tmp()))),
-                // case_(2,
-                //         make_multistage(enumtype::execute< enumtype::forward >(),
-                //             make_stage< functor1< 3 > >(p_dummy(), p_dummy_tmp()),
-                //             make_stage< functor2< 3 > >(p_dummy(), p_dummy_tmp()))),
-                // case_(3,
-                //         make_multistage(enumtype::execute< enumtype::forward >(),
-                //             make_stage< functor1< 4 > >(p_dummy(), p_dummy_tmp()),
-                //             make_stage< functor2< 4 > >(p_dummy(), p_dummy_tmp()))),
-                // case_(4,
-                //         make_multistage(enumtype::execute< enumtype::forward >(),
-                //             make_stage< functor1< 5 > >(p_dummy(), p_dummy_tmp()),
-                //             make_stage< functor2< 5 > >(p_dummy(), p_dummy_tmp()))),
                 case_(5,
                         switch_(nested_cond_,
-                            // case_(2,
-                            //         make_multistage(enumtype::execute< enumtype::forward >(),
-                            //             make_stage< functor1< 1000 > >(
-                            //                      p_dummy(), p_dummy_tmp()),
-                            //             make_stage< functor2< 1000 > >(
-                            //                      p_dummy(), p_dummy_tmp()))),
                             case_(1,
                                     make_multistage(enumtype::execute< enumtype::forward >(),
                                         make_stage< functor1< 2000 > >(p_dummy(), p_dummy_tmp()),
@@ -151,10 +127,6 @@ namespace test_conditional_switches {
                             default_(make_multistage(enumtype::execute< enumtype::forward >(),
                                 make_stage< functor1< 3000 > >(p_dummy(), p_dummy_tmp()),
                                 make_stage< functor2< 3000 > >(p_dummy(), p_dummy_tmp()))))),
-                // case_(6,
-                //         make_multistage(enumtype::execute< enumtype::forward >(),
-                //             make_stage< functor1< 6 > >(p_dummy(), p_dummy_tmp()),
-                //             make_stage< functor2< 6 > >(p_dummy(), p_dummy_tmp()))),
                 default_(make_multistage(enumtype::execute< enumtype::forward >(),
                     make_stage< functor1< 7 > >(p_dummy(), p_dummy_tmp()),
                     make_stage< functor2< 7 > >(p_dummy(), p_dummy_tmp())))),
@@ -179,19 +151,14 @@ namespace test_conditional_switches {
         comp_->ready();
         comp_->steady();
         comp_->run();
-#ifdef __CUDACC__
-        dummy.d2h_update();
-#endif
-        result = result && (dummy(0, 0, 0) == 842);
+        dummy.sync();
+        result = result && (make_host_view(dummy)(0, 0, 0) == 842);
 
         p = false;
-#ifdef __CUDACC__
-        // this is necessary otherwise "finalize" will think that the copy device-to-host is not needed
-        dummy.set_on_device();
-#endif
         comp_->run();
+
         comp_->finalize();
-        result = result && (dummy(0, 0, 0) == 5662);
+        result = result && (make_host_view(dummy)(0, 0, 0) == 5662);
 
         return result;
     }

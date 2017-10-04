@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -42,8 +42,8 @@ namespace gridtools {
 
     template < typename AxisInterval, typename GridTopology >
     struct grid : public grid_base< AxisInterval >, public clonable_to_gpu< grid< AxisInterval, GridTopology > > {
-        GRIDTOOLS_STATIC_ASSERT((is_interval< AxisInterval >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_grid_topology< GridTopology >::value), GT_INTERNAL_ERROR);
 
         typedef GridTopology grid_topology_t;
 
@@ -51,6 +51,8 @@ namespace gridtools {
         GridTopology m_grid_topology;
 
       public:
+        static constexpr enumtype::grid_type c_grid_type = enumtype::icosahedral;
+
         GT_FUNCTION
         // TODO make grid const
         // TODO should be removed (use ctor with halo_descriptor)
@@ -64,7 +66,8 @@ namespace gridtools {
             GridTopology &grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : grid_base< AxisInterval >(direction_i, direction_j), m_grid_topology(grid_topology) {}
 
-        __device__ grid(grid const &other) : grid_base< AxisInterval >(other), m_grid_topology(other.m_grid_topology) {}
+        GT_FUNCTION_DEVICE grid(grid const &other)
+            : grid_base< AxisInterval >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
         GridTopology const &grid_topology() const { return m_grid_topology; }

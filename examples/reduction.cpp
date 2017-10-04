@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -66,5 +66,5 @@ TEST(Reductions, Test) {
     if (t == 0)
         t = 1;
 
-    ASSERT_TRUE(reduction::test(x, y, z, t));
+    ASSERT_TRUE(test_reduction::test(x, y, z, t));
 }

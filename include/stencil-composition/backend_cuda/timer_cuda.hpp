@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -45,12 +45,12 @@ namespace gridtools {
     class timer_cuda : public timer< timer_cuda > // CRTP
     {
       public:
-        __host__ timer_cuda(std::string name) : timer< timer_cuda >(name) {
+        GT_FUNCTION_HOST timer_cuda(std::string name) : timer< timer_cuda >(name) {
             // create the CUDA events
             cudaEventCreate(&start_);
             cudaEventCreate(&stop_);
         }
-        __host__ ~timer_cuda() {
+        GT_FUNCTION_HOST ~timer_cuda() {
             // free the CUDA events
             cudaEventDestroy(start_);
             cudaEventDestroy(stop_);
@@ -59,12 +59,12 @@ namespace gridtools {
         /**
         * Reset counters
         */
-        __host__ void set_impl(double const & /*time_*/) {}
+        GT_FUNCTION_HOST void set_impl(double const & /*time_*/) {}
 
         /**
         * Start the stop watch
         */
-        __host__ void start_impl() {
+        GT_FUNCTION_HOST void start_impl() {
             // insert a start event
             cudaEventRecord(start_, 0);
         }
@@ -72,7 +72,7 @@ namespace gridtools {
         /**
         * Pause the stop watch
         */
-        __host__ double pause_impl() {
+        GT_FUNCTION_HOST double pause_impl() {
             // insert stop event and wait for it
             cudaEventRecord(stop_, 0);
             cudaEventSynchronize(stop_);

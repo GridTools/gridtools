@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,15 @@
 #pragma once
 
 /**@file
-   @brief contains the API of the caonditionals type, to be used for specifying the control flow
+   @brief contains the API of the conditionals type, to be used for specifying the control flow
    in the computation tree.
 
    The user wanting to select a multi-stage stencil at runtime, based on a boolean condition, must instantiate
    this class with a unique ID as template argument, construct it using the boolean condition, and then
-   use the \ref gridtools::if_ statement from whithin the make_computation.
+   use the \ref gridtools::if_ statement from within the make_computation.
 */
-#ifdef CXX11_ENABLED
-#if (GCC_53_BUG)
 #include <functional>
+
 namespace gridtools {
     struct condition_functor {
         std::function< short_t() > m_1;
@@ -58,13 +57,8 @@ namespace gridtools {
         bool operator()() const { return m_1() == m_2; }
     };
 }
-#define BOOL_FUNC(val) condition_functor val
-#else
+
 #define BOOL_FUNC(val) std::function< bool() > val
-#endif
-#else
-#define BOOL_FUNC(val) bool (*val)()
-#endif
 
 namespace gridtools {
 
@@ -72,7 +66,7 @@ namespace gridtools {
     class conditional {
 
         // weak pointer, viewing the boolean condition
-        BOOL_FUNC(m_value);
+        std::function< bool() > m_value;
 
       public:
         typedef static_uint< Tag > index_t;
@@ -81,18 +75,10 @@ namespace gridtools {
         /**
            @brief default constructor
          */
-        conditional() // try to avoid this?
-            : m_value(
-#ifdef CXX11_ENABLED
-#if (!GCC_53_BUG)
-                  []() {
-                      assert(false);
-                      return false;
-                  }
-#endif
-#endif
-                  ) {
-        }
+        conditional() = default;
+        conditional(conditional const &) = default;
+        conditional(conditional &&) = default;
+        conditional &operator=(conditional const &) = default;
 
         /**
            @brief constructor for switch variables (for GCC53 bug)
@@ -100,15 +86,6 @@ namespace gridtools {
            This constructor should not be needed
         */
         conditional(BOOL_FUNC(c)) : m_value(c) {}
-
-#if (GCC_53_BUG)
-#ifdef CXX11_ENABLED
-        /**
-           @brief constructor from a std::function
-         */
-        conditional(std::function< bool() > c) : m_value(c) {}
-#endif
-#endif // GCC_53_BUG
 
         /**@brief returns the boolean condition*/
         bool value() const { return m_value(); }

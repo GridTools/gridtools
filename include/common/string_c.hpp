@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -37,7 +37,6 @@
 
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
     /**@file
     @brief implementation of a compile time string.
 
@@ -124,7 +123,6 @@ namespace gridtools {
             apply(s...);
         }
     };
-#endif // CXX11_ENABLED
 
     /**@brief simple function that copies a string **/
     inline char const *malloc_and_copy(char const *src) {

@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -38,13 +38,14 @@
    that will be allocated in shared memory
  */
 #pragma once
+#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
+#include "common/generic_metafunctions/void_if_empty.hpp"
+#include "stencil-composition/accessor.hpp"
+#include <boost/fusion/include/at_key.hpp>
+#include <boost/fusion/sequence/intrinsic/at_key.hpp>
+#include <boost/mpl/at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/map.hpp>
-#include <boost/mpl/at.hpp>
-#include <boost/fusion/sequence/intrinsic/at_key.hpp>
-#include <boost/fusion/include/at_key.hpp>
-#include "stencil-composition/accessor.hpp"
-#include "common/generic_metafunctions/fusion_map_to_mpl_map.hpp"
 
 namespace gridtools {
 
@@ -53,18 +54,18 @@ namespace gridtools {
      * data structure that holds data members of the iterate domain that must be stored in shared memory.
      * @tparam DataPointerArray array of data pointers
      * @tparam StridesType strides cached type
-     * @tparam IJCachesTuple fusion map of <index_type, cache_storage>
+     * @tparam IJCachesTuple fusion map of <index_t, cache_storage>
      */
     template < typename DataPointerArray, typename StridesType, typename MaxExtent, typename IJCachesTuple >
     class shared_iterate_domain {
-        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesType >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((is_strides_cached< StridesType >::value), GT_INTERNAL_ERROR);
         DISALLOW_COPY_AND_ASSIGN(shared_iterate_domain);
         // TODO: protect IJCachesTuple
 
       private:
         DataPointerArray m_data_pointer;
         StridesType m_strides;
-        IJCachesTuple m_ij_caches_tuple;
+        void_if_empty_t< IJCachesTuple > m_ij_caches_tuple; // HACK: see void_if_empty_t
 
         // For some reasons fusion metafunctions (such as result_of::at_key) fail on a fusion map
         // constructed with the result_of::as_map from a fusion vector.

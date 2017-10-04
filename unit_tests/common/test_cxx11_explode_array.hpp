@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@
 class PackChecker {
 
   public:
+    GT_FUNCTION
     constexpr PackChecker() {}
 
     GT_FUNCTION
@@ -55,9 +56,10 @@ class PackChecker {
 class TuplePackChecker {
 
   public:
+    GT_FUNCTION
     constexpr TuplePackChecker() {}
     GT_FUNCTION
-    static bool check(int i1, double i2, unsigned short i3) {
+    static constexpr bool check(int i1, double i2, unsigned short i3) {
         return ((i1 == -35) && gridtools::compare_below_threshold(i2, 23.3, 1e-6) && (i3 == 9));
     }
 
@@ -69,6 +71,7 @@ class TuplePackChecker {
 
 class TuplePackCheckerInt {
   public:
+    GT_FUNCTION
     constexpr TuplePackCheckerInt() {}
 
     GT_FUNCTION
@@ -81,6 +84,7 @@ class TuplePackCheckerInt {
 };
 
 struct _impl_index {
+    GT_FUNCTION
     constexpr _impl_index() {}
 
     template < typename... UInt >
@@ -90,6 +94,7 @@ struct _impl_index {
 };
 
 struct _impl_index_tuple_int {
+    GT_FUNCTION
     constexpr _impl_index_tuple_int() {}
 
     template < typename... UInt >
@@ -99,6 +104,7 @@ struct _impl_index_tuple_int {
 };
 
 struct _impl_index_tuple {
+    GT_FUNCTION
     constexpr _impl_index_tuple() {}
 
     template < typename... UInt >

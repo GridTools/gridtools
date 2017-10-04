@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ namespace gridtools {
             typedef To to;
 
             GT_FUNCTION
-            static uint_t increment(uint_t &k) { return ++k; }
+            static int_t increment(int_t &k) { return ++k; }
 
             template < typename IterateDomain >
             GT_FUNCTION static void increment(IterateDomain &eval) {
@@ -63,7 +63,7 @@ namespace gridtools {
             }
 
             GT_FUNCTION
-            static bool condition(uint_t const &a, uint_t const &b) {
+            static bool condition(int_t const &a, int_t const &b) {
                 return a <= b;
             } // because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we
               // should have allocated more memory)
@@ -77,7 +77,7 @@ namespace gridtools {
             typedef From to;
 
             GT_FUNCTION
-            static uint_t increment(uint_t &k) { return --k; }
+            static int_t increment(int_t &k) { return --k; }
 
             template < typename Domain >
             GT_FUNCTION static void increment(Domain &dom) {
@@ -85,10 +85,18 @@ namespace gridtools {
             }
 
             GT_FUNCTION
-            static bool condition(uint_t const &a, uint_t const &b) {
+            static bool condition(int_t const &a, int_t const &b) {
                 return a >= b;
             } // because the k dimension excludes the extremes, so we want to loop on the internal levels (otherwise we
               // should have allocated more memory)
         };
+
     } // namespace _impl
+
+    template < typename T >
+    struct is_iteration_policy : boost::mpl::false_ {};
+
+    template < typename From, typename To, typename ZDimIndex, enumtype::execution ExecutionType >
+    struct is_iteration_policy< _impl::iteration_policy< From, To, ZDimIndex, ExecutionType > > : boost::mpl::true_ {};
+
 } // namespace gridtools

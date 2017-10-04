@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,8 @@
 
 #include <gridtools.hpp>
 #include <common/defs.hpp>
+#include <ctime>
+
 #define offs_(i, j, k, n, m, l) ((i) * (m) * (l) + (j) * (l) + (k))
 
 using gridtools::uint_t;
@@ -72,7 +74,7 @@ void print(double *that, uint_t n, uint_t m, uint_t l, Stream &stream) {
 int main_naive(int argc, char **argv) {
 
     if (argc != 4) {
-        std::cout << "Usage: basic_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
+        std::cout << "Usage: vanilla_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
                   << std::endl;
         return 1;
     }
@@ -135,7 +137,7 @@ int main_naive(int argc, char **argv) {
 int main_naive_inc(int argc, char **argv) {
 
     if (argc != 4) {
-        std::cout << "Usage: basic_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
+        std::cout << "Usage: vanilla_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
                   << std::endl;
         return 1;
     }
@@ -218,7 +220,7 @@ int main_naive_inc(int argc, char **argv) {
 int main_block(int argc, char **argv) {
 
     if (argc != 4) {
-        std::cout << "Usage: basic_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
+        std::cout << "Usage: vanilla_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
                   << std::endl;
         return 1;
     }
@@ -370,7 +372,7 @@ int main_block(int argc, char **argv) {
 int main_block_inc(int argc, char **argv) {
 
     if (argc != 4) {
-        std::cout << "Usage: basic_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
+        std::cout << "Usage: vanilla_laplacian dimx dimy dimz\n where args are integer sizes of the data fields"
                   << std::endl;
         return 1;
     }

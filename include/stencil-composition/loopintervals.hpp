@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -90,8 +90,8 @@ namespace gridtools {
     template < typename TDoMethods, typename TAxisInterval >
     struct compute_loop_intervals {
         // check the template parameters
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence< TDoMethods >::value), "Internal Error: wrong type");
-        GRIDTOOLS_STATIC_ASSERT((is_interval< TAxisInterval >::value), "Internal Error: wrong type");
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence< TDoMethods >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_interval< TAxisInterval >::value), GT_INTERNAL_ERROR);
 
         // define the from and to level indexes
         typedef typename interval_from_index< TAxisInterval >::type FromIndex;
@@ -110,8 +110,8 @@ namespace gridtools {
                                                boost::mpl::_1 > >::type OrderedFromIndexes;
 
         // check that there are at least two levels
-        GRIDTOOLS_STATIC_ASSERT(
-            boost::mpl::size< OrderedFromIndexes >::value >= 2, "there must be at least two levels");
+        GRIDTOOLS_STATIC_ASSERT(boost::mpl::size< OrderedFromIndexes >::value >= 2,
+            "The vertical axis on the grid must contain at least two levels");
 
         // iterate over all levels and group succeeding levels into intervals
         // (note that the prior is ok as do methods do not end at the maximum or minimum offsets of a splitter)

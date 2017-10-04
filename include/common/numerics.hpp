@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,16 +36,19 @@
 #ifndef _NUMERICS_H_
 #define _NUMERICS_H_
 
-/**
-@file
-@brief compile-time computation of the power three.
-*/
+#include "defs.hpp"
+#include "host_device.hpp"
 
 namespace gridtools {
     namespace _impl {
         /** @brief Compute 3^I at compile time*/
         template < uint_t I >
         struct static_pow3;
+
+        template <>
+        struct static_pow3< 0 > {
+            static const int value = 1;
+        };
 
         template <>
         struct static_pow3< 1 > {
@@ -56,6 +59,13 @@ namespace gridtools {
         struct static_pow3 {
             static const int value = 3 * static_pow3< I - 1 >::value;
         };
+
+        /** @brief provide a constexpr version of std::ceil */
+        GT_FUNCTION constexpr int static_ceil(float num) {
+            return (static_cast< float >(static_cast< int >(num)) == num)
+                       ? static_cast< int >(num)
+                       : static_cast< int >(num) + ((num > 0) ? 1 : 0);
+        }
     }
 }
 
