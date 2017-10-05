@@ -50,11 +50,8 @@
 #include "high-level/descriptors.hpp"
 #include "high-level/descriptors_dt.hpp"
 #include "high-level/descriptors_dt_whole.hpp"
-#include "high-level/descriptors.hpp"
 #include "high-level/descriptors_manual_gpu.hpp"
-#include "high-level/descriptor_generic_manual.hpp"
 
-#include "low-level/translate.hpp"
 #include "high-level/field_on_the_fly.hpp"
 
 namespace gridtools {
