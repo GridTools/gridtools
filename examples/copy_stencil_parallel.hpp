@@ -45,9 +45,9 @@
 #include <iostream>
 #include <fstream>
 
-#include "../unit_tests/communication/check_flags.hpp"
-#include "../unit_tests/communication/mpi_listener.hpp"
-#include "../unit_tests/communication/device_binding.hpp"
+#include <tools/mpi_unit_test_driver/check_flags.hpp>
+#include <tools/mpi_unit_test_driver/mpi_listener.hpp>
+#include <tools/mpi_unit_test_driver/device_binding.hpp>
 
 /** @file
     @brief This file shows an implementation of the "copy" stencil in parallel with boundary conditions*/

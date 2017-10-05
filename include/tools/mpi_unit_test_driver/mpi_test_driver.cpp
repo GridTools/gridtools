@@ -42,6 +42,7 @@
 #endif
 #include "gtest/gtest.h"
 
+#include "../../communication/GCL.hpp"
 #include "./mpi_listener.hpp"
 #include "./device_binding.hpp"
 

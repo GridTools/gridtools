@@ -43,7 +43,7 @@
 #include <common/boollist.hpp>
 #include <storage/storage-facility.hpp>
 #include "gtest/gtest.h"
-#include "../../unit_tests/communication/device_binding.hpp"
+#include <tools/mpi_unit_test_driver/device_binding.hpp>
 
 /*
   If GT_TEST_ENABLE_OUTPUT macro is defined then output is produced in
