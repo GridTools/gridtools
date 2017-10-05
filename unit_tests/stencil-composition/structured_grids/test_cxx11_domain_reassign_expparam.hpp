@@ -58,9 +58,9 @@ namespace domain_reassign {
 
     class gt_example {
 
-        typedef gridtools::arg< 0, storage_t > p_in;
-        typedef gridtools::arg< 1, storage_t > p_out;
-        typedef gridtools::tmp_arg< 2, storage_t > p_tmp;
+        typedef gridtools::arg< 0, std::vector< storage_t > > p_in;
+        typedef gridtools::arg< 1, std::vector< storage_t > > p_out;
+        typedef gridtools::tmp_arg< 2, std::vector< storage_t > > p_tmp;
 
         typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
 
@@ -69,18 +69,22 @@ namespace domain_reassign {
             m_stencil;
 
       public:
-        gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t &in, storage_t &out);
+        gt_example(gridtools::uint_t d1,
+            gridtools::uint_t d2,
+            gridtools::uint_t d3,
+            std::vector< storage_t > &in,
+            std::vector< storage_t > &out);
 
-        void run(storage_t &in, storage_t &out);
+        ~gt_example();
 
-        void run_plch(storage_t &in, storage_t &out);
+        void run(std::vector< storage_t > &in, std::vector< storage_t > &out);
 
-        void run_on(storage_t &in, storage_t &out);
+        void run_plch(std::vector< storage_t > &in, std::vector< storage_t > &out);
 
-        void run_on_output(storage_t &out);
+        void run_on(std::vector< storage_t > &in, std::vector< storage_t > &out);
 
-        void run_on_plch(storage_t &in, storage_t &out);
+        void run_on_output(std::vector< storage_t > &out);
 
-        void finalize();
+        void run_on_plch(std::vector< storage_t > &in, std::vector< storage_t > &out);
     };
 }
