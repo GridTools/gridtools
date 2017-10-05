@@ -80,7 +80,7 @@ TEST_F(test_grid_copy_ctor, copy_on_host) {
 }
 
 TEST(test_grid, make_grid_makes_splitters_and_values) {
-    halo_descriptor empty_{0, 0, 0, 0, 0};
+    halo_descriptor empty_{0, 0, 0, 0, 1};
 
     const uint_t interval1_size = 5;
     const uint_t interval2_size = 10;
