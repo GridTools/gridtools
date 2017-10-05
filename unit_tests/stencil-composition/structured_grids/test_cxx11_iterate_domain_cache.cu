@@ -48,7 +48,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 // This is the definition of the special regions in the "vertical" direction
-typedef gridtools::interval< level< 0, -1 >, level< 2, 1 > > axis;
+typedef gridtools::interval< level< 0, -1 >, level< 2, 1 > > axis_t;
 typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
 typedef gridtools::interval< level< 0, 1 >, level< 1, -1 > > krange1;
 typedef gridtools::interval< level< 1, 1 >, level< 2, -2 > > krange2;
@@ -144,7 +144,7 @@ TEST(iterate_domain_cache, flush) {
         caches_t,
         block_size< 32, 4, 1 >,
         block_size< 32, 4, 1 >,
-        gridtools::grid< axis >,
+        gridtools::grid< axis_t >,
         boost::mpl::false_,
         notype > iterate_domain_arguments_t;
 
@@ -250,7 +250,7 @@ TEST(iterate_domain_cache, fill) {
         caches_t,
         block_size< 32, 4, 1 >,
         block_size< 32, 4, 1 >,
-        gridtools::grid< axis >,
+        gridtools::grid< axis_t >,
         boost::mpl::false_,
         notype > iterate_domain_arguments_t;
 
@@ -353,7 +353,7 @@ TEST(iterate_domain_cache, epflush) {
         cachesf_t,
         block_size< 32, 4, 1 >,
         block_size< 32, 4, 1 >,
-        gridtools::grid< axis >,
+        gridtools::grid< axis_t >,
         boost::mpl::false_,
         notype > iterate_domain_arguments_t;
 
@@ -464,7 +464,7 @@ TEST(iterate_domain_cache, bpfill) {
         caches_t,
         block_size< 32, 4, 1 >,
         block_size< 32, 4, 1 >,
-        gridtools::grid< axis >,
+        gridtools::grid< axis_t >,
         boost::mpl::false_,
         notype > iterate_domain_arguments_t;
 
