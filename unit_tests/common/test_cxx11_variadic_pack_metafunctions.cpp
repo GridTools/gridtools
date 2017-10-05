@@ -33,5 +33,29 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define CUDA_EXAMPLE
-#include "expandable_parameters_reassign_domain.cpp"
+
+#include "gtest/gtest.h"
+#include <common/variadic_pack_metafunctions.hpp>
+#include <common/defs.hpp>
+
+TEST(VariadicPackMetafunctions, GetIndexOfElementInVariadicPack) {
+    GRIDTOOLS_STATIC_ASSERT((gridtools::get_index_of_element_in_pack(0, 1, 1, 2, 3, 4) == 0),
+        "Failed to retrieve correct index from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::get_index_of_element_in_pack(0, 2, 1, 2, 3, 4) == 1),
+        "Failed to retrieve correct index from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::get_index_of_element_in_pack(0, 3, 1, 2, 3, 4) == 2),
+        "Failed to retrieve correct index from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT((gridtools::get_index_of_element_in_pack(0, 4, 1, 2, 3, 4) == 3),
+        "Failed to retrieve correct index from varidadic pack.");
+}
+
+TEST(VariadicPackMetafunctions, GetElementFromVariadicPack) {
+    GRIDTOOLS_STATIC_ASSERT(
+        (gridtools::get_value_from_pack(0, 1, 2, 3, 4) == 1), "Failed to retrieve correct value from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT(
+        (gridtools::get_value_from_pack(1, 1, 2, 3, 4) == 2), "Failed to retrieve correct value from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT(
+        (gridtools::get_value_from_pack(2, 1, 2, 3, 4) == 3), "Failed to retrieve correct value from varidadic pack.");
+    GRIDTOOLS_STATIC_ASSERT(
+        (gridtools::get_value_from_pack(3, 1, 2, 3, 4) == 4), "Failed to retrieve correct value from varidadic pack.");
+}

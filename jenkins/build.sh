@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 
 function exit_if_error {
     if [ "x$1" != "x0" ]
@@ -69,10 +69,6 @@ while getopts "h:b:t:f:c:l:zmsidvq:x:in" opt; do
     esac
 done
 
-if [[ "$VERSION_"  != "4.9" ]] && [[ "$VERSION_" != "5.3" ]]; then
-    echo "VERSION $VERSION_ not supported"
-    help
-fi
 export VERSION=${VERSION_}
 
 if [[ "$BUILD_TYPE" != "debug" ]] && [[ "$BUILD_TYPE" != "release" ]]; then
@@ -195,11 +191,8 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     for i in `seq 1 $num_make_rep`;
     do
       echo "COMPILATION # ${i}"
-      if [ ${i} -eq ${num_make_rep} ]; then
-          ${SRUN_BUILD_COMMAND} make  >& ${log_file};
-      else
-          ${SRUN_BUILD_COMMAND} make -j${MAKE_THREADS}  >& ${log_file};
-      fi
+      ${SRUN_BUILD_COMMAND} make -j${MAKE_THREADS}  >& ${log_file};
+      
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
           break # Skip the make repetitions

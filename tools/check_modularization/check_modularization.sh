@@ -30,7 +30,6 @@ are_independent "stencil-composition" "communication"
 no_dependency "stencil-composition" "tools"
 
 are_independent "boundary-conditions" "communication" #maybe they can have a dependency later?
-are_independent "boundary-conditions" "storage"
 are_independent "boundary-conditions" "tools"
 
 are_independent "communication" "tools"
@@ -42,4 +41,3 @@ no_dependency "storage" "boundary-conditions"
 no_dependency "storage" "tools"
 
 # we cannot use an exit code here because the git hook will terminate immediately
-
