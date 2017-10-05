@@ -152,8 +152,8 @@ namespace gridtools {
 
       public:
         // following members are declared in order to have same API as data_store_fields
-        const static unsigned num_of_storages = 1;
-        const static unsigned num_of_components = 1;
+        const static uint_t num_of_storages = 1;
+        const static uint_t num_of_components = 1;
 
         ~data_store() = default;
 
@@ -197,6 +197,10 @@ namespace gridtools {
             lambda_initializer(initializer, info, m_shared_storage->get_cpu_ptr());
             // synchronize contents
             clone_to_device();
+        }
+
+        void re_initialize(typename appropriate_function_t< data_t, StorageInfo >::type const &initializer) {
+            lambda_initializer(initializer, *m_shared_storage_info, m_shared_storage->get_cpu_ptr());
         }
 
         /**
@@ -367,6 +371,10 @@ namespace gridtools {
          * @brief reactivate all host read write views to storage
          */
         void reactivate_host_write_views() const { this->m_shared_storage->reactivate_host_write_views(); }
+
+        bool device_needs_update() const { return this->m_shared_storage->device_needs_update_impl(); }
+
+        bool host_needs_update() const { return this->m_shared_storage->host_needs_update_impl(); }
 
         /**
          * @brief retrieve the name of the storage

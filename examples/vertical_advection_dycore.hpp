@@ -66,12 +66,12 @@ namespace vertical_advection_dycore {
 
     template < typename T >
     struct u_forward_function {
-        typedef accessor< 0 > utens_stage;
+        typedef accessor< 0, enumtype::in > utens_stage;
         typedef accessor< 1, enumtype::in, extent< 0, 1, 0, 0, 0, 1 > > wcon;
         typedef accessor< 2, enumtype::in, extent< 0, 0, 0, 0, -1, 1 > > u_stage;
-        typedef accessor< 3 > u_pos;
-        typedef accessor< 4 > utens;
-        typedef accessor< 5 > dtr_stage;
+        typedef accessor< 3, enumtype::in > u_pos;
+        typedef accessor< 4, enumtype::in > utens;
+        typedef accessor< 5, enumtype::in > dtr_stage;
         typedef accessor< 6, enumtype::inout > acol;
         typedef accessor< 7, enumtype::inout > bcol;
         typedef accessor< 8, enumtype::inout, extent< 0, 0, 0, 0, -1, 0 > > ccol;
@@ -193,16 +193,6 @@ namespace vertical_advection_dycore {
         }
     };
 
-    /*
-     * The following operators and structs are for debugging only
-     */
-    // std::ostream& operator<<(std::ostream& s, u_forward_function<double> const) {
-    //    return s << "u_forward_function";
-    //}
-    std::ostream &operator<<(std::ostream &s, u_backward_function< double > const) {
-        return s << "u_backward_function";
-    }
-
     struct vertical_advection_test {
 
         const u_int halo_size = 3;
@@ -260,6 +250,11 @@ namespace vertical_advection_dycore {
 
             grid.value_list[0] = 0;
             grid.value_list[1] = d3 - 1;
+        }
+
+        void reset() {
+            repository.init_fields();
+            repository.generate_reference();
         }
 
         bool test(uint_t t_steps, bool verify) {
@@ -329,7 +324,8 @@ namespace vertical_advection_dycore {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     // Caches not yet supported  define_caches(cache< K, cache_io_policy::flush, kbody >(p_ccol())),
-                    gridtools::make_stage_with_extent< u_forward_function< double >, extent< 0 > >(p_utens_stage(),
+                    gridtools::make_stage_with_extent< u_forward_function< double >, extent< 0, 1, 0, 0 > >(
+                        p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
                         p_u_pos(),

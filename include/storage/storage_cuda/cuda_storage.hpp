@@ -127,11 +127,9 @@ namespace gridtools {
          * @brief cuda_storage destructor.
          */
         ~cuda_storage() {
-            ASSERT_OR_THROW(m_gpu_ptr, "This would end up in a double-free.");
-            ASSERT_OR_THROW(m_cpu_ptr, "This would end up in a double-free.");
-            if (m_ownership == ownership::ExternalGPU || m_ownership == ownership::Full)
+            if ((m_ownership == ownership::ExternalGPU || m_ownership == ownership::Full) && m_cpu_ptr)
                 delete[] m_cpu_ptr;
-            if (m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full)
+            if ((m_ownership == ownership::ExternalCPU || m_ownership == ownership::Full) && m_gpu_ptr)
                 cudaFree(m_gpu_ptr);
         }
 
