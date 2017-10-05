@@ -58,7 +58,7 @@
    - the addresses of the first element of all the data fields in the storages involved in this stencil are saved in an
    array (m_storage_pointers)
    - the index of the storages is saved in another array (m_index)
-   - when the functor gets called, the 'offsets' become visible (in the perfect world they could possibly be knowpn at
+   - when the functor gets called, the 'offsets' become visible (in the perfect world they could possibly be known at
    compile time). In particular the index is moved to point to the correct address, and the correct data snapshot is
    selected.
 
