@@ -40,7 +40,7 @@
 using namespace gridtools;
 
 TEST(test_axis, make_axis) {
-    auto axis_ = make_axis((uint_t)5, (uint_t)4);
+    auto axis_ = axis< 2 >((uint_t)5, (uint_t)4);
 
     ASSERT_EQ(5, axis_.interval_size(0));
     ASSERT_EQ(4, axis_.interval_size(1));

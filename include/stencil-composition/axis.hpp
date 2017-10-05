@@ -35,6 +35,7 @@
 */
 #pragma once
 #include "../common/array.hpp"
+#include "../common/generic_metafunctions/all_integrals.hpp"
 #include "interval.hpp"
 #include "level.hpp"
 
@@ -49,18 +50,14 @@ namespace gridtools {
     template < uint_t NIntervals, int_t ExtraOffsetsBeyondFullInterval = 0 >
     class axis {
       public:
-        static const uint_t max_offsets_ = 3; // TODO remove: duplication in interval
+        static const uint_t max_offsets_ = cLevelOffsetLimit;
 
-        // the old "axis" is hard coded to the following interval
-        // TODO therefore we have to protect that we do not allow intervals outside of this axis_interval_t
-        // This convention was usually respected before but was not a strict condition requirement.
         using axis_interval_t = interval< level< 0, -1 >, level< NIntervals, 1 + ExtraOffsetsBeyondFullInterval > >;
 
         using full_interval = interval< level< 0, -1 >, level< NIntervals, -1 > >;
 
-        template < typename... IntervalSizes >
+        template < typename... IntervalSizes, typename = gridtools::all_integers< IntervalSizes... > >
         axis(IntervalSizes... interval_sizes)
-            // TODO protection for int types
             : interval_sizes_{interval_sizes...} {
             GRIDTOOLS_STATIC_ASSERT(
                 (sizeof...(interval_sizes) == NIntervals), "Number of intervals does not match the axis");
@@ -71,11 +68,4 @@ namespace gridtools {
       private:
         array< uint_t, NIntervals > interval_sizes_;
     };
-
-    template < typename... IntervalSizes >
-    axis< sizeof...(IntervalSizes) > make_axis(IntervalSizes... interval_sizes) {
-        // TODO protection for int types
-        return axis< sizeof...(IntervalSizes) >(interval_sizes...);
-    }
-
 } // namespace gridtools
