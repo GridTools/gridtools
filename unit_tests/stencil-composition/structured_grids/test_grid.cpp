@@ -85,7 +85,7 @@ TEST(test_grid, make_grid_makes_splitters_and_values) {
     const uint_t interval1_size = 5;
     const uint_t interval2_size = 10;
 
-    auto grid_ = make_grid(empty_, empty_, make_axis(5, 10));
+    auto grid_ = make_grid(empty_, empty_, make_axis((uint_t)5, (uint_t)10));
 
     ASSERT_EQ(3, grid_.value_list.size());
 

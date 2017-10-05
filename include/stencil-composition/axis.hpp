@@ -39,7 +39,14 @@
 #include "level.hpp"
 
 namespace gridtools {
-    template < uint_t NIntervals >
+    /**
+     * Defines an axis_interval_t which is the former user-defined axis type and a full_interval which spans the whole
+     * axis.
+     * @param NIntervals Number of intervals the axis should support
+     * @param ExtraOffsetsBeyondFullInterval Special case when access of k-values beyond the full_interval (i.e. the
+     * last splitter value) are needed. (Note that the default interval will span the whole axis_interval_t.)
+     */
+    template < uint_t NIntervals, int_t ExtraOffsetsBeyondFullInterval = 0 >
     class axis {
       public:
         static const uint_t max_offsets_ = 3; // TODO remove: duplication in interval
@@ -47,7 +54,7 @@ namespace gridtools {
         // the old "axis" is hard coded to the following interval
         // TODO therefore we have to protect that we do not allow intervals outside of this axis_interval_t
         // This convention was usually respected before but was not a strict condition requirement.
-        using axis_interval_t = interval< level< 0, -1 >, level< NIntervals, max_offsets_ > >;
+        using axis_interval_t = interval< level< 0, -1 >, level< NIntervals, 1 + ExtraOffsetsBeyondFullInterval > >;
 
         using full_interval = interval< level< 0, -1 >, level< NIntervals, -1 > >;
 
