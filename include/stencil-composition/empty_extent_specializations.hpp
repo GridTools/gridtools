@@ -36,6 +36,10 @@
 #pragma once
 
 namespace gridtools {
+
+    template < typename T1, typename T2 >
+    struct sum_extent;
+
     template < typename Extent1 >
     struct sum_extent< Extent1, empty_extent > {
         GRIDTOOLS_STATIC_ASSERT((is_extent< Extent1 >::value), "Type should be an Extent");
