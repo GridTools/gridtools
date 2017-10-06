@@ -40,7 +40,7 @@
 #include <ostream>
 #include <stdexcept>
 
-#include <communication/GCL.hpp>
+//#include <communication/GCL.hpp>
 
 #include "gtest/gtest.h"
 

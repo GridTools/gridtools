@@ -37,7 +37,6 @@
 #pragma once
 #include "../common/halo_descriptor.hpp"
 #include "../common/array.hpp"
-#include "../common/partitioner.hpp"
 #include "../common/gpu_clone.hpp"
 #include "interval.hpp"
 #include "axis.hpp"
@@ -66,11 +65,10 @@ namespace gridtools {
 
     using namespace enumtype_axis;
 
-    template < typename Axis, typename Partitioner = partitioner_dummy >
+    template < typename Axis >
     struct grid_base {
         GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), GT_INTERNAL_ERROR);
         typedef Axis axis_type;
-        typedef Partitioner partitioner_t;
 
         typedef typename boost::mpl::plus<
             boost::mpl::minus< typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter >,
@@ -78,63 +76,37 @@ namespace gridtools {
 
         array< uint_t, size_type::value > value_list;
 
-        GT_FUNCTION grid_base(const grid_base< Axis, Partitioner > &other)
-            : m_partitioner(other.m_partitioner), m_direction_i(other.m_direction_i),
-              m_direction_j(other.m_direction_j) {
+      private:
+        halo_descriptor m_direction_i;
+        halo_descriptor m_direction_j;
+
+      public:
+        GT_FUNCTION grid_base(const grid_base< Axis > &other)
+            : m_direction_i(other.m_direction_i), m_direction_j(other.m_direction_j) {
             value_list = other.value_list;
         }
 
         DEPRECATED_REASON(
             GT_FUNCTION explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j),
             "This constructor does not initialize the vertical axis, use the constructor with 3 arguments.")
-            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
-              m_direction_i(direction_i), m_direction_j(direction_j) {
-            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
-                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
-            delete &m_partitioner; // HACK
-        }
+            : m_direction_i(direction_i), m_direction_j(direction_j) {}
 
         GT_FUNCTION
         explicit grid_base(halo_descriptor const &direction_i,
             halo_descriptor const &direction_j,
             const array< uint_t, size_type::value > &value_list)
-            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
-              m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {
-            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
-                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
-            delete &m_partitioner; // HACK
-        }
+            : m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {}
 
         GT_FUNCTION
-        explicit grid_base(halo_descriptor const &direction_i,
-            halo_descriptor const &direction_j,
-            axis< size_type::value - 1 > axis)
-            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
-              m_direction_i(direction_i), m_direction_j(direction_j),
-              value_list(internal::intervals_to_indices(axis.interval_sizes())) {
-            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
-                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
-            delete &m_partitioner; // HACK
-        }
-
-        template < typename ParallelStorage >
-        GT_FUNCTION explicit grid_base(const Partitioner &part_, ParallelStorage const &storage_)
-            : m_partitioner(part_), m_direction_i(storage_.template get_halo_descriptor< 0 >()), // copy
-              m_direction_j(storage_.template get_halo_descriptor< 1 >())                        // copy
-        {
-            GRIDTOOLS_STATIC_ASSERT(!is_partitioner_dummy< Partitioner >::value,
-                "you have to add the partitioner to the grid template parameters");
-        }
+        explicit grid_base(
+            halo_descriptor const &direction_i, halo_descriptor const &direction_j, axis< size_type::value - 1 > axis)
+            : m_direction_i(direction_i), m_direction_j(direction_j),
+              value_list(internal::intervals_to_indices(axis.interval_sizes())) {}
 
         DEPRECATED_REASON(GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/),
             "Use constructor with halo_descriptors")
-            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
-              m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
-              m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {
-            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
-                "You have to construct the grid with a valid partitioner, or with no partitioner at all.");
-            delete &m_partitioner; // HACK
-        }
+            : m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
+              m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {}
 
         GT_FUNCTION
         uint_t i_low_bound() const { return m_direction_i.begin(); }
@@ -173,21 +145,6 @@ namespace gridtools {
         GT_FUNCTION halo_descriptor const &direction_i() const { return m_direction_i; }
 
         GT_FUNCTION halo_descriptor const &direction_j() const { return m_direction_j; }
-
-        GT_FUNCTION const Partitioner &partitioner() const {
-            // the partitioner must be set
-            return m_partitioner;
-        }
-
-        template < typename Flag >
-        GT_FUNCTION bool at_boundary(ushort_t const &coordinate_, Flag const &flag_) const {
-            return m_partitioner.at_boundary(coordinate_, flag_);
-        }
-
-      private:
-        Partitioner const &m_partitioner;
-        halo_descriptor m_direction_i;
-        halo_descriptor m_direction_j;
     };
 
 } // namespace gridtools

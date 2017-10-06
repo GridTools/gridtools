@@ -38,13 +38,15 @@
 
 namespace gridtools {
 
-    template < typename Axis, typename Partitioner = partitioner_dummy >
-    struct grid : public clonable_to_gpu< grid< Axis, Partitioner > >, public grid_base< Axis, Partitioner > {
-        using this_type = grid< Axis, Partitioner >;
-        using base_type = grid_base< Axis, Partitioner >;
+    template < typename Axis >
+    struct grid : public clonable_to_gpu< grid< Axis > >, public grid_base< Axis > {
+        using this_type = grid< Axis >;
+        using base_type = grid_base< Axis >;
         static constexpr enumtype::grid_type c_grid_type = enumtype::structured;
 
-        DEPRECATED(GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j))
+        DEPRECATED_REASON(
+            GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j),
+            "This constructor does not initialize the vertical axis, use the constructor with 3 arguments.")
             : base_type(direction_i, direction_j) {}
 
         GT_FUNCTION
@@ -59,13 +61,10 @@ namespace gridtools {
             const axis< base_type::size_type::value - 1 > &axis)
             : base_type(direction_i, direction_j, axis) {}
 
-        template < typename ParallelStorage >
-        GT_FUNCTION explicit grid(const Partitioner &part_, ParallelStorage const &storage_)
-            : base_type(part_, storage_) {}
-
         GT_FUNCTION grid(const this_type &other) : base_type(other) {}
 
-        DEPRECATED(GT_FUNCTION explicit grid(uint_t *i, uint_t *j)) : base_type(i, j) {}
+        DEPRECATED_REASON(GT_FUNCTION explicit grid(uint_t *i, uint_t *j), "Use constructor with halo_descriptors")
+            : base_type(i, j) {}
     };
 
     template < typename Grid >
@@ -73,9 +72,6 @@ namespace gridtools {
 
     template < typename Axis >
     struct is_grid< grid< Axis > > : boost::mpl::true_ {};
-
-    template < typename Axis, typename Partitioner >
-    struct is_grid< grid< Axis, Partitioner > > : boost::mpl::true_ {};
 
     template < typename Axis >
     grid< typename Axis::axis_interval_t > make_grid(

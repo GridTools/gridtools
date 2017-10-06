@@ -16,7 +16,6 @@ module load mvapich2gdr_gnu/2.1_cuda_7.0
 module load CMake/3.3.2
 module load cudatoolkit
 
-echo $LD_LIBRARY_PATH
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
