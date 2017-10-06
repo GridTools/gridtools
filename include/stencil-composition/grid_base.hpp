@@ -43,6 +43,21 @@
 #include "axis.hpp"
 
 namespace gridtools {
+    namespace internal {
+        /*
+         * @brief convert an array of intervals in an array of indices of splitters
+         */
+        template < size_t NIntervals >
+        array< uint_t, NIntervals + 1 > intervals_to_indices(const array< uint_t, NIntervals > &intervals) {
+            array< uint_t, NIntervals + 1 > indices;
+            indices[0] = 0;
+            indices[1] = intervals[0] - 1;
+            for (size_t i = 2; i < NIntervals + 1; ++i) {
+                indices[i] = indices[i - 1] + intervals[i - 1];
+            }
+            return indices;
+        }
+    }
 
     // TODO should be removed once we removed all ctor(array) calls
     namespace enumtype_axis {
@@ -69,10 +84,34 @@ namespace gridtools {
             value_list = other.value_list;
         }
 
-        GT_FUNCTION
-        explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
+        DEPRECATED_REASON(
+            GT_FUNCTION explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j),
+            "This constructor does not initialize the vertical axis, use the constructor with 3 arguments.")
             : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
               m_direction_i(direction_i), m_direction_j(direction_j) {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
+                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            delete &m_partitioner; // HACK
+        }
+
+        GT_FUNCTION
+        explicit grid_base(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            const array< uint_t, size_type::value > &value_list)
+            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
+              m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {
+            GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
+                "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
+            delete &m_partitioner; // HACK
+        }
+
+        GT_FUNCTION
+        explicit grid_base(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            axis< size_type::value - 1 > axis)
+            : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
+              m_direction_i(direction_i), m_direction_j(direction_j),
+              value_list(internal::intervals_to_indices(axis.interval_sizes())) {
             GRIDTOOLS_STATIC_ASSERT(is_partitioner_dummy< partitioner_t >::value,
                 "you have to construct the grid with a valid partitioner, or with no partitioner at all.");
             delete &m_partitioner; // HACK
@@ -87,8 +126,8 @@ namespace gridtools {
                 "you have to add the partitioner to the grid template parameters");
         }
 
-        GT_FUNCTION
-        explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/)
+        DEPRECATED_REASON(GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/),
+            "Use constructor with halo_descriptors")
             : m_partitioner(*(new partitioner_dummy())), // HACK: suppress a warning
               m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {

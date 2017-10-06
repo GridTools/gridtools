@@ -47,7 +47,7 @@ namespace gridtools {
      * @param ExtraOffsetsBeyondFullInterval Special case when access of k-values beyond the full_interval (i.e. the
      * last splitter value) are needed. (Note that the default interval will span the whole axis_interval_t.)
      */
-    template < uint_t NIntervals, int_t ExtraOffsetsBeyondFullInterval = 0 >
+    template < size_t NIntervals, int_t ExtraOffsetsBeyondFullInterval = 0 >
     class axis {
       public:
         static const uint_t max_offsets_ = cLevelOffsetLimit;
@@ -64,6 +64,7 @@ namespace gridtools {
         }
 
         uint_t interval_size(const uint_t index) const { return interval_sizes_[index]; }
+        const array< uint_t, NIntervals > &interval_sizes() const { return interval_sizes_; };
 
       private:
         array< uint_t, NIntervals > interval_sizes_;

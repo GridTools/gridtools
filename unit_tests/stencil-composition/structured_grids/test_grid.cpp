@@ -93,3 +93,18 @@ TEST(test_grid, make_grid_makes_splitters_and_values) {
     ASSERT_EQ(interval1_size - 1, grid_.value_list[1]);
     ASSERT_EQ(interval1_size + interval2_size - 1, grid_.value_list[2]);
 }
+
+TEST(test_grid, grid_makes_splitters_and_values) {
+    halo_descriptor empty_{0, 0, 0, 0, 1};
+
+    const uint_t interval1_size = 5;
+    const uint_t interval2_size = 10;
+
+    grid< axis< 2 >::axis_interval_t > grid_(empty_, empty_, axis< 2 >((uint_t)5, (uint_t)10));
+
+    ASSERT_EQ(3, grid_.value_list.size());
+
+    ASSERT_EQ(0, grid_.value_list[0]);
+    ASSERT_EQ(interval1_size - 1, grid_.value_list[1]);
+    ASSERT_EQ(interval1_size + interval2_size - 1, grid_.value_list[2]);
+}

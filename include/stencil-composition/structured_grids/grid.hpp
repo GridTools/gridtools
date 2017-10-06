@@ -44,9 +44,20 @@ namespace gridtools {
         using base_type = grid_base< Axis, Partitioner >;
         static constexpr enumtype::grid_type c_grid_type = enumtype::structured;
 
-        GT_FUNCTION
-        explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
+        DEPRECATED(GT_FUNCTION explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j))
             : base_type(direction_i, direction_j) {}
+
+        GT_FUNCTION
+        explicit grid(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            const decltype(base_type::value_list) &value_list)
+            : base_type(direction_i, direction_j, value_list) {}
+
+        GT_FUNCTION
+        explicit grid(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            const axis< base_type::size_type::value - 1 > &axis)
+            : base_type(direction_i, direction_j, axis) {}
 
         template < typename ParallelStorage >
         GT_FUNCTION explicit grid(const Partitioner &part_, ParallelStorage const &storage_)
@@ -54,9 +65,7 @@ namespace gridtools {
 
         GT_FUNCTION grid(const this_type &other) : base_type(other) {}
 
-        // TODO should be removed (use ctor with halo_descriptor)
-        GT_FUNCTION
-        explicit grid(uint_t *i, uint_t *j) : base_type(i, j) {}
+        DEPRECATED(GT_FUNCTION explicit grid(uint_t *i, uint_t *j)) : base_type(i, j) {}
     };
 
     template < typename Grid >
@@ -71,14 +80,8 @@ namespace gridtools {
     template < typename Axis >
     grid< typename Axis::axis_interval_t > make_grid(
         halo_descriptor const &direction_i, halo_descriptor const &direction_j, Axis axis) {
-        grid< typename Axis::axis_interval_t > grid_(direction_i, direction_j);
-
-        // TODO fix this hack
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = axis.interval_size(0) - 1;
-        for (size_t i = 2; i < grid_.value_list.size(); ++i) {
-            grid_.value_list[i] = grid_.value_list[i - 1] + axis.interval_size(i - 1);
-        }
+        grid< typename Axis::axis_interval_t > grid_(
+            direction_i, direction_j, internal::intervals_to_indices(axis.interval_sizes()));
         return grid_;
     };
 }
