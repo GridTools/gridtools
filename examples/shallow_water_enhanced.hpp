@@ -34,34 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 // [includes]
 #include <iostream>
-#ifndef NDEBUG
-#ifndef __CUDACC__
 #include <fstream>
-#endif
-#endif
 #include <gridtools.hpp>
-#include <stencil-composition/make_computation.hpp>
-#include <common/parallel_storage_info.hpp>
-#include <common/partitioner_trivial.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-
-#ifdef CUDA_EXAMPLE
-#include <boundary-conditions/apply_gpu.hpp>
-#else
-#include <boundary-conditions/apply.hpp>
-#endif
+#include <storage/storage-facility.hpp>
 
 #include <communication/halo_exchange.hpp>
 
 #include <tools/verifier.hpp>
-#include "shallow_water_reference.hpp"
+
 // [includes]
 
-// [backend]
-#define BACKEND_BLOCK 1
-//[backend]
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil, with periodic boundary conditions
@@ -78,6 +64,25 @@ using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 // [namespaces]
+
+template < typename DX, typename DY, typename H >
+GT_FUNCTION float_type droplet_(uint_t i, uint_t j, DX dx, DY dy, H height) {
+#ifndef __CUDACC__
+    return 1. + height * std::exp(-5 * (((i - 3) * dx) * (((i - 3) * dx)) + ((j - 7) * dy) * ((j - 7) * dy)));
+#else // if CUDA we test the serial case
+    return 1. + height * std::exp(-5 * (((i - 3) * dx) * (((i - 3) * dx)) + ((j - 3) * dy) * ((j - 3) * dy)));
+#endif
+}
+
+#include "shallow_water_reference.hpp"
+
+#ifdef __CUDACC__
+#define BACKEND_ARCH Cuda
+#else
+#define BACKEND_ARCH Host
+#endif
+
+using BACKEND = backend< BACKEND_ARCH, GRIDBACKEND, Block >;
 
 namespace shallow_water {
     // This is the definition of the special regions in the "vertical" direction
@@ -114,11 +119,7 @@ namespace shallow_water {
         //! [droplet]
         static constexpr float_type height = 2.;
         GT_FUNCTION
-        static float_type droplet(uint_t const &i, uint_t const &j, uint_t const &k) {
-            return 1. +
-                   height *
-                       std::exp(-5 * (((i - 3) * dx()) * (((i - 3) * dx())) + ((j - 3) * dy()) * ((j - 3) * dy())));
-        }
+        static float_type droplet(uint_t i, uint_t j) { return droplet_(i, j, dx(), dy(), height); }
         //! [droplet]
     };
     // [boundary_conditions]
@@ -263,26 +264,24 @@ namespace shallow_water {
             dimension< 1 > i;
             dimension< 2 > j;
 
-            eval(sol()) = eval(sol(i - 0) - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
+            eval(sol()) = eval(sol{} - (tmpx(comp(1), i + 1) - tmpx(comp(1))) * (dt() / dx()) -
                                (tmpy(comp(2), j + 1) - tmpy(comp(2))) * (dt() / dy()));
 
-            eval(sol(comp(1))) =
-                eval(sol(comp(1)) -
-                     (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / tl)) -
-                         (pow< 2 >(tmpx(comp(1))) / tmpx(i - 0) + pow< 2 >(tmpx(i - 0)) * ((g() / tl)))) *
-                         ((dt() / dx())) -
-                     (tmpy(comp(2), j + 1) * tmpy(comp(1), j + 1) / tmpy(j + 1) -
-                         tmpy(comp(2)) * tmpy(comp(1)) / tmpy(i - 0)) *
-                         (dt() / dy()));
+            eval(sol(comp(1))) = eval(
+                sol(comp(1)) -
+                (pow< 2 >(tmpx(comp(1), i + 1)) / tmpx(i + 1) + tmpx(i + 1) * tmpx(i + 1) * ((g() / tl)) -
+                    (pow< 2 >(tmpx(comp(1))) / tmpx{} + pow< 2 >(tmpx{}) * ((g() / tl)))) *
+                    ((dt() / dx())) -
+                (tmpy(comp(2), j + 1) * tmpy(comp(1), j + 1) / tmpy(j + 1) - tmpy(comp(2)) * tmpy(comp(1)) / tmpy{}) *
+                    (dt() / dy()));
 
-            eval(sol(comp(2))) =
-                eval(sol(comp(2)) -
-                     (tmpx(comp(1), i + 1) * tmpx(comp(2), i + 1) / tmpx(i + 1) -
-                         (tmpx(comp(1)) * tmpx(comp(2))) / tmpx(i - 0)) *
-                         ((dt() / dx())) -
-                     (pow< 2 >(tmpy(comp(2), j + 1)) / tmpy(j + 1) + pow< 2 >(tmpy(j + 1)) * ((g() / tl)) -
-                         (pow< 2 >(tmpy(comp(2))) / tmpy(i - 0) + pow< 2 >(tmpy(i - 0)) * ((g() / tl)))) *
-                         ((dt() / dy())));
+            eval(sol(comp(2))) = eval(
+                sol(comp(2)) -
+                (tmpx(comp(1), i + 1) * tmpx(comp(2), i + 1) / tmpx(i + 1) - (tmpx(comp(1)) * tmpx(comp(2))) / tmpx{}) *
+                    ((dt() / dx())) -
+                (pow< 2 >(tmpy(comp(2), j + 1)) / tmpy(j + 1) + pow< 2 >(tmpy(j + 1)) * ((g() / tl)) -
+                    (pow< 2 >(tmpy(comp(2))) / tmpy{} + pow< 2 >(tmpy{}) * ((g() / tl)))) *
+                    ((dt() / dy())));
 
 #else
             dimension< 1 > i;
@@ -332,39 +331,16 @@ namespace shallow_water {
      */
     std::ostream &operator<<(std::ostream &s, final_step const) { return s << "final step"; }
 
-    extern char const s1[] = "hello ";
-    extern char const s2[] = "world\n";
-
-    bool test(uint_t x, uint_t y, uint_t z, uint_t t) {
-
-        gridtools::GCL_Init();
-
-#ifndef __CUDACC__
-        // testing the static printing
-        typedef string_c< print, s1, s2, s1, s1 > s;
-        s::apply();
-#endif
+    bool test(uint_t x, uint_t y, uint_t t) {
 
         uint_t d1 = x;
         uint_t d2 = y;
-        uint_t d3 = z;
-
-//! [main]
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
+        uint_t d3 = 1;
 
         //! [layout_map]
 
         //! [storage_type]
         typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_type;
         typedef BACKEND::storage_traits_t::data_store_field_t< float_type, storage_info_t, 1, 1, 1 > sol_type;
         //! [storage_type]
 
@@ -373,16 +349,14 @@ namespace shallow_water {
         //! [args]
         typedef tmp_arg< 0, sol_type > p_tmpx;
         typedef tmp_arg< 1, sol_type > p_tmpy;
-        // typedef arg<0, sol_type > p_tmpx;
-        // typedef arg<1, sol_type > p_tmpy;
+
         typedef arg< 2, sol_type > p_sol;
         typedef boost::mpl::vector< p_tmpx, p_tmpy, p_sol > accessor_list;
-        //! [args]
 
         //! [proc_grid_dims]
-        array< int, 3 > dimensions{0, 0, 0};
-        MPI_3D_process_grid_t< 3 >::dims_create(PROCS, 2, dimensions);
-        dimensions[2] = 1;
+        array< int, 3 > dimensions{0, 0, 1};
+        MPI_Dims_create(PROCS, 3, &dimensions[0]);
+
         //! [proc_grid_dims]
 
         //! [pattern_type]
@@ -397,29 +371,29 @@ namespace shallow_water {
 #endif
             gridtools::version_manual > pattern_type;
 
-        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, &dimensions);
+        pattern_type he(gridtools::boollist< 3 >(false, false, false), GCL_WORLD, dimensions);
         //! [pattern_type]
 
-        //! [partitioner]
-        array< ushort_t, 3 > padding{1, 1, 0};
+        auto c_grid = he.comm();
+        int pi, pj, pk;
+        c_grid.coords(pi, pj, pk);
+        assert(pk == 0);
+        int di, dj, dk;
+        c_grid.dims(di, dj, dk);
+        assert(dk == 1);
+
         array< ushort_t, 3 > halo{1, 1, 0};
-        typedef partitioner_trivial< cell_topology< topology::cartesian< layout_map< 0, 1, 2 > > >,
-            pattern_type::grid_type > partitioner_t;
 
-        partitioner_t part(he.comm(), halo, padding);
-        //! [padding_halo]
+        //! [storage]
+        storage_info_t storage_info(d1 + 2 * halo[0], d2 + 2 * halo[1], d3);
+        //! [storage]
 
-        //! [parallel_storage]
-        parallel_storage_info< storage_info_t, partitioner_t > meta_(part, d1, d2, d3);
-        sol_type sol(meta_.get_metadata());
-        // sol_type tmpx(meta_.get_metadata(), "tmpx");
-        // sol_type tmpy(meta_.get_metadata(), "tmpy");
-        //! [parallel_storage]
+        sol_type sol(storage_info);
 
         //! [add_halo]
-        he.add_halo< 0 >(meta_.get_halo_gcl< 0 >());
-        he.add_halo< 1 >(meta_.get_halo_gcl< 1 >());
-        he.add_halo< 2 >(meta_.get_halo_gcl< 2 >());
+        he.add_halo< 0 >(halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]);
+        he.add_halo< 0 >(halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]);
+        he.add_halo< 0 >(0, 0, 0, d3 - 1, d3);
 
         he.setup(3);
         //! [add_halo]
@@ -431,32 +405,14 @@ namespace shallow_water {
         auto view0 = make_host_view(ds0);
         auto view1 = make_host_view(ds1);
         auto view2 = make_host_view(ds2);
-#ifdef __CUDACC__
-        for (int i = 0; i < ds0.get_storage_info_ptr()->dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.get_storage_info_ptr()->dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.get_storage_info_ptr()->dim< 2 >(); ++k) {
-                    view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
-                    view1(i, j, k) = 0.0;
-                    view2(i, j, k) = 0.0;
-                }
+
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                view0(i, j, 0) = bc_periodic< 0, 0 >::droplet(i, j); // h
+                view1(i, j, 0) = 0.0;
+                view2(i, j, 0) = 0.0;
             }
         }
-#else
-        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
-                    if (PID == 1) {
-                        view0(i, j, k) = bc_periodic< 0, 0 >::droplet(i, j, k); // h
-                    } else {
-                        view0(i, j, k) = 1.; // h
-                    }
-                    view1(i, j, k) = 0.0;
-                    view2(i, j, k) = 0.0;
-                }
-            }
-        }
-#endif
-//! [initialization]
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
@@ -464,7 +420,6 @@ namespace shallow_water {
         std::stringstream name;
         name << "example" << PID << ".txt";
         myfile.open(name.str().c_str());
-
 #endif
 #endif
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
@@ -473,20 +428,21 @@ namespace shallow_water {
         // The order in which they have to be passed is the order in which they appear scanning the placeholders in
         // order. (I don't particularly like this)
         //! [aggregator_type]
-        aggregator_type< accessor_list > domain(sol);
+        aggregator_type< accessor_list > domain((p_sol() = sol));
         //! [aggregator_type]
 
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         //! [grid]
-        grid< axis, partitioner_t > grid(part, meta_);
+        gridtools::grid< axis > grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
+            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]});
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
         //! [grid]
 
         //! [computation]
-        auto shallow_water_stencil = make_computation< gridtools::BACKEND >(
+        auto shallow_water_stencil = make_computation< BACKEND >(
             domain,
             grid,
             make_multistage // mss_descriptor
@@ -505,40 +461,56 @@ namespace shallow_water {
         uint_t total_time = t;
 
         for (; final_step::current_time < total_time; ++final_step::current_time) {
-            //! [exchange]
-            // is on device?
+
             std::vector< float_type * > vec(3);
-#ifndef __CUDACC__
-            vec[0] = sol.get< 0, 0 >().get_storage_ptr()->get_cpu_ptr();
-            vec[1] = sol.get< 1, 0 >().get_storage_ptr()->get_cpu_ptr();
-            vec[2] = sol.get< 2, 0 >().get_storage_ptr()->get_cpu_ptr();
+
+#ifdef __CUDACC__
+            vec[0] = advanced::get_initial_address_of(make_device_view(sol.get< 0, 0 >()));
+            vec[1] = advanced::get_initial_address_of(make_device_view(sol.get< 1, 0 >()));
+            vec[2] = advanced::get_initial_address_of(make_device_view(sol.get< 2, 0 >()));
 #else
-            vec[0] = sol.get< 0, 0 >().get_storage_ptr()->get_gpu_ptr();
-            vec[1] = sol.get< 1, 0 >().get_storage_ptr()->get_gpu_ptr();
-            vec[2] = sol.get< 2, 0 >().get_storage_ptr()->get_gpu_ptr();
+            vec[0] = advanced::get_initial_address_of(make_host_view(sol.get< 0, 0 >()));
+            vec[1] = advanced::get_initial_address_of(make_host_view(sol.get< 1, 0 >()));
+            vec[2] = advanced::get_initial_address_of(make_host_view(sol.get< 2, 0 >()));
 #endif
 
-            he.pack(vec);
-            he.exchange();
-            he.unpack(vec);
+// he.pack(vec);
+// he.exchange();
+// he.unpack(vec);
 //! [exchange]
 
 #ifndef NDEBUG
 #ifndef __CUDACC__
+            sol.sync();
             auto view = make_field_host_view(sol);
             auto view00 = view.get< 0, 0 >();
             auto view10 = view.get< 1, 0 >();
             auto view20 = view.get< 2, 0 >();
-            myfile << "INITIALIZED VALUES" << std::endl;
-            for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-                for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                    for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
-                        myfile << view00(i, j, k) << std::endl;
-                        myfile << view10(i, j, k) << std::endl;
-                        myfile << view20(i, j, k) << std::endl;
-                    }
+
+            myfile << "INITIALIZED VALUES view00" << std::endl;
+            for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+                for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                    myfile << std::scientific << view00(i, j, 0) << " ";
                 }
+                myfile << "\n";
             }
+            myfile << "\n";
+            myfile << "INITIALIZED VALUES view10" << std::endl;
+            for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+                for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                    myfile << std::scientific << view10(i, j, 0) << " ";
+                }
+                myfile << "\n";
+            }
+            myfile << "\n";
+            myfile << "INITIALIZED VALUES view20" << std::endl;
+            for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+                for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                    myfile << std::scientific << view20(i, j, 0) << " ";
+                }
+                myfile << "\n";
+            }
+            myfile << "\n";
             myfile << "#####################################################" << std::endl;
 #endif
 #endif
@@ -553,8 +525,6 @@ namespace shallow_water {
 
         shallow_water_stencil->finalize();
 
-        GCL_Finalize();
-
         bool retval = true;
 //! [finalize]
 
@@ -565,27 +535,74 @@ namespace shallow_water {
         auto view00 = view.get< 0, 0 >();
         auto view10 = view.get< 1, 0 >();
         auto view20 = view.get< 2, 0 >();
-        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
-                    myfile << view00(i, j, k) << std::endl;
-                    myfile << view10(i, j, k) << std::endl;
-                    myfile << view20(i, j, k) << std::endl;
-                }
+        myfile << "SOLUTION VALUES view00" << std::endl;
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                myfile << std::scientific << view00(i, j, 0) << " ";
             }
+            myfile << "\n";
         }
+        myfile << "\n";
+        myfile << "SOLUTION VALUES view10" << std::endl;
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                myfile << std::scientific << view10(i, j, 0) << " ";
+            }
+            myfile << "\n";
+        }
+        myfile << "\n";
+        myfile << "SOLUTION VALUES view20" << std::endl;
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                myfile << std::scientific << view20(i, j, 0) << " ";
+            }
+            myfile << "\n";
+        }
+        myfile << "\n";
 #endif
 
         verifier check_result(1e-8);
         array< array< uint_t, 2 >, 3 > halos{{{0, 0}, {0, 0}, {0, 0}}};
-        shallow_water_reference< sol_type, 11, 11 > reference;
-        reference.setup();
+        shallow_water_reference< BACKEND > reference(d1 + 2 * halo[0], d2 + 2 * halo[1]);
+
+#ifndef __CUDACC__
+        myfile << "############## REFERENCE INIT ################" << std::endl;
+        view = make_field_host_view(reference.solution);
+        view00 = view.get< 0, 0 >();
+        view10 = view.get< 1, 0 >();
+        view20 = view.get< 2, 0 >();
+        myfile << "REF INIT VALUES view00" << std::endl;
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                myfile << std::scientific << view00(i, j, 0) << " ";
+            }
+            myfile << "\n";
+        }
+        myfile << "\n";
+        myfile << "REF INIT VALUES view10" << std::endl;
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                myfile << std::scientific << view10(i, j, 0) << " ";
+            }
+            myfile << "\n";
+        }
+        myfile << "\n";
+        myfile << "REF INIT VALUES view20" << std::endl;
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                myfile << std::scientific << view20(i, j, 0) << " ";
+            }
+            myfile << "\n";
+        }
+        myfile << "\n";
+#endif
+
         for (uint_t t = 0; t < total_time; ++t) {
             reference.iterate();
         }
-        for (int i = 0; i < sol_type::num_of_storages; ++i) {
-            retval &= check_result.verify(grid, sol.get_field()[i], reference.solution.get_field()[i], halos);
-        }
+
+        for (int i = 0; i < 1; ++i)
+            retval &= check_result.verify(grid, reference.solution.get_field()[i], sol.get_field()[i], halos);
 
 #ifndef __CUDACC__
         myfile << "############## REFERENCE ################" << std::endl;
@@ -593,19 +610,35 @@ namespace shallow_water {
         view00 = view.get< 0, 0 >();
         view10 = view.get< 1, 0 >();
         view20 = view.get< 2, 0 >();
-        for (int i = 0; i < ds0.get_storage_info_ptr()->template dim< 0 >(); ++i) {
-            for (int j = 0; j < ds0.get_storage_info_ptr()->template dim< 1 >(); ++j) {
-                for (int k = 0; k < ds0.get_storage_info_ptr()->template dim< 2 >(); ++k) {
-                    myfile << view00(i, j, k) << std::endl;
-                    myfile << view10(i, j, k) << std::endl;
-                    myfile << view20(i, j, k) << std::endl;
-                }
+
+        myfile << "REF VALUES view00" << std::endl;
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                myfile << std::scientific << view00(i, j, 0) << " ";
             }
+            myfile << "\n";
         }
+        myfile << "\n";
+        myfile << "REF VALUES view10" << std::endl;
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                myfile << std::scientific << view10(i, j, 0) << " ";
+            }
+            myfile << "\n";
+        }
+        myfile << "\n";
+        myfile << "REF VALUES view20" << std::endl;
+        for (int i = 0; i < d1 + 2 * halo[0]; ++i) {
+            for (int j = 0; j < d2 + 2 * halo[1]; ++j) {
+                myfile << std::scientific << view20(i, j, 0) << " ";
+            }
+            myfile << "\n";
+        }
+        myfile << "\n";
         myfile.close();
 #endif
 #endif
-        std::cout << "shallow water parallel test SUCCESS?= " << retval << std::endl;
+        std::cout << "shallow water parallel test SUCCESS?= " << std::boolalpha << retval << std::endl;
         return retval;
         //! [main]
     }

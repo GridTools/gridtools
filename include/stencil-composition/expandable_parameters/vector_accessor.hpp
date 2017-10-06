@@ -58,14 +58,9 @@ namespace gridtools {
     template < uint_t ID, enumtype::intend Intent = enumtype::in, typename Extent = extent< 0 >, ushort_t NDim = 5 >
     struct vector_accessor : accessor< ID, Intent, Extent, NDim > {
 
-#ifdef CXX11_ENABLED
         using super = accessor< ID, Intent, Extent, NDim >;
         using super::accessor;
         static const ushort_t n_dimensions = NDim;
-#else
-        GRIDTOOLS_STATIC_ASSERT(
-            NDim > 0, "EYou are using a vector_accessor and compiling with C++03, switch to C++11 (-DENABLE_CXX11=ON)");
-#endif
     };
 
     template < typename T >

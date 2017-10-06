@@ -54,7 +54,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-namespace reduction {
+namespace test_reduction {
 
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
@@ -172,19 +172,10 @@ namespace reduction {
         std::cout << "Sum Reduction : " << sum_red_->print_meter() << std::endl;
 #endif
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::computation< float_type > *
-#else
-        boost::shared_ptr< gridtools::computation< float_type > >
-#endif
-#endif
-            prod_red_ = make_computation< gridtools::BACKEND >(domain,
-                grid,
-                make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
-                make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
+        auto prod_red_ = make_computation< gridtools::BACKEND >(domain,
+            grid,
+            make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
+            make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));
 
         prod_red_->ready();
         prod_red_->steady();

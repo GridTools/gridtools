@@ -85,15 +85,9 @@ namespace gridtools {
 
         void reduce() {
             m_reduced_value = m_initial_value;
-#ifdef CXX11_ENABLED
             for (auto val : m_parallel_reduced_val) {
                 m_reduced_value = bin_op_t()(m_reduced_value, val);
             }
-#else
-            for (uint_t i = 0; i < m_parallel_reduced_val.size(); ++i) {
-                m_reduced_value = bin_op_t()(m_reduced_value, m_parallel_reduced_val[i]);
-            }
-#endif
         }
         reduction_type_t reduced_value() const { return m_reduced_value; }
 

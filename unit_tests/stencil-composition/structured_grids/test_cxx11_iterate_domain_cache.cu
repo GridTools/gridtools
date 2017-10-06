@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -128,14 +128,7 @@ TEST(iterate_domain_cache, flush) {
 
     typedef boost::mpl::vector5< p_in1, p_in2, p_in3, p_in4, p_out > esf_args_t;
 
-    typedef local_domain< storages_t,
-        esf_args_t,
-        boost::mpl::map5< boost::mpl::pair< p_in1, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in2, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in3, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in4, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
-        false > local_domain_t;
+    typedef local_domain< storages_t, esf_args_t, false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
 
@@ -241,14 +234,7 @@ TEST(iterate_domain_cache, fill) {
 
     typedef boost::mpl::vector5< p_in1, p_in2, p_in3, p_in4, p_out > esf_args_t;
 
-    typedef local_domain< storages_t,
-        esf_args_t,
-        boost::mpl::map5< boost::mpl::pair< p_in1, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in2, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in3, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in4, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
-        false > local_domain_t;
+    typedef local_domain< storages_t, esf_args_t, false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
 
@@ -343,14 +329,7 @@ TEST(iterate_domain_cache, epflush) {
 
     typedef boost::mpl::vector5< p_in1, p_in2, p_in3, p_in4, p_out > esf_args_t;
 
-    typedef local_domain< storages_t,
-        esf_args_t,
-        boost::mpl::map5< boost::mpl::pair< p_in1, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in2, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in3, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in4, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
-        false > local_domain_t;
+    typedef local_domain< storages_t, esf_args_t, false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
 
@@ -469,14 +448,7 @@ TEST(iterate_domain_cache, bpfill) {
 
     typedef boost::mpl::vector5< p_in1, p_in2, p_in3, p_in4, p_out > esf_args_t;
 
-    typedef local_domain< storages_t,
-        esf_args_t,
-        boost::mpl::map5< boost::mpl::pair< p_in1, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in2, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in3, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_in4, extent< 0, 0, 0, 0 > >,
-                              boost::mpl::pair< p_out, extent< 0, 0, 0, 0 > > >,
-        false > local_domain_t;
+    typedef local_domain< storages_t, esf_args_t, false > local_domain_t;
 
     typedef boost::mpl::vector2< extent< -1, 2, -2, 1 >, extent< -2, 1, -3, 2 > > extents_t;
 

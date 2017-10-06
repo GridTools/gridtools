@@ -39,11 +39,8 @@
 #include <boost/proto/traits.hpp>
 #include "common/defs.hpp"
 #include "common/host_device.hpp"
-#include "common/is_aggregate.hpp"
 
 namespace gridtools {
-
-#ifdef CXX11_ENABLED
 
     /**
        @brief helper struct to use an integer sequence in order to fill a generic container
@@ -147,12 +144,9 @@ namespace gridtools {
            \tparam Lambda the lambda template callable
            \tparam ExtraTypes the types of the input arguments to the lambda
          */
-        template < typename Container,
-            template < UInt T > class Lambda,
-            typename... ExtraTypes,
-            typename boost::disable_if< typename is_aggregate< Container >::type, int >::type = 0 >
+        template < typename Container, template < UInt T > class Lambda, typename... ExtraTypes >
         GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
-            return Container(Lambda< Indices >::apply(args_...)...);
+            return Container{Lambda< Indices >::apply(args_...)...};
         }
 
         /**
@@ -195,17 +189,6 @@ namespace gridtools {
         }
 
         /**
-           @brief duplicated interface for the case in which the container is an aggregator
-         */
-        template < typename Container,
-            template < UInt T > class Lambda,
-            typename... ExtraTypes,
-            typename boost::enable_if< typename is_aggregate< Container >::type, int >::type = 0 >
-        GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
-            return Container{Lambda< Indices >::apply(args_...)...};
-        }
-
-        /**
           @brief applies a unary lambda to a sequence of arguments, and returns a container constructed
           using such lambda
 
@@ -242,6 +225,4 @@ namespace gridtools {
             return Container{lambda(Indices, args_...)...};
         }
     };
-
-#endif
 } // namespace gridtools

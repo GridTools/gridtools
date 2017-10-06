@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include "../../common/gt_assert.hpp"
+
 /**@file
    @brief file handling the access to the storage.
    This file implements some of the innermost data access operations of the library and thus it must be highly
@@ -81,6 +83,14 @@
 
 namespace gridtools {
 
+    namespace advanced {
+        template < typename IDomain >
+        inline typename IDomain::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(IDomain &id) {
+            return id.data_pointer();
+        }
+
+    } // namespace advanced
+
     /**@brief class managing the memory accesses, indices increment
 
        This class gets instantiated in the backend-specific code, and has a different implementation for
@@ -100,6 +110,7 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::grid_traits_t grid_traits_t;
         typedef typename iterate_domain_arguments_t::processing_elements_block_size_t processing_elements_block_size_t;
         typedef typename iterate_domain_backend_id< IterateDomainImpl >::type backend_id_t;
+        typedef backend_traits_from_id< backend_id_t::value > backend_traits_t;
         typedef typename backend_traits_from_id< backend_id_t::value >::template select_iterate_domain_cache<
             iterate_domain_arguments_t >::type iterate_domain_cache_t;
         typedef typename iterate_domain_cache_t::all_caches_t all_caches_t;
@@ -199,6 +210,9 @@ namespace gridtools {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
+        template < typename T >
+        friend typename T::data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer(T &);
+
       public:
         /**@brief constructor of the iterate_domain struct
 
@@ -228,7 +242,6 @@ namespace gridtools {
                                         data_ptr_cached_t,
                                         local_domain_t,
                                         processing_elements_block_size_t,
-                                        typename local_domain_t::extents_map_t,
                                         grid_traits_t >(data_pointer(), local_domain.m_local_storage_info_ptrs));
         }
 
@@ -593,6 +606,14 @@ namespace gridtools {
         const int_t pointer_offset =
             m_index[storage_info_index_t::value] +
             compute_offset< storage_info_t >(strides().template get< storage_info_index_t::value >(), accessor);
+
+#ifndef NDEBUG
+        GTASSERT((pointer_oob_check< backend_traits_t,
+            processing_elements_block_size_t,
+            local_domain_t,
+            arg_t,
+            grid_traits_t >(storage_info, real_storage_pointer, pointer_offset)));
+#endif
 
         if (DirectGMemAccess) {
             return get_gmem_value< return_t >(real_storage_pointer, pointer_offset);

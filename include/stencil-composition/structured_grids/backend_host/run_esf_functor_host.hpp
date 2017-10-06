@@ -93,7 +93,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((sfinae::has_two_args< typename functor_t::f_type >::value),
                 "API with a default interval is not implemented for the reduction stages");
             this->m_iterate_domain.set_reduction_value(bin_op_t()(this->m_iterate_domain.reduction_value(),
-                functor_t::f_type::Do(this->m_iterate_domain, IntervalType())));
+                functor_t::f_type::template Do< decltype(this->m_iterate_domain) & >(
+                                                                      this->m_iterate_domain, IntervalType())));
         }
     };
 }

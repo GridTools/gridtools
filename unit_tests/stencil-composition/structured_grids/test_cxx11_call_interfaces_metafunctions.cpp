@@ -36,11 +36,8 @@
 #include <gridtools.hpp>
 #include <common/defs.hpp>
 
-#ifdef CXX11_ENABLED
-
 #include "gtest/gtest.h"
 
-#include <stencil-composition/global_accessor.hpp>
 #include <stencil-composition/stencil-functions/call_interfaces.hpp>
 #include <stencil-composition/stencil-functions/call_interfaces_metafunctions.hpp>
 #include <type_traits>
@@ -101,7 +98,7 @@ void complex_test(Args &... args) {
             typename boost::mpl::at_c< packtype, 3 >::type >::value),
         "3");
 
-    typedef _impl::function_aggregator_procedure< pretent_aggregator, 0, 0, 0, packtype > f_aggregator_t;
+    typedef _impl::function_aggregator_procedure_offsets< pretent_aggregator, 0, 0, 0, packtype > f_aggregator_t;
 
     GRIDTOOLS_STATIC_ASSERT((_impl::contains_value< typename f_aggregator_t::non_accessor_indices,
                                 boost::mpl::integral_c< int, 3 > >::type::value),
@@ -210,4 +207,3 @@ TEST(call_interfaces_metafunctions, check_if_function) {
     GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::can_be_a_function< another_non_function >::value == false), "");
     GRIDTOOLS_STATIC_ASSERT((gridtools::_impl::_get_index_of_first_non_const< another_non_function >::value == 0), "");
 }
-#endif

@@ -36,8 +36,6 @@
 #pragma once
 #include "../defs.hpp"
 
-#ifdef CXX11_ENABLED
-
 namespace gridtools {
     namespace impl {
         template < uint_t cnt, typename Value, uint_t Threshold, typename VariadicHolder, Value... Rest >
@@ -83,5 +81,3 @@ namespace gridtools {
         using type = typename impl::shorten_impl< 0, Value, Threshold, VariadicHolder<>, First, Args... >::type;
     };
 }
-
-#endif

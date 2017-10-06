@@ -33,43 +33,21 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include "gtest/gtest.h"
+#include "common/defs.hpp"
+#include "common/array.hpp"
+#include "common/array_addons.hpp"
 
-#pragma once
+using namespace gridtools;
 
-#ifdef _USE_GPU_
-/* device_binding added by Devendar Bureddy, OSU */
-void device_binding() {
+TEST(array, to_vector) {
+    array< uint_t, 4 > a{1, 2, 3, 4};
 
-    int local_rank = 0 /*, num_local_procs*/;
-    int dev_count, use_dev_count, my_dev_id;
-    char *str;
+    auto v = to_vector(a);
 
-    printf("HOME %s\n", getenv("HOME"));
+    ASSERT_EQ(4, v.size());
 
-    if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK")) != NULL) {
-        local_rank = atoi(str);
-        printf("MV2_COMM_WORLD_LOCAL_RANK %s\n", str);
-    } else if ((str = getenv("SLURM_LOCALID")) != NULL) {
-        local_rank = atoi(str);
-        printf("SLURM_LOCALID %s\n", str);
+    for (size_t i = 0; i < 4; ++i) {
+        ASSERT_EQ(a[i], v[i]);
     }
-
-    if ((str = getenv("MPISPAWN_LOCAL_NPROCS")) != NULL) {
-        // num_local_procs = atoi (str);
-        printf("MPISPAWN_LOCAL_NPROCS %s\n", str);
-    }
-
-    cudaGetDeviceCount(&dev_count);
-    if ((str = getenv("NUM_GPU_DEVICES")) != NULL) {
-        use_dev_count = atoi(str);
-        printf("NUM_GPU_DEVICES %s\n", str);
-    } else {
-        use_dev_count = dev_count;
-        printf("NUM_GPU_DEVICES %d\n", use_dev_count);
-    }
-
-    my_dev_id = local_rank % use_dev_count;
-    printf("local rank = %d dev id = %d\n", local_rank, my_dev_id);
-    cudaSetDevice(my_dev_id);
 }
-#endif

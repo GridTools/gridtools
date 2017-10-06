@@ -43,10 +43,11 @@
 #include <boost/type_traits.hpp>
 #include <boost/utility.hpp>
 
+#include "../../common/gt_assert.hpp"
 #include "../data_store.hpp"
 #include "../data_view.hpp"
-#include "storage.hpp"
-#include "storage_info.hpp"
+#include "cuda_storage.hpp"
+#include "cuda_storage_info.hpp"
 
 namespace gridtools {
 
@@ -64,15 +65,18 @@ namespace gridtools {
                                    is_data_store< DecayedCDS > >,
         data_view< DecayedCDS, AccessMode > >::type
     make_host_view(CudaDataStore const &ds) {
-        assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
+        if (!ds.valid())
+            return data_view< DecayedCDS, AccessMode >();
+
         if (AccessMode != access_mode::ReadOnly) {
-            assert(!ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu && "There is already an active read-write "
-                                                                            "device view. Synchronization is needed "
-                                                                            "before constructing the view.");
+            ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu,
+                "There is already an active read-write "
+                "device view. Synchronization is needed "
+                "before constructing the view.");
             ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu = true;
         }
         return data_view< DecayedCDS, AccessMode >(ds.get_storage_ptr()->get_cpu_ptr(),
-            ds.get_storage_info_ptr(),
+            ds.get_storage_info_ptr().get(),
             ds.get_storage_ptr()->get_state_machine_ptr(),
             false);
     }
@@ -91,11 +95,14 @@ namespace gridtools {
                                    is_data_store< DecayedCDS > >,
         data_view< DecayedCDS, AccessMode > >::type
     make_device_view(CudaDataStore const &ds) {
-        assert(ds.valid() && "Cannot create a data_view to an invalid data_store");
+        if (!ds.valid())
+            return data_view< DecayedCDS, AccessMode >();
+
         if (AccessMode != access_mode::ReadOnly) {
-            assert(!ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu && "There is already an active read-write "
-                                                                            "host view. Synchronization is needed "
-                                                                            "before constructing the view.");
+            ASSERT_OR_THROW(!ds.get_storage_ptr()->get_state_machine_ptr()->m_dnu,
+                "There is already an active read-write "
+                "host view. Synchronization is needed "
+                "before constructing the view.");
             ds.get_storage_ptr()->get_state_machine_ptr()->m_hnu = true;
         }
         return data_view< DecayedCDS, AccessMode >(ds.get_storage_ptr()->get_gpu_ptr(),
@@ -119,16 +126,16 @@ namespace gridtools {
                                    is_data_store< DecayedDS > >,
         bool >::type
     check_consistency(DataStore const &d, DataView const &v) {
-        static_assert(is_data_view< DecayedDV >::value, "Passed type is no data_view type");
+        GRIDTOOLS_STATIC_ASSERT(is_data_view< DecayedDV >::value, "Passed type is no data_view type");
         // if the storage is not valid return false
         if (!d.valid())
             return false;
         // if ptrs do not match anymore return false
-        if ((v.m_raw_ptrs[0] != d.get_storage_ptr()->get_gpu_ptr()) &&
-            (v.m_raw_ptrs[0] != d.get_storage_ptr()->get_cpu_ptr()))
+        if ((advanced::get_raw_pointer_of(v) != d.get_storage_ptr()->get_gpu_ptr()) &&
+            (advanced::get_raw_pointer_of(v) != d.get_storage_ptr()->get_cpu_ptr()))
             return false;
         // check if we have a device view
-        const bool device_view = (v.m_raw_ptrs[0] == d.get_storage_ptr()->get_cpu_ptr()) ? false : true;
+        const bool device_view = (advanced::get_raw_pointer_of(v) == d.get_storage_ptr()->get_cpu_ptr()) ? false : true;
         // read-only? if yes, take early exit
         if (DecayedDV::mode == access_mode::ReadOnly)
             return device_view ? !d.get_storage_ptr()->get_state_machine_ptr()->m_dnu

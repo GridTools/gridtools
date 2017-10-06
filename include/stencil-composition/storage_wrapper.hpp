@@ -93,7 +93,7 @@ namespace gridtools {
         // tell me how I should initialize the ptr_t member called m_data_ptrs
         void initialize(view_t v) {
             for (unsigned i = 0; i < num_of_storages; ++i)
-                this->m_data_ptrs[i] = v.m_raw_ptrs[i];
+                this->m_data_ptrs[i] = advanced::get_raw_pointer_of(v, i);
         }
 
         // data ptrs
@@ -152,7 +152,7 @@ namespace gridtools {
     /** @brief get tiling information out of a given storage wrapper.
      *  @tparam Coord coordinate (I --> 0, J --> 1)
      */
-    template < unsigned Coord >
+    template < uint_t Coord >
     struct tile_from_storage_wrapper;
 
     template <>

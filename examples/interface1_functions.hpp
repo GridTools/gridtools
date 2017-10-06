@@ -57,12 +57,6 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-// Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
-//  for any type, which breaks most of the code after using expressions
-#ifdef CXX11_ENABLED
-// using namespace expressions;
-#endif
-
 namespace horizontal_diffusion_functions {
     // This is the definition of the special regions in the "vertical" direction
 
@@ -76,7 +70,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             auto x = (gridtools::float_type)4.0 * eval(in()) -
                      (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
             eval(out()) = x;
@@ -92,7 +86,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
 #ifdef FUNCTIONS_MONOLITHIC
             gridtools::float_type _x_ =
                 (gridtools::float_type)4.0 * eval(in()) -
@@ -109,13 +103,13 @@ namespace horizontal_diffusion_functions {
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function >::with_offsets(eval, _x_, in());
+            gridtools::call_proc< lap_function >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function >::with_offsets(eval, _y_, in(1, 0, 0));
+            gridtools::call_proc< lap_function >::with(eval, _y_, in(1, 0, 0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-            gridtools::float_type _x_ = gridtools::call< lap_function >::with_offsets(eval, in(0, 0, 0));
-            gridtools::float_type _y_ = gridtools::call< lap_function >::with_offsets(eval, in(1, 0, 0));
+            gridtools::float_type _x_ = gridtools::call< lap_function >::with(eval, in(0, 0, 0));
+            gridtools::float_type _y_ = gridtools::call< lap_function >::with(eval, in(1, 0, 0));
 #else
             gridtools::float_type _x_ = gridtools::call< lap_function >::at< 0, 0, 0 >::with(eval, in());
             gridtools::float_type _y_ = gridtools::call< lap_function >::at< 1, 0, 0 >::with(eval, in());
@@ -137,7 +131,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
 
 #ifdef FUNCTIONS_MONOLITHIC
             gridtools::float_type _x_ =
@@ -155,13 +149,13 @@ namespace horizontal_diffusion_functions {
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function >::with_offsets(eval, _x_, in());
+            gridtools::call_proc< lap_function >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function >::with_offsets(eval, _y_, in(0, 1, 0));
+            gridtools::call_proc< lap_function >::with(eval, _y_, in(0, 1, 0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-            gridtools::float_type _x_ = gridtools::call< lap_function >::with_offsets(eval, in(0, 0, 0));
-            gridtools::float_type _y_ = gridtools::call< lap_function >::with_offsets(eval, in(0, 1, 0));
+            gridtools::float_type _x_ = gridtools::call< lap_function >::with(eval, in(0, 0, 0));
+            gridtools::float_type _y_ = gridtools::call< lap_function >::with(eval, in(0, 1, 0));
 #else
             gridtools::float_type _x_ = gridtools::call< lap_function >::at< 0, 0, 0 >::with(eval, in());
             gridtools::float_type _y_ = gridtools::call< lap_function >::at< 0, 1, 0 >::with(eval, in());
@@ -185,7 +179,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) =
                 eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
         }
@@ -285,12 +279,9 @@ namespace horizontal_diffusion_functions {
             verifier verif(1e-12);
 #endif
 
-#ifdef CXX11_ENABLED
-            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
+            array< array< uint_t, 2 >, 3 > halos{
+                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
             bool result = verif.verify(grid_, repository.out_ref(), repository.out(), halos);
-#else
-            result = verif.verify(repository.out_ref(), repository.out());
-#endif
         }
         if (!result) {
             std::cout << "ERROR" << std::endl;

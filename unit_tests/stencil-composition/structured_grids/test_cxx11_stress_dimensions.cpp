@@ -1,18 +1,24 @@
 /*
   GridTools Libraries
+
   Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
+
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
   met:
+
   1. Redistributions of source code must retain the above copyright
   notice, this list of conditions and the following disclaimer.
+
   2. Redistributions in binary form must reproduce the above copyright
   notice, this list of conditions and the following disclaimer in the
   documentation and/or other materials provided with the distribution.
+
   3. Neither the name of the copyright holder nor the names of its
   contributors may be used to endorse or promote products derived from
   this software without specific prior written permission.
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -24,6 +30,7 @@
   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
   For information: http://eth-cscs.github.io/gridtools/
 */
 
@@ -170,7 +177,6 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
                             }
                         }
 
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
     verifier verif(1e-6);
 #else
@@ -178,14 +184,7 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
 #endif
     array< array< uint_t, 2 >, 6 > halos{{{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}}};
     bool result = verif.verify(grid, reference, result_, halos);
-#else
-#if FLOAT_PRECISION == 4
-    verifier verif(1e-6, 0);
-#else
-    verifier verif(1e-12, 0);
-#endif
-    bool result = verif.verify(grid, reference, result_);
-#endif
+
     return result;
 }
 
@@ -304,21 +303,12 @@ namespace assembly {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 2;
 
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        stencil *
-#else
-        boost::shared_ptr< stencil >
-#endif
-#endif
-            fe_comp = make_computation< BACKEND >(
-                domain,
+        auto fe_comp =
+            make_computation< BACKEND >(domain,
                 grid,
                 make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                    make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+                                            make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp->ready();
         fe_comp->steady();

@@ -7,14 +7,14 @@ enable_testing()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/)
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/include)
 # ===============
-add_library(gtest STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest-all.cc)
-add_library(gtest_main STATIC ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest_main.cc)
+add_library(gtest ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest-all.cc)
+add_library(gtest_main ${CMAKE_CURRENT_SOURCE_DIR}/tools/googletest/googletest/src/gtest_main.cc)
 if( NOT GCL_ONLY )
     if( USE_MPI )
         if ( USE_GPU )
             include_directories ( "${CUDA_INCLUDE_DIRS}" )
         endif()
-        add_library( mpi_gtest_main unit_tests/communication/mpi_test_driver.cpp )
+        add_library( mpi_gtest_main include/tools/mpi_unit_test_driver/mpi_test_driver.cpp )
         set_target_properties(mpi_gtest_main PROPERTIES COMPILE_FLAGS "${GPU_SPECIFIC_FLAGS}" )
         #target_link_libraries(mpi_gtest_main ${exe_LIBS} )
     endif()
@@ -29,21 +29,9 @@ set( exe_LIBS ${exe_LIBS} gtest)
 # Only used for gcc or clang compilations
 function(fetch_host_tests subfolder)
     # get all source files in the current directory
-    file(GLOB test_sources_cxx03 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx03_*.cpp" )
     file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
     file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cpp" )
     file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
-
-    # remove files that should not be there
-    if(ENABLE_CXX11)
-        foreach( cxx03 ${test_sources_cxx03} )
-            list(REMOVE_ITEM test_sources ${cxx03})
-        endforeach()
-    else()
-        foreach( cxx11 ${test_sources_cxx11} )
-            list(REMOVE_ITEM test_sources ${cxx11})
-        endforeach()
-    endif()
 
     # create all targets
     foreach( test_source ${test_sources} )
@@ -67,21 +55,9 @@ function(fetch_gpu_tests subfolder)
     # don't care if USE_GPU is not set
     if(USE_GPU)
         # get all source files in the current directory
-        file(GLOB test_sources_cxx03 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx03_*.cu" )
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cu" )
         file(GLOB test_sources "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_*.cu" )
         file(GLOB test_headers "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/*.hpp" )
-
-        # remove files that should not be there
-        if(ENABLE_CXX11)
-            foreach( cxx03 ${test_sources_cxx03} )
-                list(REMOVE_ITEM test_sources ${cxx03})
-            endforeach()
-        else()
-            foreach( cxx11 ${test_sources_cxx11} )
-                list(REMOVE_ITEM test_sources ${cxx11})
-            endforeach()
-        endif()
 
         # create all targets
         foreach( test_source ${test_sources} )
@@ -137,7 +113,7 @@ function(add_custom_mpi_host_test name sources cc_flags ld_flags)
     add_executable (${name} ${sources})
     set(cflags "${CMAKE_CXX_FLAGS} ${cc_flags}" )
     set_target_properties(${name} PROPERTIES COMPILE_FLAGS "${cflags}" LINK_FLAGS "${ld_flags}" LINKER_LANGUAGE CXX )
-    target_link_libraries(${name} ${exe_LIBS} mpi_gtest_main)
+    target_link_libraries(${name} mpi_gtest_main ${exe_LIBS})
     gridtools_add_mpi_test(${name} ${exe})
 endfunction(add_custom_mpi_host_test)
 

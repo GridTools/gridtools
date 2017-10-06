@@ -133,11 +133,7 @@ namespace gridtools {
     /**
      * @brief metafunction that create the mss local domain type
      */
-    template < enumtype::platform BackendId,
-        typename MssComponentsArray,
-        typename StorageWrapperList,
-        typename ExtentMap,
-        bool IsStateful >
+    template < enumtype::platform BackendId, typename MssComponentsArray, typename StorageWrapperList, bool IsStateful >
     struct create_mss_local_domains {
 
         GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
@@ -145,7 +141,7 @@ namespace gridtools {
         struct get_the_mss_local_domain {
             template < typename T >
             struct apply {
-                typedef mss_local_domain< BackendId, T, StorageWrapperList, ExtentMap, IsStateful > type;
+                typedef mss_local_domain< BackendId, T, StorageWrapperList, IsStateful > type;
             };
         };
 
@@ -158,19 +154,13 @@ namespace gridtools {
         typename MssArray2,
         typename Cond,
         typename StorageWrapperList,
-        typename ExtentMap,
         bool IsStateful >
     struct create_mss_local_domains< BackendId,
         condition< MssArray1, MssArray2, Cond >,
         StorageWrapperList,
-        ExtentMap,
         IsStateful > {
-        typedef
-            typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, ExtentMap, IsStateful >::type
-                type1;
-        typedef
-            typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, ExtentMap, IsStateful >::type
-                type2;
+        typedef typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, IsStateful >::type type1;
+        typedef typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, IsStateful >::type type2;
         typedef condition< type1, type2, Cond > type;
     };
 
@@ -437,9 +427,12 @@ namespace gridtools {
         typename ReductionType,
         bool IsStateful,
         uint_t RepeatFunctor >
-    struct intermediate : public computation< ReductionType > {
+    struct intermediate : public computation< DomainType, ReductionType > {
         // fix the temporaries by replacing the given storage info index with a new one
         // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
+
+        using base_t = computation< DomainType, ReductionType >;
+
         typedef
             typename fix_mss_arg_indices< MssDescriptorArrayIn, DomainType, RepeatFunctor >::type MssDescriptorArray;
 
@@ -511,7 +504,6 @@ namespace gridtools {
         typedef typename create_mss_local_domains< backend_id< Backend >::value,
             mss_components_array_t,
             storage_wrapper_list_t,
-            extent_map_t,
             IsStateful >::type mss_local_domains_t;
 
         // creates a fusion vector of local domains
@@ -521,7 +513,6 @@ namespace gridtools {
         // member fields
         mss_local_domain_list_t m_mss_local_domain_list;
 
-        DomainType m_domain;
         const Grid m_grid;
 
         bool is_storage_ready;
@@ -532,12 +523,14 @@ namespace gridtools {
         view_list_fusion_t m_view_list;
         storage_wrapper_fusion_list_t m_storage_wrapper_list;
 
+        using base_t::m_domain;
+
       public:
         intermediate(DomainType const &domain,
             Grid const &grid,
             ConditionalsSet conditionals_,
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
-            : m_domain(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
+            : base_t(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
               m_reduction_data(reduction_initial_value) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
@@ -608,20 +601,6 @@ namespace gridtools {
         virtual void reset_meter() { m_meter.reset(); }
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
-
-        template < typename... DataStores,
-            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
-                0 >
-        void reassign(DataStores &... stores) {
-            m_domain.reassign_storages_impl(stores...);
-        }
-
-        template < typename... ArgStoragePairs,
-            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
-                int >::type = 0 >
-        void reassign(ArgStoragePairs... pairs) {
-            m_domain.reassign_arg_storage_pairs_impl(pairs...);
-        }
 
         void reassign_aggregator(DomainType &new_domain) { m_domain = new_domain; }
     };

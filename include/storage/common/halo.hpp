@@ -43,6 +43,7 @@
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/plus.hpp>
 
+#include "../../common/gt_assert.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/generic_metafunctions/repeat_template.hpp"
 
@@ -56,7 +57,7 @@ namespace gridtools {
      *  in + and - direction.
      *  @tparam N variadic list of halo sizes
      */
-    template < unsigned... N >
+    template < uint_t... N >
     struct halo {
 
         /**
@@ -64,9 +65,10 @@ namespace gridtools {
          * @tparam V Dimension or coordinate to query
          * @return halo size
          */
-        template < unsigned V >
-        GT_FUNCTION static constexpr unsigned at() {
-            static_assert((V < sizeof...(N)), "Out of bounds access in halo type discovered.");
+        template < uint_t V >
+        GT_FUNCTION static constexpr uint_t at() {
+            GRIDTOOLS_STATIC_ASSERT(
+                (V < sizeof...(N)), GT_INTERNAL_ERROR_MSG("Out of bounds access in halo type discovered."));
             return get_value_from_pack(V, N...);
         }
 
@@ -75,26 +77,26 @@ namespace gridtools {
          * @param V Dimension or coordinate to query
          * @return halo size
          */
-        GT_FUNCTION static constexpr unsigned at(unsigned V) { return get_value_from_pack(V, N...); }
+        GT_FUNCTION static constexpr uint_t at(uint_t V) { return get_value_from_pack(V, N...); }
 
         /**
          * @brief member function used to query the number of dimensions. E.g., a halo
          * type with 3 entries cannot be passed to a <3 or >3 dimensional storage_info.
          * @return number of dimensions
          */
-        GT_FUNCTION static constexpr unsigned size() { return sizeof...(N); }
+        GT_FUNCTION static constexpr uint_t size() { return sizeof...(N); }
     };
 
     /**
      *  @brief Used to generate a zero initialzed halo. Used as a default value for storage info halo.
      */
-    template < unsigned Cnt >
+    template < uint_t Cnt >
     using zero_halo = typename repeat_template_c< 0, Cnt, halo >::type;
 
     /* used to check if a given type is a halo type */
     template < typename T >
     struct is_halo : boost::mpl::false_ {};
 
-    template < unsigned... N >
+    template < uint_t... N >
     struct is_halo< halo< N... > > : boost::mpl::true_ {};
 }

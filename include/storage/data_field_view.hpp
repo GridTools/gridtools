@@ -40,6 +40,7 @@
 #include <boost/mpl/and.hpp>
 #include <boost/type_traits.hpp>
 
+#include "../common/gt_assert.hpp"
 #include "data_store_field.hpp"
 #include "data_view.hpp"
 #include "common/definitions.hpp"
@@ -54,19 +55,20 @@ namespace gridtools {
      */
     template < typename DataStoreField, access_mode AccessMode = access_mode::ReadWrite >
     struct data_field_view {
-        static_assert(is_data_store_field< DataStoreField >::value, "Passed type is no data_store_field type");
+        GRIDTOOLS_STATIC_ASSERT(is_data_store_field< DataStoreField >::value,
+            GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type"));
         typedef typename DataStoreField::data_store_t data_store_t;
         typedef typename DataStoreField::data_t data_t;
         typedef typename DataStoreField::state_machine_t state_machine_t;
         typedef typename DataStoreField::storage_info_t storage_info_t;
-        static const unsigned num_of_storages = DataStoreField::num_of_storages;
-        static const unsigned num_of_components = DataStoreField::num_of_components;
+        static const uint_t num_of_storages = DataStoreField::num_of_storages;
+        static const uint_t num_of_components = DataStoreField::num_of_components;
         const static access_mode mode = AccessMode;
 
         data_t *m_raw_ptrs[num_of_storages];
         state_machine_t *m_state_machines[num_of_storages];
         storage_info_t const *m_storage_infos[num_of_components];
-        unsigned m_offsets[num_of_components];
+        uint_t m_offsets[num_of_components];
         bool m_device_view;
 
         /**
@@ -86,16 +88,16 @@ namespace gridtools {
         data_field_view(data_t *data_ptrs[num_of_storages],
             storage_info_t const *info_ptrs[num_of_components],
             state_machine_t *state_machines[num_of_storages],
-            unsigned offsets[num_of_components],
+            uint_t offsets[num_of_components],
             bool device_view)
             : m_device_view(device_view) {
-            for (unsigned i = 0; i < num_of_storages; ++i)
+            for (uint_t i = 0; i < num_of_storages; ++i)
                 m_raw_ptrs[i] = data_ptrs[i];
-            for (unsigned i = 0; i < num_of_components; ++i)
+            for (uint_t i = 0; i < num_of_components; ++i)
                 m_storage_infos[i] = info_ptrs[i];
-            for (unsigned i = 0; i < num_of_storages; ++i)
+            for (uint_t i = 0; i < num_of_storages; ++i)
                 m_state_machines[i] = state_machines[i];
-            for (unsigned i = 0; i < num_of_components; ++i)
+            for (uint_t i = 0; i < num_of_components; ++i)
                 m_offsets[i] = offsets[i];
         }
 
@@ -105,7 +107,7 @@ namespace gridtools {
          * @tparam Snapshot requested snapshot
          * @return data_view to the queried data_store
          */
-        template < unsigned Dim, unsigned Snapshot >
+        template < uint_t Dim, uint_t Snapshot >
         GT_FUNCTION data_view< data_store_t, AccessMode > get() const {
             return data_view< data_store_t, AccessMode >(m_raw_ptrs[m_offsets[Dim] + Snapshot],
                 m_storage_infos[Dim],
@@ -119,7 +121,7 @@ namespace gridtools {
          * @param Snapshot requested snapshot
          * @return data_view to the queried data_store
          */
-        GT_FUNCTION data_view< data_store_t, AccessMode > get(unsigned Dim, unsigned Snapshot) const {
+        GT_FUNCTION data_view< data_store_t, AccessMode > get(uint_t Dim, uint_t Snapshot) const {
             return data_view< data_store_t, AccessMode >(m_raw_ptrs[m_offsets[Dim] + Snapshot],
                 m_storage_infos[Dim],
                 m_state_machines[m_offsets[Dim] + Snapshot],
@@ -134,8 +136,8 @@ namespace gridtools {
          */
         bool valid() const {
             bool res = true;
-            for (unsigned i = 0; i < num_of_components - 1; ++i) {
-                for (unsigned j = 0; j < m_offsets[i + 1] - m_offsets[i]; ++j) {
+            for (uint_t i = 0; i < num_of_components - 1; ++i) {
+                for (uint_t j = 0; j < m_offsets[i + 1] - m_offsets[i]; ++j) {
                     res &= get(i, j).valid();
                 }
             }

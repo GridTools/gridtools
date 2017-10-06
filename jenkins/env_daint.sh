@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash -l
 
 function exit_if_error {
     if [ "x$1" != "x0" ]
@@ -10,33 +10,52 @@ function exit_if_error {
 
 module unload CMake
 module load daint-gpu
-module load /users/vogtha/modules/CMake/3.7.2
 module load cudatoolkit
 module rm   PrgEnv-cray
-module load PrgEnv-gnu/6.0.3
-module load Boost/1.63.0-CrayGNU-2016.11-Python-3.5.2
+module load PrgEnv-gnu
+#module load Boost
+module load CMake
 
 if [[ ${COMPILER} == "gcc" ]]; then
-  if [[ ${VERSION} == "5.3" ]]; then
+  case ${VERSION} in
+    "5.3")
       module swap gcc/5.3.0
-  else
-    if [[ ${VERSION} == "6.1" ]]; then
-        module swap gcc/6.1.0
-    else
-        module swap gcc/4.9.3
-    fi
-  fi
+      ;;
+    "6.1")
+      module swap gcc/6.1.0
+      ;;
+    "6.2")
+      module swap gcc/6.2.0
+      ;;
+    "7.1")
+      module swap gcc/7.1.0
+      ;;
+    *)
+      module swap gcc/4.9.3
+  esac
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "clang" ]]; then
   module unload PrgEnv-gnu
-  module load /users/vogtha/modules/compilers/clang/3.8.1
+  case ${VERSION} in
+    "3.9")
+      module load /users/vogtha/modules/compilers/clang/3.9.1
+      ;;
+    "4.0RC2")
+      module load /users/vogtha/modules/compilers/clang/4.0.0rc2
+      ;;
+    "5.0RC2")
+      module load /users/vogtha/modules/compilers/clang/5.0.0rc2
+      ;;
+    *)
+      module load /users/vogtha/modules/compilers/clang/3.8.1
+  esac
   export HOST_COMPILER=`which clang++`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
 fi
 
-
+export BOOST_ROOT=/users/vogtha/boost_1_63_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
@@ -52,4 +71,4 @@ export MPI_TASKS=4
 export DEFAULT_QUEUE=normal
 export USE_MPI_COMPILER=OFF
 export MAKE_THREADS=24
-export SRUN_BUILD_COMMAND="srun -C gpu --account c14 --time=00:20:00"
+export SRUN_BUILD_COMMAND="srun -C gpu --account c14 --time=00:15:00"

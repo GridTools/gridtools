@@ -104,7 +104,7 @@ namespace gridtools {
             GT_FUNCTION auto static constexpr value(
                 IterateDomain &it_domain, expr_divide< FloatType, ArgType2 > const &arg)
                 -> decltype(arg.first_operand / it_domain(arg.second_operand)) {
-                return arg.second_operand / it_domain(arg.second_operand);
+                return arg.first_operand / it_domain(arg.second_operand);
             }
 
             // automatic differentiation
@@ -119,10 +119,12 @@ namespace gridtools {
                 IterateDomain &it_domain, expr_derivative< expr_divide< ArgType1, ArgType2 > > const &arg)
                 -> decltype(it_domain((expr_derivative< ArgType1 >(arg.first_operand) * arg.second_operand -
                                           arg.first_operand * expr_derivative< ArgType2 >(arg.second_operand)) /
-                                      (pow< 2 >(arg.first_operand) + pow< 2 >(arg.second_operand)))) {
+                                      (::gridtools::expressions::pow< 2 >(arg.first_operand) +
+                                          ::gridtools::expressions::pow< 2 >(arg.second_operand)))) {
                 return it_domain((expr_derivative< ArgType1 >(arg.first_operand) * arg.second_operand -
                                      arg.first_operand * expr_derivative< ArgType2 >(arg.second_operand)) /
-                                 (pow< 2 >(arg.first_operand) + pow< 2 >(arg.second_operand)));
+                                 (::gridtools::expressions::pow< 2 >(arg.first_operand) +
+                                     ::gridtools::expressions::pow< 2 >(arg.second_operand)));
             }
 
             /** divide with scalar evaluation*/
