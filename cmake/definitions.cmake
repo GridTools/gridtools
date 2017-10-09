@@ -69,7 +69,7 @@ if( USE_GPU )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${GT_CUDA_VERSION}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION=${CUDA_VERSION}")
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "${BOOST_FUSION_MAX_SIZE_FLAGS}")
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call

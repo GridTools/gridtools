@@ -34,24 +34,19 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../defs.hpp"
 #include "accumulate.hpp"
-#include "is_pack_of.hpp"
 
 namespace gridtools {
     /**
-     * @brief checks if all Types in variadic pack fulfill the Condition
+     * @brief checks if all Types in variadic pack fulfill the Condition (true if empty)
      */
     template < template < typename > class Condition, typename... Types >
-    using is_all = boost::mpl::bool_< accumulate(logical_and(), Condition< Types >::type::value...) >;
+    using is_all = boost::mpl::bool_< accumulate(logical_and(), true, Condition< Types >::type::value...) >;
 
     /**
      * @brief SFINAE for the case in which all the components of a parameter pack match a certain condition
      */
     template < template < typename > class Condition, typename... Types >
-    using all_ =
-#if defined(CUDA8) && !defined(_CRAYC)
-        is_pack_of< Condition, Types... >;
-#else
-        typename boost::enable_if_c< is_all< Condition, Types... >::type::value, bool >::type;
-#endif
+    using all_ = typename boost::enable_if_c< is_all< Condition, Types... >::type::value, bool >::type;
 }
