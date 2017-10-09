@@ -258,7 +258,7 @@ namespace gridtools {
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
          */
-        template < typename... Dims, typename = gridtools::all_integers< Dims... > >
+        template < typename... Dims, typename = gridtools::all_integral< Dims... > >
         GT_FUNCTION explicit constexpr storage_info_interface(Dims... dims_)
             : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                   handle_masked_dims< LayoutArgs >::extend(dims_))...},

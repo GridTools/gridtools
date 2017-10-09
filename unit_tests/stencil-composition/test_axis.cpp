@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,12 +36,27 @@
 
 #include "gtest/gtest.h"
 #include "stencil-composition/axis.hpp"
+#include "../test_helper.hpp"
 
 using namespace gridtools;
 
-TEST(test_axis, make_axis) {
+TEST(test_axis, ctor) {
     auto axis_ = axis< 2 >((uint_t)5, (uint_t)4);
 
     ASSERT_EQ(5, axis_.interval_size(0));
     ASSERT_EQ(4, axis_.interval_size(1));
+}
+
+TEST(test_axis, intervals) {
+    using axis_t = axis< 3 >;
+
+    // full interval
+    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 3, -1 > >, axis_t::full_interval >();
+
+    // intervals by id
+    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 1, -1 > >, axis_t::get_interval< 0 > >();
+    ASSERT_TYPE_EQ< interval< level< 1, -1 >, level< 2, -1 > >, axis_t::get_interval< 1 > >();
+
+    // hull of multiple intervals
+    ASSERT_TYPE_EQ< interval< level< 1, -1 >, level< 3, -1 > >, axis_t::get_interval< 1, 2 > >();
 }

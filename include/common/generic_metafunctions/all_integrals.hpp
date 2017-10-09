@@ -34,32 +34,33 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "accumulate.hpp"
-#include "is_pack_of.hpp"
+#include "is_all.hpp"
 
 namespace gridtools {
     /**
-       SFINAE for the case in which all the components of a parameter pack are of integral type
+    * @brief SFINAE for the case in which all the components of a parameter pack are of integral type
     */
     template < typename... IntTypes >
-    using all_integers =
-#if defined(CUDA8) && !defined(_CRAYC)
-        is_pack_of< boost::is_integral, IntTypes... >;
-#else
-        typename boost::enable_if_c< accumulate(logical_and(), boost::is_integral< IntTypes >::type::value...),
-            bool >::type;
-#endif
+    using all_integral = all_< boost::is_integral, IntTypes... >;
 
     /**
-       SFINAE for the case in which all the components of a parameter pack are of static integral type
+    * @brief SFINAE for the case in which all the components of a parameter pack are of static integral type
     */
     template < typename... IntTypes >
-    using all_static_integers =
-#if defined(CUDA8) && !defined(_CRAYC)
-        is_pack_of< is_static_integral, IntTypes... >;
-#else
-        typename boost::enable_if_c< accumulate(logical_and(), is_static_integral< IntTypes >::type::value...),
-            bool >::type;
+    using all_static_integral = all_< is_static_integral, IntTypes... >;
 
-#endif
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_integral = is_all< boost::is_integral, IntTypes... >;
+
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_static_integral = is_all< is_static_integral, IntTypes... >;
+
+    /* check if all given types are integral types */
+    template < typename T >
+    struct is_integral_or_enum : boost::mpl::or_< boost::is_integral< T >, boost::is_enum< T > > {};
+
+    template < typename... IntTypes >
+    using is_all_integral_or_enum = is_all< is_integral_or_enum, IntTypes... >;
 }

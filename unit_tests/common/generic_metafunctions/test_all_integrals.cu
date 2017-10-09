@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cxx11_all_integrals.cpp"
+#include "test_all_integrals.cpp"

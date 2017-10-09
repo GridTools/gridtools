@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@
 #pragma once
 #include "../common/array.hpp"
 #include "../common/generic_metafunctions/all_integrals.hpp"
+#include "../common/generic_metafunctions/accumulate.hpp"
+#include "../common/variadic_pack_metafunctions.hpp"
 #include "interval.hpp"
 #include "level.hpp"
 
@@ -49,6 +51,17 @@ namespace gridtools {
      */
     template < size_t NIntervals, int_t ExtraOffsetsBeyondFullInterval = 0 >
     class axis {
+      private:
+        template < size_t... IntervalIDs >
+        struct internal_interval {
+            GRIDTOOLS_STATIC_ASSERT((is_continuous(IntervalIDs...)), "Intervals must be continuous.");
+            static constexpr size_t min_id = constexpr_min(IntervalIDs...);
+            static constexpr size_t max_id = constexpr_max(IntervalIDs...);
+            GRIDTOOLS_STATIC_ASSERT((max_id < NIntervals), "Interval ID out of bounds for this axis.");
+
+            using type = interval< level< min_id, -1 >, level< max_id + 1, -1 > >;
+        };
+
       public:
         static const uint_t max_offsets_ = cLevelOffsetLimit;
 
@@ -56,7 +69,7 @@ namespace gridtools {
 
         using full_interval = interval< level< 0, -1 >, level< NIntervals, -1 > >;
 
-        template < typename... IntervalSizes, typename = gridtools::all_integers< IntervalSizes... > >
+        template < typename... IntervalSizes, typename = gridtools::all_integral< IntervalSizes... > >
         axis(IntervalSizes... interval_sizes)
             : interval_sizes_{interval_sizes...} {
             GRIDTOOLS_STATIC_ASSERT(
@@ -65,6 +78,9 @@ namespace gridtools {
 
         uint_t interval_size(const uint_t index) const { return interval_sizes_[index]; }
         const array< uint_t, NIntervals > &interval_sizes() const { return interval_sizes_; };
+
+        template < size_t... IntervalIDs >
+        using get_interval = typename internal_interval< IntervalIDs... >::type;
 
       private:
         array< uint_t, NIntervals > interval_sizes_;
