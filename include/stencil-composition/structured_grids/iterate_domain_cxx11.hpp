@@ -83,6 +83,14 @@
 
 namespace gridtools {
 
+    namespace advanced {
+        template < typename IDomain >
+        inline typename IDomain::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(IDomain &id) {
+            return id.data_pointer();
+        }
+
+    } // namespace advanced
+
     /**@brief class managing the memory accesses, indices increment
 
        This class gets instantiated in the backend-specific code, and has a different implementation for
@@ -201,6 +209,9 @@ namespace gridtools {
         data_ptr_cached_t &RESTRICT data_pointer() {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
+
+        template < typename T >
+        friend typename T::data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer(T &);
 
       public:
         /**@brief constructor of the iterate_domain struct
