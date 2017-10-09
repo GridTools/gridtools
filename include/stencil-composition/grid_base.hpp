@@ -97,12 +97,6 @@ namespace gridtools {
             const array< uint_t, size_type::value > &value_list)
             : m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {}
 
-        GT_FUNCTION
-        explicit grid_base(
-            halo_descriptor const &direction_i, halo_descriptor const &direction_j, axis< size_type::value - 1 > axis)
-            : m_direction_i(direction_i), m_direction_j(direction_j),
-              value_list(internal::intervals_to_indices(axis.interval_sizes())) {}
-
         DEPRECATED_REASON(GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/),
             "Use constructor with halo_descriptors")
             : m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),

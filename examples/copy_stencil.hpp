@@ -52,11 +52,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace copy_stencil {
-
-    // This is the definition of the special regions in the "vertical" direction
-    using axis_t = axis< 1 >;
-    using x_interval = axis_t::full_interval;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
@@ -115,14 +110,7 @@ namespace copy_stencil {
         // order. (I don't particularly like this)
         gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out));
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        halo_descriptor di{0, 0, 0, d1 - 1, d1};
-        halo_descriptor dj{0, 0, 0, d2 - 1, d2};
-
-        auto grid = make_grid(di, dj, axis_t(d3));
+        auto grid = make_grid(d1, d2, d3);
 
         auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
             grid,

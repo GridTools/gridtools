@@ -69,10 +69,6 @@ using namespace enumtype;
 using BACKEND = backend< BACKEND_ARCH, GRIDBACKEND, Block >;
 
 namespace copy_stencil {
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
         typedef accessor< 0, enumtype::in > in;
@@ -81,7 +77,7 @@ namespace copy_stencil {
         /* static const auto expression=in(1,0,0)-out(); */
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -175,10 +171,9 @@ namespace copy_stencil {
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
-        gridtools::grid< axis > grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
-            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]});
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
+            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
+            axis< 1 >(d3));
 
         // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
         // that are used, temporary and not

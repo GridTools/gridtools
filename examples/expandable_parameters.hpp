@@ -59,9 +59,6 @@ namespace test_expandable_parameters {
     using namespace gridtools;
     using namespace expressions;
 
-    using axis_t = axis< 1 >;
-    using x_interval = axis_t::full_interval;
-
     struct functor_exp {
 
 #ifdef REASSIGN_DOMAIN
@@ -75,7 +72,7 @@ namespace test_expandable_parameters {
         typedef boost::mpl::vector< parameters_out, parameters_in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(parameters_out{}) = eval(parameters_in{});
         }
     };
@@ -102,10 +99,7 @@ namespace test_expandable_parameters {
         std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
         std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
-        halo_descriptor di{0, 0, 0, d1 - 1, d1};
-        halo_descriptor dj{0, 0, 0, d2 - 1, d2};
-
-        auto grid_ = make_grid(di, dj, axis_t(d3));
+        auto grid_ = make_grid(d1, d2, d3);
 
         typedef arg< 0, std::vector< storage_t > > p_list_out;
         typedef arg< 1, std::vector< storage_t > > p_list_in;

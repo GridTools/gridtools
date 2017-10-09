@@ -56,12 +56,6 @@ using namespace enumtype;
 using namespace expressions;
 
 namespace horizontal_diffusion {
-    // This is the definition of the special regions in the "vertical" direction
-    using axis_t = axis< 1 >;
-    using x_lap = axis_t::full_interval;
-    using x_flx = axis_t::full_interval; // TODO why do we have the same intervals with different names?
-    using x_out = axis_t::full_interval;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
         typedef accessor< 0, enumtype::inout > out;
@@ -70,7 +64,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation eval, x_lap) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = (gridtools::float_type)4 * eval(in()) -
                           (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
         }
@@ -85,7 +79,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
                 eval(out()) = 0.;
@@ -102,7 +96,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = eval(lap(0, 1, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0) {
                 eval(out()) = 0.;
@@ -121,7 +115,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_out) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
 #if !defined(CUDA_EXAMPLE)
             eval(out()) = eval(in()) - eval(coeff()) * (eval(flx() - flx(-1, 0, 0) + fly() - fly(0, -1, 0)));
 #else
@@ -188,7 +182,7 @@ namespace horizontal_diffusion {
         halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
         halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        auto grid = make_grid(di, dj, axis_t(d3));
+        auto grid = make_grid(di, dj, d3);
 
         /*
           Here we do lot of stuff

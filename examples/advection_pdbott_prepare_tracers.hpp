@@ -55,9 +55,6 @@ namespace adv_prepare_tracers {
     using namespace enumtype;
     using namespace expressions;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > interval_t;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
     struct prepare_tracers {
         using data = vector_accessor< 0, inout >;
         using data_nnow = vector_accessor< 1, in >;
@@ -65,7 +62,7 @@ namespace adv_prepare_tracers {
         typedef boost::mpl::vector< data, data_nnow, rho > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, interval_t) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(data()) = eval(rho()) * eval(data_nnow());
         }
     };
@@ -102,12 +99,7 @@ namespace adv_prepare_tracers {
 
         storage_t rho(meta_data_, 1.1);
 
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-        gridtools::grid< axis > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(d1, d2, d3);
 
         typedef arg< 0, std::vector< storage_t > > p_list_out;
         typedef arg< 1, std::vector< storage_t > > p_list_in;

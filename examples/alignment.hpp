@@ -69,9 +69,6 @@ using namespace enumtype;
 
 namespace aligned_copy_stencil {
 
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
-
     typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
     typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
@@ -144,13 +141,10 @@ namespace aligned_copy_stencil {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::coordinates<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + halo_t::at< 0 >()};
-        uint_t dj[5] = {halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + halo_t::at< 1 >()};
+        halo_descriptor di{halo_t::at< 0 >(), 0, halo_t::at< 0 >(), d1 + halo_t::at< 0 >() - 1, d1 + halo_t::at< 0 >()};
+        halo_descriptor dj{halo_t::at< 1 >(), 0, halo_t::at< 1 >(), d2 + halo_t::at< 1 >() - 1, d2 + halo_t::at< 1 >()};
 
-        gridtools::grid< axis > grid(di, dj);
-
-        grid.value_list[0] = halo_t::at< 2 >();
-        grid.value_list[1] = d3 + halo_t::at< 2 >() - 1;
+        grid< axis< 1 >::axis_interval_t > grid(di, dj, {halo_t::at< 2 >(), d3 + halo_t::at< 2 >() - 1});
 
         auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
             grid,
