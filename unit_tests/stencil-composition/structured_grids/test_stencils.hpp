@@ -143,8 +143,8 @@ namespace copy_stencils_3D_2D_1D_0D {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::grid<axis> grid_(??2,d1-2,2,d2-2??);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        halo_descriptor di{0, 0, 0, d1 - 1, d1};
+        halo_descriptor dj{0, 0, 0, d2 - 1, d2};
 
         gridtools::grid< axis > grid_(di, dj);
         grid_.value_list[0] = 0;

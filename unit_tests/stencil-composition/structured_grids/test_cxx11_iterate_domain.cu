@@ -124,8 +124,8 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     gridtools::aggregator_type< accessor_list > domain(
         read_only_texture_arg, out, read_only_bypass_arg, read_only_non_texture_type_arg, shared_mem_arg, kcache_arg);
 
-    uint_t di[5] = {4, 4, 4, d1 - 4 - 1, d1};
-    uint_t dj[5] = {4, 4, 4, d2 - 4 - 1, d2};
+    halo_descriptor di{4, 4, 4, d1 - 4 - 1, d1};
+    halo_descriptor dj{4, 4, 4, d2 - 4 - 1, d2};
 
     gridtools::grid< axis_t > grid(di, dj);
     grid.value_list[0] = 0;

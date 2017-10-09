@@ -52,7 +52,6 @@ namespace rw_test {
 #endif
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
 
     struct test_functor {
         typedef accessor< 0, in, extent< 0 > > i0;
