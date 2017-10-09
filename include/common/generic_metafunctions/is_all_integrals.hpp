@@ -41,7 +41,13 @@ namespace gridtools {
     * @brief SFINAE for the case in which all the components of a parameter pack are of integral type
     */
     template < typename... IntTypes >
-    using all_integral = all_< boost::is_integral, IntTypes... >;
+    using all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        all_< boost::is_integral, IntTypes... >;
+#else
+        typename boost::enable_if_c< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...),
+            bool >::type;
+#endif
 
     /**
     * @brief SFINAE for the case in which all the components of a parameter pack are of static integral type
@@ -51,7 +57,12 @@ namespace gridtools {
 
     /* check if all given types are integral types */
     template < typename... IntTypes >
-    using is_all_integral = is_all< boost::is_integral, IntTypes... >;
+    using is_all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< boost::is_integral, IntTypes... >;
+#else
+        boost::mpl::bool_< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...) >;
+#endif
 
     /* check if all given types are integral types */
     template < typename... IntTypes >
@@ -62,5 +73,10 @@ namespace gridtools {
     struct is_integral_or_enum : boost::mpl::or_< boost::is_integral< T >, boost::is_enum< T > > {};
 
     template < typename... IntTypes >
-    using is_all_integral_or_enum = is_all< is_integral_or_enum, IntTypes... >;
+    using is_all_integral_or_enum =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< is_integral_or_enum, IntTypes... >;
+#else
+        boost::mpl::bool_< accumulate(logical_and(), true, is_integral_or_enum< IntTypes >::type::value...) >;
+#endif
 }

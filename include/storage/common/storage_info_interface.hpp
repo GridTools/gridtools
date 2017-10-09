@@ -53,7 +53,7 @@
 #include "../../common/array_addons.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/layout_map.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
+#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 
 namespace gridtools {
 

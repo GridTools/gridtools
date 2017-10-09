@@ -35,7 +35,7 @@
 */
 #pragma once
 #include "../common/array.hpp"
-#include "../common/generic_metafunctions/all_integrals.hpp"
+#include "../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../common/generic_metafunctions/accumulate.hpp"
 #include "../common/variadic_pack_metafunctions.hpp"
 #include "interval.hpp"

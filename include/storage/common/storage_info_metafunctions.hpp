@@ -44,7 +44,7 @@
 #include "halo.hpp"
 #include "../../common/gt_assert.hpp"
 #include "../../common/array.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
+#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/layout_map.hpp"
 #include "../../common/gt_math.hpp"
 

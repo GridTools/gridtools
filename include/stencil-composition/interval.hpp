@@ -111,6 +111,8 @@ namespace gridtools {
         };
         template < int_t left, int_t right >
         using modify = typename internal_modify_interval< left, right >::type;
+        template < int_t dir >
+        using shift = modify< dir, dir >;
     };
 
     /**
