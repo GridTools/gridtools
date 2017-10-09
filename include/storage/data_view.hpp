@@ -49,6 +49,38 @@
 
 namespace gridtools {
 
+    namespace advanced {
+        /** Function to access the protected data member of the views
+            containing the raw pointers.  This is an interface we want to avoid
+            using (and future fixed of the communication library will not need
+            this. We made the use of this function difficult on purpose.
+
+            \tparam DataView The data_view type (deduced)
+
+            \param dv The data_view object
+            \param i The index of the pointer in the arrays of raw pointers
+        */
+        template < typename DataView >
+        inline typename DataView::data_t *get_raw_pointer_of(DataView const &dv, int i = 0) {
+            return dv.m_raw_ptrs[i];
+        }
+
+        /** Function to obtain the address of the first element of the view,
+            that is &view(0,0,0). This fuction gives that address without
+            de-referencing the actual value. This is useful to interface
+            C or Fortran code that needs raw pointers to the data.
+
+            \tparam DataView The data_view type (deduced)
+
+            \param dv The data_view object
+            \param i The index of the pointer in the arrays of raw pointers
+        */
+        template < typename DataView >
+        inline typename DataView::data_t *get_initial_address_of(DataView const &dv, int i = 0) {
+            return dv.m_raw_ptrs[i] + dv.m_storage_info->get_initial_offset();
+        }
+    } // namespace advanced
+
     /**
      * @brief data_view implementation. This struct provides means to modify contents of
      * gridtools data_store containers on arbitrary locations (host, device, etc.).
@@ -66,11 +98,13 @@ namespace gridtools {
         const static access_mode mode = AccessMode;
         const static uint_t num_of_storages = 1;
 
+      protected:
         data_t *m_raw_ptrs[1];
+
+      public:
         state_machine_t *m_state_machine_ptr;
         storage_info_t const *m_storage_info;
         bool m_device_view;
-
         /**
          * @brief data_view constructor
          */
@@ -189,6 +223,12 @@ namespace gridtools {
          * @return inner domain size
          */
         GT_FUNCTION constexpr int length() const { return m_storage_info->length(); }
+
+        template < typename T >
+        friend typename T::data_t *advanced::get_raw_pointer_of(T const &, int);
+
+        template < typename T >
+        friend typename T::data_t *advanced::get_initial_address_of(T const &, int);
     };
 
     template < typename T >

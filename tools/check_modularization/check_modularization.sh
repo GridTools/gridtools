@@ -32,7 +32,6 @@ no_dependency "stencil-composition" "tools"
 are_independent "boundary-conditions" "communication" #maybe they can have a dependency later?
 are_independent "boundary-conditions" "tools"
 
-are_independent "communication" "tools"
 no_dependency "communication" "storage"
 #are_independent "communication" "storage" #TODO: violated by partitioner
 

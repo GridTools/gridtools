@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include "../../common/host_device.hpp"
+
 #ifdef _USE_GPU_
 /* device_binding added by Devendar Bureddy, OSU */
 void device_binding() {
