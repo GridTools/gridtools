@@ -159,10 +159,10 @@ namespace vertical_advection_dycore {
     template < typename T >
     struct u_backward_function {
         typedef accessor< 0, enumtype::inout > utens_stage;
-        typedef accessor< 1 > u_pos;
-        typedef accessor< 2 > dtr_stage;
-        typedef accessor< 3 > ccol;
-        typedef accessor< 4 > dcol;
+        typedef accessor< 1, enumtype::inout > u_pos;
+        typedef accessor< 2, enumtype::inout > dtr_stage;
+        typedef accessor< 3, enumtype::inout > ccol;
+        typedef accessor< 4, enumtype::inout > dcol;
         typedef accessor< 5, enumtype::inout, extent< 0, 0, 0, 0, 0, 1 > > data_col;
 
         typedef boost::mpl::vector< utens_stage, u_pos, dtr_stage, ccol, dcol, data_col > arg_list;
@@ -259,10 +259,7 @@ namespace vertical_advection_dycore {
 
         bool test(uint_t t_steps, bool verify) {
 
-            auto vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
+            auto up_stencil = gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
                         cache< K, cache_io_policy::flush, kfull >(p_dcol()),
@@ -277,16 +274,16 @@ namespace vertical_advection_dycore {
                         p_bcol(),
                         p_ccol(),
                         p_dcol()) // esf_descriptor
-                    ),
-                gridtools::make_multistage(execute< backward >(),
-                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
-                    gridtools::make_stage< u_backward_function< double > >(p_utens_stage(),
-                                               p_u_pos(),
-                                               p_dtr_stage(),
-                                               p_ccol(),
-                                               p_dcol(),
-                                               p_data_col())));
+                    );
 
+            auto down_stencil = gridtools::make_multistage(
+                execute< backward >(),
+                define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
+                gridtools::make_stage< u_backward_function< double > >(
+                    p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col()));
+
+            auto vertical_advection =
+                gridtools::make_computation< vertical_advection::va_backend >(domain, grid, up_stencil, down_stencil);
             vertical_advection->ready();
 
             vertical_advection->steady();
@@ -324,8 +321,7 @@ namespace vertical_advection_dycore {
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
                     // Caches not yet supported  define_caches(cache< K, cache_io_policy::flush, kbody >(p_ccol())),
-                    gridtools::make_stage_with_extent< u_forward_function< double >, extent< 0, 1, 0, 0 > >(
-                        p_utens_stage(),
+                    gridtools::make_stage_with_extent< u_forward_function< double >, extent< 0 > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
                         p_u_pos(),
