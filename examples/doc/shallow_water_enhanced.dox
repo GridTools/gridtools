@@ -170,12 +170,9 @@ Notice that we used in this case a \ref gridtools::trivial_partitioner "trivial 
   while they can change for other dimensions)
 Notice that the partitioner is not aware of the storage it will partition, and can be reused for multiple storages.
 
-We introduce now the \ref gridtools::parallel_storage "parallel storage"
-\snippet shallow_water_enhanced.h parallel_storage
-This is a simple decorator of the regular \ref gridtools::storage "storage" containing the position of that partition in the global domain,
-and its iteration space. The members of this class are not copied to the device, so only the host has knowledge of the global iteration points being accessed.
-The parallel storage must be constructed using a partitioner. Then, when the \ref gridtools::parallel_storage::setup "setup" method computes the local dimensions and strides using the partitioner,
-and allocates the storages.
+We introduce now the \ref gridtools::storage "storage"
+\snippet shallow_water_enhanced.h storage
+This is a simple decorator of the regular \ref gridtools::storage "storage".
 
 The following code completes the definition of the processors grid:
 \snippet shallow_water_enhanced.h add_halo

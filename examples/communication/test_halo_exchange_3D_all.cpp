@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "../../unit_tests/communication/check_flags.hpp"
+#include <tools/mpi_unit_test_driver/check_flags.hpp>
 #include <mpi.h>
 #include <iostream>
 #include <sstream>
@@ -49,7 +49,7 @@
 
 #include "triplet.hpp"
 
-#include "../../unit_tests/communication/device_binding.hpp"
+#include <tools/mpi_unit_test_driver/device_binding.hpp>
 
 namespace halo_exchange_3D_all {
     int pid;

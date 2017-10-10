@@ -33,39 +33,45 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "Options.hpp"
-#include "gtest/gtest.h"
-#include "expandable_parameters_reassign_domain.hpp"
 
-int main(int argc, char **argv) {
+#pragma once
 
-    // Pass command line arguments to googltest
-    ::testing::InitGoogleTest(&argc, argv);
+#include "../../common/host_device.hpp"
 
-    if (argc < 4) {
-        printf("Usage: expandable_parameters_<whatever> dimx dimy dimz\n where args are integer sizes of the data "
-               "fields\n");
-        return 1;
+#ifdef _USE_GPU_
+/* device_binding added by Devendar Bureddy, OSU */
+void device_binding() {
+
+    int local_rank = 0 /*, num_local_procs*/;
+    int dev_count, use_dev_count, my_dev_id;
+    char *str;
+
+    printf("HOME %s\n", getenv("HOME"));
+
+    if ((str = getenv("MV2_COMM_WORLD_LOCAL_RANK")) != NULL) {
+        local_rank = atoi(str);
+        printf("MV2_COMM_WORLD_LOCAL_RANK %s\n", str);
+    } else if ((str = getenv("SLURM_LOCALID")) != NULL) {
+        local_rank = atoi(str);
+        printf("SLURM_LOCALID %s\n", str);
     }
 
-    for (int i = 0; i != 3; ++i) {
-        Options::getInstance().m_size[i] = atoi(argv[i + 1]);
+    if ((str = getenv("MPISPAWN_LOCAL_NPROCS")) != NULL) {
+        // num_local_procs = atoi (str);
+        printf("MPISPAWN_LOCAL_NPROCS %s\n", str);
     }
 
-    if (argc == 5) {
-        Options::getInstance().m_size[3] = atoi(argv[4]);
+    cudaGetDeviceCount(&dev_count);
+    if ((str = getenv("NUM_GPU_DEVICES")) != NULL) {
+        use_dev_count = atoi(str);
+        printf("NUM_GPU_DEVICES %s\n", str);
+    } else {
+        use_dev_count = dev_count;
+        printf("NUM_GPU_DEVICES %d\n", use_dev_count);
     }
 
-    return RUN_ALL_TESTS();
+    my_dev_id = local_rank % use_dev_count;
+    printf("local rank = %d dev id = %d\n", local_rank, my_dev_id);
+    cudaSetDevice(my_dev_id);
 }
-
-TEST(ExpandableParameters, Test) {
-    gridtools::uint_t x = Options::getInstance().m_size[0];
-    gridtools::uint_t y = Options::getInstance().m_size[1];
-    gridtools::uint_t z = Options::getInstance().m_size[2];
-    gridtools::uint_t t = Options::getInstance().m_size[3];
-    if (t == 0)
-        t = 1;
-
-    ASSERT_TRUE(test_expandable_parameters::test(x, y, z, t));
-}
+#endif

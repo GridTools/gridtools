@@ -131,8 +131,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((type::value), GT_INTERNAL_ERROR);
         };
 
-      private:
+      protected:
         MssLocalDomainArray &m_local_domain_lists;
+
+      private:
         const Grid &m_grid;
         ReductionData &m_reduction_data;
         const uint_t m_block_idx, m_block_idy;

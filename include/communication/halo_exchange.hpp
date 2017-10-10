@@ -45,13 +45,13 @@
 #error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")
 #endif
 
+#include "high-level/descriptors_fwd.hpp"
+#include "high-level/descriptor_generic_manual.hpp"
+#include "high-level/descriptors.hpp"
 #include "high-level/descriptors_dt.hpp"
 #include "high-level/descriptors_dt_whole.hpp"
-#include "high-level/descriptors.hpp"
 #include "high-level/descriptors_manual_gpu.hpp"
-#include "high-level/descriptor_generic_manual.hpp"
 
-#include "low-level/translate.hpp"
 #include "high-level/field_on_the_fly.hpp"
 
 namespace gridtools {
@@ -270,6 +270,17 @@ namespace gridtools {
         typedef typename _impl::get_pattern< DIMS, grid_type, version >::type pattern_type;
 
       private:
+        template < typename Array >
+        MPI_Comm _make_comm(MPI_Comm comm, Array dims) {
+            int nprocs;
+            MPI_Comm_size(comm, &nprocs);
+            MPI_Dims_create(nprocs, dims.size(), &dims[0]);
+            int period[3] = {1, 1, 1};
+            MPI_Comm CartComm;
+            MPI_Cart_create(MPI_COMM_WORLD, 3, &dims[0], period, false, &CartComm);
+            return CartComm;
+        }
+
         typedef hndlr_dynamic_ut< DataType, GridType, pattern_type, layout2proc_map, Gcl_Arch, version > hd_t;
 
         hd_t hd;

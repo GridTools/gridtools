@@ -54,7 +54,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-namespace reduction {
+namespace test_reduction {
 
     // This is the definition of the special regions in the "vertical" direction
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;

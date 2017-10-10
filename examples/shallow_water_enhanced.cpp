@@ -33,17 +33,12 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#include <gridtools.hpp>
+#include <tools/mpi_unit_test_driver/check_flags.hpp>
+#include "gtest/gtest.h"
 #include "shallow_water_enhanced.hpp"
-#include <iostream>
 
-int main(int argc, char **argv) {
-
-    if (argc != 5) {
-        std::cout << "Usage: shallow_water_<whatever> dimx dimy dimz timesteps\n where args are integer sizes of the "
-                     "data fields and the number of timesteps performed"
-                  << std::endl;
-        return 1;
-    }
-
-    return !shallow_water::test(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+TEST(Communication, shallow_water_enhanced) {
+    bool passed = shallow_water::test(8, 8, 1);
+    EXPECT_TRUE(passed);
 }
