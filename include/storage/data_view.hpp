@@ -219,6 +219,46 @@ namespace gridtools {
         GT_FUNCTION constexpr int total_length() const { return m_storage_info->total_length(); }
 
         /*
+         * @brief member function to retrieve the first index for the element of a view (including the halos - outer
+         * region)
+         * @return First outer index where iterate
+         */
+        template < uint Dim >
+        GT_FUNCTION constexpr int total_begin() const {
+            return m_storage_info->template total_begin< Dim >();
+        }
+
+        /*
+         * @brief member function to retrieve the first index for the element of a view (excluding the halos - inner
+         * region)
+         * @return First outer index where iterate
+         */
+        template < uint Dim >
+        GT_FUNCTION constexpr int begin() const {
+            return m_storage_info->template begin< Dim >();
+        }
+
+        /*
+         * @brief member function to retrieve the last index for the element of a view (including the halos - outer
+         * region)
+         * @return First outer index where iterate
+         */
+        template < uint Dim >
+        GT_FUNCTION constexpr int total_end() const {
+            return m_storage_info->template total_end< Dim >();
+        }
+
+        /*
+         * @brief member function to retrieve the last index for the element of a view (excluding the halos - inner
+         * region)
+         * @return First outer index where iterate
+         */
+        template < uint Dim >
+        GT_FUNCTION constexpr int end() const {
+            return m_storage_info->template end< Dim >();
+        }
+
+        /*
          * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
          * @return inner domain size
          */
