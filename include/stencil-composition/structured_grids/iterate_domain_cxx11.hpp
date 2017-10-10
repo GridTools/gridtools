@@ -191,7 +191,7 @@ namespace gridtools {
         GT_FUNCTION
         array_index_t const &RESTRICT index() const { return m_index; }
 
-      public:
+      protected:
         /**
            @brief returns the strides as const reference
         */
@@ -218,9 +218,6 @@ namespace gridtools {
             iterate_domain &);
 
       public:
-        template < typename IDomain >
-        friend typename IDomain::data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer(IDomain &);
-
         /**@brief constructor of the iterate_domain struct
 
            It assigns the storage pointers to the first elements of
