@@ -73,7 +73,7 @@ namespace test_conditionals {
         auto cond = new_cond([]() { return false; });
         auto cond2 = new_cond([]() { return true; });
 
-        auto grid_ = make_grid(2, 2, axis_t(3));
+        auto grid_ = make_grid((uint_t)2, (uint_t)2, axis_t((uint_t)3));
 
         typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
         typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >

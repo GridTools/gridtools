@@ -110,7 +110,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
                             gridtools::make_stage< local_domain_stencil::dummy_functor >(p_buff(), p_out()))) >,
                               boost::mpl::quote1< gridtools::is_computation_token > >,
         gridtools::aggregator_type< accessor_list >,
-        gridtools::grid< local_domain_stencil::axis >,
+        gridtools::grid< gridtools::axis< 1 >::axis_interval_t >,
         boost::fusion::set<>,
         gridtools::notype,
         false > intermediate_t;

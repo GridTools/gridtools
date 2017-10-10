@@ -99,7 +99,7 @@ namespace check_grid_bounds {
         gridtools::halo_descriptor di{halo_size, halo_size, halo_size, gx - halo_size - 1, gx};
         gridtools::halo_descriptor dj{halo_size, halo_size, halo_size, gy - halo_size - 1, gy};
 
-        auto grid = make_grid(di, dj, axis< 1 >(gz));
+        auto grid = make_grid(di, dj, gridtools::axis< 1 >(gz));
 
         using mdlist_t = boost::fusion::vector< storage_info1_t, storage_info2_t, storage_info3_t >;
         mdlist_t mdlist(si1, si2, si3);

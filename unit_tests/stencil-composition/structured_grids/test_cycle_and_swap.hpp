@@ -93,7 +93,7 @@ namespace test_cycle_and_swap {
         iv.get< 0, 0 >()(0, 0, 0) = 0;
         iv.get< 0, 1 >()(0, 0, 0) = 1;
 
-        auto grid = make_grid(1, 1, axis< 1 >(0)); // TODO looks broken
+        auto grid = make_grid((uint_t)1, (uint_t)1, axis< 1 >((uint_t)1));
 
         typedef arg< 0, data_store_field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
@@ -240,7 +240,7 @@ namespace test_cycle_and_swap {
         halo_descriptor di{halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
         halo_descriptor dj{halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
 
-        auto grid = make_grid(di, dj, axis< 1 >(0)); // TODO looks broken
+        auto grid = make_grid(di, dj, axis< 1 >((uint_t)1));
 
         typedef arg< 0, data_store_field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
