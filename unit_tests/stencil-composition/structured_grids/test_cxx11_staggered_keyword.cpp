@@ -80,7 +80,7 @@ namespace test_staggered_keyword {
         halo_descriptor di{0, 0, 5, 30 - 1, 30};
         halo_descriptor dj{0, 0, 5, 20 - 1, 20};
 
-        auto grid = make_grid(di, dj, axis< 1 >(1));
+        auto grid = make_grid(di, dj, axis< 1 >((uint_t)1));
 
         typedef arg< 0, storage_t > p_i_data;
         typedef arg< 1, storage_t > p_j_data;
