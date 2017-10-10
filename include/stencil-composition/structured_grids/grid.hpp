@@ -72,17 +72,17 @@ namespace gridtools {
         halo_descriptor const &direction_i, halo_descriptor const &direction_j, Axis axis) {
         return grid< typename Axis::axis_interval_t >(
             direction_i, direction_j, internal::intervals_to_indices(axis.interval_sizes()));
-    };
+    }
     grid< axis< 1 >::axis_interval_t > make_grid(uint_t di, uint_t dj, uint_t dk) {
         return make_grid(halo_descriptor(di), halo_descriptor(dj), axis< 1 >(dk));
-    };
+    }
     template < typename Axis >
     grid< typename Axis::axis_interval_t > make_grid(uint_t di, uint_t dj, Axis axis) {
         return grid< typename Axis::axis_interval_t >(
             halo_descriptor(di), halo_descriptor(dj), internal::intervals_to_indices(axis.interval_sizes()));
-    };
+    }
     grid< axis< 1 >::axis_interval_t > make_grid(
         halo_descriptor const &direction_i, halo_descriptor const &direction_j, uint_t dk) {
         return make_grid(direction_i, direction_j, axis< 1 >(dk));
-    };
+    }
 }
