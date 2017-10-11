@@ -119,7 +119,7 @@ namespace gridtools {
             int_t offs = Level::Offset::value;
             if (offs < 0)
                 offs += 1;
-            return Level::Splitter::value == 0 ? 0 : value_list[Level::Splitter::value - 1] + offs;
+            return Level::Splitter::value == 0 ? offs : value_list[Level::Splitter::value - 1] + offs;
         }
 
         GT_FUNCTION uint_t k_min() const { return value_at< typename Axis::FromLevel >(); }
