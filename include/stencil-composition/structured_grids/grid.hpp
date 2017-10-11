@@ -52,7 +52,7 @@ namespace gridtools {
         GT_FUNCTION
         explicit grid(halo_descriptor const &direction_i,
             halo_descriptor const &direction_j,
-            const decltype(base_type::value_list) &value_list)
+            const typename base_type::value_list_t &value_list)
             : base_type(direction_i, direction_j, value_list) {}
 
         GT_FUNCTION grid(const this_type &other) : base_type(other) {}

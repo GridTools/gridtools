@@ -47,12 +47,11 @@ namespace gridtools {
          * @brief convert an array of intervals in an array of indices of splitters
          */
         template < size_t NIntervals >
-        array< uint_t, NIntervals + 1 > intervals_to_indices(const array< uint_t, NIntervals > &intervals) {
-            array< uint_t, NIntervals + 1 > indices;
-            indices[0] = 0;
-            indices[1] = intervals[0] - 1;
-            for (size_t i = 2; i < NIntervals + 1; ++i) {
-                indices[i] = indices[i - 1] + intervals[i - 1];
+        array< uint_t, NIntervals > intervals_to_indices(const array< uint_t, NIntervals > &intervals) {
+            array< uint_t, NIntervals > indices;
+            indices[0] = intervals[0] - 1;
+            for (size_t i = 1; i < NIntervals; ++i) {
+                indices[i] = indices[i] + intervals[i];
             }
             return indices;
         }
@@ -70,17 +69,17 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), GT_INTERNAL_ERROR);
         typedef Axis axis_type;
 
-        typedef typename boost::mpl::plus<
-            boost::mpl::minus< typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter >,
-            static_int< 1 > >::type size_type;
-
-        array< uint_t, size_type::value > value_list;
+        typedef typename boost::mpl::minus< typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter >::type
+            size_type;
 
       private:
         halo_descriptor m_direction_i;
         halo_descriptor m_direction_j;
+        array< uint_t, size_type::value > value_list;
 
       public:
+        using value_list_t = decltype(value_list);
+
         GT_FUNCTION grid_base(const grid_base< Axis > &other)
             : m_direction_i(other.m_direction_i), m_direction_j(other.m_direction_j) {
             value_list = other.value_list;
@@ -120,7 +119,7 @@ namespace gridtools {
             int_t offs = Level::Offset::value;
             if (offs < 0)
                 offs += 1;
-            return value_list[Level::Splitter::value] + offs;
+            return Level::Splitter::value == 0 ? 0 : value_list[Level::Splitter::value - 1] + offs;
         }
 
         GT_FUNCTION uint_t k_min() const { return value_at< typename Axis::FromLevel >(); }
