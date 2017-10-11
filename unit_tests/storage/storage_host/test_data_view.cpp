@@ -48,7 +48,7 @@ TEST(DataViewTest, Simple) {
     typedef host_storage_info< 0, layout_map< 2, 1, 0 > > storage_info_t;
     typedef data_store< host_storage< double >, storage_info_t > data_store_t;
     // create and allocate a data_store
-    constexpr storage_info_t si(3, 3, 3);
+    constexpr storage_info_t si(3, 5, 7);
     data_store_t ds;
     ds.allocate(si);
     // create a rw view and fill with some data
@@ -59,12 +59,31 @@ TEST(DataViewTest, Simple) {
     dv(0, 0, 1) = 60;
 
     // check if dim interface works
-    ASSERT_TRUE((si.dim< 0 >() == dv.dim< 0 >()));
-    ASSERT_TRUE((si.dim< 1 >() == dv.dim< 1 >()));
-    ASSERT_TRUE((si.dim< 2 >() == dv.dim< 2 >()));
-    ASSERT_TRUE((si.total_length() == dv.total_length()));
+    ASSERT_TRUE((si.length< 0 >() == dv.length< 0 >()));
+    ASSERT_TRUE((si.length< 1 >() == dv.length< 1 >()));
+    ASSERT_TRUE((si.length< 2 >() == dv.length< 2 >()));
+
+    ASSERT_TRUE((si.total_length< 0 >() == dv.total_length< 0 >()));
+    ASSERT_TRUE((si.total_length< 1 >() == dv.total_length< 1 >()));
+    ASSERT_TRUE((si.total_length< 2 >() == dv.total_length< 2 >()));
+
+    ASSERT_TRUE((si.begin< 0 >() == dv.begin< 0 >()));
+    ASSERT_TRUE((si.begin< 1 >() == dv.begin< 1 >()));
+    ASSERT_TRUE((si.begin< 2 >() == dv.begin< 2 >()));
+
+    ASSERT_TRUE((si.total_begin< 0 >() == dv.total_begin< 0 >()));
+    ASSERT_TRUE((si.total_begin< 1 >() == dv.total_begin< 1 >()));
+    ASSERT_TRUE((si.total_begin< 2 >() == dv.total_begin< 2 >()));
+
+    ASSERT_TRUE((si.end< 0 >() == dv.end< 0 >()));
+    ASSERT_TRUE((si.end< 1 >() == dv.end< 1 >()));
+    ASSERT_TRUE((si.end< 2 >() == dv.end< 2 >()));
+
+    ASSERT_TRUE((si.total_end< 0 >() == dv.total_end< 0 >()));
+    ASSERT_TRUE((si.total_end< 1 >() == dv.total_end< 1 >()));
+    ASSERT_TRUE((si.total_end< 2 >() == dv.total_end< 2 >()));
+
     ASSERT_TRUE((si.padded_total_length() == dv.padded_total_length()));
-    ASSERT_TRUE((si.length() == dv.length()));
 
     // check if data is there
     EXPECT_EQ(50, dv(0, 0, 0));
@@ -76,13 +95,13 @@ TEST(DataViewTest, Simple) {
 
 // this checks are only performed in debug mode
 #ifndef NDEBUG
-    EXPECT_THROW(si.index(0, 0, 3), std::runtime_error);
-    EXPECT_THROW(si.index(0, 3, 0), std::runtime_error);
+    EXPECT_THROW(si.index(0, 0, 7), std::runtime_error);
+    EXPECT_THROW(si.index(0, 5, 0), std::runtime_error);
     EXPECT_THROW(si.index(3, 0, 0), std::runtime_error);
     EXPECT_THROW(si.index(5, 5, 5), std::runtime_error);
 #endif
 
-    ASSERT_TRUE(si.index(1, 0, 1) == 10);
+    ASSERT_TRUE(si.index(1, 0, 1) == 16);
     // create a ro view
     data_view< data_store_t, access_mode::ReadOnly > dvro = make_host_view< access_mode::ReadOnly >(ds);
     // check if data is the same

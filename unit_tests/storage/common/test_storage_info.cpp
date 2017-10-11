@@ -102,6 +102,7 @@ TEST(StorageInfo, Simple) {
     GRIDTOOLS_STATIC_ASSERT(si.padded_total_length() == 27, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.total_length() == 27, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.length() == 27, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.total_length< 0 >() == 3, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.stride< 0 >() == 3, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.stride< 1 >() == 9, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.stride< 2 >() == 1, "storage info is not constexpr anymore");
@@ -287,14 +288,29 @@ TEST(StorageInfo, Alignment) {
 
 TEST(StorageInfo, BeginEnd) {
     // no halo, no alignment
-    storage_info_interface< 0, layout_map< 1, 2, 0 > > x(7, 7, 7);
-    EXPECT_EQ(x.length(), 7 * 7 * 7);
-    EXPECT_EQ(x.total_length(), 7 * 7 * 7);
-    EXPECT_EQ(x.padded_total_length(), 7 * 7 * 7);
-    EXPECT_EQ(x.begin(), 0);
-    EXPECT_EQ(x.end(), 7 * 7 * 7 - 1);
-    EXPECT_EQ(x.total_begin(), 0);
-    EXPECT_EQ(x.total_end(), 7 * 7 * 7 - 1);
+    storage_info_interface< 0, layout_map< 1, 2, 0 > > x(7, 8, 9);
+    EXPECT_EQ(x.length(), 7 * 8 * 9);
+    EXPECT_EQ(x.total_length(), 7 * 8 * 9);
+    EXPECT_EQ(x.padded_total_length(), 7 * 8 * 9);
+    EXPECT_EQ((x.begin< 0 >()), 0);
+    EXPECT_EQ((x.end< 0 >()), 6);
+    EXPECT_EQ((x.total_begin< 0 >()), 0);
+    EXPECT_EQ((x.total_end< 0 >()), 6);
+    EXPECT_EQ((x.begin< 1 >()), 0);
+    EXPECT_EQ((x.end< 1 >()), 7);
+    EXPECT_EQ((x.total_begin< 1 >()), 0);
+    EXPECT_EQ((x.total_end< 1 >()), 7);
+    EXPECT_EQ((x.begin< 2 >()), 0);
+    EXPECT_EQ((x.end< 2 >()), 8);
+    EXPECT_EQ((x.total_begin< 2 >()), 0);
+    EXPECT_EQ((x.total_end< 2 >()), 8);
+
+    EXPECT_EQ((x.length< 0 >()), 7);
+    EXPECT_EQ((x.total_length< 0 >()), 7);
+    EXPECT_EQ((x.length< 1 >()), 8);
+    EXPECT_EQ((x.total_length< 1 >()), 8);
+    EXPECT_EQ((x.length< 2 >()), 9);
+    EXPECT_EQ((x.total_length< 2 >()), 9);
 
     // halo, no alignment
     storage_info_interface< 0, layout_map< 1, 2, 0 >, halo< 1, 2, 3 > > y(9, 11, 13);
@@ -305,6 +321,25 @@ TEST(StorageInfo, BeginEnd) {
     EXPECT_EQ(y.end(), y.index(7, 8, 9));
     EXPECT_EQ(y.total_begin(), y.index(0, 0, 0));
     EXPECT_EQ(y.total_end(), y.index(8, 10, 12));
+    EXPECT_EQ((y.begin< 0 >()), 1);
+    EXPECT_EQ((y.end< 0 >()), 9);
+    EXPECT_EQ((y.total_begin< 0 >()), 0);
+    EXPECT_EQ((y.total_end< 0 >()), 10);
+    EXPECT_EQ((y.begin< 1 >()), 2);
+    EXPECT_EQ((y.end< 1 >()), 12);
+    EXPECT_EQ((y.total_begin< 1 >()), 0);
+    EXPECT_EQ((y.total_end< 1 >()), 14);
+    EXPECT_EQ((y.begin< 2 >()), 3);
+    EXPECT_EQ((y.end< 2 >()), 15);
+    EXPECT_EQ((y.total_begin< 2 >()), 0);
+    EXPECT_EQ((y.total_end< 2 >()), 18);
+
+    EXPECT_EQ((y.length< 0 >()), 9);
+    EXPECT_EQ((y.total_length< 0 >()), 11);
+    EXPECT_EQ((y.length< 1 >()), 11);
+    EXPECT_EQ((y.total_length< 1 >()), 15);
+    EXPECT_EQ((y.length< 2 >()), 13);
+    EXPECT_EQ((y.total_length< 2 >()), 19);
 
     // halo, alignment
     storage_info_interface< 0, layout_map< 1, 2, 0 >, halo< 1, 2, 3 >, alignment< 16 > > z(9, 11, 13);
@@ -315,4 +350,23 @@ TEST(StorageInfo, BeginEnd) {
     EXPECT_EQ(z.end(), z.index(7, 8, 9));
     EXPECT_EQ(z.total_begin(), z.index(0, 0, 0));
     EXPECT_EQ(z.total_end(), z.index(8, 10, 12));
+    EXPECT_EQ((z.begin< 0 >()), 1);
+    EXPECT_EQ((z.end< 0 >()), 9);
+    EXPECT_EQ((z.total_begin< 0 >()), 0);
+    EXPECT_EQ((z.total_end< 0 >()), 10);
+    EXPECT_EQ((y.begin< 1 >()), 2);
+    EXPECT_EQ((y.end< 1 >()), 12);
+    EXPECT_EQ((y.total_begin< 1 >()), 0);
+    EXPECT_EQ((y.total_end< 1 >()), 14);
+    EXPECT_EQ((y.begin< 2 >()), 3);
+    EXPECT_EQ((y.end< 2 >()), 15);
+    EXPECT_EQ((y.total_begin< 2 >()), 0);
+    EXPECT_EQ((y.total_end< 2 >()), 18);
+
+    EXPECT_EQ((y.length< 0 >()), 9);
+    EXPECT_EQ((y.total_length< 0 >()), 11);
+    EXPECT_EQ((y.length< 1 >()), 11);
+    EXPECT_EQ((y.total_length< 1 >()), 15);
+    EXPECT_EQ((y.length< 2 >()), 13);
+    EXPECT_EQ((y.total_length< 2 >()), 19);
 }

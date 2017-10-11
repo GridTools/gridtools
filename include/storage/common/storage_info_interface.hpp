@@ -348,6 +348,68 @@ namespace gridtools {
         }
 
         /*
+         * @brief Returns the length of a dimension including the halo points (the outer region)
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t total_length() const {
+            return total_end< Dim >() - total_begin< Dim >() + 1;
+        }
+
+        /*
+         * @brief Returns the length of a dimension excluding the halo points (only the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t length() const {
+            return end< Dim >() - begin< Dim >() + 1;
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t total_begin() const {
+            return 0;
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t total_end() const {
+            return 2 * begin< Dim >() + unaligned_dim< Dim >() - 1;
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t begin() const {
+            return halo_t::template at< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t end() const {
+            return begin< Dim >() + unaligned_dim< Dim >() - 1;
+        }
+
+        /*
          * @brief return the array of (aligned) dims, see dim() for details.
          */
         GT_FUNCTION constexpr const array< uint_t, ndims > &dims() const { return m_dims; }
