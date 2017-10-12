@@ -164,12 +164,28 @@ std::ostream &operator<<(std::ostream &s, triplet t) { return s << "[" << t.a <<
 
 TEST(DataViewTest, Looping) {
     typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 > > storage_info_t;
-    storage_info_t si(2, 2, 2);
+    storage_info_t si(2 + 2, 2 + 4, 2 + 6);
 
     typedef data_store< host_storage< triplet >, storage_info_t > data_store_t;
-    // create and allocate a data_store
+
     data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
     auto view = make_host_view< access_mode::ReadWrite >(ds);
+
+    std::cout << "--------------------------------------------\n";
+    std::cout << "length:total : " << view.storage_info().length() << ":" << view.storage_info().total_length() << ", ";
+
+    std::cout << "lenth-end<i> : " << view.template length< 0 >() << ":" << view.template total_end< 0 >() << ", ";
+    std::cout << "lenth-end<j> : " << view.template length< 1 >() << ":" << view.template total_end< 1 >() << ", ";
+    std::cout << "lenth-end<k> : " << view.template length< 2 >() << ":" << view.template total_end< 2 >() << std::endl;
+
+    std::cout << "i : " << view.template total_begin< 0 >() << ":" << view.template total_end< 0 >() << ", ";
+    std::cout << "j : " << view.template total_begin< 1 >() << ":" << view.template total_end< 1 >() << ", ";
+    std::cout << "k : " << view.template total_begin< 2 >() << ":" << view.template total_end< 2 >() << std::endl;
+
+    std::cout << "i : " << view.template begin< 0 >() << ":" << view.template end< 0 >() << ", ";
+    std::cout << "j : " << view.template begin< 1 >() << ":" << view.template end< 1 >() << ", ";
+    std::cout << "k : " << view.template begin< 2 >() << ":" << view.template end< 2 >() << std::endl;
+    std::cout << "--------------------------------------------\n";
 
     for (int i = view.template begin< 0 >(); i <= view.template end< 0 >(); ++i) {
         for (int j = view.template begin< 1 >(); j <= view.template end< 1 >(); ++j) {
