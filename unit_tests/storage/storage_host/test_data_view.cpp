@@ -58,7 +58,7 @@ TEST(DataViewTest, Simple) {
     dv(0, 0, 0) = 50;
     dv(0, 0, 1) = 60;
 
-    // check if dim interface works
+    // check if interface works
     ASSERT_TRUE((si.length< 0 >() == dv.length< 0 >()));
     ASSERT_TRUE((si.length< 1 >() == dv.length< 1 >()));
     ASSERT_TRUE((si.length< 2 >() == dv.length< 2 >()));
