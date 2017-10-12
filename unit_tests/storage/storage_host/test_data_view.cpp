@@ -149,3 +149,33 @@ TEST(DataViewTest, ArrayAPI) {
     dvro({1, 1, 1}) = 2.0;
     EXPECT_TRUE((dvro(array< int, 3 >{(int)1, (int)1, (int)1}) == 2.0));
 }
+
+struct triplet {
+    int a = 0, b = 0, c = 0;
+
+    constexpr triplet() = default;
+
+    constexpr triplet(int a, int b, int c) : a(a), b(b), c(c) {}
+
+    constexpr bool operator==(triplet other) { return (a == other.a) and (b == other.b) and (c == other.c); }
+};
+
+std::ostream &operator<<(std::ostream &s, triplet t) { return s << "[" << t.a << " " << t.b << " " << t.c << "]"; }
+
+TEST(DataViewTest, Looping) {
+    typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 > > storage_info_t;
+    storage_info_t si(2, 2, 2);
+
+    typedef data_store< host_storage< triplet >, storage_info_t > data_store_t;
+    // create and allocate a data_store
+    data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
+    auto view = make_host_view< access_mode::ReadWrite >(ds);
+
+    for (int i = view.template begin< 0 >(); i <= view.template end< 0 >(); ++i) {
+        for (int j = view.template begin< 1 >(); j <= view.template end< 1 >(); ++j) {
+            for (int k = view.template begin< 2 >(); k <= view.template end< 2 >(); ++k) {
+                EXPECT_EQ(view(i, j, k), triplet(i, j, k));
+            }
+        }
+    }
+}
