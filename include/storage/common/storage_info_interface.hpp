@@ -354,7 +354,7 @@ namespace gridtools {
          */
         template < uint_t Dim >
         GT_FUNCTION constexpr uint_t total_length() const {
-            return total_end< Dim >() - total_begin< Dim >() + 1;
+            return unaligned_dim< Dim >();
         }
 
         /*
@@ -364,7 +364,7 @@ namespace gridtools {
          */
         template < uint_t Dim >
         GT_FUNCTION constexpr uint_t length() const {
-            return end< Dim >() - begin< Dim >() + 1;
+            return unaligned_dim< Dim >() - 2 * halo_t::template at< Dim >();
         }
 
         /*
@@ -386,7 +386,7 @@ namespace gridtools {
          */
         template < uint_t Dim >
         GT_FUNCTION constexpr uint_t total_end() const {
-            return 2 * begin< Dim >() + unaligned_dim< Dim >() - 1;
+            return unaligned_dim< Dim >() - 1;
         }
 
         /*
@@ -406,7 +406,7 @@ namespace gridtools {
          */
         template < uint_t Dim >
         GT_FUNCTION constexpr uint_t end() const {
-            return begin< Dim >() + unaligned_dim< Dim >() - 1;
+            return begin< Dim >() + length< Dim >() - 1;
         }
 
         /*
