@@ -127,7 +127,7 @@ namespace gridtools {
             ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
-        GT_FUNCTION storage_info_t const &storage_info() { return *m_storage_info; }
+        GT_FUNCTION storage_info_t const &storage_info() const { return *m_storage_info; }
 
         /**
          * data getter
