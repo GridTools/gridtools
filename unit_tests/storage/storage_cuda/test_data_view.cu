@@ -165,3 +165,39 @@ TEST(DataViewTest, ZeroSize) {
     data_view< data_store_t, access_mode::ReadOnly > hv = make_host_view< access_mode::ReadOnly >(ds);
     data_view< data_store_t, access_mode::ReadOnly > dv = make_device_view< access_mode::ReadOnly >(ds);
 }
+
+struct triplet {
+    int a = 0, b = 0, c = 0;
+
+    constexpr triplet() = default;
+
+    constexpr triplet(int a, int b, int c) : a(a), b(b), c(c) {}
+
+    constexpr bool operator==(triplet other) const { return (a == other.a) and (b == other.b) and (c == other.c); }
+};
+
+TEST(DataViewTest, Looping) {
+    typedef cuda_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 > > storage_info_t;
+    storage_info_t si(2 + 2, 2 + 4, 2 + 6);
+
+    typedef data_store< cuda_storage< triplet >, storage_info_t > data_store_t;
+
+    data_store_t ds(si, [](int i, int j, int k) { return triplet(i, j, k); }, "ds");
+    auto view = make_host_view< access_mode::ReadWrite >(ds);
+
+    for (int i = view.begin< 0 >(); i <= view.end< 0 >(); ++i) {
+        for (int j = view.begin< 1 >(); j <= view.end< 1 >(); ++j) {
+            for (int k = view.begin< 2 >(); k <= view.end< 2 >(); ++k) {
+                EXPECT_EQ(view(i, j, k), triplet(i, j, k));
+            }
+        }
+    }
+
+    for (int i = view.total_begin< 0 >(); i <= view.total_end< 0 >(); ++i) {
+        for (int j = view.total_begin< 1 >(); j <= view.total_end< 1 >(); ++j) {
+            for (int k = view.total_begin< 2 >(); k <= view.total_end< 2 >(); ++k) {
+                EXPECT_EQ(view(i, j, k), triplet(i, j, k));
+            }
+        }
+    }
+}
