@@ -1,3 +1,5 @@
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
+
 ## set suppress messages ##
 if(SUPPRESS_MESSAGES)
     add_definitions(-DSUPPRESS_MESSAGES)
@@ -112,6 +114,7 @@ Find_Package( OpenMP )
 
 
 ## openmp ##
+find_package(OpenMP)
 if(OPENMP_FOUND)
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}" )
     set( PAPI_WRAP_LIBRARY "OFF" CACHE BOOL "If on, the papi-wrap library is compiled with the project" )
@@ -128,6 +131,12 @@ endif(ENABLE_PERFORMANCE_METERS)
 # be careful! deleting this flags impacts performance
 # (even on single core and without pragmas).
 set ( exe_LIBS -lpthread ${exe_LIBS} )
+
+## serialbox ##
+if ( USE_SERIALBOX )
+  find_package(Serialbox REQUIRED)
+  add_definitions(-DUSE_SERIALBOX)
+endif()
 
 ## papi wrapper ##
 if ( PAPI_WRAP_LIBRARY )

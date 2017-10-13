@@ -84,6 +84,9 @@
 #include "./mss_components_metafunctions.hpp"
 #include "./mss_local_domain.hpp"
 #include "./reductions/reduction_data.hpp"
+#include "./amss_descriptor.hpp"
+#include "./compute_extents_metafunctions.hpp"
+#include "../common/stencil_serializer.hpp"
 #include "./storage_wrapper.hpp"
 #include "./wrap_type.hpp"
 
@@ -275,6 +278,90 @@ namespace gridtools {
             Backend::template run< MssComponentsArray >(grid_, mss_local_domain_list_, reduction_data);
         }
     };
+
+    /**
+     * @brief Run and serialize the functor conditionally
+     *
+     * @see
+     * run_conditionally
+     * @{
+     */
+    template < typename IsPresent, typename MssComponentsArray, typename Backend >
+    struct run_and_serialize_conditionally;
+
+    template < typename MssComponentsArray, typename Backend >
+    struct run_and_serialize_conditionally< boost::mpl::true_, MssComponentsArray, Backend > {
+        template < typename ConditionalSet,
+            typename Domain,
+            typename Grid,
+            typename MssLocalDomainList,
+            typename ReductionData,
+            typename SerializerType >
+        static void apply(ConditionalSet const & /**/,
+            Domain const &domain_,
+            Grid const &grid_,
+            MssLocalDomainList const &mss_local_domain_list_,
+            ReductionData &reduction_data,
+            stencil_serializer< SerializerType > &stencil_ser) {
+
+            static_assert(Backend::s_backend_id == enumtype::platform::Host &&
+                              Backend::s_strategy_id == enumtype::strategy::Naive,
+                "Serialization is currently only supported for the Naive Host backend.");
+
+            Backend::template run_and_serialize< MssComponentsArray >(
+                domain_, grid_, mss_local_domain_list_, reduction_data, stencil_ser);
+        }
+    };
+
+    template < typename Array1, typename Array2, typename Cond, typename Backend >
+    struct run_and_serialize_conditionally< boost::mpl::true_, condition< Array1, Array2, Cond >, Backend > {
+        template < typename ConditionalSet,
+            typename Domain,
+            typename Grid,
+            typename MssLocalDomainList,
+            typename ReductionData,
+            typename SerializerType >
+        static void apply(ConditionalSet const &conditionals_set_,
+            Domain const &domain_,
+            Grid const &grid_,
+            MssLocalDomainList const &mss_local_domain_list_,
+            ReductionData &reduction_data,
+            stencil_serializer< SerializerType > &stencil_ser) {
+
+            if (boost::fusion::at_key< Cond >(conditionals_set_).value()) {
+                run_and_serialize_conditionally< boost::mpl::true_, Array1, Backend >::apply(
+                    conditionals_set_, domain_, grid_, mss_local_domain_list_, reduction_data, stencil_ser);
+            } else
+                run_and_serialize_conditionally< boost::mpl::true_, Array2, Backend >::apply(
+                    conditionals_set_, domain_, grid_, mss_local_domain_list_, reduction_data, stencil_ser);
+        }
+    };
+
+    template < typename MssComponentsArray, typename Backend >
+    struct run_and_serialize_conditionally< boost::mpl::false_, MssComponentsArray, Backend > {
+        template < typename ConditionalSet,
+            typename Domain,
+            typename Grid,
+            typename MssLocalDomainList,
+            typename ReductionData,
+            typename SerializerType >
+        static void apply(ConditionalSet const &,
+            Domain const &domain_,
+            Grid const &grid_,
+            MssLocalDomainList const &mss_local_domain_list_,
+            ReductionData &reduction_data,
+            stencil_serializer< SerializerType > &stencil_ser) {
+
+            static_assert(Backend::s_backend_id == enumtype::platform::Host &&
+                              Backend::s_strategy_id == enumtype::strategy::Naive,
+                "Serialization is currently only supported for the Naive Host backend.");
+
+            Backend::template run_and_serialize< MssComponentsArray >(
+                domain_, grid_, mss_local_domain_list_, reduction_data, stencil_ser);
+        }
+    };
+
+    /** @} */
 
     template < typename Vec >
     struct extract_mss_domains {
@@ -601,6 +688,25 @@ namespace gridtools {
         virtual void reset_meter() { m_meter.reset(); }
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
+
+        template < class SerializerType >
+        reduction_type_t run(SerializerType &serializer, std::string stencil_name = "stencil") {
+            stencil_serializer< SerializerType > stencil_ser(stencil_name, serializer);
+
+            // typedef allowing compile-time dispatch: we separate the path when the first
+            // multi stage stencil is a conditional
+            typedef typename boost::fusion::result_of::has_key< conditionals_set_t,
+                typename if_condition_extract_index_t< mss_components_array_t >::type >::type is_present_t;
+
+            m_meter.start();
+
+            run_and_serialize_conditionally< is_present_t, mss_components_array_t, Backend >::apply(
+                m_conditionals_set, m_domain, m_grid, m_mss_local_domain_list, m_reduction_data, stencil_ser);
+
+            m_meter.pause();
+
+            return m_reduction_data.reduced_value();
+        }
 
         void reassign_aggregator(DomainType &new_domain) { m_domain = new_domain; }
     };

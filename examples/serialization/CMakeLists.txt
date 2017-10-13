@@ -1,0 +1,10 @@
+function( serialization_example target )
+  add_executable(${target} ${ARGN})
+  target_include_directories(${target} SYSTEM PUBLIC ${SERIALBOX_INCLUDE_DIRS})
+  target_link_libraries(${target} gtest_main gtest ${SERIALBOX_CXX_LIBRARIES})
+  gridtools_add_test( tests.serialbox_${target} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/serialization/${target}")
+endfunction()
+
+serialization_example(serialization_simple serialization_simple.cpp)
+serialization_example(serialization_temporaries serialization_temporaries.cpp)
+serialization_example(serialization_multistage serialization_multistage.cpp)

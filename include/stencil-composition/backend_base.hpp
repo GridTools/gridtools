@@ -61,6 +61,8 @@
 #include "./storage_wrapper.hpp"
 #include "./tile.hpp"
 #include "../storage/storage-facility.hpp"
+#include "./conditionals/condition.hpp"
+#include "../common/stencil_serializer.hpp"
 
 /**
    @file
@@ -341,6 +343,34 @@ namespace gridtools {
 
             strategy_traits_t::template fused_mss_loop< MssComponentsArray, backend_ids_t, ReductionData >::run(
                 mss_local_domain_list, grid, reduction_data);
+        }
+
+        /**
+         * \see
+         *    gridtools::backend_base::run
+         */
+        template < typename MssComponentsArray,
+            typename Domain,
+            typename Grid,
+            typename MssLocalDomainArray,
+            typename ReductionData,
+            typename SerializerType >
+        static void run_and_serialize(Domain const &domain,
+            Grid const &grid,
+            MssLocalDomainArray &mss_local_domain_list,
+            ReductionData &reduction_data,
+            stencil_serializer< SerializerType > &stencil_ser) {
+
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Domain >::value), "Internal Error: wrong type");
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), "Internal Error: wrong type");
+
+            strategy_traits_t::template fused_mss_loop< MssComponentsArray,
+                backend_ids_t,
+                ReductionData >::run_and_serialize(mss_local_domain_list, domain, grid, reduction_data, stencil_ser);
         }
 
         /** Initial interface

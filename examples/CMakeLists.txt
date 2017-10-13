@@ -98,4 +98,9 @@ else()
 
     add_subdirectory( communication )
   endif()
+  
+  if ( SERIALBOX_FOUND )
+    add_subdirectory( serialization )
+  endif()
+  
 endif(NOT STRUCTURED_GRIDS)

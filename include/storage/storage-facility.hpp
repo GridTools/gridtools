@@ -38,6 +38,7 @@
 
 #include "../common/layout_map.hpp"
 #include "common/definitions.hpp"
+#include "common/storage_info_rt.hpp"
 #include "data_store.hpp"
 #include "data_store_field.hpp"
 
