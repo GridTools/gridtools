@@ -288,7 +288,7 @@ namespace gridtools {
         /*
          * @brief storage info copy constructor.
          */
-        GT_FUNCTION constexpr storage_info_interface(storage_info_interface const &other) = default;
+        constexpr storage_info_interface(storage_info_interface const &other) = default;
 
         /*
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).

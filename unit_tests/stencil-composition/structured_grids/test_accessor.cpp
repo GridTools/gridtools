@@ -36,6 +36,7 @@
 #include "gtest/gtest.h"
 
 // #include <boost/mpl/map/map10.hpp>
+#include <common/defs.hpp>
 #include <stencil-composition/structured_grids/accessor.hpp>
 #include <stencil-composition/structured_grids/accessor_metafunctions.hpp>
 // #include "stencil-composition/iterate_domain_remapper.hpp"

@@ -66,5 +66,5 @@ TEST(Reductions, Test) {
     if (t == 0)
         t = 1;
 
-    ASSERT_TRUE(reduction::test(x, y, z, t));
+    ASSERT_TRUE(test_reduction::test(x, y, z, t));
 }

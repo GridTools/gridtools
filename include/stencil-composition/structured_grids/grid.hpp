@@ -38,19 +38,15 @@
 
 namespace gridtools {
 
-    template < typename Axis, typename Partitioner = partitioner_dummy >
-    struct grid : public clonable_to_gpu< grid< Axis, Partitioner > >, public grid_base< Axis, Partitioner > {
-        using this_type = grid< Axis, Partitioner >;
-        using base_type = grid_base< Axis, Partitioner >;
+    template < typename Axis >
+    struct grid : public clonable_to_gpu< grid< Axis > >, public grid_base< Axis > {
+        using this_type = grid< Axis >;
+        using base_type = grid_base< Axis >;
         static constexpr enumtype::grid_type c_grid_type = enumtype::structured;
 
         GT_FUNCTION
         explicit grid(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : base_type(direction_i, direction_j) {}
-
-        template < typename ParallelStorage >
-        GT_FUNCTION explicit grid(const Partitioner &part_, ParallelStorage const &storage_)
-            : base_type(part_, storage_) {}
 
         GT_FUNCTION grid(const this_type &other) : base_type(other) {}
 
@@ -64,7 +60,4 @@ namespace gridtools {
 
     template < typename Axis >
     struct is_grid< grid< Axis > > : boost::mpl::true_ {};
-
-    template < typename Axis, typename Partitioner >
-    struct is_grid< grid< Axis, Partitioner > > : boost::mpl::true_ {};
 }
