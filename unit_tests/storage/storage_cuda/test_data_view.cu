@@ -35,7 +35,7 @@
 */
 
 #include "gtest/gtest.h"
-
+#include "../../tools/triplet.hpp"
 #include <common/gt_assert.hpp>
 #include <storage/data_store.hpp>
 #include <storage/storage_cuda/data_view_helpers.hpp>
@@ -165,16 +165,6 @@ TEST(DataViewTest, ZeroSize) {
     data_view< data_store_t, access_mode::ReadOnly > hv = make_host_view< access_mode::ReadOnly >(ds);
     data_view< data_store_t, access_mode::ReadOnly > dv = make_device_view< access_mode::ReadOnly >(ds);
 }
-
-struct triplet {
-    int a = 0, b = 0, c = 0;
-
-    constexpr triplet() = default;
-
-    constexpr triplet(int a, int b, int c) : a(a), b(b), c(c) {}
-
-    constexpr bool operator==(triplet other) const { return (a == other.a) and (b == other.b) and (c == other.c); }
-};
 
 TEST(DataViewTest, Looping) {
     typedef cuda_storage_info< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 > > storage_info_t;
