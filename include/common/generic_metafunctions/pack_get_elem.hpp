@@ -38,19 +38,17 @@
 #include "../defs.hpp"
 #include "variadic_typedef.hpp"
 
-#ifdef CXX11_ENABLED
-
 namespace gridtools {
 
     namespace impl {
 
         template < typename ReturnType, uint_t Idx >
-        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint pos) {
+        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint_t pos) {
             return ReturnType();
         }
 
         template < typename ReturnType, uint_t Idx, typename First, typename... ElemTypes >
-        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint pos, First first, ElemTypes... elems) {
+        GT_FUNCTION constexpr ReturnType pack_get_elem_(uint_t pos, First first, ElemTypes... elems) {
             return (pos == Idx) ? first : pack_get_elem_< ReturnType, Idx >(pos + 1, elems...);
         }
 
@@ -85,4 +83,3 @@ namespace gridtools {
     struct pack_get_elem
         : boost::mpl::if_c< (Idx < 0), impl::pack_get_elem_null< Idx >, impl::pack_get_elem_elem< Idx > >::type {};
 }
-#endif

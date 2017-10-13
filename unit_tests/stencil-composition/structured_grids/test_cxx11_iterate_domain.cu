@@ -35,8 +35,10 @@
 */
 #define PEDANTIC_DISABLED // too stringent for this test
 #include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "stencil-composition/stencil-composition.hpp"
+
+#include <common/defs.hpp>
+#include <common/gt_assert.hpp>
+#include <stencil-composition/stencil-composition.hpp>
 
 using namespace gridtools;
 using namespace enumtype;
@@ -52,14 +54,14 @@ namespace test_iterate_domain {
     typedef layout_map< 0, 1 > layout_ij_t;
 
     typedef gridtools::backend< enumtype::Cuda, enumtype::structured, enumtype::Block > backend_t;
-    typedef backend_t::storage_info< 0, layout_ijk_t > meta_ijk_t;
-    typedef backend_t::storage_info< 0, layout_kji_t > meta_kji_t;
-    typedef backend_t::storage_info< 0, layout_ij_t > meta_ij_t;
+    typedef gridtools::cuda_storage_info< 0, layout_ijk_t > meta_ijk_t;
+    typedef gridtools::cuda_storage_info< 0, layout_kji_t > meta_kji_t;
+    typedef gridtools::cuda_storage_info< 0, layout_ij_t > meta_ij_t;
 
-    typedef backend_t::storage_type< float_type, meta_ijk_t >::type storage_type;
-    typedef backend_t::storage_type< float_type, meta_kji_t >::type storage_buff_type;
-    typedef backend_t::storage_type< float_type, meta_ij_t >::type storage_out_type;
-    typedef backend_t::storage_type< bool, meta_ij_t >::type storage_bool_type;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, meta_ijk_t > storage_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, meta_kji_t > storage_buff_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, meta_ij_t > storage_out_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< bool, meta_ij_t > storage_bool_t;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
@@ -78,7 +80,7 @@ namespace test_iterate_domain {
             kcache_arg > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
     };
 
     std::ostream &operator<<(std::ostream &s, dummy_functor const) { return s << "dummy_function"; }
@@ -94,23 +96,23 @@ TEST(test_iterate_domain, accessor_metafunctions) {
     uint_t d3 = 18;
 
     meta_ijk_t meta_ijk_(d1, d2, d3);
-    storage_type read_only_texture_arg(meta_ijk_);
+    storage_t read_only_texture_arg(meta_ijk_, 0.0);
     meta_kji_t meta_kji_(d1, d2, d3);
-    storage_buff_type read_only_bypass_arg(meta_kji_);
+    storage_buff_t read_only_bypass_arg(meta_kji_, 0.0);
 
     meta_ij_t meta_ij_(d1, d2);
-    storage_out_type out(meta_ij_);
+    storage_out_t out(meta_ij_, 0.0);
 
-    storage_bool_type read_only_non_texture_type_arg(meta_ij_);
-    storage_type shared_mem_arg(meta_ijk_);
-    storage_type kcache_arg(meta_ijk_);
+    storage_bool_t read_only_non_texture_type_arg(meta_ij_, false);
+    storage_t shared_mem_arg(meta_ijk_, 0.0);
+    storage_t kcache_arg(meta_ijk_, 0.0);
 
-    typedef arg< 0, storage_type > p_read_only_texture_arg;
-    typedef arg< 1, storage_out_type > p_out;
-    typedef arg< 2, storage_buff_type > p_read_only_bypass_arg;
-    typedef arg< 3, storage_bool_type > p_read_only_non_texture_type_arg;
-    typedef arg< 4, storage_type > p_shared_mem_arg;
-    typedef arg< 5, storage_type > p_kcache_arg;
+    typedef arg< 0, storage_t > p_read_only_texture_arg;
+    typedef arg< 1, storage_out_t > p_out;
+    typedef arg< 2, storage_buff_t > p_read_only_bypass_arg;
+    typedef arg< 3, storage_bool_t > p_read_only_non_texture_type_arg;
+    typedef arg< 4, storage_t > p_shared_mem_arg;
+    typedef arg< 5, storage_t > p_kcache_arg;
 
     typedef boost::mpl::vector< p_read_only_texture_arg,
         p_out,
@@ -119,21 +121,19 @@ TEST(test_iterate_domain, accessor_metafunctions) {
         p_shared_mem_arg,
         p_kcache_arg > accessor_list;
 
-    gridtools::aggregator_type< accessor_list > domain((p_read_only_texture_arg() = read_only_texture_arg),
-        (p_out() = out),
-        (p_read_only_bypass_arg() = read_only_bypass_arg),
-        (p_read_only_non_texture_type_arg() = read_only_non_texture_type_arg),
-        (p_shared_mem_arg() = shared_mem_arg),
-        (p_kcache_arg() = kcache_arg));
+    gridtools::aggregator_type< accessor_list > domain(
+        read_only_texture_arg, out, read_only_bypass_arg, read_only_non_texture_type_arg, shared_mem_arg, kcache_arg);
 
     uint_t di[5] = {4, 4, 4, d1 - 4 - 1, d1};
     uint_t dj[5] = {4, 4, 4, d2 - 4 - 1, d2};
 
     gridtools::grid< axis > grid(di, dj);
+    grid.value_list[0] = 0;
+    grid.value_list[1] = d3 - 1;
 
-    using caches_t = decltype(define_caches(cache< bypass, local >(p_read_only_bypass_arg()),
-        cache< IJ, local >(p_shared_mem_arg()),
-        cache< K, local >(p_kcache_arg())));
+    using caches_t = decltype(define_caches(cache< bypass, cache_io_policy::local >(p_read_only_bypass_arg()),
+        cache< IJ, cache_io_policy::local >(p_shared_mem_arg()),
+        cache< K, cache_io_policy::local >(p_kcache_arg())));
 
     auto computation_ =
         gridtools::make_computation< backend_t >(domain,
@@ -168,45 +168,48 @@ TEST(test_iterate_domain, accessor_metafunctions) {
             boost::mpl::vector1< extent< 0, 0, 0, 0 > >,
             extent< 1, -1, 1, -1 >,
             caches_t,
-            block_size< 32, 4, 0 >,
-            block_size< 32, 4, 0 >,
+            block_size< 32, 4, 1 >,
+            block_size< 32, 4, 1 >,
             gridtools::grid< axis >,
             boost::mpl::false_,
             notype > > it_domain_t;
 
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::read_only_texture_arg >::type::value),
         "Error");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::read_only_bypass_arg >::type::value),
         "Error");
 
-    static_assert(!(it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::out >::type::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        !(it_domain_t::template accessor_points_to_readonly_arg< dummy_functor::out >::type::value), "Error");
 
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_read_from_texture< dummy_functor::read_only_texture_arg >::type::value),
         "Error");
 
     // because is output field
-    static_assert(!(it_domain_t::template accessor_read_from_texture< dummy_functor::out >::type::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
+        !(it_domain_t::template accessor_read_from_texture< dummy_functor::out >::type::value), "Error");
     // because is being bypass
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_read_from_texture< dummy_functor::read_only_bypass_arg >::type::value),
         "Error");
     // because is not a texture supported type
-    static_assert(!(it_domain_t::template accessor_read_from_texture<
-                      dummy_functor::read_only_non_texture_type_arg >::type::value),
+    GRIDTOOLS_STATIC_ASSERT(!(it_domain_t::template accessor_read_from_texture<
+                                dummy_functor::read_only_non_texture_type_arg >::type::value),
         "Error");
 
     // access via shared mem
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         (it_domain_t::template accessor_from_shared_mem< dummy_functor::shared_mem_arg >::type::value), "Error");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_from_shared_mem< dummy_functor::read_only_bypass_arg >::type::value), "Error");
 
     // access via kcache reg
-    static_assert((it_domain_t::template accessor_from_kcache_reg< dummy_functor::kcache_arg >::type::value), "Error");
-    static_assert(
+    GRIDTOOLS_STATIC_ASSERT(
+        (it_domain_t::template accessor_from_kcache_reg< dummy_functor::kcache_arg >::type::value), "Error");
+    GRIDTOOLS_STATIC_ASSERT(
         !(it_domain_t::template accessor_from_kcache_reg< dummy_functor::shared_mem_arg >::type::value), "Error");
 
     ASSERT_TRUE(true);

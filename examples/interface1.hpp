@@ -36,10 +36,9 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
-#include "horizontal_diffusion_repository.hpp"
-#include "./defs.hpp"
-#include <tools/verifier.hpp>
 #include "benchmarker.hpp"
+#include "horizontal_diffusion_repository.hpp"
+#include <tools/verifier.hpp>
 
 /**
   @file
@@ -54,11 +53,7 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-// Temporary disable the expressions, as they are intrusive. The operators +,- are overloaded
-//  for any type, which breaks most of the code after using expressions
-#ifdef CXX11_ENABLED
 using namespace expressions;
-#endif
 
 namespace horizontal_diffusion {
     // This is the definition of the special regions in the "vertical" direction
@@ -76,7 +71,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_lap) {
+        GT_FUNCTION static void Do(Evaluation eval, x_lap) {
             eval(out()) = (gridtools::float_type)4 * eval(in()) -
                           (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
         }
@@ -91,7 +86,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation eval, x_flx) {
             eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
                 eval(out()) = 0.;
@@ -108,7 +103,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation eval, x_flx) {
             eval(out()) = eval(lap(0, 1, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0) {
                 eval(out()) = 0.;
@@ -127,8 +122,8 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_out) {
-#if defined(CXX11_ENABLED) && !defined(CUDA_EXAMPLE)
+        GT_FUNCTION static void Do(Evaluation &eval, x_out) {
+#if !defined(CUDA_EXAMPLE)
             eval(out()) = eval(in()) - eval(coeff()) * (eval(flx() - flx(-1, 0, 0) + fly() - fly(0, -1, 0)));
 #else
             eval(out()) =
@@ -165,7 +160,6 @@ namespace horizontal_diffusion {
 #endif
 
         typedef horizontal_diffusion::repository::storage_type storage_type;
-        typedef horizontal_diffusion::repository::tmp_storage_type tmp_storage_type;
 
         horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
         repository.init_fields();
@@ -179,9 +173,9 @@ namespace horizontal_diffusion {
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
-        typedef arg< 0, tmp_storage_type > p_lap;
-        typedef arg< 1, tmp_storage_type > p_flx;
-        typedef arg< 2, tmp_storage_type > p_fly;
+        typedef tmp_arg< 0, storage_type > p_lap;
+        typedef tmp_arg< 1, storage_type > p_flx;
+        typedef tmp_arg< 2, storage_type > p_fly;
         typedef arg< 3, storage_type > p_coeff;
         typedef arg< 4, storage_type > p_in;
         typedef arg< 5, storage_type > p_out;
@@ -190,16 +184,8 @@ namespace horizontal_diffusion {
         // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_lap, p_flx, p_fly, p_coeff, p_in, p_out > accessor_list;
 
-// construction of the domain. The domain is the physical domain of the problem, with all the physical fields that are
-// used, temporary and not
-// It must be noted that the only fields to be passed to the constructor are the non-temporary.
-// The order in which they have to be passed is the order in which they appear scanning the placeholders in order. (I
-// don't particularly like this)
-#if defined(CXX11_ENABLED)
-        gridtools::aggregator_type< accessor_list > domain((p_out() = out), (p_in() = in), (p_coeff() = coeff));
-#else
-        gridtools::aggregator_type< accessor_list > domain(boost::fusion::make_vector(&coeff, &in, &out));
-#endif
+        gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out), (p_coeff() = coeff));
+
         // Definition of the physical dimensions of the problem.
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
@@ -211,64 +197,44 @@ namespace horizontal_diffusion {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
-/*
-  Here we do lot of stuff
-  1) We pass to the intermediate representation ::run function the description
-  of the stencil, which is a multi-stage stencil (mss)
-  The mss includes (in order of execution) a laplacian, two fluxes which are independent
-  and a final step that is the out_function
-  2) The logical physical domain with the fields to use
-  3) The actual grid dimensions
- */
-#ifdef CXX11_ENABLED
-        auto
-#else
-#ifdef __CUDACC__
-        gridtools::stencil *
-#else
-        boost::shared_ptr< gridtools::stencil >
-#endif
-#endif
-            horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
-                domain,
-                grid,
-                gridtools::make_multistage // mss_descriptor
-                (execute< forward >(),
-                    define_caches(cache< IJ, local >(p_lap(), p_flx(), p_fly())),
-                    gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
-                    gridtools::make_independent                             // independent_esf
-                    (gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
-                        gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
-                    gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
+        /*
+          Here we do lot of stuff
+          1) We pass to the intermediate representation ::run function the description
+          of the stencil, which is a multi-stage stencil (mss)
+          The mss includes (in order of execution) a laplacian, two fluxes which are independent
+          and a final step that is the out_function
+          2) The logical physical domain with the fields to use
+          3) The actual grid dimensions
+        */
+
+        auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
+            domain,
+            grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                define_caches(cache< IJ, cache_io_policy::local >(p_lap(), p_flx(), p_fly())),
+                gridtools::make_stage< lap_function >(p_lap(), p_in()), // esf_descriptor
+                gridtools::make_independent(                            // independent_esf
+                    gridtools::make_stage< flx_function >(p_flx(), p_in(), p_lap()),
+                    gridtools::make_stage< fly_function >(p_fly(), p_in(), p_lap())),
+                gridtools::make_stage< out_function >(p_out(), p_in(), p_flx(), p_fly(), p_coeff())));
 
         horizontal_diffusion->ready();
         horizontal_diffusion->steady();
         horizontal_diffusion->run();
 
-#ifdef __CUDACC__
-        repository.update_cpu();
-#endif
+        repository.out().sync();
 
         bool result = true;
 
         if (verify) {
-#ifdef CXX11_ENABLED
 #if FLOAT_PRECISION == 4
             verifier verif(1e-6);
 #else
             verifier verif(1e-12);
 #endif
-            array< array< uint_t, 2 >, 3 > halos{
-                {{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}};
+            array< array< uint_t, 2 >, 3 > halos{{{halo_size, halo_size}, {halo_size, halo_size}, {0, 0}}};
             result = verif.verify(grid, repository.out_ref(), repository.out(), halos);
-#else
-#if FLOAT_PRECISION == 4
-            verifier verif(1e-6, halo_size);
-#else
-            verifier verif(1e-12, halo_size);
-#endif
-            result = verif.verify(grid, repository.out_ref(), repository.out());
-#endif
         }
 
 #ifdef BENCHMARK

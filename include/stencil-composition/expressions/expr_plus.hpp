@@ -62,8 +62,37 @@ namespace gridtools {
 #endif
     };
 
+    /**@brief Expression with a plus sign preceding an argument*/
+    template < typename ArgType1 >
+    struct expr_plus_unary : public unary_expr< ArgType1 > {
+        typedef unary_expr< ArgType1 > super;
+        GT_FUNCTION
+        constexpr expr_plus_unary(ArgType1 const &first_operand) : super(first_operand) {}
+
+        template < typename Arg1 >
+        GT_FUNCTION constexpr expr_plus_unary(expr_plus_unary< Arg1 > const &other)
+            : super(other) {}
+
+#ifndef __CUDACC__
+      private:
+#endif
+        GT_FUNCTION
+        constexpr expr_plus_unary(){};
+#ifndef __CUDACC__
+        static char constexpr op[] = " - ";
+        typedef string_c< print, op > operation;
+
+      public:
+        // currying and recursion (this gets inherited)
+        using to_string = concatenate< tokens::open_par, operation, ArgType1, tokens::closed_par >;
+#endif
+    };
+
     template < typename ArgType1, typename ArgType2 >
     struct is_binary_expr< expr_plus< ArgType1, ArgType2 > > : boost::mpl::true_ {};
+
+    template < typename ArgType1 >
+    struct is_unary_expr< expr_plus_unary< ArgType1 > > : boost::mpl::true_ {};
 
     namespace expressions {
         /** sum expression*/
@@ -74,6 +103,13 @@ namespace gridtools {
             return expr_plus< ArgType1, ArgType2 >(arg1, arg2);
         }
 
+        /** expression for plus sign (unary)*/
+        template < typename ArgType1,
+            typename boost::disable_if< no_expr_nor_accessor_types< ArgType1 >, int >::type = 0 >
+        GT_FUNCTION constexpr expr_plus_unary< ArgType1 > operator+(ArgType1 arg1) {
+            return expr_plus_unary< ArgType1 >(arg1);
+        }
+
         namespace evaluation {
 
             /** plus evaluation*/
@@ -82,7 +118,7 @@ namespace gridtools {
                 typename ArgType2,
                 typename boost::disable_if< no_expr_nor_accessor_types< ArgType1, ArgType2 >, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_plus< ArgType1, ArgType2 > const &arg)
+                IterateDomain &it_domain, expr_plus< ArgType1, ArgType2 > const &arg)
                 -> decltype(it_domain(arg.first_operand) + it_domain(arg.second_operand)) {
                 return it_domain(arg.first_operand) + it_domain(arg.second_operand);
             }
@@ -93,7 +129,7 @@ namespace gridtools {
                 typename FloatType,
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_plus< ArgType1, FloatType > const &arg)
+                IterateDomain &it_domain, expr_plus< ArgType1, FloatType > const &arg)
                 -> decltype(it_domain(arg.first_operand) + arg.second_operand) {
                 return it_domain(arg.first_operand) + arg.second_operand;
             }
@@ -104,7 +140,7 @@ namespace gridtools {
                 typename ArgType2,
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_plus< FloatType, ArgType2 > const &arg)
+                IterateDomain &it_domain, expr_plus< FloatType, ArgType2 > const &arg)
                 -> decltype(arg.first_operand + it_domain(arg.second_operand)) {
                 return arg.first_operand + it_domain(arg.second_operand);
             }
@@ -118,7 +154,7 @@ namespace gridtools {
             GT_FUNCTION auto
                 // float_type
                 static constexpr value(
-                    IterateDomain const &it_domain, expr_derivative< expr_plus< ArgType1, ArgType2 > > const &arg)
+                    IterateDomain &it_domain, expr_derivative< expr_plus< ArgType1, ArgType2 > > const &arg)
                     -> decltype(it_domain(expr_derivative< ArgType1 >(arg.first_operand.first_operand)) +
                                 it_domain(expr_derivative< ArgType2 >(arg.first_operand.second_operand))) {
                 return it_domain(expr_derivative< ArgType1 >(arg.first_operand.first_operand)) +
@@ -131,7 +167,7 @@ namespace gridtools {
                 typename FloatType,
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_derivative< expr_plus< ArgType1, FloatType > > const &arg)
+                IterateDomain &it_domain, expr_derivative< expr_plus< ArgType1, FloatType > > const &arg)
                 -> decltype(it_domain(arg.first_operand) + arg.second_operand) {
                 return it_domain(expr_derivative< ArgType1 >(arg.first_operand));
             }
@@ -142,9 +178,16 @@ namespace gridtools {
                 typename ArgType2,
                 typename boost::enable_if< typename boost::is_arithmetic< FloatType >::type, int >::type = 0 >
             GT_FUNCTION auto static constexpr value(
-                IterateDomain const &it_domain, expr_derivative< expr_plus< FloatType, ArgType2 > > const &arg)
+                IterateDomain &it_domain, expr_derivative< expr_plus< FloatType, ArgType2 > > const &arg)
                 -> decltype(it_domain(expr_derivative< ArgType2 >(arg.second_operand))) {
                 return it_domain(expr_derivative< ArgType2 >(arg.second_operand));
+            }
+
+            /** plus unary evaluation*/
+            template < typename IterateDomain, typename ArgType1 >
+            GT_FUNCTION auto static constexpr value(IterateDomain &it_domain, expr_plus_unary< ArgType1 > const &arg)
+                -> decltype(it_domain(arg.first_operand)) {
+                return it_domain(arg.first_operand);
             }
 
         } // namespace evaluation

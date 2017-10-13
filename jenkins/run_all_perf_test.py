@@ -132,7 +132,7 @@ if __name__ == "__main__":
         print('Copying to PROJECTS...')
         
         outdir=build_outdir(gtype, target,prec,std)
-        dst_dir='/project/c01/GridTools/perf_data/'+jplan
+        dst_dir='/project/c14/GridTools/perf_data/'+jplan
         if not os.path.exists(dst_dir+'/'+outdir):
             os.makedirs(dst_dir+'/'+outdir)
         dutil.copy_tree(outdir, dst_dir+'/'+outdir)

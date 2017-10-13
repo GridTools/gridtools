@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <boost/mpl/equal.hpp>
 #include "../../common/defs.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "vector_accessor.hpp"
@@ -45,6 +46,20 @@
 #include "../esf_aux.hpp"
 
 namespace gridtools {
+
+    template < typename Placeholders, typename Accessors >
+    struct are_location_types_compatible {
+
+        template < typename Plc, typename Acc >
+        struct same_location_type {
+            using type = typename boost::is_same< typename Plc::location_t, typename Acc::location_type >::type;
+            static constexpr bool value = type::value;
+        };
+
+        static constexpr bool value = boost::mpl::equal< Placeholders,
+            Accessors,
+            same_location_type< boost::mpl::_1, boost::mpl::_2 > >::type::value;
+    };
 
     template < template < uint_t > class Functor,
         typename Grid,
@@ -64,6 +79,9 @@ namespace gridtools {
         using location_type = LocationType;
         using args_t = ArgSequence;
         using color_t = Color;
+
+        GRIDTOOLS_STATIC_ASSERT((are_location_types_compatible< args_t, typename Functor< 0 >::arg_list >::value),
+            "Location types of placeholders and accessors must match");
 
         BOOST_MPL_HAS_XXX_TRAIT_DEF(arg_list)
         GRIDTOOLS_STATIC_ASSERT(has_arg_list< esf_function< 0 > >::type::value,

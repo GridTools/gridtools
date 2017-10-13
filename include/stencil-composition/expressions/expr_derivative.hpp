@@ -78,7 +78,7 @@ namespace gridtools {
 
             /** derivative evaluation*/
             template < typename IterateDomain, typename ArgType1 >
-            GT_FUNCTION static float_type constexpr value(IterateDomain const &it_domain,
+            GT_FUNCTION static float_type constexpr value(IterateDomain &it_domain,
                 expr_derivative< ArgType1 > const &arg,
                 typename boost::enable_if< typename is_accessor< ArgType1 >::type, int >::type = 0) {
                 return 1.;

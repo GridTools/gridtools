@@ -149,7 +149,7 @@ namespace gridtools {
          * @tparam EsfArgument esf arguments type that contains the arguments needed to execute this ESF.
          */
         template < typename IntervalType, typename EsfArguments >
-        __device__ void do_impl() const {
+        GT_FUNCTION_DEVICE void do_impl() const {
             GRIDTOOLS_STATIC_ASSERT((is_esf_arguments< EsfArguments >::value), GT_INTERNAL_ERROR);
 
             typedef typename EsfArguments::functor_t functor_t;
@@ -171,7 +171,7 @@ namespace gridtools {
         // specialization of the loop over colors when the user speficied the ESF with a specific color
         // Only that color gets executed
         template < typename IntervalType, typename EsfArguments >
-        __device__ void color_loop(
+        GT_FUNCTION_DEVICE void color_loop(
             typename boost::enable_if< typename esf_has_color< typename EsfArguments::esf_t >::type, int >::type =
                 0) const {
 
@@ -207,7 +207,7 @@ namespace gridtools {
         // specialization of the loop over colors when the ESF does not specify any particular color.
         // A loop over all colors is performed.
         template < typename IntervalType, typename EsfArguments >
-        __device__ void color_loop(
+        GT_FUNCTION_DEVICE void color_loop(
             typename boost::disable_if< typename esf_has_color< typename EsfArguments::esf_t >::type, int >::type =
                 0) const {
 
@@ -220,7 +220,7 @@ namespace gridtools {
             boost::mpl::for_each< color_range_t >(
                 color_functor< iterate_domain_t, EsfArguments, location_type_t, IntervalType >(m_iterate_domain));
 
-            using neg_n_colors_t = static_uint< -location_type_t::n_colors::value >;
+            using neg_n_colors_t = static_int< -location_type_t::n_colors::value >;
             (m_iterate_domain)
                 .template increment< grid_traits_from_id< enumtype::icosahedral >::dim_c_t::value, neg_n_colors_t >();
         }

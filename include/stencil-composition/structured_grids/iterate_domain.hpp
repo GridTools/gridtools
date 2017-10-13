@@ -34,29 +34,19 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/type_traits/add_const.hpp>
 #include <boost/fusion/include/size.hpp>
-#include <boost/type_traits/is_same.hpp>
-#include <boost/type_traits/add_pointer.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/vector.hpp>
-#ifndef CXX11_ENABLED
+#include <boost/type_traits/add_const.hpp>
+#include <boost/type_traits/add_pointer.hpp>
+#include <boost/type_traits/is_same.hpp>
 #include <boost/typeof/typeof.hpp>
-#endif
-#include "stencil-composition/local_domain.hpp"
-#include "common/gt_assert.hpp"
-#include "stencil-composition/run_functor_arguments.hpp"
-#include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
-#include "stencil-composition/iterate_domain_aux.hpp"
-#include "../reductions/iterate_domain_reduction.hpp"
 #include "../iterate_domain_fwd.hpp"
-#ifdef CXX11_ENABLED
-#include "../../storage/expandable_parameters.hpp"
-#endif
-
-#ifdef CUDA8
+#include "../reductions/iterate_domain_reduction.hpp"
+#include "common/gt_assert.hpp"
+#include "stencil-composition/iterate_domain_aux.hpp"
+#include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
+#include "stencil-composition/local_domain.hpp"
+#include "stencil-composition/run_functor_arguments.hpp"
 #include "iterate_domain_cxx11.hpp"
-#else
-#include "iterate_domain_cxx03.hpp"
-#endif

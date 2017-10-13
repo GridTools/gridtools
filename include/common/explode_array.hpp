@@ -39,8 +39,6 @@
 #include "common/array.hpp"
 #include "common/tuple.hpp"
 
-#ifdef CXX11_ENABLED
-
 namespace gridtools {
 
     template < unsigned K, class R, class F, class Array >
@@ -168,5 +166,3 @@ namespace gridtools {
         return Expander_inj< Array::n_dimensions, ReturnType, Fn, ExtraData, const Array & >::expand(extra_data, a);
     }
 }
-
-#endif
