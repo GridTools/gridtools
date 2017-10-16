@@ -89,7 +89,7 @@ namespace gridtools {
     grid< typename Axis::axis_interval_t, GridTopology > make_grid(
         GridTopology grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j, Axis axis) {
         return grid< typename Axis::axis_interval_t, GridTopology >(
-            grid_topology, direction_i, direction_j, internal::intervals_to_indices(axis.interval_sizes()));
+            grid_topology, direction_i, direction_j, _impl::intervals_to_indices(axis.interval_sizes()));
     }
     template < typename GridTopology >
     grid< axis< 1 >::axis_interval_t, GridTopology > make_grid(
@@ -102,7 +102,7 @@ namespace gridtools {
         return grid< typename Axis::axis_interval_t, GridTopology >(grid_topology,
             halo_descriptor(di),
             halo_descriptor(dj),
-            internal::intervals_to_indices(axis.interval_sizes()));
+            _impl::intervals_to_indices(axis.interval_sizes()));
     }
     template < typename GridTopology >
     grid< axis< 1 >::axis_interval_t, GridTopology > make_grid(

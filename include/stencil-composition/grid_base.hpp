@@ -42,7 +42,7 @@
 #include "axis.hpp"
 
 namespace gridtools {
-    namespace internal {
+    namespace _impl {
         /*
          * @brief convert an array of intervals in an array of indices of splitters
          */
@@ -91,17 +91,17 @@ namespace gridtools {
             "This constructor does not initialize the vertical axis, use the constructor with 3 arguments.")
             : m_direction_i(direction_i), m_direction_j(direction_j) {}
 
+        /**
+         * @brief standard ctor
+         * @param halo_descriptor in i direction
+         * @param halo_descriptor in j direction
+         * @param gridtools::array with splitter positions
+         */
         GT_FUNCTION
         explicit grid_base(halo_descriptor const &direction_i,
             halo_descriptor const &direction_j,
             const array< uint_t, size_type::value > &value_list)
             : m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {}
-
-        GT_FUNCTION
-        explicit grid_base(
-            halo_descriptor const &direction_i, halo_descriptor const &direction_j, axis< size_type::value - 1 > axis)
-            : m_direction_i(direction_i), m_direction_j(direction_j),
-              value_list(internal::intervals_to_indices(axis.interval_sizes())) {}
 
         DEPRECATED_REASON(GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/),
             "Use constructor with halo_descriptors")
