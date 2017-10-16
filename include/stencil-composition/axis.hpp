@@ -53,7 +53,7 @@ namespace gridtools {
     class axis {
       private:
         template < size_t... IntervalIDs >
-        struct internal_interval {
+        struct interval_impl {
             GRIDTOOLS_STATIC_ASSERT((is_continuous(IntervalIDs...)), "Intervals must be continuous.");
             static constexpr size_t min_id = constexpr_min(IntervalIDs...);
             static constexpr size_t max_id = constexpr_max(IntervalIDs...);
@@ -80,7 +80,7 @@ namespace gridtools {
         const array< uint_t, NIntervals > &interval_sizes() const { return interval_sizes_; };
 
         template < size_t... IntervalIDs >
-        using get_interval = typename internal_interval< IntervalIDs... >::type;
+        using get_interval = typename interval_impl< IntervalIDs... >::type;
 
       private:
         array< uint_t, NIntervals > interval_sizes_;
