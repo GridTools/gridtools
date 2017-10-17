@@ -36,7 +36,7 @@
 
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/structured_grids/call_interfaces.hpp>
+#include <stencil-composition/stencil-functions/stencil-functions.hpp>
 
 using namespace gridtools;
 struct func {
@@ -44,8 +44,8 @@ struct func {
     using p2 = accessor< 1, enumtype::inout >;
     using arg_list = boost::mpl::vector2< p1, p2 >;
 
-    template < typename Eval >
-    void Do(Eval const &eval) {}
+    template < typename Evaluation >
+    void Do(Evaluation &eval) {}
 };
 
 struct func_call {
@@ -53,8 +53,8 @@ struct func_call {
     using p2 = accessor< 1, enumtype::inout >;
     using arg_list = boost::mpl::vector2< p1, p2 >;
 
-    template < typename Eval >
-    void Do(Eval const &eval) {
+    template < typename Evaluation >
+    void Do(Evaluation &eval) {
         call< func >::with(eval);
     }
 };

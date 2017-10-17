@@ -37,6 +37,8 @@
 #include <boost/type_traits.hpp>
 #include <boost/mpl/bool.hpp>
 
+#include "pointer.hpp"
+
 namespace gridtools {
     template < typename T >
     struct remove_ref_cv {

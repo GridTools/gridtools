@@ -35,9 +35,10 @@
 */
 #pragma once
 
+#include "./host_device.hpp"
+
 namespace gridtools {
 
-#ifdef CXX11_ENABLED
     /**@file
     @brief implementation of a compile time string.
 
@@ -110,7 +111,7 @@ namespace gridtools {
 
         template < typename IntType,
             typename... S,
-            typename boost::enable_if< typename boost::is_integral< IntType >::type, int >::type = 0 >
+            typename std::enable_if< std::is_integral< IntType >::value, int >::type = 0 >
         GT_FUNCTION static void apply(IntType first, S... s) {
             printf("%d", first);
             apply(s...);
@@ -118,13 +119,12 @@ namespace gridtools {
 
         template < typename FloatType,
             typename... S,
-            typename boost::enable_if< typename boost::is_floating_point< FloatType >::type, int >::type = 0 >
+            typename std::enable_if< std::is_floating_point< FloatType >::value, int >::type = 0 >
         GT_FUNCTION static void apply(FloatType first, S... s) {
             printf("%f", first);
             apply(s...);
         }
     };
-#endif // CXX11_ENABLED
 
     /**@brief simple function that copies a string **/
     inline char const *malloc_and_copy(char const *src) {

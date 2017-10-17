@@ -61,19 +61,17 @@ namespace gridtools {
     template < typename IterateDomain, ushort_t Position >
     struct iterate_domain_expandable_parameters : public IterateDomain {
 
-        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, "wrong type");
+        GRIDTOOLS_STATIC_ASSERT(is_iterate_domain< IterateDomain >::value, GT_INTERNAL_ERROR);
         static const ushort_t ID = Position - 1;
         typedef IterateDomain super;
         typedef IterateDomain iterate_domain_t;
 
-#ifdef CXX11_ENABLED
         // user protections
         template < typename... T >
         GT_FUNCTION iterate_domain_expandable_parameters(T const &... other_)
             : super(other_...) {
             GRIDTOOLS_STATIC_ASSERT((sizeof...(T) == 1), "The eval() is called with the wrong arguments");
         }
-#endif
 
         template < typename T, ushort_t Val >
         GT_FUNCTION iterate_domain_expandable_parameters(iterate_domain_expandable_parameters< T, Val > const &other_)
@@ -96,13 +94,13 @@ namespace gridtools {
         template < uint_t ACC_ID, enumtype::intend Intent, typename Extent, uint_t Size >
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor< ACC_ID, Intent, Extent, Size > >::type
-        operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) const {
+        operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) {
             typedef typename super::template accessor_return_type< accessor< ACC_ID, Intent, Extent, Size > >::type
                 return_t;
             // check that if the storage is written the accessor is inout
 
             accessor< ACC_ID, Intent, Extent, Size > tmp_(arg);
-            tmp_.template set< 1 >(ID);
+            tmp_.template set< 0 >(ID);
 
             return super::operator()(tmp_);
         }

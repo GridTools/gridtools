@@ -41,7 +41,7 @@
 #include <communication/halo_exchange.hpp>
 #include <string>
 #include <stdlib.h>
-#include <common/layout_map.hpp>
+#include <storage/storage-facility.hpp>
 #include <common/boollist.hpp>
 #include <sys/time.h>
 
@@ -50,7 +50,7 @@
 
 #include "triplet.hpp"
 
-#include "../../unit_tests/communication/device_binding.hpp"
+#include <tools/mpi_unit_test_driver/device_binding.hpp>
 
 namespace halo_exchange_3D_all_3 {
     int pid;

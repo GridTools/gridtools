@@ -73,52 +73,16 @@ namespace gridtools {
         constexpr array< bool, I > const &value() const { return m_value; }
 
         GT_FUNCTION
-        boollist(bool v0)
-#ifdef CXX11_ENABLED
-            : m_value{v0} {
-        }
-#else
-        {
-            m_value[0] = v0;
-        }
-#endif
+        boollist(bool v0) : m_value{v0} {}
 
         GT_FUNCTION
-        boollist(bool v0, bool v1)
-#ifdef CXX11_ENABLED
-            : m_value{v0, v1} {
-        }
-#else
-        {
-            m_value[0] = v0;
-            m_value[1] = v1;
-        }
-#endif
+        boollist(bool v0, bool v1) : m_value{v0, v1} {}
 
         GT_FUNCTION
-        boollist(bool v0, bool v1, bool v2)
-#ifdef CXX11_ENABLED
-            : m_value{v0, v1, v2} {
-        }
-#else
-        {
-            m_value[0] = v0;
-            m_value[1] = v1;
-            m_value[2] = v2;
-        }
-#endif
+        boollist(bool v0, bool v1, bool v2) : m_value{v0, v1, v2} {}
 
         GT_FUNCTION
-        boollist(boollist const &bl)
-#ifdef CXX11_ENABLED
-            : m_value(bl.m_value) {
-        }
-#else
-        {
-            for (ushort_t i = 0; i < I; ++i)
-                m_value[i] = bl.m_value[i];
-        }
-#endif
+        boollist(boollist const &bl) : m_value(bl.m_value) {}
 
         GT_FUNCTION
         void copy_out(bool *arr) const {
@@ -127,24 +91,24 @@ namespace gridtools {
         }
 
         template < typename LayoutMap >
-        GT_FUNCTION boollist< LayoutMap::length > permute(
-            typename boost::enable_if_c< LayoutMap::length == 1 >::type *a = 0) const {
-            return boollist< LayoutMap::length >(LayoutMap::template find< 0 >(m_value));
+        GT_FUNCTION boollist< LayoutMap::masked_length > permute(
+            typename boost::enable_if_c< LayoutMap::masked_length == 1 >::type *a = 0) const {
+            return boollist< LayoutMap::masked_length >(m_value[LayoutMap::template find< 0 >()]);
         }
 
         template < typename LayoutMap >
-        GT_FUNCTION boollist< LayoutMap::length > permute(
-            typename boost::enable_if_c< LayoutMap::length == 2 >::type *a = 0) const {
-            return boollist< LayoutMap::length >(
-                LayoutMap::template find< 0 >(m_value), LayoutMap::template find< 1 >(m_value));
+        GT_FUNCTION boollist< LayoutMap::masked_length > permute(
+            typename boost::enable_if_c< LayoutMap::masked_length == 2 >::type *a = 0) const {
+            return boollist< LayoutMap::masked_length >(
+                m_value[LayoutMap::template find< 0 >()], m_value[LayoutMap::template find< 1 >()]);
         }
 
         template < typename LayoutMap >
-        GT_FUNCTION boollist< LayoutMap::length > permute(
-            typename boost::enable_if_c< LayoutMap::length == 3 >::type *a = 0) const {
-            return boollist< LayoutMap::length >(LayoutMap::template find< 0 >(&m_value[0]),
-                LayoutMap::template find< 1 >(&m_value[0]),
-                LayoutMap::template find< 2 >(&m_value[0]));
+        GT_FUNCTION boollist< LayoutMap::masked_length > permute(
+            typename boost::enable_if_c< LayoutMap::masked_length == 3 >::type *a = 0) const {
+            return boollist< LayoutMap::masked_length >(m_value[LayoutMap::template find< 0 >()],
+                m_value[LayoutMap::template find< 1 >()],
+                m_value[LayoutMap::template find< 2 >()]);
         }
     };
 }

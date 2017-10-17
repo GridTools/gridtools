@@ -40,9 +40,9 @@
 */
 
 #pragma once
+#include "../iterate_domain_fwd.hpp"
 #include "../iterate_domain_metafunctions.hpp"
 #include "stencil-composition/accessor.hpp"
-#include "../iterate_domain_fwd.hpp"
 
 namespace gridtools {
 
@@ -83,7 +83,7 @@ namespace gridtools {
             static const uint_t N_DATA_POINTERS = iterate_domain_t::N_DATA_POINTERS;
 
           protected:
-            const iterate_domain_t &m_iterate_domain;
+            iterate_domain_t &m_iterate_domain;
 
           public:
             typedef typename _impl::iterate_domain_remapper_base_esf_args_map< IterateDomainEvaluatorImpl >::type
@@ -92,20 +92,12 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_iterate_domain< iterate_domain_t >::value), GT_INTERNAL_ERROR);
             typedef typename iterate_domain_t::esf_args_t esf_args_t;
 
-#ifdef CXX11_ENABLED
             template < typename Accessor >
             using accessor_return_type = typename iterate_domain_t::template accessor_return_type<
                 typename remap_accessor_type< Accessor, esf_args_map_t >::type >;
-#else  // CXX11_ENABLED
-            template < typename Accessor >
-            struct accessor_return_type {
-                typedef typename iterate_domain_t::template accessor_return_typ_impl<
-                    typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type type;
-            };
-#endif // CXX11_ENABLED
 
             GT_FUNCTION
-            explicit iterate_domain_remapper_base(const iterate_domain_t &iterate_domain)
+            explicit iterate_domain_remapper_base(iterate_domain_t &iterate_domain)
                 : m_iterate_domain(iterate_domain) {}
 
             GT_FUNCTION
@@ -113,28 +105,19 @@ namespace gridtools {
 
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template < typename Accessor >
-            GT_FUNCTION
-#ifdef CXX11_ENABLED
-                auto
-                operator()(Accessor const &arg) const
-                -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg)))
-#else  // CXX11_ENABLED
-                typename iterate_domain_t::template accessor_return_type<
-                    typename remap_accessor_type< Accessor, esf_args_map_t >::type >::type
-                operator()(Accessor const &arg) const
-#endif // CXX11_ENABLED
-            {
+            GT_FUNCTION auto operator()(Accessor const &arg)
+                -> decltype(m_iterate_domain(typename remap_accessor_type< Accessor, esf_args_map_t >::type(arg))) {
+
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
                 const remap_accessor_t tmp_(arg);
                 return m_iterate_domain(tmp_);
             }
 
-#ifdef CUDA8 // i.e. CXX11_ENABLED on host
+#ifdef CUDA8
             /** shifting the IDs of the placeholders and forwarding to the iterate_domain () operator*/
             template < typename Accessor, typename... Pairs >
-            GT_FUNCTION auto operator()(accessor_mixed< Accessor, Pairs... > const &arg) const
-                -> decltype(m_iterate_domain(
-                    accessor_mixed< typename remap_accessor_type< Accessor, esf_args_map_t >::type, Pairs... >(arg))) {
+            GT_FUNCTION auto operator()(accessor_mixed< Accessor, Pairs... > const &arg) -> decltype(m_iterate_domain(
+                accessor_mixed< typename remap_accessor_type< Accessor, esf_args_map_t >::type, Pairs... >(arg))) {
                 typedef accessor_mixed< typename remap_accessor_type< Accessor, esf_args_map_t >::type, Pairs... >
                     remap_accessor_t;
                 // const remap_accessor_t tmp_(arg);
@@ -142,7 +125,6 @@ namespace gridtools {
             }
 #endif // CUDA8
 
-#ifdef CXX11_ENABLED
             /**@brief returns the dimension of the storage corresponding to the given accessor
 
                Useful to determine the loop bounds, when looping over a dimension from whithin a kernel
@@ -154,7 +136,6 @@ namespace gridtools {
                 typedef typename remap_accessor_type< Accessor, esf_args_map_t >::type remap_accessor_t;
                 return m_iterate_domain.get_storage_dim< Coordinate >(remap_accessor_t(acc_));
             }
-#endif
         };
 
         /**
@@ -174,7 +155,7 @@ namespace gridtools {
             typedef iterate_domain_remapper_base< iterate_domain_remapper< IterateDomain, EsfArgsMap > > super;
 
             GT_FUNCTION
-            explicit iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
+            explicit iterate_domain_remapper(IterateDomain &iterate_domain) : super(iterate_domain) {}
         };
 
         /**
@@ -196,7 +177,7 @@ namespace gridtools {
                 super;
 
             GT_FUNCTION
-            explicit positional_iterate_domain_remapper(const IterateDomain &iterate_domain) : super(iterate_domain) {}
+            explicit positional_iterate_domain_remapper(IterateDomain &iterate_domain) : super(iterate_domain) {}
 
             GT_FUNCTION
             uint_t i() const { return this->m_iterate_domain.i(); }

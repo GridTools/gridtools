@@ -12,19 +12,17 @@ endif(VERBOSE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE}")
 
+## enable -Werror
+if( WERROR )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Werror" )
+endif()
+
 ## structured grids ##
 if(STRUCTURED_GRIDS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DSTRUCTURED_GRIDS" )
-else()
-  set(ENABLE_CXX11 "ON" CACHE BOOL "Enable examples and tests featuring C++11 features" FORCE)
 endif()
 
-## enable cxx11 ##
-if(ENABLE_CXX11)
-    add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
-else()
-    set(USE_MPI OFF)
-endif()
+add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
 
 ## get boost ##
 if(WIN32)
@@ -32,12 +30,15 @@ if(WIN32)
   find_package( Boost 1.58 REQUIRED )
 else()
   # On other platforms, me must be specific about which libs are required
-  find_package( Boost 1.58 COMPONENTS timer system chrono REQUIRED )
+  find_package( Boost 1.58 REQUIRED )
 endif()
 
 if(Boost_FOUND)
-    include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
-    set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
+  # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
+  foreach(dir ${Boost_INCLUDE_DIRS})
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${dir}")
+  endforeach()
+  set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
 if(NOT USE_GPU)
@@ -59,30 +60,24 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs")
 message (STATUS "Building profiled executables")
 endif()
 
-## enable cxx11 and things ##
-if ( ENABLE_CXX11 )
-   message (STATUS "CXX11 enabled")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
-else()
-   message (STATUS "CXX11 disabled")
-   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCXX11_DISABLE")
-endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=c++11")
 
 ## cuda support ##
 if( USE_GPU )
   message(STATUS "Using GPU")
   find_package(CUDA REQUIRED)
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${CUDA_VERSION}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${GT_CUDA_VERSION}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "${BOOST_FUSION_MAX_SIZE_FLAGS}")
+  if( WERROR )
+     #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
+    set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
+  endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
   if( ${CUDA_VERSION} VERSION_GREATER "60")
-      if (NOT ENABLE_CXX11 )
-          set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -DCXX11_DISABLE")
-      else()
-         set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ ")
-      endif()
+      set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
   else()
       error(STATUS "CUDA 6.0 or lower does not supported")
   endif()
@@ -90,7 +85,7 @@ if( USE_GPU )
 
   include_directories(SYSTEM ${CUDA_INCLUDE_DIRS})
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_GPU_")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ")
   set(exe_LIBS  ${exe_LIBS} ${CUDA_CUDART_LIBRARY} )
   set (CUDA_LIBRARIES "")
   # adding the additional nvcc flags
@@ -161,18 +156,17 @@ endif()
 
 ## precision ##
 if(SINGLE_PRECISION)
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
+  if(USE_GPU)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
+  endif()
+  add_definitions("-DFLOAT_PRECISION=4")
   message(STATUS "Computations in single precision")
 else()
-  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
+  if(USE_GPU)
+    set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
+  endif()
+  add_definitions("-DFLOAT_PRECISION=8") 
   message(STATUS "Computations in double precision")
-endif()
-
-## gcl ##
-if( "${GCL_GPU}" STREQUAL "ON" )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GCL_GPU_")
-else()
-  set (CUDA_LIBRARIES "")
 endif()
 
 ## mpi ##
@@ -223,4 +217,3 @@ endif()
 add_definitions(-DGTEST_COLOR )
 include_directories( ${GTEST_INCLUDE_DIR} )
 include_directories( ${GMOCK_INCLUDE_DIR} )
-
