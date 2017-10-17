@@ -77,7 +77,7 @@ namespace soem {
         typedef boost::mpl::vector< in1, in2, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             auto ff = [](
                 const double _in1, const double _in2, const double _res) -> double { return _in1 + _in2 * 0.1 + _res; };
 
@@ -102,21 +102,24 @@ namespace soem {
         auto in_edges2 = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("in2");
         auto out_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("out");
         auto ref_edges = icosahedral_grid.make_storage< icosahedral_topology_t::edges, double >("ref");
+        auto inv1 = make_host_view(in_edges1);
+        auto inv2 = make_host_view(in_edges2);
+        auto outv = make_host_view(out_edges);
+        auto refv = make_host_view(ref_edges);
 
         for (int i = 0; i < d1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
                 for (int j = 0; j < d2; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        in_edges1(i, c, j, k) = (uint_t)in_edges1.meta_data().index(
-                            array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
-                        in_edges2(i, c, j, k) = (uint_t)in_edges2.meta_data().index(
-                            array< uint_t, 4 >{(uint_t)i / 2, (uint_t)c, (uint_t)j / 2, (uint_t)k / 2});
+                        inv1(i, c, j, k) = (uint_t)in_edges1.get_storage_info_ptr()->index(i, c, j, k);
+                        inv2(i, c, j, k) = (uint_t)in_edges2.get_storage_info_ptr()->index(
+                            (uint_t)i / 2, c, (uint_t)j / 2, (uint_t)k / 2);
+                        outv(i, c, j, k) = 0.0;
+                        refv(i, c, j, k) = 0.0;
                     }
                 }
             }
         }
-        out_edges.initialize(0.0);
-        ref_edges.initialize(0.0);
 
         typedef arg< 0, edge_storage_type, enumtype::edges > p_in_edges1;
         typedef arg< 1, edge_storage_type, enumtype::edges > p_in_edges2;
@@ -124,8 +127,7 @@ namespace soem {
 
         typedef boost::mpl::vector< p_in_edges1, p_in_edges2, p_out_edges > accessor_list_t;
 
-        gridtools::aggregator_type< accessor_list_t > domain(
-            boost::fusion::make_vector(&in_edges1, &in_edges2, &out_edges));
+        gridtools::aggregator_type< accessor_list_t > domain(in_edges1, in_edges2, out_edges);
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -144,11 +146,10 @@ namespace soem {
         stencil_->steady();
         stencil_->run();
 
-#ifdef __CUDACC__
-        out_edges.d2h_update();
-        in_edges1.d2h_update();
-        in_edges2.d2h_update();
-#endif
+        out_edges.sync();
+        in_edges1.sync();
+        in_edges2.sync();
+
         bool result = true;
         if (verify) {
             unstructured_grid ugrid(d1, d2, d3);
@@ -160,7 +161,8 @@ namespace soem {
                                 ugrid.neighbours_of< icosahedral_topology_t::edges, icosahedral_topology_t::edges >(
                                     {i, c, j, k});
                             for (auto iter = neighbours.begin(); iter != neighbours.end(); ++iter) {
-                                ref_edges(i, c, j, k) += in_edges1(*iter) + in_edges2(*iter) * 0.1;
+                                refv(i, c, j, k) += inv1((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]) +
+                                                    inv2((*iter)[0], (*iter)[1], (*iter)[2], (*iter)[3]) * 0.1;
                             }
                         }
                     }

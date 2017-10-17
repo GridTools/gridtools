@@ -33,92 +33,79 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#ifdef CXX11_ENABLED
-#include "layout_map_cxx11.hpp"
-#else
-#include "layout_map_cxx03.hpp"
-#endif
+#include <boost/mpl/at.hpp>
+#include <boost/mpl/comparison.hpp>
+#include <boost/mpl/count_if.hpp>
+#include <boost/mpl/find.hpp>
+#include <boost/mpl/greater_equal.hpp>
+#include <boost/mpl/push_back.hpp>
+#include <boost/mpl/vector_c.hpp>
+
+#include "variadic_pack_metafunctions.hpp"
+#include "defs.hpp"
+#include "gt_assert.hpp"
+#include "generic_metafunctions/variadic_to_vector.hpp"
 
 namespace gridtools {
-    template < typename LM >
-    struct reverse_map;
 
-    template < short_t I1, short_t I2 >
-    struct reverse_map< layout_map< I1, I2 > > {
-        typedef layout_map< I2, I1 > type;
-    };
+    template < int... Args >
+    struct layout_map {
+        GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, GT_INTERNAL_ERROR_MSG("Zero-dimensional layout makes no sense."));
 
-    template < short_t I1, short_t I2, short_t I3 >
-    struct reverse_map< layout_map< I1, I2, I3 > > {
-        template < short_t I, short_t Dummy >
-        struct new_value;
+        static constexpr int masked_length = sizeof...(Args);
+        typedef typename variadic_to_vector< boost::mpl::int_< Args >... >::type static_layout_vector;
+        static constexpr uint_t unmasked_length = boost::mpl::count_if< static_layout_vector,
+            boost::mpl::greater< boost::mpl::_, boost::mpl::int_< -1 > > >::value;
 
-        template < short_t Dummy >
-        struct new_value< 0, Dummy > {
-            static const short_t value = 2;
+        typedef typename boost::mpl::fold< static_layout_vector,
+            boost::mpl::int_< 0 >,
+            boost::mpl::if_< boost::mpl::greater< boost::mpl::_2, boost::mpl::int_< -1 > >,
+                                               boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 >,
+                                               boost::mpl::_1 > >::type accumulated_arg_sum_t;
+        GRIDTOOLS_STATIC_ASSERT((accumulated_arg_sum_t::value ==
+                                    ((unmasked_length - 1) * (unmasked_length - 1) + (unmasked_length - 1)) / 2),
+            GT_INTERNAL_ERROR_MSG("Layout map args must not contain any holes (e.g., layout_map<3,1,0>)."));
+
+        template < int I >
+        GT_FUNCTION static constexpr int find() {
+            GRIDTOOLS_STATIC_ASSERT(
+                (I >= 0) && (I < unmasked_length), GT_INTERNAL_ERROR_MSG("This index does not exist"));
+            return boost::mpl::find< static_layout_vector, boost::mpl::int_< I > >::type::pos::value;
+        }
+
+        GT_FUNCTION static constexpr int find(int i) { return get_index_of_element_in_pack(0, i, Args...); }
+
+        template < int I >
+        GT_FUNCTION static constexpr int at() {
+            GRIDTOOLS_STATIC_ASSERT((I >= 0) && (I <= masked_length), GT_INTERNAL_ERROR_MSG("Out of bounds access"));
+            return boost::mpl::at< static_layout_vector, boost::mpl::int_< I > >::type::value;
+        }
+
+        /**
+           @brief Version of at that does not check the index bound.
+           This is useful to check killed-dimensions. The return value
+           is -1 if the access is out of bound. The interface is left
+           unappealing since it is discouraged.
+        */
+        template < int I >
+        struct at_ {
+            static const int value = (I < masked_length && I >= 0) ? at< I >() : -1;
         };
 
-        template < short_t Dummy >
-        struct new_value< 1, Dummy > {
-            static const short_t value = 1;
-        };
+        GT_FUNCTION static constexpr int at(int i) { return get_value_from_pack(i, Args...); }
 
-        template < short_t Dummy >
-        struct new_value< 2, Dummy > {
-            static const short_t value = 0;
-        };
-
-        typedef layout_map< new_value< I1, 0 >::value, new_value< I2, 0 >::value, new_value< I3, 0 >::value > type;
+        template < int I >
+        GT_FUNCTION static constexpr int select(int const *dims) {
+            return dims[at< I >()];
+        }
     };
 
-    template < typename DATALO, typename PROCLO >
-    struct layout_transform;
+    template < typename T >
+    struct is_layout_map : boost::mpl::false_ {};
 
-    template < short_t I1, short_t I2, short_t P1, short_t P2 >
-    struct layout_transform< layout_map< I1, I2 >, layout_map< P1, P2 > > {
-        typedef layout_map< I1, I2 > L1;
-        typedef layout_map< P1, P2 > L2;
-
-        static const short_t N1 = boost::mpl::at_c< typename L1::layout_vector_t, P1 >::type::value;
-        static const short_t N2 = boost::mpl::at_c< typename L1::layout_vector_t, P2 >::type::value;
-
-        typedef layout_map< N1, N2 > type;
-    };
-
-    template < short_t I1, short_t I2, short_t I3, short_t P1, short_t P2, short_t P3 >
-    struct layout_transform< layout_map< I1, I2, I3 >, layout_map< P1, P2, P3 > > {
-        typedef layout_map< I1, I2, I3 > L1;
-        typedef layout_map< P1, P2, P3 > L2;
-
-        static const short_t N1 = boost::mpl::at_c< typename L1::layout_vector_t, P1 >::type::value;
-        static const short_t N2 = boost::mpl::at_c< typename L1::layout_vector_t, P2 >::type::value;
-        static const short_t N3 = boost::mpl::at_c< typename L1::layout_vector_t, P3 >::type::value;
-
-        typedef layout_map< N1, N2, N3 > type;
-    };
-
-    template < short_t D >
-    struct default_layout_map;
-
-    template <>
-    struct default_layout_map< 1 > {
-        typedef layout_map< 0 > type;
-    };
-
-    template <>
-    struct default_layout_map< 2 > {
-        typedef layout_map< 0, 1 > type;
-    };
-
-    template <>
-    struct default_layout_map< 3 > {
-        typedef layout_map< 0, 1, 2 > type;
-    };
-
-    template <>
-    struct default_layout_map< 4 > {
-        typedef layout_map< 0, 1, 2, 3 > type;
-    };
-} // namespace gridtools
+    template < int... Args >
+    struct is_layout_map< layout_map< Args... > > : boost::mpl::true_ {};
+}

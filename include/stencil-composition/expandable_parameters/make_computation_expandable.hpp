@@ -36,13 +36,8 @@
 
 #pragma once
 
-#ifndef CXX11_ENABLED
-#error("this file must be included only when c++11 is supported (i.e. ENABLE_CXX11=ON)")
-#endif
-
 #include <memory>
 
-#include "include_metafunctions.hpp"
 #include "../conditionals/fill_conditionals.hpp"
 #include "../../common/generic_metafunctions/vector_to_set.hpp"
 #include "../computation_grammar.hpp"
@@ -62,7 +57,7 @@ namespace gridtools {
         typename Domain,
         typename Grid,
         typename... Mss >
-    std::shared_ptr< computation< ReductionType > > make_computation_expandable_impl(
+    std::shared_ptr< computation< Domain, ReductionType > > make_computation_expandable_impl(
         Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
 
         // doing type checks and defining the conditionals set
@@ -89,8 +84,8 @@ namespace gridtools {
         typename Grid,
         typename... Mss,
         typename = typename std::enable_if< is_expand_factor< Expand >::value >::type >
-    std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t > > make_computation(
-        Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
+    std::shared_ptr< computation< Domain, typename _impl::reduction_helper< Mss... >::reduction_type_t > >
+    make_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
         GRIDTOOLS_STATIC_ASSERT(is_expand_factor< Expand >::value, "type error");
         return make_computation_expandable_impl< POSITIONAL_WHEN_DEBUGGING,
             Backend,
@@ -103,7 +98,7 @@ namespace gridtools {
         typename Grid,
         typename... Mss,
         typename = typename std::enable_if< is_expand_factor< Expand >::value >::type >
-    std::shared_ptr< computation< typename _impl::reduction_helper< Mss... >::reduction_type_t > >
+    std::shared_ptr< computation< Domain, typename _impl::reduction_helper< Mss... >::reduction_type_t > >
     make_positional_computation(Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
         return make_computation_expandable_impl< true, Backend >(Expand(), domain, grid, args_...);
     }

@@ -52,7 +52,7 @@ struct functor1 {
     typedef boost::mpl::vector< in, out > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
 #ifdef __CUDACC__
@@ -61,26 +61,23 @@ struct functor1 {
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #endif
 
-typedef layout_map< 2, 1, 0 > layout_ijk_t;
-typedef gridtools::BACKEND::storage_type< float_type, gridtools::BACKEND::storage_info< 0, layout_ijk_t > >::type
-    storage_type;
-typedef gridtools::BACKEND::temporary_storage_type< float_type,
-    gridtools::BACKEND::storage_info< 0, layout_ijk_t > >::type tmp_storage_type;
+typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
-typedef arg< 0, storage_type > p_in;
-typedef arg< 1, storage_type > p_out;
-typedef arg< 2, tmp_storage_type > p_buff;
+typedef arg< 0, storage_t > p_in;
+typedef arg< 1, storage_t > p_out;
+typedef tmp_arg< 2, storage_t > p_buff;
 
 TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
-    typename storage_type::storage_info_type meta_(10, 10, 10);
-    storage_type in(meta_, 1.0, "in"), out(meta_, 1.0, "out");
+    meta_data_t meta_(10, 10, 10);
+    storage_t in(meta_, 1.0), out(meta_, 1.0);
 
     typedef decltype(make_stage< functor1 >(p_in(), p_buff())) esf1_t;
     typedef decltype(make_stage< functor1 >(p_buff(), p_out())) esf2_t;
 
     typedef decltype(make_multistage // mss_descriptor
         (execute< forward >(),
-            define_caches(cache< IJ, local >(p_buff(), p_out())),
+            define_caches(cache< IJ, cache_io_policy::local >(p_buff(), p_out())),
             esf1_t(), // esf_descriptor
             esf2_t()  // esf_descriptor
             )) mss_t;
@@ -90,8 +87,8 @@ TEST(mss_metafunctions, extract_mss_caches_and_esfs) {
 #ifndef __DISABLE_CACHING__
     GRIDTOOLS_STATIC_ASSERT(
         (boost::mpl::equal< mss_t::cache_sequence_t,
-            boost::mpl::vector2< detail::cache_impl< IJ, p_buff, local, boost::mpl::void_ >,
-                                detail::cache_impl< IJ, p_out, local, boost::mpl::void_ > > >::value),
+            boost::mpl::vector2< detail::cache_impl< IJ, p_buff, cache_io_policy::local, boost::mpl::void_ >,
+                                detail::cache_impl< IJ, p_out, cache_io_policy::local, boost::mpl::void_ > > >::value),
         "ERROR\nLists do not match");
 #else
     GRIDTOOLS_STATIC_ASSERT((boost::mpl::empty< mss_t::cache_sequence_t >::value), "ERROR\nList not empty");

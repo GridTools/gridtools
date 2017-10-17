@@ -97,13 +97,19 @@ namespace gridtools {
             static constexpr _impl::dummy_type c_ = _impl::dummy_type{};
 
             template < typename Derived >
-            static std::false_type test(decltype(Derived::Do(c_), 0)) {}
+            static std::false_type test(decltype(Derived::Do(c_), 0)) {
+                return {};
+            }
 
             template < typename Derived >
-            static std::true_type test(decltype(Derived::Do(c_, _impl::dummy_type{}), 0)) {}
+            static std::true_type test(decltype(Derived::Do(c_, _impl::dummy_type{}), 0)) {
+                return {};
+            }
 
             template < typename Derived >
-            static std::true_type test(...) {}
+            static std::true_type test(...) {
+                return {};
+            }
 
             typedef decltype(test< Functor >(0)) type;
             static const bool value = type::value;

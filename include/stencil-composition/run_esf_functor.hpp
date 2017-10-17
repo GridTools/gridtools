@@ -74,7 +74,8 @@ namespace gridtools {
                                                   typename Functor::f_with_default_interval >::type,
                         typename Functor::f_type >::type functor_t;
 
-                functor_t::Do(*static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
+                functor_t::template Do< iterate_domain_expandable_parameters< IterateDomain, ID > & >(
+                    *static_cast< iterate_domain_expandable_parameters< IterateDomain, ID > * >(&it_domain_),
                     Interval());
 
                 call_repeated< ID - 1, Functor, IterateDomain, Interval >::call_do_method(it_domain_);
@@ -119,7 +120,6 @@ namespace gridtools {
 
             typedef typename esf_arguments_t::interval_map_t interval_map_t;
             typedef typename esf_arguments_t::esf_args_map_t esf_args_map_t;
-            typedef typename esf_arguments_t::functor_t functor_t;
 
             if (boost::mpl::has_key< interval_map_t, interval_t >::type::value) {
                 typedef typename boost::mpl::at< interval_map_t, interval_t >::type interval_type;

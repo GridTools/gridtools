@@ -48,7 +48,7 @@
 #include "gcl_parameters.hpp"
 #include "../../common/numerics.hpp"
 #include "empty_field_base.hpp"
-#include "../../common/layout_map.hpp"
+#include "../../common/layout_map_metafunctions.hpp"
 
 #include <boost/preprocessor/arithmetic/inc.hpp>
 #include <boost/preprocessor/repetition/enum_params.hpp>
@@ -167,75 +167,48 @@ namespace gridtools {
         template < typename iterator >
         void pack_all(gridtools::array< int, DIMS > const &, iterator &it) const {}
 
-/**
-   This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
-   and a list of data fields and pack all the data corresponding
-   to the halo described by the class. The data is packed starting at
-   position pointed by iterator and the iterator will point to the next free
-   position at the end of the operation.
+        /**
+           This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
+           and a list of data fields and pack all the data corresponding
+           to the halo described by the class. The data is packed starting at
+           position pointed by iterator and the iterator will point to the next free
+           position at the end of the operation.
 
-   \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the receiving neighbor
-   \param[in,out] it iterator pointing to  storage area where data is packed
-   \param[in] field the first data field to be processed
-   \param[in] args the rest of the list of data fields to be packed (they may have different datatypes).
- */
-#ifdef CXX11_ENABLED
+           \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the receiving neighbor
+           \param[in,out] it iterator pointing to  storage area where data is packed
+           \param[in] field the first data field to be processed
+           \param[in] args the rest of the list of data fields to be packed (they may have different datatypes).
+         */
         template < typename iterator, typename FIRST, typename... FIELDS >
         void pack_all(
             gridtools::array< int, DIMS > const &eta, iterator &it, FIRST const &field, const FIELDS &... args) const {
             pack(eta, field, it);
             pack_all(eta, it, args...);
         }
-#else
-#define MACRO_IMPL(z, n, _)                                                                    \
-    template < typename iterator, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) > \
-    void pack_all(gridtools::array< int, DIMS > const &eta,                                    \
-        iterator &it,                                                                          \
-        BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &arg)) const {          \
-        pack_all(eta, it BOOST_PP_COMMA_IF(n) BOOST_PP_ENUM_PARAMS_Z(z, n, arg));              \
-        pack(eta, arg##n, it);                                                                 \
-    }
-
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
 
         template < typename iterator >
         void unpack_all(gridtools::array< int, DIMS > const &, iterator &it) const {}
 
-/**
-   This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
-   and a list of data fields and pack all the data corresponding
-   to the halo described by the class. The data is packed starting at
-   position pointed by iterator and the iterator will point to the next free
-   position at the end of the operation.
+        /**
+           This method takes a tuple eta identifiyng a neighbor \link MULTI_DIM_ACCESS \endlink
+           and a list of data fields and pack all the data corresponding
+           to the halo described by the class. The data is packed starting at
+           position pointed by iterator and the iterator will point to the next free
+           position at the end of the operation.
 
-   \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the sending neighbor
-   \param[in,out] it iterator pointing to the data to be unpacked
-   \param[in] field the first data field to be processed
-   \param[in] args the rest of the list of data fields where data has to be unpacked into (they may have different
-   datatypes).
- */
-#ifdef CXX11_ENABLED
+           \param[in] eta the eta parameter as explained in \link MULTI_DIM_ACCESS \endlink of the sending neighbor
+           \param[in,out] it iterator pointing to the data to be unpacked
+           \param[in] field the first data field to be processed
+           \param[in] args the rest of the list of data fields where data has to be unpacked into (they may have
+           different
+           datatypes).
+         */
         template < typename iterator, typename FIRST, typename... FIELDS >
         void unpack_all(
             gridtools::array< int, DIMS > const &eta, iterator &it, FIRST const &field, const FIELDS &... args) const {
             unpack(eta, field, it);
             unpack_all(eta, it, args...);
         }
-#else
-#define MACRO_IMPL(z, n, _)                                                                    \
-    template < typename iterator, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) > \
-    void unpack_all(gridtools::array< int, DIMS > const &eta,                                  \
-        iterator &it,                                                                          \
-        BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &arg)) const {          \
-        unpack_all(eta, it BOOST_PP_COMMA_IF(n) BOOST_PP_ENUM_PARAMS_Z(z, n, arg));            \
-        unpack(eta, arg##n, it);                                                               \
-    }
-
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
     };
 
     template < typename T, int I >
@@ -439,47 +412,25 @@ namespace gridtools {
             _impl::allocation_service< this_type >()(this, max_fields_n);
         }
 
-/**
-   Function to pack data to be sent
+        /**
+           Function to pack data to be sent
 
-   \param[in] _fields data fields to be packed
-*/
-#ifdef CXX11_ENABLED
+           \param[in] _fields data fields to be packed
+        */
         template < typename... FIELDS >
         void pack(const FIELDS &... _fields) const {
             pack_dims< DIMS, 0 >()(*this, _fields...);
         }
-#else
-#define MACRO_IMPL(z, n, _)                                                                    \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                    \
-    void pack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const { \
-        pack_dims< DIMS, 0 >()(*this, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));     \
-    }
 
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
+        /**
+           Function to unpack received data
 
-/**
-   Function to unpack received data
-
-   \param[in] _fields data fields where to unpack data
-*/
-#ifdef CXX11_ENABLED
+           \param[in] _fields data fields where to unpack data
+        */
         template < typename... FIELDS >
         void unpack(const FIELDS &... _fields) const {
             unpack_dims< DIMS, 0 >()(*this, _fields...);
         }
-#else
-#define MACRO_IMPL(z, n, _)                                                                      \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                      \
-    void unpack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const { \
-        unpack_dims< DIMS, 0 >()(*this, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));     \
-    }
-
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
 
         /**
            Function to unpack received data
@@ -506,7 +457,6 @@ namespace gridtools {
 
         template < int dummy >
         struct pack_dims< 3, dummy > {
-#ifdef CXX11_ENABLED
             template < typename T, typename... FIELDS >
             void operator()(const T &hm, const FIELDS &... _fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
@@ -514,9 +464,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                            const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                            const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
@@ -526,39 +476,6 @@ namespace gridtools {
                     }
                 }
             }
-#else
-
-#ifndef _GCL_GPU_
-#define PUT_OMP _Pragma("omp parallel for schedule(dynamic) collapse(3)")
-#else
-#define PUT_OMP
-#endif
-
-#define MACRO_IMPL(z, n, _)                                                                                           \
-    template < typename T, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                               \
-    void operator()(const T &hm, BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {     \
-        PUT_OMP                                                                                                       \
-        for (int ii = -1; ii <= 1; ++ii) {                                                                            \
-            for (int jj = -1; jj <= 1; ++jj) {                                                                        \
-                for (int kk = -1; kk <= 1; ++kk) {                                                                    \
-                    typedef proc_layout map_type;                                                                     \
-                    const int ii_P = map_type().template select< 0 >(ii, jj, kk);                                     \
-                    const int jj_P = map_type().template select< 1 >(ii, jj, kk);                                     \
-                    const int kk_P = map_type().template select< 2 >(ii, jj, kk);                                     \
-                    if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) { \
-                        DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);                                 \
-                        hm.halo.pack_all(                                                                             \
-                            make_array(ii, jj, kk), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));          \
-                    }                                                                                                 \
-                }                                                                                                     \
-            }                                                                                                         \
-        }                                                                                                             \
-    }
-
-            BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#undef PUT_OMP
-#endif
         };
 
         template < int I, int dummy >
@@ -566,7 +483,6 @@ namespace gridtools {
 
         template < int dummy >
         struct unpack_dims< 3, dummy > {
-#ifdef CXX11_ENABLED
             template < typename T, typename... FIELDS >
             void operator()(const T &hm, const FIELDS &... _fields) const {
 #pragma omp parallel for schedule(dynamic, 1) collapse(3)
@@ -574,9 +490,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                            const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                            const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
@@ -586,39 +502,6 @@ namespace gridtools {
                     }
                 }
             }
-#else
-
-#ifndef _GCL_GPU_
-#define PUT_OMP _Pragma("omp parallel for schedule(dynamic) collapse(3)")
-#else
-#define PUT_OMP
-#endif
-
-#define MACRO_IMPL(z, n, _)                                                                                           \
-    template < typename T, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                               \
-    void operator()(const T &hm, BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {     \
-        PUT_OMP                                                                                                       \
-        for (int ii = -1; ii <= 1; ++ii) {                                                                            \
-            for (int jj = -1; jj <= 1; ++jj) {                                                                        \
-                for (int kk = -1; kk <= 1; ++kk) {                                                                    \
-                    typedef proc_layout map_type;                                                                     \
-                    const int ii_P = map_type().template select< 0 >(ii, jj, kk);                                     \
-                    const int jj_P = map_type().template select< 1 >(ii, jj, kk);                                     \
-                    const int kk_P = map_type().template select< 2 >(ii, jj, kk);                                     \
-                    if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) { \
-                        DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);                                 \
-                        hm.halo.unpack_all(                                                                           \
-                            make_array(ii, jj, kk), it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));          \
-                    }                                                                                                 \
-                }                                                                                                     \
-            }                                                                                                         \
-        }                                                                                                             \
-    }
-
-            BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#undef PUT_OMP
-#endif
         };
 
         template < int I, int dummy >
@@ -633,9 +516,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                            const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                            const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.send_buffer[translate()(ii, jj, kk)][0]);
@@ -661,9 +544,9 @@ namespace gridtools {
                     for (int jj = -1; jj <= 1; ++jj) {
                         for (int kk = -1; kk <= 1; ++kk) {
                             typedef proc_layout map_type;
-                            const int ii_P = map_type().template select< 0 >(ii, jj, kk);
-                            const int jj_P = map_type().template select< 1 >(ii, jj, kk);
-                            const int kk_P = map_type().template select< 2 >(ii, jj, kk);
+                            const int ii_P = pack_get_elem< map_type::template at< 0 >() >::apply(ii, jj, kk);
+                            const int jj_P = pack_get_elem< map_type::template at< 1 >() >::apply(ii, jj, kk);
+                            const int kk_P = pack_get_elem< map_type::template at< 2 >() >::apply(ii, jj, kk);
                             if ((ii != 0 || jj != 0 || kk != 0) &&
                                 (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                                 DataType *it = &(hm.recv_buffer[translate()(ii, jj, kk)][0]);
@@ -813,9 +696,9 @@ namespace gridtools {
                             // recv_buffer_size[translate()(i,j,k)]);
 
                             typedef typename layout_transform< layomap, proc_layout_abs >::type proc_layout;
-                            const int i_P = proc_layout().template select< 0 >(i, j, k);
-                            const int j_P = proc_layout().template select< 1 >(i, j, k);
-                            const int k_P = proc_layout().template select< 2 >(i, j, k);
+                            const int i_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(i, j, k);
+                            const int j_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(i, j, k);
+                            const int k_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(i, j, k);
 
                             base_type::m_haloexch.register_send_to_buffer(
                                 &(send_buffer[translate()(i, j, k)][0]), S * max_fields_n * typesize, i_P, j_P, k_P);
@@ -851,9 +734,9 @@ namespace gridtools {
                             recv_buffer_size[translate()(i, j, k)] = (buffer_size_list[translate()(i, j, k)]);
 
                             typedef typename layout_transform< layomap, proc_layout_abs >::type proc_layout;
-                            const int i_P = proc_layout().template select< 0 >(i, j, k);
-                            const int j_P = proc_layout().template select< 1 >(i, j, k);
-                            const int k_P = proc_layout().template select< 2 >(i, j, k);
+                            const int i_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(i, j, k);
+                            const int j_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(i, j, k);
+                            const int k_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(i, j, k);
 
                             base_type::m_haloexch.register_send_to_buffer(&(send_buffer[translate()(i, j, k)][0]),
                                 buffer_size_list[translate()(i, j, k)],
@@ -872,7 +755,6 @@ namespace gridtools {
             }
         }
 
-#ifdef CXX11_ENABLED
         template < typename... FIELDS >
         void pack(const FIELDS &... _fields) const {
             for (int ii = -1; ii <= 1; ++ii) {
@@ -884,26 +766,7 @@ namespace gridtools {
                 }
             }
         }
-//}
-#else
-#define MACRO_IMPL(z, n, _)                                                                                            \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                                            \
-    void pack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {                         \
-        for (int ii = -1; ii <= 1; ++ii) {                                                                             \
-            for (int jj = -1; jj <= 1; ++jj) {                                                                         \
-                for (int kk = -1; kk <= 1; ++kk) {                                                                     \
-                    char *it = reinterpret_cast< char * >(&(send_buffer[translate()(ii, jj, kk)][0]));                 \
-                    pack_dims< DIMS, 0 >()(*this, ii, jj, kk, it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field)); \
-                }                                                                                                      \
-            }                                                                                                          \
-        }                                                                                                              \
-    }
 
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
-
-#ifdef CXX11_ENABLED
         template < typename... FIELDS >
         void unpack(const FIELDS &... _fields) const {
             for (int ii = -1; ii <= 1; ++ii) {
@@ -915,25 +778,6 @@ namespace gridtools {
                 }
             }
         }
-
-#else
-#define MACRO_IMPL(z, n, _)                                                                            \
-    template < BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >                            \
-    void unpack(BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {       \
-        for (int ii = -1; ii <= 1; ++ii) {                                                             \
-            for (int jj = -1; jj <= 1; ++jj) {                                                         \
-                for (int kk = -1; kk <= 1; ++kk) {                                                     \
-                    char *it = reinterpret_cast< char * >(&(recv_buffer[translate()(ii, jj, kk)][0])); \
-                    unpack_dims< DIMS, 0 >()(                                                          \
-                        *this, ii, jj, kk, it, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), _field));    \
-                }                                                                                      \
-            }                                                                                          \
-        }                                                                                              \
-    }
-
-        BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#endif
 
         /**
            Function to unpack received data
@@ -981,48 +825,19 @@ namespace gridtools {
             template < typename T, typename iterator >
             void operator()(const T &, int, int, int, iterator &) const {}
 
-#ifdef CXX11_ENABLED
             template < typename T, typename iterator, typename FIRST, typename... FIELDS >
             void operator()(
                 const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
                 const {
                 typedef typename layout_transform< typename FIRST::inner_layoutmap, proc_layout_abs >::type proc_layout;
-                const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);
-                const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);
-                const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     first.pack(make_array(ii, jj, kk), first.ptr, it);
                     operator()(hm, ii, jj, kk, it, _fields...);
                 }
             }
-#else
-//#define MBUILD(n) _field ## n
-#define _CALLNEXT_INST(z, m, n) , _field##m
-#define CALLNEXT_INST(m) BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(m), _CALLNEXT_INST, m)
-
-#define MACRO_IMPL(z, n, _)                                                                                       \
-    template < typename T, typename iterator, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >        \
-    void operator()(const T &hm,                                                                                  \
-        int ii,                                                                                                   \
-        int jj,                                                                                                   \
-        int kk,                                                                                                   \
-        iterator &it,                                                                                             \
-        BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {                          \
-        typedef typename layout_transform< typename FIELD0::inner_layoutmap, proc_layout_abs >::type proc_layout; \
-        const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);                                          \
-        const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);                                          \
-        const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);                                          \
-        if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {         \
-            _field0.pack(make_array(ii, jj, kk), _field0.ptr, it);                                                \
-            operator()(hm, ii, jj, kk, it CALLNEXT_INST(n));                                                      \
-        }                                                                                                         \
-    }
-
-            BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-#undef MACRO_IMPL
-#undef CALLNEXT_INST
-#undef _CALLNEXT_INST
-#endif
         };
 
         template < int, int >
@@ -1034,49 +849,19 @@ namespace gridtools {
             template < typename T, typename iterator >
             void operator()(const T &, int, int, int, iterator &) const {}
 
-#ifdef CXX11_ENABLED
             template < typename T, typename iterator, typename FIRST, typename... FIELDS >
             void operator()(
                 const T &hm, int ii, int jj, int kk, iterator &it, FIRST const &first, const FIELDS &... _fields)
                 const {
                 typedef typename layout_transform< typename FIRST::inner_layoutmap, proc_layout_abs >::type proc_layout;
-                const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);
-                const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);
-                const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     first.unpack(make_array(ii, jj, kk), first.ptr, it);
                     operator()(hm, ii, jj, kk, it, _fields...);
                 }
             }
-#else
-//#define MBUILD(n) _field ## n
-#define _CALLNEXT_INST(z, m, n) , _field##m
-#define CALLNEXT_INST(m) BOOST_PP_REPEAT_FROM_TO(1, BOOST_PP_INC(m), _CALLNEXT_INST, m)
-
-#define MACRO_IMPL(z, n, _)                                                                                       \
-    template < typename T, typename iterator, BOOST_PP_ENUM_PARAMS_Z(z, BOOST_PP_INC(n), typename FIELD) >        \
-    void operator()(const T &hm,                                                                                  \
-        int ii,                                                                                                   \
-        int jj,                                                                                                   \
-        int kk,                                                                                                   \
-        iterator &it,                                                                                             \
-        BOOST_PP_ENUM_BINARY_PARAMS_Z(z, BOOST_PP_INC(n), FIELD, const &_field)) const {                          \
-        typedef typename layout_transform< typename FIELD0::inner_layoutmap, proc_layout_abs >::type proc_layout; \
-        const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);                                          \
-        const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);                                          \
-        const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);                                          \
-        if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {         \
-            _field0.unpack(make_array(ii, jj, kk), _field0.ptr, it);                                              \
-            operator()(hm, ii, jj, kk, it CALLNEXT_INST(n));                                                      \
-        }                                                                                                         \
-    }
-
-            BOOST_PP_REPEAT(GCL_MAX_FIELDS, MACRO_IMPL, all)
-
-#undef MACRO_IMPL
-#undef CALLNEXT_INST
-#undef _CALLNEXT_INST
-#endif
         };
 
         template < int, int >
@@ -1089,9 +874,9 @@ namespace gridtools {
             void operator()(const T &hm, int ii, int jj, int kk, iterator &it, array_of_fotf const &_fields) const {
                 typedef typename layout_transform< typename array_of_fotf::value_type::inner_layoutmap,
                     proc_layout_abs >::type proc_layout;
-                const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);
-                const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);
-                const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     for (unsigned int fi = 0; fi < _fields.size(); ++fi) {
                         _fields[fi].pack(make_array(ii, jj, kk), _fields[fi].ptr, it);
@@ -1110,9 +895,9 @@ namespace gridtools {
             void operator()(const T &hm, int ii, int jj, int kk, iterator &it, array_of_fotf const &_fields) const {
                 typedef typename layout_transform< typename array_of_fotf::value_type::inner_layoutmap,
                     proc_layout_abs >::type proc_layout;
-                const int ii_P = proc_layout().template select< 0 >(ii, jj, kk);
-                const int jj_P = proc_layout().template select< 1 >(ii, jj, kk);
-                const int kk_P = proc_layout().template select< 2 >(ii, jj, kk);
+                const int ii_P = pack_get_elem< proc_layout::template at< 0 >() >::apply(ii, jj, kk);
+                const int jj_P = pack_get_elem< proc_layout::template at< 1 >() >::apply(ii, jj, kk);
+                const int kk_P = pack_get_elem< proc_layout::template at< 2 >() >::apply(ii, jj, kk);
                 if ((ii != 0 || jj != 0 || kk != 0) && (hm.pattern().proc_grid().proc(ii_P, jj_P, kk_P) != -1)) {
                     for (unsigned int fi = 0; fi < _fields.size(); ++fi) {
                         _fields[fi].unpack(make_array(ii, jj, kk), _fields[fi].ptr, it);
