@@ -58,19 +58,22 @@ Please note that the size of the halo has to be added to the arguments that are 
 **Interface**: 
 The `storage_info` object provides methods for querying following information:
 
-* dim: get the aligned size of a dimension.
-* stride: get aligned the stride of dimension.
-* unaligned_dim: get the unaligned size of a dimension.
-* unaligned_stride: get the unaligned stride of dimension.
-* begin: retrieve the position of the first non halo point.
-* end: retrieve the position of the last non halo point.
-* total_begin: retrieve the position of the first point (can also be a halo point).
-* total_end: retrieve the position of the last point (can also be a halo point).
-* length: retrieve the total number of data points (excluding padding, halo, initial offset). 
-* total_length: retrieve the total number of data points (excluding padding, initial offset).
-* padded_total_length: retrieve the total number of data points.
-* index: retrieve the array index of a given coordinate.
-* get_initial_offset: initial offset that is used in order to provide proper alignment.
+* `template < int Dimension > constexpr int dim() const`: get the aligned size of a dimension.
+* `constexpr const array< uint_t, ndims > &dims() const`: return the array of (aligned) dims.
+* `template < int Dimension > constexpr int stride() const`: get aligned the stride of dimension.
+* `constexpr const array< uint_t, ndims > &strides() const`: return the array of (aligned) strides.
+* `template < int Dimension > constexpr int unaligned_dim() const`: get the unaligned size of a dimension.
+* `template < int Dimension > constexpr int unaligned_stride() const`: get the unaligned stride of dimension.
+* `constexpr uint_t begin() const`: retrieve the position of the first non halo point.
+* `constexpr uint_t end() const`: retrieve the position of the last non halo point.
+* `constexpr uint_t total_begin() const`: retrieve the position of the first point (can also be a halo point).
+* `constexpr uint_t total_end() const`: retrieve the position of the last point (can also be a halo point).
+* `constexpr uint_t length() const`: retrieve the total number of data points (excluding padding, halo, initial offset). 
+* `constexpr uint_t total_length() const`: retrieve the total number of data points (excluding padding, initial offset).
+* `constexpr uint_t padded_total_length() const`: retrieve the total number of data points.
+* `template < typename... Ints > constexpr int index(Ints... idx) const`: retrieve the array index of a given coordinate.
+* `constexpr int index(gridtools::array< int, ndims > const &offsets) const`: retrieve an offset (or index) when given an array of offsets in I,J,K, etc.
+* `static constexpr uint_t get_initial_offset()`: initial offset that is used in order to provide proper alignment.
 
 ##Data store
 
@@ -112,21 +115,24 @@ use managed data stores. The data store can be initialized with a value or lambd
 **Interface**:
 The `data_store` object provides methods for performing following things:
 
-* allocate: allocate the needed memory. this will instantiate a storage instance.
-* reset: reset the data_store. maybe deallocates memory.
-* dim: function to retrieve the (aligned) size of a dimension.
-* padded_total_length: retrieve the total number of data points.
-* total_length: retrieve the total number of data points (excluding padding, initial offset).
-* length: retrieve the total number of data points (excluding padding, halo, initial offset).
-* get_storage_ptr: retrieve a pointer to the underlying storage instance.
-* get_storage_info_ptr: retrieve a pointer to the underlying storage_info instance.
-* valid: check if underlying storage info and storage is valid.
-* clone_to_device: clone underlying storage to device.
-* clone_from_device: clone underlying storage from device.
-* sync: synchronize underlying storage.
-* reactivate_device_write_views: reactivate all device read write views to storage.
-* reactivate_host_write_views: reactivate all host read write views to storage.
-* name: retrieve the name of the storage.
+* `void allocate(StorageInfo const &info)`: allocate the needed memory. this will instantiate a storage instance.
+* `void reset()`: reset the data_store. maybe deallocates memory.
+* `template < int Dimension > int dim() const`: function to retrieve the (aligned) size of a dimension.
+* `template < int Dimension > int unaligned_dim() const`: get the unaligned size of a dimension.
+* `int padded_total_length() const`: retrieve the total number of data points.
+* `int total_length() const`: retrieve the total number of data points (excluding padding, initial offset).
+* `int length() const`: retrieve the total number of data points (excluding padding, halo, initial offset).
+* `std::shared_ptr< storage_t > get_storage_ptr() const`: retrieve a pointer to the underlying storage instance.
+* `std::shared_ptr< storage_info_t const > get_storage_info_ptr() const`: retrieve a pointer to the underlying storage_info instance.
+* `bool valid() const`: check if underlying storage info and storage is valid.
+* `void clone_to_device() const`: clone underlying storage to device. This function can also be called with host only storages but of course no operation is triggered.
+* `void clone_from_device() const`: clone underlying storage from device. This function can also be called with host only storages but of course no operation is triggered.
+* `void sync() const`: synchronize underlying storage.
+* `void reactivate_device_write_views() const`: reactivate all device read write views to storage.
+* `void reactivate_host_write_views() const`: reactivate all host read write views to storage.
+* `std::string const &name() const`: retrieve the name of the storage.
+* `const array< uint_t, ndims > &dims() const`: return the array of (aligned) dims.
+* `const array< uint_t, ndims > &strides() const`: return the array of (aligned) strides.
 
 ```note
 The data store cannot be used to modify or access the data. 
@@ -173,18 +179,20 @@ Such a field can be instantiated and used in the following way:
 **Interface**:
 The `data_store_field` object provides methods for performing following things:
 
-* get method that is used to extract a data_store out of a data_store_field.
-* set: method that is used replace a data_store in a data_store_field.
-* allocate: explicit allocation of the needed space.
-* reset: reset the data_store_field. 
-* valid: check if all elements of the data_store_field are valid.
-* get_field: get the content of the data_store_field.
-* get_dim_sizes: retrieve the sizes of the data_store_field components.
-* clone_to_device: clone underlying storages to device.
-* clone_from_device: clone underlying storages from device.
-* sync: synchronize underlying storages.
-* reactivate_device_write_views: reactivate all device read write views to storages.
-* reactivate_host_write_views: reactivate all host read write views to storages.
+* `template < uint_t Dim, uint_t Snapshot > DataStore const &get() const`: method that is used to extract a data_store out of a data_store_field.
+* `DataStore const &get(uint_t Dim, uint_t Snapshot) const`: method that is used to extract a data_store out of a data_store_field.
+* `template < uint_t Dim, uint_t Snapshot > void set(DataStore const &store)`: method that is used replace a data_store in a data_store_field.
+* `void set(uint_t Dim, uint_t Snapshot, DataStore const &store)`: method that is used replace a data_store in a data_store_field.
+* `void allocate(storage_info_t const &info)`: explicit allocation of the needed space.
+* `void reset()`: reset the data_store_field. 
+* `bool valid() const`: check if all elements of the data_store_field are valid.
+* `std::array< DataStore, num_of_storages > const &get_field() const`: get the content of the data_store_field.
+* `constexpr std::array< uint_t, sizeof...(N) > get_dim_sizes() const`: retrieve the sizes of the data_store_field components.
+* `void clone_to_device() const`: clone underlying storages to device. This function can also be called with host only storages but of course no operation is triggered.
+* `void clone_from_device() const`: clone underlying storages from device. This function can also be called with host only storages but of course no operation is triggered.
+* `void sync() const`: synchronize underlying storages.
+* `void reactivate_device_write_views() const`: reactivate all device read write views to storages.
+* `void reactivate_host_write_views() const`: reactivate all host read write views to storages.
 
 The storage module provides special operations that can be applied to a `data_store_field`.
 
@@ -247,15 +255,21 @@ Views can become invalid. For instance it can happen that the user is creating a
 a first step. If the user is creating a device view without synchronizing before the data would become inconsistent.
 Reason for this is because the internal state machine assumes that there will be a modification whenever a read write 
 view is created. The validity and consistency of a view can be checked easily. If views should be reused after a 
-synchronization they have to be activated manually via a call to `reactivate_host_views()` or `reactivate_device_views()`.
+synchronization they have to be activated manually via a call to `reactivate_host_views()` or `reactivate_device_views()`. The view consistency can always be checked with a call to `check_consistency(DataStore, DataView)`.
 
 ```c++
     ...
     auto host_view_ds = make_host_view(ds);
     auto ro_host_view_ds = make_host_view< access_mode::ReadOnly >(ds);
+    // check if view is consistent
+    assert(check_consistency(ds, ro_host_view_ds));
+    assert(check_consistency(ds, host_view_ds));
     // some modification on host side
     ...
     ds.sync()
+    // the read-write view cannot be used anymore without activation
+    assert(check_consistency(ds, ro_host_view_ds));
+    assert(!check_consistency(ds, host_view_ds));
     ...
     auto device_view_ds = make_device_view(ds);
     // some modification on device side
@@ -282,16 +296,17 @@ synchronization they have to be activated manually via a call to `reactivate_hos
 
 The `data_view` object provides methods for performing following things:
 
-* valid: Check if view contains valid pointers, and simple state machine checks. Be aware that this is not a full check. In order to check if a view is in a consistent state use check_consistency function.
-* dim: function to retrieve the (aligned) size of a dimension.
-* operator()(...): used to access elements. E.g., view(0,0,2) will return the third element.
-* padded_total_length: retrieve the total number of data points.
-* total_length: retrieve the total number of data points (excluding padding, initial offset).
-* length: retrieve the total number of data points (excluding padding, halo, initial offset).
+* `bool valid() const`: Check if view contains valid pointers, and simple state machine checks. Be aware that this is not a full check. In order to check if a view is in a consistent state use check_consistency function.
+* `template < int Dimension > constexpr int dim() const`: function to retrieve the (aligned) size of a dimension.
+* `template < int Dimension > constexpr int unaligned_dim() const`: retrieve the (unaligned) size of a dimension.
+* `constexpr int padded_total_length() const`: retrieve the total number of data points.
+* `constexpr int total_length() const`: retrieve the total number of data points (excluding padding, initial offset).
+* `constexpr int length() const`: retrieve the total number of data points (excluding padding, halo, initial offset).
+* `template < typename... Coords > data_t& operator()(Coords... c) const`: used to access elements. E.g., view(0,0,2) will return the third element.
 
-* make_host_view(DataStore): used to create host views to data stores (read-write/read-only).
-* make_device_view(DataStore): used to create device views to data stores (read-write/read-only). 
-* check_consistency(DataStore, DataView): perform a full check if the given view can be used to modify or access the data in a proper way.
+* `data_view< DataStore, AccessMode > make_host_view(DataStore const&)`: used to create host views to data stores (read-write/read-only).
+* `data_view< DataStore, AccessMode > make_device_view(DataStore const&)`: used to create device views to data stores (read-write/read-only). 
+* `bool check_consistency(DataStore const&, DataView const&)`: perform a full check if the given view can be used to modify or access the data in a proper way.
 
 ##Data field view
 
