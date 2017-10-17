@@ -51,6 +51,8 @@ namespace gridtools {
         GridTopology m_grid_topology;
 
       public:
+        static constexpr enumtype::grid_type c_grid_type = enumtype::icosahedral;
+
         GT_FUNCTION
         // TODO make grid const
         // TODO should be removed (use ctor with halo_descriptor)
@@ -64,7 +66,7 @@ namespace gridtools {
             GridTopology &grid_topology, halo_descriptor const &direction_i, halo_descriptor const &direction_j)
             : grid_base< Axis >(direction_i, direction_j), m_grid_topology(grid_topology) {}
 
-        __device__ grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
+        GT_FUNCTION_DEVICE grid(grid const &other) : grid_base< Axis >(other), m_grid_topology(other.m_grid_topology) {}
 
         GT_FUNCTION
         GridTopology const &grid_topology() const { return m_grid_topology; }

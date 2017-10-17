@@ -39,11 +39,8 @@
 #include <boost/proto/traits.hpp>
 #include "common/defs.hpp"
 #include "common/host_device.hpp"
-#include "common/is_aggregate.hpp"
 
 namespace gridtools {
-
-#ifdef CXX11_ENABLED
 
     /**
        @brief helper struct to use an integer sequence in order to fill a generic container
@@ -84,6 +81,13 @@ namespace gridtools {
     // template<typename UInt, uint_t N>
     // using make_gt_integer_sequence=std::make_integer_sequence<UInt, N>;
 
+    namespace impl {
+        template < typename... U >
+        GT_FUNCTION constexpr uint_t void_lambda(U... args) {
+            return 0;
+        }
+    }
+
     /**
        @brief generic definition (never instantiated)
      */
@@ -112,6 +116,25 @@ namespace gridtools {
     struct apply_gt_integer_sequence< gt_integer_sequence< UInt, Indices... > > {
 
         /**
+           @brief returns a container type constructed with template arguments which are the result of
+         *  applying a unary lambda function to each template argument of the ExtraTypes
+         *  The lambda applied is templated with an index which identifies the current argument. This allow
+         *  to define specialised behaviour of the lambda for the specific arguments.
+         *
+         *  \tparam Int type of the template parameters that the Container accepts
+         *  \tparam Container the type of the container to be constructed
+         *  \tparam Lambda the lambda template callable
+         *  \tparam ExtraTypes the types of the input arguments to the lambda
+         */
+        template < typename Int,
+            template < Int... t > class Container,
+            template < UInt TT, typename > class Lambda,
+            typename... ExtraTypes >
+        struct apply_t {
+            using type = Container< Lambda< Indices, ExtraTypes >::value... >;
+        };
+
+        /**
            @brief returns a container constructed by applying a unary lambda function to each argument of the
            constructor
            The lambda applied is templated with an index which identifies the current argument. This allow
@@ -121,12 +144,9 @@ namespace gridtools {
            \tparam Lambda the lambda template callable
            \tparam ExtraTypes the types of the input arguments to the lambda
          */
-        template < typename Container,
-            template < UInt T > class Lambda,
-            typename... ExtraTypes,
-            typename boost::disable_if< typename is_aggregate< Container >::type, int >::type = 0 >
+        template < typename Container, template < UInt T > class Lambda, typename... ExtraTypes >
         GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
-            return Container(Lambda< Indices >::apply(args_...)...);
+            return Container{Lambda< Indices >::apply(args_...)...};
         }
 
         /**
@@ -154,14 +174,18 @@ namespace gridtools {
         }
 
         /**
-           @brief duplicated interface for the case in which the container is an aggregator
+           @brief applies a lambda function to the transformed argument pack.
+           The lambda function does not return any value, like in other specializations of this class, but
+           simply apply a void action of each index of the integer sequence.
+           This functionality is equivalent to a boost::mpl::for_each
+
+           \tparam Lambda lambda function applied to the transformed argument pack
+           \tparam MetaFunctor functor that is transforming each of the arguments of the variadic pack
+           \tparam ExtraTypes variadic pack of arguments to be passed to the lambda
          */
-        template < typename Container,
-            template < UInt T > class Lambda,
-            typename... ExtraTypes,
-            typename boost::enable_if< typename is_aggregate< Container >::type, int >::type = 0 >
-        GT_FUNCTION static constexpr Container apply(ExtraTypes const &... args_) {
-            return Container{Lambda< Indices >::apply(args_...)...};
+        template < template < UInt T > class MetaFunctor, typename... ExtraTypes >
+        GT_FUNCTION static constexpr uint_t apply_void_lambda(ExtraTypes &... args_) {
+            return impl::void_lambda(MetaFunctor< Indices >::apply(args_...)...);
         }
 
         /**
@@ -201,6 +225,4 @@ namespace gridtools {
             return Container{lambda(Indices, args_...)...};
         }
     };
-
-#endif
 } // namespace gridtools

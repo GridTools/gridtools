@@ -34,19 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "stencil-composition/icosahedral_grids/icosahedral_topology_metafunctions.hpp"
+#include <common/defs.hpp>
+#include <common/gt_assert.hpp>
+#include <stencil-composition/icosahedral_grids/icosahedral_topology_metafunctions.hpp>
 
 using namespace gridtools;
 
 TEST(icosahedral_topology_metafunctions, selector_uuid) {
     // 0(cells) + 4+8+ /*(16)*/ + 32
-    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, -1, 1 > >::value ==
+    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, 0, 1 > >::value ==
                                 enumtype::cells::value + 44 + enumtype::metastorage_library_indices_limit),
         "ERROR");
 
     // 0(cells) + 4+8+ /*(16)*/ + 32 //the rest of dimensions are ignored
-    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, -1, 1, 1, 1 > >::value ==
+    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::cells::value, selector< 1, 1, 0, 1, 1, 1 > >::value ==
                                 enumtype::cells::value + 44 + enumtype::metastorage_library_indices_limit),
         "ERROR");
 
@@ -56,7 +57,7 @@ TEST(icosahedral_topology_metafunctions, selector_uuid) {
         "ERROR");
 
     // 1(edges) + 4+/*8*/+ 16 + 32 //the rest of dimensions are ignored
-    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::edges::value, selector< 1, -1, 1, 1, 1, 1 > >::value ==
+    GRIDTOOLS_STATIC_ASSERT((impl::compute_uuid< enumtype::edges::value, selector< 1, 0, 1, 1, 1, 1 > >::value ==
                                 enumtype::edges::value + 52 + enumtype::metastorage_library_indices_limit),
         "ERROR");
 }
@@ -66,19 +67,19 @@ TEST(icosahedral_topology_metafunctions, array_dim_initializer) {
     constexpr auto array_ =
         impl::array_dim_initializers< uint_t, 4, location_type< 0, 2 >, selector< 1, 1, 1, 1 > >::apply(
             array< uint_t, 3 >{3, 4, 5});
-    static_assert((array_.n_dimensions == 4), "error");
-    static_assert((array_[0] == 3), "error");
-    static_assert((array_[1] == 2), "error");
-    static_assert((array_[2] == 4), "error");
-    static_assert((array_[3] == 5), "error");
+    GRIDTOOLS_STATIC_ASSERT((array_.n_dimensions == 4), "error");
+    GRIDTOOLS_STATIC_ASSERT((array_[0] == 3), "error");
+    GRIDTOOLS_STATIC_ASSERT((array_[1] == 2), "error");
+    GRIDTOOLS_STATIC_ASSERT((array_[2] == 4), "error");
+    GRIDTOOLS_STATIC_ASSERT((array_[3] == 5), "error");
 
     constexpr auto array2_ =
-        impl::array_dim_initializers< uint_t, 6, location_type< 0, 1 >, selector< 1, 1, -1, 1, 1, 1 > >::apply(
+        impl::array_dim_initializers< uint_t, 6, location_type< 0, 1 >, selector< 1, 1, 0, 1, 1, 1 > >::apply(
             array< uint_t, 3 >{3, 4, 5}, 7, 8);
-    static_assert((array2_.n_dimensions == 6), "error");
-    static_assert((array2_[0] == 3), "error");
-    static_assert((array2_[1] == 1), "error");
-    static_assert((array2_[3] == 5), "error");
-    static_assert((array2_[4] == 7), "error");
-    static_assert((array2_[5] == 8), "error");
+    GRIDTOOLS_STATIC_ASSERT((array2_.n_dimensions == 6), "error");
+    GRIDTOOLS_STATIC_ASSERT((array2_[0] == 3), "error");
+    GRIDTOOLS_STATIC_ASSERT((array2_[1] == 1), "error");
+    GRIDTOOLS_STATIC_ASSERT((array2_[3] == 5), "error");
+    GRIDTOOLS_STATIC_ASSERT((array2_[4] == 7), "error");
+    GRIDTOOLS_STATIC_ASSERT((array2_[5] == 8), "error");
 }

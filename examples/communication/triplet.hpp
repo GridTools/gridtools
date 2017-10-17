@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <common/generic_metafunctions/pack_get_elem.hpp>
+
 #define USE_DOUBLE false
 
 #ifndef USE_DOUBLE
@@ -48,18 +50,21 @@ struct array {
     int n, m, l;
 
     array(T *_p, int _n, int _m, int _l)
-        : ptr(_p), n(lmap::template find< 0 >(_n, _m, _l)), m(lmap::template find< 1 >(_n, _m, _l)),
-          l(lmap::template find< 2 >(_n, _m, _l)) {}
+        : ptr(_p), n(gridtools::pack_get_elem< lmap::template find< 0 >() >::apply(_n, _m, _l)),
+          m(gridtools::pack_get_elem< lmap::template find< 1 >() >::apply(_n, _m, _l)),
+          l(gridtools::pack_get_elem< lmap::template find< 2 >() >::apply(_n, _m, _l)) {}
 
     T &operator()(int i, int j, int k) {
         // a[(DIM1+2*H)*(DIM2+2*H)*kk+ii*(DIM2+2*H)+jj]
-        return ptr[l * m * lmap::template find< 0 >(i, j, k) + l * lmap::template find< 1 >(i, j, k) +
-                   lmap::template find< 2 >(i, j, k)];
+        return ptr[l * m * gridtools::pack_get_elem< lmap::template find< 0 >() >::apply(i, j, k) +
+                   l * gridtools::pack_get_elem< lmap::template find< 1 >() >::apply(i, j, k) +
+                   gridtools::pack_get_elem< lmap::template find< 2 >() >::apply(i, j, k)];
     }
 
     T const &operator()(int i, int j, int k) const {
-        return ptr[l * m * lmap::template find< 0 >(i, j, k) + l * lmap::template find< 1 >(i, j, k) +
-                   lmap::template find< 2 >(i, j, k)];
+        return ptr[l * m * gridtools::pack_get_elem< lmap::template find< 0 >() >::apply(i, j, k) +
+                   l * gridtools::pack_get_elem< lmap::template find< 1 >() >::apply(i, j, k) +
+                   gridtools::pack_get_elem< lmap::template find< 2 >() >::apply(i, j, k)];
     }
 
     operator void *() const { return reinterpret_cast< void * >(ptr); }
@@ -102,10 +107,10 @@ struct triple_t< /*use_double=*/false, VT > {
     typedef triple_t< false, VT > data_type;
 
     VT _x, _y, _z;
-    __host__ __device__ triple_t(VT a, VT b, VT c) : _x(a), _y(b), _z(c) {}
-    __host__ __device__ triple_t() : _x(-1), _y(-1), _z(-1) {}
+    GT_FUNCTION triple_t(VT a, VT b, VT c) : _x(a), _y(b), _z(c) {}
+    GT_FUNCTION triple_t() : _x(-1), _y(-1), _z(-1) {}
 
-    __host__ __device__ triple_t(triple_t< false, VT > const &t) : _x(t._x), _y(t._y), _z(t._z) {}
+    GT_FUNCTION triple_t(triple_t< false, VT > const &t) : _x(t._x), _y(t._y), _z(t._z) {}
 
     triple_t< false, VT > floor() {
         VT m = std::min(_x, std::min(_y, _z));
@@ -125,13 +130,13 @@ struct triple_t< /*use_double=*/true, VT > {
 
     double value;
 
-    __host__ __device__ triple_t(int a, int b, int c)
+    GT_FUNCTION triple_t(int a, int b, int c)
         : value(static_cast< long long int >(a) * 100000000 + static_cast< long long int >(b) * 10000 +
                 static_cast< long long int >(c)) {}
 
-    __host__ __device__ triple_t() : value(999999999999) {}
+    GT_FUNCTION triple_t() : value(999999999999) {}
 
-    __host__ __device__ triple_t(triple_t< true, VT > const &t) : value(t.value) {}
+    GT_FUNCTION triple_t(triple_t< true, VT > const &t) : value(t.value) {}
 
     triple_t< true, VT > floor() {
         if (x() == 9999 || y() == 9999 || z() == 9999) {

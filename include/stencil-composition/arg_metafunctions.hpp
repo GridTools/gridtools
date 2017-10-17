@@ -36,6 +36,7 @@
 #pragma once
 #include "arg_metafunctions_fwd.hpp"
 #include "arg_fwd.hpp"
+#include "../common/gt_assert.hpp"
 
 namespace gridtools {
 
@@ -48,43 +49,31 @@ namespace gridtools {
         typedef typename arg_holds_data_field< typename Arg::type >::type type;
     };
 
-    template < uint_t I, typename Storage, typename Condition >
-    struct arg_holds_data_field_h< arg< I, Storage, Condition > > {
-        typedef typename arg_holds_data_field< arg< I, Storage, Condition > >::type type;
+    template < uint_t I, typename Storage, typename Location, bool Temporary >
+    struct arg_holds_data_field_h< arg< I, Storage, Location, Temporary > > {
+        typedef typename arg_holds_data_field< arg< I, Storage, Location, Temporary > >::type type;
     };
 
     // metafunction to access the storage type given the arg
     template < typename T >
-    struct arg2storage;
+    struct get_storage_from_arg;
 
-    template < uint_t I, typename Storage, typename LocationType, typename is_temporary_storage >
-    struct arg2storage< arg< I, Storage, LocationType, is_temporary_storage > > {
-        typedef Storage type;
+    template < unsigned I, typename T, typename L, bool B >
+    struct get_storage_from_arg< arg< I, T, L, B > > {
+        typedef T type;
     };
 
-    template < uint_t I, typename Storage, typename LocationType, typename is_temporary_storage >
-    struct arg2storage< arg< I, std::vector< pointer< Storage > >, LocationType, is_temporary_storage > > {
-        typedef Storage type;
+    template < unsigned I, typename T, typename L, bool B >
+    struct get_storage_from_arg< arg< I, std::vector< T >, L, B > > {
+        typedef T type;
     };
 
     // metafunction to access the metadata type given the arg
     template < typename T >
-    struct arg2metadata;
-
-    template < uint_t I, typename Storage, typename LocationType, typename is_temporary_storage >
-    struct arg2metadata< arg< I, Storage, LocationType, is_temporary_storage > > {
-        typedef typename Storage::storage_info_type type;
-    };
-
-    template < uint_t I, typename Storage, typename LocationType, typename is_temporary_storage >
-    struct arg2metadata< arg< I, std::vector< pointer< Storage > >, LocationType, is_temporary_storage > > {
-        typedef typename Storage::storage_info_type type;
-    };
-
-    /** metafunction extracting the location type from the storage*/
-    template < typename T >
-    struct get_location_type {
-        typedef typename extract_storage_info_type< T >::type::index_type type;
+    struct get_storage_info_from_arg {
+        GRIDTOOLS_STATIC_ASSERT((is_arg< T >::value), GT_INTERNAL_ERROR_MSG("Given type is not an arg."));
+        typedef typename get_storage_from_arg< T >::type storage_t;
+        typedef typename storage_t::storage_info_t type;
     };
 
 } // namespace gridtools

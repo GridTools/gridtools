@@ -79,7 +79,7 @@ namespace soeov {
         typedef boost::mpl::vector< cell_area, weight_edges > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             using edge_of_cell_dim = dimension< 5 >;
             edge_of_cell_dim edge;
 
@@ -107,31 +107,29 @@ namespace soeov {
         auto cell_area = icosahedral_grid.make_storage< icosahedral_topology_t::cells, double >("cell_area");
         // for the output storage we need to extend the storage with location type cells with an extra dimension
         // of length 3 (edges of a cell)
-        auto weight_edges_meta = meta_storage_extender()(cell_area.meta_data(), 3);
+        auto weight_edges_meta = storage_info_extender()(cell_area.get_storage_info_ptr(), 3);
         using edges_of_cells_storage_type =
-            typename backend_t::storage_type< double, decltype(weight_edges_meta) >::type;
-        edges_of_cells_storage_type weight_edges(weight_edges_meta, "edges_of_cell");
-        edges_of_cells_storage_type ref_weights(weight_edges_meta, "ref_edges_of_cell");
+            backend_t::storage_traits_t::data_store_t< double, decltype(weight_edges_meta) >;
+        edges_of_cells_storage_type weight_edges(weight_edges_meta, 0.0);
+        edges_of_cells_storage_type ref_weights(weight_edges_meta, 0.0);
 
+        auto cv = make_host_view(cell_area);
         for (int i = 0; i < d1; ++i) {
             for (int c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                 for (int j = 0; j < d2; ++j) {
                     for (int k = 0; k < d3; ++k) {
-                        cell_area(i, c, j, k) = (uint_t)cell_area.meta_data().index(
-                            array< uint_t, 4 >{(uint_t)i, (uint_t)c, (uint_t)j, (uint_t)k});
+                        cv(i, c, j, k) = (uint_t)cell_area.get_storage_info_ptr()->index(i, c, j, k);
                     }
                 }
             }
         }
-        weight_edges.initialize(0.0);
-        ref_weights.initialize(0.0);
 
         typedef arg< 0, cell_storage_type, enumtype::cells > p_cell_area;
-        typedef arg< 1, edges_of_cells_storage_type, enumtype::edges > p_weight_edges;
+        typedef arg< 1, edges_of_cells_storage_type, enumtype::cells > p_weight_edges;
 
         typedef boost::mpl::vector< p_cell_area, p_weight_edges > accessor_list_t;
 
-        gridtools::aggregator_type< accessor_list_t > domain(boost::fusion::make_vector(&cell_area, &weight_edges));
+        gridtools::aggregator_type< accessor_list_t > domain(cell_area, weight_edges);
         array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
         array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
@@ -150,22 +148,20 @@ namespace soeov {
         stencil_->steady();
         stencil_->run();
 
-#ifdef __CUDACC__
-        cell_area.d2h_update();
-        weight_edges.d2h_update();
-#endif
+        cell_area.sync();
+        weight_edges.sync();
 
         bool result = true;
         if (verify) {
+            auto rv = make_host_view(ref_weights);
             // compute reference values
             unstructured_grid ugrid(d1, d2, d3);
             for (uint_t i = halo_nc; i < d1 - halo_nc; ++i) {
-                for (uint_t c = 0; c < icosahedral_topology_t::edges::n_colors::value; ++c) {
+                for (uint_t c = 0; c < icosahedral_topology_t::cells::n_colors::value; ++c) {
                     for (uint_t j = halo_mc; j < d2 - halo_mc; ++j) {
                         for (uint_t k = 0; k < d3; ++k) {
                             for (uint_t e = 0; e < 3; ++e) {
-                                ref_weights(i, c, j, k, e) =
-                                    cell_area(i, c, j, k) * (1 + (float_type)1.0 / (float_type)(e + 1));
+                                rv(i, c, j, k, e) = cv(i, c, j, k) * (1 + (float_type)1.0 / (float_type)(e + 1));
                             }
                         }
                     }

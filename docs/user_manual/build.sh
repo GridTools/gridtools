@@ -10,7 +10,7 @@ if [ ! -d ../pandoc_tools/pandocfilters ]; then
 fi
 
 if ! [[ $PYTHONPATH =~ .*pandocfilters.* ]]; then
-    echo pandocfilters do not seem to be in the path: inlcuding `pwd`/../pandoc_tools/pandocfilter folder
+    echo pandocfilters do not seem to be in the path: including `pwd`/../pandoc_tools/pandocfilter folder
     export PYTHONPATH=`pwd`/../pandoc_tools/pandocfilters:$PYTHONPATH
 fi
 

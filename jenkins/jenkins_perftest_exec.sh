@@ -50,8 +50,7 @@ else
 fi
 
 export GPATH=${GPATH}/real_type/$PREC/std/$STD/target/$TARGET/build
-export STELLA_PATH=${STELLA_BUILD_PATH}/stella/trunk/release_$PREC/bin/
-
+export STELLA_PATH=${STELLA_BUILD_PATH}/stella/trunk_timers/release_$PREC/bin/
 cd ${JENKINSPATH}/
 cmd="python process_ref.py -p $GPATH --target $TARGET --std $STD --prec $PREC -c -u ${JSON_FILE} --stella_path $STELLA_PATH --gtype ${GTYPE} -v --plot"
 echo "$cmd"

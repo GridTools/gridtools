@@ -1,7 +1,6 @@
-<link rel="stylesheet" href="../pandoc_tools/highlight.js/color-brewer.min.css">
-<script src="../pandoc_tools/highlight.js/highlight.min.js"></script>
+<link rel="stylesheet" href="../pandoc_tools/highlight.js/color-brewer.css">
+<script src="../pandoc_tools/highlight.js/highlight.pack.js"></script>
 <script src="../pandoc_tools/highlight.js/jquery-2.1.3.min.js"></script>
-<script src="../pandoc_tools/highlight.js/cpp_gt.js"></script>
 
 <script>
 $(function() {

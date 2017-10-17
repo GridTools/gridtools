@@ -57,6 +57,16 @@
 using namespace gridtools;
 using namespace enumtype;
 
+#ifdef __CUDACC__
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#else
+#ifdef BACKEND_BLOCK
+#define BACKEND backend< Host, GRIDBACKEND, Block >
+#else
+#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#endif
+#endif
+
 namespace make_reduction_test {
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
@@ -66,7 +76,7 @@ namespace make_reduction_test {
         typedef boost::mpl::vector1< in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation const &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
     };
 }
 
@@ -74,14 +84,11 @@ TEST(test_make_reduction, make_reduction) {
 
     using namespace gridtools;
 
-#define BACKEND backend< enumtype::Host, enumtype::structured, enumtype::Block >
+    typedef BACKEND::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
+    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
-    typedef gridtools::layout_map< 2, 1, 0 > layout_t;
-    typedef gridtools::BACKEND::storage_type< float_type, gridtools::BACKEND::storage_info< 0, layout_t > >::type
-        storage_type;
-
-    typedef arg< 0, storage_type > p_in;
-    typedef arg< 1, storage_type > p_out;
+    typedef arg< 0, storage_t > p_in;
+    typedef arg< 1, storage_t > p_out;
     typedef boost::mpl::vector< p_in, p_out > accessor_list_t;
 
     typedef decltype(gridtools::make_reduction< make_reduction_test::test_functor, binop::sum >(0.0, p_in())) red_t;

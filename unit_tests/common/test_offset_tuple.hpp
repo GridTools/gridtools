@@ -34,7 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <stencil-composition/stencil-composition.hpp>
+#include <common/defs.hpp>
+#include <common/offset_tuple.hpp>
+#include <common/offset_tuple_mixed.hpp>
 
 template < int Arg1, int Arg2 >
 struct pair_ {
@@ -46,7 +48,7 @@ GT_FUNCTION
 void test_offset_tuple(bool *result) {
     using namespace gridtools;
     *result = true;
-#if defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if !defined(__CUDACC__)
     {
         constexpr array< int_t, 4 > pos{2, 5, 8, -6};
         constexpr offset_tuple< 4, 4 > offsets(0, pos);
@@ -71,11 +73,7 @@ void test_offset_tuple(bool *result) {
 
 #endif
     {
-#ifdef CXX11_ENABLED
         array< int_t, 4 > pos{2, 5, 8, -6};
-#else
-        array< int_t, 4 > pos(2, 5, 8, -6);
-#endif
         offset_tuple< 4, 4 > offsets(0, pos);
 
         *result &= ((offsets.get< 0 >() == -6));
@@ -84,7 +82,7 @@ void test_offset_tuple(bool *result) {
         *result &= ((offsets.get< 3 >() == 2));
     }
 
-#if !defined(__CUDACC__) && defined(CXX11_ENABLED)
+#if !defined(__CUDACC__)
     typedef offset_tuple_mixed< offset_tuple< 3, 3 >, pair_< 1, 8 >, pair_< 2, 7 > > offset_tuple_mixed_t;
 
     offset_tuple_mixed_t offset(11, 12, 13);
@@ -103,7 +101,7 @@ GT_FUNCTION
 void test_offset_tuple_array_and_dim(bool *result) {
     using namespace gridtools;
     *result = true;
-#if defined(NDEBUG) && defined(CXX11_ENABLED) && !defined(__CUDACC__)
+#if defined(NDEBUG) && !defined(__CUDACC__)
     {
         constexpr array< int_t, 4 > pos{2, 5, 8, -6};
         constexpr offset_tuple< 4, 4 > offsets(0, pos, dimension< 2 >(3), dimension< 3 >(-2));
@@ -115,7 +113,6 @@ void test_offset_tuple_array_and_dim(bool *result) {
     }
 #endif
     {
-#ifdef CXX11_ENABLED
         array< int_t, 4 > pos{2, 5, 8, -6};
         offset_tuple< 4, 4 > offsets(0, pos, dimension< 2 >(3), dimension< 3 >(-2));
 
@@ -123,6 +120,5 @@ void test_offset_tuple_array_and_dim(bool *result) {
         *result &= ((offsets.get< 1 >() == 11));
         *result &= ((offsets.get< 2 >() == 5));
         *result &= ((offsets.get< 3 >() == 2));
-#endif
     }
 }

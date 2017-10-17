@@ -33,9 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#ifndef _HALO_DESCRIPTOR_H_
-#define _HALO_DESCRIPTOR_H_
+#pragma once
 
+#include "gt_assert.hpp"
 #include "array.hpp"
 
 /**
@@ -62,7 +62,7 @@ namespace gridtools {
       private:
         uint_t m_minus;        // halo on the minus direction
         uint_t m_plus;         // halo on the plus direction
-        uint_t m_begin;        // index of the fisrt element of the active region
+        uint_t m_begin;        // index of the first element of the active region
         uint_t m_end;          // index of the last element of the active region
         uint_t m_total_length; // minus+plus+(end-begin+1)+pads
 
@@ -73,7 +73,7 @@ namespace gridtools {
             structure it can be copied without an explicit copy
             constructor.
          */
-        GT_FUNCTION halo_descriptor() : m_minus(0), m_plus(0), m_begin(0), m_end(0), m_total_length(0) {}
+        GT_FUNCTION halo_descriptor() : halo_descriptor(0, 0, 0, 0, 1){};
 
         /** Main constructors where the five integers are passed.
           \code
@@ -90,7 +90,16 @@ namespace gridtools {
           \param[in] l The total_length parameter
          */
         GT_FUNCTION halo_descriptor(uint_t m, uint_t p, uint_t b, uint_t e, uint_t l)
-            : m_minus(m), m_plus(p), m_begin(b), m_end(e), m_total_length(l) {}
+            : m_minus(m), m_plus(p), m_begin(b), m_end(e), m_total_length(l) {
+            ASSERT_OR_THROW((m_minus + m_plus + (m_end - m_begin + 1) <= m_total_length),
+                "Invalid halo_descriptor: compute range (length) plus halos exceed total length." + std::to_string(m) +
+                    ", " + std::to_string(p) + ", " + std::to_string(b) + ", " + std::to_string(e) + ", " +
+                    std::to_string(l));
+            ASSERT_OR_THROW((m_begin <= m_end), "Invalid halo_descriptor: the compute range is empty (end <= begin).");
+            ASSERT_OR_THROW(
+                (m_plus <= m_total_length - m_end - 1), "Invalid halo_descriptor: end of compute domain inside halo.");
+            ASSERT_OR_THROW((m_begin >= m_minus), "Invalid halo_descriptor: begin of compute domain inside halo.");
+        }
 
         GT_FUNCTION halo_descriptor &operator=(halo_descriptor const &hh) {
             m_minus = hh.minus();
@@ -115,17 +124,17 @@ namespace gridtools {
         */
         GT_FUNCTION int_t loop_low_bound_outside(
             short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
-            if (I == 0)
+            switch (I) {
+            case 0:
                 return m_begin;
-            if (I == 1)
+            case 1:
                 return m_end + 1;
-            if (I == -1) {
-                assert((int_t)(m_begin - m_minus) >= 0);
+            case -1:
                 return (m_begin - m_minus);
+            default:
+                assert(false);
+                return 1;
             }
-
-            assert(false);
-            return 1;
         }
 
         /**
@@ -134,17 +143,17 @@ namespace gridtools {
          */
         GT_FUNCTION int_t loop_high_bound_outside(
             short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
-            if (I == 0)
+            switch (I) {
+            case 0:
                 return m_end;
-            if (I == 1)
+            case 1:
                 return m_end + m_plus;
-            if (I == -1) {
-                //  assert(m_begin-1>=0);
+            case -1:
                 return m_begin - 1;
+            default:
+                assert(false);
+                return 1;
             }
-
-            assert(false);
-            return 1;
         }
 
         /**
@@ -153,15 +162,18 @@ namespace gridtools {
          */
         GT_FUNCTION int_t loop_low_bound_inside(
             short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
-            if (I == 0)
-                return m_begin;
-            if (I == 1)
-                return m_end - m_minus + 1;
-            if (I == -1)
-                return m_begin;
 
-            assert(false);
-            return 1;
+            switch (I) {
+            case 0:
+                return m_begin;
+            case 1:
+                return m_end - m_minus + 1;
+            case -1:
+                return m_begin;
+            default:
+                assert(false);
+                return 1;
+            }
         }
 
         /**
@@ -170,23 +182,24 @@ namespace gridtools {
          */
         GT_FUNCTION int_t loop_high_bound_inside(
             short_t I) const { // inside is the fact that the halos are ones outside the begin-end region
-            if (I == 0)
+            switch (I) {
+            case 0:
                 return m_end;
-            if (I == 1)
+            case 1:
                 return m_end;
-            if (I == -1) {
-                //  assert(m_begin+m_plus-1>=0);
+            case -1:
                 return m_begin + m_plus - 1;
+            default:
+                assert(false);
+                return 1;
             }
-
-            assert(false);
-            return 1;
         }
 
         /**
            receive_length. Return the parameter \f$S_i\f$ as described in \link MULTI_DIM_ACCESS \endlink.
 
-           \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
+           \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS
+           \endlink)
         */
         GT_FUNCTION uint_t r_length(short_t I) const {
             switch (I) {
@@ -205,7 +218,8 @@ namespace gridtools {
         /**
            send_length. Return the parameter \f$S_i\f$ as described in \link MULTI_DIM_ACCESS \endlink.
 
-           \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS \endlink)
+           \param[in] I relative coordinate of the neighbor (the \f$eta\f$ parameter in \link MULTI_DIM_ACCESS
+           \endlink)
         */
         GT_FUNCTION uint_t s_length(short_t I) const {
             switch (I) {
@@ -227,11 +241,17 @@ namespace gridtools {
         GT_FUNCTION uint_t end() const { return m_end; }
         GT_FUNCTION uint_t total_length() const { return m_total_length; }
 
-        GT_FUNCTION void set_minus(uint_t value) { m_minus = value; }
-        GT_FUNCTION void set_plus(uint_t value) { m_plus = value; }
-        GT_FUNCTION void set_begin(uint_t value) { m_begin = value; }
-        GT_FUNCTION void set_end(uint_t value) { m_end = value; }
-        GT_FUNCTION void set_total_length(uint_t value) { m_total_length = value; }
+        /**
+        * @brief sets minus halo to zero.
+        * This operation is needed in the communication module.
+        * Unlike a general setter this operation will always result in a valid halo_descriptor.
+        */
+        GT_FUNCTION void reset_minus() { m_minus = 0; }
+        /**
+         * @brief sets plus halo to zero.
+         * This operation, unlike a general setter, will always result in a valid halo_descriptor.
+         */
+        GT_FUNCTION void reset_plus() { m_plus = 0; }
 
         GT_FUNCTION bool operator==(const halo_descriptor &rhs) const {
             return (m_minus == rhs.m_minus) && (m_plus == rhs.m_plus) && (m_begin == rhs.m_begin) &&
@@ -243,6 +263,4 @@ namespace gridtools {
         return s << "hd(" << hd.minus() << ", " << hd.plus() << ", " << hd.begin() << ", " << hd.end() << ", "
                  << hd.total_length() << ")";
     }
-} // namespace GCL
-
-#endif
+} // namespace gridtools

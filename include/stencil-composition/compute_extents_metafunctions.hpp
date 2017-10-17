@@ -34,21 +34,22 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/fold.hpp>
-#include <boost/mpl/reverse.hpp>
 #include <boost/mpl/at.hpp>
+#include <boost/mpl/fold.hpp>
 #include <boost/mpl/if.hpp>
 #include <boost/mpl/range_c.hpp>
+#include <boost/mpl/reverse.hpp>
 
-#include "./esf_metafunctions.hpp"
-#include "./wrap_type.hpp"
-#include "./mss.hpp"
+#include "../common/gt_assert.hpp"
 #include "./amss_descriptor.hpp"
+#include "./conditionals/condition.hpp"
+#include "./esf_metafunctions.hpp"
+#include "./grid_traits_metafunctions.hpp"
+#include "./linearize_mss_functions.hpp"
+#include "./mss.hpp"
 #include "./mss_metafunctions.hpp"
 #include "./reductions/reduction_descriptor.hpp"
-#include "./linearize_mss_functions.hpp"
-#include "./grid_traits_metafunctions.hpp"
-#include "./conditionals/condition.hpp"
+#include "./wrap_type.hpp"
 
 /** @file This file implements the metafunctions to perform data dependency analysis on a
     multi-stage computation (MSS). The idea is to assign to each placeholder used in the
@@ -58,9 +59,6 @@
  */
 
 namespace gridtools {
-
-    template < typename Storage, uint_t >
-    struct expandable_parameters;
 
     /**substituting the std::vector type in the args<> with a correspondent
        expandable_parameter placeholder*/
@@ -72,15 +70,9 @@ namespace gridtools {
             typedef Placeholder type;
         };
 
-        template < ushort_t ID, typename Storage >
-        struct apply< arg< ID, std::vector< pointer< storage< Storage > > > > > {
-            typedef arg< ID, storage< expandable_parameters< typename Storage::basic_type, Size > > > type;
-        };
-
-        template < ushort_t ID, typename Storage >
-        struct apply< arg< ID, std::vector< pointer< no_storage_type_yet< storage< Storage > > > > > > {
-            typedef arg< ID,
-                no_storage_type_yet< storage< expandable_parameters< typename Storage::basic_type, Size > > > > type;
+        template < ushort_t ID, typename Storage, typename Location, bool Temporary >
+        struct apply< arg< ID, std::vector< Storage >, Location, Temporary > > {
+            typedef arg< ID, data_store_field< Storage, Size >, Location, Temporary > type;
         };
 
         template < typename Arg, typename Extent >
@@ -92,6 +84,17 @@ namespace gridtools {
     template < typename PlaceholderArray, uint_t Size >
     struct substitute_expandable_params {
         typedef typename boost::mpl::transform< PlaceholderArray, substitute_expandable_param< Size > >::type type;
+    };
+
+    /** metafunction removing global accessors from an mpl_vector of pairs <extent, placeholders>.
+        Note: the global accessors do not have extents (have mpl::void_ instead). */
+    template < typename PlaceholderExtentPair >
+    struct remove_global_accessors {
+        typedef typename boost::mpl::fold< PlaceholderExtentPair,
+            boost::mpl::vector0<>,
+            boost::mpl::if_< is_extent< boost::mpl::second< boost::mpl::_2 > >,
+                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
+                                               boost::mpl::_1 > >::type type;
     };
 
     /** This funciton initializes the map between placeholders and extents by
@@ -268,13 +271,19 @@ namespace gridtools {
                     "check that each stage has at least one accessor "
                     "defined as \'inout\'");
                 // substitute the types for expandable parameters arg
-                typedef typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs;
+                typedef
+                    typename substitute_expandable_params< outputs_original, RepeatFunctor >::type outputs_with_globals;
+
+                // substitute the types for expandable parameters arg
+                typedef typename remove_global_accessors< outputs_with_globals >::type outputs;
+
 #ifndef __CUDACC__
-                static_assert((check_all_extents_are_same_upto< outputs, extent<>, 4 >::type::value),
+#ifndef ALLOW_EMPTY_EXTENTS
+                GRIDTOOLS_STATIC_ASSERT((check_all_extents_are_same_upto< outputs, extent<>, 4 >::type::value),
                     "Horizontal extents of the outputs of ESFs are not all empty. "
                     "All outputs must have empty (horizontal) extents");
 #endif
-
+#endif
                 GRIDTOOLS_STATIC_ASSERT((is_sequence_of< outputs, pair_arg_extent >::value), GT_INTERNAL_ERROR);
 
                 // We need to check the map here: if the outputs of a

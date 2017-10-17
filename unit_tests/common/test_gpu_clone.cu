@@ -85,13 +85,13 @@ namespace gpu_clone_test {
 
         A(v_type const &a, v_type const &b) : v1(a), v2(b), zip_view(support_t(v1, v2)) {}
 
-        __host__ __device__ A(A const &a) : v1(a.v1), v2(a.v2), zip_view(support_t(v1, v2)) {}
+        GT_FUNCTION A(A const &a) : v1(a.v1), v2(a.v2), zip_view(support_t(v1, v2)) {}
 
         ~A() {}
 
         void update_gpu_copy() const { clone_to_device(); }
 
-        __host__ __device__ void out() const {
+        GT_FUNCTION void out() const {
             printf("v1:  ");
             boost::fusion::for_each(v1, print_elements());
             printf("\n");
@@ -107,14 +107,14 @@ namespace gpu_clone_test {
 
       private:
         struct print_elements {
-            __host__ __device__ void operator()(int u) const { printf("%d, ", u); }
+            GT_FUNCTION void operator()(int u) const { printf("%d, ", u); }
 
-            __host__ __device__ void operator()(double u) const { printf("%e, ", u); }
+            GT_FUNCTION void operator()(double u) const { printf("%e, ", u); }
         };
 
         struct print_zip {
             template < typename V >
-            __host__ __device__ void operator()(V const &v) const {
+            GT_FUNCTION void operator()(V const &v) const {
                 boost::fusion::for_each(v, print_elements());
                 printf("\n");
             }
@@ -130,21 +130,21 @@ namespace gpu_clone_test {
             //        clone_to_device();
         }
 
-        __device__ __host__ B(B const &b) : a(b.a) {}
+        GT_FUNCTION B(B const &b) : a(b.a) {}
 
-        __host__ __device__ void out() const { a.out(); }
+        GT_FUNCTION void out() const { a.out(); }
     };
 
     struct mul2_f {
         template < typename U >
-        __host__ __device__ void operator()(U &u) const {
+        GT_FUNCTION void operator()(U &u) const {
             u *= 2;
         }
     };
 
     struct mul2_fz {
         template < typename U >
-        __host__ __device__ void operator()(U const &u) const {
+        GT_FUNCTION void operator()(U const &u) const {
             boost::fusion::at_c< 0 >(u) *= 2;
             boost::fusion::at_c< 1 >(u) *= 2;
         }
@@ -164,7 +164,7 @@ namespace gpu_clone_test {
 
     struct minus1_f {
         template < typename T >
-        __host__ __device__ // Avoid warning
+        GT_FUNCTION // Avoid warning
             void
             operator()(T &x) const {
             x -= 1;
