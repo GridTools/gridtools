@@ -12,24 +12,6 @@ Quick_Start_Guide.md
 Storages.md
 ```
 
-Storages
-========
-
-Simple use and multidimensional fields
---------------------------------------
-
-Ghost dimensions
-----------------
-
-Fields
-------
-
-GPU storages
-------------
-
-Detailed storage configuration
-------------------------------
-
 DSL introduction
 ================
 
@@ -92,9 +74,6 @@ Fusion and organization of stages
 ```include
 ./software_caches.md
 ```
-
-Alignment: halo of storages
----------------------------
 
 ```include
 ./expandable_parameters.md
