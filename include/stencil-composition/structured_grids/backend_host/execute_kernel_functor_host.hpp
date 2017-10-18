@@ -45,9 +45,21 @@
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "stencil-composition/backend_host/iterate_domain_host.hpp"
-#include "stencil-composition/loop_hierarchy.hpp"
 
 namespace gridtools {
+
+    namespace _impl {
+        template < ushort_t Index, typename IterateDomain, typename VT >
+        typename boost::enable_if< typename is_positional_iterate_domain< IterateDomain >::type, void >::type
+            GT_FUNCTION
+            reset_index_if_positional(IterateDomain &itdom, VT value) {
+            itdom.template reset_positional_index< Index >(value);
+        }
+        template < ushort_t Index, typename IterateDomain, typename VT >
+        typename boost::disable_if< typename is_positional_iterate_domain< IterateDomain >::type, void >::type
+            GT_FUNCTION
+            reset_index_if_positional(IterateDomain &, VT) {}
+    } // namespace _impl
 
     namespace strgrid {
 
