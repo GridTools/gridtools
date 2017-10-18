@@ -344,6 +344,9 @@ namespace vertical_advection_dycore {
                 grid,
                 gridtools::make_multistage // mss_descriptor
                 (execute< forward >(),
+                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
+                        cache< K, cache_io_policy::flush, kfull >(p_dcol()),
+                        cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
                     // Caches not yet supported  define_caches(cache< K, cache_io_policy::flush, kbody >(p_ccol())),
                     gridtools::make_stage_with_extent< u_forward_function< double >, extent< 0 > >(p_utens_stage(),
                         p_wcon(),
@@ -358,6 +361,7 @@ namespace vertical_advection_dycore {
                     ),
                 gridtools::make_multistage(
                     execute< backward >(),
+                    define_caches(cache< K, cache_io_policy::flush, kfull >(p_data_col())),
                     gridtools::make_stage_with_extent< u_backward_function< double >, extent< 0 > >(
                         p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col())));
 
