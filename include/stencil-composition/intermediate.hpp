@@ -541,7 +541,6 @@ namespace gridtools {
             placeholders_t,
             RepeatFunctor >::type extent_sizes_t;
 
-        typedef typename init_map_of_extents< placeholders_t >::type extent_map_t;
         typedef typename boost::mpl::if_<
             boost::mpl::is_sequence< typename MssDescriptorArray::elements >,
             typename boost::mpl::fold< typename MssDescriptorArray::elements,
