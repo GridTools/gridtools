@@ -347,7 +347,6 @@ namespace vertical_advection_dycore {
                     define_caches(cache< K, cache_io_policy::flush, kfull >(p_ccol()),
                         cache< K, cache_io_policy::flush, kfull >(p_dcol()),
                         cache< K, cache_io_policy::fill, kfull >(p_u_stage())),
-                    // Caches not yet supported  define_caches(cache< K, cache_io_policy::flush, kbody >(p_ccol())),
                     gridtools::make_stage_with_extent< u_forward_function< double >, extent< 0 > >(p_utens_stage(),
                         p_wcon(),
                         p_u_stage(),
@@ -386,7 +385,7 @@ namespace vertical_advection_dycore {
                 result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
             }
 #ifdef BENCHMARK
-            //            benchmarker::run(vertical_advection, t_steps);
+            benchmarker::run(vertical_advection, t_steps);
 #endif
             vertical_advection->finalize();
 
