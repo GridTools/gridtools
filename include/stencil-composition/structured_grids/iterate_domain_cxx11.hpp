@@ -83,9 +83,13 @@
 
 namespace gridtools {
 
+    template < typename >
+    struct iterate_domain;
+
     namespace advanced {
         template < typename IDomain >
-        inline typename IDomain::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(IDomain &id) {
+        inline typename iterate_domain< IDomain >::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(
+            iterate_domain< IDomain > &id) {
             return id.data_pointer();
         }
 
@@ -187,7 +191,7 @@ namespace gridtools {
         GT_FUNCTION
         array_index_t const &RESTRICT index() const { return m_index; }
 
-      public:
+      protected:
         /**
            @brief returns the strides as const reference
         */
@@ -210,10 +214,10 @@ namespace gridtools {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
-      public:
-        template < typename IDomain >
-        friend typename IDomain::data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer(IDomain &);
+        friend data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer< IterateDomainImpl >(
+            iterate_domain &);
 
+      public:
         /**@brief constructor of the iterate_domain struct
 
            It assigns the storage pointers to the first elements of
