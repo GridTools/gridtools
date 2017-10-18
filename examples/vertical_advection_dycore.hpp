@@ -382,7 +382,7 @@ namespace vertical_advection_dycore {
                 result = verif.verify(grid, repository.utens_stage_ref(), repository.utens_stage(), halos);
             }
 #ifdef BENCHMARK
-            benchmarker::run(vertical_advection, t_steps);
+            //            benchmarker::run(vertical_advection, t_steps);
 #endif
             vertical_advection->finalize();
 
