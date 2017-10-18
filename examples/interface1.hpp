@@ -36,10 +36,9 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
-#include "horizontal_diffusion_repository.hpp"
-#include "./defs.hpp"
-#include <tools/verifier.hpp>
 #include "benchmarker.hpp"
+#include "horizontal_diffusion_repository.hpp"
+#include <tools/verifier.hpp>
 
 /**
   @file
@@ -72,7 +71,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_lap) {
+        GT_FUNCTION static void Do(Evaluation eval, x_lap) {
             eval(out()) = (gridtools::float_type)4 * eval(in()) -
                           (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
         }
@@ -87,7 +86,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation eval, x_flx) {
             eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
                 eval(out()) = 0.;
@@ -104,7 +103,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation eval, x_flx) {
             eval(out()) = eval(lap(0, 1, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0) {
                 eval(out()) = 0.;

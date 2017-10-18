@@ -46,9 +46,6 @@
 #include <boost/mpl/range_c.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/fusion/include/make_vector.hpp>
-#ifndef __CUDACC__
-#include <boost/timer/timer.hpp>
-#endif
 #include <boost/mpl/contains.hpp>
 #include <boost/utility/enable_if.hpp>
 

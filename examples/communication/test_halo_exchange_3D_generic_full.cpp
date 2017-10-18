@@ -47,7 +47,7 @@
 
 #include "triplet.hpp"
 
-#include "../../unit_tests/communication/device_binding.hpp"
+#include <tools/mpi_unit_test_driver/device_binding.hpp>
 
 namespace halo_exchange_3D_generic_full {
     int pid;

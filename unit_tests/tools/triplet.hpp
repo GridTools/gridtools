@@ -33,5 +33,24 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define CUDA_EXAMPLE
-#include "expandable_parameters_reassign_domain.cpp"
+
+#pragma once
+
+#include <iosfwd>
+
+/**
+   @brief Small value type to use in tests where we want to check the
+   values in a fields, for instance to check if layouts works, on in
+   communication tests
+*/
+struct triplet {
+    int a = 0, b = 0, c = 0;
+
+    constexpr triplet() = default;
+
+    constexpr triplet(int a, int b, int c) : a(a), b(b), c(c) {}
+
+    constexpr bool operator==(triplet other) const { return (a == other.a) and (b == other.b) and (c == other.c); }
+};
+
+std::ostream &operator<<(std::ostream &s, triplet t) { return s << "[" << t.a << " " << t.b << " " << t.c << "]"; }

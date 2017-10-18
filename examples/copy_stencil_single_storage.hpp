@@ -148,6 +148,7 @@ namespace copy_stencil {
         std::cout << copy->print_meter() << std::endl;
 #endif
 
+        in.sync();
         bool success = true;
         for (uint_t i = 0; i < d1; ++i) {
             for (uint_t j = 0; j < d2; ++j) {
