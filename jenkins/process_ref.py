@@ -445,7 +445,7 @@ if __name__ == "__main__":
     if config.update_:
         outputfilename=args.json_file +'.out'
         fw = open(outputfilename,'w')
-        fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': ')) )
+        fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': '), sort_keys=True) )
         fw.close()
         print("Updated reference file",outputfilename)
         if not os.path.exists(config.output_dir_):
