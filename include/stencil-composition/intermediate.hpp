@@ -420,7 +420,7 @@ namespace gridtools {
      *  @brief structure collecting helper metafunctions
      */
     template < typename Backend,
-        typename MssDescriptorArray,
+        typename MssDescriptorArrayIn,
         typename DomainType,
         typename Grid,
         typename ConditionalsSet,
@@ -432,6 +432,9 @@ namespace gridtools {
         // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
 
         using base_t = computation< DomainType, ReductionType >;
+
+        typedef
+            typename fix_mss_arg_indices< MssDescriptorArrayIn, DomainType, RepeatFunctor >::type MssDescriptorArray;
 
         GRIDTOOLS_STATIC_ASSERT(
             (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
