@@ -731,7 +731,7 @@ namespace gridtools {
     /**
     */
     template < typename Backend >
-    class icosahedral_topology : public clonable_to_gpu< icosahedral_topology< Backend > > {
+    class icosahedral_topology { //: public clonable_to_gpu< icosahedral_topology< Backend > > {
       public:
         using cells = enumtype::cells;
         using edges = enumtype::edges;
@@ -771,7 +771,7 @@ namespace gridtools {
         GT_FUNCTION icosahedral_topology(uint_t idim, uint_t jdim, uint_t kdim)
             : m_dims{idim, jdim, kdim} {}
 
-        GT_FUNCTION_DEVICE icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
+        //        GT_FUNCTION_DEVICE icosahedral_topology(icosahedral_topology const &other) : m_dims(other.m_dims) {}
 
         template < typename LocationType,
             typename ValueType,

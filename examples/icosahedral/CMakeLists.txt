@@ -32,7 +32,7 @@ endforeach(srcfile)
 if(CUDA_FOUND)
     foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
          set(CUDA_SEPARABLE_COMPILATION OFF)
-         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES} OPTIONS ${GPU_SPECIFIC_FLAGS} $<TARGET_OBJECTS:umesh_opt_lib>)
+         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES} $<TARGET_OBJECTS:umesh_opt_lib> OPTIONS ${GPU_SPECIFIC_FLAGS})
          target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 
          if( ${srcfile} STREQUAL "stencil_on_vertexes")
