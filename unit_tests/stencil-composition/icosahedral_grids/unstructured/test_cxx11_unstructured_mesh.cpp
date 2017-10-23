@@ -58,14 +58,14 @@ TEST(icosahedral_topology, layout) {
     using backend_t = BACKEND;
     using umesh_t = unstructured_mesh;
 
-    atlas::Mesh mesh;
-    atlas::mesh::MultiBlockConnectivity &cell_to_node = mesh.cells().node_connectivity();
+    atlas::Mesh atlas_mesh;
+    atlas::mesh::MultiBlockConnectivity &cell_to_node = atlas_mesh.cells().node_connectivity();
 
     {
         const int_t vals[6] = {2, 4, 5, 6, 7, 1};
         cell_to_node.add(3, 2, vals);
     }
-    atlas::mesh::MultiBlockConnectivity &cell_to_edge = mesh.cells().edge_connectivity();
+    atlas::mesh::MultiBlockConnectivity &cell_to_edge = atlas_mesh.cells().edge_connectivity();
 
     {
 
@@ -75,10 +75,11 @@ TEST(icosahedral_topology, layout) {
     uint_t halo_size = 2;
     uint_t d1 = 10;
     uint_t d2 = 10;
-    grid< axis, icosahedral_topology< BACKEND >, umesh_t > grid_(
+
+    umesh_t umesh(atlas_mesh);
+    grid< axis, umesh_t > grid_(array< uint_t, 5 >{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
         array< uint_t, 5 >{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
-        array< uint_t, 5 >{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
-        umesh_t(mesh));
+        umesh);
 
     ASSERT_TRUE(grid_.umesh().connectivity(unstructured_mesh::mb_connectivity_type::cell_to_vertex).size() == 6);
     ASSERT_TRUE(grid_.umesh().connectivity(unstructured_mesh::mb_connectivity_type::cell_to_vertex)(0, 1) == 4);
@@ -87,6 +88,4 @@ TEST(icosahedral_topology, layout) {
     ASSERT_TRUE(grid_.umesh().connectivity(unstructured_mesh::mb_connectivity_type::cell_to_edge).size() == 6);
     ASSERT_TRUE(grid_.umesh().connectivity(unstructured_mesh::mb_connectivity_type::cell_to_edge)(1, 1) == 7);
     ASSERT_TRUE(grid_.umesh().connectivity(unstructured_mesh::mb_connectivity_type::cell_to_edge)(2, 1) == 2);
-
-    //    grid_.clone_to_device();
 }

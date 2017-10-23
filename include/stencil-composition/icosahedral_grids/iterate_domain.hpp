@@ -71,6 +71,7 @@ namespace gridtools {
         typedef typename iterate_domain_arguments_t::backend_ids_t backend_ids_t;
         typedef typename iterate_domain_arguments_t::grid_traits_t grid_traits_t;
         typedef typename iterate_domain_arguments_t::grid_t::grid_topology_t grid_topology_t;
+        typedef typename iterate_domain_arguments_t::grid_t::unstructured_mesh_t unstructured_mesh_t;
         typedef typename grid_topology_t::default_4d_layout_map_t default_4d_layout_map_t;
         typedef typename iterate_domain_arguments_t::esf_sequence_t esf_sequence_t;
 
@@ -167,10 +168,10 @@ namespace gridtools {
 
       private:
         local_domain_t const &m_local_domain;
+        unstructured_mesh_t const &m_umesh;
         typedef array< int_t, N_META_STORAGES > array_index_t;
         // TODOMEETING do we need m_index?
         array_index_t m_index;
-
         array< uint_t, 4 > m_grid_position;
 
       public:
@@ -183,7 +184,8 @@ namespace gridtools {
            might be shared among several data fileds)
         */
         GT_FUNCTION
-        iterate_domain(local_domain_t const &local_domain_) : m_local_domain(local_domain_) {}
+        iterate_domain(local_domain_t const &local_domain_, unstructured_mesh_t const &umesh)
+            : m_local_domain(local_domain_), m_umesh(umesh) {}
 
         /**
            @brief returns the array of pointers to the raw data

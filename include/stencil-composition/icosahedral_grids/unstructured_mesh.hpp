@@ -120,8 +120,8 @@ namespace gridtools {
                   &(mesh.nodes().edge_connectivity()),
                   (mesh.nodes().has_connectivity("nodes") ? &(mesh.nodes().connectivity("nodes")) : NULL)} {}
     };
+#else
+    class unstructured_mesh {};
 #endif
-
-    class trivial_umesh {};
 
 } // namespace gridtools

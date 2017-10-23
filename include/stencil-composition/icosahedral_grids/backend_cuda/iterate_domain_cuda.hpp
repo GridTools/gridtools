@@ -59,6 +59,7 @@ namespace gridtools {
 
       public:
         typedef typename super::grid_topology_t grid_topology_t;
+        typedef typename super::unstructured_mesh_t unstructured_mesh_t;
         typedef typename super::data_ptr_cached_t data_ptr_cached_t;
         typedef typename super::strides_cached_t strides_cached_t;
         typedef typename super::iterate_domain_cache_t iterate_domain_cache_t;
@@ -89,9 +90,11 @@ namespace gridtools {
         };
 
         GT_FUNCTION
-        explicit iterate_domain_cuda(
-            local_domain_t const &local_domain, const uint_t block_size_i, const uint_t block_size_j)
-            : super(local_domain, grid_topology), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
+        explicit iterate_domain_cuda(local_domain_t const &local_domain,
+            unstructured_mesh_t const &umesh,
+            const uint_t block_size_i,
+            const uint_t block_size_j)
+            : super(local_domain, umesh), m_block_size_i(block_size_i), m_block_size_j(block_size_j) {}
 
         GT_FUNCTION
         uint_t thread_position_x() const { return threadIdx.x; }

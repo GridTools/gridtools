@@ -103,7 +103,7 @@ namespace gridtools {
     struct setup_computation< enumtype::Cuda > {
 
         template < typename AggregatorType, typename Grid >
-        static uint_t apply(AggregatorType &aggregator, Grid const &grid) {
+        static uint_t apply(AggregatorType &aggregator, Grid &grid) {
             GRIDTOOLS_STATIC_ASSERT(
                 is_aggregator_type< AggregatorType >::value, GT_INTERNAL_ERROR_MSG("wrong domain type"));
             GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
@@ -513,7 +513,7 @@ namespace gridtools {
         // member fields
         mss_local_domain_list_t m_mss_local_domain_list;
 
-        const Grid m_grid;
+        Grid m_grid;
 
         bool is_storage_ready;
         performance_meter_t m_meter;

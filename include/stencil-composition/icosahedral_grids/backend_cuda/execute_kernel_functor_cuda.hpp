@@ -321,9 +321,11 @@ namespace gridtools {
                 printf("nx = %d, ny = %d, nz = 1\n", nx, ny);
 #endif
 
+                // clang-format off
                 _impl_iccuda::do_it_on_gpu< run_functor_arguments_cuda_t,
-                    local_domain_t ><<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
+                    local_domain_t > <<< blocks, threads >>> //<<<nbx*nby, ntx*nty>>>
                     (local_domain_gp, grid_gp, m_grid.i_low_bound(), m_grid.j_low_bound(), (nx), (ny));
+// clang-format on
 
 #ifndef NDEBUG
                 cudaDeviceSynchronize();
