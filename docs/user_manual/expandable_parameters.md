@@ -1,4 +1,4 @@
-#### Expandable Parameters
+## Expandable Parameters
 
 Expandable parameters implement a "single stencil multiple storages" pattern.
 They are useful when we have a vector of storages which have the same

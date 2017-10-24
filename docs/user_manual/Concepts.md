@@ -12,9 +12,9 @@
 
 *Note*: The Location concept is not defined explicitly, and in many ways they are never really constructed. A LocationType represents the different entities of grid, for instance an edge, a vertex, and a center of a cell. The Locations are the actual edges, vertices, and centers.
 
-`GridTopology`: A data structure representing the discretized (geometric) domain. A Grid is made of one or more `LocationType`s. The `GridTopology` specifies the maps between Locations in one `LocationType` to Locations in the other `Locationtype`s, using both Location IDs and `IterationPints`. (*Note*: Not all the mapping are necessary/needed, it depends on the operations requested by the application).
+`GridTopology`: A data structure representing the discretized (geometric) domain. A `Grid` will contain multiple `LocationType`s, and the `GridTopology` specifies the connectivity between `IterationPoint`'s of different `LocationType`'s (*Note*: Not all the mapping are necessary/needed, it depends on the operations requested by the application).
 
-`Grid`: Given size information and `GridTopology`, a `Grid` provides the loop bounds for the executing a computation on specific `LocationTypes`.
+`Grid`: Given size information and `GridTopology`, a `Grid` provides the loop bounds for the executing a computation on specific `LocationType`'s.
 
 *Note*: For example an iteration on the `LocationType` `edges` has different bounds than one on `vertices`.
 

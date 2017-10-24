@@ -1,4 +1,4 @@
-#### Conditionals
+# Conditionals
 
 Conditionals introduce two new syntactic elements in the
 [Grammar](computation grammar), namely ```if_``` and ```switch_```.

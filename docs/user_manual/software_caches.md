@@ -1,4 +1,4 @@
-# Software Managed Caches
+## Software Managed Caches
 
 Software managed caches are syntax elements that are used
 to describe data reuse pattern of the stencil computations. 
