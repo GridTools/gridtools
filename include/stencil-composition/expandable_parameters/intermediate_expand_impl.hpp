@@ -35,8 +35,10 @@
 */
 #pragma once
 #include <boost/utility.hpp>
+#include <boost/fusion/include/count.hpp>
 
 #include "../../common/vector_traits.hpp"
+#include "intermediate_expand_metafunctions.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -52,9 +54,9 @@ namespace gridtools {
         */
         template < typename AggregatorType, typename DataStoreFieldVec, typename... DataStoreFields >
         typename boost::enable_if_c< sizeof...(DataStoreFields) == boost::mpl::size< DataStoreFieldVec >::value,
-            AggregatorType * >::type
+            AggregatorType >::type
         make_aggregator(DataStoreFieldVec &dsf_vec, DataStoreFields &... dsf) {
-            return new AggregatorType(dsf...);
+            return {dsf...};
         }
 
         /**
@@ -68,13 +70,33 @@ namespace gridtools {
         */
         template < typename AggregatorType, typename DataStoreFieldVec, typename... DataStoreFields >
         typename boost::enable_if_c< sizeof...(DataStoreFields) < boost::mpl::size< DataStoreFieldVec >::value,
-            AggregatorType * >::type
+            AggregatorType >::type
         make_aggregator(DataStoreFieldVec &dsf_vec, DataStoreFields &... dsf) {
             return make_aggregator< AggregatorType >(dsf_vec,
                 dsf...,
-                *(boost::fusion::deref(boost::fusion::advance_c< sizeof...(DataStoreFields) >(boost::fusion::begin(
-                                           dsf_vec))).ptr));
+                boost::fusion::deref(
+                    boost::fusion::advance_c< sizeof...(DataStoreFields) >(boost::fusion::begin(dsf_vec)))
+                    .m_value);
         }
+
+        template < typename T >
+        struct is_expandable : std::false_type {};
+
+        template < ushort_t N, typename Storage, typename Location, bool Temporary >
+        struct is_expandable< arg< N, Storage, Location, Temporary > > : is_vector< Storage > {};
+
+        template < typename Arg, typename Storage >
+        struct is_expandable< arg_storage_pair< Arg, Storage > > : is_vector< Storage > {};
+
+        // generates an mpl::vector of the original (large) expandable parameters storage types
+        template < typename Aggregator >
+        using expandable_params_t =
+            typename boost::mpl::fold< typename Aggregator::placeholders_t,
+                boost::mpl::vector0<>,
+                boost::mpl::if_< boost::mpl::and_< is_expandable< boost::mpl::_2 >,
+                                     boost::mpl::not_< is_tmp_arg< boost::mpl::_2 > > >,
+                                           boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
+                                           boost::mpl::_1 > >::type;
 
         /**
            @brief functor used to initialize the storage in a boost::fusion::vector full an
@@ -85,12 +107,9 @@ namespace gridtools {
           private:
             DomainFull const &m_dom_full;
             Vec &m_vec_to;
-            bool m_called;
-            ushort_t &m_size;
 
           public:
-            initialize_storage(DomainFull const &dom_full_, Vec &vec_to_, ushort_t &size)
-                : m_dom_full(dom_full_), m_vec_to(vec_to_), m_called(false), m_size(size) {}
+            initialize_storage(DomainFull const &dom_full_, Vec &vec_to_) : m_dom_full(dom_full_), m_vec_to(vec_to_) {}
 
             /**
                @brief initialize the storage vector, specialization for the expandable args
@@ -100,21 +119,13 @@ namespace gridtools {
                 typedef arg< ID, std::vector< T >, L, false > placeholder_t;
                 typedef typename boost::mpl::at_c< Vec, ID >::type arg_storage_pair_t;
                 typedef typename arg_storage_pair_t::storage_t data_store_field_t;
-                const auto expandable_param = (*(m_dom_full.template get_arg_storage_pair< placeholder_t >()).ptr);
-                data_store_field_t *ptr = new data_store_field_t(*(expandable_param[0].get_storage_info_ptr().get()));
+                const auto expandable_param = m_dom_full.template get_arg_storage_pair< placeholder_t >().m_value;
+                auto val = data_store_field_t{*expandable_param[0].get_storage_info_ptr()};
                 // fill in the first bunch of ptrs
                 for (unsigned i = 0; i < data_store_field_t::num_of_storages; ++i) {
-                    ptr->set(0, i, expandable_param[i]);
+                    val.set(0, i, expandable_param[i]);
                 }
-                boost::fusion::at< static_ushort< ID > >(m_vec_to) =
-                    arg_storage_pair_t(static_cast< data_store_field_t * >(ptr));
-                // the lines below are checking if the expandable params are all of the same size
-                if (m_called) {
-                    assert(
-                        m_size == expandable_param.size() && "Non-tmp expandable parameters must have the same size");
-                }
-                m_called = true;
-                m_size = expandable_param.size();
+                boost::fusion::at< static_ushort< ID > >(m_vec_to) = {val};
             }
 
             template < ushort_t ID, typename T, typename L >
@@ -131,44 +142,71 @@ namespace gridtools {
             }
         };
 
-        /**
-           @brief functor used to delete the storages containing the chunk of pointers
-        */
-        template < typename Vec >
-        struct delete_storage {
+        //        struct create_arg {
+        //            template < typename T, typename ExpandFactor >
+        //            struct apply {
+        //                typedef data_store_field< typename get_storage_from_arg< T >::type, ExpandFactor::value >
+        //                exp_param_t;
+        //                typedef arg< arg_index< T >::value, exp_param_t, typename T::location_t, T::is_temporary >
+        //                type;
+        //            };
+        //        };
 
-          private:
-            Vec &m_vec_to;
+        //        template <typename Aggregator, uint_t N>
+        //        using expand_arg_list_t = typename boost::mpl::fold<typename Aggregator::placeholders_t,
+        //                boost::mpl::vector0<>, boost::mpl::push_back< boost::mpl::_1, boost::mpl::if_<
+        //                _impl::is_expandable<
+        //                        boost::mpl::_2 >, typename convert_arg_type< boost::mpl::_2, N >::type,
+        //                                boost::mpl::_2 > > >::type expand_arg_list;
 
-          public:
-            delete_storage(Vec &vec_to_) : m_vec_to(vec_to_) {}
+        /*
+         *                 expand_vec_t expand_vec;
+                        // initialize the storage list objects, whithout allocating the storage for the data snapshots
+                        boost::mpl::for_each< typename Aggregator::placeholders_t >(
+                                _impl::initialize_storage< Aggregator, expand_vec_t >(domain, expand_vec, m_size));
 
-            /**
-               @brief delete the non temporary data store fields
-             */
-            template < ushort_t ID, typename T, typename L >
-            void operator()(arg< ID, std::vector< T >, L, false >) {
-                delete (boost::fusion::at< static_ushort< ID > >(m_vec_to).ptr.get());
+                        auto non_tmp_expand_vec =
+                                boost::fusion::filter_if< boost::mpl::not_< is_arg_storage_pair_to_tmp< boost::mpl::_ >
+         > >(expand_vec);
+
+         */
+
+        struct get_value_size_f {
+            using result_type = size_t;
+            template < class T >
+            size_t operator()(T const &t) const {
+                return t.m_value.size();
             }
-
-            template < ushort_t ID, typename Storage, typename Location, bool Temporary >
-            void operator()(arg< ID, Storage, Location, Temporary >) {}
         };
+
+        template < class Aggregator >
+        size_t get_expandable_size(Aggregator const &agg) {
+            namespace f = boost::fusion;
+            namespace m = boost::mpl;
+            using m::_;
+            using is_expandable_t = m::and_< is_expandable< _ >, m::not_< is_tmp_arg< _ > > >;
+            auto sizes = f::transform(f::filter_if< is_expandable_t >(agg.get_arg_storage_pairs()), get_value_size_f());
+            if (f::empty(sizes))
+                return 0;
+            size_t res = f::front(sizes);
+            assert(f::count(sizes, res) == f::size(sizes) && "Non-tmp expandable parameters must have the same size");
+            return res;
+        }
+
+        //        template < typename Src, typename Dst >
+        //        void initialize_storage(Src const &src, Dst& dst) {
+        //            boost::mpl::for_each<Src::non_tmp_placeholders_t>(initialize_storage_f<Src, Dst>{src, dst});
+        //
+        //        };
 
         /**
            @brief functor used to assign the next chunk of storage pointers
         */
-        template < typename ExpandFactor, typename Backend, typename DomainFull, typename DomainChunk >
-        struct assign_expandable_params {
-
-          private:
+        template < typename ExpandFactor, typename DomainFull, typename DomainChunk >
+        struct assign_expandable_params_f {
             DomainFull const &m_dom_full;
             DomainChunk &m_dom_chunk;
-            uint_t const &m_idx;
-
-          public:
-            assign_expandable_params(DomainFull const &dom_full_, DomainChunk &dom_chunk_, uint_t const &i_)
-                : m_dom_full(dom_full_), m_dom_chunk(dom_chunk_), m_idx(i_) {}
+            uint_t m_idx;
 
             template < ushort_t ID, typename T, typename L >
             void operator()(arg< ID, std::vector< T >, L, true >) {}
@@ -177,21 +215,18 @@ namespace gridtools {
             void operator()(arg< ID, std::vector< T >, L, false >) {
                 // the vector of pointers
                 typedef arg< ID, std::vector< T >, L, false > placeholder_t;
-                pointer< std::vector< T > > const &ptr_full_ =
-                    m_dom_full.template get_arg_storage_pair< placeholder_t >().ptr;
-
-                auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_arg_storage_pair_list);
-#ifndef NDEBUG
-                if (!ptr_chunk_.ptr.get() || !ptr_full_.get()) {
-                    printf("The storage pointer is already null. Did you call finalize too early?");
-                    assert(false);
-                }
-#endif
-                for (unsigned i = 0; i < ExpandFactor::value; ++i) {
-                    (*(ptr_chunk_.ptr)).set(0, i, (*ptr_full_)[m_idx + i]);
-                }
+                const auto &src = m_dom_full.template get_arg_storage_pair< placeholder_t >().m_value;
+                auto &dst = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_arg_storage_pair_list).m_value;
+                for (unsigned i = 0; i < ExpandFactor::value; ++i)
+                    dst.set(0, i, src[m_idx + i]);
             }
         };
+
+        template < typename Factor, typename Src, typename Dst >
+        void assign_expandable_params(Src const &src, Dst &dst, uint_t idx) {
+            boost::mpl::for_each< expandable_params_t< Src > >(
+                assign_expandable_params_f< Factor, Src, Dst >{src, dst, idx});
+        }
 
     } // namespace _impl
 } // namespace gridtools

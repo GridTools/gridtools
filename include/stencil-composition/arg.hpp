@@ -46,7 +46,6 @@
 #include <iosfwd>
 
 #include "../common/defs.hpp"
-#include "../common/pointer.hpp"
 #include "arg_fwd.hpp"
 #include "arg_metafunctions.hpp"
 #include "arg_metafunctions_fwd.hpp"
@@ -60,12 +59,6 @@ namespace gridtools {
     template < uint_t I, typename Storage, typename Location, bool Temporary >
     struct is_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::true_ {};
 
-    template < typename T >
-    struct is_tmp_arg : boost::mpl::false_ {};
-
-    template < uint_t I, typename Storage, typename Location, bool Temporary >
-    struct is_tmp_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::bool_< Temporary > {};
-
     /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
     template < typename ArgType, typename Storage >
     struct arg_storage_pair {
@@ -75,12 +68,7 @@ namespace gridtools {
             "Storage type not compatible with placeholder storage type, when associating placeholder to actual "
             "storage");
 
-      public:
-        pointer< Storage > ptr;
-
-        arg_storage_pair() {}
-        arg_storage_pair(Storage *storage) : ptr(pointer< Storage >(storage)) {}
-        arg_storage_pair(arg_storage_pair const &other) : ptr(other.ptr) {}
+        Storage m_value;
 
         typedef ArgType arg_t;
         typedef Storage storage_t;
@@ -93,11 +81,13 @@ namespace gridtools {
     struct is_arg_storage_pair< arg_storage_pair< ArgType, Storage > > : boost::mpl::true_ {};
 
     template < typename T >
-    struct is_arg_storage_pair_to_tmp : boost::mpl::false_ {};
+    struct is_tmp_arg : std::false_type {};
+
+    template < uint_t I, typename Storage, typename Location >
+    struct is_tmp_arg< arg< I, Storage, Location, true > > : std::true_type {};
 
     template < typename ArgType, typename Storage >
-    struct is_arg_storage_pair_to_tmp< arg_storage_pair< ArgType, Storage > >
-        : boost::mpl::bool_< ArgType::is_temporary > {};
+    struct is_tmp_arg< arg_storage_pair< ArgType, Storage > > : is_tmp_arg< ArgType > {};
 
     /**
      * Type to create placeholders for data fields.
@@ -124,14 +114,9 @@ namespace gridtools {
 
         constexpr static bool is_temporary = Temporary;
 
-        template < typename Storage2 >
-        arg_storage_pair< arg< I, storage_t, LocationType, Temporary >, Storage2 > operator=(Storage2 &ref) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_t >::value),
-                "there is a mismatch between the storage types used by the arg placeholders and the storages really "
-                "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
-                "correctly assigned and that their type match the instantiated storages ones");
-
-            return arg_storage_pair< arg< I, storage_t, LocationType, Temporary >, Storage2 >(&ref);
+        template < typename Arg >
+        arg_storage_pair< arg, Storage > operator=(Arg &&arg) {
+            return {std::forward< Arg >(arg)};
         }
 
         static void info(std::ostream &out_s) {

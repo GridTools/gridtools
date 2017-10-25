@@ -218,40 +218,6 @@ namespace gridtools {
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
-         * @brief data_store move constructor
-         * @param other the copied object
-         */
-        data_store(data_store &&other) = default;
-
-        /**
-         * @brief data_store copy constructor
-         * @param other the copied object
-         */
-        data_store(data_store const &other)
-            : m_shared_storage(other.m_shared_storage), m_shared_storage_info(other.m_shared_storage_info),
-              m_name(other.m_name) {
-            ASSERT_OR_THROW((other.valid()), "Cannot copy a non-initialized data_store.");
-        }
-
-        /**
-         * @brief copy assign operation.
-         * @param other the rhs of the assignment
-         */
-        data_store &operator=(data_store const &other) {
-            // check that the other storage is valid
-            ASSERT_OR_THROW((other.valid()), "Cannot copy a non-initialized data_store.");
-            // check that dimensions are compatible; in case the storage has not been
-            // initialized yet, we don't check compatibility of the storage infos.
-            ASSERT_OR_THROW((!valid() || (*m_shared_storage_info == *other.m_shared_storage_info)),
-                "Cannot copy-assign a data store with incompatible storage info.");
-            // copy the contents
-            m_shared_storage = other.m_shared_storage;
-            m_shared_storage_info = other.m_shared_storage_info;
-            m_name = other.m_name;
-            return *this;
-        }
-
-        /**
          * @brief allocate the needed memory. this will instantiate a storage instance.
          */
         void allocate(StorageInfo const &info) {
@@ -321,19 +287,13 @@ namespace gridtools {
          * @brief retrieve a pointer to the underlying storage instance.
          * @return shared pointer to the underlying storage instance
          */
-        std::shared_ptr< storage_t > get_storage_ptr() const {
-            ASSERT_OR_THROW((m_shared_storage.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage;
-        }
+        std::shared_ptr< storage_t > get_storage_ptr() const { return m_shared_storage; }
 
         /**
          * @brief retrieve a pointer to the underlying storage_info instance.
          * @return shared pointer to the underlying storage_info instance
          */
-        std::shared_ptr< storage_info_t const > get_storage_info_ptr() const {
-            ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage_info;
-        }
+        std::shared_ptr< storage_info_t const > get_storage_info_ptr() const { return m_shared_storage_info; }
 
         /**
          * @brief check if underlying storage info and storage is valid.
@@ -387,6 +347,14 @@ namespace gridtools {
          * @brief forward dims() from storage_info
          */
         auto dims() const -> decltype(m_shared_storage_info->dims()) { return m_shared_storage_info->dims(); }
+
+        friend bool operator==(const data_store &lhs, const data_store &rhs) {
+            return std::tie(lhs.m_name, lhs.m_shared_storage, lhs.m_shared_storage_info) ==
+                   std::tie(rhs.m_name, rhs.m_shared_storage, rhs.m_shared_storage_info);
+        }
+        friend bool operator!=(const data_store &lhs, const data_store &rhs) { return !(lhs == rhs); }
+
+        explicit operator bool() const { return valid(); }
     };
 
     // simple metafunction to check if a type is a cuda_data_store

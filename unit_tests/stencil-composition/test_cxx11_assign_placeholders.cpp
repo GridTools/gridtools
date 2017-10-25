@@ -163,12 +163,12 @@ TEST(assign_placeholders, test) {
     GRIDTOOLS_STATIC_ASSERT(check_storage_infos_t::value, "Type check failed.");
 
     // Check pointers
-    assert(domain.template get_arg_storage_pair< p_flx >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_fly >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_lap >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_coeff >().ptr.get() == &coeff);
-    assert(domain.template get_arg_storage_pair< p_in >().ptr.get() == &in);
-    assert(domain.template get_arg_storage_pair< p_out >().ptr.get() == &out);
+    assert(!domain.template get_arg_storage_pair< p_flx >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_fly >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_lap >().m_value);
+    assert(domain.template get_arg_storage_pair< p_coeff >().m_value == coeff);
+    assert(domain.template get_arg_storage_pair< p_in >().m_value == in);
+    assert(domain.template get_arg_storage_pair< p_out >().m_value == out);
 
     // Temporary storage info ptrs are not present yet
     assert(!(domain.metadata_set_view()
@@ -217,12 +217,12 @@ TEST(assign_placeholders, test) {
     domain.reassign_storages_impl(out_new, in_new, coeff_new);
 
     // check pointers again
-    assert(domain.template get_arg_storage_pair< p_flx >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_fly >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_lap >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_coeff >().ptr.get() == &out_new);
-    assert(domain.template get_arg_storage_pair< p_in >().ptr.get() == &in_new);
-    assert(domain.template get_arg_storage_pair< p_out >().ptr.get() == &coeff_new);
+    assert(!domain.template get_arg_storage_pair< p_flx >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_fly >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_lap >().m_value);
+    assert(domain.template get_arg_storage_pair< p_coeff >().m_value == out_new);
+    assert(domain.template get_arg_storage_pair< p_in >().m_value == in_new);
+    assert(domain.template get_arg_storage_pair< p_out >().m_value == coeff_new);
 
     // Temporary storage info ptrs are not present yet
     assert(!(domain.metadata_set_view()
@@ -269,10 +269,10 @@ TEST(assign_placeholders, test) {
     domain.reassign_arg_storage_pairs_impl((p_coeff() = out_new_2), (p_out() = coeff_new_2), (p_in() = in_new_2));
 
     // check pointers again
-    assert(domain.template get_arg_storage_pair< p_flx >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_fly >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_lap >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_coeff >().ptr.get() == &out_new_2);
-    assert(domain.template get_arg_storage_pair< p_in >().ptr.get() == &in_new_2);
-    assert(domain.template get_arg_storage_pair< p_out >().ptr.get() == &coeff_new_2);
+    assert(!domain.template get_arg_storage_pair< p_flx >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_fly >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_lap >().m_value);
+    assert(domain.template get_arg_storage_pair< p_coeff >().m_value == out_new_2);
+    assert(domain.template get_arg_storage_pair< p_in >().m_value == in_new_2);
+    assert(domain.template get_arg_storage_pair< p_out >().m_value == coeff_new_2);
 }
