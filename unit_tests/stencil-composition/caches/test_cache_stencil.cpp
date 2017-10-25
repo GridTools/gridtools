@@ -86,6 +86,8 @@ namespace test_cache_stencil {
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, structured, Block >
+#elif defined(__AVX512F__)
+#define BACKEND backend< Mic, structured, Block >
 #else
 #define BACKEND backend< Host, structured, Block >
 #endif

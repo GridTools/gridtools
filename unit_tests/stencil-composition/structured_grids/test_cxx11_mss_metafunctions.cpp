@@ -57,6 +57,8 @@ struct functor1 {
 
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#elif defined(__AVX512F__)
+#define BACKEND backend< Mic, GRIDBACKEND, Block >
 #else
 #define BACKEND backend< Host, GRIDBACKEND, Block >
 #endif

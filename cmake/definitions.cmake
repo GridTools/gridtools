@@ -93,6 +93,15 @@ else()
   set (CUDA_LIBRARIES "")
 endif()
 
+if( USE_MIC )
+    if (CMAKE_CXX_COMPILER_ID MATCHES "(I|i?)ntel")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xmic-avx512")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f -mavx512cd -mavx512er -mavx512pf")
+    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_MIC_")
+endif( USE_MIC )
+
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")

@@ -50,6 +50,8 @@
 
 #ifdef __CUDACC__
 #include "backend_cuda/grid_traits_cuda.hpp"
+#elif defined(__AVX512F__)
+#include "backend_mic/grid_traits_mic.hpp"
 #else
 #include "backend_host/grid_traits_host.hpp"
 #endif
@@ -103,6 +105,27 @@ namespace gridtools {
         template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
         static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block &&
                                                 Backend::s_backend_id == enumtype::Host),
+            typename StorageWrapper::storage_info_t >::type
+        instantiate_storage_info(Grid const &grid) {
+            typedef typename StorageWrapper::storage_info_t storage_info_t;
+
+            // get all the params (size in i,j,k and number of threads in i,j)
+            const uint_t k_size = (grid.k_max() + 1);
+            const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
+            const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
+            constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
+            constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
+
+            // create and return the storage info instance
+            return storage_info_t((StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads_i,
+                (StorageWrapper::tileJ_t::s_tile)*threads_j + 2 * halo_j,
+                k_size);
+        }
+
+        // get a temporary storage for Mic Block
+        template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Block &&
+                                                Backend::s_backend_id == enumtype::Mic),
             typename StorageWrapper::storage_info_t >::type
         instantiate_storage_info(Grid const &grid) {
             typedef typename StorageWrapper::storage_info_t storage_info_t;

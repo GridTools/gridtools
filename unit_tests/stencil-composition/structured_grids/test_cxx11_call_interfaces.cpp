@@ -243,6 +243,8 @@ class call_interface : public testing::Test {
   protected:
 #ifdef __CUDACC__
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#elif defined(__AVX512F__)
+#define BACKEND backend< Mic, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >
@@ -510,15 +512,6 @@ TEST_F(call_interface, call_with_offsets_to_call_with_offsets_to_copy_functor) {
 
 class call_proc_interface : public testing::Test {
   protected:
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
     const uint_t d1 = 13;
     const uint_t d2 = 9;
     const uint_t d3 = 7;

@@ -43,6 +43,9 @@
 #ifdef __CUDACC__
 typedef gridtools::halo< 2, 0, 0 > halo_t;
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#elif defined(__AVX512F__)
+typedef gridtools::halo< 0, 0, 2 > halo_t;
+#define BACKEND backend< Mic, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
 typedef gridtools::halo< 0, 0, 2 > halo_t;

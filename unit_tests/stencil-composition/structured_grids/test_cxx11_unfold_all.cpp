@@ -48,7 +48,11 @@ struct functor {
     GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
+#ifdef __AVX512F__
+#define BACKEND backend< enumtype::Mic, enumtype::GRIDBACKEND, enumtype::Naive >
+#else
 #define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
+#endif
 
 bool predicate() { return false; }
 
