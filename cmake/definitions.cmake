@@ -22,16 +22,7 @@ if(STRUCTURED_GRIDS)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -DSTRUCTURED_GRIDS" )
 endif()
 
-add_definitions(-DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_CXX11_DECLTYPE)
-
-## get boost ##
-if(WIN32)
-  # Auto-linking happens on Windows, so we don't need to specify specific components
-  find_package( Boost 1.58 REQUIRED )
-else()
-  # On other platforms, me must be specific about which libs are required
-  find_package( Boost 1.58 REQUIRED )
-endif()
+find_package( Boost 1.58 REQUIRED )
 
 if(Boost_FOUND)
   # HACK: manually add the includes with -isystem because CMake won't respect the SYSTEM flag for CUDA
