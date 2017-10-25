@@ -85,6 +85,8 @@ struct SmagUpdateFunction {
 
 #ifdef __CUDACC__
 #define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
+#elif defined(__AVX512F__)
+#define BACKEND backend< enumtype::Mic, enumtype::GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >

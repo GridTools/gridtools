@@ -43,6 +43,8 @@ namespace rw_test {
 
 #ifdef __CUDACC__
     using backend_t = ::gridtools::backend< Cuda, GRIDBACKEND, Block >;
+#elif defined(__AVX512F__)
+    using backend_t = ::gridtools::backend< Mic, GRIDBACKEND, Block >;
 #else
 #ifdef BACKEND_BLOCK
     using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Block >;

@@ -41,6 +41,8 @@
 #include <gridtools.hpp>
 #ifdef CUDA_EXAMPLE
 #include <stencil-composition/backend_cuda/backend_cuda.hpp>
+#elif defined(__AVX512F__)
+#include <stencil-composition/backend_mic/backend_mic.hpp>
 #else
 #include <stencil-composition/backend_host/backend_host.hpp>
 #endif
@@ -101,6 +103,10 @@ namespace copy_stencils_3D_2D_1D_0D {
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
         typedef gridtools::cuda_storage_info< 0, DstLayout > meta_dst_t;
         typedef gridtools::cuda_storage_info< 0, SrcLayout > meta_src_t;
+#elif defined(__AVX512F__)
+#define BACKEND backend< Mic, GRIDBACKEND, Block >
+        typedef gridtools::mic_storage_info< 0, DstLayout > meta_dst_t;
+        typedef gridtools::mic_storage_info< 0, SrcLayout > meta_src_t;
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >

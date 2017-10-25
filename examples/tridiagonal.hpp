@@ -160,6 +160,8 @@ namespace tridiagonal {
 
 #ifdef CUDA_EXAMPLE
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#elif defined(__AVX512F__)
+#define BACKEND backend< Mic, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< Host, GRIDBACKEND, Block >

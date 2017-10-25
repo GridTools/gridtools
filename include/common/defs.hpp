@@ -139,7 +139,7 @@ namespace gridtools {
  */
 /** enum specifying the type of backend we use */
 #ifndef PLATFORM_GUARD
-        enum platform { Cuda, Host };
+        enum platform { Cuda, Host, Mic };
 #endif
 
         enum strategy { Naive, Block };

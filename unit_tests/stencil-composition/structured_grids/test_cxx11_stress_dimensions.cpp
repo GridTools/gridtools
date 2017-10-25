@@ -42,6 +42,13 @@ using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
 typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
 typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
 typedef special_metadata_t< 2, gridtools::layout_map< -1, -1, -1, 3, 2, 1, 0 > > metadata_local_quad_t;
+#elif defined(__AVX512F__)
+#define BACKEND backend< enumtype::Mic, enumtype::GRIDBACKEND, enumtype::Block >
+template < unsigned Id, typename Layout >
+using special_metadata_t = gridtools::mic_storage_info< Id, Layout >;
+typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
+typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
+typedef special_metadata_t< 2, gridtools::layout_map< -1, -1, -1, 3, 2, 1, 0 > > metadata_local_quad_t;
 #else
 #define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
 template < unsigned Id, typename Layout >

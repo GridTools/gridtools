@@ -44,6 +44,9 @@ using namespace enumtype;
 #ifdef __CUDACC__
 #define BACKEND_ARCH Cuda
 typedef backend< BACKEND_ARCH, GRIDBACKEND, Block > be;
+#elif defined(__AVX512F__)
+#define BACKEND_ARCH Mic
+typedef backend< BACKEND_ARCH, GRIDBACKEND, Block > be;
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND_ARCH Host
