@@ -36,6 +36,8 @@
 
 #pragma once
 
+#include <array>
+
 #include <boost/mpl/max_element.hpp>
 #include <boost/mpl/min_element.hpp>
 #include <boost/mpl/transform.hpp>
@@ -87,7 +89,8 @@ namespace gridtools {
         // assign the data ptrs to some other ptrs
         template < typename T >
         void assign(T &d) const {
-            std::copy(this->m_data_ptrs, this->m_data_ptrs + num_of_storages, d);
+            using std::begin;
+            std::copy(this->m_data_ptrs.begin(), this->m_data_ptrs.end(), begin(d));
         }
 
         // tell me how I should initialize the ptr_t member called m_data_ptrs
@@ -97,7 +100,7 @@ namespace gridtools {
         }
 
         // data ptrs
-        data_t *m_data_ptrs[num_of_storages];
+        std::array< data_t *, num_of_storages > m_data_ptrs;
     };
 
     /* Storage Wrapper metafunctions */
@@ -134,7 +137,7 @@ namespace gridtools {
 
     template < typename T >
     struct data_ptr_from_storage_wrapper {
-        typedef typename T::data_t *type[T::num_of_storages];
+        typedef typename std::array< typename T::data_t *, T::num_of_storages > type;
     };
 
     template < typename T >
