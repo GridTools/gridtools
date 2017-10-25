@@ -33,30 +33,24 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
+#include <iosfwd>
+
 /**
-   @file traits classes for the various grid topologies
+   @brief Small value type to use in tests where we want to check the
+   values in a fields, for instance to check if layouts works, on in
+   communication tests
 */
+struct triplet {
+    int a = 0, b = 0, c = 0;
 
-namespace gridtools {
-    namespace topology {
+    constexpr triplet() = default;
 
-        /**@brief cartesian topology
+    constexpr triplet(int a, int b, int c) : a(a), b(b), c(c) {}
 
-           \tparam the local layout map, i.e. defining the order of the dimensions
-         */
-        template < typename Layout >
-        struct cartesian {};
-    } // namespace topology
+    constexpr bool operator==(triplet other) const { return (a == other.a) and (b == other.b) and (c == other.c); }
+};
 
-    template < typename TopologyType >
-    class cell_topology {};
-
-    template < typename Layout >
-    class cell_topology< topology::cartesian< Layout > > {
-      public:
-        static const ushort_t space_dimensions = Layout::masked_length;
-    };
-
-} // namespace gridtools
+std::ostream &operator<<(std::ostream &s, triplet t) { return s << "[" << t.a << " " << t.b << " " << t.c << "]"; }

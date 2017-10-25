@@ -30,7 +30,7 @@ if(WIN32)
   find_package( Boost 1.58 REQUIRED )
 else()
   # On other platforms, me must be specific about which libs are required
-  find_package( Boost 1.58 COMPONENTS timer system chrono REQUIRED )
+  find_package( Boost 1.58 REQUIRED )
 endif()
 
 if(Boost_FOUND)
