@@ -44,6 +44,7 @@
 #pragma once
 
 #include <iosfwd>
+#include <utility>
 
 #include "../common/defs.hpp"
 #include "arg_fwd.hpp"
@@ -67,6 +68,10 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename ArgType::storage_t, Storage >::type::value),
             "Storage type not compatible with placeholder storage type, when associating placeholder to actual "
             "storage");
+
+        arg_storage_pair() : m_value{} {}
+        arg_storage_pair(const Storage &val) : m_value{val} {}
+        arg_storage_pair(Storage &&val) noexcept : m_value{std::move(val)} {}
 
         Storage m_value;
 

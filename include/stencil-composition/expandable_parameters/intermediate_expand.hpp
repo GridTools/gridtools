@@ -36,14 +36,12 @@
 
 #pragma once
 #include <boost/fusion/adapted/mpl.hpp>
+#include <boost/fusion/include/count.hpp>
+#include <boost/fusion/include/make_fused.hpp>
 #include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/filter_if.hpp>
-
 #include "../../storage/storage-facility.hpp"
 #include "../intermediate.hpp"
-
-#include "intermediate_expand_impl.hpp"
-#include "intermediate_expand_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -84,6 +82,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Aggregator >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (std::is_same< ReductionType, notype >::value), "Reduction is not allowed with expandable parameters");
 
         template < typename T >
         struct is_expandable : std::false_type {};
@@ -116,19 +116,150 @@ namespace gridtools {
             };
         };
 
-        template < typename Agg, uint N >
-        struct convert_aggregator_type;
-        template < typename Placeholders, uint N >
-        struct convert_aggregator_type< aggregator_type< Placeholders >, N > {
-            using type = typename boost::mpl::transform< Placeholders, convert_placeholder< N > >::type;
+        template < uint N >
+        using converted_aggregator_type = aggregator_type<
+            typename boost::mpl::transform< typename Aggregator::placeholders_t, convert_placeholder< N > >::type >;
+
+        template < uint N >
+        using converted_intermediate = intermediate< Backend,
+            MssDescriptorArray,
+            converted_aggregator_type< N >,
+            Grid,
+            ConditionalsSet,
+            ReductionType,
+            IsStateful,
+            N >;
+
+        using base_t = typename intermediate_expand::computation;
+        using base_t::m_domain;
+
+        struct do_run {
+            template < typename T >
+            void operator()(T &obj) const {
+                obj.run();
+            }
         };
+        struct do_steady {
+            template < typename T >
+            void operator()(T &obj) const {
+                obj.steady();
+            }
+        };
+
+        // private members
+        const size_t m_size;
+        const std::unique_ptr< converted_intermediate< ExpandFactor::value > > m_intermediate;
+        const std::unique_ptr< converted_intermediate< 1 > > m_intermediate_remainder;
+
+      public:
+        /**
+           @brief constructor
+
+           Given expandable parameters with size N, creates other @ref gristools::expandable_parameters storages with
+           dimension given by  @ref gridtools::expand_factor
+         */
+        template < typename Domain >
+        intermediate_expand(Domain &&domain, Grid const &grid, ConditionalsSet const &conditionals)
+            : base_t(std::forward< Domain >(domain)), m_size(get_expandable_size(m_domain)),
+              m_intermediate(m_size >= ExpandFactor::value
+                                 ? create_intermediate< ExpandFactor::value >(m_domain, grid, conditionals)
+                                 : nullptr),
+              m_intermediate_remainder(
+                  m_size % ExpandFactor::value ? create_intermediate< 1 >(m_domain, grid, conditionals) : nullptr) {}
+
+        /**
+           @brief run the execution
+
+           This method performs a run for the computation on each chunck of expandable parameters.
+           Between two iterations it updates the @ref gridtools::aggregator_type, so that the storage
+           pointers for the current chunck get substituted by the next chunk. At the end of the
+           iterations, if the number of parameters is not multiple of the expand factor, the remaining
+           chunck of storage pointers is consumed.
+         */
+        ReductionType run() override {
+            for_each_computation(do_run{});
+            return {};
+        }
+
+        /**
+           @brief forwards to the m_intermediate member
+
+           does not take into account the remainder kernel executed when the number of parameters is
+           not multiple of the expand factor
+         */
+        std::string print_meter() override {
+            assert(false);
+            return {};
+        }
+
+        /**
+           @brief forwards to the m_intermediate and m_intermediate_remainder members
+         */
+        void reset_meter() override {
+            if (m_intermediate)
+                m_intermediate->reset_meter();
+            if (m_intermediate_remainder)
+                m_intermediate_remainder->reset_meter();
+        }
+
+        double get_meter() override {
+            double res = 0;
+            if (m_intermediate)
+                res += m_intermediate->get_meter();
+            if (m_intermediate_remainder)
+                res += m_intermediate_remainder->get_meter();
+            return res;
+        }
+
+        /**
+           @brief forward the call to the members
+         */
+        void ready() override {
+            if (m_intermediate)
+                m_intermediate->ready();
+            if (m_intermediate_remainder)
+                m_intermediate_remainder->ready();
+        }
+
+        /**
+           @brief forward the call to the members
+         */
+        void steady() override { for_each_computation(do_steady{}); }
+
+        /**
+           @brief forward the call to the members
+         */
+        void finalize() override {
+            // sync all data stores
+            boost::fusion::for_each(m_domain.m_arg_storage_pair_list, _impl::sync_data_stores());
+        }
+
+      private:
+        struct get_value_size_f {
+            template < class T >
+            size_t operator()(T const &t) const {
+                return t.m_value.size();
+            }
+        };
+
+        static size_t get_expandable_size(Aggregator const &src) {
+            namespace f = boost::fusion;
+            auto sizes =
+                f::transform(f::filter_if< is_non_tmp_expandable< boost::mpl::_ > >(src.get_arg_storage_pairs()),
+                    get_value_size_f());
+            if (f::empty(sizes))
+                return 0;
+            size_t res = f::front(sizes);
+            assert(f::count(sizes, res) == f::size(sizes) && "Non-tmp expandable parameters must have the same size");
+            return res;
+        }
 
         template < uint_t N >
         struct convert_storage {
             template < typename T >
             data_store_field< T, N > operator()(const std::vector< T > &src) const {
                 assert(!src.empty());
-                return {src[0].get_storage_info_ptr()};
+                return {*src[0].get_storage_info_ptr()};
             }
             template < typename T >
             T operator()(const T &src) const {
@@ -150,232 +281,61 @@ namespace gridtools {
             }
         };
 
+        template < typename T >
+        struct maker {
+            template < typename... Us >
+            T operator()(Us &&... us) const {
+                return {std::forward< Us >(us)...};
+            }
+        };
+
         template < uint_t N >
-        struct convert_aggregator {
-            template < typename Placeholders,
-                typename Src = aggregator_type< Placeholders >,
-                typename Dst = typename convert_aggregator_type< Src, N >::type >
-            Dst operator()(aggregator_type< Placeholders > const &src) const {
-                // take fusion vector of arg_stro
-                return {};
-            }
-        };
-
-        struct get_value_size_f {
-            using result_type = size_t;
-            template < class T >
-            size_t operator()(T const &t) const {
-                return t.m_value.size();
-            }
-        };
-
-        size_t get_expandable_size(Aggregator const &agg) {
+        static converted_aggregator_type< N > convert_aggregator(const Aggregator &src) {
             namespace f = boost::fusion;
-            auto sizes =
-                f::transform(f::filter_if< is_non_tmp_expandable< boost::mpl::_ > >(agg.get_arg_storage_pairs()),
-                    get_value_size_f());
-            if (f::empty(sizes))
-                return 0;
-            size_t res = f::front(sizes);
-            assert(f::count(sizes, res) == f::size(sizes) && "Non-tmp expandable parameters must have the same size");
-            return res;
+            namespace m = boost::mpl;
+            auto arg_storage_pairs =
+                f::transform(f::filter_if< m::not_< is_tmp_arg< m::_ > > >(src.get_arg_storage_pairs()),
+                    convert_arg_storage_pair< N >());
+            return f::make_fused(maker< converted_aggregator_type< N > >())(std::move(arg_storage_pairs));
         }
 
-        using base_t = typename intermediate_expand::computation;
-        using base_t::m_domain;
+        template < uint_t N >
+        static converted_intermediate< N > *create_intermediate(
+            const Aggregator &src, Grid const &grid, const ConditionalsSet &conditionals) {
+            return new converted_intermediate< N >(convert_aggregator< N >(src), grid, conditionals);
+        }
 
-        // create an mpl vector of @ref gridtools::arg, substituting the large
-        // expandable parameters list with a chunk
-        typedef typename boost::mpl::fold<
-            typename Aggregator::placeholders_t,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1,
-                boost::mpl::if_< _impl::is_expandable< boost::mpl::_2 >,
-                                       typename _impl::create_arg::template apply< boost::mpl::_2, ExpandFactor >,
-                                       boost::mpl::_2 > > >::type expand_arg_list;
-
-        // create an mpl vector of @ref gridtools::arg, substituting the large
-        // expandable parameters list with a chunk
-        typedef typename boost::mpl::fold<
-            typename Aggregator::placeholders_t,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1,
-                boost::mpl::if_< _impl::is_expandable< boost::mpl::_2 >,
-                                       typename _impl::create_arg::template apply< boost::mpl::_2, expand_factor< 1 > >,
-                                       boost::mpl::_2 > > >::type expand_arg_list_remainder;
-
-        // typedef to the intermediate type associated with the vector length of ExpandFactor::value
-        typedef intermediate< Backend,
-            MssDescriptorArray,
-            aggregator_type< expand_arg_list >,
-            Grid,
-            ConditionalsSet,
-            ReductionType,
-            IsStateful,
-            ExpandFactor::value > intermediate_t;
-
-        // typedef to the intermediate type associated with the vector length of s_size%ExpandFactor::value
-        typedef intermediate< Backend,
-            MssDescriptorArray,
-            aggregator_type< expand_arg_list_remainder >,
-            Grid,
-            ConditionalsSet,
-            ReductionType,
-            IsStateful,
-            1 > intermediate_remainder_t;
-
-        // fusion vector of storage lists
-        typedef aggregator_type< expand_arg_list > aggregator_t;
-        typedef aggregator_type< expand_arg_list_remainder > aggregator_remainder_t;
-
-        // private members
-        const size_t m_size;
-        std::unique_ptr< intermediate_t > m_intermediate;
-        std::unique_ptr< intermediate_remainder_t > m_intermediate_remainder;
-
-      public:
-        /**
-           @brief constructor
-
-           Given expandable parameters with size N, creates other @ref gristools::expandable_parameters storages with
-           dimension given by  @ref gridtools::expand_factor
-         */
-        template < typename Domain >
-        intermediate_expand(Domain &&domain, Grid const &grid, ConditionalsSet conditionals_)
-            : base_t(std::forward< Domain >(domain)), m_size(get_expandable_size(m_domain)), m_intermediate(),
-              m_intermediate_remainder() {
-
-            if (m_size >= ExpandFactor::value) {
-                typedef typename aggregator_t::arg_storage_pair_fusion_list_t expand_vec_t;
-                expand_vec_t expand_vec;
-                // initialize the storage list objects, whithout allocating the storage for the data snapshots
-                boost::mpl::for_each< typename Aggregator::placeholders_t >(
-                    _impl::initialize_storage< Aggregator, expand_vec_t >(domain, expand_vec));
-
-                auto non_tmp_expand_vec =
-                    boost::fusion::filter_if< boost::mpl::not_< is_tmp_arg< boost::mpl::_ > > >(expand_vec);
-                m_intermediate.reset(new intermediate_t(
-                    _impl::make_aggregator< aggregator_t >(non_tmp_expand_vec), grid, conditionals_));
+        template < typename F >
+        void for_each_computation(const F &fun) {
+            size_t i = 0;
+            for (; m_size - i >= ExpandFactor::value; i += ExpandFactor::value) {
+                assign(*m_intermediate, i);
+                fun(*m_intermediate);
             }
-
-            if (m_size % ExpandFactor::value) {
-                typedef typename aggregator_remainder_t::arg_storage_pair_fusion_list_t expand_vec_remainder_t;
-                expand_vec_remainder_t expand_vec_remainder;
-                boost::mpl::for_each< typename Aggregator::placeholders_t >(
-                    _impl::initialize_storage< Aggregator, expand_vec_remainder_t >(domain, expand_vec_remainder));
-                auto non_tmp_expand_vec_remainder =
-                    boost::fusion::filter_if< boost::mpl::not_< is_tmp_arg< boost::mpl::_ > > >(expand_vec_remainder);
-                m_intermediate_remainder.reset(new intermediate_remainder_t(
-                    _impl::make_aggregator< aggregator_remainder_t >(non_tmp_expand_vec_remainder),
-                    grid,
-                    conditionals_));
+            for (; i < m_size; ++i) {
+                assign(*m_intermediate_remainder, i);
+                fun(*m_intermediate_remainder);
             }
         }
 
-        /**
-           @brief Method to reassign the storage pointers in the aggregator_type
-
-           @param args the arguments are storages (data stores, data store fields, etc.)
-           see @ref gridtools::test_domain_reassign for reference
-         */
-        template < typename... DataStores >
-        void reassign(DataStores &... stores) {
-            if (m_size >= ExpandFactor::value)
-                m_intermediate->reassign(stores...);
-            if (m_size % ExpandFactor::value)
-                m_intermediate_remainder->reassign(stores...);
-        }
-
-        /**
-           @brief run the execution
-
-           This method performs a run for the computation on each chunck of expandable parameters.
-           Between two iterations it updates the @ref gridtools::aggregator_type, so that the storage
-           pointers for the current chunck get substituted by the next chunk. At the end of the
-           iterations, if the number of parameters is not multiple of the expand factor, the remaining
-           chunck of storage pointers is consumed.
-         */
-        virtual auto run() -> decltype(m_intermediate_remainder->run()) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_same< decltype(m_intermediate_remainder->run()), notype >::value),
-                "Reduction is not allowed with expandable parameters");
-            // the expand factor must be smaller than the total size of the expandable parameters list
-            for (uint_t i = 0; i < m_size - m_size % ExpandFactor::value; i += ExpandFactor::value) {
-                _impl::assign_expandable_params< ExpandFactor >(m_domain, m_intermediate->domain(), i);
-                m_intermediate->run();
+        struct assign_arg_storage_pair {
+            size_t m_offset;
+            template < typename Src, typename Arg, typename Dst, uint_t N >
+            void operator()(Src &src, arg_storage_pair< Arg, data_store_field< Dst, N > > &dst) const {
+                assert(src.m_value.size() >= m_offset + N);
+                for (uint_t i = 0; i != N; ++i)
+                    dst.m_value.set(0, i, src.m_value[m_offset + i]);
             }
-            for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
-                _impl::assign_expandable_params< boost::mpl::int_< 1 > >(
-                    m_domain, m_intermediate_remainder->domain(), m_size - m_size % ExpandFactor::value + i);
-                m_intermediate_remainder->run();
-            }
-            return 0.; // reduction disabled
+        };
+
+        template < typename Dst >
+        void assign(Dst &dst, size_t offset) const {
+            namespace f = boost::fusion;
+            namespace m = boost::mpl;
+            using pred = is_non_tmp_expandable< m::_ >;
+            f::for_each(f::zip(f::filter_if< pred >(m_domain.get_arg_storage_pairs()),
+                            f::filter_if< pred >(dst.domain().get_arg_storage_pairs())),
+                f::make_fused(assign_arg_storage_pair()));
         }
-
-        /**
-           @brief forwards to the m_intermediate member
-
-           does not take into account the remainder kernel executed when the number of parameters is
-           not multiple of the expand factor
-         */
-        virtual std::string print_meter() {
-            assert(false);
-            return {};
-        }
-
-        /**
-           @brief forwards to the m_intermediate and m_intermediate_remainder members
-         */
-        virtual void reset_meter() {
-            if (m_size >= ExpandFactor::value)
-                m_intermediate->reset_meter();
-            if (m_size % ExpandFactor::value)
-                m_intermediate_remainder->reset_meter();
-        }
-
-        virtual double get_meter() {
-            return m_intermediate->get_meter() +
-                   ((m_size % ExpandFactor::value) ? m_intermediate_remainder->get_meter() : 0.);
-        }
-
-        /**
-           @brief forward the call to the members
-         */
-        virtual void ready() {
-            if (m_size >= ExpandFactor::value)
-                m_intermediate->ready();
-
-            if (m_size % ExpandFactor::value)
-                m_intermediate_remainder->ready();
-        }
-
-        /**
-           @brief forward the call to the members
-         */
-        virtual void steady() {
-            for (uint_t i = 0; i < m_size - m_size % ExpandFactor::value; i += ExpandFactor::value) {
-                _impl::assign_expandable_params< ExpandFactor >(m_domain, m_intermediate->domain(), i);
-                m_intermediate->steady();
-            }
-            for (uint_t i = 0; i < m_size % ExpandFactor::value; ++i) {
-                _impl::assign_expandable_params< boost::mpl::int_< 1 > >(
-                    m_domain, m_intermediate_remainder->domain(), m_size - m_size % ExpandFactor::value + i);
-                m_intermediate_remainder->steady();
-            }
-        }
-
-        /**
-           @brief forward the call to the members
-         */
-        virtual void finalize() {
-            // sync all data stores
-            boost::fusion::for_each(m_domain.m_arg_storage_pair_list, _impl::sync_data_stores());
-            if (m_size >= ExpandFactor::value)
-                m_intermediate->finalize();
-
-            if (m_size % ExpandFactor::value)
-                m_intermediate_remainder->finalize();
-        }
-
-      private:
     };
 }

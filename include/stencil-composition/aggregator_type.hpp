@@ -223,7 +223,7 @@ namespace gridtools {
             typedef typename boost::fusion::result_of::as_vector< non_tmp_arg_storage_pairs_mpl_vec >::type
                 non_tmp_arg_storage_pairs_fusion_vec;
             // initialize those arg_storage_pairs with the given data_stores
-            non_tmp_arg_storage_pairs_fusion_vec tmp_arg_storage_pair_vec({std::forward< DataStores >(ds)}...);
+            non_tmp_arg_storage_pairs_fusion_vec tmp_arg_storage_pair_vec(std::forward< DataStores >(ds)...);
 
             // create a filter view to filter all the non temporary arg_storage_pairs from m_arg_storage_pair_list
             // and initialize with the previously created temporary vector.
@@ -311,7 +311,7 @@ namespace gridtools {
             typedef typename boost::fusion::result_of::as_vector< non_tmp_arg_storage_pairs_mpl_vec >::type
                 non_tmp_arg_storage_pairs_fusion_vec;
             // initialize those arg_storage_pairs with the given data_stores
-            non_tmp_arg_storage_pairs_fusion_vec tmp_arg_storage_pair_vec({std::forward< DataStores >(stores)}...);
+            non_tmp_arg_storage_pairs_fusion_vec tmp_arg_storage_pair_vec(std::forward< DataStores >(stores)...);
 
             // create a filter view to filter all the non temporary arg_storage_pairs from m_arg_storage_pair_list
             // and initialize with the previously created temporary vector.
