@@ -61,7 +61,7 @@ namespace gridtools {
         template < uint_t Id, uint_t Dims, typename Halo >
         struct select_storage_info {
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
-            typedef typename get_layout< Dims, true >::type layout;
+            typedef typename get_layout< Dims, false >::type layout;
             typedef mic_storage_info< Id, layout, Halo > type;
         };
 
@@ -76,7 +76,7 @@ namespace gridtools {
         struct select_special_storage_info {
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
             GRIDTOOLS_STATIC_ASSERT(is_selector< Selector >::value, "Given type is not a selector type.");
-            typedef typename get_layout< Selector::size, true >::type layout;
+            typedef typename get_layout< Selector::size, false >::type layout;
             typedef mic_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo > type;
         };
     };
