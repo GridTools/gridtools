@@ -250,7 +250,10 @@ namespace gridtools {
         }
 
       private:
-        static GT_FUNCTION reference fake() { return *pointer{}; }
+        static GT_FUNCTION reference fake() {
+            static T obj[1];
+            return obj[0];
+        }
     };
 
     template < class T, ::std::size_t N >
