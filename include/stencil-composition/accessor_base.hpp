@@ -113,6 +113,10 @@ namespace gridtools {
       private:
         offset_tuple_t m_offsets;
 
+        // friend of itself with different indices
+        template < uint_t, enumtype::intend, typename, ushort_t >
+        friend struct accessor_base;
+
       public:
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount
