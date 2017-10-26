@@ -117,6 +117,11 @@ if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth-1024")
 endif()
 
+## Intel compiler ##
+if(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_MPL_AUX_CONFIG_GCC_HPP_INCLUDED -DBOOST_MPL_CFG_GCC='((__GNUC__ << 8) | __GNUC_MINOR__)'")
+endif()
+
 Find_Package( OpenMP )
 
 
