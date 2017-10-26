@@ -145,7 +145,7 @@ namespace test_iterate_domain {
 #else
         typedef iterate_domain_host<
             iterate_domain,
-            iterate_domain_arguments< /*backend_ids< Host, GRIDBACKEND, Naive >*/ backend_t::s_backend_id,
+            iterate_domain_arguments< backend_ids< Host, GRIDBACKEND, Naive >,
                 boost::mpl::at_c< typename mss_local_domain1_t::fused_local_domain_sequence_t, 0 >::type,
                 boost::mpl::vector1< esf_t >,
                 boost::mpl::vector1< extent< 0, 0, 0, 0 > >,
