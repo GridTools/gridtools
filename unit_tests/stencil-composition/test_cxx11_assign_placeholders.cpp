@@ -157,7 +157,7 @@ TEST(assign_placeholders, test) {
                                                          gridtools::layout_map< 0, 1, 2 >,
                                                          gridtools::halo< 1u, 1u, 1u >,
                                                          gridtools::alignment< 1u > > >,
-                                                     boost::mpl::vector0< mpl_::na >,
+                                                     boost::mpl::vector0< boost::mpl::na >,
                                                      0 >,
                                                  0 >,
                                              0 >,
