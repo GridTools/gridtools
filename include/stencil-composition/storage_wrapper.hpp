@@ -85,7 +85,7 @@ namespace gridtools {
         constexpr static bool is_temporary = arg_t::is_temporary;
         constexpr static bool is_read_only = (view_t::mode == access_mode::ReadOnly);
 
-        using data_ptrs_t = array<data_t*, num_of_storages>;
+        using data_ptrs_t = array< data_t *, num_of_storages >;
 
         // assign the data ptrs to some other ptrs
         template < typename T >
