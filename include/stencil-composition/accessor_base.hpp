@@ -130,12 +130,12 @@ namespace gridtools {
 #if !defined(__CUDACC__)
         // move ctor
         GT_FUNCTION
-        constexpr accessor_base(const type &&other) : m_offsets(other.m_offsets) {}
+        constexpr accessor_base(const type &&other) : m_offsets(std::move(other.m_offsets)) {}
 
         // move ctor from another accessor_base with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(accessor_base< OtherIndex, Intend, Extend, Dim > &&other)
-            : m_offsets(other.offsets()) {}
+            : m_offsets(std::move(other.m_offsets)) {}
 #endif
         // copy ctor
         GT_FUNCTION
@@ -144,7 +144,7 @@ namespace gridtools {
         // copy ctor from another accessor_base with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
-            : m_offsets(other.offsets()) {}
+            : m_offsets(other.m_offsets) {}
 
         /**@brief constructor taking the dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'dimension' is a
