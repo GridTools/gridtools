@@ -51,6 +51,6 @@ TEST(accumulate_tparams_until, first_few_vals) {
     using ref = test_container< 1, -2, 3, -3, 4, 5 >;
     using test = test_container< 1, -2, 3, -2, 4, 5 >;
 
-    GRIDTOOLS_STATIC_ASSERT((accumulate_tparams_until< int_t, equal, logical_and, ref, test, 3 >::value), "ERROR");
-    GRIDTOOLS_STATIC_ASSERT((!accumulate_tparams_until< int_t, equal, logical_and, ref, test, 4 >::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((accumulate_tparams_until< equal, logical_and, ref, test, 3 >::value), "ERROR");
+    GRIDTOOLS_STATIC_ASSERT((!accumulate_tparams_until< equal, logical_and, ref, test, 4 >::value), "ERROR");
 }
