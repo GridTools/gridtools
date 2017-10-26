@@ -52,13 +52,13 @@ namespace gridtools {
         template < ushort_t Index, typename IterateDomain, typename VT >
         typename boost::enable_if< typename is_positional_iterate_domain< IterateDomain >::type, void >::type
             GT_FUNCTION
-            reset_index_if_positional(IterateDomain &itdom, VT value) {
+            mic_reset_index_if_positional(IterateDomain &itdom, VT value) {
             itdom.template reset_positional_index< Index >(value);
         }
         template < ushort_t Index, typename IterateDomain, typename VT >
         typename boost::disable_if< typename is_positional_iterate_domain< IterateDomain >::type, void >::type
             GT_FUNCTION
-            reset_index_if_positional(IterateDomain &, VT) {}
+            mic_reset_index_if_positional(IterateDomain &, VT) {}
     } // namespace _impl
 
     namespace strgrid {
@@ -213,13 +213,13 @@ namespace gridtools {
 #if defined(VERBOSE) && !defined(NDEBUG)
                     std::cout << "iteration " << i << ", index i" << std::endl;
 #endif
-                    _impl::reset_index_if_positional< 0 >(it_domain, i);
+                    _impl::mic_reset_index_if_positional< 0 >(it_domain, i);
                     it_domain.get_index(irestore_index);
                     for (int_t j = jfirst; j <= jlast; ++j) {
 #if defined(VERBOSE) && !defined(NDEBUG)
                         std::cout << "iteration " << j << ", index j" << std::endl;
 #endif
-                        _impl::reset_index_if_positional< 1 >(it_domain, j);
+                        _impl::mic_reset_index_if_positional< 1 >(it_domain, j);
                         it_domain.get_index(jrestore_index);
                         f();
                         it_domain.set_index(jrestore_index);
