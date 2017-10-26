@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set( SUPPRESS_MESSAGES "ON" CACHE BOOL "suppress compilation messages")
 set( VERBOSE "OFF" CACHE BOOL "set verbosity for output")
+set( BOOST_FUSION_MAX_SIZE 20 CACHE STRING "max sizes of boost fusion containers" )
 set( ENABLE_PERFORMANCE_METERS "OFF" CACHE BOOL "If on, meters will be reported for each stencil")
 set( USE_GPU "OFF" CACHE BOOL "Compile with GPU support (CUDA)" )
 set( COMPILE_TO_PTX "OFF" CACHE BOOL "Compile to intermediate representation" )
