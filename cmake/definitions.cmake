@@ -104,7 +104,7 @@ else()
 endif()
 
 if( USE_MIC )
-    if (CMAKE_CXX_COMPILER_ID MATCHES "(I|i?)ntel")
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xmic-avx512")
     else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512f -mavx512cd -mavx512er -mavx512pf")
