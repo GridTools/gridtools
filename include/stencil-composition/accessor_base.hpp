@@ -127,7 +127,6 @@ namespace gridtools {
         GT_FUNCTION constexpr explicit accessor_base(array< int_t, ArrayDim > const &offsets, Dimensions... d)
             : m_offsets(0, offsets, d...) {}
 
-#if !defined(__CUDACC__)
         // move ctor
         GT_FUNCTION
         constexpr accessor_base(const type &&other) : m_offsets(std::move(other.m_offsets)) {}
@@ -136,7 +135,7 @@ namespace gridtools {
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(accessor_base< OtherIndex, Intend, Extend, Dim > &&other)
             : m_offsets(std::move(other.m_offsets)) {}
-#endif
+
         // copy ctor
         GT_FUNCTION
         constexpr accessor_base(type const &other) : m_offsets(other.m_offsets) {}
