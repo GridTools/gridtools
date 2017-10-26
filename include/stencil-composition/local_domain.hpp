@@ -64,22 +64,30 @@
 namespace gridtools {
 
     namespace {
+        template < typename InIter, typename OutIter >
+        GT_FUNCTION void copy(InIter in, InIter end, OutIter out) {
+            for (; in != end; ++in, ++out)
+                *out = *in;
+        }
+
         template < typename T, typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
         GT_FUNCTION typename boost::enable_if_c< (N == 0), void >::type copy_ptrs(T &t, V &other) {
             auto &left = boost::fusion::at_c< N >(t).second;
             auto &right = boost::fusion::at_c< N >(other).second;
-            using std::begin;
-            using std::end;
-            std::copy(begin(right), end(right), begin(left));
+#ifndef __CUDA_ARCH__
+            using std::copy;
+#endif
+            copy(right.begin(), right.end(), left.begin());
         }
 
         template < typename T, typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
         GT_FUNCTION typename boost::enable_if_c< (N > 0), void >::type copy_ptrs(T &t, V &other) {
             auto &left = boost::fusion::at_c< N >(t).second;
             auto &right = boost::fusion::at_c< N >(other).second;
-            using std::begin;
-            using std::end;
-            std::copy(begin(right), end(right), begin(left));
+#ifndef __CUDA_ARCH__
+            using std::copy;
+#endif
+            copy(right.begin(), right.end(), left.begin());
             copy_ptrs< T, V, N - 1 >(t, other);
         }
     }
