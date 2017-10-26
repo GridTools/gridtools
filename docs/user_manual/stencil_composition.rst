@@ -1,8 +1,13 @@
+.. include:: defs.hrst
+
+
 .. _stencil-composition:
 
 ========================
 Stencil Composition
 ========================
+
+.. _placeholders:
 
 ------------------------------------------
 Preparing arguments: storage placeholders
@@ -22,11 +27,11 @@ Use of temporaries
 
 The main component of |GT| provide the capability of composing
 different `elementary stencils`. An `elementary stencil` is the
-application of a single [stencil operator](#stencil-operators) to an
-[iteration space](#concepts). The ability to fuse multiple elementary
+application of a single :ref:`stencil operator<stencil_operators>` to an
+:term:`iteration space<iterationspace>` . The ability to fuse multiple elementary
 stencils allows the |GT| library to improve the memory locality of
 the computation by taking advantage of the produce consumer
-relations. In |GT| terminology we use the term _stage_ to refer to an
+relations. In |GT| terminology we use the term `stage` to refer to an
 elementary stencil i when it is composed with other operations.
 
 The result of a composition is a `multi-stage computation`, also
@@ -45,7 +50,7 @@ take a list of stages, even if the stage is just one.
 
 |GT| allows multi-stage computations to be composed. The final
 composition, with the addition of a
-[grid and an aggregator](#concepts) is simply called a |GT|
+:term:`grid<Grid>` and a :term:`data field pack<DataFieldPack>` is simply called a |GT|
 `computation`, or simply `computation`.
 
 Before entering the details of what can be composed and what not, let
@@ -53,12 +58,12 @@ us show first an example of a stencil composition: a simple horizontal
 diffusion stencil.
 
 First we need to specify the stages. A stage is specified by
-indicating a [stencil operator](#stencil-operator) and some
-[placeholders](#placeholders) to its arguments. The placeholders are
+indicating a :ref:`stencil operator<stencil_operators>` and some
+:ref:`placeholders<placeholders>` to its arguments. The placeholders are
 alias to the actual arguments and are used to compute the data
 dependencies of the computation independently of the actual data
 fields that will be accessed by the computation. The syntax for
-specifying a stage uses an helper function called `make_stage`:
+specifying a stage uses an helper function called ``make_stage``:
 
 .. code-block:: c++
 
@@ -67,7 +72,7 @@ specifying a stage uses an helper function called `make_stage`:
 Where the `operator` is the stencil operator of the stage and the
 `plc` s are the placeholders. The number and the intent of the
 placeholders depend on the
-[stencil operator interface](stencil-operator).
+:ref:`stencil operator interface<stencil_operators>`.
 
 A multi-stage computation is a concatenation of stages, plus the
 indication of the [execution strategy](#gridtools-execution-model) to
@@ -89,7 +94,7 @@ operator.
  It is not possible to make a multi-stage
  computation with stages of different execution orders.
 
-The data-dependence analysis of $\GT\ will determine the producer
+The data-dependence analysis of |GT| will determine the producer
 consumer relations and the extents at which each data field will be
 accessed. This information is then passed to the architecture specific
 backend for the execution. 
@@ -112,7 +117,7 @@ the iteration space, must be provided. The final example is:
  );
 
 
-where `BACKEND` specifies the backend that will execute the
+where ``BACKEND`` specifies the backend that will execute the
 computation.
 
 The execution of the stages are assumed to happen one after the other
@@ -120,8 +125,8 @@ in the program order. This is quite important, since the data
 dependence is performed with this assumption. Some architectures
 provide different types of synchronization, and a user may gain a
 little more performance if they are more specific in the expression of
-the dependencies. For instance, we can assume the the `flx_operator`
-and `fly_operator` do not have producer-consumer dependencies the user
+the dependencies. For instance, we can assume the the ``flx_operator``
+and ``fly_operator`` do not have producer-consumer dependencies the user
 can specify that they are independent:
 
 .. code-block:: c++
@@ -138,10 +143,10 @@ can specify that they are independent:
     )
  );
 
-`make_independent` does not have impact on the data-dependence
+``make_independent`` does not have impact on the data-dependence
 analysis but, potentially, only on the execution schedule.
 
-In general `make_computation` has the following signature:
+In general ``make_computation`` has the following signature:
 
 .. code-block:: c++
  
@@ -175,19 +180,19 @@ stages thus improving substantially the performance.
 Again the multi-stages in the same computation will be
 executed,logically in program order.  Two multi-stage computations can
 be concatenated if the outputs of the stages that are used as input of
-the following obey the following rule: Let `u` be the output of a
-stage `S0` that is input the stage `S1`. The extent at which `u` is
-accessed by `S1` must be the point-extent, that is the access of `u`
-is point-wise, so no offsets of `u` can be accessed. This is because
+the following obey the following rule: Let ``u`` be the output of a
+stage ``S0`` that is input the stage ``S1``. The extent at which ``u`` is
+accessed by ``S1`` must be the point-extent, that is the access of ``u``
+is point-wise, so no offsets of ``u`` can be accessed. This is because
 the parallel execution of the stages can produce non deterministic
 results otherwise. Certain backends do not fuse multiple multi-stage
 computations, so this effect could be not visible, but for
 portability, it is important that this rule is understood.
 
-There are other details that pertains [placeholders](#placeholders),
-[grids](#grid), [aggregators](#aggregator) and also other |GT|
+There are other details that pertains :ref:`placeholders<placeholders>`,
+:term:`grid<Grid>`,  :term:`data field pack<DataFieldPack>` and also other |GT|
 constructs that can greatly improve performance of the computations,
-especially [caches](#software-managed-caches)
+especially :ref:`software managed caches<caches>`
 
 
 .. include:: irregular_grids.rst 

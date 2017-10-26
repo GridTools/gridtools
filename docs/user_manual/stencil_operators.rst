@@ -1,3 +1,7 @@
+.. include:: defs.hrst
+
+.. _stencil_operators:
+
 ========================
  Stencil Operators
 ========================
@@ -11,9 +15,9 @@
  to it.
 
 The stencil operator specifies the computation to be performed in each
-point of the :ref:`Iteration Space <iteration_space_concept>` of the stencil
+point of the :term:`iteration space<iterationspace>` of the stencil
 computation (see :ref:`stencil-composition`). In the
-implementation, a point of the :ref:`Iteration Space <iteration_space_concept>` at
+implementation, a point of the :term:`iteration space<iterationspace>` at
 which the stencil operator is called is referred to as *point of
 evaluation*.
 

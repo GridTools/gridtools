@@ -3,7 +3,7 @@ GridTools Execution Model
 ============================
 
 Stencil operations are executed in a three dimensional index
-space. This means that the iteration space (see [Concepts](CONCEPTS))
+space. This means that the :term:`iteration space<iterationspace>`
 is three dimensional. The first two dimensions of the iteration space,
 usually referred to as ``I`` and ``J`` dimensions identify the ``IJ``
 plane. There is no prescription on how the stencil operators in

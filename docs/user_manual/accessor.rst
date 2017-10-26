@@ -35,7 +35,7 @@ Space Dimensions
 -------------------
 
 Let's start with an arbitrary dimensional array
-(a single :ref:`snapshot<snapshot>`). The API exposed is very intuitive.
+(a single :term:`snapshot<snapshot>`). The API exposed is very intuitive.
 Suppose you have as first argument of the functor a
 5 (space) dimentional snapshot as an input with null extent called ``acc``.
 Then the accessor to use is the following:
@@ -233,7 +233,7 @@ to the computation. The accessor associated with this global parameter must be a
 
     using global_accessor< 0 > global_boundary;
 
-Calling ```eval``` on the global accessor returns the user defined data structure. Supposing that
+Calling ``eval`` on the global accessor returns the user defined data structure. Supposing that
 this data structure contains a user function called ```ordinal``` returning an integer, we can write
 in the do method
 
@@ -252,6 +252,7 @@ defines parenthesis operator ``operator()``, and we want to call that operator f
 In that case the accessor's parenthesis operator can be used and the arguments will be
 automatically forwarded to the global parameter. An example is the case in which we want to pass
 a small matrix as a global parameter:
+
 .. code-block:: c++
 
     using global_accessor< 0 > matrix;
@@ -259,5 +260,6 @@ a small matrix as a global parameter:
 
 A useful example to understand this use case can be found in the extended4D example.
 .. todo:: 
+ 
  add reference
 
