@@ -36,8 +36,6 @@
 
 #pragma once
 
-#include <array>
-
 #include <boost/mpl/max_element.hpp>
 #include <boost/mpl/min_element.hpp>
 #include <boost/mpl/transform.hpp>
@@ -46,6 +44,7 @@
 
 #include "../storage/storage-facility.hpp"
 
+#include "../common/array.hpp"
 #include "../common/pointer.hpp"
 #include "arg.hpp"
 #include "tile.hpp"
@@ -86,6 +85,8 @@ namespace gridtools {
         constexpr static bool is_temporary = arg_t::is_temporary;
         constexpr static bool is_read_only = (view_t::mode == access_mode::ReadOnly);
 
+        using data_ptrs_t = array<data_t*, num_of_storages>;
+
         // assign the data ptrs to some other ptrs
         template < typename T >
         void assign(T &d) const {
@@ -100,7 +101,7 @@ namespace gridtools {
         }
 
         // data ptrs
-        std::array< data_t *, num_of_storages > m_data_ptrs;
+        data_ptrs_t m_data_ptrs;
     };
 
     /* Storage Wrapper metafunctions */
@@ -137,7 +138,7 @@ namespace gridtools {
 
     template < typename T >
     struct data_ptr_from_storage_wrapper {
-        typedef typename std::array< typename T::data_t *, T::num_of_storages > type;
+        typedef typename T::data_ptrs_t type;
     };
 
     template < typename T >
