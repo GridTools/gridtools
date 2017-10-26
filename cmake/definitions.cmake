@@ -32,9 +32,9 @@ if(Boost_FOUND)
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-if(NOT USE_GPU)
+if(NOT USE_GPU AND NOT USE_MIC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
-endif(NOT USE_GPU)
+endif()
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
