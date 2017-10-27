@@ -32,7 +32,7 @@ if [[ ${COMPILER} == "gcc" ]]; then
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "icc" ]]; then
   module load PrgEnv-intel
-  export HOST_COMPILER=`which icc`
+  export HOST_COMPILER=`which icpc`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
