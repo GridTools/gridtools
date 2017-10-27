@@ -48,8 +48,9 @@ elif [[ ${COMPILER} == "clang" ]]; then
       module load /users/vogtha/modules/compilers/clang/3.8.1
   esac
   export HOST_COMPILER=`which clang++`
-elif [[ ${COMPILER} == "icc"]]; then
+elif [[ ${COMPILER} == "icc" ]]; then
   module load PrgEnv-intel
+  export HOST_COMPILER=`which icc`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
