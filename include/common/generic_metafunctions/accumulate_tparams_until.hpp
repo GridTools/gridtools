@@ -70,6 +70,9 @@ namespace gridtools {
      * until a number of Limit parameters is reached. An example of use:
      * accumulate_tparams_until<equal, logical_and, extent<-1,2,-1,3,1,1>, extent<-1,2,-1,2,2,2>, 3>
      *
+     * EnvClass's value type is currently restricted to int_t, due to limited compiler support of
+     * template template parameters that depend on a previous template argument.
+     *
      * @tparam BinaryOp binary operator applied to a pair of template parameters in First and Second
      * @tparam LogicalOp logical operator applied to the accumulation algorithm
      * @tparam First first operand containing a list of template parameters (subject to this algorithm)
