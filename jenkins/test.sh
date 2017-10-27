@@ -51,6 +51,8 @@ elif [ $myhost == "dom" ]; then
     cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
 elif [ $myhost == "daint" ]; then
     cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
+elif [ $myhost == "tave" ]; then
+    cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
 fi
 echo "replacing in ${slurm_script} command by ${cmd}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
