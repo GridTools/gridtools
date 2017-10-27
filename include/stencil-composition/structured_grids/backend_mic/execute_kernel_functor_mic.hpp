@@ -71,7 +71,11 @@ namespace gridtools {
                     run_esf_functor_h_t;
 
             GT_FUNCTION
-            block_loop_mic(iterate_domain_t &it_domain, grid_t const &grid) : m_grid(grid), m_it_domain(it_domain) {}
+            block_loop_mic(
+                iterate_domain_t &it_domain, grid_t const &grid, int_t ifirst, int_t ilast, int_t jfirst, int_t jlast,
+                array< const uint_t, 2 > const& block_id)
+                : m_grid(grid), m_it_domain(it_domain), m_ifirst(ifirst), m_ilast(ilast), m_jfirst(jfirst),
+                  m_jlast(jlast), m_block_id(block_id) {}
 
             template < typename Interval >
             GT_FUNCTION void operator()(Interval const &) const {
@@ -101,14 +105,26 @@ namespace gridtools {
                     run_esf_functor_t;
 
                 for (int_t k = from; k <= to; ++k, iteration_policy_t::increment(m_it_domain)) {
-                    boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
-                        run_esf_functor_t(m_it_domain));
+                    for (int_t j = m_jfirst; j <= m_jlast; ++j) {
+                        for (int_t i = m_ifirst; i <= m_ilast; ++i) {
+                            m_it_domain.set_index(0);
+                            m_it_domain.template initialize< 0 >(i, m_block_id[0]);
+                            m_it_domain.template initialize< 1 >(j, m_block_id[1]);
+                            m_it_domain.template initialize< 2 >(k);
+
+                            boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
+                                run_esf_functor_t(m_it_domain));
+                        }
+                    }
                 }
             }
 
           protected:
             grid_t const &m_grid;
             iterate_domain_t &m_it_domain;
+            int_t m_ifirst, m_ilast;
+            int_t m_jfirst, m_jlast;
+            array< const uint_t, 2 > m_block_id;
         };
     } // namespace _impl
 
@@ -214,36 +230,9 @@ namespace gridtools {
                 const int_t jfirst = m_first_pos[1] + extent_t::jminus::value;
                 const int_t jlast = m_first_pos[1] + m_last_pos[1] + extent_t::jplus::value;
 
-                // reset the index
-                it_domain.set_index(0);
-                it_domain.template initialize< 0 >(ifirst, m_block_id[0]);
-                it_domain.template initialize< 1 >(jfirst, m_block_id[1]);
+                boost::mpl::for_each< loop_intervals_t >(_impl::block_loop_mic< execution_type_t, RunFunctorArguments >(
+                    it_domain, m_grid, ifirst, ilast, jfirst, jlast, m_block_id));
 
-                // run the nested ij loop
-                array_t irestore_index, jrestore_index;
-                for (int_t i = ifirst; i <= ilast; ++i) {
-#if defined(VERBOSE) && !defined(NDEBUG)
-                    std::cout << "iteration " << i << ", index i" << std::endl;
-#endif
-                    _impl::mic_reset_index_if_positional< 0 >(it_domain, i);
-                    it_domain.get_index(irestore_index);
-                    for (int_t j = jfirst; j <= jlast; ++j) {
-#if defined(VERBOSE) && !defined(NDEBUG)
-                        std::cout << "iteration " << j << ", index j" << std::endl;
-#endif
-                        _impl::mic_reset_index_if_positional< 1 >(it_domain, j);
-                        it_domain.get_index(jrestore_index);
-
-                        it_domain.template initialize< 2 >(m_grid.template value_at< iteration_policy_t::from >());
-                        boost::mpl::for_each< loop_intervals_t >(
-                            _impl::block_loop_mic< execution_type_t, RunFunctorArguments >(it_domain, m_grid));
-
-                        it_domain.set_index(jrestore_index);
-                        it_domain.template increment< 1, static_uint< 1 > >();
-                    }
-                    it_domain.set_index(irestore_index);
-                    it_domain.template increment< 0, static_uint< 1 > >();
-                }
                 m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
                 m_reduction_data.reduce();
             }
