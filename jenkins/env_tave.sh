@@ -38,8 +38,6 @@ else
   exit_if_error 444
 fi
 
-module list
-
 export BOOST_ROOT=/users/vogtha/boost_1_63_0
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
