@@ -121,6 +121,9 @@ namespace gridtools {
          *  The lambda applied is templated with an index which identifies the current argument. This allow
          *  to define specialised behaviour of the lambda for the specific arguments.
          *
+         *  Container's value type is currently restricted to int_t, due to limited compiler support of
+         *  template template parameters that depend on a previous template argument.
+         *
          *  \tparam Int type of the template parameters that the Container accepts
          *  \tparam Container the type of the container to be constructed
          *  \tparam Lambda the lambda template callable
