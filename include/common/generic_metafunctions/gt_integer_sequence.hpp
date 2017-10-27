@@ -126,8 +126,7 @@ namespace gridtools {
          *  \tparam Lambda the lambda template callable
          *  \tparam ExtraTypes the types of the input arguments to the lambda
          */
-        template < typename Int,
-            template < Int... t > class Container,
+        template < template < int_t... t > class Container,
             template < UInt TT, typename > class Lambda,
             typename... ExtraTypes >
         struct apply_t {
