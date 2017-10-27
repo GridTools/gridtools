@@ -34,7 +34,7 @@ fi
 testfile=${JENKINSPATH}/../build/test.out
 test -e ${testfile}
 if [ $? -eq 0 ] ; then
-    echo Deleting previus test results
+    echo Deleting previous test results
     rm ${testfile}
 fi
 
@@ -89,7 +89,7 @@ if [[ "$DO_MPI" == "ON" ]]; then
     testfile=${JENKINSPATH}/../build/test$MPI_TASKS\.out
     test -e ${testfile}
     if [ $? -eq 0 ] ; then
-        echo Deleting previus test results
+        echo Deleting previous test results
         rm ${testfile}
     fi
 
@@ -137,7 +137,7 @@ if [[ $DO_MPI == "ON" && $DO_GPU == "ON" ]]; then
     testfile=${JENKINSPATH}/../build/gputest$MPI_TASKS\.out
     test -e ${testfile}
     if [ $? -eq 0 ] ; then
-        echo Deleting previus test results
+        echo Deleting previous test results
         rm ${testfile}
     fi
 
