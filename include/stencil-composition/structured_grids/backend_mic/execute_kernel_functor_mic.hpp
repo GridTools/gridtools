@@ -60,43 +60,55 @@ namespace gridtools {
             GT_FUNCTION
             mic_reset_index_if_positional(IterateDomain &, VT) {}
 
-        template < typename ExecutionEngine, typename ExtraArguments >
-        struct run_f_on_interval_mic;
-
-        template < enumtype::execution IterationType, typename RunFunctorArguments >
-        struct run_f_on_interval_mic< enumtype::execute< IterationType >, RunFunctorArguments >
-            : public run_f_on_interval_base<
-                  run_f_on_interval_mic< enumtype::execute< IterationType >, RunFunctorArguments > > // CRTP
-        {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-
+        template < typename ExecutionEngine, typename RunFunctorArguments >
+        struct block_loop_mic {
+            typedef typename RunFunctorArguments::grid_t grid_t;
+            typedef typename RunFunctorArguments::functor_list_t functor_list_t;
+            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+            typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef
                 typename backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >::run_esf_functor_h_t
                     run_esf_functor_h_t;
-            typedef run_f_on_interval_base<
-                run_f_on_interval_mic< typename enumtype::execute< IterationType >, RunFunctorArguments > > super;
-            typedef typename super::iterate_domain_t iterate_domain_t;
-            typedef typename enumtype::execute< IterationType >::type execution_engine;
-            typedef typename RunFunctorArguments::functor_list_t functor_list_t;
 
             GT_FUNCTION
-            explicit run_f_on_interval_mic(
-                iterate_domain_t &iterate_domain_, typename RunFunctorArguments::grid_t const &grid)
-                : super(iterate_domain_, grid) {}
+            block_loop_mic(iterate_domain_t &it_domain, grid_t const &grid) : m_grid(grid), m_it_domain(it_domain) {}
 
-            template < typename IterationPolicy, typename Interval >
-            GT_FUNCTION void k_loop(int_t from, int_t to) const {
+            template < typename Interval >
+            GT_FUNCTION void operator()(Interval const &) const {
+                typedef typename index_to_level< typename Interval::first >::type from_t;
+                typedef typename index_to_level< typename Interval::second >::type to_t;
+
+                // check that the axis specified by the user are containing the k interval
+                GRIDTOOLS_STATIC_ASSERT(
+                    (level_to_index< typename grid_t::axis_type::FromLevel >::value <= Interval::first::value &&
+                        level_to_index< typename grid_t::axis_type::ToLevel >::value >= Interval::second::value),
+                    "the k interval exceeds the axis you specified for the grid instance");
+
+                typedef iteration_policy< from_t,
+                    to_t,
+                    typename grid_traits_from_id< RunFunctorArguments::backend_ids_t::s_grid_type_id >::dim_k_t,
+                    ExecutionEngine::type::iteration >
+                    iteration_policy_t;
+
+                int_t const from = m_grid.template value_at< from_t >();
+                int_t const to = m_grid.template value_at< to_t >();
+
                 assert(from >= 0);
                 assert(to >= 0);
                 assert(to >= from);
+
                 typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
                     run_esf_functor_t;
 
-                for (int_t k = from; k <= to; ++k, IterationPolicy::increment(super::m_domain)) {
+                for (int_t k = from; k <= to; ++k, iteration_policy_t::increment(m_it_domain)) {
                     boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
-                        run_esf_functor_t(super::m_domain));
+                        run_esf_functor_t(m_it_domain));
                 }
             }
+
+          protected:
+            grid_t const &m_grid;
+            iterate_domain_t &m_it_domain;
         };
     } // namespace _impl
 
@@ -108,35 +120,6 @@ namespace gridtools {
         */
         template < typename RunFunctorArguments >
         struct execute_kernel_functor_mic {
-            /**
-            * @brief functor implementing the kernel executed in the innermost loop
-            * This functor contains the portion of the code executed in the innermost loop. In this case it
-            * is the loop over the third dimension (k), but the generality of the loop hierarchy implementation
-            * allows to easily generalize this.
-            */
-            template < typename LoopIntervals,
-                typename RunOnInterval,
-                typename IterateDomain,
-                typename Grid,
-                typename IterationPolicy >
-            struct innermost_functor {
-
-              private:
-                IterateDomain &m_it_domain;
-                const Grid &m_grid;
-
-              public:
-                IterateDomain const &it_domain() const { return m_it_domain; }
-
-                innermost_functor(IterateDomain &it_domain, const Grid &grid) : m_it_domain(it_domain), m_grid(grid) {}
-
-                void operator()() const {
-                    m_it_domain.template initialize< 2 >(m_grid.template value_at< typename IterationPolicy::from >());
-
-                    boost::mpl::for_each< LoopIntervals >(RunOnInterval(m_it_domain, m_grid));
-                }
-            };
-
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef typename RunFunctorArguments::grid_t grid_t;
@@ -253,7 +236,7 @@ namespace gridtools {
 
                         it_domain.template initialize< 2 >(m_grid.template value_at< iteration_policy_t::from >());
                         boost::mpl::for_each< loop_intervals_t >(
-                            _impl::run_f_on_interval_mic< execution_type_t, RunFunctorArguments >(it_domain, m_grid));
+                            _impl::block_loop_mic< execution_type_t, RunFunctorArguments >(it_domain, m_grid));
 
                         it_domain.set_index(jrestore_index);
                         it_domain.template increment< 1, static_uint< 1 > >();
