@@ -251,8 +251,11 @@ namespace gridtools {
 
       private:
         static GT_FUNCTION reference fake() {
-            static T obj[1];
-            return obj[0];
+#ifdef __CUDA_ARCH__
+            __shared__
+#endif
+                static T obj;
+            return obj;
         }
     };
 
