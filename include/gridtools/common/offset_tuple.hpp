@@ -237,10 +237,6 @@ namespace gridtools {
                 GT_INTERNAL_ERROR_MSG("wrong type for the argument of an offset_tuple"));
         }
 
-        // copy ctor
-        GT_FUNCTION
-        constexpr offset_tuple(const offset_tuple &other) {}
-
         GT_FUNCTION
         constexpr offset_tuple() {}
         static const short_t n_args = 0;
