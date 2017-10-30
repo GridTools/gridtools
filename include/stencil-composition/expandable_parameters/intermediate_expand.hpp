@@ -45,6 +45,174 @@
 
 namespace gridtools {
 
+    namespace _impl {
+        namespace expand_detail {
+            template < typename T >
+            struct is_expandable : std::false_type {};
+
+            template < typename Arg, typename Storage >
+            struct is_expandable< arg_storage_pair< Arg, Storage > > : is_vector< Storage > {};
+
+            template < typename T, uint_t N >
+            struct convert_storage_type {
+                using type = T;
+            };
+            template < typename T, uint_t N >
+            struct convert_storage_type< std::vector< T >, N > {
+                using type = data_store_field< T, N >;
+            };
+
+            template < uint_t N >
+            struct convert_placeholder {
+                template < typename >
+                struct apply;
+                template < uint_t I, typename S, typename L, bool T >
+                struct apply< arg< I, S, L, T > > {
+                    using type = arg< I, typename convert_storage_type< S, N >::type, L, T >;
+                };
+            };
+
+            template < typename Aggregator, uint N >
+            using converted_aggregator_type = aggregator_type<
+                typename boost::mpl::transform< typename Aggregator::placeholders_t, convert_placeholder< N > >::type >;
+
+            struct nop {
+                template < typename T >
+                void operator()(T &obj) const {}
+            };
+            struct run {
+                template < typename T >
+                void operator()(T &obj) const {
+                    obj.run();
+                }
+            };
+            struct steady {
+                template < typename T >
+                void operator()(T &obj) const {
+                    obj.steady();
+                }
+            };
+
+            struct get_value_size_f {
+                template < class T >
+                size_t operator()(T const &t) const {
+                    return t.m_value.size();
+                }
+            };
+
+            template < typename Aggregator >
+            size_t get_expandable_size(Aggregator const &src) {
+                namespace f = boost::fusion;
+                namespace m = boost::mpl;
+                auto sizes = f::transform(
+                    f::filter_if< m::and_< is_expandable< m::_ >, boost::mpl::not_< is_tmp_arg< m::_ > > > >(
+                        src.get_arg_storage_pairs()),
+                    get_value_size_f());
+                if (f::empty(sizes))
+                    return 0;
+                size_t res = f::front(sizes);
+                assert(
+                    f::count(sizes, res) == f::size(sizes) && "Non-tmp expandable parameters must have the same size");
+                return res;
+            }
+
+            template < uint_t N >
+            struct convert_storage {
+                template < typename T >
+                data_store_field< T, N > operator()(const std::vector< T > &src) const {
+                    assert(!src.empty());
+                    return {*src[0].get_storage_info_ptr()};
+                }
+                template < typename T >
+                T operator()(const T &src) const {
+                    return src;
+                }
+            };
+
+            template < uint_t N >
+            struct convert_arg_storage_pair {
+                template < typename Arg, typename Storage >
+                arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
+                    typename convert_storage_type< Storage, N >::type >
+                operator()(arg_storage_pair< Arg, Storage > const &src) const {
+                    return {convert_storage< N >()(src.m_value)};
+                }
+                template < typename T >
+                T operator()(T const &src) const {
+                    return src;
+                }
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+                template < typename >
+                struct result;
+                template < typename Arg, typename Storage >
+                struct result< convert_arg_storage_pair(arg_storage_pair< Arg, Storage > const &) > {
+                    using type = arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
+                        typename convert_storage_type< Storage, N >::type >;
+                };
+                template < typename T >
+                struct result< convert_arg_storage_pair(T const &) > {
+                    using type = T;
+                };
+#endif
+            };
+
+            // TODO(anstaf): move to common or find out if this idoim is already avaliable.
+            template < typename T >
+            struct maker {
+                template < typename... Us >
+                T operator()(Us &&... us) const {
+                    return {std::forward< Us >(us)...};
+                }
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+                using result_type = T;
+#endif
+            };
+
+            template < uint_t N, typename Aggregator, typename Res = converted_aggregator_type< Aggregator, N > >
+            Res convert_aggregator(const Aggregator &src) {
+                namespace f = boost::fusion;
+                namespace m = boost::mpl;
+                auto arg_storage_pairs =
+                    f::transform(f::filter_if< m::not_< is_tmp_arg< m::_ > > >(src.get_arg_storage_pairs()),
+                        convert_arg_storage_pair< N >());
+                return f::make_fused(maker< Res >())(std::move(arg_storage_pairs));
+            }
+
+            struct assign_arg_storage_pair {
+                size_t m_offset;
+                template < typename SrcArg, typename Src, typename DstArg, typename Dst, uint_t N >
+                void operator()(arg_storage_pair< SrcArg, std::vector< Src > > const &src,
+                    arg_storage_pair< DstArg, data_store_field< Dst, N > > &dst) const {
+                    assert(src.m_value.size() >= m_offset + N);
+                    for (uint_t i = 0; i != N; ++i)
+                        dst.m_value.set(0, i, src.m_value[m_offset + i]);
+                }
+                template < typename... T >
+                void operator()(T &&...) const {}
+            };
+
+            template < typename Pred, typename Sec >
+            static boost::fusion::filter_view< Sec, Pred > make_filter_view(Sec &sec) {
+                return {sec};
+            };
+
+            template < typename Secs >
+            static boost::fusion::zip_view< Secs > make_zip_view(Secs &&secs) {
+                return {std::forward< Secs >(secs)};
+            };
+
+            template < typename Src, typename Dst >
+            void assign(const Src &src_agg, Dst &dst_agg, size_t offset) {
+                namespace f = boost::fusion;
+                namespace m = boost::mpl;
+                using pred_t = m::not_< is_tmp_arg< m::_ > >;
+                auto src = make_filter_view< pred_t >(src_agg.get_arg_storage_pairs());
+                auto dst = make_filter_view< pred_t >(dst_agg.get_arg_storage_pairs());
+                f::for_each(make_zip_view(f::make_vector(std::cref(src), std::ref(dst))),
+                    f::make_fused(assign_arg_storage_pair{offset}));
+            }
+        }
+    }
     /**
      * @file
      * \brief this file contains the intermediate representation used in case of expandable parameters
@@ -85,45 +253,10 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (std::is_same< ReductionType, notype >::value), "Reduction is not allowed with expandable parameters");
 
-        template < typename T >
-        struct is_expandable : std::false_type {};
-
-        template < ushort_t N, typename Storage, typename Location, bool Temporary >
-        struct is_expandable< arg< N, Storage, Location, Temporary > > : is_vector< Storage > {};
-
-        template < typename Arg, typename Storage >
-        struct is_expandable< arg_storage_pair< Arg, Storage > > : is_expandable< Arg > {};
-
-        template < typename T >
-        using is_non_tmp_expandable = boost::mpl::and_< is_expandable< T >, boost::mpl::not_< is_tmp_arg< T > > >;
-
-        template < typename T, uint_t N >
-        struct convert_storage_type {
-            using type = T;
-        };
-        template < typename T, uint_t N >
-        struct convert_storage_type< std::vector< T >, N > {
-            using type = data_store_field< T, N >;
-        };
-
-        template < uint_t N >
-        struct convert_placeholder {
-            template < typename >
-            struct apply;
-            template < uint_t I, typename S, typename L, bool T >
-            struct apply< arg< I, S, L, T > > {
-                using type = arg< I, typename convert_storage_type< S, N >::type, L, T >;
-            };
-        };
-
-        template < uint N >
-        using converted_aggregator_type = aggregator_type<
-            typename boost::mpl::transform< typename Aggregator::placeholders_t, convert_placeholder< N > >::type >;
-
         template < uint N >
         using converted_intermediate = intermediate< Backend,
             MssDescriptorArray,
-            converted_aggregator_type< N >,
+            _impl::expand_detail::converted_aggregator_type< Aggregator, N >,
             Grid,
             ConditionalsSet,
             ReductionType,
@@ -132,19 +265,6 @@ namespace gridtools {
 
         using base_t = typename intermediate_expand::computation;
         using base_t::m_domain;
-
-        struct do_run {
-            template < typename T >
-            void operator()(T &obj) const {
-                obj.run();
-            }
-        };
-        struct do_steady {
-            template < typename T >
-            void operator()(T &obj) const {
-                obj.steady();
-            }
-        };
 
         // private members
         const size_t m_size;
@@ -160,12 +280,14 @@ namespace gridtools {
          */
         template < typename Domain >
         intermediate_expand(Domain &&domain, Grid const &grid, ConditionalsSet const &conditionals)
-            : base_t(std::forward< Domain >(domain)), m_size(get_expandable_size(m_domain)),
+            : base_t(std::forward< Domain >(domain)), m_size(_impl::expand_detail::get_expandable_size(m_domain)),
               m_intermediate(m_size >= ExpandFactor::value
                                  ? create_intermediate< ExpandFactor::value >(m_domain, grid, conditionals)
                                  : nullptr),
               m_intermediate_remainder(
-                  m_size % ExpandFactor::value ? create_intermediate< 1 >(m_domain, grid, conditionals) : nullptr) {}
+                  m_size % ExpandFactor::value ? create_intermediate< 1 >(m_domain, grid, conditionals) : nullptr) {
+            assign_and_call();
+        }
 
         /**
            @brief run the execution
@@ -177,7 +299,7 @@ namespace gridtools {
            chunck of storage pointers is consumed.
          */
         ReductionType run() override {
-            for_each_computation(do_run{});
+            assign_and_call(_impl::expand_detail::run{});
             return {};
         }
 
@@ -224,7 +346,7 @@ namespace gridtools {
         /**
            @brief forward the call to the members
          */
-        void steady() override { for_each_computation(do_steady{}); }
+        void steady() override { assign_and_call(_impl::expand_detail::steady{}); }
 
         /**
            @brief forward the call to the members
@@ -235,79 +357,18 @@ namespace gridtools {
         }
 
       private:
-        struct get_value_size_f {
-            template < class T >
-            size_t operator()(T const &t) const {
-                return t.m_value.size();
-            }
-        };
-
-        static size_t get_expandable_size(Aggregator const &src) {
-            namespace f = boost::fusion;
-            auto sizes =
-                f::transform(f::filter_if< is_non_tmp_expandable< boost::mpl::_ > >(src.get_arg_storage_pairs()),
-                    get_value_size_f());
-            if (f::empty(sizes))
-                return 0;
-            size_t res = f::front(sizes);
-            assert(f::count(sizes, res) == f::size(sizes) && "Non-tmp expandable parameters must have the same size");
-            return res;
+        template < uint_t N, typename Res = converted_intermediate< N > >
+        static Res *create_intermediate(const Aggregator &src, Grid const &grid, const ConditionalsSet &conditionals) {
+            return new Res(_impl::expand_detail::convert_aggregator< N >(src), grid, conditionals);
         }
 
-        template < uint_t N >
-        struct convert_storage {
-            template < typename T >
-            data_store_field< T, N > operator()(const std::vector< T > &src) const {
-                assert(!src.empty());
-                return {*src[0].get_storage_info_ptr()};
-            }
-            template < typename T >
-            T operator()(const T &src) const {
-                return src;
-            }
-        };
-
-        template < uint_t N >
-        struct convert_arg_storage_pair {
-            template < typename Arg, typename Storage >
-            arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
-                typename convert_storage_type< Storage, N >::type >
-            operator()(arg_storage_pair< Arg, Storage > const &src) const {
-                return {convert_storage< N >()(src.m_value)};
-            }
-            template < typename T >
-            T operator()(const T &src) const {
-                return src;
-            }
-        };
-
-        // TODO(anstaf): move to common or find out if this idoim is already avaliable.
-        template < typename T >
-        struct maker {
-            template < typename... Us >
-            T operator()(Us &&... us) const {
-                return {std::forward< Us >(us)...};
-            }
-        };
-
-        template < uint_t N >
-        static converted_aggregator_type< N > convert_aggregator(const Aggregator &src) {
-            namespace f = boost::fusion;
-            namespace m = boost::mpl;
-            auto arg_storage_pairs =
-                f::transform(f::filter_if< m::not_< is_tmp_arg< m::_ > > >(src.get_arg_storage_pairs()),
-                    convert_arg_storage_pair< N >());
-            return f::make_fused(maker< converted_aggregator_type< N > >())(std::move(arg_storage_pairs));
+        template < typename Dst >
+        void assign(Dst &dst, size_t offset) {
+            _impl::expand_detail::assign(m_domain, dst.domain(), offset);
         }
 
-        template < uint_t N >
-        static converted_intermediate< N > *create_intermediate(
-            const Aggregator &src, Grid const &grid, const ConditionalsSet &conditionals) {
-            return new converted_intermediate< N >(convert_aggregator< N >(src), grid, conditionals);
-        }
-
-        template < typename F >
-        void for_each_computation(const F &fun) {
+        template < typename F = _impl::expand_detail::nop >
+        void assign_and_call(const F &fun = F()) {
             size_t i = 0;
             for (; m_size - i >= ExpandFactor::value; i += ExpandFactor::value) {
                 assign(*m_intermediate, i);
@@ -317,26 +378,6 @@ namespace gridtools {
                 assign(*m_intermediate_remainder, i);
                 fun(*m_intermediate_remainder);
             }
-        }
-
-        struct assign_arg_storage_pair {
-            size_t m_offset;
-            template < typename Src, typename Arg, typename Dst, uint_t N >
-            void operator()(Src &src, arg_storage_pair< Arg, data_store_field< Dst, N > > &dst) const {
-                assert(src.m_value.size() >= m_offset + N);
-                for (uint_t i = 0; i != N; ++i)
-                    dst.m_value.set(0, i, src.m_value[m_offset + i]);
-            }
-        };
-
-        template < typename Dst >
-        void assign(Dst &dst, size_t offset) const {
-            namespace f = boost::fusion;
-            namespace m = boost::mpl;
-            using pred = is_non_tmp_expandable< m::_ >;
-            f::for_each(f::zip(f::filter_if< pred >(m_domain.get_arg_storage_pairs()),
-                            f::filter_if< pred >(dst.domain().get_arg_storage_pairs())),
-                f::make_fused(assign_arg_storage_pair()));
         }
     };
 }
