@@ -33,4 +33,58 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_storage_info_rt.cpp"
+
+#include "gtest/gtest.h"
+
+#include "stencil-composition/level.hpp"
+#include "stencil-composition/level_metafunctions.hpp"
+
+using namespace gridtools;
+
+TEST(test_level, leq) {
+    using lower_level = level< 0, -1 >;
+    using greater_level = level< 1, 1 >;
+
+    ASSERT_TRUE((level_leq< lower_level, greater_level >::value));
+    ASSERT_FALSE((level_leq< greater_level, lower_level >::value));
+}
+
+TEST(test_level, leq_same_splitter) {
+    using lower_level = level< 1, -1 >;
+    using greater_level = level< 1, 1 >;
+
+    ASSERT_TRUE((level_leq< lower_level, greater_level >::value));
+    ASSERT_FALSE((level_leq< greater_level, lower_level >::value));
+}
+
+TEST(test_level, leq_equal_levels) {
+    using level1 = level< 1, -1 >;
+    using level2 = level1;
+
+    ASSERT_TRUE((level_leq< level1, level2 >::value));
+    ASSERT_TRUE((level_leq< level2, level1 >::value));
+}
+
+TEST(test_level, lt) {
+    using lower_level = level< 0, -1 >;
+    using greater_level = level< 1, 1 >;
+
+    ASSERT_TRUE((level_lt< lower_level, greater_level >::value));
+    ASSERT_FALSE((level_lt< greater_level, lower_level >::value));
+}
+
+TEST(test_level, lt_equal_levels) {
+    using level1 = level< 1, -1 >;
+    using level2 = level1;
+
+    ASSERT_FALSE((level_lt< level1, level2 >::value));
+    ASSERT_FALSE((level_lt< level2, level1 >::value));
+}
+
+TEST(test_level, geq) {
+    using lower_level = level< 0, -1 >;
+    using greater_level = level< 1, 1 >;
+
+    ASSERT_TRUE((level_geq< greater_level, lower_level >::value));
+    ASSERT_FALSE((level_geq< lower_level, greater_level >::value));
+}

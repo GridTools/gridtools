@@ -38,7 +38,6 @@
 #include "../accessor_base.hpp"
 #include "../arg.hpp"
 #include "../../common/dimension.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
 #include "../../common/generic_metafunctions/static_if.hpp"
 
 #include "accessor_cxx11.hpp"

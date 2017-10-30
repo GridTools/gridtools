@@ -40,8 +40,6 @@
 
 namespace check_grid_bounds {
 
-    typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
-
     typedef gridtools::backend< gridtools::enumtype::Host,
         gridtools::enumtype::GRIDBACKEND,
         gridtools::enumtype::Block > the_backend;
@@ -98,12 +96,10 @@ namespace check_grid_bounds {
             (p_field1() = field1), (p_field2() = field2), (p_field3() = field3));
 
         gridtools::uint_t halo_size = 0;
-        gridtools::uint_t di[5] = {halo_size, halo_size, halo_size, gx - halo_size - 1, gx};
-        gridtools::uint_t dj[5] = {halo_size, halo_size, halo_size, gy - halo_size - 1, gy};
+        gridtools::halo_descriptor di{halo_size, halo_size, halo_size, gx - halo_size - 1, gx};
+        gridtools::halo_descriptor dj{halo_size, halo_size, halo_size, gy - halo_size - 1, gy};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = gz - 1;
+        auto grid = make_grid(di, dj, gridtools::axis< 1 >(gz));
 
         using mdlist_t = boost::fusion::vector< storage_info1_t, storage_info2_t, storage_info3_t >;
         mdlist_t mdlist(si1, si2, si3);

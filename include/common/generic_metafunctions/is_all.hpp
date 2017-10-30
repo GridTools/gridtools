@@ -33,30 +33,20 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <common/generic_metafunctions/is_pack_of.hpp>
+#pragma once
+#include "../defs.hpp"
+#include "accumulate.hpp"
 
-using namespace gridtools;
+namespace gridtools {
+    /**
+     * @brief checks if all Types in variadic pack fulfill the Condition (true if empty)
+     */
+    template < template < typename > class Condition, typename... Types >
+    using is_all = boost::mpl::bool_< accumulate(logical_and(), true, Condition< Types >::type::value...) >;
 
-#ifdef CUDA8
-
-template < typename T >
-struct is_int : boost::mpl::false_ {};
-template <>
-struct is_int< int > : boost::mpl::true_ {};
-
-template < typename... Int, typename = is_pack_of< is_int, Int... > >
-GT_FUNCTION constexpr int test_fn(Int...) {
-    return 1;
+    /**
+     * @brief SFINAE for the case in which all the components of a parameter pack match a certain condition
+     */
+    template < template < typename > class Condition, typename... Types >
+    using all_ = typename boost::enable_if_c< is_all< Condition, Types... >::type::value, bool >::type;
 }
-
-GT_FUNCTION
-constexpr int test_fn(double, double) { return 2; }
-
-TEST(is_offset_of, int) { GRIDTOOLS_STATIC_ASSERT((test_fn(int(3), int(4)) == 1), "ERROR"); }
-
-TEST(is_offset_of, empty) { GRIDTOOLS_STATIC_ASSERT((test_fn() == 1), "ERROR"); }
-
-TEST(is_offset_of, long) { GRIDTOOLS_STATIC_ASSERT((test_fn(long(3), int(4)) == 2), "ERROR"); }
-
-#endif

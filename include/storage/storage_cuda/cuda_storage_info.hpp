@@ -66,7 +66,7 @@ namespace gridtools {
          * @brief cuda_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        template < typename... Dims, typename = gridtools::all_integers< Dims... > >
+        template < typename... Dims, typename = gridtools::all_integral< Dims... > >
         explicit constexpr cuda_storage_info(Dims... dims_)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,

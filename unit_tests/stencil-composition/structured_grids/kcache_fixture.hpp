@@ -1,30 +1,68 @@
+/*
+  GridTools Libraries
+
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
+  All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are
+  met:
+
+  1. Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+  3. Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products derived from
+  this software without specific prior written permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  For information: http://eth-cscs.github.io/gridtools/
+*/
 #pragma once
 
 #include "stencil-composition/stencil-composition.hpp"
 
-typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, 1 > > axis;
+using axis_t = gridtools::axis< 1 >;
+using axis = axis_t::axis_interval_t;
 
-typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > kfull;
+using kfull = axis_t::full_interval;
+using kbody_high = kfull::modify< 1, 0 >;
+using kminimum = kfull::first_level;
+using kminimump1 = kminimum::shift< 1 >;
+using kbody_highp1 = kbody_high::modify< 1, 0 >;
+using kbody_highp1m1 = kbody_high::modify< 1, -1 >;
+using kmaximum = kfull::last_level;
+using kmaximumm1 = kmaximum::shift< -1 >;
+using kbody_low = kfull::modify< 0, -1 >;
+using kbody = kfull::modify< 1, -1 >;
 
-typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 1, -1 > > kbody_high;
-typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 0, -1 > > kminimum;
-typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 0, 1 > > kminimump1;
-typedef gridtools::interval< gridtools::level< 0, 2 >, gridtools::level< 1, -1 > > kbody_highp1;
-typedef gridtools::interval< gridtools::level< 0, 2 >, gridtools::level< 1, -2 > > kbody_highp1m1;
-typedef gridtools::interval< gridtools::level< 1, -1 >, gridtools::level< 1, -1 > > kmaximum;
-typedef gridtools::interval< gridtools::level< 1, -2 >, gridtools::level< 1, -2 > > kmaximumm1;
-typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -2 > > kbody_low;
-typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 1, -2 > > kbody;
+using axis_b_t = gridtools::axis< 2 >;
+using axis_b = axis_b_t::axis_interval_t;
 
-typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 2, 1 > > axis_b;
-typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 0, -1 > > kminimum_b;
-typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 0, 1 > > kminimump1_b;
-typedef gridtools::interval< gridtools::level< 2, -1 >, gridtools::level< 2, -1 > > kmaximum_b;
-typedef gridtools::interval< gridtools::level< 1, 1 >, gridtools::level< 2, -2 > > kmaximumm1_b;
-typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > kbody_low_b;
-typedef gridtools::interval< gridtools::level< 0, 1 >, gridtools::level< 1, -1 > > kbody_lowp1_b;
-typedef gridtools::interval< gridtools::level< 1, 2 >, gridtools::level< 1, -1 > > kbody_b;
-typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 2, -1 > > kfull_b;
+using kfull_b = axis_b_t::full_interval;
+using kminimum_b = kfull_b::first_level;
+using kminimump1_b = kminimum_b::shift< 1 >;
+using kmaximum_b = kfull_b::last_level;
+using kmaximumm1_b = axis_b_t::get_interval< 1 >::modify< 1, -1 >; // TODO name for some of the intervals seems wrong
+using kbody_low_b = axis_b_t::get_interval< 0 >;
+using kbody_lowp1_b = kbody_low_b::modify< 1, 0 >;
+typedef gridtools::interval< gridtools::level< 1, 2 >, gridtools::level< 1, -1 > >
+    kbody_b; // TODO this is not a valid interval
 
 #ifdef __CUDACC__
 #define BACKEND_ARCH gridtools::enumtype::Cuda

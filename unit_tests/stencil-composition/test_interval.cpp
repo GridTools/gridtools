@@ -33,28 +33,25 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #include "gtest/gtest.h"
-#include <common/generic_metafunctions/all_integrals.hpp>
+#include "stencil-composition/interval.hpp"
+#include "../test_helper.hpp"
 
 using namespace gridtools;
 
-template < typename... Int,
-    typename =
-#if defined(CUDA8) || !defined(__CUDACC__)
-        all_integers< Int... >
-#else
-        is_pack_of< boost::is_integral, Int... >
-#endif
-    >
-GT_FUNCTION constexpr int test_fn(Int...) {
-    return 1;
+TEST(test_interval, modify) {
+    using my_interval = interval< level< 0, -1 >, level< 1, -1 > >;
+
+    ASSERT_TYPE_EQ< interval< level< 0, -2 >, level< 1, -1 > >, my_interval::modify< -1, 0 > >();
+    ASSERT_TYPE_EQ< interval< level< 0, 1 >, level< 1, 1 > >, my_interval::modify< 1, 1 > >();
 }
 
-GT_FUNCTION
-constexpr int test_fn(double, double) { return 2; }
+TEST(test_interval, join) {
+    using interval1 = interval< level< 1, -2 >, level< 1, -1 > >;
+    using interval2 = interval< level< 0, -1 >, level< 3, -1 > >;
+    using interval3 = interval< level< 2, -2 >, level< 3, -1 > >;
+    using joined_interval = internal::internal_join_interval< interval1, interval2, interval3 >::type;
 
-TEST(is_offset_of, int) { GRIDTOOLS_STATIC_ASSERT((test_fn(int(3), int(4)) == 1), "ERROR"); }
-
-TEST(is_offset_of, empty) { GRIDTOOLS_STATIC_ASSERT((test_fn() == 1), "ERROR"); }
-
-TEST(is_offset_of, long) { GRIDTOOLS_STATIC_ASSERT((test_fn(long(3), int(4)) == 1), "ERROR"); }
+    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 3, -1 > >, joined_interval >();
+}

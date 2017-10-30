@@ -39,8 +39,23 @@
 #include "../common/array.hpp"
 #include "../common/gpu_clone.hpp"
 #include "interval.hpp"
+#include "axis.hpp"
 
 namespace gridtools {
+    namespace internal {
+        /*
+         * @brief convert an array of intervals in an array of indices of splitters
+         */
+        template < size_t NIntervals >
+        array< uint_t, NIntervals > intervals_to_indices(const array< uint_t, NIntervals > &intervals) {
+            array< uint_t, NIntervals > indices;
+            indices[0] = intervals[0] - 1;
+            for (size_t i = 1; i < NIntervals; ++i) {
+                indices[i] = indices[i] + intervals[i];
+            }
+            return indices;
+        }
+    }
 
     // TODO should be removed once we removed all ctor(array) calls
     namespace enumtype_axis {
@@ -54,28 +69,35 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_interval< Axis >::value), GT_INTERNAL_ERROR);
         typedef Axis axis_type;
 
-        typedef typename boost::mpl::plus<
-            boost::mpl::minus< typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter >,
-            static_int< 1 > >::type size_type;
-
-        array< uint_t, size_type::value > value_list;
+        typedef typename boost::mpl::minus< typename Axis::ToLevel::Splitter, typename Axis::FromLevel::Splitter >::type
+            size_type;
 
       private:
         halo_descriptor m_direction_i;
         halo_descriptor m_direction_j;
+        array< uint_t, size_type::value > value_list;
 
       public:
+        using value_list_t = decltype(value_list);
+
         GT_FUNCTION grid_base(const grid_base< Axis > &other)
             : m_direction_i(other.m_direction_i), m_direction_j(other.m_direction_j) {
             value_list = other.value_list;
         }
 
-        GT_FUNCTION
-        explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j)
+        DEPRECATED_REASON(
+            GT_FUNCTION explicit grid_base(halo_descriptor const &direction_i, halo_descriptor const &direction_j),
+            "This constructor does not initialize the vertical axis, use the constructor with 3 arguments.")
             : m_direction_i(direction_i), m_direction_j(direction_j) {}
 
         GT_FUNCTION
-        explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/)
+        explicit grid_base(halo_descriptor const &direction_i,
+            halo_descriptor const &direction_j,
+            const array< uint_t, size_type::value > &value_list)
+            : m_direction_i(direction_i), m_direction_j(direction_j), value_list(value_list) {}
+
+        DEPRECATED_REASON(GT_FUNCTION explicit grid_base(uint_t *i, uint_t *j /*, uint_t* k*/),
+            "Use constructor with halo_descriptors")
             : m_direction_i(i[minus], i[plus], i[begin], i[end], i[length]),
               m_direction_j(j[minus], j[plus], j[begin], j[end], j[length]) {}
 
@@ -97,7 +119,7 @@ namespace gridtools {
             int_t offs = Level::Offset::value;
             if (offs < 0)
                 offs += 1;
-            return value_list[Level::Splitter::value] + offs;
+            return Level::Splitter::value == 0 ? offs : value_list[Level::Splitter::value - 1] + offs;
         }
 
         GT_FUNCTION uint_t k_min() const { return value_at< typename Axis::FromLevel >(); }
