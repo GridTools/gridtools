@@ -39,8 +39,11 @@
 @briefImplementation of an array class
 */
 
-#include <stddef.h>
+#include <cstddef>
+#include <iterator>
 #include <algorithm>
+#include <stdexcept>
+
 #include <boost/type_traits/has_trivial_constructor.hpp>
 
 #include "defs.hpp"
@@ -50,23 +53,85 @@
 
 namespace gridtools {
 
-    template < typename T >
-    struct is_array;
-
-    template < typename T, size_t D >
-    class array {
-        typedef array< T, D > type;
-        static const uint_t _size = (D > 0) ? D : 1;
-
+    template < typename T, ::std::size_t D >
+    struct array {
         // we make the members public to make this class an aggregate
-      public:
-        T _array[_size];
+        T _array[D];
 
-        typedef T value_type;
+        using value_type = T;
+        using size_type = ::std::size_t;
+        using difference_type = ::std::ptrdiff_t;
+        using reference = value_type &;
+        using const_reference = const value_type &;
+        using pointer = value_type *;
+        using const_pointer = const value_type *;
+        using iterator = pointer;
+        using const_iterator = const_pointer;
+        using reverse_iterator = ::std::reverse_iterator< iterator >;
+        using const_reverse_iterator = ::std::reverse_iterator< const_iterator >;
+
+        GT_FUNCTION reference at(size_type pos) {
+            if (pos >= D)
+                throw ::std::out_of_range("array::at()");
+            return operator[](pos);
+        }
+        GT_FUNCTION const_reference at(size_type pos) const {
+            if (pos >= D)
+                throw ::std::out_of_range("array::at() const");
+            return operator[](pos);
+        }
+
+        GT_FUNCTION reference operator[](size_type i) { return _array[i]; }
+        GT_FUNCTION constexpr const_reference operator[](size_type i) const { return _array[i]; }
+
+        GT_FUNCTION reference front() { return _array[0]; }
+        GT_FUNCTION constexpr const_reference front() const { return _array[0]; }
+
+        GT_FUNCTION reference back() { return _array[D - 1]; }
+        GT_FUNCTION constexpr const_reference back() const { return _array[D - 1]; }
+
+        GT_FUNCTION T *data() noexcept { return _array; }
+        GT_FUNCTION constexpr T const *data() const noexcept { return _array; }
+
+        GT_FUNCTION iterator begin() { return &_array[0]; }
+        GT_FUNCTION constexpr const_iterator begin() const { return &_array[0]; }
+        GT_FUNCTION constexpr const_iterator cbegin() const { return &_array[0]; }
+
+        GT_FUNCTION iterator end() { return &_array[D]; }
+        GT_FUNCTION constexpr const_iterator end() const { return &_array[D]; }
+        GT_FUNCTION constexpr const_iterator cend() const { return &_array[D]; }
+
+        GT_FUNCTION reverse_iterator rbegin() { return {end()}; }
+        GT_FUNCTION constexpr const_reverse_iterator rbegin() const { return {end()}; }
+        GT_FUNCTION constexpr const_reverse_iterator crbegin() const { return {cend()}; }
+
+        GT_FUNCTION reverse_iterator rend() { return {begin()}; }
+        GT_FUNCTION constexpr const_reverse_iterator rend() const { return {begin()}; }
+        GT_FUNCTION constexpr const_reverse_iterator crend() const { return {begin()}; }
+
+        GT_FUNCTION constexpr bool empty() const noexcept { return false; }
+
+        GT_FUNCTION constexpr size_type size() const noexcept { return D; }
+        GT_FUNCTION constexpr size_type max_size() const noexcept { return D; }
+
+        GT_FUNCTION void fill(const T &value) {
+            for (T &dst : _array)
+                dst = value;
+        }
+
+        GT_FUNCTION void swap(array &other) noexcept(
+            noexcept(std::swap(std::declval< T & >(), std::declval< T & >()))) {
+            using ::std::swap;
+            for (::std::size_t i = 0; i != D; ++i)
+                swap(_array[i], other._array[i]);
+        }
+
+        // non standard interface
+
         static const size_t n_dimensions = D;
 
         // TODO provide a constexpr version
-        T operator*(type &other) {
+        T operator*(array &other) {
             // TODO assert T is a primitive
             T result = 0;
             for (int i = 0; i < n_dimensions; ++i) {
@@ -93,46 +158,187 @@ namespace gridtools {
             return ret;
         }
 
-        GT_FUNCTION
-        T const *begin() const { return &_array[0]; }
-
-        GT_FUNCTION
-        T *begin() { return &_array[0]; }
-
-        GT_FUNCTION
-        T const *end() const { return &_array[_size]; }
-
-        GT_FUNCTION
-        T *end() { return &_array[_size]; }
-
-        GT_FUNCTION
-        T *data() const { return _array; }
-
-        GT_FUNCTION
-        constexpr T const &operator[](size_t i) const { return _array[i]; }
-
         template < size_t I >
         GT_FUNCTION constexpr T get() const {
             GRIDTOOLS_STATIC_ASSERT((I < n_dimensions), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
             return _array[I];
         }
 
-        GT_FUNCTION
-        T &operator[](size_t i) {
-            assert((i < _size));
-            return _array[i];
+        template < typename A >
+        GT_FUNCTION array &operator=(A const &a) {
+            assert(a.size() == D);
+            std::copy(a.begin(), a.end(), _array);
+            return *this;
+        }
+    };
+
+    template < typename T >
+    struct array< T, 0 > {
+        using value_type = T;
+        using size_type = ::std::size_t;
+        using difference_type = ::std::ptrdiff_t;
+        using reference = value_type &;
+        using const_reference = const value_type &;
+        using pointer = value_type *;
+        using const_pointer = const value_type *;
+        using iterator = pointer;
+        using const_iterator = const_pointer;
+        using reverse_iterator = ::std::reverse_iterator< iterator >;
+        using const_reverse_iterator = ::std::reverse_iterator< const_iterator >;
+
+        GT_FUNCTION reference at(size_type) { throw ::std::out_of_range("array::at"); }
+        GT_FUNCTION const_reference at(size_type) const { throw ::std::out_of_range("const array::at"); }
+
+        GT_FUNCTION reference operator[](size_type i) { return fake(); }
+        GT_FUNCTION constexpr const_reference operator[](size_type i) const { return fake(); }
+
+        GT_FUNCTION reference front() { return fake(); }
+        GT_FUNCTION constexpr const_reference front() const { return fake(); }
+
+        GT_FUNCTION reference back() { return fake(); }
+        GT_FUNCTION constexpr const_reference back() const { return fake(); }
+
+        GT_FUNCTION T *data() noexcept { return nullptr; }
+        GT_FUNCTION constexpr T const *data() const noexcept { return nullptr; }
+
+        GT_FUNCTION iterator begin() { return nullptr; }
+        GT_FUNCTION constexpr const_iterator begin() const { return nullptr; }
+        GT_FUNCTION constexpr const_iterator cbegin() const { return nullptr; }
+
+        GT_FUNCTION iterator end() { return nullptr; }
+        GT_FUNCTION constexpr const_iterator end() const { return nullptr; }
+        GT_FUNCTION constexpr const_iterator cend() const { return nullptr; }
+
+        GT_FUNCTION reverse_iterator rbegin() { return {end()}; }
+        GT_FUNCTION constexpr const_reverse_iterator rbegin() const { return {end()}; }
+        GT_FUNCTION constexpr const_reverse_iterator crbegin() const { return {cend()}; }
+
+        GT_FUNCTION reverse_iterator rend() { return {begin()}; }
+        GT_FUNCTION constexpr const_reverse_iterator rend() const { return {begin()}; }
+        GT_FUNCTION constexpr const_reverse_iterator crend() const { return {begin()}; }
+
+        GT_FUNCTION constexpr bool empty() const noexcept { return true; }
+
+        GT_FUNCTION constexpr size_type size() const noexcept { return 0; }
+        GT_FUNCTION constexpr size_type max_size() const noexcept { return 0; }
+
+        GT_FUNCTION void fill(const T &) {}
+
+        GT_FUNCTION void swap(array &) noexcept {}
+
+        // non standard interface
+
+        static const size_t n_dimensions = 0;
+
+        // TODO provide a constexpr version
+        T operator*(array &other) { return {}; }
+
+        array< T, 1 > append_dim(T const &val) const { return array< T, 1 >{{val}}; }
+
+        array< T, 1 > prepend_dim(T const &val) const { return array< T, 1 >{{val}}; }
+
+        template < size_t I >
+        GT_FUNCTION constexpr T get() const {
+            GRIDTOOLS_STATIC_ASSERT(I < 0, GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
+            return fake();
         }
 
         template < typename A >
         GT_FUNCTION array &operator=(A const &a) {
-            assert(a.size() == _size);
-            std::copy(a.begin(), a.end(), _array);
+            assert(a.size() == 0);
             return *this;
         }
 
-        GT_FUNCTION
-        static constexpr size_t size() { return _size; }
+      private:
+        static GT_FUNCTION reference fake() {
+#ifdef __CUDA_ARCH__
+            __shared__
+#endif
+                static T obj;
+            return obj;
+        }
     };
+
+    template < class T, ::std::size_t N >
+    GT_FUNCTION bool operator==(const array< T, N > &lhs, const array< T, N > &rhs) {
+        for (::std::size_t i = 0; i != N; ++i)
+            if (!(lhs[i] == rhs[i]))
+                return false;
+        return true;
+    }
+    template < class T, ::std::size_t N >
+    GT_FUNCTION bool operator!=(const array< T, N > &lhs, const array< T, N > &rhs) {
+        for (::std::size_t i = 0; i != N; ++i)
+            if (!(lhs[i] == rhs[i]))
+                return true;
+        return false;
+    }
+
+    template < class T, ::std::size_t N >
+    GT_FUNCTION bool operator<(const array< T, N > &lhs, const array< T, N > &rhs) {
+        for (::std::size_t i = 0; i != N; ++i) {
+            if (lhs[i] < rhs[i])
+                return true;
+            if (rhs[i] < lhs[i])
+                return false;
+        }
+        return false;
+    }
+
+    template < class T, ::std::size_t N >
+    GT_FUNCTION bool operator<=(const array< T, N > &lhs, const array< T, N > &rhs) {
+        for (::std::size_t i = 0; i != N; ++i) {
+            if (lhs[i] < rhs[i])
+                return true;
+            if (rhs[i] < lhs[i])
+                return false;
+        }
+        return true;
+    }
+
+    template < class T, ::std::size_t N >
+    GT_FUNCTION bool operator>(const array< T, N > &lhs, const array< T, N > &rhs) {
+        for (::std::size_t i = 0; i != N; ++i) {
+            if (rhs[i] < lhs[i])
+                return true;
+            if (lhs[i] < rhs[i])
+                return false;
+        }
+        return false;
+    }
+
+    template < class T, ::std::size_t N >
+    GT_FUNCTION bool operator>=(const array< T, N > &lhs, const array< T, N > &rhs) {
+        for (::std::size_t i = 0; i != N; ++i) {
+            if (rhs[i] < lhs[i])
+                return true;
+            if (lhs[i] < rhs[i])
+                return false;
+        }
+        return true;
+    }
+
+    template <::std::size_t I, class T, ::std::size_t N >
+    GT_FUNCTION constexpr T &get(array< T, N > &a) noexcept {
+        static_assert(I < N, "");
+        return a._array[I];
+    }
+
+    template <::std::size_t I, class T, ::std::size_t N >
+    GT_FUNCTION constexpr T &&get(array< T, N > &&a) noexcept {
+        static_assert(I < N, "");
+        return std::move(a._array[I]);
+    }
+
+    template <::std::size_t I, class T, ::std::size_t N >
+    GT_FUNCTION constexpr const T &get(const array< T, N > &a) noexcept {
+        static_assert(I < N, "");
+        return a._array[I];
+    }
+
+    //    TODO(anstaf): rename struct swap that is defined in data_store_field.hpp to smth. else and uncomment this.
+    //    template< class T, std::size_t N >
+    //    GT_FUNCTION void swap( array<T,N>& lhs, array<T,N>& rhs ) { lhs.swap(rhs); }
 
     template < typename T >
     struct is_array : boost::mpl::false_ {};

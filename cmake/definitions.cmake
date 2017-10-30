@@ -8,6 +8,10 @@ if(VERBOSE)
     add_definitions(-DVERBOSE)
 endif(VERBOSE)
 
+## set boost fusion sizes ##
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_VECTOR_SIZE=${BOOST_FUSION_MAX_SIZE}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFUSION_MAX_MAP_SIZE=${BOOST_FUSION_MAX_SIZE}")
+
 ## enable -Werror
 if( WERROR )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -Werror" )
@@ -57,15 +61,18 @@ if( USE_GPU )
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
   string(REPLACE "." "" CUDA_VERSION ${CUDA_VERSION})
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DCUDA_VERSION=${GT_CUDA_VERSION}")
+  set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS})
   if( WERROR )
      #unfortunately we cannot treat all errors as warnings, we have to specify each warning; the only supported warning in CUDA8 is cross-execution-space-call
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --Werror cross-execution-space-call -Xptxas --warning-as-error --nvlink-options --warning-as-error" )
   endif()
   set(CUDA_PROPAGATE_HOST_FLAGS ON)
-  if( ${CUDA_VERSION} VERSION_GREATER "60")
-      set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")
-  else()
+  if( ${CUDA_VERSION} VERSION_LESS "70" )
       error(STATUS "CUDA 6.0 or lower does not supported")
+  endif()
+  set(GPU_SPECIFIC_FLAGS "-D_USE_GPU_ -D_GCL_GPU_")    
+  if( ${CUDA_VERSION} VERSION_LESS "80" )
+      add_definitions(-DBOOST_RESULT_OF_USE_TR1)
   endif()
   set( CUDA_ARCH "sm_35" CACHE STRING "Compute capability for CUDA" )
 

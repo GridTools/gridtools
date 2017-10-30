@@ -269,7 +269,7 @@ namespace gridtools {
 
                 template < typename... Accessors >
                 GT_FUNCTION static void apply(
-                    reduce_tuple_holder_t __restrict__ &reducer, Accessors &__restrict__... args) {
+                    reduce_tuple_holder_t &__restrict__ reducer, Accessors &__restrict__... args) {
                     // we need to call the user functor (Reduction(arg1, arg2, ..., result) )
                     // However we can make here a direct call, since we first need to dereference the address of each
                     // Accessor
