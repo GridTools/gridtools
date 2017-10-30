@@ -22,12 +22,12 @@ include (testing)
 # ===============
 # library header files
 # ===============
-include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include" )
+include_directories ( "${CMAKE_CURRENT_SOURCE_DIR}/include/gridtools" )
 
 # ===============
 # compile gcl:
 # ===============
-add_library( gcl src/GCL.cpp include/communication/GCL.hpp include/communication/high-level/stats_collector.hpp )
+add_library( gcl src/GCL.cpp include/gridtools/communication/GCL.hpp include/gridtools/communication/high-level/stats_collector.hpp )
 set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
 
 set(exe_LIBS ${exe_LIBS} gcl)
