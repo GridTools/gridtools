@@ -37,8 +37,25 @@
 
 #include "../common/defs.hpp"
 #include "./empty_extent.hpp"
+#include "dimension_fwd.hpp"
 
 namespace gridtools {
+    namespace impl {
+        // TODO cleanup, remove code duplication
+
+        //     metafunction that determines if a type is a valid accessor ctr argument
+        template < typename T >
+        struct is_accessor_ctr_args {
+            typedef typename boost::mpl::or_< typename boost::is_integral< T >::type,
+                typename is_dimension< T >::type >::type type;
+        };
+
+        // metafunction that determines if a variadic pack are valid accessor ctr arguments
+        template < typename... Types >
+        using all_accessor_ctr_args =
+            typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
+                bool >::type;
+    }
 
     /** @brief internal struct to simplify the API when we pass arguments to the global_accessor ```operator()```
 
@@ -90,6 +107,9 @@ namespace gridtools {
 
         GT_FUNCTION constexpr global_accessor() {}
 
+        template < typename... Indices, typename Dummy = impl::all_accessor_ctr_args< Indices... > >
+        GT_FUNCTION constexpr global_accessor(Indices... x) {}
+
         // copy ctor from another global_accessor with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr global_accessor(const global_accessor< OtherIndex, Intend > &other) {}
@@ -98,6 +118,11 @@ namespace gridtools {
         template < typename... Args >
         GT_FUNCTION global_accessor_with_arguments< global_accessor, Args... > operator()(Args &&... args_) {
             return global_accessor_with_arguments< global_accessor, Args... >(std::forward< Args >(args_)...);
+        }
+
+        template < short_t Idx >
+        GT_FUNCTION int_t constexpr get() const {
+            return 0;
         }
     };
 
