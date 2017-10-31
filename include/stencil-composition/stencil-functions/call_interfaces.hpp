@@ -90,7 +90,7 @@ namespace gridtools {
 
             template < typename Accessor >
             struct accessor_return_type {
-                typedef typename CallerAggregator::template accessor_return_type< Accessor >::type type;
+                using type = typename CallerAggregator::template accessor_return_type< Accessor >::type;
             };
 
             GT_FUNCTION
@@ -98,9 +98,30 @@ namespace gridtools {
                 CallerAggregator &caller_aggregator, ReturnType &result, accessors_list_t const &list)
                 : m_caller_aggregator(caller_aggregator), m_result(&result), m_accessors_list(list) {}
 
+            using non_accessor_indices = compute_non_accessor_indices< PassedAccessors >;
+
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< (Accessor::index_t::value < OutArg),
-                typename accessor_return_type< Accessor >::type >::type const
+            using get_passed_accessor_index =
+                static_uint< (Accessor::index_t::value < OutArg) ? Accessor::index_t::value
+                                                                 : (Accessor::index_t::value - 1) >;
+
+            /*
+             * @brief If the passed type is not an accessor we assume it is a local variable which we just return.
+            */
+            template < typename Accessor >
+            GT_FUNCTION constexpr typename boost::enable_if_c<
+                _impl::contains_value< non_accessor_indices, get_passed_accessor_index< Accessor > >::value,
+                typename boost::mpl::at_c< PassedAccessors, get_passed_accessor_index< Accessor >::value >::type >::type
+            operator()(Accessor const &accessor) const {
+                return boost::fusion::at_c< get_passed_accessor_index< Accessor >::value >(m_accessors_list);
+            }
+
+            template < typename Accessor >
+            GT_FUNCTION constexpr typename boost::enable_if_c<
+                (Accessor::index_t::value < OutArg &&
+                    not _impl::contains_value< non_accessor_indices, get_passed_accessor_index< Accessor > >::value),
+                typename accessor_return_type<
+                    typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type >::type >::type const
             operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type(
                     accessor.template get< 2 >() + Offi +
@@ -112,8 +133,11 @@ namespace gridtools {
             }
 
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< (Accessor::index_t::value > OutArg),
-                typename accessor_return_type< Accessor >::type >::type const
+            GT_FUNCTION constexpr typename boost::enable_if_c<
+                (Accessor::index_t::value > OutArg) &&
+                    not _impl::contains_value< non_accessor_indices, get_passed_accessor_index< Accessor > >::value,
+                typename accessor_return_type< typename boost::mpl::at_c< PassedAccessors,
+                    Accessor::index_t::value - 1 >::type >::type >::type const
             operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(
                     typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value - 1 >::type(
@@ -258,16 +282,8 @@ namespace gridtools {
                 (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
                 "The first argument must be an iterate_domain or a function_aggregator");
 
-            // Collect the indices of the arguments that are not accessors among
-            // the PassedArguments
-            typedef
-                typename boost::mpl::fold< boost::mpl::range_c< int, 0, boost::mpl::size< PassedArguments >::value >,
-                    boost::mpl::vector0<>,
-                    typename _impl::insert_index_if_not_accessor< PassedArguments >::template apply< boost::mpl::_2,
-                                               boost::mpl::_1 > >::type non_accessor_indices;
+            using non_accessor_indices = compute_non_accessor_indices< PassedArguments >;
 
-            //        typedef typename wrap_reference<PassedArguments>::type wrapped_accessors
-            // typedef typename boost::fusion::result_of::as_vector<wrapped_accessors>::type accessors_list_t;
             typedef typename boost::fusion::result_of::as_vector<
                 typename mpl_sequence_to_fusion_vector< PassedArguments >::type >::type accessors_list_t;
 
@@ -329,7 +345,7 @@ namespace gridtools {
         function, where the results should be obtained from. The
         values can also be used by the function as inputs.
 
-        \tparam Functos The stencil operator to be called
+        \tparam Functor The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is
        not
        called and will result in compilation error. The user is responsible for calling the proper Do overload)

@@ -58,6 +58,17 @@ namespace call_interface_functors {
         }
     };
 
+    struct copy_functor_with_add {
+        typedef inout_accessor< 0, extent<>, 3 > out;
+        typedef in_accessor< 1, extent<>, 3 > in1;
+        typedef in_accessor< 2, extent<>, 3 > in2;
+        typedef boost::mpl::vector< out, in1, in2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in1()) + eval(in2());
+        }
+    };
+
     struct call_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
@@ -65,6 +76,17 @@ namespace call_interface_functors {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< copy_functor, x_interval >::with(eval, in());
+        }
+    };
+
+    struct call_copy_functor_with_local_variable {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            float_type local = 1.;
+            eval(out()) = call< copy_functor_with_add, x_interval >::with(eval, in(), local);
         }
     };
 
@@ -274,6 +296,7 @@ class call_interface : public testing::Test {
     data_store_t reference_unchanged;
     data_store_t reference_shifted;
     data_store_t reference_smaller_interval;
+    data_store_t reference_plus1;
 
     typedef arg< 0, data_store_t > p_in;
     typedef arg< 1, data_store_t > p_out;
@@ -300,7 +323,7 @@ class call_interface : public testing::Test {
                   else
                       return default_value;
               }),
-          domain(in, out) {
+          reference_plus1(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k + 1; }), domain(in, out) {
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
     }
@@ -324,6 +347,18 @@ TEST_F(call_interface, call_to_copy_functor) {
     execute_computation(comp);
 
     ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_with_local_variable) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_with_local_variable >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_plus1, out, verifier_halos));
 }
 
 TEST_F(call_interface, call_to_copy_functor_with_expression) {
