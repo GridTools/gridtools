@@ -35,13 +35,40 @@
 */
 
 #pragma once
-#include <boost/fusion/adapted/mpl.hpp>
+#include <cassert>
+#include <cstddef>
+#include <type_traits>
+#include <functional>
+#include <vector>
+#include <utility>
+#include <memory>
+
+#include <boost/mpl/logical.hpp>
+#include <boost/mpl/transform.hpp>
+
 #include <boost/fusion/include/count.hpp>
-#include <boost/fusion/include/make_fused.hpp>
-#include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/include/empty.hpp>
 #include <boost/fusion/include/filter_if.hpp>
-#include "../../storage/storage-facility.hpp"
+#include <boost/fusion/include/filter_view.hpp>
+#include <boost/fusion/include/for_each.hpp>
+#include <boost/fusion/include/front.hpp>
+#include <boost/fusion/include/make_fused.hpp>
+#include <boost/fusion/include/make_vector.hpp>
+#include <boost/fusion/include/size.hpp>
+#include <boost/fusion/include/transform.hpp>
+#include <boost/fusion/include/zip_view.hpp>
+
+#include "../../common/defs.hpp"
+#include "../../common/vector_traits.hpp"
+#include "../../storage/data_store_field.hpp"
+#include "../arg.hpp"
+#include "../backend_metafunctions.hpp"
+#include "../computation.hpp"
+#include "../computation_grammar.hpp"
+#include "../grid.hpp"
 #include "../intermediate.hpp"
+#include "../intermediate_impl.hpp"
+#include "expand_factor.hpp"
 
 namespace gridtools {
 
@@ -53,12 +80,12 @@ namespace gridtools {
             template < typename Arg, typename Storage >
             struct is_expandable< arg_storage_pair< Arg, Storage > > : is_vector< Storage > {};
 
-            template < typename T, uint_t N >
+            template < uint_t N, typename T >
             struct convert_storage_type {
                 using type = T;
             };
-            template < typename T, uint_t N >
-            struct convert_storage_type< std::vector< T >, N > {
+            template < uint_t N, typename T >
+            struct convert_storage_type< N, std::vector< T > > {
                 using type = data_store_field< T, N >;
             };
 
@@ -68,36 +95,22 @@ namespace gridtools {
                 struct apply;
                 template < uint_t I, typename S, typename L, bool T >
                 struct apply< arg< I, S, L, T > > {
-                    using type = arg< I, typename convert_storage_type< S, N >::type, L, T >;
+                    using type = arg< I, typename convert_storage_type< N, S >::type, L, T >;
                 };
             };
 
-            template < typename Aggregator, uint N >
+            template < uint_t N, typename Aggregator >
             using converted_aggregator_type = aggregator_type<
                 typename boost::mpl::transform< typename Aggregator::placeholders_t, convert_placeholder< N > >::type >;
 
-            struct nop {
-                template < typename T >
-                void operator()(T &obj) const {}
-            };
-            struct run {
-                template < typename T >
-                void operator()(T &obj) const {
-                    obj.run();
-                }
-            };
-            struct steady {
-                template < typename T >
-                void operator()(T &obj) const {
-                    obj.steady();
-                }
-            };
-
-            struct get_value_size_f {
+            struct get_value_size {
                 template < class T >
                 size_t operator()(T const &t) const {
                     return t.m_value.size();
                 }
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+                using result_type = size_t;
+#endif
             };
 
             template < typename Aggregator >
@@ -107,9 +120,10 @@ namespace gridtools {
                 auto sizes = f::transform(
                     f::filter_if< m::and_< is_expandable< m::_ >, boost::mpl::not_< is_tmp_arg< m::_ > > > >(
                         src.get_arg_storage_pairs()),
-                    get_value_size_f());
+                    get_value_size{});
                 if (f::empty(sizes))
-                    return 0;
+                    // If there is nothing to expand we are going to compute stensil once.
+                    return 1;
                 size_t res = f::front(sizes);
                 assert(
                     f::count(sizes, res) == f::size(sizes) && "Non-tmp expandable parameters must have the same size");
@@ -121,7 +135,10 @@ namespace gridtools {
                 template < typename T >
                 data_store_field< T, N > operator()(const std::vector< T > &src) const {
                     assert(!src.empty());
-                    return {*src[0].get_storage_info_ptr()};
+                    data_store_field< T, N > res = {*src[0].get_storage_info_ptr()};
+                    for (uint_t i = 0; i != N; ++i)
+                        res.set(0, i, src[i]);
+                    return res;
                 }
                 template < typename T >
                 T operator()(const T &src) const {
@@ -133,7 +150,7 @@ namespace gridtools {
             struct convert_arg_storage_pair {
                 template < typename Arg, typename Storage >
                 arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
-                    typename convert_storage_type< Storage, N >::type >
+                    typename convert_storage_type< N, Storage >::type >
                 operator()(arg_storage_pair< Arg, Storage > const &src) const {
                     return {convert_storage< N >()(src.m_value)};
                 }
@@ -156,7 +173,7 @@ namespace gridtools {
 #endif
             };
 
-            // TODO(anstaf): move to common or find out if this idoim is already avaliable.
+            // TODO(anstaf): move to common or find out if this pattern is already available.
             template < typename T >
             struct maker {
                 template < typename... Us >
@@ -168,27 +185,34 @@ namespace gridtools {
 #endif
             };
 
-            template < uint_t N, typename Aggregator, typename Res = converted_aggregator_type< Aggregator, N > >
+            template < uint_t N, typename Aggregator, typename Res = converted_aggregator_type< N, Aggregator > >
             Res convert_aggregator(const Aggregator &src) {
                 namespace f = boost::fusion;
                 namespace m = boost::mpl;
                 auto arg_storage_pairs =
                     f::transform(f::filter_if< m::not_< is_tmp_arg< m::_ > > >(src.get_arg_storage_pairs()),
                         convert_arg_storage_pair< N >());
-                return f::make_fused(maker< Res >())(std::move(arg_storage_pairs));
+                return f::make_fused(maker< Res >{})(std::move(arg_storage_pairs));
             }
 
-            struct assign_arg_storage_pair {
+            struct assign_storage {
                 size_t m_offset;
-                template < typename SrcArg, typename Src, typename DstArg, typename Dst, uint_t N >
-                void operator()(arg_storage_pair< SrcArg, std::vector< Src > > const &src,
-                    arg_storage_pair< DstArg, data_store_field< Dst, N > > &dst) const {
-                    assert(src.m_value.size() >= m_offset + N);
+                template < typename Src, typename Dst, uint_t N >
+                void operator()(std::vector< Src > const &src, data_store_field< Dst, N > &dst) const {
+                    assert(src.size() >= m_offset + N);
                     for (uint_t i = 0; i != N; ++i)
-                        dst.m_value.set(0, i, src.m_value[m_offset + i]);
+                        dst.set(0, i, src[m_offset + i]);
                 }
                 template < typename... T >
                 void operator()(T &&...) const {}
+            };
+
+            struct assign_arg_storage_pair {
+                assign_storage m_assign_storage;
+                template < typename Src, typename Dst >
+                void operator()(Src const &src, Dst &dst) const {
+                    m_assign_storage(src.m_value, dst.m_value);
+                }
             };
 
             template < typename Pred, typename Sec >
@@ -211,6 +235,19 @@ namespace gridtools {
                 f::for_each(make_zip_view(f::make_vector(std::cref(src), std::ref(dst))),
                     f::make_fused(assign_arg_storage_pair{offset}));
             }
+
+            struct run {
+                template < typename T >
+                void operator()(T &obj) const {
+                    obj.run();
+                }
+            };
+            struct steady {
+                template < typename T >
+                void operator()(T &obj) const {
+                    obj.steady();
+                }
+            };
         }
     }
     /**
@@ -256,7 +293,7 @@ namespace gridtools {
         template < uint N >
         using converted_intermediate = intermediate< Backend,
             MssDescriptorArray,
-            _impl::expand_detail::converted_aggregator_type< Aggregator, N >,
+            _impl::expand_detail::converted_aggregator_type< N, Aggregator >,
             Grid,
             ConditionalsSet,
             ReductionType,
@@ -285,9 +322,7 @@ namespace gridtools {
                                  ? create_intermediate< ExpandFactor::value >(m_domain, grid, conditionals)
                                  : nullptr),
               m_intermediate_remainder(
-                  m_size % ExpandFactor::value ? create_intermediate< 1 >(m_domain, grid, conditionals) : nullptr) {
-            assign_and_call();
-        }
+                  m_size % ExpandFactor::value ? create_intermediate< 1 >(m_domain, grid, conditionals) : nullptr) {}
 
         /**
            @brief run the execution
@@ -367,8 +402,8 @@ namespace gridtools {
             _impl::expand_detail::assign(m_domain, dst.domain(), offset);
         }
 
-        template < typename F = _impl::expand_detail::nop >
-        void assign_and_call(const F &fun = F()) {
+        template < typename F >
+        void assign_and_call(const F &fun) {
             size_t i = 0;
             for (; m_size - i >= ExpandFactor::value; i += ExpandFactor::value) {
                 assign(*m_intermediate, i);
