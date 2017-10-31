@@ -81,12 +81,12 @@ namespace gridtools {
         struct instantiate_view {
             GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
-            AggregatorType &m_agg;
+            AggregatorType const &m_agg;
             instantiate_view(AggregatorType &agg) : m_agg(agg) {}
 
             template < typename ViewFusionMapElem,
                 typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            arg_storage_pair< Arg, typename Arg::storage_t > &get_arg_storage_pair() const {
+            arg_storage_pair< Arg, typename Arg::storage_t > const &get_arg_storage_pair() const {
                 GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
                 return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::storage_t > >(
                     m_agg.get_arg_storage_pairs()));

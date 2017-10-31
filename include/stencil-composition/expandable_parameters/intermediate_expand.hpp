@@ -164,7 +164,7 @@ namespace gridtools {
                 template < typename Arg, typename Storage >
                 struct result< convert_arg_storage_pair(arg_storage_pair< Arg, Storage > const &) > {
                     using type = arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
-                        typename convert_storage_type< Storage, N >::type >;
+                        typename convert_storage_type< N, Storage >::type >;
                 };
                 template < typename T >
                 struct result< convert_arg_storage_pair(T const &) > {
