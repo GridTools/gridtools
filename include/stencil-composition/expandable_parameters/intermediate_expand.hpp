@@ -213,6 +213,9 @@ namespace gridtools {
                 void operator()(Src const &src, Dst &dst) const {
                     m_assign_storage(src.m_value, dst.m_value);
                 }
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+                using result_type = void;
+#endif
             };
 
             template < typename Pred, typename Sec >

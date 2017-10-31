@@ -155,8 +155,6 @@ namespace gridtools {
         const static uint_t num_of_storages = 1;
         const static uint_t num_of_components = 1;
 
-        ~data_store() = default;
-
         /**
          * @brief data_store constructor. This constructor does not trigger an allocation of the required space.
          */
