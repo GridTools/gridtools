@@ -99,9 +99,9 @@ namespace gridtools {
                 : m_caller_aggregator(caller_aggregator), m_result(&result), m_accessors_list(list) {}
 
             template < typename Accessor >
-            GT_FUNCTION constexpr
-                typename boost::enable_if_c< (Accessor::index_t::value < OutArg), ReturnType >::type const
-                operator()(Accessor const &accessor) const {
+            GT_FUNCTION constexpr typename boost::enable_if_c< (Accessor::index_t::value < OutArg),
+                typename accessor_return_type< Accessor >::type >::type const
+            operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value >::type(
                     accessor.template get< 2 >() + Offi +
                         boost::fusion::at_c< Accessor::index_t::value >(m_accessors_list).template get< 2 >(),
@@ -112,9 +112,9 @@ namespace gridtools {
             }
 
             template < typename Accessor >
-            GT_FUNCTION constexpr
-                typename boost::enable_if_c< (Accessor::index_t::value > OutArg), ReturnType >::type const
-                operator()(Accessor const &accessor) const {
+            GT_FUNCTION constexpr typename boost::enable_if_c< (Accessor::index_t::value > OutArg),
+                typename accessor_return_type< Accessor >::type >::type const
+            operator()(Accessor const &accessor) const {
                 return m_caller_aggregator(
                     typename boost::mpl::at_c< PassedAccessors, Accessor::index_t::value - 1 >::type(
                         accessor.template get< 2 >() + Offi +
