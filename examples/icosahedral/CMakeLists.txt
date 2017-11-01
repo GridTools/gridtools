@@ -5,7 +5,6 @@ file(GLOB_RECURSE INC_ALL_ "[a-z]*.hpp")
 list ( APPEND INC_ALL ${INC_ALL_} )
 file(GLOB_RECURSE INC_ALL_ "../../include/[a-z|A-Z|0-9]*.hpp")
 list ( APPEND INC_ALL ${INC_ALL_} )
-set( GTEST_FILES "") #../Options.hpp ../Options.cpp unstructured_grid.cpp)
 
 add_definitions("-DBENCHMARK")
 
@@ -14,8 +13,8 @@ add_library(umesh_opt_lib OBJECT "../Options.hpp" "../Options.cpp" "unstructured
 set(exe_LIBS gtest gtest_main "${exe_LIBS}" )
 
 foreach(srcfile IN LISTS SRCFILES )
-    add_executable(${srcfile}_naive   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES} $<TARGET_OBJECTS:umesh_opt_lib>)
-    add_executable(${srcfile}_block   ${srcfile}.cpp ${INC_ALL} ${GTEST_FILES} $<TARGET_OBJECTS:umesh_opt_lib>)
+    add_executable(${srcfile}_naive   ${srcfile}.cpp ${INC_ALL} $<TARGET_OBJECTS:umesh_opt_lib>)
+    add_executable(${srcfile}_block   ${srcfile}.cpp ${INC_ALL} $<TARGET_OBJECTS:umesh_opt_lib>)
     set_target_properties(${srcfile}_block
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
@@ -32,7 +31,7 @@ endforeach(srcfile)
 if(CUDA_FOUND)
     foreach(srcfile IN LISTS SRCFILES MPISRCFILES )
          set(CUDA_SEPARABLE_COMPILATION OFF)
-         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES} $<TARGET_OBJECTS:umesh_opt_lib> OPTIONS ${GPU_SPECIFIC_FLAGS})
+         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu $<TARGET_OBJECTS:umesh_opt_lib> OPTIONS ${GPU_SPECIFIC_FLAGS})
          target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 
          if( ${srcfile} STREQUAL "stencil_on_vertexes")
@@ -56,8 +55,8 @@ list( APPEND SRCCOMPONLYFILES  # TODO RECOVER stencil_nested_on
 )
 
 foreach(srcfile IN LISTS SRCCOMPONLYFILES )
-    add_executable(${srcfile}_naive   ${srcfile}.cpp ${GTEST_FILES})
-    add_executable(${srcfile}_block   ${srcfile}.cpp ${GTEST_FILES})
+    add_executable(${srcfile}_naive   ${srcfile}.cpp)
+    add_executable(${srcfile}_block   ${srcfile}.cpp)
     set_target_properties(${srcfile}_block
       PROPERTIES COMPILE_DEFINITIONS "BACKEND_BLOCK")
     set_target_properties(${srcfile}_naive PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
@@ -69,7 +68,7 @@ endforeach(srcfile)
 
 #if(CUDA_FOUND)
 #    foreach(srcfile IN LISTS SRCCOMPONLYFILES MPISRCFILES )
-#         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu ${GTEST_FILES})
+#         cuda_add_executable( ${srcfile}_cuda ${srcfile}.cu)
 #         set_target_properties(${srcfile}_cuda PROPERTIES COMPILE_FLAGS ${ADDITIONAL_CXX_FLAGS})
 #         target_link_libraries(${srcfile}_cuda ${exe_LIBS} gcl ${ADD_MPI_LIBS} ${MPI_ADDITIONAL_LIBS} )
 #    endforeach(srcfile)
