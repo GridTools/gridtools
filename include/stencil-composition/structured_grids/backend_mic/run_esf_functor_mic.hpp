@@ -37,6 +37,7 @@
 
 #include "../../run_esf_functor.hpp"
 #include "../../functor_decorator.hpp"
+#include "../iterate_domain_remapper.hpp"
 
 namespace gridtools {
 
@@ -70,8 +71,12 @@ namespace gridtools {
 
             GRIDTOOLS_STATIC_ASSERT(is_functor_decorator< functor_t >::value, GT_INTERNAL_ERROR);
 
-            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_t, IntervalType >::
-                call_do_method(this->m_iterate_domain);
+            typedef typename get_iterate_domain_remapper< iterate_domain_t,
+                typename EsfArguments::esf_args_map_t >::type iterate_domain_remapper_t;
+            iterate_domain_remapper_t iterate_domain_remapper(this->m_iterate_domain);
+
+            _impl::call_repeated< functor_t::repeat_t::value, functor_t, iterate_domain_remapper_t, IntervalType >::
+                call_do_method(iterate_domain_remapper);
         }
 
         /*

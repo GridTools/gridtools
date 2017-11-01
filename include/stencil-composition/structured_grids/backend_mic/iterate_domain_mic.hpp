@@ -69,36 +69,36 @@ namespace gridtools {
             local_domain_t const &local_domain, const reduction_type_t &reduction_initial_value)
             : super(local_domain, reduction_initial_value), m_data_pointer(0), m_strides(0) {}
 
-        void set_data_pointer_impl(data_ptr_cached_t *RESTRICT data_pointer) {
+        GT_FUNCTION void set_data_pointer_impl(data_ptr_cached_t *RESTRICT data_pointer) {
             assert(data_pointer);
             m_data_pointer = data_pointer;
         }
 
-        data_ptr_cached_t &RESTRICT data_pointer_impl() {
+        GT_FUNCTION data_ptr_cached_t &RESTRICT data_pointer_impl() {
             assert(m_data_pointer);
             return *m_data_pointer;
         }
-        data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
+        GT_FUNCTION data_ptr_cached_t const &RESTRICT data_pointer_impl() const {
             assert(m_data_pointer);
             return *m_data_pointer;
         }
 
-        strides_cached_t &RESTRICT strides_impl() {
+        GT_FUNCTION strides_cached_t &RESTRICT strides_impl() {
             assert(m_strides);
             return *m_strides;
         }
 
-        strides_cached_t const &RESTRICT strides_impl() const {
+        GT_FUNCTION strides_cached_t const &RESTRICT strides_impl() const {
             assert(m_strides);
             return *m_strides;
         }
 
-        void set_strides_pointer_impl(strides_cached_t *RESTRICT strides) {
+        GT_FUNCTION void set_strides_pointer_impl(strides_cached_t *RESTRICT strides) {
             assert(strides);
             m_strides = strides;
         }
 
-        iterate_domain_mic const &get() const { return *this; }
+        GT_FUNCTION iterate_domain_mic const &get() const { return *this; }
 
         template < ushort_t Coordinate, typename Execution >
         GT_FUNCTION void increment_impl() {}

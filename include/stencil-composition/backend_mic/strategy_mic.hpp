@@ -157,9 +157,9 @@ namespace gridtools {
 
 #pragma omp parallel
                 {
-#pragma omp for nowait
-                    for (uint_t bi = 0; bi <= NBI; ++bi) {
-                        for (uint_t bj = 0; bj <= NBJ; ++bj) {
+#pragma omp for collapse(2) nowait
+                    for (uint_t bj = 0; bj <= NBJ; ++bj) {
+                        for (uint_t bi = 0; bi <= NBI; ++bi) {
                             boost::mpl::for_each< iter_range >(mss_functor< MssComponentsArray,
                                 Grid,
                                 LocalDomainListArray,
@@ -200,7 +200,6 @@ namespace gridtools {
                     kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< functor_list_t >::value == 1), GT_INTERNAL_ERROR);
 
                 uint_t n = grid.i_high_bound() - grid.i_low_bound();
                 uint_t m = grid.j_high_bound() - grid.j_low_bound();

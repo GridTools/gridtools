@@ -45,25 +45,17 @@
 #include "../../grid_traits.hpp"
 #include "../../iteration_policy.hpp"
 #include "stencil-composition/backend_mic/iterate_domain_mic.hpp"
+#include "stencil-composition/iterate_domain.hpp"
 
 namespace gridtools {
 
     namespace _impl {
-        template < ushort_t Index, typename IterateDomain, typename VT >
-        typename boost::enable_if< typename is_positional_iterate_domain< IterateDomain >::type, void >::type
-            GT_FUNCTION
-            mic_reset_index_if_positional(IterateDomain &itdom, VT value) {
-            itdom.template reset_positional_index< Index >(value);
-        }
-        template < ushort_t Index, typename IterateDomain, typename VT >
-        typename boost::disable_if< typename is_positional_iterate_domain< IterateDomain >::type, void >::type
-            GT_FUNCTION
-            mic_reset_index_if_positional(IterateDomain &, VT) {}
 
-        template < typename ExecutionEngine, typename RunFunctorArguments >
-        struct block_loop_mic {
+        template < typename ExecutionEngine, typename RunFunctorArguments, typename Interval >
+        struct functor_loop_mic {
             typedef typename RunFunctorArguments::grid_t grid_t;
             typedef typename RunFunctorArguments::functor_list_t functor_list_t;
+            typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
             typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
             typedef typename RunFunctorArguments::local_domain_t local_domain_t;
             typedef
@@ -71,16 +63,20 @@ namespace gridtools {
                     run_esf_functor_h_t;
 
             GT_FUNCTION
-            block_loop_mic(
-                iterate_domain_t &it_domain, grid_t const &grid, int_t ifirst, int_t ilast, int_t jfirst, int_t jlast,
-                array< const uint_t, 2 > const& block_id)
-                : m_grid(grid), m_it_domain(it_domain), m_ifirst(ifirst), m_ilast(ilast), m_jfirst(jfirst),
-                  m_jlast(jlast), m_block_id(block_id) {}
+            functor_loop_mic(iterate_domain_t &it_domain,
+                grid_t const &grid,
+                array< const uint_t, 2 > const &first_pos,
+                array< const uint_t, 2 > const &last_pos,
+                array< const uint_t, 2 > const &block_id)
+                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_last_pos(last_pos),
+                  m_block_id(block_id) {}
 
-            template < typename Interval >
-            GT_FUNCTION void operator()(Interval const &) const {
+            template < typename Index >
+            GT_FUNCTION void operator()(Index const &index) const {
                 typedef typename index_to_level< typename Interval::first >::type from_t;
                 typedef typename index_to_level< typename Interval::second >::type to_t;
+
+                typedef typename boost::mpl::at< extent_sizes_t, Index >::type extent_t;
 
                 // check that the axis specified by the user are containing the k interval
                 GRIDTOOLS_STATIC_ASSERT(
@@ -94,8 +90,13 @@ namespace gridtools {
                     ExecutionEngine::type::iteration >
                     iteration_policy_t;
 
-                int_t const from = m_grid.template value_at< from_t >();
-                int_t const to = m_grid.template value_at< to_t >();
+                const int_t from = m_grid.template value_at< from_t >();
+                const int_t to = m_grid.template value_at< to_t >();
+
+                const int_t ifirst = m_first_pos[0] + extent_t::iminus::value;
+                const int_t ilast = m_first_pos[0] + m_last_pos[0] + extent_t::iplus::value;
+                const int_t jfirst = m_first_pos[1] + extent_t::jminus::value;
+                const int_t jlast = m_first_pos[1] + m_last_pos[1] + extent_t::jplus::value;
 
                 assert(from >= 0);
                 assert(to >= 0);
@@ -104,28 +105,85 @@ namespace gridtools {
                 typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
                     run_esf_functor_t;
 
-                for (int_t k = from; k <= to; ++k, iteration_policy_t::increment(m_it_domain)) {
-                    for (int_t j = m_jfirst; j <= m_jlast; ++j) {
-                        for (int_t i = m_ifirst; i <= m_ilast; ++i) {
-                            m_it_domain.set_index(0);
-                            m_it_domain.template initialize< 0 >(i, m_block_id[0]);
-                            m_it_domain.template initialize< 1 >(j, m_block_id[1]);
-                            m_it_domain.template initialize< 2 >(k);
+                m_it_domain.set_index(0);
+                m_it_domain.template initialize< 0 >(ifirst, m_block_id[0]);
+                m_it_domain.template initialize< 1 >(jfirst, m_block_id[1]);
+                m_it_domain.template initialize< 2 >(m_grid.template value_at< typename iteration_policy_t::from >());
 
-                            boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
-                                run_esf_functor_t(m_it_domain));
+                typedef array< int_t, iterate_domain_t::N_META_STORAGES > index_array_t;
+
+                index_array_t krestore_index, jrestore_index;
+                for (int_t k = from; k <= to; ++k) {
+                    reset_index_if_positional< 2 >(m_it_domain, k);
+                    m_it_domain.get_index(krestore_index);
+                    for (int_t j = jfirst; j <= jlast; ++j) {
+                        reset_index_if_positional< 1 >(m_it_domain, j);
+                        m_it_domain.get_index(jrestore_index);
+#pragma vector always
+                        for (int_t i = ifirst; i <= ilast; ++i) {
+                            reset_index_if_positional< 0 >(m_it_domain, i);
+
+                            run_esf_functor_t run_functor(m_it_domain);
+                            run_functor(index);
+
+                            m_it_domain.template increment< 0, static_int< 1 > >();
                         }
+                        m_it_domain.set_index(jrestore_index);
+                        m_it_domain.template increment< 1, static_int< 1 > >();
                     }
+                    m_it_domain.set_index(krestore_index);
+                    iteration_policy_t::increment(m_it_domain);
                 }
             }
 
           protected:
-            grid_t const &m_grid;
+            template < short_t Index, typename IterateDomain >
+            GT_FUNCTION static
+                typename boost::enable_if< typename is_positional_iterate_domain< IterateDomain >::type >::type
+                reset_index_if_positional(IterateDomain &it_domain, int_t value) {
+                it_domain.template reset_positional_index< Index >(value);
+            }
+
+            template < short_t Index, typename IterateDomain >
+            GT_FUNCTION static
+                typename boost::disable_if< typename is_positional_iterate_domain< IterateDomain >::type >::type
+                reset_index_if_positional(IterateDomain &it_domain, int_t value) {}
+
             iterate_domain_t &m_it_domain;
-            int_t m_ifirst, m_ilast;
-            int_t m_jfirst, m_jlast;
-            array< const uint_t, 2 > m_block_id;
+            grid_t const &m_grid;
+            array< const uint_t, 2 > m_first_pos, m_last_pos, m_block_id;
         };
+
+        template < typename ExecutionEngine, typename RunFunctorArguments >
+        struct block_loop_mic {
+            typedef typename RunFunctorArguments::grid_t grid_t;
+            typedef typename RunFunctorArguments::functor_list_t functor_list_t;
+            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
+            typedef typename RunFunctorArguments::local_domain_t local_domain_t;
+
+            GT_FUNCTION
+            block_loop_mic(iterate_domain_t &it_domain,
+                grid_t const &grid,
+                array< const uint_t, 2 > const &first_pos,
+                array< const uint_t, 2 > const &last_pos,
+                array< const uint_t, 2 > const &block_id)
+                : m_it_domain(it_domain), m_grid(grid), m_first_pos(first_pos), m_last_pos(last_pos),
+                  m_block_id(block_id) {}
+
+            template < typename Interval >
+            GT_FUNCTION void operator()(Interval const &) const {
+                typedef functor_loop_mic< ExecutionEngine, RunFunctorArguments, Interval > functor_loop_mic_t;
+
+                boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
+                    functor_loop_mic_t(m_it_domain, m_grid, m_first_pos, m_last_pos, m_block_id));
+            }
+
+          protected:
+            iterate_domain_t &m_it_domain;
+            grid_t const &m_grid;
+            array< const uint_t, 2 > m_first_pos, m_last_pos, m_block_id;
+        };
+
     } // namespace _impl
 
     namespace strgrid {
@@ -167,7 +225,6 @@ namespace gridtools {
                 : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data),
                   m_first_pos{first_i, first_j}, m_last_pos{last_i, last_j}, m_block_id{block_idx_i, block_idx_j} {}
 
-            // Naive strategy
             explicit execute_kernel_functor_mic(
                 const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
                 : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data),
@@ -178,28 +235,26 @@ namespace gridtools {
             void operator()() {
                 typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
                 typedef typename RunFunctorArguments::execution_type_t execution_type_t;
-
-                // in the mic backend there should be only one esf per mss
-                GRIDTOOLS_STATIC_ASSERT(
-                    (boost::mpl::size< typename RunFunctorArguments::extent_sizes_t >::value == 1), GT_INTERNAL_ERROR);
-                typedef typename boost::mpl::back< typename RunFunctorArguments::extent_sizes_t >::type extent_t;
-                GRIDTOOLS_STATIC_ASSERT((is_extent< extent_t >::value), GT_INTERNAL_ERROR);
-
                 typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
                 typedef backend_traits_from_id< enumtype::Mic > backend_traits_t;
+
 #ifdef VERBOSE
 #pragma omp critical
                 {
-                    std::cout << "I loop " << m_first_pos[0] << "+" << extent_t::iminus::value << " -> "
-                              << m_first_pos[0] << "+" << m_last_pos[0] << "+" << extent_t::iplus::value << "\n";
-                    std::cout << "J loop " << m_first_pos[1] << "+" << extent_t::jminus::value << " -> "
-                              << m_first_pos[1] << "+" << m_last_pos[1] << "+" << extent_t::jplus::value << "\n";
-                    std::cout << "iminus::value: " << extent_t::iminus::value << std::endl;
-                    std::cout << "iplus::value: " << extent_t::iplus::value << std::endl;
-                    std::cout << "jminus::value: " << extent_t::jminus::value << std::endl;
-                    std::cout << "jplus::value: " << extent_t::jplus::value << std::endl;
-                    std::cout << "block_id_i: " << m_block_id[0] << std::endl;
-                    std::cout << "block_id_j: " << m_block_id[1] << std::endl;
+                    typedef typename boost::mpl::fold< typename RunFunctorArguments::extent_sizes_t,
+                        extent< 0, 0, 0, 0, 0, 0 >,
+                        enclosing_extent< boost::mpl::_1, boost::mpl::_2 > >::type max_extent_t;
+                    std::cout << "Thread: " << omp_get_thread_num() << "\n";
+                    std::cout << "  I loop " << m_first_pos[0] << "+" << max_extent_t::iminus::value << " -> "
+                              << m_first_pos[0] << "+" << m_last_pos[0] << "+" << max_extent_t::iplus::value << "\n";
+                    std::cout << "  J loop " << m_first_pos[1] << "+" << max_extent_t::jminus::value << " -> "
+                              << m_first_pos[1] << "+" << m_last_pos[1] << "+" << max_extent_t::jplus::value << "\n";
+                    std::cout << "  iminus::value: " << max_extent_t::iminus::value << std::endl;
+                    std::cout << "  iplus::value: " << max_extent_t::iplus::value << std::endl;
+                    std::cout << "  jminus::value: " << max_extent_t::jminus::value << std::endl;
+                    std::cout << "  jplus::value: " << max_extent_t::jplus::value << std::endl;
+                    std::cout << "  block_id_i: " << m_block_id[0] << std::endl;
+                    std::cout << "  block_id_j: " << m_block_id[1] << std::endl;
                 }
 #endif
 
@@ -215,23 +270,11 @@ namespace gridtools {
                 it_domain.template assign_storage_pointers< backend_traits_t >();
                 it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
 
-                typedef typename boost::mpl::front< loop_intervals_t >::type interval;
-                typedef typename index_to_level< typename interval::first >::type from;
-                typedef typename index_to_level< typename interval::second >::type to;
-                typedef _impl::iteration_policy< from,
-                    to,
-                    typename ::gridtools::grid_traits_from_id< enumtype::structured >::dim_k_t,
-                    execution_type_t::type::iteration > iteration_policy_t;
-
                 typedef array< int_t, iterate_domain_t::N_META_STORAGES > array_t;
 
-                const int_t ifirst = m_first_pos[0] + extent_t::iminus::value;
-                const int_t ilast = m_first_pos[0] + m_last_pos[0] + extent_t::iplus::value;
-                const int_t jfirst = m_first_pos[1] + extent_t::jminus::value;
-                const int_t jlast = m_first_pos[1] + m_last_pos[1] + extent_t::jplus::value;
-
-                boost::mpl::for_each< loop_intervals_t >(_impl::block_loop_mic< execution_type_t, RunFunctorArguments >(
-                    it_domain, m_grid, ifirst, ilast, jfirst, jlast, m_block_id));
+                boost::mpl::for_each< loop_intervals_t >(
+                    ::gridtools::_impl::block_loop_mic< execution_type_t, RunFunctorArguments >(
+                        it_domain, m_grid, m_first_pos, m_last_pos, m_block_id));
 
                 m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
                 m_reduction_data.reduce();
