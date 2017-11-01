@@ -1,5 +1,13 @@
 cmake_policy(SET CMP0048 NEW)
 project(GridTools VERSION "0.1")
+
+if( GRIDTOOLS_MODULES )
+# To be completed!
+  
+  add_subdirectory( modules/storage )
+
+else()
+
 cmake_minimum_required(VERSION 3.0)
 set (CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -80,3 +88,5 @@ message("compile definitions: ${COMPILE_DEFINITIONS}")
 # Apply final actions
 # ===========
 include (post_config_actions)
+
+endif()

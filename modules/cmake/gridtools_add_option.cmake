@@ -1,4 +1,4 @@
-macro( gridtools_add_option opt DEFAULT DESCRIPTION )
+macro( gridtools_add_option opt )
   set( options )
   set( single_value_args DEFAULT DESCRIPTION )
   set( multi_value_args )
