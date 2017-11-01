@@ -42,6 +42,10 @@
 
 namespace gridtools {
 
+    /* functor class that will apply the clone to the gpu of a mesh.
+     * Contains two specializations depending on the type of topology.
+     * If the topology is not of unstructured mesh type, the clone operation is ignored
+     */
     struct mesh_cloner {
       public:
         template < typename T, typename boost::enable_if< typename is_unstructured_mesh< T >::type, int >::type = 0 >
