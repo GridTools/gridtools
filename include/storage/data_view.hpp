@@ -127,7 +127,10 @@ namespace gridtools {
             ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
-        GT_FUNCTION storage_info_t const &storage_info() const { return *m_storage_info; }
+        GT_FUNCTION storage_info_t const &storage_info() const {
+            check_memory_space();
+            return *m_storage_info;
+        }
 
         /**
          * data getter
@@ -141,6 +144,14 @@ namespace gridtools {
         GT_FUNCTION
         data_t const *data() const { return m_raw_ptrs[0]; }
 
+        GT_FUNCTION void check_memory_space() const {
+#ifdef __CUDA_ARCH__
+            ASSERT_OR_THROW(m_device_view, "can not access a host view from within a GPU kernel");
+#else
+            ASSERT_OR_THROW(!m_device_view, "can not access a device view from a host function");
+#endif
+        }
+
         /**
          * @brief operator() is used to access elements. E.g., view(0,0,2) will return the third element.
          * @param c given indices
@@ -152,6 +163,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Coords) > 0) >,
                                         typename is_all_integral_or_enum< Coords... >::type >::value),
                 GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
+            check_memory_space();
             return m_raw_ptrs[0][m_storage_info->index(c...)];
         }
 
@@ -162,6 +174,7 @@ namespace gridtools {
          */
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(gridtools::array< int, storage_info_t::ndims > const &arr) const {
+            check_memory_space();
             return m_raw_ptrs[0][m_storage_info->index(arr)];
         }
 
