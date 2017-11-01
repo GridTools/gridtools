@@ -27,6 +27,8 @@ set( exe_LIBS ${exe_LIBS} gtest)
 
 # This function will fetch all test cases in the given directory.
 # Only used for gcc or clang compilations
+# The extra optional args passed, ${ARGN} are interpreted as libraries to link against
+# in the target
 function(fetch_host_tests subfolder)
     set(extra_libs ${ARGN})
     # get all source files in the current directory
@@ -52,7 +54,10 @@ endfunction(fetch_host_tests)
 
 # This function will fetch all gpu test cases in the given directory.
 # Only used for nvcc compilations
+# The extra optional args passed, ${ARGN} are interpreted as libraries to link against
+# in the target
 function(fetch_gpu_tests subfolder)
+    set(extra_libs ${ARGN})
     # don't care if USE_GPU is not set
     if(USE_GPU)
         # get all source files in the current directory
@@ -71,7 +76,7 @@ function(fetch_gpu_tests subfolder)
             # create the gpu test
             set(CUDA_SEPARABLE_COMPILATION OFF)
             cuda_add_executable (${unit_test} ${test_source} ${test_headers} OPTIONS ${GPU_SPECIFIC_FLAGS})
-            target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} )
+            target_link_libraries(${unit_test}  gtest_main ${exe_LIBS} ${extra_libs})
             gridtools_add_test(${unit_test} ${TEST_SCRIPT} ${exe})
             # message( "added gpu test " ${unit_test} )
         endforeach(test_source)

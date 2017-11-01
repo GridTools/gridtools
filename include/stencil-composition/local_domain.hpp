@@ -102,8 +102,8 @@ namespace gridtools {
     class local_domain;
 
     template < typename StorageWrapperList, typename EsfArgs, bool IsStateful >
-    struct local_domain_base< local_domain< StorageWrapperList, EsfArgs, IsStateful > >
-        : public clonable_to_gpu< local_domain< StorageWrapperList, EsfArgs, IsStateful > > {
+    struct local_domain_base< local_domain< StorageWrapperList, EsfArgs, IsStateful > > {
+        //        : public clonable_to_gpu< local_domain< StorageWrapperList, EsfArgs, IsStateful > > {
 
         typedef local_domain< StorageWrapperList, EsfArgs, IsStateful > derived_t;
 
