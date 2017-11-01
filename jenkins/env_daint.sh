@@ -34,6 +34,7 @@ if [[ ${COMPILER} == "gcc" ]]; then
   esac
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "clang" ]]; then
+  module load PrgEnv-gnu
   case ${VERSION} in
     "3.9")
       module load /users/vogtha/modules/compilers/clang/3.9.1
