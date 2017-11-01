@@ -39,30 +39,6 @@
 #include "tools/verifier.hpp"
 using namespace gridtools;
 
-struct test_pow {
-    static bool GT_FUNCTION Do() {
-        double a = math::pow(2.3, 2.3);
-        float b = math::pow(2.3f, 2.3f);
-        return true;
-    }
-};
-
-struct test_log {
-    static bool GT_FUNCTION Do() {
-        double a = math::log(2.3);
-        float b = math::log(2.3f);
-        return true;
-    }
-};
-
-struct test_exp {
-    static bool GT_FUNCTION Do() {
-        double a = math::exp(2.3);
-        float b = math::exp(2.3f);
-        return true;
-    }
-};
-
 struct test_fabs {
     static bool GT_FUNCTION Do() {
         GRIDTOOLS_STATIC_ASSERT((std::is_same< decltype(math::fabs(4.0f)), float >::value), "Should return float.");
@@ -152,9 +128,3 @@ TEST(math, test_max) {
 TEST(math, test_fabs) { ASSERT_TRUE(test_fabs::Do()); }
 
 TEST(math, test_abs) { ASSERT_TRUE(test_abs::Do()); }
-
-TEST(math, test_log) { ASSERT_TRUE(test_log::Do()); }
-
-TEST(math, test_exp) { ASSERT_TRUE(test_exp::Do()); }
-
-TEST(math, test_pow) { ASSERT_TRUE(test_pow::Do()); }
