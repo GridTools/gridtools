@@ -112,6 +112,7 @@ namespace gridtools {
 
                 typedef array< int_t, iterate_domain_t::N_META_STORAGES > index_array_t;
 
+                run_esf_functor_t run_esf(m_it_domain);
                 index_array_t krestore_index, jrestore_index;
                 for (int_t k = from; k <= to; ++k) {
                     reset_index_if_positional< 2 >(m_it_domain, k);
@@ -123,8 +124,7 @@ namespace gridtools {
                         for (int_t i = ifirst; i <= ilast; ++i) {
                             reset_index_if_positional< 0 >(m_it_domain, i);
 
-                            run_esf_functor_t run_functor(m_it_domain);
-                            run_functor(index);
+                            run_esf(index);
 
                             m_it_domain.template increment< 0, static_int< 1 > >();
                         }
