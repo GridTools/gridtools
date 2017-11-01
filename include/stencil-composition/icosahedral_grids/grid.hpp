@@ -78,6 +78,8 @@ namespace gridtools {
       public:
         static constexpr enumtype::grid_type c_grid_type = enumtype::icosahedral;
 
+        // ctr API of the grid that uses an unstructured mesh topology, where the require
+        // mesh object is passed by argument
         template < typename T = GridTopology,
             typename boost::enable_if_c< boost::is_same< T, GridTopology >::value &&
                                              is_unstructured_mesh< GridTopology >::value,
@@ -87,6 +89,8 @@ namespace gridtools {
                   halo_descriptor(j[minus], j[plus], j[begin], j[end], j[length])),
               m_umesh(&umesh) {}
 
+        // ctr API of the grid that uses an structured topology. Since no runtime
+        // mesh information is required, the ctr only accepts domain size properties
         template < typename T = GridTopology,
             typename boost::enable_if_c< boost::is_same< T, GridTopology >::value &&
                                              !is_unstructured_mesh< GridTopology >::value,

@@ -54,6 +54,10 @@
 namespace gridtools {
 
 #ifdef ENABLE_ATLAS
+
+    /* class that keeps all the lookup tables requires to query any connectivity
+     * information of a mesh
+     */
     class unstructured_mesh : public clonable_to_gpu< unstructured_mesh > {
       public:
         enum class mb_connectivity_type {
@@ -76,6 +80,11 @@ namespace gridtools {
         size_t m_nedges;
         size_t m_nvertices;
 
+        // the lookup tables are stored as two different type of Atlas objects
+        // Those with a regular connectivity (for example, each edge always
+        // has two neighbour nodes) use a MultiBlockConnectivity
+        // The rest are stored as a pure irregular connectivity (for example,
+        // each node can have different number of neighbouring nodes)
         array< atlas::mesh::MultiBlockConnectivityImpl *, 6 > m_mb_connectivity;
         array< atlas::mesh::IrregularConnectivityImpl *, 3 > m_irr_connectivity;
 
