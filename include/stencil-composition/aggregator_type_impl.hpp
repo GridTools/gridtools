@@ -379,16 +379,10 @@ the continuous_indices_check template argument must be an MPL vector of placehol
 
         template < typename Sec >
         using as_tuple_t = typename boost::mpl::copy< Sec, boost::mpl::back_inserter< std::tuple<> > >::type;
-
-        // TODO(anstaf): figure out if it is usefull enough to move it to common.
-        struct default_host_container_type {
-            template < typename T,
-                typename std::enable_if< boost::fusion::traits::is_sequence< T >::value, int >::type = 0 >
-            operator T() const {
-                return as_tuple_t< T >{};
-            }
-        };
-        constexpr default_host_container_type default_host_container;
+        template < typename T >
+        T default_host_container() {
+            return as_tuple_t< T >{};
+        }
 
         /** Metafunction class.
          *  This class is filling a fusion::vector of pointers to storages with pointers from given arg_storage_pairs
