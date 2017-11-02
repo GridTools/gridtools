@@ -30,9 +30,7 @@ endif()
 gridtools_setup_Boost()
 
 ## CUDA ##
-if( ENABLE_CUDA )
-  gridtools_setup_CUDA()
-endif()
+gridtools_setup_CUDA()
 
 ## C++11 ##
 gridtools_setup_cxx()
