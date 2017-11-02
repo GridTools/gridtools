@@ -8,9 +8,7 @@ macro( gridtools_export )
   install( EXPORT ${PROJECT_NAME}-exports DESTINATION share/gridtools/cmake NAMESPACE gridtools:: )
 
   foreach( target ${_targets} ) # For build-tree exports
-    string(REPLACE gridtools_ "" target_without_prefix ${target} )
-    add_library( gridtools::${target_without_prefix} ALIAS ${target} )
-    list( APPEND _modules ${target_without_prefix} )
+    add_library( gridtools::${target} ALIAS ${target} )
   endforeach()
 
   configure_file(
@@ -32,8 +30,9 @@ macro( gridtools_export )
       "${PROJECT_BINARY_DIR}/cmake/${PROJECT_NAME}-config-version.cmake"
     DESTINATION share/gridtools/cmake )
 
-  foreach( module ${_modules} )
-    install( DIRECTORY "${GRIDTOOLS_SOURCE_DIR}/include/gridtools/${module}"
+  foreach( target ${_targets} )
+    string(REPLACE gridtools_ "" target_without_prefix ${target} )
+    install( DIRECTORY "${GRIDTOOLS_SOURCE_DIR}/include/gridtools/${target_without_prefix}"
              DESTINATION include/gridtools )
   endforeach()
 
