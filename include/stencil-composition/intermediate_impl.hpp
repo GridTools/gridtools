@@ -353,7 +353,7 @@ namespace gridtools {
                 typename boost::disable_if< is_tmp_arg< typename boost::fusion::result_of::first< T >::type >,
                     int >::type = 0 >
             void operator()(T const &v) const {
-                auto ds =
+                const auto &ds =
                     m_aggregator.template get_arg_storage_pair< typename boost::fusion::result_of::first< T >::type >();
                 m_valid &= check_consistency(ds.m_value, v.second);
             }

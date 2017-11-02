@@ -172,7 +172,8 @@ namespace gridtools {
             typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check<
                                            typename std::decay< ArgStoragePairs >::type... >::type,
                 int >::type = 0 >
-        aggregator_type(ArgStoragePairs &&... arg_storage_pairs) {
+        aggregator_type(ArgStoragePairs &&... arg_storage_pairs)
+            : m_arg_storage_pair_list{_impl::default_host_container{}} {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(ArgStoragePairs) > 0),
                 "Computations with no data_stores are not supported. "
@@ -202,7 +203,8 @@ namespace gridtools {
             typename boost::enable_if<
                 typename _impl::aggregator_storage_check< typename std::decay< DataStores >::type... >::type,
                 int >::type = 0 >
-        aggregator_type(DataStores &&... ds) {
+        aggregator_type(DataStores &&... ds)
+            : m_arg_storage_pair_list{_impl::default_host_container{}} {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
                 "Computations with no data_stores are not supported. "
@@ -347,17 +349,5 @@ namespace gridtools {
 
     template < typename Placeholders >
     struct is_aggregator_type< aggregator_type< Placeholders > > : boost::mpl::true_ {};
-
-    template < uint_t... Indices, typename... Storages >
-    aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > > instantiate_aggregator_type(
-        gt_integer_sequence< uint_t, Indices... > seq_, Storages &... storages_) {
-        return aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(storages_...);
-    }
-
-    template < typename... Storage >
-    auto make_aggregator_type(Storage &... storages_) -> decltype(
-        instantiate_aggregator_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...)) {
-        return instantiate_aggregator_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...);
-    }
 
 } // namespace gridtools
