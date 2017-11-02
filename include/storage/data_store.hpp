@@ -215,6 +215,13 @@ namespace gridtools {
             : m_shared_storage(new storage_t(info.padded_total_length(), external_ptr, own)),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
+        // Explicit defaulting prevents nvcc to implicitly generate them with __device__
+        data_store(data_store &&other) = default;
+        data_store(data_store const &other) = default;
+        data_store &operator=(data_store const &other) = default;
+        data_store &operator=(data_store &&other) = default;
+        ~data_store() = default;
+
         /**
          * @brief allocate the needed memory. this will instantiate a storage instance.
          */
