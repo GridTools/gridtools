@@ -109,8 +109,6 @@ namespace gridtools {
                     kernel_functor_executor_t;
 
                 typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                GRIDTOOLS_STATIC_ASSERT(
-                    (boost::mpl::size< functor_list_t >::value == 1), GT_INTERNAL_ERROR_MSG("Wrong Size"));
                 kernel_functor_executor_t(local_domain, grid, reduction_data)();
             }
         };
