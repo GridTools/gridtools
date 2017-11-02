@@ -219,6 +219,7 @@ namespace gridtools {
         data_store(data_store &&other) = default;
         data_store(data_store const &other) = default;
         data_store &operator=(data_store const &other) = default;
+        data_store &operator=(data_store &&other) = default;
         ~data_store() = default;
 
         /**
