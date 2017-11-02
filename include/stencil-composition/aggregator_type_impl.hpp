@@ -39,7 +39,6 @@
 
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/include/nview.hpp>
 #include <boost/fusion/include/std_tuple.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/insert.hpp>
@@ -378,31 +377,18 @@ the continuous_indices_check template argument must be an MPL vector of placehol
             }
         };
 
-        // Precondition: Res consists of unique types.
-        template < typename Res, typename Src >
-        Res make_from_permutation(Src &&src) {
-            namespace m = boost::mpl;
-            using src_t = typename std::decay< Src >::type;
-            GRIDTOOLS_STATIC_ASSERT(
-                m::size< src_t >{} == m::size< Res >{}, "The permutation should be the same size as the result.");
-            using positions_t = typename m::transform< Res,
-                m::distance< typename m::begin< src_t >::type, typename m::find< src_t, m::_ >::type >,
-                m::back_inserter< m::vector_c< size_t > > >::type;
-            GRIDTOOLS_STATIC_ASSERT((m::count_if< positions_t, m::equal_to< m::_, m::size< src_t > > >::value == 0),
-                "All types from the result should be in the permutation.");
-            return boost::fusion::nview< src_t, positions_t >(std::forward< Src >(src));
-        };
-
         template < typename Sec >
         using as_tuple_t = typename boost::mpl::copy< Sec, boost::mpl::back_inserter< std::tuple<> > >::type;
 
         // TODO(anstaf): figure out if it is usefull enough to move it to common.
-        struct default_host_container {
-            template < typename T >
+        struct default_host_container_type {
+            template < typename T,
+                typename std::enable_if< boost::fusion::traits::is_sequence< T >::value, int >::type = 0 >
             operator T() const {
                 return as_tuple_t< T >{};
             }
         };
+        constexpr default_host_container_type default_host_container;
 
         /** Metafunction class.
          *  This class is filling a fusion::vector of pointers to storages with pointers from given arg_storage_pairs

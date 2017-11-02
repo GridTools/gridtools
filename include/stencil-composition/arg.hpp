@@ -69,9 +69,10 @@ namespace gridtools {
             "Storage type not compatible with placeholder storage type, when associating placeholder to actual "
             "storage");
 
-        arg_storage_pair() : m_value{} {}
+        arg_storage_pair() = default;
         arg_storage_pair(const Storage &val) : m_value{val} {}
         arg_storage_pair(Storage &&val) noexcept : m_value{std::move(val)} {}
+        ~arg_storage_pair() = default;
 
         Storage m_value;
 

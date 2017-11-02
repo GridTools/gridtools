@@ -156,7 +156,7 @@ namespace gridtools {
         /**
          * fusion::vector of pointers to storages
          */
-        arg_storage_pair_fusion_list_t m_arg_storage_pair_list;
+        arg_storage_pair_fusion_list_t m_arg_storage_pair_list = _impl::default_host_container;
 
         /**
            tuple of pointers to the storages metadata. Note that metadata is constant,
@@ -172,8 +172,7 @@ namespace gridtools {
             typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check<
                                            typename std::decay< ArgStoragePairs >::type... >::type,
                 int >::type = 0 >
-        aggregator_type(ArgStoragePairs &&... arg_storage_pairs)
-            : m_arg_storage_pair_list{_impl::default_host_container{}} {
+        aggregator_type(ArgStoragePairs &&... arg_storage_pairs) {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(ArgStoragePairs) > 0),
                 "Computations with no data_stores are not supported. "
@@ -203,8 +202,7 @@ namespace gridtools {
             typename boost::enable_if<
                 typename _impl::aggregator_storage_check< typename std::decay< DataStores >::type... >::type,
                 int >::type = 0 >
-        aggregator_type(DataStores &&... ds)
-            : m_arg_storage_pair_list{_impl::default_host_container{}} {
+        aggregator_type(DataStores &&... ds) {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
                 "Computations with no data_stores are not supported. "
