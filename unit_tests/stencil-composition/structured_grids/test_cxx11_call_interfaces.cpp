@@ -68,6 +68,16 @@ namespace call_interface_functors {
             eval(out()) = eval(in1()) + eval(in2());
         }
     };
+    // The implementation is different for this case, so we should test it
+    struct copy_functor_with_out_first {
+        typedef inout_accessor< 0, extent<>, 3 > out;
+        typedef in_accessor< 1, extent<>, 3 > in;
+        typedef boost::mpl::vector< out, in > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in());
+        }
+    };
 
     struct call_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
@@ -87,6 +97,16 @@ namespace call_interface_functors {
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             float_type local = 1.;
             eval(out()) = call< copy_functor_with_add, x_interval >::with(eval, in(), local);
+        }
+    };
+
+    struct call_copy_functor_with_out_first {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = call< copy_functor_with_out_first, x_interval >::with(eval, in());
         }
     };
 
@@ -359,6 +379,18 @@ TEST_F(call_interface, call_to_copy_functor_with_local_variable) {
     execute_computation(comp);
 
     ASSERT_TRUE(verifier_.verify(grid, reference_plus1, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_with_out_first) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_with_out_first >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
 }
 
 TEST_F(call_interface, call_to_copy_functor_with_expression) {

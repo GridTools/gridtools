@@ -37,9 +37,9 @@
 
 #include "../common/defs.hpp"
 #include "./empty_extent.hpp"
-#include "accessor_metafunctions.hpp"
 
 namespace gridtools {
+
     /** @brief internal struct to simplify the API when we pass arguments to the global_accessor ```operator()```
 
         \tparam GlobalAccessor the associated global_accessor
@@ -90,10 +90,6 @@ namespace gridtools {
 
         GT_FUNCTION constexpr global_accessor() {}
 
-        // ignore all indices (needed for compatibility in stencil-functions)
-        template < typename... Indices, typename Dummy = all_accessor_ctr_args< Indices... > >
-        GT_FUNCTION constexpr global_accessor(Indices... x) {}
-
         // copy ctor from another global_accessor with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr global_accessor(const global_accessor< OtherIndex, Intend > &other) {}
@@ -102,12 +98,6 @@ namespace gridtools {
         template < typename... Args >
         GT_FUNCTION global_accessor_with_arguments< global_accessor, Args... > operator()(Args &&... args_) {
             return global_accessor_with_arguments< global_accessor, Args... >(std::forward< Args >(args_)...);
-        }
-
-        // ignore offsets (needed for compatibility in stencil-functions)
-        template < short_t Idx >
-        GT_FUNCTION int_t constexpr get() const {
-            return 0;
         }
     };
 
