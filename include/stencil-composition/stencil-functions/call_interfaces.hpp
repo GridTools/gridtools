@@ -85,7 +85,7 @@ namespace gridtools {
 
             typedef typename boost::fusion::result_of::as_vector< PassedArguments >::type accessors_list_t;
             CallerAggregator &m_caller_aggregator;
-            ReturnType *__restrict__ m_result;
+            ReturnType *RESTRICT m_result;
             accessors_list_t const m_accessors_list;
 
             template < typename Accessor >
