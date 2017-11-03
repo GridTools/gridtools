@@ -98,13 +98,6 @@ namespace gridtools {
                 CallerAggregator &caller_aggregator, ReturnType &result, accessors_list_t const &list)
                 : m_caller_aggregator(caller_aggregator), m_result(&result), m_accessors_list(list) {}
 
-            using non_accessor_indices = compute_non_accessor_indices< PassedAccessors >;
-
-            template < typename Accessor >
-            using get_passed_accessor_index =
-                static_uint< (Accessor::index_t::value < OutArg) ? Accessor::index_t::value
-                                                                 : (Accessor::index_t::value - 1) >;
-
             template < typename Accessor >
             using get_passed_argument_index =
                 static_uint< (Accessor::index_t::value < OutArg) ? Accessor::index_t::value
@@ -148,10 +141,11 @@ namespace gridtools {
              * @brief If the passed type is not an accessor we assume it is a local variable which we just return.
             */
             template < typename Accessor >
-            GT_FUNCTION constexpr typename boost::enable_if_c< not passed_argument_is_accessor< Accessor >::value,
-                get_passed_accessor_type< Accessor > >::type
+            GT_FUNCTION constexpr typename boost::enable_if_c< not passed_argument_is_accessor< Accessor >::value &&
+                                                                   not is_out_arg< Accessor >::value,
+                get_passed_argument_type< Accessor > >::type
             operator()(Accessor const &accessor) const {
-                return get_passed_accessor< Accessor >();
+                return get_passed_argument< Accessor >();
             }
 
             /**

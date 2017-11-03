@@ -152,17 +152,6 @@ namespace gridtools {
             };
         };
 
-        /**
-         * Collect the indices of the arguments that are not accessors among
-         * the PassedArguments
-         */
-        template < typename PassedArguments >
-        using compute_non_accessor_indices =
-            typename boost::mpl::fold< boost::mpl::range_c< int, 0, boost::mpl::size< PassedArguments >::value >,
-                boost::mpl::vector0<>,
-                typename _impl::insert_index_if_not_accessor< PassedArguments >::template apply< boost::mpl::_2,
-                                           boost::mpl::_1 > >::type;
-
         /** Struct to wrap a reference that is passed to a procedure
             (call_proc). This is used to deduce the type of the arguments
             required by the called function.
