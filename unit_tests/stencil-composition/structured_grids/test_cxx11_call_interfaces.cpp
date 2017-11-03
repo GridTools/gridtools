@@ -58,6 +58,17 @@ namespace call_interface_functors {
         }
     };
 
+    // The implementation is different for this case, so we should test it
+    struct copy_functor_with_out_first {
+        typedef inout_accessor< 0, extent<>, 3 > out;
+        typedef in_accessor< 1, extent<>, 3 > in;
+        typedef boost::mpl::vector< out, in > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in());
+        }
+    };
+
     struct call_copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
@@ -65,6 +76,16 @@ namespace call_interface_functors {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = call< copy_functor, x_interval >::with(eval, in());
+        }
+    };
+
+    struct call_copy_functor_with_out_first {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = call< copy_functor_with_out_first, x_interval >::with(eval, in());
         }
     };
 
@@ -320,6 +341,18 @@ TEST_F(call_interface, call_to_copy_functor) {
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_copy_functor >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_with_out_first) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_with_out_first >(p_in(), p_out())));
 
     execute_computation(comp);
 
