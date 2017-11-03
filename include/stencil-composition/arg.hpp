@@ -170,7 +170,7 @@ namespace gridtools {
         template < typename Location >
         struct tmp_storage_info_id;
         template < int_t I, ushort_t NColors >
-        struct tmp_storage_info_id< location_type< I, NColors > > : std::integral_constant< unsigned, NColors - 2 > {};
+        struct tmp_storage_info_id< location_type< I, NColors > > : std::integral_constant< unsigned, -NColors > {};
     }
     /** alias template that provides convenient tmp arg declaration. */
     template < uint_t I, typename Storage, typename Location = enumtype::default_location_type >
