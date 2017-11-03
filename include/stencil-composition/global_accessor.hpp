@@ -37,9 +37,9 @@
 
 #include "../common/defs.hpp"
 #include "./empty_extent.hpp"
-#include "accessor_metafunctions.hpp"
 
 namespace gridtools {
+
     /** @brief internal struct to simplify the API when we pass arguments to the global_accessor ```operator()```
 
         \tparam GlobalAccessor the associated global_accessor
