@@ -35,11 +35,13 @@
 */
 #pragma once
 
-namespace gridtools {
-    /**@brief decorates the user function with a defaiult interval, in case no interval was specified by the user
+#include "interval.hpp"
 
-       A SFINAE mechanism detects wether the user gave the vertical interval as input to the Do method,
-       and when this is not the case it wraps the functor inside this decoratpr, passing the whole axis to it.
+namespace gridtools {
+    /**@brief decorates the user function with a default interval, in case no interval was specified by the user
+
+       A SFINAE mechanism detects whether the user gave the vertical interval as input to the Do method,
+       and when this is not the case it wraps the functor inside this decorator, passing the whole axis to it.
        The first and last points are removed from the axis (the GridTools API works with exclusive intervals). So
        the functor_decorator spans the whole domain embedded in the vertical axis.
        \tparam F the user functor
@@ -57,7 +59,7 @@ namespace gridtools {
         // splitters as Axis,
         // and offsets which are strictly enclosed in those defined by the Axis template argument
         // NOTE: the offsets cannot be 0 because of API conventions,
-        // for this reason whe have to devise a special case for when the "from" offset in the vertical Axis is -1
+        // for this reason we have to devise a special case for when the "from" offset in the vertical Axis is -1
         // (in that case the interval representing the whole axis must start from 1 instead of 0, so we have to add
         // -1+2=1)
         typedef gridtools::interval< level< from_splitter, from_offset >,
