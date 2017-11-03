@@ -2,6 +2,7 @@ macro( gridtools_add_option opt )
   set( options )
   set( single_value_args DEFAULT DESCRIPTION )
   set( multi_value_args )
+  include( CMakeParseArguments )
   cmake_parse_arguments( _p "${options}" "${single_value_args}" "${multi_value_args}" ${_FIRST_ARG} ${ARGN} )
 
   if( NOT DEFINED _p_DEFAULT )
