@@ -293,3 +293,8 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+def setup(sphinx):
+    sys.path.insert(0, os.path.abspath('./'))
+    from gridtools_lexer import GridToolsLexer
+    sphinx.add_lexer("gridtools", GridToolsLexer())

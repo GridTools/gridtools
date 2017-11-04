@@ -19,7 +19,7 @@ solves this problem elegantly, with a minimal code overhead.
 
 The user must collect the storage pointers in a ```std::vector```
 
-.. code-block:: c++
+.. code-block:: gridtools
 
         using exp_param_t = std::vector< pointer< storage_t > >;
         exp_param_t list_ = {
@@ -30,7 +30,7 @@ the regular storages.
 
 The implementation requires the user to specify an integer ```expand_factor``` when defining the computation:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  auto comp_ = make_computation< BACKEND >(
         expand_factor<4>,

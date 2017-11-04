@@ -56,13 +56,13 @@ There are three kinds of accessor:
 
 An *accessor type* is a `using` statement with this form
 
-.. code-block:: c++
+.. code-block:: gridtools
 
   using name = accessor<I, intent, [location_type,] extent, N>;
 
 or
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  using name = global_accessor<I>;
 
@@ -137,7 +137,7 @@ where
 ^^^^^^^^^^^^^^^^^^^^^
 The ``arg_list`` is a `using` statement like the following
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  using arg_list = accessor_list< _accessors_ >;
 
@@ -182,7 +182,7 @@ arguments of the reduction operator).
  Example
 ---------------
 
-.. code-block:: c++
+.. code-block:: gridtools
 
     struct flx_function {
 
@@ -221,7 +221,7 @@ Using eval For Regular Grids
 
 Let us assume the ``Do`` methods has the following signature:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  template <typename Eval>
  GT_FUNCTION static
@@ -232,7 +232,7 @@ The way to access data corresponding to a certain data field passed to
 it, is to indicate the corresponding accessor as argument to the
 ``eval`` argument, as follow:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  eval(accessor_name())
 
@@ -251,7 +251,7 @@ For Regular Grids values can be accessed at offsets (relative to the
 evaluation point) passing to the constructor
 of the accessor a sequence of integer indices, as follows:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  eval(accessor_name(1,0,-1))
 
@@ -269,7 +269,7 @@ The evaluation returns a reference to the value for accessors with
 The next example takes the difference between two value in the first
 dimension and assign it to the output field:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  eval(out()) = eval(in()) - eval(in(1,0,0));
 
@@ -277,7 +277,7 @@ dimension and assign it to the output field:
 When using expressions, the previous example can be simplified to
 read:
 
-.. code-block:: c++ 
+.. code-block:: gridtools 
 
  eval(out()) = eval( in() -in(1,0,0) );
 

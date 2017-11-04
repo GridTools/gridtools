@@ -65,7 +65,7 @@ dependencies of the computation independently of the actual data
 fields that will be accessed by the computation. The syntax for
 specifying a stage uses an helper function called ``make_stage``:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  auto stage = make_stage< operator >(plc0(), plc1(), ...);
 
@@ -79,7 +79,7 @@ indication of the [execution strategy](#gridtools-execution-model) to
 be used for all the stages as in the following example for a diffusion
 operator.  
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  auto multi_stage = make_multistage(
     execute< forward >(),
@@ -103,7 +103,7 @@ Before the computation can be executed, an aggregator, containing the
 references to the actual data to be processed and the grid, specifying
 the iteration space, must be provided. The final example is:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  horizontal_diffusion = make_computation< BACKEND >(
     aggregator, grid,
@@ -129,7 +129,7 @@ the dependencies. For instance, we can assume the the ``flx_operator``
 and ``fly_operator`` do not have producer-consumer dependencies the user
 can specify that they are independent:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  horizontal_diffusion = make_computation< BACKEND >(
     aggregator, grid,
@@ -148,7 +148,7 @@ analysis but, potentially, only on the execution schedule.
 
 In general ``make_computation`` has the following signature:
 
-.. code-block:: c++
+.. code-block:: gridtools
  
  make_computation< BACKEND >(aggregator, grid, multi_stage0[, other_multi_stages]);
 
@@ -159,7 +159,7 @@ ascending and one descending, but has to be used with care. Before
 explaining the rules for using this feature, we provide a simple
 example of the syntax in this vertical advenction example:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  vertical_advection = make_computation< BACKEND >
     ( domain, grid,

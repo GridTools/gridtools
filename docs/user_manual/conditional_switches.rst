@@ -19,7 +19,7 @@ is in the last stage, while the rest is repeated. This would be tedious and erro
 
 The syntax we expose for ``if_`` statements is reported in the following example
 
-.. code-block:: c++
+.. code-block:: gridtools
 
    auto cond = new_cond([&flag]() { return flag; });
    auto comp_ = make_computation< BACKEND >(
@@ -38,7 +38,7 @@ The value of ``cond`` is evaluated at every execution of the ``comp_.run()`` fun
 
 The conditionals can also be nested
 
-.. code-block:: c++
+.. code-block:: gridtools
 
    auto cond = new_cond([]() { return false; });
    auto cond2 = new_cond([]() { return true; });
@@ -57,7 +57,7 @@ The conditionals can also be nested
 The other syntactic element we introduce is a ``switch_``,
 and its use is exemplified in the following snippet
 
-.. code-block:: c++
+.. code-block:: gridtools
 
    auto cond_ = new_switch_variable([&p]() { return p ? 0 : 5; });
    auto comp_ = make_computation< BACKEND >(

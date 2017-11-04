@@ -31,14 +31,14 @@ the computing architecture backend of the library).
 An example of the syntax for caching certain fields of a
 ``computation`` is shown below
 
-.. code-block:: c++
+.. code-block:: gridtools
  
  auto comp = make_computation< BACKEND >(
     domain,
     grid,
     make_multistage(
         execute< forward >(),
-        define_caches(cache< IJ, local >(p_f1(), p_f2())),
+        define_caches(cache< cache_type::IJ, local >(p_f1(), p_f2())),
         make_stage< lap_function >(p_f1(), p_f2(), p_in()),
         make_stage< lap_function >(p_out(), p_f1(), p_f2())
     )
@@ -60,7 +60,7 @@ access pattern.
 
 The ``cache`` construct adheres to the following syntax:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  cache< cache_type, io_policy, [interval] >( p_args... ) 
 

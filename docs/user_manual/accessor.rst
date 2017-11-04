@@ -1,6 +1,10 @@
 ========================
- Regular Accessors
+ Accessors
 ========================
+
+------------------------
+ Regular Accessors
+------------------------
 
 Regular accessors are proxy objects
 used to access data fields
@@ -30,9 +34,9 @@ We introduce the ``accessors``
 syntax with progressively more complex examples
 to explain how the different dimensions can be accessed.
 
--------------------
+^^^^^^^^^^^^^^^^^^^
 Space Dimensions
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 Let's start with an arbitrary dimensional array
 (a single :term:`snapshot<snapshot>`). The API exposed is very intuitive.
@@ -40,20 +44,20 @@ Suppose you have as first argument of the functor a
 5 (space) dimentional snapshot as an input with null extent called ``acc``.
 Then the accessor to use is the following:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  using acc = accessor<0, enumtype::in, extent<>, 5>;
 
 We can access the 2 extra dimensions by specifying all the offsets
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  acc(0,0,-1,2,2)
 
 We can also assign a name to a dimension, and increment it
 using the following syntax, where we ignore the first two ```0``` s:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  dimension<3> k; dimension<4> c; dimension<5> t;
  acc(k-1, c+2, t+2)
@@ -61,7 +65,7 @@ using the following syntax, where we ignore the first two ```0``` s:
 
 In the latter API the order of the arguments is irrelevant
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  dimension<3> k; dimension<4> c; dimension<5> t;
  acc(k-1, t+2, c+2) == acc(c+2, k-1, t+2)
@@ -70,9 +74,9 @@ Note that the second notation may greatly improve the readibility of the
 user functor body by exposing a matlab-like API, especially when high
 dimensionality is used.
 
-----------------------
+^^^^^^^^^^^^^^^^^^^^^
 Field Dimensions
-----------------------
+^^^^^^^^^^^^^^^^^^^^^
 
 Specifying an offset for a field dimension works exactly as for the
 space dimension. So there is no way to distinguish the two only based
@@ -80,25 +84,28 @@ on the user functor. Whether we are accessing a space dimension or a field
 dimension will depend only on the storage type which will be bound to the
 accessor, and not on the accessor itself. So in the example
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  dimension<3> k; dimension<4> c; dimension<5> t;
  acc(k-1, c+2, t+2)
+
+ #ifdef 
+ #define
 
 ``c+2`` may refer to an offset to the 4th dimension or the third components (the indices are
 zero based) of a vector field, while ``t+2`` may refer to the third snapshot of that component.
 Alternatively, if the storage passed in had 4 space dimensions, the ``t+2`` would have
 indicated the third component.
 
-----------------------
+^^^^^^^^^^^^^^^^^^
 Accessor Alias
-----------------------
+^^^^^^^^^^^^^^^^^^
 
 An accessor alias is a regular accessor which has an offset set at compile-time.
 For instance, say you have a vector field in :math:`R^3` with components h, v, w.
 This vector field is accessed via an accessor called ```vec```
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  using vec = accessor<0, enumtype::in, extent<>, 4>;
 
@@ -107,34 +114,34 @@ with ```w``` sometimes
 in some expressions. You can do this defining an alias to the third component
 of the accessor:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  using w = alias<vec, dimension<4> >::set<2>;
 
 The line above sets at compile-time the fourth offset to the value 2, so that we have
 the following equivalency:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  w() == vec(0,0,0,2)
 
 which may contribute to considerably lighten the notation in complicated expressions.
 Note that you can still access the other dimensions with an offset, by using the alias. So that
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  dimension<1> i;
  dimension<4> q;
  w(i+1) == vel(i+1, q+2)
 
 
--------------------
+^^^^^^^^^^^^^^^^^^
 Expressions
--------------------
+^^^^^^^^^^^^^^^^^^
 
 The Do method example provided in :ref:`stencil-operator-example` showed the basic syntax to access data.
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  template < typename Evaluation >
  GT_FUNCTION static void Do(Evaluation &eval) {
@@ -149,7 +156,7 @@ We can notice that the ``eval`` keyword is repeated several times, which is some
 tedious, especially when the expression is complicated it becaomes quickly very hard to read.
 It is possible to embed the expressions in a single eval, i.e.
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  using namespace expressions;
  template < typename Evaluation >
@@ -172,7 +179,7 @@ shallow water example.
 It is possible also to instantiate a compile time expression to be lazily evaluated,
 useful for instance if we want to evaluate it multiple times
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  using namespace expressions;
  constexpr auto cond = out() * (in(1, 0, 0) - in(0, 0, 0);
@@ -229,7 +236,7 @@ various configuration options.
 The API allows the user to define an arbitrary object deriving from [Global Parameter](global parameter), and pass it
 to the computation. The accessor associated with this global parameter must be a global accessor
 
-.. code-block:: c++
+.. code-block:: gridtools
 
     using global_accessor< 0 > global_boundary;
 
@@ -237,7 +244,7 @@ Calling ``eval`` on the global accessor returns the user defined data structure.
 this data structure contains a user function called ```ordinal``` returning an integer, we can write
 in the do method
 
-.. code-block:: c++
+.. code-block:: gridtools
 
     auto ordinal_ = eval(global_boundary()).ordinal();
 
@@ -253,12 +260,13 @@ In that case the accessor's parenthesis operator can be used and the arguments w
 automatically forwarded to the global parameter. An example is the case in which we want to pass
 a small matrix as a global parameter:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
     using global_accessor< 0 > matrix;
     auto elem = eval(matrix(i,j));
 
 A useful example to understand this use case can be found in the extended4D example.
+
 .. todo:: 
  
  add reference

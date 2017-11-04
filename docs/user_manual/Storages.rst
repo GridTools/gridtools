@@ -16,13 +16,13 @@ Storage info
 The storage info element can be seen as a meta data object that keep information about a storage. This information is alignment, data layout in memory, halo areas, dimensionality, size of the storage, etc.
 The object must be created before storage can be allocated. The meta data or storage info object can be shared among different storages. The reason is that it is usual that multiple storages used in one computation are having the same meta data. The storage info object is created in the following way:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  host_storage_info< Id, Layout, Halo, Alignment >(Dims...)
 
 for host storage infos.
 
-.. code-block:: c++
+.. code-block:: gridtools
 
  cuda_storage_info< Id, Layout, Halo, Alignment >(Dims...)
 
@@ -64,7 +64,7 @@ halo I size of 1,
 halo J size of 0,
 and alignment 8 is created. 
 Please note that the size of the halo has to be added to the arguments that are passed to the constructor.
-.. code-block:: c++
+.. code-block:: gridtools
 
     typedef host_storage_info<0, layout_map<1,0>, halo<1,0>, alignment<8> > storage_info_t;
     storage_info_t si(6,3); // 4 data points + 2 halo points in I, 3 data points and 0 halo points in J
@@ -116,7 +116,7 @@ Following codes snippets show how data stores can be created. At first the user 
 done externally or not. If it is done externally the data store won't allocate nor deallocate the memory. The standard use-case is to
 use managed data stores. The data store can be initialized with a value or lambda and can optionally be named by passing an additional  string. 
 
-.. code-block:: c++ 
+.. code-block:: gridtools 
 
     typedef host_storage_info<0, layout_map<1,0>, halo<1,0>, alignment<8> > storage_info_t;
     typedef data_store< host_storage<double>, storage_info_t > data_store_t;
@@ -200,7 +200,7 @@ Following example shows a ``data_store_field`` with 3 components and 3 snapshots
 
 Such a field can be instantiated and used in the following way:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
     typedef host_storage_info<0, layout_map<1,0> > storage_info_t;
     typedef data_store< host_storage<double>, storage_info_t > data_store_t;
@@ -256,7 +256,7 @@ code only. For instance if the user creates a device view to a ``cuda_storage`` 
 to a kernel and used inside the kernel to access the data in a convenient way.
 In case of a ``host_storage`` there is no device view available.
 
-.. code-block:: c++
+.. code-block:: gridtools
 
     ...
     template < typename View >
@@ -297,7 +297,7 @@ Reason for this is because the internal state machine assumes that there will be
 view is created. The validity and consistency of a view can be checked easily. If views should be reused after a 
 synchronization they have to be activated manually via a call to ``reactivate_host_views()`` or ``reactivate_device_views()``. The view consistency can always be checked with a call to ``check_consistency(DataStore, DataView)``.
 
-.. code-block:: c++
+.. code-block:: gridtools
 
     ...
     auto host_view_ds = make_host_view(ds);
@@ -364,7 +364,7 @@ The second code block shows that the same thing can also be done with
 manually extracting the ``data_store`` from the ``data_store_field`` and 
 creating the views afterwards.
 
-.. code-block:: c++
+.. code-block:: gridtools
 
     ...
     // access the first storage of the first dimension and set the first value to 5
@@ -396,7 +396,7 @@ the ``storage-facility`` which returns the correct types for the chosen backend.
 
 **Example**:
 
-.. code-block:: c++
+.. code-block:: gridtools
 
     #define BACKEND enumtype::Cuda
     // get the correct 3D layouted and aligned storage info suitable for the CUDA backend
