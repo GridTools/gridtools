@@ -108,8 +108,7 @@ namespace gridtools {
                 typename boost::mpl::at_c< PassedArguments, get_passed_argument_index< Accessor >::value >::type;
 
             template < typename Accessor >
-            GT_FUNCTION constexpr auto get_passed_argument() const
-                -> decltype(boost::fusion::at_c< get_passed_argument_index< Accessor >::value >(m_accessors_list)) {
+            GT_FUNCTION constexpr get_passed_argument_type< Accessor > get_passed_argument() const {
                 return boost::fusion::at_c< get_passed_argument_index< Accessor >::value >(m_accessors_list);
             }
 
