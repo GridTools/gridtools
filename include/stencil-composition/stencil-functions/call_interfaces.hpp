@@ -117,7 +117,7 @@ namespace gridtools {
             using is_out_arg = boost::mpl::bool_< Accessor::index_t::value == OutArg >;
 
             /**
-             * @brief Accessor is a normal 3D accessor
+             * @brief Accessor (of the callee) is a regular 3D in_accessor
              */
             template < typename Accessor >
             GT_FUNCTION constexpr typename boost::enable_if_c< not is_out_arg< Accessor >::value &&
@@ -146,7 +146,7 @@ namespace gridtools {
             }
 
             /**
-             * @brief Accessor is the OutArg, just return the value
+             * @brief Accessor is the (only!) OutArg, i.e. the return value
              */
             template < typename Accessor >
             GT_FUNCTION constexpr typename boost::enable_if_c< is_out_arg< Accessor >::value, ReturnType >::type &
@@ -181,7 +181,7 @@ namespace gridtools {
 
     /** Main interface for calling stencil operators as functions.
 
-        Usage C++11: call<functor, region>::[at<offseti, offsetj, offsetk>::]with(eval, accessors...);
+        Usage: call<functor, region>::[at<offseti, offsetj, offsetk>::]with(eval, accessors...);
 
         \tparam Functos The stencil operator to be called
         \tparam Region The region in which to call it (to take the proper overload). A region with no exact match is not
