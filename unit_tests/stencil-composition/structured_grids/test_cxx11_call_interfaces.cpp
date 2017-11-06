@@ -68,7 +68,9 @@ namespace call_interface_functors {
             eval(out()) = eval(in1()) + eval(in2());
         }
     };
-    // The implementation is different for this case, so we should test it
+
+    // The implementation is different depending on the position of the out accessor in the callee, as the position of
+    // the input accessors in the call has to be shifted when it is not in the last position.
     struct copy_functor_with_out_first {
         typedef inout_accessor< 0, extent<>, 3 > out;
         typedef in_accessor< 1, extent<>, 3 > in;
