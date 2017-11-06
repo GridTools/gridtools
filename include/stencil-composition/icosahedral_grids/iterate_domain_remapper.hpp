@@ -179,9 +179,9 @@ namespace gridtools {
                      *     and to be evaluated by the iterate domain
                      */
                     template < typename Neighbors, typename IterateDomain, typename... Accessors >
-                    GT_FUNCTION static ValueType apply(Neighbors const &__restrict__ neighbors,
+                    GT_FUNCTION static ValueType apply(Neighbors const &RESTRICT neighbors,
                         IterateDomain const &iterate_domain,
-                        Accessors &__restrict__... args_) {
+                        Accessors &RESTRICT... args_) {
                         return iterate_domain._evaluate(get_from_variadic_pack< Idx >::apply(args_...), neighbors);
                     }
                 };
@@ -268,8 +268,7 @@ namespace gridtools {
                     reduce_tuple_holder_t;
 
                 template < typename... Accessors >
-                GT_FUNCTION static void apply(
-                    reduce_tuple_holder_t &__restrict__ reducer, Accessors &__restrict__... args) {
+                GT_FUNCTION static void apply(reduce_tuple_holder_t &RESTRICT reducer, Accessors &RESTRICT... args) {
                     // we need to call the user functor (Reduction(arg1, arg2, ..., result) )
                     // However we can make here a direct call, since we first need to dereference the address of each
                     // Accessor
