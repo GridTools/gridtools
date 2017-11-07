@@ -77,10 +77,6 @@ namespace gridtools {
     struct is_grid_accessor_impl< T, typename std::enable_if< is_vector_accessor< T >::value >::type >
         : boost::mpl::true_ {};
 
-    // TODO remove
-    template < typename T >
-    struct is_any_accessor : boost::mpl::or_< is_accessor< T >, is_vector_accessor< T > > {};
-
     // TODO refactor code duplication
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
     struct remap_accessor_type< vector_accessor< ID, Intend, Extend, Number >, ArgsMap > {
