@@ -79,9 +79,4 @@ namespace gridtools {
     template < typename T >
     struct is_grid_accessor_impl< T, typename std::enable_if< is_vector_accessor< T >::value >::type >
         : boost::mpl::true_ {};
-
-    // TODO remove
-    template < typename T >
-    struct is_any_accessor : boost::mpl::or_< is_accessor< T >, is_vector_accessor< T > > {};
-
 } // namespace gridtools
