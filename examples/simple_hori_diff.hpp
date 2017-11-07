@@ -58,9 +58,6 @@ using namespace expressions;
 namespace shorizontal_diffusion {
     // This is the definition of the special regions in the "vertical" direction
     using axis_t = axis< 1 >;
-    using x_lap = axis_t::full_interval;
-    using x_flx = axis_t::full_interval; // TODO why do we have the same intervals with different names?
-    using x_out = axis_t::full_interval;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct wlap_function {
@@ -72,7 +69,7 @@ namespace shorizontal_diffusion {
         typedef boost::mpl::vector< out, in, crlato, crlatu > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_lap) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in(1, 0, 0)) + eval(in(-1, 0, 0)) - (gridtools::float_type)2 * eval(in()) +
                           eval(crlato()) * (eval(in(0, 1, 0)) - eval(in())) +
                           eval(crlatu()) * (eval(in(0, -1, 0)) - eval(in()));
@@ -90,7 +87,7 @@ namespace shorizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap, crlato, coeff > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             gridtools::float_type fluxx = eval(lap(1, 0, 0)) - eval(lap());
             gridtools::float_type fluxx_m = eval(lap(0, 0, 0)) - eval(lap(-1, 0, 0));
 
