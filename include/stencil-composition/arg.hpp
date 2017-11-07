@@ -132,7 +132,7 @@ namespace gridtools {
 
     namespace _impl {
 
-        // metafunction that replaces the ID of a storage_info type to -1
+        // metafunction that replaces the ID of a storage_info type to the new value
         template < unsigned Id, typename T >
         struct tmp_storage_info;
 
@@ -146,7 +146,7 @@ namespace gridtools {
             using type = StorageInfo< Id, Layout, Halo, Alignment >;
         };
 
-        // replace the storage_info ID contained in a given storage with -1
+        // replace the storage_info ID contained in a given storage with the new value
         template < unsigned Id, typename T >
         struct tmp_storage;
 
@@ -170,7 +170,12 @@ namespace gridtools {
         template < int_t I, ushort_t NColors >
         struct tmp_storage_info_id< location_type< I, NColors > > : std::integral_constant< unsigned, -NColors > {};
     }
-    /** alias template that provides convenient tmp arg declaration. */
+    /** alias template that provides convenient tmp arg declaration.
+     *
+     *  Here we force tmp storages to share storage info type. To achieve this we substitute the storage info ID
+     *  to one that is in the reserved range (close to max unsigned).
+     *  TODO(anstaf): replace storage info IDs to tags to avoid having reserved range.
+     */
     template < uint_t I, typename Storage, typename Location = enumtype::default_location_type >
     using tmp_arg = arg< I,
         typename _impl::tmp_storage< _impl::tmp_storage_info_id< Location >::value, Storage >::type,

@@ -252,7 +252,7 @@ namespace gridtools {
         }
 
       public:
-        constexpr static unsigned id = Id;
+        constexpr static uint_t id = Id;
 
         /*
          * @brief storage info constructor. Additionally to initializing the members the halo
