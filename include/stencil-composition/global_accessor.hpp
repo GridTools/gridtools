@@ -77,10 +77,11 @@ namespace gridtools {
        Calling the parenthesis operator on the global_accessor generates an instance of
        ```global_accessor_with_arguments```.
      */
-    template < uint_t I, enumtype::intend Intend = enumtype::in >
+    template < uint_t I, enumtype::intend Intend = enumtype::in > // TODO cleanup
     struct global_accessor {
 
-        static const constexpr enumtype::intend intent = Intend;
+        static const constexpr enumtype::intend intent = enumtype::in;          // TODO cleanup
+        typedef enumtype::enum_type< enumtype::intend, enumtype::in > intend_t; // TODO cleanup
 
         typedef global_accessor< I, Intend > type;
 

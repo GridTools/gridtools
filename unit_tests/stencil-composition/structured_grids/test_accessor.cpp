@@ -50,6 +50,19 @@ TEST(accessor, is_accessor) {
     GRIDTOOLS_STATIC_ASSERT((is_accessor< double const & >::value) == false, "");
 }
 
+TEST(accessor, is_accessor_readonly) {
+    using namespace gridtools;
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< in_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< vector_accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< global_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< global_accessor< 0, enumtype::inout > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< inout_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< accessor< 0, enumtype::inout > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< vector_accessor< 0, enumtype::inout > >::value), "");
+    // TODO test accessor_mixed
+}
+
 TEST(accessor, copy_const) {
 
     // using namespace gridtools;

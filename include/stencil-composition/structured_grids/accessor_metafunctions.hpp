@@ -207,38 +207,15 @@ namespace gridtools {
         typedef Expression< typename remap_accessor_type< Accessor, ArgsMap >::type, Number > type;
     };
 
-    template < typename Accessor >
+    template < typename Accessor, typename Enable = void >
     struct is_accessor_readonly : boost::mpl::false_ {};
 
-#ifdef CUDA8
-    template < typename Accessor, typename... Pair >
-    struct is_accessor_readonly< accessor_mixed< Accessor, Pair... > > : is_accessor_readonly< Accessor > {};
-#endif
-
-    template < ushort_t ID, typename Extend, ushort_t Number >
-    struct is_accessor_readonly< accessor< ID, enumtype::in, Extend, Number > > : boost::mpl::true_ {};
-
-    template < ushort_t ID, typename Extend, ushort_t Number >
-    struct is_accessor_readonly< accessor< ID, enumtype::inout, Extend, Number > > : boost::mpl::false_ {};
-
-    template < ushort_t ID >
-    struct is_accessor_readonly< global_accessor< ID, enumtype::in > > : boost::mpl::true_ {};
-
-    template < ushort_t ID >
-    struct is_accessor_readonly< global_accessor< ID, enumtype::inout > > : boost::mpl::true_ {};
-
-    template < ushort_t ID, typename Extend, ushort_t Number >
-    struct is_accessor_readonly< vector_accessor< ID, enumtype::in, Extend, Number > > : boost::mpl::true_ {};
-
-    template < ushort_t ID, typename Extend, ushort_t Number >
-    struct is_accessor_readonly< vector_accessor< ID, enumtype::inout, Extend, Number > > : boost::mpl::false_ {};
-
-    /* Is written is actually "can be written", since it checks if not read olnly.
-       TODO: metafunction convention not completely respected */
     template < typename Accessor >
-    struct is_accessor_written {
-        static const bool value = !is_accessor_readonly< Accessor >::value;
-        typedef typename boost::mpl::not_< typename is_accessor_readonly< Accessor >::type >::type type;
-    };
+    struct is_accessor_readonly< Accessor, typename std::enable_if< Accessor::intend_t::value == enumtype::in >::type >
+        : boost::mpl::true_ {};
+
+    /* Is written is actually "can be written", since it checks if not read only.*/
+    template < typename Accessor >
+    struct is_accessor_written : boost::mpl::bool_< !is_accessor_readonly< Accessor >::value > {};
 
 } // namespace gridtools

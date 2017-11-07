@@ -35,7 +35,7 @@
 */
 #pragma once
 
-#include "../icosahedral_grids/accessor.hpp"
+#include "accessor.hpp"
 #include "../global_accessor.hpp"
 #include "../expandable_parameters/expandable_fwd.hpp"
 

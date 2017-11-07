@@ -92,7 +92,7 @@ namespace gridtools {
         static const ushort_t n_dimensions = Dim;
 
         typedef static_uint< I > index_t;
-        typedef enumtype::enum_type< enumtype::intend, Intend > intend_t;
+        typedef enumtype::enum_type< enumtype::intend, Intend > intend_t; // TODO replace with C++11 style
         typedef Extend extent_t;
         typedef offset_tuple< n_dimensions, n_dimensions > offset_tuple_t;
 
