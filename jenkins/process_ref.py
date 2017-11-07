@@ -349,7 +349,7 @@ if __name__ == "__main__":
         parser.error('wrong value for --target')
 
     #only cxx11 is supported
-    std = cxx11
+    std = "cxx11"
     if std != "cxx11" and std != "cxx03":
         parser.error('--std should be set to cxx11 or cxx03')
 
