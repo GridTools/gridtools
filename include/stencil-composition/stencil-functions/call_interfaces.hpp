@@ -117,7 +117,7 @@ namespace gridtools {
             }
 
             template < typename Accessor >
-            using passed_argument_is_accessor = is_accessor< get_passed_argument_type< Accessor > >;
+            using passed_argument_is_accessor = is_any_accessor< get_passed_argument_type< Accessor > >;
 
             template < typename Accessor >
             using is_out_arg = boost::mpl::bool_< Accessor::index_t::value == OutArg >;

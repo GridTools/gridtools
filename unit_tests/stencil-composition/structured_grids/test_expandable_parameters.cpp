@@ -67,6 +67,18 @@ struct call_proc_copy_functor {
     }
 };
 
+struct call_copy_functor {
+    typedef vector_accessor< 0, enumtype::inout > out;
+    typedef vector_accessor< 1, enumtype::in > in;
+
+    typedef boost::mpl::vector< out, in > arg_list;
+
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        eval(out()) = call< copy_functor >::with(eval, in());
+    }
+};
+
 class expandable_parameters : public testing::Test {
   protected:
 #ifdef __CUDACC__
@@ -83,7 +95,7 @@ class expandable_parameters : public testing::Test {
     const uint_t d1 = 13;
     const uint_t d2 = 9;
     const uint_t d3 = 7;
-    const uint_t halo_size = 1;
+    const uint_t halo_size = 0;
 
     typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
     typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
@@ -179,6 +191,21 @@ TEST_F(expandable_parameters, call_proc_copy) {
         grid,
         gridtools::make_multistage(
             execute< forward >(), gridtools::make_stage< call_proc_copy_functor >(p_out(), p_in())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
+    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
+}
+
+TEST_F(expandable_parameters, call_copy) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(expand_factor< 2 >(),
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(), gridtools::make_stage< call_copy_functor >(p_out(), p_in())));
 
     execute_computation(comp);
 
