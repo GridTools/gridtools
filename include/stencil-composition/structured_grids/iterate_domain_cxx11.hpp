@@ -433,7 +433,7 @@ namespace gridtools {
             auto storage_ = boost::fusion::at< index_t >(local_domain.m_local_data_ptrs).second;
 
             return tuple_to_container(
-                **storage_, accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
+                **storage_.data(), accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
         }
 
         /**@brief returns the dimension of the storage corresponding to the given accessor
