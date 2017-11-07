@@ -36,6 +36,12 @@
 #pragma once
 
 namespace gridtools {
+    template < typename GlobalAccessor, typename... Args >
+    struct global_accessor_with_arguments;
+
+    template < uint_t I, enumtype::intend Intend >
+    struct global_accessor;
+
     template < typename T >
     struct is_global_accessor;
 

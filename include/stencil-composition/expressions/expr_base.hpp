@@ -34,6 +34,10 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include "../global_accessor_fwd.hpp"
+#include "../accessor_fwd.hpp"
+
 namespace gridtools {
 
     struct tokens {
@@ -133,9 +137,6 @@ namespace gridtools {
 
     template < typename Arg >
     struct is_expr< unary_expr< Arg > > : boost::mpl::true_ {};
-
-    template < typename Arg >
-    struct is_accessor;
 
     /**
        @namespace expressions
