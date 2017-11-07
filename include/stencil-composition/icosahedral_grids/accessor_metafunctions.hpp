@@ -47,16 +47,6 @@ namespace gridtools {
         typedef typename Accessor::index_t type;
     };
 
-    template < typename Accessor >
-    struct is_accessor_readonly : boost::mpl::false_ {
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::or_< is_accessor< Accessor >, is_vector_accessor< Accessor > >::value), GT_INTERNAL_ERROR);
-    };
-
-    template < uint_t ID, typename LocationType, typename Extent, ushort_t FieldDimensions >
-    struct is_accessor_readonly< accessor< ID, enumtype::in, LocationType, Extent, FieldDimensions > >
-        : boost::mpl::true_ {};
-
     /**
      * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
      * to the corresponding entry in ArgsMap

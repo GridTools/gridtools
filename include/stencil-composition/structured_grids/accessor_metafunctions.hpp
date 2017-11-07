@@ -206,16 +206,4 @@ namespace gridtools {
         // integer (the exponent)
         typedef Expression< typename remap_accessor_type< Accessor, ArgsMap >::type, Number > type;
     };
-
-    template < typename Accessor, typename Enable = void >
-    struct is_accessor_readonly : boost::mpl::false_ {};
-
-    template < typename Accessor >
-    struct is_accessor_readonly< Accessor, typename std::enable_if< Accessor::intend_t::value == enumtype::in >::type >
-        : boost::mpl::true_ {};
-
-    /* Is written is actually "can be written", since it checks if not read only.*/
-    template < typename Accessor >
-    struct is_accessor_written : boost::mpl::bool_< !is_accessor_readonly< Accessor >::value > {};
-
 } // namespace gridtools
