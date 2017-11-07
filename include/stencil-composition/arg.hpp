@@ -113,8 +113,6 @@ namespace gridtools {
             "The third template argument of a placeholder must be a location_type");
         typedef Storage storage_t;
 
-        typedef static_uint< I > index_t;
-
         typedef LocationType location_t;
         typedef arg< I, storage_t, location_t > type;
 
