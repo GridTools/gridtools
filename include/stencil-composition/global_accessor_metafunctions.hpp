@@ -59,47 +59,17 @@ namespace gridtools {
     struct is_accessor_impl< T, typename std::enable_if< is_global_accessor< T >::value >::type > : boost::mpl::true_ {
     };
 
-    //    template < uint_t ID, enumtype::intend Intend >
-    //    struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
-    //
-    //    template < typename GlobalAcc, typename... Args >
-    //    struct is_accessor< global_accessor_with_arguments< GlobalAcc, Args... > > : boost::mpl::true_ {};
-
-    // TODO(havogt): refactor code duplication
     template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
     struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
-        typedef global_accessor< ID, Intend > accessor_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), GT_INTERNAL_ERROR);
-        // check that the key type is an int (otherwise the later has_key would never find the key)
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::is_same<
-                typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
-                int >::value),
-            GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_t;
-
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), GT_INTERNAL_ERROR);
-
-        typedef global_accessor< boost::mpl::at< ArgsMap, index_t >::type::value, Intend > type;
+        //        typedef global_accessor< ID, Intend > accessor_t;
+        typedef global_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend > type;
     };
 
     template < typename GlobalAcc, typename ArgsMap, typename... Args >
     struct remap_accessor_type< global_accessor_with_arguments< GlobalAcc, Args... >, ArgsMap > {
-
-        typedef global_accessor_with_arguments< GlobalAcc, Args... > accessor_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), GT_INTERNAL_ERROR);
-        // check that the key type is an int (otherwise the later has_key would never find the key)
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::is_same<
-                typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
-                int >::value),
-            GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::integral_c< int, GlobalAcc::index_t::value > index_type_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_type_t >::value), GT_INTERNAL_ERROR);
+        //        typedef global_accessor_with_arguments< GlobalAcc, Args... > accessor_t;
         typedef global_accessor_with_arguments<
-            global_accessor< boost::mpl::at< ArgsMap, index_type_t >::type::value, GlobalAcc::intent >,
+            global_accessor< _impl::get_remap_accessor_id< GlobalAcc::index_t::value, ArgsMap >(), GlobalAcc::intent >,
             Args... > type;
     };
 

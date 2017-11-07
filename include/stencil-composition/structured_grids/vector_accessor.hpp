@@ -77,23 +77,10 @@ namespace gridtools {
     struct is_grid_accessor_impl< T, typename std::enable_if< is_vector_accessor< T >::value >::type >
         : boost::mpl::true_ {};
 
-    // TODO refactor code duplication
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
     struct remap_accessor_type< vector_accessor< ID, Intend, Extend, Number >, ArgsMap > {
-        typedef vector_accessor< ID, Intend, Extend, Number > accessor_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), GT_INTERNAL_ERROR);
-        // check that the key type is an int (otherwise the later has_key would never find the key)
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::is_same<
-                typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
-                int >::value),
-            GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::integral_c< int, (int)ID > index_t;
-
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), GT_INTERNAL_ERROR);
-
-        typedef vector_accessor< boost::mpl::at< ArgsMap, index_t >::type::value, Intend, Extend, Number > type;
+        //        typedef vector_accessor< ID, Intend, Extend, Number > accessor_t;
+        typedef vector_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend, Extend, Number > type;
     };
 
 } // namespace gridtools
