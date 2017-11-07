@@ -143,63 +143,6 @@ namespace gridtools {
             typedef boost::mpl::true_ type;
         };
 
-        // metafunction that replaces the ID of a storage_info type
-        template < typename T, typename NewId >
-        struct replace_storage_info_index;
-
-        template < template < unsigned, typename, typename, typename > class StorageInfo,
-            unsigned Id,
-            typename Layout,
-            typename Halo,
-            typename Alignment,
-            typename NewId >
-        struct replace_storage_info_index< StorageInfo< Id, Layout, Halo, Alignment >, NewId > {
-            typedef StorageInfo< NewId::value, Layout, Halo, Alignment > type;
-        };
-
-        // metafunction class that extracts the storage_info ID of a given arg
-        struct extract_storage_info_id_from_arg {
-            template < typename Arg >
-            struct apply {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR_MSG("given type is no arg type"));
-                typedef typename get_storage_from_arg< Arg >::type storage_t;
-                typedef typename storage_t::storage_info_t storage_info_t;
-                GRIDTOOLS_STATIC_ASSERT(
-                    (is_storage_info< storage_info_t >::value), GT_INTERNAL_ERROR_MSG("given type is no arg type"));
-                typedef boost::mpl::int_< storage_info_t::id > type;
-            };
-        };
-
-        // replace the storage_info ID contained in a given arg with a new ID
-        template < typename NewId, typename T >
-        struct replace_arg_storage_info;
-
-        template < typename NewId, unsigned Id, typename Storage, typename StorageInfo, typename L, bool B >
-        struct replace_arg_storage_info< NewId, arg< Id, data_store< Storage, StorageInfo >, L, B > > {
-            // replace the index
-            typedef typename L::n_colors location_info_colors_t;
-            typedef static_int< NewId::value + location_info_colors_t::value - 1 > new_id_t;
-            typedef typename replace_storage_info_index< StorageInfo, new_id_t >::type new_storage_info_t;
-            // rebuild new arg type
-            typedef arg< Id, data_store< Storage, new_storage_info_t >, L, B > type;
-        };
-
-        template < typename NewId, unsigned Id, typename DataStore, unsigned... N, typename L, bool B >
-        struct replace_arg_storage_info< NewId, arg< Id, data_store_field< DataStore, N... >, L, B > > {
-            typedef typename replace_arg_storage_info< NewId, arg< Id, DataStore, L, B > >::type new_data_store_t;
-            typedef arg< Id, data_store_field< typename new_data_store_t::storage_t, N... >, L, B > type;
-        };
-
-        template < typename NewId, unsigned Id, typename DataStore, typename L, bool B >
-        struct replace_arg_storage_info< NewId, arg< Id, std::vector< DataStore >, L, B > > {
-            typedef typename replace_arg_storage_info< NewId, arg< Id, DataStore, L, B > >::type new_data_store_t;
-            typedef arg< Id, std::vector< typename new_data_store_t::storage_t >, L, B > type;
-        };
-
-    } // namespace _debug
-
-    namespace _impl {
-
         /**
            \brief checks if a given list of placeholders are having consecutive indices
         */

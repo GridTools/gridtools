@@ -100,8 +100,7 @@ namespace gridtools {
                 typedef arg< ID, std::vector< T >, L, false > placeholder_t;
                 typedef typename boost::mpl::at_c< Vec, ID >::type arg_storage_pair_t;
                 typedef typename arg_storage_pair_t::storage_t data_store_field_t;
-                const auto expandable_param =
-                    (*(m_dom_full.template get_arg_storage_pair< placeholder_t, placeholder_t >()).ptr);
+                const auto expandable_param = (*(m_dom_full.template get_arg_storage_pair< placeholder_t >()).ptr);
                 data_store_field_t *ptr = new data_store_field_t(*(expandable_param[0].get_storage_info_ptr().get()));
                 // fill in the first bunch of ptrs
                 for (unsigned i = 0; i < data_store_field_t::num_of_storages; ++i) {
@@ -179,7 +178,7 @@ namespace gridtools {
                 // the vector of pointers
                 typedef arg< ID, std::vector< T >, L, false > placeholder_t;
                 pointer< std::vector< T > > const &ptr_full_ =
-                    m_dom_full.template get_arg_storage_pair< placeholder_t, placeholder_t >().ptr;
+                    m_dom_full.template get_arg_storage_pair< placeholder_t >().ptr;
 
                 auto ptr_chunk_ = boost::fusion::at< static_ushort< ID > >(m_dom_chunk.m_arg_storage_pair_list);
 #ifndef NDEBUG
