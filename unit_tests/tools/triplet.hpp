@@ -34,49 +34,23 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/loop_hierarchy.hpp>
+#pragma once
 
-namespace loop_test {
-    using namespace gridtools;
+#include <iosfwd>
 
-    // stub iterate_domain
-    struct iterate_domain_ {
+/**
+   @brief Small value type to use in tests where we want to check the
+   values in a fields, for instance to check if layouts works, on in
+   communication tests
+*/
+struct triplet {
+    int a = 0, b = 0, c = 0;
 
-        template < typename Index >
-        GT_FUNCTION void get_index(Index idx) const {}
+    constexpr triplet() = default;
 
-        template < typename Index >
-        GT_FUNCTION void set_index(Index idx) {}
+    constexpr triplet(int a, int b, int c) : a(a), b(b), c(c) {}
 
-        template < ushort_t index, typename Step >
-        GT_FUNCTION void increment() {}
-    };
+    constexpr bool operator==(triplet other) const { return (a == other.a) and (b == other.b) and (c == other.c); }
+};
 
-    struct functor {
-
-        functor() : m_iterations(0) {}
-
-        GT_FUNCTION void operator()() { m_iterations++; }
-
-        uint_t m_iterations;
-    };
-
-    bool test() {
-
-        typedef array< uint_t, 3 > array_t;
-        iterate_domain_ it_domain;
-        functor fun;
-
-        loop_hierarchy< array_t,
-            loop_item< 1, int_t, 1 >,
-            loop_item< 5, short_t, 1 >,
-            static_loop_item< 0, 0u, 10u, uint_t, 1 > > h(2, 5, 6, 8);
-        h.apply(it_domain, fun);
-
-        return fun.m_iterations == 4 * 3 * 11;
-    }
-} // namespace loop_test
-
-TEST(loop_hierarchy_test, functionality_test) { EXPECT_EQ(loop_test::test(), true); }
+std::ostream &operator<<(std::ostream &s, triplet t) { return s << "[" << t.a << " " << t.b << " " << t.c << "]"; }

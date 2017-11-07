@@ -37,6 +37,7 @@
 #include <boost/mpl/has_key.hpp>
 #include <boost/mpl/set.hpp>
 #include <boost/type_traits.hpp>
+#include "defs.hpp"
 
 namespace gridtools {
     namespace _impl {
@@ -63,7 +64,7 @@ namespace gridtools {
         };
 
         template < typename T >
-        struct remove_restrict< T __restrict__ > {
+        struct remove_restrict< T RESTRICT > {
             typedef T type;
         };
     } // namespace _impl

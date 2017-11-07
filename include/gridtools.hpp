@@ -35,11 +35,6 @@
 */
 #pragma once
 
-#include <boost/config.hpp>
-#if defined(__CUDACC__) && !defined(BOOST_NO_CXX11_RVALUE_REFERENCES)
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
-#endif
-
 #include <boost/mpl/greater.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/vector_c.hpp>
