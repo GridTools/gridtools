@@ -33,32 +33,30 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
+#include "gtest/gtest.h"
 
-#include "dimension_fwd.hpp"
+#include <common/defs.hpp>
+#include <stencil-composition/icosahedral_grids/accessor.hpp>
+#include <stencil-composition/icosahedral_grids/accessor_metafunctions.hpp>
+#include <stencil-composition/icosahedral_grids/vector_accessor.hpp>
 
-namespace gridtools {
-    // metafunction that determines if a type is a valid accessor ctr argument
-    template < typename T >
-    struct is_accessor_ctr_args {
-        typedef typename boost::mpl::or_< typename boost::is_integral< T >::type,
-            typename is_dimension< T >::type >::type type;
-    };
+TEST(accessor, is_accessor) {
+    using namespace gridtools;
+    GRIDTOOLS_STATIC_ASSERT(
+        (is_accessor< accessor< 6, enumtype::inout, enumtype::cells, extent< 3, 4, 4, 5 > > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor< accessor< 2, enumtype::in, enumtype::cells > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor< int >::value), "");
+}
 
-    // metafunction that determines if a variadic pack are valid accessor ctr arguments
-    template < typename... Types >
-    using all_accessor_ctr_args =
-        typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
-            bool >::type;
-
-    template < typename Accessor, typename Enable = void >
-    struct is_accessor_readonly : boost::mpl::false_ {};
-
-    template < typename Accessor >
-    struct is_accessor_readonly< Accessor, typename std::enable_if< Accessor::intend_t::value == enumtype::in >::type >
-        : boost::mpl::true_ {};
-
-    /* Is written is actually "can be written", since it checks if not read only.*/
-    template < typename Accessor >
-    struct is_accessor_written : boost::mpl::bool_< !is_accessor_readonly< Accessor >::value > {};
-} // namespace gridtools
+TEST(accessor, is_accessor_readonly) {
+    using namespace gridtools;
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< in_accessor< 0, enumtype::cells > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< accessor< 0, enumtype::in, enumtype::cells > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< vector_accessor< 0, enumtype::in, enumtype::cells > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< global_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< global_accessor< 0, enumtype::inout > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< inout_accessor< 0, enumtype::cells > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< accessor< 0, enumtype::inout, enumtype::cells > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT(
+        (!is_accessor_readonly< vector_accessor< 0, enumtype::inout, enumtype::cells > >::value), "");
+}
