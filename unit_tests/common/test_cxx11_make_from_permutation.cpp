@@ -49,6 +49,16 @@ namespace gridtools {
     using boost::fusion::vector;
     using boost::fusion::make_vector;
 
+    TEST(_, LRef) {
+        vector<> src;
+        EXPECT_TRUE(make_from_permutation< vector<> >(src) == make_vector());
+    }
+
+    TEST(_, CLRef) {
+        vector<> const src;
+        EXPECT_TRUE(make_from_permutation< vector<> >(src) == make_vector());
+    }
+
     template < typename Res, typename... Args >
     Res testee(Args &&... args) {
         return make_from_permutation< Res >(make_vector(std::forward< Args >(args)...));
@@ -69,13 +79,7 @@ namespace gridtools {
         EXPECT_TRUE(testee< res_t >(.1, 'a', 42) == expected);
     }
 
-    TEST(_, Ref) {
-        vector<> src;
-        EXPECT_TRUE(make_from_permutation< vector<> >(src) == vector<>{});
-    }
+    TEST(_, UnusedExtraArgs) { EXPECT_TRUE((testee< vector< int > >('a', 42, .1) == make_vector(42))); }
 
-    TEST(_, CRef) {
-        vector<> const src;
-        EXPECT_TRUE(make_from_permutation< vector<> >(src) == vector<>{});
-    }
+    TEST(_, DuplicatesInRes) { EXPECT_TRUE((testee< vector< int, int > >(42) == make_vector(42, 42))); }
 }

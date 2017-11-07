@@ -61,7 +61,10 @@ namespace gridtools {
     }
 
     /** Make fusion container from permuted initializers
-     *  Requirments: the types form Res should be unique.
+     *  Requirments:
+     *      - Res and Src should model fusion sequence;
+     *      - Res type should have a ctor from a fusion sequence;
+     *      - all types from the Res should present in the Src;
      */
     template < typename Res, typename Src >
     Res make_from_permutation(Src &&src) {
@@ -71,13 +74,11 @@ namespace gridtools {
         using src_t = typename std::decay< Src >::type;
         GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence< Res >{}, "Output type should model fusion sequence.");
         GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence< src_t >{}, "Input type should model fusion sequence.");
-        GRIDTOOLS_STATIC_ASSERT(
-            r::size< src_t >{} == r::size< Res >{}, "The permutation should be the same size as the result.");
         using positions_t = typename m::transform< Res,
             impl_::get_position< src_t, m::_ >,
             m::back_inserter< m::vector_c< int > > >::type;
         GRIDTOOLS_STATIC_ASSERT((m::count_if< positions_t, m::equal_to< m::_, r::size< src_t > > >::value == 0),
-            "All types from the result should be in the permutation.");
-        return f::nview< typename std::remove_reference< Src >::type, positions_t >(src);
+            "All types from the result should present in the source.");
+        return Res{f::nview< typename std::remove_reference< Src >::type, positions_t >(src)};
     };
 }
