@@ -6,7 +6,7 @@ source ${JENKINSPATH}/env_perftest_${myhost}.sh
 source ${JENKINSPATH}/tools.sh
 echo ${JENKINSPATH}
 
-TEMP=`getopt -o h --long target:,std:,prec:,jplan:,outfile:,json:,gtype: \
+TEMP=`getopt -o h --long target:,prec:,jplan:,outfile:,json:,gtype: \
              -n 'jenkins_perftest' -- "$@"`
 
 eval set -- "$TEMP"
@@ -14,7 +14,6 @@ eval set -- "$TEMP"
 while true; do 
     case "$1" in
         --target) TARGET=$2; shift 2;;
-        --std) STD=$2; shift 2;;
         --prec) PREC=$2; shift 2;;
         --jplan) JPLAN=$2; shift 2;;
         --outfile) OUTFILE=$2; shift 2;;
@@ -33,6 +32,8 @@ QUEUE=${DEFAULT_QUEUE}
 #setting default compiler to gcc
 export COMPILER="gcc"
 
+STD="cxx11"
+
 if [[ -z ${TARGET} || -z ${STD} || -z ${PREC} ]]; then
     echo "Error: some arguments are not set"
     exit 1
@@ -49,7 +50,7 @@ maxsleep=7200
 
 slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test.${RANDOM}"
 cp ${JENKINSPATH}/submit.${myhost}.slurm ${slurm_script}
-cmd="srun --exclusive --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --std $STD --prec $PREC --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
+cmd="srun --exclusive --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --prec $PREC --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 /bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}
 /bin/sed -i 's|<MPI_NODES>|'"1"'|g' ${slurm_script}

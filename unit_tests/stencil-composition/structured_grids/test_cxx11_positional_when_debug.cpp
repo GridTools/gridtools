@@ -40,8 +40,6 @@
  *      Author: carlosos
  */
 
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
-
 #ifdef NDEBUG
 #undef NDEBUG
 #define __WAS_DEBUG
