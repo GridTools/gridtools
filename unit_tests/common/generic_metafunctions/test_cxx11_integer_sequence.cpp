@@ -83,8 +83,7 @@ TEST(integer_sequence, fill_templated_container) {
     using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
 
     // calling the array constexpr copy constructor
-    using extent_t = seq::template apply_t< int,
-        extent_test,
+    using extent_t = seq::template apply_t< extent_test,
         get_component_meta,
         static_int< 0 >,
         static_int< 1 >,

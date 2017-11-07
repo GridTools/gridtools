@@ -33,8 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
-
 #include "boost/mpl/equal.hpp"
 #include "boost/mpl/quote.hpp"
 #include "boost/mpl/vector.hpp"
