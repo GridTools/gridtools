@@ -36,6 +36,7 @@
 #pragma once
 
 #include "dimension_fwd.hpp"
+#include "accessor_fwd.hpp"
 
 namespace gridtools {
     // metafunction that determines if a type is a valid accessor ctr argument
@@ -61,4 +62,10 @@ namespace gridtools {
     /* Is written is actually "can be written", since it checks if not read only.*/
     template < typename Accessor >
     struct is_accessor_written : boost::mpl::bool_< !is_accessor_readonly< Accessor >::value > {};
+
+    template < typename Accessor >
+    struct accessor_index {
+        GRIDTOOLS_STATIC_ASSERT((is_accessor< Accessor >::value), GT_INTERNAL_ERROR);
+        typedef typename Accessor::index_t type;
+    };
 } // namespace gridtools

@@ -37,6 +37,7 @@
 
 #include "../common/defs.hpp"
 #include "./empty_extent.hpp"
+#include "accessor.hpp"
 
 namespace gridtools {
 
@@ -101,20 +102,4 @@ namespace gridtools {
             return global_accessor_with_arguments< global_accessor, Args... >(std::forward< Args >(args_)...);
         }
     };
-
-    template < typename Type >
-    struct is_global_accessor : boost::false_type {};
-
-    template < uint_t I, enumtype::intend Intend >
-    struct is_global_accessor< global_accessor< I, Intend > > : boost::true_type {};
-
-    template < typename Global, typename... Args >
-    struct is_global_accessor< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
-
-    template < typename T >
-    struct is_global_accessor_with_arguments : boost::false_type {};
-
-    template < typename Global, typename... Args >
-    struct is_global_accessor_with_arguments< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
-
 } // namespace gridtools

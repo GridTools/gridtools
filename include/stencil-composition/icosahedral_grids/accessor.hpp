@@ -75,10 +75,4 @@ namespace gridtools {
     template < uint_t ID, typename LocationType, ushort_t FieldDimensions = 4 >
     using inout_accessor = accessor< ID, enumtype::inout, LocationType, extent< 0 >, FieldDimensions >;
 
-    template < typename T >
-    struct is_accessor : boost::mpl::false_ {};
-
-    template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
-    struct is_accessor< accessor< ID, Intend, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
-
 } // namespace gridtools

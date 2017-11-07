@@ -35,6 +35,7 @@
 */
 #pragma once
 
+#include "global_accessor_fwd.hpp"
 #include "accessor_metafunctions.hpp"
 #include "global_accessor.hpp"
 
@@ -55,7 +56,8 @@ namespace gridtools {
     struct is_global_accessor_with_arguments< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
 
     template < typename T >
-    struct is_accessor< T, typename std::enable_if< is_global_accessor< T >::value >::type > : boost::mpl::true_ {};
+    struct is_accessor_impl< T, typename std::enable_if< is_global_accessor< T >::value >::type > : boost::mpl::true_ {
+    };
 
     //    template < uint_t ID, enumtype::intend Intend >
     //    struct is_accessor< global_accessor< ID, Intend > > : boost::mpl::true_ {};
