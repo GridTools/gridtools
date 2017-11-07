@@ -431,7 +431,7 @@ namespace shallow_water {
         //! [grid]
         auto grid = make_grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
             {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
-            axis< 1 >(d3));
+            d3);
         //! [grid]
 
         //! [computation]

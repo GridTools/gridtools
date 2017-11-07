@@ -51,7 +51,7 @@ TEST(test_interval, join) {
     using interval1 = interval< level< 1, -2 >, level< 1, -1 > >;
     using interval2 = interval< level< 0, -1 >, level< 3, -1 > >;
     using interval3 = interval< level< 2, -2 >, level< 3, -1 > >;
-    using joined_interval = internal::internal_join_interval< interval1, interval2, interval3 >::type;
+    using joined_interval = join_interval< interval1, interval2, interval3 >;
 
     ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 3, -1 > >, joined_interval >();
 }

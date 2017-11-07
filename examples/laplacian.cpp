@@ -46,9 +46,6 @@
 using namespace gridtools;
 using namespace enumtype;
 
-using axis_t = axis< 1 >;
-using x_lap = axis_t::full_interval;
-
 /**
    @brief structure containing the Laplacian-specific information.
 
@@ -63,7 +60,7 @@ struct lap_function {
     typedef boost::mpl::vector< out_acc, in_acc > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_lap) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
 
         eval(out_acc()) = 4 * eval(in_acc()) - (eval(in_acc(1, 0, 0)) + eval(in_acc(0, 1, 0)) + eval(in_acc(-1, 0, 0)) +
                                                    eval(in_acc(0, -1, 0)));
@@ -136,7 +133,7 @@ TEST(Laplace, test) {
     halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
     halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-    auto grid = make_grid(di, dj, axis_t(d3));
+    auto grid = make_grid(di, dj, d3);
 
     auto laplace = make_computation< BACKEND >(
         domain, grid, make_multistage(execute< forward >(), make_stage< lap_function >(p_out(), p_in())));

@@ -345,7 +345,7 @@ namespace shallow_water {
             halo_descriptor di{2, 2, 2, d1 - 3, d1};
             halo_descriptor dj{2, 2, 2, d2 - 3, d2};
 
-            auto grid = make_grid(di, dj, axis< 1 >(d3));
+            auto grid = make_grid(di, dj, d3);
 
             auto shallow_water_stencil = gridtools::make_computation< gridtools::BACKEND, layout_t >(
                 domain,

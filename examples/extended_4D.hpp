@@ -219,7 +219,7 @@ namespace assembly {
         */
         halo_descriptor di{1, 1, 1, d1 - 3, d1};
         halo_descriptor dj{1, 1, 1, d2 - 3, d2};
-        auto grid = make_grid(di, dj, axis< 1 >(d3 - 1));
+        auto grid = make_grid(di, dj, d3 - 1);
 
         auto fe_comp = make_computation< gridtools::BACKEND >(
             domain,

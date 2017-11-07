@@ -45,7 +45,6 @@
 #include <stencil-composition/backend_host/backend_host.hpp>
 #endif
 
-#include <boost/timer/timer.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #ifdef USE_PAPI_WRAP
