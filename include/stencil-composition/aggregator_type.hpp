@@ -111,7 +111,6 @@ namespace gridtools {
         // create an mpl::vector of metadata types
         typedef typename boost::mpl::copy< mpl_metadata_set_t,
             boost::mpl::back_inserter< boost::mpl::vector0<> > >::type metadata_vector_t;
-        const static uint_t len_meta = boost::mpl::size< metadata_vector_t >::type::value;
 
         // Get a sequence of the same type of placeholders_t, but containing the storage types for each placeholder
         typedef typename boost::mpl::transform< placeholders_t, _impl::l_get_arg_storage_pair_type >::type
@@ -142,8 +141,7 @@ namespace gridtools {
         /**
          * fusion::vector of pointers to storages
          */
-        arg_storage_pair_fusion_list_t m_arg_storage_pair_list =
-            _impl::default_host_container< arg_storage_pair_fusion_list_t >();
+        arg_storage_pair_fusion_list_t m_arg_storage_pair_list;
 
         /**
            tuple of pointers to the storages metadata. Note that metadata is constant,
