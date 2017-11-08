@@ -52,6 +52,7 @@
 #include <boost/fusion/include/filter_view.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/front.hpp>
+#include <boost/fusion/include/invoke.hpp>
 #include <boost/fusion/include/make_fused.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 #include <boost/fusion/include/size.hpp>
@@ -192,7 +193,7 @@ namespace gridtools {
                 auto arg_storage_pairs =
                     f::transform(f::filter_if< m::not_< is_tmp_arg< m::_ > > >(src.get_arg_storage_pairs()),
                         convert_arg_storage_pair< N >());
-                return f::make_fused(maker< Res >{})(std::move(arg_storage_pairs));
+                return f::invoke(maker< Res >{}, std::move(arg_storage_pairs));
             }
 
             struct assign_storage {
@@ -219,12 +220,13 @@ namespace gridtools {
             };
 
             template < typename Pred, typename Sec >
-            static boost::fusion::filter_view< Sec, Pred > make_filter_view(Sec &sec) {
-                return {sec};
+            static boost::fusion::filter_view< typename std::remove_reference< Sec >::type, Pred > make_filter_view(
+                Sec &&sec) {
+                return {std::forward< Sec >(sec)};
             };
 
             template < typename Secs >
-            static boost::fusion::zip_view< Secs > make_zip_view(Secs &&secs) {
+            static boost::fusion::zip_view< typename std::remove_reference< Secs >::type > make_zip_view(Secs &&secs) {
                 return {std::forward< Secs >(secs)};
             };
 
