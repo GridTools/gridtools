@@ -119,44 +119,6 @@ namespace gridtools {
             typedef _impl_mic::run_functor_mic< Arguments > run_functor_t;
         };
 
-        /** This is the function used by the specific backend to inform the
-            generic backend and the temporary storage allocator how to
-            compute the number of threads in the i-direction, in a 2D
-            grid of threads.
-        */
-        static uint_t n_i_pes(uint_t = 0) {
-#ifdef _OPENMP
-            return omp_get_max_threads();
-#else
-            return 1;
-#endif
-        }
-
-        /** This is the function used by the specific backend to inform the
-            generic backend and the temporary storage allocator how to
-            compute the number of threads in the j-direction, in a 2D
-            grid of threads.
-        */
-        static uint_t n_j_pes(uint_t = 0) { return 1; }
-
-        /** This is the function used by the specific backend
-         *  that determines the i coordinate of a processing element.
-         *  In the case of the mic, a processing element is equivalent to an OpenMP core
-         */
-        static uint_t processing_element_i() {
-#ifdef _OPENMP
-            return omp_get_thread_num();
-#else
-            return 0;
-#endif
-        }
-
-        /** This is the function used by the specific backend
-         *  that determines the j coordinate of a processing element.
-         *  In the case of the mic, a processing element is equivalent to an OpenMP core
-         */
-        static uint_t processing_element_j() { return 0; }
-
         template < uint_t Id, typename BlockSize >
         struct once_per_block {
             GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), "Error: wrong type");
@@ -178,16 +140,12 @@ namespace gridtools {
         */
         template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         static typename boost::enable_if_c< Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
-            typedef GridTraits grid_traits_t;
-            // get the thread ID
-            const uint_t i = processing_element_i();
-            // halo in I direction
-            constexpr int halo_i = StorageInfo::halo_t::template at< grid_traits_t::dim_i_t::value >();
-            // compute the blocksize
-            constexpr int blocksize = 2 * halo_i + PEBlockSize::i_size_t::value;
-            // return the field offset
-            const int stride_i = sinfo->template stride< grid_traits_t::dim_i_t::value >();
-            return StorageInfo::get_initial_offset() + stride_i * (i * blocksize + halo_i);
+            const int thread = omp_get_thread_num();
+            const int total_threads = omp_get_max_threads();
+            const int thread_offset =
+                (sinfo->padded_total_length() - StorageInfo::get_initial_offset()) * thread / total_threads;
+            const int inner_offset = sinfo->begin() - sinfo->total_begin();
+            return StorageInfo::get_initial_offset() + thread_offset + inner_offset;
         }
 
         /**
