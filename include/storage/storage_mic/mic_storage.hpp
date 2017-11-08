@@ -71,7 +71,25 @@ namespace gridtools {
          * @brief mic_storage constructor. Just allocates enough memory on the Mic.
          * @param size defines the size of the storage and the allocated space.
          */
-        constexpr mic_storage(uint_t size) : m_cpu_ptr(new data_t[size]) {}
+        mic_storage(uint_t size) : m_cpu_ptr(nullptr) {
+            /*
+             * The data is aligned to two MB (to encourage use of transparent huge pages) and an additional small offset
+             * which changes for every allocation is introduced to reduce the risk of L1 cache conflitcs.
+             */
+            static uint_t offset = 64;
+            char *raw_ptr;
+            // allocate memory aligned to 2MB
+            if (posix_memalign(reinterpret_cast< void ** >(&raw_ptr), 2 * 1024 * 1024, size * sizeof(data_t) + offset))
+                throw std::bad_alloc();
+            // offset the data pointer
+            m_cpu_ptr = reinterpret_cast< data_t * >(raw_ptr + offset);
+            // store the offset just before the data
+            uint_t *offset_ptr = reinterpret_cast< uint_t * >(m_cpu_ptr) - 1;
+            *offset_ptr = offset;
+            // update offset for next allocation
+            if ((offset *= 2) >= 16384)
+                offset = 64;
+        }
 
         /*
          * @brief mic_storage constructor. Does not allocate memory but uses an external pointer.
@@ -92,7 +110,7 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        mic_storage(uint_t size, data_t initializer) : m_cpu_ptr(new data_t[size]) {
+        mic_storage(uint_t size, data_t initializer) : mic_storage(size) {
             for (uint_t i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer;
             }
@@ -102,8 +120,14 @@ namespace gridtools {
          * @brief mic_storage destructor.
          */
         ~mic_storage() {
-            if (m_ownership == ownership::Full && m_cpu_ptr)
-                delete[] m_cpu_ptr;
+            if (m_ownership == ownership::Full && m_cpu_ptr) {
+                // get the current offset which is stored just before the data
+                uint_t* offset_ptr = reinterpret_cast<uint_t*>(m_cpu_ptr) - 1;
+                uint_t offset = *offset_ptr;
+                // get the raw pointer and free the allocated space
+                char* raw_ptr = reinterpret_cast<char*>(m_cpu_ptr) - offset;
+                free(raw_ptr);
+            }
         }
 
         /*
