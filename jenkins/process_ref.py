@@ -298,7 +298,6 @@ if __name__ == "__main__":
     parser.add_argument('--filter',nargs=1, type=str, help='filter only stencils that matches the pattern. Comma separated list of python regular expressions')
     parser.add_argument('-p',nargs=1, type=str, help='base path to build executables')
     parser.add_argument('--target', nargs=1, type=str, help='cpu || gpu')
-    parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
     parser.add_argument('--prec', nargs=1, type=str, help='floating point precision')
     parser.add_argument('-c', action='store_true', help='check results and validate against a reference')
     parser.add_argument('-u', action='store_true', help='update reference performance results')
@@ -318,8 +317,6 @@ if __name__ == "__main__":
 
     if not args.target:
         parser.error('--target should be specified')
-    if not args.std:
-        parser.error('--std should be specified')
     if not args.prec:
         parser.error('--prec should be specified')
 
@@ -351,7 +348,8 @@ if __name__ == "__main__":
     else:
         parser.error('wrong value for --target')
 
-    std = args.std[0]
+    #only cxx11 is supported
+    std = "cxx11"
     if std != "cxx11" and std != "cxx03":
         parser.error('--std should be set to cxx11 or cxx03')
 
@@ -445,7 +443,7 @@ if __name__ == "__main__":
     if config.update_:
         outputfilename=args.json_file +'.out'
         fw = open(outputfilename,'w')
-        fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': ')) )
+        fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': '), sort_keys=True) )
         fw.close()
         print("Updated reference file",outputfilename)
         if not os.path.exists(config.output_dir_):
