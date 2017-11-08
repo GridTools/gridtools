@@ -41,6 +41,8 @@ using namespace gridtools;
 namespace ico_operators {
 #ifdef __CUDACC__
 #define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
+#elif defined(__AVX512F__)
+#define BACKEND backend< gridtools::enumtype::Mic, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
