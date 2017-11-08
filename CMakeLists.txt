@@ -48,8 +48,10 @@ endforeach(src_file)
 # examples and tests
 # ===============
 include (fix_test_case_name)
-add_subdirectory(examples)
-add_subdirectory(unit_tests)
+if(NOT DISABLE_TESTING)
+  add_subdirectory(examples)
+  add_subdirectory(unit_tests)
+endif()
 
 # Add all targets to the build-tree export set
 export(TARGETS gcl
