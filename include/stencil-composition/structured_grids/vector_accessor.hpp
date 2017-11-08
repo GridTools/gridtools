@@ -79,7 +79,6 @@ namespace gridtools {
 
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
     struct remap_accessor_type< vector_accessor< ID, Intend, Extend, Number >, ArgsMap > {
-        //        typedef vector_accessor< ID, Intend, Extend, Number > accessor_t;
         typedef vector_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend, Extend, Number > type;
     };
 

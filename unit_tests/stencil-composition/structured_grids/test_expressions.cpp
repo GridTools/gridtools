@@ -52,7 +52,7 @@ struct accessor_mock {
 
 namespace gridtools {
     template < typename T >
-    struct is_accessor< accessor_mock< T > > : boost::mpl::true_ {};
+    struct is_accessor_impl< accessor_mock< T > > : boost::mpl::true_ {};
 }
 
 struct iterate_domain_mock {
