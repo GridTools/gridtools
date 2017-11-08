@@ -220,12 +220,13 @@ namespace gridtools {
             };
 
             template < typename Pred, typename Sec >
-            static boost::fusion::filter_view< Sec, Pred > make_filter_view(Sec &sec) {
-                return {sec};
+            static boost::fusion::filter_view< typename std::remove_reference< Sec >::type, Pred > make_filter_view(
+                Sec &&sec) {
+                return {std::forward< Sec >(sec)};
             };
 
             template < typename Secs >
-            static boost::fusion::zip_view< typename std::remove_reference<Secs>::type > make_zip_view(Secs &&secs) {
+            static boost::fusion::zip_view< typename std::remove_reference< Secs >::type > make_zip_view(Secs &&secs) {
                 return {std::forward< Secs >(secs)};
             };
 
