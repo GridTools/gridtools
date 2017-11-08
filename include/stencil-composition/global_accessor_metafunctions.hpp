@@ -61,13 +61,11 @@ namespace gridtools {
 
     template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
     struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
-        //        typedef global_accessor< ID, Intend > accessor_t;
         typedef global_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend > type;
     };
 
     template < typename GlobalAcc, typename ArgsMap, typename... Args >
     struct remap_accessor_type< global_accessor_with_arguments< GlobalAcc, Args... >, ArgsMap > {
-        //        typedef global_accessor_with_arguments< GlobalAcc, Args... > accessor_t;
         typedef global_accessor_with_arguments<
             global_accessor< _impl::get_remap_accessor_id< GlobalAcc::index_t::value, ArgsMap >(), GlobalAcc::intent >,
             Args... > type;

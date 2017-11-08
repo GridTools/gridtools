@@ -488,7 +488,8 @@ namespace gridtools {
 
         /** @brief method called in the Do methods of the functors.
 
-            Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of
+            Specialization for the offset_tuple placeholder (i.e. for extended storages, containing multiple snapshots
+           of
            data fields with the same dimension and memory layout)*/
         template < typename Accessor >
         GT_FUNCTION
@@ -529,8 +530,7 @@ namespace gridtools {
         operator()(Accessor const &accessor) {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-            GRIDTOOLS_STATIC_ASSERT(
-                (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+            GRIDTOOLS_STATIC_ASSERT((Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions.");
 
             return get_value(accessor, get_data_pointer(accessor));
         }

@@ -37,7 +37,6 @@
 
 #include "accessor_fwd.hpp"
 #include "./accessor.hpp"
-#include "./accessor_mixed.hpp"
 #include "../expressions/expressions.hpp"
 
 namespace gridtools {
@@ -68,18 +67,6 @@ namespace gridtools {
     struct is_grid_accessor_impl< T, typename std::enable_if< is_regular_accessor< T >::value >::type >
         : boost::mpl::true_ {};
 
-#ifdef CUDA8
-    template < typename ArgType >
-    struct is_accessor_mixed;
-
-    template < typename... Types >
-    struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
-
-// TODO fix
-//    template < typename ArgType, typename... Pair >
-//    struct is_accessor< accessor_mixed< ArgType, Pair... > > : boost::mpl::true_ {};
-#endif
-
     // TODO add documentation
     template < typename Accessor, unsigned Ext >
     struct accessor_extend;
@@ -98,19 +85,8 @@ namespace gridtools {
 
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
     struct remap_accessor_type< accessor< ID, Intend, Extend, Number >, ArgsMap > {
-        //        typedef accessor< ID, Intend, Extend, Number > accessor_t;
         using type = accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend, Extend, Number >;
     };
-
-#ifdef CUDA8
-    template < typename Accessor, typename ArgsMap, typename... Pairs >
-    struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
-
-        typedef typename remap_accessor_type< Accessor, ArgsMap >::index_t index_t;
-
-        typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
-    };
-#endif
 
     template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
     struct remap_accessor_type< Expression< Arguments... >,
