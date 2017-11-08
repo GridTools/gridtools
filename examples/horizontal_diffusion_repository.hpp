@@ -45,6 +45,11 @@ namespace horizontal_diffusion {
         gridtools::enumtype::GRIDBACKEND,
         gridtools::enumtype::Block > hd_backend;
     typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
+#elif defined(__AVX512F__)
+    typedef gridtools::backend< gridtools::enumtype::Mic,
+        gridtools::enumtype::GRIDBACKEND,
+        gridtools::enumtype::Block > hd_backend;
+    typedef gridtools::storage_traits< gridtools::enumtype::Mic > storage_tr;
 #else
 #ifdef BACKEND_BLOCK
     typedef gridtools::backend< gridtools::enumtype::Host,
