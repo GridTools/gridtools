@@ -52,7 +52,6 @@
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../common/gpu_clone.hpp"
 #include "../common/host_device.hpp"
-#include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/fusion_vector_check_bound.hpp"
 #include "arg.hpp"
 #include "esf.hpp"
