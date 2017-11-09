@@ -1,9 +1,6 @@
-.. include:: defs.hrst
-
 .. _stencil_operators:
 
-========================
- Stencil Operators
+Stencil Operators
 ========================
 
 *Stencil operators* are the equivalent of `functors` in regular C++

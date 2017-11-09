@@ -1,9 +1,5 @@
-.. include:: defs.hrst
-
-
 .. _stencil-composition:
 
-========================
 Stencil Composition
 ========================
 
@@ -22,8 +18,6 @@ Vertical regions and vertical boundary conditions
 -------------------
 Use of temporaries
 -------------------
-
-.. include:: defs.hrst
 
 The main component of |GT| provide the capability of composing
 different `elementary stencils`. An `elementary stencil` is the
@@ -195,4 +189,4 @@ constructs that can greatly improve performance of the computations,
 especially :ref:`software managed caches<caches>`
 
 
-.. include:: irregular_grids.rst 
+.. include:: irregular_grids.hrst 

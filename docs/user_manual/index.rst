@@ -5,29 +5,16 @@
 
 .. include:: defs.hrst
 
-Welcome to User Manual's documentation!
-=======================================
+This is the entry page to the |GT| documentation.
 
-Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   Installation
-   Storages
-   DSL_intro
-   stencil_operators
-   accessor
-   ExecutionModel
-   stencil_composition
-   advanced_functionality
-   performance
-   halo_update
-   data_management
-   interface
-   benchmarking
-   serialbox_and_porting
-   Concepts
+   getting_started/getting_started
+   user_manual/user_manual
+   concepts/concepts
+   faq/faq
 
 Indices and tables
 ==================

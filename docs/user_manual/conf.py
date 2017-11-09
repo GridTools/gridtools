@@ -14,6 +14,7 @@
 
 import sys
 import os
+import cloud_sptheme as csp 
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -35,6 +36,14 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
+
+    'sphinxcontrib.fulltoc',
+
+    'cloud_sptheme.ext.relbar_links',
+    'cloud_sptheme.ext.escaped_samp_literals',
+    'cloud_sptheme.ext.issue_tracker',
+    'cloud_sptheme.ext.table_styling'
+#    'cloud_sptheme.ext.role_index'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -49,7 +58,8 @@ source_suffix = '.rst'
 #source_encoding = 'utf-8-sig'
 
 # The master toctree document.
-master_doc = 'index'
+master_doc = 'content'
+index_doc = 'index'
 
 # General information about the project.
 project = u'User Manual'
@@ -115,15 +125,20 @@ todo_include_todos = True
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'sphinxdoc'
+html_theme = 'cloud'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-#html_theme_options = {}
+html_theme_options = {}
+if csp.is_cloud_theme(html_theme):
+    html_theme_options.update(
+        roottarget=index_doc,
+        hyphenation_language="en"
+    )
 
 # Add any paths that contain custom themes here, relative to this directory.
-#html_theme_path = []
+html_theme_path = [csp.get_theme_dir()]
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
@@ -144,7 +159,7 @@ html_theme = 'sphinxdoc'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied
