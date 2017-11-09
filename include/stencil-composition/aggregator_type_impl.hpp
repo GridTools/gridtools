@@ -39,7 +39,6 @@
 
 #include <boost/fusion/include/at.hpp>
 #include <boost/fusion/include/at_key.hpp>
-#include <boost/fusion/include/std_tuple.hpp>
 #include <boost/mpl/for_each.hpp>
 #include <boost/mpl/insert.hpp>
 #include <boost/mpl/set.hpp>
@@ -69,18 +68,19 @@ namespace gridtools {
 
             template < typename T >
             typename boost::enable_if_c< (is_arg_storage_pair< T >::value &&
-                                             is_data_store< typename T::storage_t >::value),
+                                             is_data_store< typename T::data_store_t >::value),
                 void >::type
             operator()(T const &t) const {
-                std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
+                std::cout << boost::typeindex::type_id< typename T::data_store_t >().pretty_name() << std::endl;
                 std::cout << t.m_value.m_name << "\n---\n";
             }
 
             template < typename T >
-            typename boost::enable_if_c< (is_arg_storage_pair< T >::value && is_vector< typename T::storage_t >::value),
+            typename boost::enable_if_c< (is_arg_storage_pair< T >::value &&
+                                             is_vector< typename T::data_store_t >::value),
                 void >::type
             operator()(T const &t) const {
-                std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
+                std::cout << boost::typeindex::type_id< typename T::data_store_t >().pretty_name() << std::endl;
                 for (unsigned i = 0; i < t.m_value.size(); ++i) {
                     std::cout << "\t" << &t.m_value[i] << " -> " << t.m_value[i].get_storage_ptr().get() << std::endl;
                 }
@@ -88,10 +88,10 @@ namespace gridtools {
 
             template < typename T >
             typename boost::enable_if_c< is_arg_storage_pair< T >::value &&
-                                             is_data_store_field< typename T::storage_t >::value,
+                                             is_data_store_field< typename T::data_store_t >::value,
                 void >::type
             operator()(T const &t) const {
-                std::cout << boost::typeindex::type_id< typename T::storage_t >().pretty_name() << std::endl;
+                std::cout << boost::typeindex::type_id< typename T::data_store_t >().pretty_name() << std::endl;
                 for (auto &e : t.m_value.get_field()) {
                     auto *ptr = e.get_storage_ptr().get();
                     std::cout << "\t" << &e << " -> " << ptr << std::endl;
@@ -124,12 +124,12 @@ namespace gridtools {
         template < typename... Args >
         struct aggregator_storage_check;
 
-        template < typename Storage, typename... Rest >
-        struct aggregator_storage_check< Storage, Rest... > {
-            typedef typename boost::decay< Storage >::type storage_t;
-            typedef typename is_data_store< storage_t >::type c1;
-            typedef typename is_data_store_field< storage_t >::type c2;
-            typedef typename is_vector< storage_t >::type c3;
+        template < typename DataStoreType, typename... Rest >
+        struct aggregator_storage_check< DataStoreType, Rest... > {
+            typedef typename boost::decay< DataStoreType >::type data_store_t;
+            typedef typename is_data_store< data_store_t >::type c1;
+            typedef typename is_data_store_field< data_store_t >::type c2;
+            typedef typename is_vector< data_store_t >::type c3;
             typedef typename boost::mpl::or_< c1, c2, c3 >::type is_suitable;
             typedef typename boost::mpl::and_< is_suitable, typename aggregator_storage_check< Rest... >::type > type;
         };
@@ -142,14 +142,14 @@ namespace gridtools {
         struct l_get_arg_storage_pair_type {
             template < typename Arg >
             struct apply {
-                typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
+                typedef arg_storage_pair< Arg, typename Arg::data_store_t > type;
             };
         };
 
         template < typename Arg >
         struct create_arg_storage_pair_type {
             GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR_MSG("The given type is not an arg type"));
-            typedef arg_storage_pair< Arg, typename Arg::storage_t > type;
+            typedef arg_storage_pair< Arg, typename Arg::data_store_t > type;
         };
 
         /** Metafunction class.
@@ -181,18 +181,11 @@ namespace gridtools {
                 (*this)(src.template get< 0, 0 >());
             }
 
-            template < typename Arg, typename Storage >
-            void operator()(const arg_storage_pair< Arg, Storage > &src) const {
+            template < typename Arg, typename DataStoreType >
+            void operator()(const arg_storage_pair< Arg, DataStoreType > &src) const {
                 (*this)(src.m_value);
             }
         };
-
-        template < typename Sec >
-        using as_tuple_t = typename boost::mpl::copy< Sec, boost::mpl::back_inserter< std::tuple<> > >::type;
-        template < typename T >
-        T default_host_container() {
-            return as_tuple_t< T >{};
-        }
 
         template < typename Lhs, typename Rhs >
         boost::fusion::joint_view< typename std::remove_reference< Lhs >::type,

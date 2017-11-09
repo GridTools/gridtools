@@ -64,6 +64,7 @@
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
 
+#include "../common/default_host_container.hpp"
 #include "../common/make_from_permutation.hpp"
 #include "../common/metadata_set.hpp"
 #include "../storage/storage-facility.hpp"
@@ -223,7 +224,7 @@ namespace gridtools {
          * arg_storage_pair that maps the arg to an instance of either a data_store, data_store_field, or std::vector.
          */
         template < typename StoragePlaceholder >
-        void set_arg_storage_pair(typename StoragePlaceholder::storage_t &&storage) {
+        void set_arg_storage_pair(typename StoragePlaceholder::data_store_t &&storage) {
             at< typename _impl::create_arg_storage_pair_type< StoragePlaceholder >::type >().m_value =
                 std::move(storage);
             update_metadata_set();
@@ -269,7 +270,7 @@ namespace gridtools {
         }
 
         template < typename NonTmp, typename Tmp = tmp_arg_storage_pair_fusion_list_t >
-        aggregator_type(_impl::private_ctor_t, NonTmp &&non_tmp, Tmp &&tmp = _impl::default_host_container< Tmp >())
+        aggregator_type(_impl::private_ctor_t, NonTmp &&non_tmp, Tmp &&tmp = default_host_container< Tmp >())
             : aggregator_type(make_from_permutation< arg_storage_pair_fusion_list_t >(
                   _impl::make_joint_view(std::forward< NonTmp >(non_tmp), std::forward< Tmp >(tmp)))) {}
 

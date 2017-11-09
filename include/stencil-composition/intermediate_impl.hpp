@@ -269,7 +269,7 @@ namespace gridtools {
                 // instantiate the right storage info (according to grid and used strategy)
                 auto storage_info = Backend::template instantiate_storage_info< MaxExtent, T >(m_grid);
                 // create a storage and fill the aggregator
-                m_agg.template set_arg_storage_pair< typename T::arg_t >(typename T::storage_t(storage_info));
+                m_agg.template set_arg_storage_pair< typename T::arg_t >(typename T::data_store_t(storage_info));
             }
 
             template < typename T, typename boost::enable_if_c< !T::is_temporary, int >::type = 1 >
@@ -280,7 +280,7 @@ namespace gridtools {
         struct sync_data_stores {
             // case for non temporary storages (perform sync)
             template < typename T >
-            typename boost::enable_if_c< !is_tmp_arg< T >::value && is_vector< typename T::storage_t >::value,
+            typename boost::enable_if_c< !is_tmp_arg< T >::value && is_vector< typename T::data_store_t >::value,
                 void >::type
             operator()(T const &t) const {
                 for (auto &&item : t.m_value)
@@ -289,7 +289,7 @@ namespace gridtools {
 
             // case for non temporary storages (perform sync)
             template < typename T >
-            typename boost::enable_if_c< !is_tmp_arg< T >::value && !is_vector< typename T::storage_t >::value,
+            typename boost::enable_if_c< !is_tmp_arg< T >::value && !is_vector< typename T::data_store_t >::value,
                 void >::type
             operator()(T const &t) const {
                 t.m_value.sync();
@@ -335,7 +335,7 @@ namespace gridtools {
                 typedef typename boost::mpl::second< MapElem >::type extent_t;
                 typedef typename boost::mpl::first< MapElem >::type temporary;
                 typedef storage_wrapper< temporary,
-                    typename get_view_t::apply< typename temporary::storage_t >::type,
+                    typename get_view_t::apply< typename temporary::data_store_t >::type,
                     tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
                     tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > > type;
             };
