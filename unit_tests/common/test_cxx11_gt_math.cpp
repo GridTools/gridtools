@@ -39,26 +39,34 @@
 #include "tools/verifier.hpp"
 using namespace gridtools;
 
+template < typename Value >
 struct test_pow {
-    static bool GT_FUNCTION Do() {
-        double a = math::pow(2.3, 2.3);
-        float b = math::pow(2.3f, 2.3f);
+    static bool GT_FUNCTION Do(Value val, Value result) {
+        if (!compare_below_threshold(
+                math::pow(val, val), result, boost::is_same< double, Value >::value ? 1e-14 : 1e-6))
+            return false;
+
         return true;
     }
 };
 
+template < typename Value >
 struct test_log {
-    static bool GT_FUNCTION Do() {
-        double a = math::log(2.3);
-        float b = math::log(2.3f);
+    static bool GT_FUNCTION Do(Value val, Value result) {
+        if (!compare_below_threshold(math::log(val), result, boost::is_same< double, Value >::value ? 1e-14 : 1e-6))
+            return false;
+
         return true;
     }
 };
 
+template < typename Value >
 struct test_exp {
-    static bool GT_FUNCTION Do() {
-        double a = math::exp(2.3);
-        float b = math::exp(2.3f);
+    static bool GT_FUNCTION Do(Value val, Value result) {
+
+        if (!compare_below_threshold(math::exp(val), result, boost::is_same< double, Value >::value ? 1e-14 : 1e-6))
+            return false;
+
         return true;
     }
 };
@@ -153,8 +161,17 @@ TEST(math, test_fabs) { ASSERT_TRUE(test_fabs::Do()); }
 
 TEST(math, test_abs) { ASSERT_TRUE(test_abs::Do()); }
 
-TEST(math, test_log) { ASSERT_TRUE(test_log::Do()); }
+TEST(math, test_log) {
+    ASSERT_TRUE(test_log< double >::Do(2.3, std::log(2.3)));
+    ASSERT_TRUE(test_log< float >::Do(2.3f, std::log(2.3f)));
+}
 
-TEST(math, test_exp) { ASSERT_TRUE(test_exp::Do()); }
+TEST(math, test_exp) {
+    ASSERT_TRUE(test_exp< double >::Do(2.3, std::exp(2.3)));
+    ASSERT_TRUE(test_exp< float >::Do(2.3f, std::exp(2.3f)));
+}
 
-TEST(math, test_pow) { ASSERT_TRUE(test_pow::Do()); }
+TEST(math, test_pow) {
+    ASSERT_TRUE(test_pow< double >::Do(2.3, std::pow(2.3, 2.3)));
+    ASSERT_TRUE(test_pow< float >::Do(2.3f, std::pow(2.3f, 2.3f)));
+}

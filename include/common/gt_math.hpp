@@ -175,7 +175,7 @@ namespace gridtools {
 
 #ifdef __CUDA_ARCH__
         /**
-        * Function computing the exponential
+        * Function computing the log function
         */
         template < typename Value >
         GT_FUNCTION Value log(const Value x);
@@ -198,7 +198,7 @@ namespace gridtools {
 
 #ifdef __CUDA_ARCH__
         /**
-        * Function computing the exponential
+        * Function computing the power function
         */
         template < typename Value >
         GT_FUNCTION Value pow(const Value x, const Value y);
