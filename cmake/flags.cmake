@@ -22,3 +22,5 @@ set( NVCC_CLANG_SPECIFIC_OPTIONS "" CACHE STRING "Options passed to NVCC when co
 set( WERROR "OFF" CACHE BOOL "Treat warnings as errors" )
 set( CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )
 set_property(CACHE CXX_STANDARD PROPERTY STRINGS "c++11;c++14")
+set( DISABLE_TESTING "OFF" CACHE BOOL "Disables all unit tests/examples")
+
