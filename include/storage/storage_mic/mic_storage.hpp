@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <assert.h>
+#include <utility>
 
 #include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
@@ -65,30 +65,28 @@ namespace gridtools {
       private:
         data_t *m_cpu_ptr;
         ownership m_ownership = ownership::Full;
+        uint_t m_data_offset;
 
       public:
         /*
-         * @brief mic_storage constructor. Just allocates enough memory on the Mic.
+         * @brief mic_storage constructor. Allocates data aligned to 2MB pages (to encourage the system to use
+         * transparent huge pages) and adds an additional samll offset which changes for every allocation to reduce the
+         * risk of L1 cache set conflicts.
          * @param size defines the size of the storage and the allocated space.
          */
-        mic_storage(uint_t size) : m_cpu_ptr(nullptr) {
-            /*
-             * The data is aligned to two MB (to encourage use of transparent huge pages) and an additional small offset
-             * which changes for every allocation is introduced to reduce the risk of L1 cache conflitcs.
-             */
-            static uint_t offset = 64;
-            char *raw_ptr;
+        mic_storage(uint_t size) {
+            // get data_offset and update it for next allocation
+            static uint_t s_data_offset = 64;
+            m_data_offset = s_data_offset / sizeof(data_t);
+            if ((s_data_offset *= 2) >= 16384)
+                s_data_offset = 64;
+
             // allocate memory aligned to 2MB
-            if (posix_memalign(reinterpret_cast< void ** >(&raw_ptr), 2 * 1024 * 1024, size * sizeof(data_t) + offset))
+            if (posix_memalign(
+                    reinterpret_cast< void ** >(&m_cpu_ptr), 2 * 1024 * 1024, (size + m_data_offset) * sizeof(data_t)))
                 throw std::bad_alloc();
-            // offset the data pointer
-            m_cpu_ptr = reinterpret_cast< data_t * >(raw_ptr + offset);
-            // store the offset just before the data
-            uint_t *offset_ptr = reinterpret_cast< uint_t * >(m_cpu_ptr) - 1;
-            *offset_ptr = offset;
-            // update offset for next allocation
-            if ((offset *= 2) >= 16384)
-                offset = 64;
+
+            m_cpu_ptr += m_data_offset;
         }
 
         /*
@@ -121,13 +119,18 @@ namespace gridtools {
          */
         ~mic_storage() {
             if (m_ownership == ownership::Full && m_cpu_ptr) {
-                // get the current offset which is stored just before the data
-                uint_t* offset_ptr = reinterpret_cast<uint_t*>(m_cpu_ptr) - 1;
-                uint_t offset = *offset_ptr;
-                // get the raw pointer and free the allocated space
-                char* raw_ptr = reinterpret_cast<char*>(m_cpu_ptr) - offset;
-                free(raw_ptr);
+                free(m_cpu_ptr - m_data_offset);
             }
+        }
+
+        /*
+         * @brief swap implementation for mic_storage
+         */
+        void swap_impl(mic_storage &other) {
+            using std::swap;
+            swap(m_cpu_ptr, other.m_cpu_ptr);
+            swap(m_ownership, other.m_ownership);
+            swap(m_data_offset, other.m_data_offset);
         }
 
         /*

@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include <assert.h>
+#include <utility>
 
 #include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
@@ -96,6 +96,15 @@ namespace gridtools {
             for (uint_t i = 0; i < size; ++i) {
                 m_cpu_ptr[i] = initializer;
             }
+        }
+
+        /*
+         * @brief swap implementation for host_storage
+         */
+        void swap_impl(host_storage &other) {
+            using std::swap;
+            swap(m_cpu_ptr, other.m_cpu_ptr);
+            swap(m_ownership, other.m_ownership);
         }
 
         /*
