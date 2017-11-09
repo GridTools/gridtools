@@ -52,7 +52,6 @@
 #include "../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../common/gpu_clone.hpp"
 #include "../common/host_device.hpp"
-#include "../common/is_temporary_storage.hpp"
 #include "../common/generic_metafunctions/fusion_vector_check_bound.hpp"
 #include "arg.hpp"
 #include "esf.hpp"
@@ -64,27 +63,30 @@
 namespace gridtools {
 
     namespace {
-        template < class T, size_t N >
-        GT_FUNCTION constexpr size_t get_size(T(&)[N]) {
-            return N;
+        template < typename InIter, typename OutIter >
+        GT_FUNCTION void copy(InIter in, InIter end, OutIter out) {
+            for (; in != end; ++in, ++out)
+                *out = *in;
         }
 
         template < typename T, typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
         GT_FUNCTION typename boost::enable_if_c< (N == 0), void >::type copy_ptrs(T &t, V &other) {
             auto &left = boost::fusion::at_c< N >(t).second;
             auto &right = boost::fusion::at_c< N >(other).second;
-            for (unsigned i = 0; i < get_size(left); ++i) {
-                left[i] = right[i];
-            }
+#ifndef __CUDA_ARCH__
+            using std::copy;
+#endif
+            copy(right.begin(), right.end(), left.begin());
         }
 
         template < typename T, typename V, unsigned N = (boost::mpl::size< T >::value - 1) >
         GT_FUNCTION typename boost::enable_if_c< (N > 0), void >::type copy_ptrs(T &t, V &other) {
             auto &left = boost::fusion::at_c< N >(t).second;
             auto &right = boost::fusion::at_c< N >(other).second;
-            for (unsigned i = 0; i < get_size(left); ++i) {
-                left[i] = right[i];
-            }
+#ifndef __CUDA_ARCH__
+            using std::copy;
+#endif
+            copy(right.begin(), right.end(), left.begin());
             copy_ptrs< T, V, N - 1 >(t, other);
         }
     }

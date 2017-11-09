@@ -94,15 +94,15 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::type::value > 0),
             "The aggregator_type must be constructed with at least one storage placeholder. If you don't use any "
             "storage you are probably trying to do something which is not a stencil operation, aren't you?");
-        typedef typename boost::mpl::sort< Placeholders, arg_comparator >::type sorted_placeholders_t;
+        typedef typename boost::mpl::sort< Placeholders, arg_comparator >::type placeholders_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< sorted_placeholders_t, is_arg >::type::value),
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< placeholders_t, is_arg >::type::value),
             "wrong type: the aggregator_type template argument must be an MPL vector of placeholders (arg<...>)");
 
-        GRIDTOOLS_STATIC_ASSERT((_impl::continuous_indices_check< sorted_placeholders_t >::type::value),
+        GRIDTOOLS_STATIC_ASSERT((_impl::continuous_indices_check< placeholders_t >::type::value),
             "Storage placeholders must have consecutive indices starting with 0.");
 
-        const static uint_t len = boost::mpl::size< sorted_placeholders_t >::type::value;
+        const static uint_t len = boost::mpl::size< placeholders_t >::type::value;
 
         // create a unique id that will be used as temporary storage info id
         typedef typename boost::mpl::fold< Placeholders,
@@ -111,18 +111,6 @@ namespace gridtools {
                                                boost::mpl::_1,
                                                boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type
             non_tmp_placeholders_t;
-        typedef typename boost::mpl::next< typename boost::mpl::deref<
-            typename boost::mpl::max_element< typename boost::mpl::transform< non_tmp_placeholders_t,
-                _impl::extract_storage_info_id_from_arg >::type >::type >::type >::type tmp_storage_info_id_t;
-
-        // replace the storage_info_t of all temporary args with the new index type
-        typedef
-            typename boost::mpl::fold< sorted_placeholders_t,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1,
-                                           boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
-                                               _impl::replace_arg_storage_info< tmp_storage_info_id_t, boost::mpl::_2 >,
-                                               boost::mpl::_2 > > >::type placeholders_t;
 
         // filter out the storage infos which are the same
         typedef typename boost::mpl::fold< placeholders_t,
@@ -273,14 +261,10 @@ namespace gridtools {
          * @brief returning by const reference an arg storage pair. An arg storage pair maps
          * an arg to an instance of a data_store, data_store_field, or std::vector.
          */
-        template < typename StoragePlaceholder,
-            typename RealStoragePlaceholder = typename boost::mpl::if_< is_tmp_arg< StoragePlaceholder >,
-                typename _impl::replace_arg_storage_info< tmp_storage_info_id_t, StoragePlaceholder >::type,
-                StoragePlaceholder >::type >
-        typename _impl::create_arg_storage_pair_type< RealStoragePlaceholder >::type const &
-        get_arg_storage_pair() const {
+        template < typename StoragePlaceholder >
+        typename _impl::create_arg_storage_pair_type< StoragePlaceholder >::type const &get_arg_storage_pair() const {
             return boost::fusion::deref(
-                boost::fusion::find< typename _impl::create_arg_storage_pair_type< RealStoragePlaceholder >::type >(
+                boost::fusion::find< typename _impl::create_arg_storage_pair_type< StoragePlaceholder >::type >(
                     m_arg_storage_pair_list));
         }
 

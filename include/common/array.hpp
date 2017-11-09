@@ -106,7 +106,9 @@ namespace gridtools {
         T *end() { return &_array[_size]; }
 
         GT_FUNCTION
-        T *data() const { return _array; }
+        constexpr const T *data() const noexcept { return _array; }
+        GT_FUNCTION
+        T *data() noexcept { return _array; }
 
         GT_FUNCTION
         constexpr T const &operator[](size_t i) const { return _array[i]; }
