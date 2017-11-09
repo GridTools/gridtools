@@ -179,7 +179,7 @@ namespace gridtools {
             Res convert_aggregator(const Aggregator &src) {
                 namespace f = boost::fusion;
                 namespace m = boost::mpl;
-                return f::invoke(construct< Res >{},
+                return f::invoke(ctor< Res >{},
                     f::transform(f::filter_if< m::not_< is_tmp_arg< m::_ > > >(src.get_arg_storage_pairs()),
                                      convert_arg_storage_pair< N >()));
             }
