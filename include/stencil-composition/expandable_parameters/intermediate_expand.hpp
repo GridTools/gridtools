@@ -61,6 +61,7 @@
 
 #include "../../common/defs.hpp"
 #include "../../common/vector_traits.hpp"
+#include "../../common/functional.hpp"
 #include "../../storage/data_store_field.hpp"
 #include "../arg.hpp"
 #include "../backend_metafunctions.hpp"
@@ -78,15 +79,15 @@ namespace gridtools {
             template < typename T >
             struct is_expandable : std::false_type {};
 
-            template < typename Arg, typename Storage >
-            struct is_expandable< arg_storage_pair< Arg, Storage > > : is_vector< Storage > {};
+            template < typename Arg, typename DataStoreType >
+            struct is_expandable< arg_storage_pair< Arg, DataStoreType > > : is_vector< DataStoreType > {};
 
             template < uint_t N, typename T >
-            struct convert_storage_type {
+            struct convert_data_store_type {
                 using type = T;
             };
             template < uint_t N, typename T >
-            struct convert_storage_type< N, std::vector< T > > {
+            struct convert_data_store_type< N, std::vector< T > > {
                 using type = data_store_field< T, N >;
             };
 
@@ -96,7 +97,7 @@ namespace gridtools {
                 struct apply;
                 template < uint_t I, typename S, typename L, bool T >
                 struct apply< arg< I, S, L, T > > {
-                    using type = arg< I, typename convert_storage_type< N, S >::type, L, T >;
+                    using type = arg< I, typename convert_data_store_type< N, S >::type, L, T >;
                 };
             };
 
@@ -132,7 +133,7 @@ namespace gridtools {
             }
 
             template < uint_t N >
-            struct convert_storage {
+            struct convert_data_store {
                 template < typename T >
                 data_store_field< T, N > operator()(const std::vector< T > &src) const {
                     assert(!src.empty());
@@ -149,11 +150,11 @@ namespace gridtools {
 
             template < uint_t N >
             struct convert_arg_storage_pair {
-                template < typename Arg, typename Storage >
+                template < typename Arg, typename DataStoreType >
                 arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
-                    typename convert_storage_type< N, Storage >::type >
-                operator()(arg_storage_pair< Arg, Storage > const &src) const {
-                    return {convert_storage< N >()(src.m_value)};
+                    typename convert_data_store_type< N, DataStoreType >::type >
+                operator()(arg_storage_pair< Arg, DataStoreType > const &src) const {
+                    return {convert_data_store< N >()(src.m_value)};
                 }
                 template < typename T >
                 T operator()(T const &src) const {
@@ -162,10 +163,10 @@ namespace gridtools {
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
                 template < typename >
                 struct result;
-                template < typename Arg, typename Storage >
-                struct result< convert_arg_storage_pair(arg_storage_pair< Arg, Storage > const &) > {
+                template < typename Arg, typename DataStoreType >
+                struct result< convert_arg_storage_pair(arg_storage_pair< Arg, DataStoreType > const &) > {
                     using type = arg_storage_pair< typename convert_placeholder< N >::template apply< Arg >::type,
-                        typename convert_storage_type< N, Storage >::type >;
+                        typename convert_data_store_type< N, DataStoreType >::type >;
                 };
                 template < typename T >
                 struct result< convert_arg_storage_pair(T const &) > {
@@ -174,26 +175,13 @@ namespace gridtools {
 #endif
             };
 
-            // TODO(anstaf): move to common or find out if this pattern is already available.
-            template < typename T >
-            struct maker {
-                template < typename... Us >
-                T operator()(Us &&... us) const {
-                    return {std::forward< Us >(us)...};
-                }
-#ifndef BOOST_RESULT_OF_USE_DECLTYPE
-                using result_type = T;
-#endif
-            };
-
             template < uint_t N, typename Aggregator, typename Res = converted_aggregator_type< N, Aggregator > >
             Res convert_aggregator(const Aggregator &src) {
                 namespace f = boost::fusion;
                 namespace m = boost::mpl;
-                auto arg_storage_pairs =
+                return f::invoke(construct< Res >{},
                     f::transform(f::filter_if< m::not_< is_tmp_arg< m::_ > > >(src.get_arg_storage_pairs()),
-                        convert_arg_storage_pair< N >());
-                return f::invoke(maker< Res >{}, std::move(arg_storage_pairs));
+                                     convert_arg_storage_pair< N >()));
             }
 
             struct assign_storage {

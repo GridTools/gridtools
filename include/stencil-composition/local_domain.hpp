@@ -150,9 +150,9 @@ namespace gridtools {
 
         // get a storage from the list of storages
         template < typename IndexType >
-        struct get_storage {
+        struct get_data_store {
             typedef typename boost::mpl::at< StorageWrapperList, IndexType >::type storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_t type;
+            typedef typename storage_wrapper_t::data_store_t type;
             GRIDTOOLS_STATIC_ASSERT((!boost::is_same< boost::mpl::false_, type >::value),
                 GT_INTERNAL_ERROR_MSG("Cannot find storage type in local_domain."));
         };

@@ -34,46 +34,23 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "arg_metafunctions_fwd.hpp"
-#include "arg_fwd.hpp"
-#include "../common/gt_assert.hpp"
 
-namespace gridtools {
+#include <tuple>
 
-    /**
-     * @struct arg_hods_data_field_h
-     * high order metafunction of arg_holds_data_field
-     */
-    template < typename Arg >
-    struct arg_holds_data_field_h {
-        typedef typename arg_holds_data_field< typename Arg::type >::type type;
-    };
+#include <boost/fusion/include/is_sequence.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/copy.hpp>
 
-    template < uint_t I, typename DataStoreType, typename Location, bool Temporary >
-    struct arg_holds_data_field_h< arg< I, DataStoreType, Location, Temporary > > {
-        typedef typename arg_holds_data_field< arg< I, DataStoreType, Location, Temporary > >::type type;
-    };
+#include "defs.hpp"
 
-    // metafunction to access the storage type given the arg
-    template < typename T >
-    struct get_storage_from_arg;
-
-    template < unsigned I, typename T, typename L, bool B >
-    struct get_storage_from_arg< arg< I, T, L, B > > {
-        typedef T type;
-    };
-
-    template < unsigned I, typename T, typename L, bool B >
-    struct get_storage_from_arg< arg< I, std::vector< T >, L, B > > {
-        typedef T type;
-    };
-
-    // metafunction to access the metadata type given the arg
-    template < typename T >
-    struct get_storage_info_from_arg {
-        GRIDTOOLS_STATIC_ASSERT((is_arg< T >::value), GT_INTERNAL_ERROR_MSG("Given type is not an arg."));
-        typedef typename get_storage_from_arg< T >::type data_store_t;
-        typedef typename data_store_t::storage_info_t type;
-    };
-
-} // namespace gridtools
+/**
+ *   Make "default constructed" fusion sequence without NVCC warnings even if the types of in that sequence are
+ *   not constructible on device.
+ */
+template < typename T >
+T default_host_container() {
+    GRIDTOOLS_STATIC_ASSERT(boost::fusion::traits::is_sequence< T >::value, "T should be fusion sequence.");
+    using tuple_t = typename boost::mpl::copy< T, boost::mpl::back_inserter< std::tuple<> > >::type;
+    return tuple_t{};
+}

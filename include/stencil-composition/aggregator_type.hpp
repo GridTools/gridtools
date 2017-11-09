@@ -63,6 +63,7 @@
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
 
+#include "../common/default_host_container.hpp"
 #include "../common/metadata_set.hpp"
 #include "../storage/storage-facility.hpp"
 
@@ -157,7 +158,7 @@ namespace gridtools {
          * fusion::vector of pointers to storages
          */
         arg_storage_pair_fusion_list_t m_arg_storage_pair_list =
-            _impl::default_host_container< arg_storage_pair_fusion_list_t >();
+            default_host_container< arg_storage_pair_fusion_list_t >();
 
         /**
            tuple of pointers to the storages metadata. Note that metadata is constant,
@@ -289,11 +290,11 @@ namespace gridtools {
          * arg_storage_pair that maps the arg to an instance of either a data_store, data_store_field, or std::vector.
          */
         template < typename StoragePlaceholder >
-        void set_arg_storage_pair(typename StoragePlaceholder::storage_t &&storage) {
+        void set_arg_storage_pair(typename StoragePlaceholder::data_store_t &&data_store) {
             boost::fusion::deref(
                 boost::fusion::find< typename _impl::create_arg_storage_pair_type< StoragePlaceholder >::type >(
                     m_arg_storage_pair_list))
-                .m_value = std::move(storage);
+                .m_value = std::move(data_store);
             update_metadata_set();
         }
 

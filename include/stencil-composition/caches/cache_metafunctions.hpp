@@ -146,15 +146,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
 
-        /** metafunction extracting the storage type corresponding to an index from the local_domain*/
-        template < typename LocDom, typename Index >
-        struct get_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocDom >::value, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename LocDom::storage_wrapper_list_t >::value > Index::value),
-                "accessing a storage which is not in the list");
-            typedef typename LocDom::template get_storage< Index >::type type;
-        };
-
         // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
         // into a fusion vector.
         // Note: building a fusion map using result_of::as_map<mpl_vector_of_pair> did not work due to a clash between
