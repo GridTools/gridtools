@@ -77,6 +77,84 @@ namespace local_domain_stencil {
     std::ostream &operator<<(std::ostream &s, dummy_functor const) { return s << "dummy_function"; }
 }
 
+// helper function to check intermediate types for backends which fuse esfs
+template < typename Intermediate, typename PIn, typename PBuff, typename POut >
+typename boost::enable_if< typename backend_traits_from_id<
+    intermediate_backend< Intermediate >::type::s_backend_id >::mss_fuse_esfs_strategy >::type
+check_intermediate() {
+    typedef typename intermediate_backend< Intermediate >::type backend_t;
+    typedef typename intermediate_aggregator_type< Intermediate >::type domain_t;
+    typedef typename intermediate_mss_components_array< Intermediate >::type mss_components_array_t;
+
+    typedef typename mss_components_array_t::elements mss_elements_t;
+
+    typedef typename intermediate_mss_local_domains< Intermediate >::type mss_local_domains_t;
+
+    BOOST_STATIC_ASSERT((boost::mpl::size< mss_local_domains_t >::value == 1));
+
+    typedef typename boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
+
+    BOOST_STATIC_ASSERT(
+        (boost::mpl::size< typename mss_local_domain1_t::unfused_local_domain_sequence_t >::value == 2));
+    BOOST_STATIC_ASSERT((boost::mpl::size< typename mss_local_domain1_t::fused_local_domain_sequence_t >::value == 1));
+
+    // the merged local domain should contain the args used by all the esfs
+    BOOST_STATIC_ASSERT(
+        (boost::mpl::equal< typename local_domain_esf_args< typename boost::mpl::front<
+                                typename mss_local_domain1_t::unfused_local_domain_sequence_t >::type >::type,
+            boost::mpl::vector2< PIn, PBuff > >::value));
+
+    BOOST_STATIC_ASSERT(
+        (boost::mpl::equal< typename local_domain_esf_args< typename boost::mpl::back<
+                                typename mss_local_domain1_t::unfused_local_domain_sequence_t >::type >::type,
+            boost::mpl::vector2< PBuff, POut > >::value));
+
+    BOOST_STATIC_ASSERT(
+        (boost::mpl::equal< typename local_domain_esf_args< typename boost::mpl::front<
+                                typename mss_local_domain1_t::fused_local_domain_sequence_t >::type >::type,
+            boost::mpl::vector3< PIn, PBuff, POut > >::value));
+}
+
+// helper function to check intermediate types for backends which do not fuse esfs
+template < typename Intermediate, typename PIn, typename PBuff, typename POut >
+typename boost::disable_if< typename backend_traits_from_id<
+    intermediate_backend< Intermediate >::type::s_backend_id >::mss_fuse_esfs_strategy >::type
+check_intermediate() {
+    typedef typename intermediate_backend< Intermediate >::type backend_t;
+    typedef typename intermediate_aggregator_type< Intermediate >::type domain_t;
+    typedef typename intermediate_mss_components_array< Intermediate >::type mss_components_array_t;
+
+    typedef typename mss_components_array_t::elements mss_elements_t;
+
+    typedef typename intermediate_mss_local_domains< Intermediate >::type mss_local_domains_t;
+
+    BOOST_STATIC_ASSERT((boost::mpl::size< mss_local_domains_t >::value == 2));
+
+    typedef typename boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
+
+    BOOST_STATIC_ASSERT(
+        (boost::mpl::size< typename mss_local_domain1_t::unfused_local_domain_sequence_t >::value == 1));
+    BOOST_STATIC_ASSERT((boost::mpl::size< typename mss_local_domain1_t::fused_local_domain_sequence_t >::value == 1));
+
+    // the merged local domain should contain the args used by all the esfs
+    BOOST_STATIC_ASSERT(
+        (boost::mpl::equal< typename local_domain_esf_args< typename boost::mpl::front<
+                                typename mss_local_domain1_t::unfused_local_domain_sequence_t >::type >::type,
+            boost::mpl::vector2< PIn, PBuff > >::value));
+
+    typedef typename boost::mpl::at< mss_local_domains_t, boost::mpl::int_< 1 > >::type mss_local_domain2_t;
+
+    BOOST_STATIC_ASSERT(
+        (boost::mpl::size< typename mss_local_domain2_t::unfused_local_domain_sequence_t >::value == 1));
+    BOOST_STATIC_ASSERT((boost::mpl::size< typename mss_local_domain2_t::fused_local_domain_sequence_t >::value == 1));
+
+    // the merged local domain should contain the args used by all the esfs
+    BOOST_STATIC_ASSERT(
+        (boost::mpl::equal< typename local_domain_esf_args< typename boost::mpl::front<
+                                typename mss_local_domain2_t::unfused_local_domain_sequence_t >::type >::type,
+            boost::mpl::vector2< PBuff, POut > >::value));
+}
+
 TEST(test_local_domain, merge_mss_local_domains) {
     using namespace local_domain_stencil;
 
@@ -133,35 +211,5 @@ TEST(test_local_domain, merge_mss_local_domains) {
         gridtools::notype,
         false > intermediate_t;
 
-    typedef intermediate_backend< intermediate_t >::type backend_t;
-    typedef intermediate_aggregator_type< intermediate_t >::type domain_t;
-    typedef intermediate_mss_components_array< intermediate_t >::type mss_components_array_t;
-
-    typedef mss_components_array_t::elements mss_elements_t;
-
-    typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
-
-    BOOST_STATIC_ASSERT((boost::mpl::size< mss_local_domains_t >::value == 2));
-
-    typedef boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
-
-    BOOST_STATIC_ASSERT((boost::mpl::size< mss_local_domain1_t::unfused_local_domain_sequence_t >::value == 1));
-    BOOST_STATIC_ASSERT((boost::mpl::size< mss_local_domain1_t::fused_local_domain_sequence_t >::value == 1));
-
-    // the merged local domain should contain the args used by all the esfs
-    BOOST_STATIC_ASSERT((boost::mpl::equal<
-        local_domain_esf_args< boost::mpl::front< mss_local_domain1_t::unfused_local_domain_sequence_t >::type >::type,
-        boost::mpl::vector2< p_in, p_buff > >::value));
-
-    typedef boost::mpl::at< mss_local_domains_t, boost::mpl::int_< 1 > >::type mss_local_domain2_t;
-
-    BOOST_STATIC_ASSERT((boost::mpl::size< mss_local_domain2_t::unfused_local_domain_sequence_t >::value == 1));
-    BOOST_STATIC_ASSERT((boost::mpl::size< mss_local_domain2_t::fused_local_domain_sequence_t >::value == 1));
-
-    // the merged local domain should contain the args used by all the esfs
-    BOOST_STATIC_ASSERT((boost::mpl::equal<
-        local_domain_esf_args< boost::mpl::front< mss_local_domain2_t::unfused_local_domain_sequence_t >::type >::type,
-        boost::mpl::vector2< p_buff, p_out > >::value));
-
-    EXPECT_TRUE(true);
+    check_intermediate<intermediate_t, p_in, p_buff, p_out>();
 }
