@@ -83,9 +83,13 @@
 
 namespace gridtools {
 
+    template < typename >
+    struct iterate_domain;
+
     namespace advanced {
         template < typename IDomain >
-        inline typename IDomain::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(IDomain &id) {
+        inline typename iterate_domain< IDomain >::data_ptr_cached_t &RESTRICT get_iterate_domain_data_pointer(
+            iterate_domain< IDomain > &id) {
             return id.data_pointer();
         }
 
@@ -210,8 +214,8 @@ namespace gridtools {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
-        template < typename T >
-        friend typename T::data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer(T &);
+        friend data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer< IterateDomainImpl >(
+            iterate_domain &);
 
       public:
         /**@brief constructor of the iterate_domain struct
@@ -429,7 +433,7 @@ namespace gridtools {
             auto storage_ = boost::fusion::at< index_t >(local_domain.m_local_data_ptrs).second;
 
             return tuple_to_container(
-                **storage_, accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
+                **storage_.data(), accessor.get_arguments(), make_gt_integer_sequence< uint_t, sizeof...(Args) >());
         }
 
         /**@brief returns the dimension of the storage corresponding to the given accessor

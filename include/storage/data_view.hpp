@@ -127,7 +127,7 @@ namespace gridtools {
             ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
-        GT_FUNCTION storage_info_t const &storage_info() { return *m_storage_info; }
+        GT_FUNCTION storage_info_t const &storage_info() const { return *m_storage_info; }
 
         /**
          * data getter
@@ -187,42 +187,72 @@ namespace gridtools {
         }
 
         /*
-         * @brief function to retrieve the (aligned) size of a dimension (e.g., I, J, or K).
-         * @tparam Coord queried coordinate
-         * @return size of dimension
-         */
-        template < int Coord >
-        GT_FUNCTION constexpr int dim() const {
-            return m_storage_info->template dim< Coord >();
-        }
-
-        /*
-         * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
-         * @tparam Coord queried coordinate
-         * @return size of dimension
-         */
-        template < int Coord >
-        GT_FUNCTION constexpr int unaligned_dim() const {
-            return m_storage_info->template unaligned_dim< Coord >();
-        }
-
-        /*
          * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
          * @return total size
          */
         GT_FUNCTION constexpr int padded_total_length() const { return m_storage_info->padded_total_length(); }
 
         /*
-         * @brief member function to retrieve the inner domain size + halo (dimensions, halos, no initial_offset).
-         * @return inner domain size + halo
+         * @brief Returns the length of a dimension excluding the halo points (only the inner region
+         *
+         * \tparam Dim The index of the dimension
          */
-        GT_FUNCTION constexpr int total_length() const { return m_storage_info->total_length(); }
+        template < uint Dim >
+        GT_FUNCTION constexpr int length() const {
+            return m_storage_info->template length< Dim >();
+        }
 
         /*
-         * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
-         * @return inner domain size
+         * @brief Returns the length of a dimension including the halo points (the outer region)
+         *
+         * \tparam Dim The index of the dimension
          */
-        GT_FUNCTION constexpr int length() const { return m_storage_info->length(); }
+        template < uint Dim >
+        GT_FUNCTION constexpr int total_length() const {
+            return m_storage_info->template total_length< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint Dim >
+        GT_FUNCTION constexpr int total_begin() const {
+            return m_storage_info->template total_begin< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint Dim >
+        GT_FUNCTION constexpr int begin() const {
+            return m_storage_info->template begin< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint Dim >
+        GT_FUNCTION constexpr int total_end() const {
+            return m_storage_info->template total_end< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint Dim >
+        GT_FUNCTION constexpr int end() const {
+            return m_storage_info->template end< Dim >();
+        }
 
         template < typename T >
         friend typename T::data_t *advanced::get_raw_pointer_of(T const &, int);

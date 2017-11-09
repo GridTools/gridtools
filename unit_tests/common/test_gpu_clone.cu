@@ -43,10 +43,6 @@
 
 #include "gtest/gtest.h"
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
-#endif
-
 #include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/zip_view.hpp>
 #include <boost/fusion/include/for_each.hpp>

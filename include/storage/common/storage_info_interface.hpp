@@ -252,7 +252,7 @@ namespace gridtools {
         }
 
       public:
-        const static int id = Id;
+        constexpr static uint_t id = Id;
 
         /*
          * @brief storage info constructor. Additionally to initializing the members the halo
@@ -345,6 +345,68 @@ namespace gridtools {
         GT_FUNCTION constexpr uint_t end() const {
             typedef typename boost::mpl::max_element< typename layout_t::static_layout_vector >::type iter;
             return end_part< true >();
+        }
+
+        /*
+         * @brief Returns the length of a dimension including the halo points (the outer region)
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t total_length() const {
+            return unaligned_dim< Dim >();
+        }
+
+        /*
+         * @brief Returns the length of a dimension excluding the halo points (only the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t length() const {
+            return unaligned_dim< Dim >() - 2 * halo_t::template at< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t total_begin() const {
+            return 0;
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t total_end() const {
+            return unaligned_dim< Dim >() - 1;
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t begin() const {
+            return halo_t::template at< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t end() const {
+            return begin< Dim >() + length< Dim >() - 1;
         }
 
         /*

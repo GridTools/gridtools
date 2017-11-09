@@ -97,7 +97,7 @@ TEST(assign_placeholders, test) {
     gridtools::aggregator_type< accessor_list > domain(coeff, in, out);
 
     using dst1_tmp = gridtools::data_store< gridtools::host_storage< float_type >,
-        gridtools::host_storage_info< 1u,
+        gridtools::host_storage_info< unsigned(-1),
                                                 gridtools::layout_map< 0, 1, 2 >,
                                                 gridtools::halo< 1u, 1u, 1u >,
                                                 gridtools::alignment< 1u > > >;
@@ -107,7 +107,7 @@ TEST(assign_placeholders, test) {
                                             gridtools::halo< 1u, 1u, 1u >,
                                             gridtools::alignment< 1u > > >;
     using dst2_tmp = gridtools::data_store< gridtools::host_storage< float_type >,
-        gridtools::host_storage_info< 1u,
+        gridtools::host_storage_info< unsigned(-1),
                                                 gridtools::layout_map< 0, 1, 2 >,
                                                 gridtools::halo< 2u, 2u, 2u >,
                                                 gridtools::alignment< 1u > > >;
@@ -131,13 +131,13 @@ TEST(assign_placeholders, test) {
     // Check metadata_set correctness
     typedef typename boost::is_same< gridtools::metadata_set< boost::mpl::v_item<
                                          // temporary with halo size 1
-                                         gridtools::pointer< const gridtools::host_storage_info< 1u,
+                                         gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
                                              gridtools::layout_map< 0, 1, 2 >,
                                              gridtools::halo< 1u, 1u, 1u >,
                                              gridtools::alignment< 1u > > >,
                                          boost::mpl::v_item<
                                              // temporary with halo size 2
-                                             gridtools::pointer< const gridtools::host_storage_info< 1u,
+                                             gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
                                                  gridtools::layout_map< 0, 1, 2 >,
                                                  gridtools::halo< 2u, 2u, 2u >,
                                                  gridtools::alignment< 1u > > >,
@@ -153,7 +153,7 @@ TEST(assign_placeholders, test) {
                                                          gridtools::layout_map< 0, 1, 2 >,
                                                          gridtools::halo< 1u, 1u, 1u >,
                                                          gridtools::alignment< 1u > > >,
-                                                     boost::mpl::vector0< mpl_::na >,
+                                                     boost::mpl::vector0< boost::mpl::na >,
                                                      0 >,
                                                  0 >,
                                              0 >,
@@ -172,12 +172,12 @@ TEST(assign_placeholders, test) {
 
     // Temporary storage info ptrs are not present yet
     assert(!(domain.metadata_set_view()
-                 .template present< gridtools::pointer< const gridtools::host_storage_info< 1u,
+                 .template present< gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
                      gridtools::layout_map< 0, 1, 2 >,
                      gridtools::halo< 1u, 1u, 1u >,
                      gridtools::alignment< 1u > > > >()));
     assert(!(domain.metadata_set_view()
-                 .template present< gridtools::pointer< const gridtools::host_storage_info< 1u,
+                 .template present< gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
                      gridtools::layout_map< 0, 1, 2 >,
                      gridtools::halo< 2u, 2u, 2u >,
                      gridtools::alignment< 1u > > > >()));
@@ -226,12 +226,12 @@ TEST(assign_placeholders, test) {
 
     // Temporary storage info ptrs are not present yet
     assert(!(domain.metadata_set_view()
-                 .template present< gridtools::pointer< const gridtools::host_storage_info< 1u,
+                 .template present< gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
                      gridtools::layout_map< 0, 1, 2 >,
                      gridtools::halo< 1u, 1u, 1u >,
                      gridtools::alignment< 1u > > > >()));
     assert(!(domain.metadata_set_view()
-                 .template present< gridtools::pointer< const gridtools::host_storage_info< 1u,
+                 .template present< gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
                      gridtools::layout_map< 0, 1, 2 >,
                      gridtools::halo< 2u, 2u, 2u >,
                      gridtools::alignment< 1u > > > >()));
