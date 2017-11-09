@@ -239,14 +239,6 @@ namespace gridtools {
         ptrs_t get_ptrs_impl() const { return {m_cpu_ptr, m_gpu_ptr}; }
 
         /*
-         * @brief set_ptrs implementation for cuda_storage.
-         */
-        void set_ptrs_impl(ptrs_t const &ptrs) {
-            m_gpu_ptr = ptrs[1];
-            m_cpu_ptr = ptrs[0];
-        }
-
-        /*
          * @brief valid implementation for cuda_storage.
          */
         bool valid_impl() const { return m_cpu_ptr && m_gpu_ptr; }

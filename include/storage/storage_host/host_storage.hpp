@@ -130,11 +130,6 @@ namespace gridtools {
         ptrs_t get_ptrs_impl() const { return m_cpu_ptr; }
 
         /*
-         * @brief set_ptrs implementation for host_storage.
-         */
-        void set_ptrs_impl(ptrs_t ptr) { m_cpu_ptr = ptr; }
-
-        /*
          * @brief valid implementation for host_storage.
          */
         bool valid_impl() const { return m_cpu_ptr; }

@@ -119,15 +119,6 @@ namespace gridtools {
         }
 
         /*
-         * @brief This method resets the pointer(s) that are contained in a storage.
-         * @param ptrs struct that contains the pointer(s)
-         */
-        template < typename T >
-        void set_ptrs(T const &ptrs) {
-            static_cast< Derived * >(this)->set_ptrs_impl(ptrs);
-        }
-
-        /*
          * @brief This method returns information about validity of the storage (e.g., no nullptrs, etc.).
          * @return true if the storage is valid, false otherwise
          */
