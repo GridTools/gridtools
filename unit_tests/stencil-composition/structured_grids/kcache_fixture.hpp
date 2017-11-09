@@ -61,8 +61,6 @@ using kmaximum_b = kfull_b::last_level;
 using kmaximumm1_b = axis_b_t::get_interval< 1 >::modify< 1, -1 >; // TODO name for some of the intervals seems wrong
 using kbody_low_b = axis_b_t::get_interval< 0 >;
 using kbody_lowp1_b = kbody_low_b::modify< 1, 0 >;
-typedef gridtools::interval< gridtools::level< 1, 2 >, gridtools::level< 1, -1 > >
-    kbody_b; // TODO this is not a valid interval
 
 #ifdef __CUDACC__
 #define BACKEND_ARCH gridtools::enumtype::Cuda
