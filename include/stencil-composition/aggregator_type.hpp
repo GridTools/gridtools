@@ -236,7 +236,7 @@ namespace gridtools {
                 int >::type = 0 >
         void reassign_storages_impl(DataStores &&... stores) {
             GRIDTOOLS_STATIC_ASSERT(
-                (sizeof...(DataStores) == boost::mpl::size< non_tmp_arg_storage_pair_fusion_list_t >{}),
+                (sizeof...(DataStores) == boost::mpl::size< non_tmp_arg_storage_pair_fusion_list_t >::value),
                 "the reassign_storages_impl must be called with at least one argument. "
                 "otherwise what are you calling it for?");
             // create a fusion vector that contains all the arg_storage_pairs to all non temporary args

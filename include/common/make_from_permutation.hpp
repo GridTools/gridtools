@@ -72,8 +72,8 @@ namespace gridtools {
         namespace r = f::result_of;
         namespace m = boost::mpl;
         using src_t = typename std::decay< Src >::type;
-        GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence< Res >{}, "Output type should model fusion sequence.");
-        GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence< src_t >{}, "Input type should model fusion sequence.");
+        GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence< Res >::value, "Output type should model fusion sequence.");
+        GRIDTOOLS_STATIC_ASSERT(f::traits::is_sequence< src_t >::value, "Input type should model fusion sequence.");
         using positions_t = typename m::transform< Res,
             impl_::get_position< src_t, m::_ >,
             m::back_inserter< m::vector_c< int > > >::type;
