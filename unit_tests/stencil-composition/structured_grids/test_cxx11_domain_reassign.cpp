@@ -61,13 +61,13 @@ namespace domain_reassign {
             eval(out()) = eval(in());
         }
     };
-    typedef interval< level< 0, -1 >, level< 1, 1 > > axis;
+    typedef interval< level< 0, -1 >, level< 1, 1 > > axis_t;
 
     gt_example::gt_example(uint_t d1, uint_t d2, uint_t d3, storage_t &in, storage_t &out) {
         uint_t di[5] = {0, 0, 0, d1 - 1, d1};
         uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
-        grid< axis > grid(di, dj);
+        grid< axis_t > grid(di, dj);
         grid.value_list[0] = 0;
         grid.value_list[1] = d3 - 1;
 
@@ -111,7 +111,7 @@ class ReassignDomain : public ::testing::Test {
 
     gridtools::halo_descriptor m_di, m_dj;
 
-    gridtools::grid< axis > m_grid;
+    gridtools::grid< axis_t > m_grid;
     storage_info_t m_meta;
 
     storage_t m_in1, m_out1, m_in2, m_out2;

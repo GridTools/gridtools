@@ -34,40 +34,49 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-
-#include "../../common/gt_assert.hpp"
-#include "../../common/generic_metafunctions/unzip.hpp"
+#include "is_all.hpp"
 
 namespace gridtools {
+    /**
+    * @brief SFINAE for the case in which all the components of a parameter pack are of integral type
+    */
+    template < typename... IntTypes >
+    using all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        all_< boost::is_integral, IntTypes... >;
+#else
+        typename boost::enable_if_c< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...),
+            bool >::type;
+#endif
 
-    template < typename Layout, uint_t... Dims >
-    struct meta_storage_cache {
+    /**
+    * @brief SFINAE for the case in which all the components of a parameter pack are of static integral type
+    */
+    template < typename... IntTypes >
+    using all_static_integral = all_< is_static_integral, IntTypes... >;
 
-        typedef storage_info_interface< 0, Layout > meta_storage_t;
-        typedef Layout layout_t;
-        GRIDTOOLS_STATIC_ASSERT(layout_t::masked_length == sizeof...(Dims),
-            GT_INTERNAL_ERROR_MSG("Mismatch in layout length and passed number of dimensions."));
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< boost::is_integral, IntTypes... >;
+#else
+        boost::mpl::bool_< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...) >;
+#endif
 
-      public:
-        GT_FUNCTION
-        constexpr meta_storage_cache() {}
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_static_integral = is_all< is_static_integral, IntTypes... >;
 
-        GT_FUNCTION
-        static constexpr uint_t padded_total_length() { return meta_storage_t(Dims...).padded_total_length(); }
+    /* check if all given types are integral types */
+    template < typename T >
+    struct is_integral_or_enum : boost::mpl::or_< boost::is_integral< T >, boost::is_enum< T > > {};
 
-        template < ushort_t Id >
-        GT_FUNCTION static constexpr int_t stride() {
-            return meta_storage_t(Dims...).template stride< Id >();
-        }
-
-        template < typename... D, typename Dummy = all_integral< typename std::remove_reference< D >::type... > >
-        GT_FUNCTION constexpr int_t index(D &&... args_) const {
-            return meta_storage_t(Dims...).index(args_...);
-        }
-
-        template < ushort_t Id >
-        GT_FUNCTION static constexpr int_t dim() {
-            return meta_storage_t(Dims...).template dim< Id >();
-        }
-    };
-} // namespace gridtools
+    template < typename... IntTypes >
+    using is_all_integral_or_enum =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< is_integral_or_enum, IntTypes... >;
+#else
+        boost::mpl::bool_< accumulate(logical_and(), true, is_integral_or_enum< IntTypes >::type::value...) >;
+#endif
+}

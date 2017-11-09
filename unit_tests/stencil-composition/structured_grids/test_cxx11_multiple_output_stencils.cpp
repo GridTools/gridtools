@@ -40,7 +40,7 @@ using namespace gridtools;
 using namespace enumtype;
 
 typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis_t;
 
 struct TensionShearFunction {
     using T_sqr_s = inout_accessor< 0 >;
@@ -133,7 +133,7 @@ TEST(multiple_outputs, compute_extents) {
 
     halo_descriptor di{2, 2, 2, 7, 10};
     halo_descriptor dj{2, 2, 2, 7, 10};
-    grid< axis > grid_(di, dj);
+    grid< axis_t > grid_(di, dj);
 
     grid_.value_list[0] = 0;
     grid_.value_list[1] = 9;

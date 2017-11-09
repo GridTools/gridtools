@@ -57,11 +57,10 @@ using namespace expressions;
 
 namespace horizontal_diffusion {
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_lap;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_flx;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_out;
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+    using axis_t = axis< 1 >;
+    using x_lap = axis_t::full_interval;
+    using x_flx = axis_t::full_interval; // TODO why do we have the same intervals with different names?
+    using x_out = axis_t::full_interval;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
@@ -186,16 +185,10 @@ namespace horizontal_diffusion {
 
         gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out), (p_coeff() = coeff));
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(di, dj, axis_t(d3));
 
         /*
           Here we do lot of stuff

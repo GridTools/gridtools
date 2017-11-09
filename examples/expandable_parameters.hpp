@@ -59,8 +59,8 @@ namespace test_expandable_parameters {
     using namespace gridtools;
     using namespace expressions;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using axis_t = axis< 1 >;
+    using x_interval = axis_t::full_interval;
 
     struct functor_exp {
 
@@ -102,12 +102,10 @@ namespace test_expandable_parameters {
         std::vector< storage_t > list_out_ = {storage1, storage2, storage3, storage4, storage5};
         std::vector< storage_t > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        halo_descriptor di{0, 0, 0, d1 - 1, d1};
+        halo_descriptor dj{0, 0, 0, d2 - 1, d2};
 
-        gridtools::grid< axis > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(di, dj, axis_t(d3));
 
         typedef arg< 0, std::vector< storage_t > > p_list_out;
         typedef arg< 1, std::vector< storage_t > > p_list_in;

@@ -38,7 +38,7 @@
 #include <stencil-composition/stencil-composition.hpp>
 
 typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
-typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
+typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis_t;
 
 template < gridtools::uint_t Id >
 struct functor {
@@ -61,7 +61,7 @@ TEST(unfold_all, test) {
 
     conditional< 0 > cond(predicate);
 
-    grid< axis > grid({0, 0, 0, 1, 2}, {0, 0, 0, 1, 2});
+    grid< axis_t > grid({0, 0, 0, 1, 2}, {0, 0, 0, 1, 2});
     grid.value_list[0] = 0;
     grid.value_list[1] = 2;
 

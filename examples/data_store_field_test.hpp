@@ -130,7 +130,7 @@ namespace data_store_field_test {
         uint_t di[5] = {halo_size, halo_size, halo_size, d1 - 1 - halo_size, d1};
         uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - 1 - halo_size, d2};
 
-        grid< axis > gr(di, dj);
+        grid<::axis > gr(di, dj);
         gr.value_list[0] = 0;
         gr.value_list[1] = d3 - 1;
 

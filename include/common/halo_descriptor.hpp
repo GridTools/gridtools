@@ -75,6 +75,11 @@ namespace gridtools {
          */
         GT_FUNCTION halo_descriptor() : halo_descriptor(0, 0, 0, 0, 1){};
 
+        /**
+         * @brief simple ctor without halos and padding
+         */
+        GT_FUNCTION halo_descriptor(uint_t size) : halo_descriptor(0, 0, 0, size - 1, size){};
+
         /** Main constructors where the five integers are passed.
           \code
           |-----|------|---------------|---------|----|
