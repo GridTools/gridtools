@@ -46,7 +46,7 @@
 namespace gridtools {
     /// Forward the args to constructor.
     template < typename T >
-    struct construct {
+    struct ctor {
         template < typename... Args >
         T operator()(Args &&... args) const {
             return {std::forward< Args >(args)...};
