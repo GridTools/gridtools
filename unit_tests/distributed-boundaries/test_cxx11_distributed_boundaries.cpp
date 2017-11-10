@@ -143,19 +143,23 @@ TEST(DistributedBoundaries, Test) {
         [=](int i, int j, int k) {
             return triplet{i + pi * (int)d1 + 100000, j + pj * (int)d2 + 100000, k + pk * (int)d3 + 100000};
         },
-        "b");
+        "d");
 
-    // show_view(make_host_view(a));
-    // show_view(make_host_view(b));
-    // show_view(make_host_view(c));
-    // show_view(make_host_view(d));
+    std::cout << "unaligned  " << storage_info.unaligned_dim< 0 >() << ", " << storage_info.unaligned_dim< 1 >() << ", "
+              << storage_info.unaligned_dim< 2 >() << ". "
+              << "aligned " << storage_info.dim< 0 >() << ", " << storage_info.dim< 1 >() << ", "
+              << storage_info.dim< 2 >() << ". "
+              << "strides " << storage_info.stride< 0 >() << ", " << storage_info.stride< 1 >() << ", "
+              << storage_info.stride< 2 >() << ". "
+              << "length " << storage_info.length() << ", "
+              << "total length " << storage_info.total_length() << ", "
+              << "padded total length " << storage_info.padded_total_length() << ", "
+              << "\n";
 
-    cabc.exchange(bind_bc(value_boundary< triplet >{triplet{42, 42, 42}}, a), bind_bc(copy_boundary{}, b, c), d);
+    using namespace std::placeholders;
 
-    // show_view(make_host_view(a));
-    // show_view(make_host_view(b));
-    // show_view(make_host_view(c));
-    // show_view(make_host_view(d));
+    cabc.exchange(
+        bind_bc(value_boundary< triplet >{triplet{42, 42, 42}}, a), bind_bc(copy_boundary{}, b, _1).associate(c), d);
 
     bool ok = true;
     for (int i = pi * d1; i < (pi + 1) * d1; ++i) {
@@ -165,7 +169,7 @@ TEST(DistributedBoundaries, Test) {
                     // At the border
                     ok = ok and make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) == triplet{42, 42, 42};
                     if (make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) != triplet{42, 42, 42}) {
-                        std::cout << "------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
+                        std::cout << "a==42 -----------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
                                   << j - pj * d2 << ", " << k - pk * d3 << " "
                                   << make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3)
                                   << " == " << triplet{42, 42, 42} << "\n";
@@ -175,7 +179,7 @@ TEST(DistributedBoundaries, Test) {
                              make_host_view(c)(i - pi * d1, j - pj * d2, k - pk * d3);
                     if (make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3) !=
                         make_host_view(c)(i - pi * d1, j - pj * d2, k - pk * d3)) {
-                        std::cout << "------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
+                        std::cout << "b==c ------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
                                   << j - pj * d2 << ", " << k - pk * d3 << " "
                                   << make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3)
                                   << " == " << make_host_view(c)(i - pi * d1, j - pj * d2, k - pk * d3) << "\n";
@@ -183,26 +187,23 @@ TEST(DistributedBoundaries, Test) {
                 } else {
                     // In the core
                     ok = ok and
-                         make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) ==
-                             triplet{i + pi * (int)d1 + 100, j + pj * (int)d2 + 100, k + pk * (int)d3 + 100};
+                         make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) == triplet{i + 100, j + 100, k + 100};
                     if (make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) !=
-                        triplet{i + pi * (int)d1 + 100, j + pj * (int)d2 + 100, k + pk * (int)d3 + 100}) {
-                        std::cout << "------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
+                        triplet{i + 100, j + 100, k + 100}) {
+                        std::cout << "a==x ------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
                                   << j - pj * d2 << ", " << k - pk * d3 << " "
-                                  << make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) << " == "
-                                  << triplet{i + pi * (int)d1 + 100, j + pj * (int)d2 + 100, k + pk * (int)d3 + 100}
-                                  << "\n";
+                                  << make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3)
+                                  << " == " << triplet{i + 100, j + 100, k + 100} << "\n";
                     }
                     ok = ok and
                          make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3) ==
-                             triplet{i + pi * (int)d1 + 1000, j + pj * (int)d2 + 1000, k + pk * (int)d3 + 1000};
+                             triplet{i + 1000, j + 1000, k + 1000};
                     if (make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3) !=
-                        triplet{i + pi * (int)d1 + 1000, j + pj * (int)d2 + 1000, k + pk * (int)d3 + 1000}) {
-                        std::cout << "------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
+                        triplet{i + 1000, j + 1000, k + 1000}) {
+                        std::cout << "b==x ------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
                                   << j - pj * d2 << ", " << k - pk * d3 << " "
-                                  << make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3) << " == "
-                                  << triplet{i + pi * (int)d1 + 1000, j + pj * (int)d2 + 1000, k + pk * (int)d3 + 1000}
-                                  << "\n";
+                                  << make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3)
+                                  << " == " << triplet{i + 1000, j + 1000, k + 1000} << "\n";
                     }
                 }
             }
