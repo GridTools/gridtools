@@ -142,7 +142,8 @@ namespace gridtools {
         /**
          * fusion::vector of pointers to storages
          */
-        arg_storage_pair_fusion_list_t m_arg_storage_pair_list;
+        arg_storage_pair_fusion_list_t m_arg_storage_pair_list =
+            default_host_container< arg_storage_pair_fusion_list_t >();
 
         /**
            tuple of pointers to the storages metadata. Note that metadata is constant,

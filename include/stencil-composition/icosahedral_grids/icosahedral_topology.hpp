@@ -64,7 +64,7 @@
 #include "../../common/array_addons.hpp"
 #include "../../common/gpu_clone.hpp"
 #include "../../common/generic_metafunctions/pack_get_elem.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
+#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 
 #include "icosahedral_topology_metafunctions.hpp"
@@ -780,7 +780,7 @@ namespace gridtools {
             typename... IntTypes
 #if defined(CUDA8) || !defined(__CUDACC__)
             ,
-            typename Dummy = all_integers< IntTypes... >
+            typename Dummy = all_integral< IntTypes... >
 #endif
             >
         data_store_t< LocationType, ValueType, Halo, Selector > make_storage(

@@ -44,9 +44,9 @@ using namespace gridtools::expressions;
 
 namespace call_interface_functors {
 
-    using axis = interval< level< 0, -1 >, level< 1, 1 > >;
-    using x_interval = interval< level< 0, -1 >, level< 1, -1 > >;
-    using smaller_interval = interval< level< 0, 1 >, level< 1, -2 > >;
+    using axis_t = axis< 1 >;
+    using x_interval = axis_t::full_interval;
+    using smaller_interval = x_interval::modify< 1, -1 >;
 
     struct copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
@@ -262,7 +262,7 @@ class call_interface : public testing::Test {
 
     halo_descriptor di;
     halo_descriptor dj;
-    gridtools::grid< call_interface_functors::axis > grid;
+    gridtools::grid< call_interface_functors::axis_t::axis_interval_t > grid;
 
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
@@ -283,7 +283,8 @@ class call_interface : public testing::Test {
 
     call_interface()
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
+          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
+          grid(make_grid(di, dj, call_interface_functors::axis_t(d3))),
 #if FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
@@ -301,8 +302,6 @@ class call_interface : public testing::Test {
                       return default_value;
               }),
           domain(in, out) {
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
     }
 
     template < typename Computation >
@@ -532,7 +531,7 @@ class call_proc_interface : public testing::Test {
 
     halo_descriptor di;
     halo_descriptor dj;
-    gridtools::grid< call_interface_functors::axis > grid;
+    gridtools::grid< call_interface_functors::axis_t::axis_interval_t > grid;
 
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
@@ -552,7 +551,8 @@ class call_proc_interface : public testing::Test {
 
     call_proc_interface()
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
+          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
+          grid(make_grid(di, dj, call_interface_functors::axis_t(d3))),
 #if FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
@@ -563,8 +563,6 @@ class call_proc_interface : public testing::Test {
           reference_unchanged(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }),
           reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) * 100 + (j + 1) * 10 + k; }),
           domain(in, out1, out2) {
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
     }
 
     template < typename Computation >

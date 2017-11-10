@@ -105,7 +105,7 @@ namespace gridtools {
      * @tparam I Integer index (unique) of the data field to identify it
      * @tparam DataStoreType The type of the storage used to store data
      * @tparam LocationType the location type of the storage of the placeholder
-     * @tparam is_temporary_storage determines whether the placeholder holds a temporary or normal storage
+     * @tparam Temporary determines whether the placeholder holds a temporary or normal storage
      */
     template < uint_t I, typename DataStoreType, typename LocationType, bool Temporary >
     struct arg {
