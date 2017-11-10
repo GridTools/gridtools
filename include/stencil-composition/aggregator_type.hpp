@@ -276,9 +276,11 @@ namespace gridtools {
                   _impl::make_joint_view(std::forward< NonTmp >(non_tmp), std::forward< Tmp >(tmp)))) {}
 
         void update_metadata_set() {
+#ifndef __CUDA_ARCH__
             m_metadata_set = {};
             boost::fusion::for_each(
                 m_arg_storage_pair_list, _impl::add_to_metadata_set< metadata_set_t >{m_metadata_set});
+#endif
         }
 
         template < typename Key >
