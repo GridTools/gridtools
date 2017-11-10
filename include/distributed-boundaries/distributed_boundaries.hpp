@@ -47,6 +47,31 @@
 #include "../boundary-conditions/predicate.hpp"
 
 namespace gridtools {
+
+    namespace _workaround {
+        template < typename... Tuples >
+        struct pairwise_tuple_cat;
+
+        template < typename Tuple >
+        struct pairwise_tuple_cat< Tuple > {
+            static Tuple apply(Tuple t) { return t; }
+        };
+
+        template < typename Tuple1, typename Tuple2, typename... Rest >
+        struct pairwise_tuple_cat< Tuple1, Tuple2, Rest... > {
+            static auto apply(Tuple1 t, Tuple2 s, Rest... rest) -> decltype(
+                pairwise_tuple_cat< decltype(std::tuple_cat(t, s)), Rest... >::apply(std::tuple_cat(t, s), rest...)) {
+                return pairwise_tuple_cat< decltype(std::tuple_cat(t, s)), Rest... >::apply(
+                    std::tuple_cat(t, s), rest...);
+            }
+        };
+
+        template < typename... Tuples >
+        auto tuple_cat(Tuples... ts) -> decltype(pairwise_tuple_cat< Tuples... >::apply(ts...)) {
+            return pairwise_tuple_cat< Tuples... >::apply(ts...);
+        };
+    } // namespace _workaround
+
     template < typename CTraits >
     struct distributed_boundaries {
 
@@ -81,13 +106,11 @@ namespace gridtools {
                 bcapply.stores(),
                 typename make_gt_integer_sequence< uint_t,
                            std::tuple_size< typename BCApply::stores_type >::value >::type{});
-            std::cout << "Apply job\n";
         }
 
         template < typename BCApply >
         typename std::enable_if< not is_binded_bc< BCApply >::value, void >::type apply_boundary(BCApply) {
             /* do nothing for a pure data_store*/
-            std::cout << "Nothing to apply\n";
         }
 
         template < typename FirstJob >
@@ -106,17 +129,27 @@ namespace gridtools {
 
         template < typename Stores, uint_t... Ids >
         void call_pack(Stores const &stores, gt_integer_sequence< uint_t, Ids... >) {
-            m_he.pack(advanced::get_initial_address_of(make_host_view(std::get< Ids >(stores)))...);
+            m_he.pack(advanced::get_initial_address_of(_impl::proper_view< CTraits::compute_arch,
+                access_mode::ReadWrite,
+                typename std::tuple_element< Ids, Stores >::type >::make(std::get< Ids >(stores)))...);
         }
 
         template < typename Stores, uint_t... Ids >
         void call_unpack(Stores const &stores, gt_integer_sequence< uint_t, Ids... >) {
-            m_he.unpack(advanced::get_initial_address_of(make_host_view(std::get< Ids >(stores)))...);
+            m_he.unpack(advanced::get_initial_address_of(_impl::proper_view< CTraits::compute_arch,
+                access_mode::ReadWrite,
+                typename std::tuple_element< Ids, Stores >::type >::make(std::get< Ids >(stores)))...);
         }
 
         template < typename... Jobs >
         void exchange(Jobs... jobs) {
+#ifdef __CUDACC__
+            // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
+            // This can be removed when nvcc supports it.
+            auto all_stores = _workaround::tuple_cat(collect_stores(jobs)...);
+#else
             auto all_stores = std::tuple_cat(collect_stores(jobs)...);
+#endif
             call_pack(all_stores,
                 typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(all_stores) >::value >::type{});
             m_he.exchange();
@@ -125,6 +158,8 @@ namespace gridtools {
             call_unpack(all_stores,
                 typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(all_stores) >::value >::type{});
         }
+
+        typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
     };
 
 } // namespace gridtools
