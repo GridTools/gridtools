@@ -162,27 +162,27 @@ namespace gridtools {
 
             // specialization for std::vector (expandable param)
             template < typename T >
-            GT_FUNCTION_WARNING void operator()(const std::vector< T > &src) const {
+            void operator()(const std::vector< T > &src) const {
                 if (!src.empty())
                     (*this)(src.front());
             }
 
             // specialization for data store type
             template < typename S, typename SI >
-            GT_FUNCTION_WARNING void operator()(const data_store< S, SI > &src) const {
+            void operator()(const data_store< S, SI > &src) const {
                 GRIDTOOLS_STATIC_ASSERT((is_storage_info< SI >::value), GT_INTERNAL_ERROR);
-                if (auto ptr = src.get_storage_info_ptr())
+                if (auto &&ptr = src.get_storage_info_ptr())
                     m_dst.insert(make_pointer(*ptr));
             }
 
             // specialization for data store field type
             template < typename S, uint_t... N >
-            GT_FUNCTION_WARNING void operator()(const data_store_field< S, N... > &src) const {
+            void operator()(const data_store_field< S, N... > &src) const {
                 (*this)(src.template get< 0, 0 >());
             }
 
             template < typename Arg, typename DataStoreType >
-            GT_FUNCTION_WARNING void operator()(const arg_storage_pair< Arg, DataStoreType > &src) const {
+            void operator()(const arg_storage_pair< Arg, DataStoreType > &src) const {
                 (*this)(src.m_value);
             }
         };
