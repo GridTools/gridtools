@@ -33,33 +33,30 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "accumulate.hpp"
-#include "is_pack_of.hpp"
 
-namespace gridtools {
-    /**
-       SFINAE for the case in which all the components of a parameter pack are of integral type
-    */
-    template < typename... IntTypes >
-    using all_integers =
-#if defined(CUDA8) && !defined(_CRAYC)
-        is_pack_of< boost::is_integral, IntTypes... >;
-#else
-        typename boost::enable_if_c< accumulate(logical_and(), boost::is_integral< IntTypes >::type::value...),
-            bool >::type;
-#endif
+#include "gtest/gtest.h"
+#include "stencil-composition/axis.hpp"
+#include "../test_helper.hpp"
 
-    /**
-       SFINAE for the case in which all the components of a parameter pack are of static integral type
-    */
-    template < typename... IntTypes >
-    using all_static_integers =
-#if defined(CUDA8) && !defined(_CRAYC)
-        is_pack_of< is_static_integral, IntTypes... >;
-#else
-        typename boost::enable_if_c< accumulate(logical_and(), is_static_integral< IntTypes >::type::value...),
-            bool >::type;
+using namespace gridtools;
 
-#endif
+TEST(test_axis, ctor) {
+    auto axis_ = axis< 2 >((uint_t)5, (uint_t)4);
+
+    ASSERT_EQ(5, axis_.interval_size(0));
+    ASSERT_EQ(4, axis_.interval_size(1));
+}
+
+TEST(test_axis, intervals) {
+    using axis_t = axis< 3 >;
+
+    // full interval
+    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 3, -1 > >, axis_t::full_interval >();
+
+    // intervals by id
+    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 1, -1 > >, axis_t::get_interval< 0 > >();
+    ASSERT_TYPE_EQ< interval< level< 1, -1 >, level< 2, -1 > >, axis_t::get_interval< 1 > >();
+
+    // hull of multiple intervals
+    ASSERT_TYPE_EQ< interval< level< 1, -1 >, level< 3, -1 > >, axis_t::get_interval< 1, 2 > >();
 }

@@ -130,34 +130,15 @@ namespace gridtools {
         return get_index_of_element_in_pack_functor< sizeof...(Rest) >::apply(start_index, needle, r...);
     }
 
-    /* check if all given types are integral types */
-    template < typename... T >
-    struct is_all_integral;
-
-    template < typename First, typename... T >
-    struct is_all_integral< First, T... > {
-        typedef typename is_all_integral< T... >::type rec_t;
-        typedef typename boost::mpl::and_< boost::is_integral< First >, rec_t >::type type;
-    };
-
-    template <>
-    struct is_all_integral<> {
-        typedef boost::mpl::true_ type;
-    };
-
-    /* check if all given types are integral types */
-    template < typename... T >
-    struct is_all_integral_or_enum;
-
-    template < typename First, typename... T >
-    struct is_all_integral_or_enum< First, T... > {
-        typedef typename is_all_integral_or_enum< T... >::type rec_t;
-        typedef typename boost::mpl::and_< boost::mpl::or_< boost::is_integral< First >, boost::is_enum< First > >,
-            rec_t >::type type;
-    };
-
-    template <>
-    struct is_all_integral_or_enum<> {
-        typedef boost::mpl::true_ type;
-    };
+    /*
+     * @brief returns true if values are a continuous sequence of integers
+     */
+    template < typename First >
+    GT_FUNCTION constexpr bool is_continuous(First first) {
+        return true;
+    }
+    template < typename First, typename Second, typename... Rest >
+    GT_FUNCTION constexpr bool is_continuous(First first, Second second, Rest... rest) {
+        return (first + 1 == second) ? (true && is_continuous(second, rest...)) : false;
+    }
 }

@@ -33,24 +33,50 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
+#include "is_all.hpp"
 
-using namespace gridtools;
-
-namespace ico_operators {
-#ifdef __CUDACC__
-#define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
+namespace gridtools {
+    /**
+    * @brief SFINAE for the case in which all the components of a parameter pack are of integral type
+    */
+    template < typename... IntTypes >
+    using all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        all_< boost::is_integral, IntTypes... >;
 #else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
+        typename boost::enable_if_c< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...),
+            bool >::type;
+#endif
+
+    /**
+    * @brief SFINAE for the case in which all the components of a parameter pack are of static integral type
+    */
+    template < typename... IntTypes >
+    using all_static_integral = all_< is_static_integral, IntTypes... >;
+
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< boost::is_integral, IntTypes... >;
 #else
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
-#endif
+        boost::mpl::bool_< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...) >;
 #endif
 
-    using backend_t = BACKEND;
-    using x_interval = axis< 1 >::full_interval;
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_static_integral = is_all< is_static_integral, IntTypes... >;
 
-    using icosahedral_topology_t = icosahedral_topology< backend_t >;
+    /* check if all given types are integral types */
+    template < typename T >
+    struct is_integral_or_enum : boost::mpl::or_< boost::is_integral< T >, boost::is_enum< T > > {};
+
+    template < typename... IntTypes >
+    using is_all_integral_or_enum =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< is_integral_or_enum, IntTypes... >;
+#else
+        boost::mpl::bool_< accumulate(logical_and(), true, is_integral_or_enum< IntTypes >::type::value...) >;
+#endif
 }

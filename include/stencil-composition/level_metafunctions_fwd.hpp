@@ -33,28 +33,15 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <common/generic_metafunctions/all_integrals.hpp>
+#pragma once
 
-using namespace gridtools;
+namespace gridtools {
+    template < uint_t VSplitter, int_t VOffset >
+    struct level;
 
-template < typename... Int,
-    typename =
-#if defined(CUDA8) || !defined(__CUDACC__)
-        all_integers< Int... >
-#else
-        is_pack_of< boost::is_integral, Int... >
-#endif
-    >
-GT_FUNCTION constexpr int test_fn(Int...) {
-    return 1;
-}
+    template < typename TLevel >
+    struct level_to_index;
 
-GT_FUNCTION
-constexpr int test_fn(double, double) { return 2; }
-
-TEST(is_offset_of, int) { GRIDTOOLS_STATIC_ASSERT((test_fn(int(3), int(4)) == 1), "ERROR"); }
-
-TEST(is_offset_of, empty) { GRIDTOOLS_STATIC_ASSERT((test_fn() == 1), "ERROR"); }
-
-TEST(is_offset_of, long) { GRIDTOOLS_STATIC_ASSERT((test_fn(long(3), int(4)) == 1), "ERROR"); }
+    template < typename TIndex >
+    struct index_to_level;
+} // namespace gridtools
