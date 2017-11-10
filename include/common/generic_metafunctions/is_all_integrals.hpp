@@ -33,30 +33,50 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
-
-#include "../../common/vector_traits.hpp"
-
-/** @file metafunctions used in @ref gridtools::intermediate_expand*/
+#include "is_all.hpp"
 
 namespace gridtools {
-    namespace _impl {
+    /**
+    * @brief SFINAE for the case in which all the components of a parameter pack are of integral type
+    */
+    template < typename... IntTypes >
+    using all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        all_< boost::is_integral, IntTypes... >;
+#else
+        typename boost::enable_if_c< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...),
+            bool >::type;
+#endif
 
-        // ********* metafunctions ************
-        template < typename T >
-        struct is_expandable_arg : boost::mpl::false_ {};
+    /**
+    * @brief SFINAE for the case in which all the components of a parameter pack are of static integral type
+    */
+    template < typename... IntTypes >
+    using all_static_integral = all_< is_static_integral, IntTypes... >;
 
-        template < ushort_t N, typename Storage, typename Location, bool Temporary >
-        struct is_expandable_arg< arg< N, Storage, Location, Temporary > > : is_vector< Storage > {};
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< boost::is_integral, IntTypes... >;
+#else
+        boost::mpl::bool_< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...) >;
+#endif
 
-        struct create_arg {
-            template < typename T, typename ExpandFactor >
-            struct apply {
-                typedef data_store_field< typename get_storage_from_arg< T >::type, ExpandFactor::value > exp_param_t;
-                typedef arg< arg_index< T >::value, exp_param_t, typename T::location_t, T::is_temporary > type;
-            };
-        };
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_static_integral = is_all< is_static_integral, IntTypes... >;
 
-    } // namespace _impl
-} // namespace gridtools
+    /* check if all given types are integral types */
+    template < typename T >
+    struct is_integral_or_enum : boost::mpl::or_< boost::is_integral< T >, boost::is_enum< T > > {};
+
+    template < typename... IntTypes >
+    using is_all_integral_or_enum =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< is_integral_or_enum, IntTypes... >;
+#else
+        boost::mpl::bool_< accumulate(logical_and(), true, is_integral_or_enum< IntTypes >::type::value...) >;
+#endif
+}

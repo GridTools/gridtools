@@ -38,13 +38,24 @@
 #include <boost/static_assert.hpp>
 #include <boost/mpl/integral_c.hpp>
 #include <boost/mpl/bool.hpp>
+#include <boost/mpl/front.hpp>
+#include <boost/mpl/back.hpp>
 #include <boost/mpl/range_c.hpp>
 #include "level.hpp"
+#include "level_metafunctions.hpp"
 #include "../common/host_device.hpp"
-#include "sfinae.hpp"
 #include "../common/gt_assert.hpp"
+#include "../common/generic_metafunctions/is_all.hpp"
+#include "sfinae.hpp"
 
 namespace gridtools {
+
+    namespace _impl {
+        constexpr int_t add_offset(int_t offset, int_t value) {
+            return (offset + value == 0) ? (offset + 2 * value) : (offset + value);
+        }
+    }
+
     /**
      * @struct Interval
      * Structure defining a closed interval on an axis given two levels
@@ -78,6 +89,34 @@ namespace gridtools {
         // define the from and to splitter indexes
         typedef TFromLevel FromLevel;
         typedef TToLevel ToLevel;
+
+        // User API: helper to access the first and last level as an interval
+        using first_level = interval< TFromLevel, TFromLevel >;
+        using last_level = interval< TToLevel, TToLevel >;
+
+        /**
+         * @brief returns an interval where the boundaries are modified accroding to left and right
+         * @param left moves the left boundary, the interval is enlarged (left < 0) or shrunk (left > 0)
+         * @param right moves the right boundary, the interval is enlarged (right > 0) or shrunk (right < 0)
+         */
+        template < int_t left, int_t right >
+        struct modify_impl {
+            GRIDTOOLS_STATIC_ASSERT((_impl::add_offset(TFromLevel::Offset::value, left) >= -cLevelOffsetLimit &&
+                                        _impl::add_offset(TToLevel::Offset::value, right) <= cLevelOffsetLimit),
+                "You are trying to modify an interval to increase beyond its maximal offset.");
+            GRIDTOOLS_STATIC_ASSERT(((TFromLevel::Splitter::value < TToLevel::Splitter::value) ||
+                                        (_impl::add_offset(TFromLevel::Offset::value, left) <=
+                                            _impl::add_offset(TToLevel::Offset::value, right))),
+                "You are trying to modify an interval such that the result is an empty interval(left boundary > right "
+                "boundary).");
+            using type =
+                interval< level< TFromLevel::Splitter::value, _impl::add_offset(TFromLevel::Offset::value, left) >,
+                    level< TToLevel::Splitter::value, _impl::add_offset(TToLevel::Offset::value, right) > >;
+        };
+        template < int_t left, int_t right >
+        using modify = typename modify_impl< left, right >::type;
+        template < int_t dir >
+        using shift = modify< dir, dir >;
     };
 
     /**
@@ -118,4 +157,21 @@ namespace gridtools {
     struct make_interval {
         typedef interval< typename index_to_level< TFromIndex >::type, typename index_to_level< ToIndex >::type > type;
     };
+
+    namespace _impl {
+        template < typename... Intervals >
+        struct join_interval {
+            GRIDTOOLS_STATIC_ASSERT((is_all< is_interval, Intervals... >::value),
+                GT_INTERNAL_ERROR_MSG("Expected all types to be intervals."));
+            using from_levels_vector = sort_levels< typename Intervals::FromLevel... >;
+            using to_levels_vector = sort_levels< typename Intervals::ToLevel... >;
+            using type = interval< typename boost::mpl::back< from_levels_vector >::type,
+                typename boost::mpl::front< to_levels_vector >::type >;
+        };
+    }
+    /**
+     * @brief returns an interval which has all given intervals as subset
+     */
+    template < typename... Intervals >
+    using join_interval = typename _impl::join_interval< Intervals... >::type;
 } // namespace gridtools

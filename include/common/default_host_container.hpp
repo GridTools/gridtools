@@ -33,28 +33,24 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include <common/generic_metafunctions/all_integrals.hpp>
+#pragma once
 
-using namespace gridtools;
+#include <tuple>
 
-template < typename... Int,
-    typename =
-#if defined(CUDA8) || !defined(__CUDACC__)
-        all_integers< Int... >
-#else
-        is_pack_of< boost::is_integral, Int... >
-#endif
-    >
-GT_FUNCTION constexpr int test_fn(Int...) {
-    return 1;
+#include <boost/fusion/include/is_sequence.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/copy.hpp>
+
+#include "defs.hpp"
+
+/**
+ *   Make "default constructed" fusion sequence without NVCC warnings even if the types of in that sequence are
+ *   not constructible on device.
+ */
+template < typename T >
+T default_host_container() {
+    GRIDTOOLS_STATIC_ASSERT(boost::fusion::traits::is_sequence< T >::value, "T should be fusion sequence.");
+    using tuple_t = typename boost::mpl::copy< T, boost::mpl::back_inserter< std::tuple<> > >::type;
+    return tuple_t{};
 }
-
-GT_FUNCTION
-constexpr int test_fn(double, double) { return 2; }
-
-TEST(is_offset_of, int) { GRIDTOOLS_STATIC_ASSERT((test_fn(int(3), int(4)) == 1), "ERROR"); }
-
-TEST(is_offset_of, empty) { GRIDTOOLS_STATIC_ASSERT((test_fn() == 1), "ERROR"); }
-
-TEST(is_offset_of, long) { GRIDTOOLS_STATIC_ASSERT((test_fn(long(3), int(4)) == 1), "ERROR"); }

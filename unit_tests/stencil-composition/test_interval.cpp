@@ -33,12 +33,25 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-namespace gridtools {
-    template < typename T >
-    struct is_actual_storage : boost::mpl::false_ {};
+#include "gtest/gtest.h"
+#include "stencil-composition/interval.hpp"
+#include "../test_helper.hpp"
 
-    template < typename T >
-    struct is_temporary_storage : boost::mpl::false_ {};
-} // namespace gridtools
+using namespace gridtools;
+
+TEST(test_interval, modify) {
+    using my_interval = interval< level< 0, -1 >, level< 1, -1 > >;
+
+    ASSERT_TYPE_EQ< interval< level< 0, -2 >, level< 1, -1 > >, my_interval::modify< -1, 0 > >();
+    ASSERT_TYPE_EQ< interval< level< 0, 1 >, level< 1, 1 > >, my_interval::modify< 1, 1 > >();
+}
+
+TEST(test_interval, join) {
+    using interval1 = interval< level< 1, -2 >, level< 1, -1 > >;
+    using interval2 = interval< level< 0, -1 >, level< 3, -1 > >;
+    using interval3 = interval< level< 2, -2 >, level< 3, -1 > >;
+    using joined_interval = join_interval< interval1, interval2, interval3 >;
+
+    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 3, -1 > >, joined_interval >();
+}

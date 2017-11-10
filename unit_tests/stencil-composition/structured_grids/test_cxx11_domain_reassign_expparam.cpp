@@ -61,16 +61,11 @@ namespace domain_reassign {
             eval(out()) = eval(in());
         }
     };
-    typedef interval< level< 0, -1 >, level< 1, 1 > > axis;
 
     gt_example::gt_example(
         uint_t d1, uint_t d2, uint_t d3, std::vector< storage_t > &list_in, std::vector< storage_t > &list_out) {
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
 
-        grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(d1, d2, d3);
 
         aggregator_type< accessor_list > domain(list_in, list_out);
 
@@ -116,7 +111,7 @@ class ReassignDomain : public ::testing::Test {
 
     gridtools::halo_descriptor m_di, m_dj;
 
-    gridtools::grid< axis > m_grid;
+    gridtools::grid< axis< 1 >::axis_interval_t > m_grid;
     storage_info_t m_meta;
     storage_t m_tr1_in1, m_tr1_in2, m_tr1_in3, m_tr2_in1, m_tr2_in2, m_tr2_in3, m_tr1_out1, m_tr1_out2, m_tr1_out3,
         m_tr2_out1, m_tr2_out2, m_tr2_out3;
@@ -126,8 +121,9 @@ class ReassignDomain : public ::testing::Test {
     verifier m_verif;
 
     ReassignDomain()
-        : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2}, m_grid(m_di, m_dj),
-          m_meta(m_d1, m_d2, m_d3), m_tr1_in1(m_meta, [](int i, int j, int k) { return i + j + k + 3; }, "tr1_in1"),
+        : m_d1(6), m_d2(6), m_d3(10), m_di{0, 0, 0, m_d1 - 1, m_d1}, m_dj{0, 0, 0, m_d2 - 1, m_d2},
+          m_grid(make_grid(m_di, m_dj, m_d3)), m_meta(m_d1, m_d2, m_d3),
+          m_tr1_in1(m_meta, [](int i, int j, int k) { return i + j + k + 3; }, "tr1_in1"),
           m_tr1_in2(m_meta, [](int i, int j, int k) { return i + j + k + 3; }, "tr1_in2"),
           m_tr1_in3(m_meta, [](int i, int j, int k) { return i + j + k + 7; }, "tr1_in3"),
           m_tr2_in1(m_meta, [](int i, int j, int k) { return i + j + k + 4; }, "tr2_in1"),
@@ -144,8 +140,6 @@ class ReassignDomain : public ::testing::Test {
           m_verif(1e-10)
 #endif
     {
-        m_grid.value_list[0] = 0;
-        m_grid.value_list[1] = m_d3 - 1;
         sync();
     }
 

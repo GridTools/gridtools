@@ -33,4 +33,27 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_storage_info_rt.cpp"
+#pragma once
+/**
+@file
+@brief Unstructured collection of small generic purpose functors and related helpers.
+*/
+
+#include <utility>
+
+#include <boost/utility/result_of.hpp>
+
+namespace gridtools {
+    /// Forward the args to constructor.
+    template < typename T >
+    struct ctor {
+        template < typename... Args >
+        T operator()(Args &&... args) const {
+            return {std::forward< Args >(args)...};
+        }
+
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+        using result_type = T;
+#endif
+    };
+}
