@@ -34,24 +34,18 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-// -*- compile-command: "cd /scratch/snx3000/mbianco/gt_project/build/; /opt/cray/pe/craype/2.5.12/bin/CC
-// -DBACKEND_BLOCK -DBENCHMARK -DBOOST_NO_CXX11_DECLTYPE -DBOOST_RESULT_OF_USE_TR1 -DENABLE_METERS -DFLOAT_PRECISION=8
-// -DGTEST_COLOR -DSUPPRESS_MESSAGES -I/scratch/snx3000/mbianco/gt_project/tools/googletest/googletest
-// -I/scratch/snx3000/mbianco/gt_project/tools/googletest/googletest/include
-// -I/scratch/snx3000/mbianco/gt_project/include  -I/include -DFUSION_MAX_VECTOR_SIZE=20 -DFUSION_MAX_MAP_SIZE=20
-// -DSTRUCTURED_GRIDS -isystem/users/vogtha/boost_1_63_0 -mtune=native -march=native --std=c++11 -fopenmp -D_GCL_MPI_ -g
-// /scratch/snx3000/mbianco/gt_project/unit_tests/distributed_boundaries/distributed_boundaries.cpp
-// -L/scratch/snx3000/mbianco/gt_project/build -lgcl  && export LD_LIBRARY_PATH=.:$LD_LIBRARY_PATH; srun -C gpu ./a.out"
-// -*-
-
 #include <iomanip>
 #include <mpi.h>
+#include "gtest/gtest.h"
+#include <tools/mpi_unit_test_driver/device_binding.hpp>
 
 #include <distributed-boundaries/comm_traits.hpp>
 #include <distributed-boundaries/distributed_boundaries.hpp>
 
 #include <boundary-conditions/value.hpp>
 #include <boundary-conditions/copy.hpp>
+
+#include "../tools/triplet.hpp"
 
 template < typename View >
 void show_view(View const &view) {
@@ -84,9 +78,7 @@ void show_view(View const &view) {
     std::cout << "--------------------------------------------\n";
 }
 
-int main(int argc, char **argv) {
-
-    gridtools::GCL_Init(argc, argv);
+TEST(DistributedBoundaries, Test) {
 
 #ifdef __CUDACC__
     typedef gridtools::backend< gridtools::enumtype::Cuda,
@@ -109,7 +101,7 @@ int main(int argc, char **argv) {
     using namespace gridtools;
 
     using storage_info_t = storage_tr::storage_info_t< 0, 3, halo< 2, 2, 0 > >;
-    using storage_type = storage_tr::data_store_t< float_type, storage_info_t >;
+    using storage_type = storage_tr::data_store_t< triplet, storage_info_t >;
 
     const uint_t halo_size = 2;
     uint_t d1 = 6;
@@ -123,31 +115,99 @@ int main(int argc, char **argv) {
 
     storage_info_t storage_info(d1, d2, d3);
 
-    storage_type a(storage_info, 1, "a");
-    storage_type b(storage_info, 2, "b");
-    storage_type c(storage_info, 3, "c");
-    storage_type d(storage_info, 4, "b");
-
-    show_view(make_host_view(a));
-    show_view(make_host_view(b));
-    show_view(make_host_view(c));
-    show_view(make_host_view(d));
-
     using cabc_t = distributed_boundaries< comm_traits< storage_type, gcl_cpu > >;
 
     cabc_t cabc{halos, {false, false, false}, 4, GCL_WORLD};
 
-    cabc.exchange(bind_bc(value_boundary< float_type >{7.5}, a), bind_bc(copy_boundary{}, b, c), d);
-    std::cout << "**********************************************\n";
-    std::cout << "**********************************************\n";
-    std::cout << "**********************************************\n";
-    std::cout << "**********************************************\n";
-    std::cout << "**********************************************\n";
+    int pi, pj, pk;
+    cabc.proc_grid().coords(pi, pj, pk);
+    int PI, PJ, PK;
+    cabc.proc_grid().dims(PI, PJ, PK);
 
-    show_view(make_host_view(a));
-    show_view(make_host_view(b));
-    show_view(make_host_view(c));
-    show_view(make_host_view(d));
+    storage_type a(storage_info,
+        [=](int i, int j, int k) {
+            return triplet{i + pi * (int)d1 + 100, j + pj * (int)d2 + 100, k + pk * (int)d3 + 100};
+        },
+        "a");
+    storage_type b(storage_info,
+        [=](int i, int j, int k) {
+            return triplet{i + pi * (int)d1 + 1000, j + pj * (int)d2 + 1000, k + pk * (int)d3 + 1000};
+        },
+        "b");
+    storage_type c(storage_info,
+        [=](int i, int j, int k) {
+            return triplet{i + pi * (int)d1 + 10000, j + pj * (int)d2 + 10000, k + pk * (int)d3 + 10000};
+        },
+        "c");
+    storage_type d(storage_info,
+        [=](int i, int j, int k) {
+            return triplet{i + pi * (int)d1 + 100000, j + pj * (int)d2 + 100000, k + pk * (int)d3 + 100000};
+        },
+        "b");
 
-    GCL_Finalize();
+    // show_view(make_host_view(a));
+    // show_view(make_host_view(b));
+    // show_view(make_host_view(c));
+    // show_view(make_host_view(d));
+
+    cabc.exchange(bind_bc(value_boundary< triplet >{triplet{42, 42, 42}}, a), bind_bc(copy_boundary{}, b, c), d);
+
+    // show_view(make_host_view(a));
+    // show_view(make_host_view(b));
+    // show_view(make_host_view(c));
+    // show_view(make_host_view(d));
+
+    bool ok = true;
+    for (int i = pi * d1; i < (pi + 1) * d1; ++i) {
+        for (int j = pj * d2; j < (pj + 1) * d2; ++j) {
+            for (int k = pk * d3; k < (pk + 1) * d3; ++k) {
+                if (i < halo_size or j < halo_size or i >= PI * d1 - halo_size or j >= PJ * d2 - halo_size) {
+                    // At the border
+                    ok = ok and make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) == triplet{42, 42, 42};
+                    if (make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) != triplet{42, 42, 42}) {
+                        std::cout << "------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
+                                  << j - pj * d2 << ", " << k - pk * d3 << " "
+                                  << make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3)
+                                  << " == " << triplet{42, 42, 42} << "\n";
+                    }
+                    ok = ok and
+                         make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3) ==
+                             make_host_view(c)(i - pi * d1, j - pj * d2, k - pk * d3);
+                    if (make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3) !=
+                        make_host_view(c)(i - pi * d1, j - pj * d2, k - pk * d3)) {
+                        std::cout << "------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
+                                  << j - pj * d2 << ", " << k - pk * d3 << " "
+                                  << make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3)
+                                  << " == " << make_host_view(c)(i - pi * d1, j - pj * d2, k - pk * d3) << "\n";
+                    }
+                } else {
+                    // In the core
+                    ok = ok and
+                         make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) ==
+                             triplet{i + pi * (int)d1 + 100, j + pj * (int)d2 + 100, k + pk * (int)d3 + 100};
+                    if (make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) !=
+                        triplet{i + pi * (int)d1 + 100, j + pj * (int)d2 + 100, k + pk * (int)d3 + 100}) {
+                        std::cout << "------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
+                                  << j - pj * d2 << ", " << k - pk * d3 << " "
+                                  << make_host_view(a)(i - pi * d1, j - pj * d2, k - pk * d3) << " == "
+                                  << triplet{i + pi * (int)d1 + 100, j + pj * (int)d2 + 100, k + pk * (int)d3 + 100}
+                                  << "\n";
+                    }
+                    ok = ok and
+                         make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3) ==
+                             triplet{i + pi * (int)d1 + 1000, j + pj * (int)d2 + 1000, k + pk * (int)d3 + 1000};
+                    if (make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3) !=
+                        triplet{i + pi * (int)d1 + 1000, j + pj * (int)d2 + 1000, k + pk * (int)d3 + 1000}) {
+                        std::cout << "------------> " << i << ", " << j << ", " << k << " " << i - pi * d1 << ", "
+                                  << j - pj * d2 << ", " << k - pk * d3 << " "
+                                  << make_host_view(b)(i - pi * d1, j - pj * d2, k - pk * d3) << " == "
+                                  << triplet{i + pi * (int)d1 + 1000, j + pj * (int)d2 + 1000, k + pk * (int)d3 + 1000}
+                                  << "\n";
+                    }
+                }
+            }
+        }
+    }
+
+    EXPECT_TRUE(ok);
 }

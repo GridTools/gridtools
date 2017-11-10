@@ -125,6 +125,8 @@ namespace gridtools {
             call_unpack(all_stores,
                 typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(all_stores) >::value >::type{});
         }
+
+        typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
     };
 
 } // namespace gridtools
