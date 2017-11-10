@@ -100,9 +100,9 @@ namespace sf {
         uint_t d3 = z;
 
         using cell_storage_type =
-            typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double, halo< 2, 0, 2, 0 > >;
+            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, double, halo< 2, 0, 2, 0 > >;
         using edge_storage_type =
-            typename icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, double, halo< 2, 0, 2, 0 > >;
+            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::edges, double, halo< 2, 0, 2, 0 > >;
 
         const uint_t halo_nc = 2;
         const uint_t halo_mc = 2;

@@ -33,30 +33,24 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
 
-#include "../../common/vector_traits.hpp"
+#include <tuple>
 
-/** @file metafunctions used in @ref gridtools::intermediate_expand*/
+#include <boost/fusion/include/is_sequence.hpp>
+#include <boost/fusion/include/std_tuple.hpp>
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/copy.hpp>
 
-namespace gridtools {
-    namespace _impl {
+#include "defs.hpp"
 
-        // ********* metafunctions ************
-        template < typename T >
-        struct is_expandable_arg : boost::mpl::false_ {};
-
-        template < ushort_t N, typename Storage, typename Location, bool Temporary >
-        struct is_expandable_arg< arg< N, Storage, Location, Temporary > > : is_vector< Storage > {};
-
-        struct create_arg {
-            template < typename T, typename ExpandFactor >
-            struct apply {
-                typedef data_store_field< typename get_storage_from_arg< T >::type, ExpandFactor::value > exp_param_t;
-                typedef arg< arg_index< T >::value, exp_param_t, typename T::location_t, T::is_temporary > type;
-            };
-        };
-
-    } // namespace _impl
-} // namespace gridtools
+/**
+ *   Make "default constructed" fusion sequence without NVCC warnings even if the types of in that sequence are
+ *   not constructible on device.
+ */
+template < typename T >
+T default_host_container() {
+    GRIDTOOLS_STATIC_ASSERT(boost::fusion::traits::is_sequence< T >::value, "T should be fusion sequence.");
+    using tuple_t = typename boost::mpl::copy< T, boost::mpl::back_inserter< std::tuple<> > >::type;
+    return tuple_t{};
+}

@@ -72,7 +72,8 @@ namespace test_copy_stencil_icosahedral {
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
         using backend_t = BACKEND;
-        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type =
+            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, double >;
 
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 

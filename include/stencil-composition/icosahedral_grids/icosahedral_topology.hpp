@@ -757,8 +757,8 @@ namespace gridtools {
             typename ValueType,
             typename Halo = halo< 0, 0, 0, 0 >,
             typename Selector = selector< 1, 1, 1, 1 > >
-        using storage_t =
-            typename Backend::template storage_t< ValueType, meta_storage_t< LocationType, Halo, Selector > >;
+        using data_store_t =
+            typename Backend::template data_store_t< ValueType, meta_storage_t< LocationType, Halo, Selector > >;
 
         const array< uint_t, 3 > m_dims; // Sizes as cells in a multi-dimensional Cell array
 
@@ -783,7 +783,7 @@ namespace gridtools {
             typename Dummy = all_integral< IntTypes... >
 #endif
             >
-        storage_t< LocationType, ValueType, Halo, Selector > make_storage(
+        data_store_t< LocationType, ValueType, Halo, Selector > make_storage(
             char const *name, IntTypes... extra_dims) const {
             GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
             GRIDTOOLS_STATIC_ASSERT((is_selector< Selector >::value), "ERROR: dimension selector is wrong");
@@ -801,7 +801,7 @@ namespace gridtools {
                     LocationType,
                     Selector >::apply(m_dims, extra_dims...);
             auto ameta = impl::get_storage_info_from_array< meta_storage_type >(metastorage_sizes);
-            return storage_t< LocationType, ValueType, Halo, Selector >(ameta, name);
+            return {ameta, name};
         }
 
         template < typename LocationType >
