@@ -44,9 +44,9 @@
 #pragma once
 
 #include <iosfwd>
+#include <utility>
 
 #include "../common/defs.hpp"
-#include "../common/pointer.hpp"
 #include "arg_fwd.hpp"
 #include "arg_metafunctions.hpp"
 #include "arg_metafunctions_fwd.hpp"
@@ -57,47 +57,43 @@ namespace gridtools {
     template < typename T >
     struct is_arg : boost::mpl::false_ {};
 
-    template < uint_t I, typename Storage, typename Location, bool Temporary >
-    struct is_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::true_ {};
+    template < uint_t I, typename DataStoreType, typename Location, bool Temporary >
+    struct is_arg< arg< I, DataStoreType, Location, Temporary > > : boost::mpl::true_ {};
 
-    template < typename T >
-    struct is_tmp_arg : boost::mpl::false_ {};
-
-    template < uint_t I, typename Storage, typename Location, bool Temporary >
-    struct is_tmp_arg< arg< I, Storage, Location, Temporary > > : boost::mpl::bool_< Temporary > {};
-
-    /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam Storage)*/
-    template < typename ArgType, typename Storage >
+    /** @brief binding between the placeholder (\tparam ArgType) and the storage (\tparam DataStoreType)*/
+    template < typename ArgType, typename DataStoreType >
     struct arg_storage_pair {
 
         GRIDTOOLS_STATIC_ASSERT(is_arg< ArgType >::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename ArgType::storage_t, Storage >::type::value),
-            "Storage type not compatible with placeholder storage type, when associating placeholder to actual "
-            "storage");
+        GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename ArgType::data_store_t, DataStoreType >::type::value),
+            "DataStoreType type not compatible with placeholder storage type, when associating placeholder to actual "
+            "data store");
 
-      public:
-        pointer< Storage > ptr;
+        arg_storage_pair() = default;
+        arg_storage_pair(const DataStoreType &val) : m_value{val} {}
+        arg_storage_pair(DataStoreType &&val) noexcept : m_value{std::move(val)} {}
+        ~arg_storage_pair() = default;
 
-        arg_storage_pair() {}
-        arg_storage_pair(Storage *storage) : ptr(pointer< Storage >(storage)) {}
-        arg_storage_pair(arg_storage_pair const &other) : ptr(other.ptr) {}
+        DataStoreType m_value;
 
         typedef ArgType arg_t;
-        typedef Storage storage_t;
+        typedef DataStoreType data_store_t;
     };
 
     template < typename T >
     struct is_arg_storage_pair : boost::mpl::false_ {};
 
-    template < typename ArgType, typename Storage >
-    struct is_arg_storage_pair< arg_storage_pair< ArgType, Storage > > : boost::mpl::true_ {};
+    template < typename ArgType, typename DataStoreType >
+    struct is_arg_storage_pair< arg_storage_pair< ArgType, DataStoreType > > : boost::mpl::true_ {};
 
     template < typename T >
-    struct is_arg_storage_pair_to_tmp : boost::mpl::false_ {};
+    struct is_tmp_arg : std::false_type {};
 
-    template < typename ArgType, typename Storage >
-    struct is_arg_storage_pair_to_tmp< arg_storage_pair< ArgType, Storage > >
-        : boost::mpl::bool_< ArgType::is_temporary > {};
+    template < uint_t I, typename DataStoreType, typename Location >
+    struct is_tmp_arg< arg< I, DataStoreType, Location, true > > : std::true_type {};
+
+    template < typename ArgType, typename DataStoreType >
+    struct is_tmp_arg< arg_storage_pair< ArgType, DataStoreType > > : is_tmp_arg< ArgType > {};
 
     /**
      * Type to create placeholders for data fields.
@@ -107,31 +103,26 @@ namespace gridtools {
      * user-defined ones used via the global-accessor)
      *
      * @tparam I Integer index (unique) of the data field to identify it
-     * @tparam Storage The type of the storage used to store data
+     * @tparam DataStoreType The type of the storage used to store data
      * @tparam LocationType the location type of the storage of the placeholder
-     * @tparam is_temporary_storage determines whether the placeholder holds a temporary or normal storage
+     * @tparam Temporary determines whether the placeholder holds a temporary or normal storage
      */
-    template < uint_t I, typename Storage, typename LocationType, bool Temporary >
+    template < uint_t I, typename DataStoreType, typename LocationType, bool Temporary >
     struct arg {
         GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value),
             "The third template argument of a placeholder must be a location_type");
-        typedef Storage storage_t;
+        typedef DataStoreType data_store_t;
 
         typedef static_uint< I > index_t;
 
         typedef LocationType location_t;
-        typedef arg< I, storage_t, location_t > type;
+        typedef arg type;
 
         constexpr static bool is_temporary = Temporary;
 
-        template < typename Storage2 >
-        arg_storage_pair< arg< I, storage_t, LocationType, Temporary >, Storage2 > operator=(Storage2 &ref) {
-            GRIDTOOLS_STATIC_ASSERT((boost::is_same< Storage2, storage_t >::value),
-                "there is a mismatch between the storage types used by the arg placeholders and the storages really "
-                "instantiated. Check that the placeholders you used when constructing the aggregator_type are in the "
-                "correctly assigned and that their type match the instantiated storages ones");
-
-            return arg_storage_pair< arg< I, storage_t, LocationType, Temporary >, Storage2 >(&ref);
+        template < typename Arg >
+        arg_storage_pair< arg, DataStoreType > operator=(Arg &&arg) {
+            return {std::forward< Arg >(arg)};
         }
 
         static void info(std::ostream &out_s) {
@@ -141,22 +132,70 @@ namespace gridtools {
         }
     };
 
-    /** alias template that provides convenient tmp arg declaration. */
-    template < uint_t I, typename Storage, typename Location = enumtype::default_location_type >
-    using tmp_arg = arg< I, Storage, Location, true >;
+    namespace _impl {
+
+        // metafunction that replaces the ID of a storage_info type to the new value
+        template < unsigned Id, typename T >
+        struct tmp_storage_info;
+
+        template < template < unsigned, typename, typename, typename > class StorageInfo,
+            unsigned Id,
+            unsigned OldId,
+            typename Layout,
+            typename Halo,
+            typename Alignment >
+        struct tmp_storage_info< Id, StorageInfo< OldId, Layout, Halo, Alignment > > {
+            using type = StorageInfo< Id, Layout, Halo, Alignment >;
+        };
+
+        // replace the storage_info ID contained in a given storage with the new value
+        template < unsigned Id, typename T >
+        struct tmp_data_store;
+
+        template < unsigned Id, typename Storage, typename StorageInfo >
+        struct tmp_data_store< Id, data_store< Storage, StorageInfo > > {
+            using type = data_store< Storage, typename tmp_storage_info< Id, StorageInfo >::type >;
+        };
+
+        template < unsigned Id, typename DataStore, unsigned... N >
+        struct tmp_data_store< Id, data_store_field< DataStore, N... > > {
+            using type = data_store_field< typename tmp_data_store< Id, DataStore >::type, N... >;
+        };
+
+        template < unsigned Id, typename DataStore >
+        struct tmp_data_store< Id, std::vector< DataStore > > {
+            using type = std::vector< typename tmp_data_store< Id, DataStore >::type >;
+        };
+
+        template < typename Location >
+        struct tmp_storage_info_id;
+        template < int_t I, ushort_t NColors >
+        struct tmp_storage_info_id< location_type< I, NColors > > : std::integral_constant< unsigned, -NColors > {};
+    }
+    /** alias template that provides convenient tmp arg declaration.
+     *
+     *  Here we force tmp storages to share storage info type. To achieve this we substitute the storage info ID
+     *  to one that is in the reserved range (close to max unsigned).
+     *  TODO(anstaf): replace storage info IDs to tags to avoid having reserved range.
+     */
+    template < uint_t I, typename DataStoreType, typename Location = enumtype::default_location_type >
+    using tmp_arg = arg< I,
+        typename _impl::tmp_data_store< _impl::tmp_storage_info_id< Location >::value, DataStoreType >::type,
+        Location,
+        true >;
 
     template < typename T >
     struct arg_index;
 
     /** true in case of non temporary storage arg*/
-    template < uint_t I, typename Storage, typename Location, bool Temporary >
-    struct arg_index< arg< I, Storage, Location, Temporary > > : boost::mpl::integral_c< int, I > {};
+    template < uint_t I, typename DataStoreType, typename Location, bool Temporary >
+    struct arg_index< arg< I, DataStoreType, Location, Temporary > > : boost::mpl::integral_c< int, I > {};
 
     template < typename T >
     struct is_storage_arg : boost::mpl::false_ {};
 
-    template < uint_t I, typename Storage, typename Location, bool Temporary >
-    struct is_storage_arg< arg< I, Storage, Location, Temporary > > : is_storage< Storage > {};
+    template < uint_t I, typename DataStoreType, typename Location, bool Temporary >
+    struct is_storage_arg< arg< I, DataStoreType, Location, Temporary > > : is_storage< DataStoreType > {};
 
     /**
      * @struct arg_hods_data_field
@@ -165,7 +204,8 @@ namespace gridtools {
     template < typename Arg >
     struct arg_holds_data_field;
 
-    template < uint_t I, typename Storage, typename Location, bool Temporary >
-    struct arg_holds_data_field< arg< I, Storage, Location, Temporary > > : is_data_store_field< Storage > {};
+    template < uint_t I, typename DataStoreType, typename Location, bool Temporary >
+    struct arg_holds_data_field< arg< I, DataStoreType, Location, Temporary > > : is_data_store_field< DataStoreType > {
+    };
 
 } // namespace gridtools

@@ -81,37 +81,34 @@ namespace gridtools {
         struct instantiate_view {
             GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
-            AggregatorType &m_agg;
+            AggregatorType const &m_agg;
             instantiate_view(AggregatorType &agg) : m_agg(agg) {}
 
             template < typename ViewFusionMapElem,
                 typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            arg_storage_pair< Arg, typename Arg::storage_t > get_arg_storage_pair() const {
+            arg_storage_pair< Arg, typename Arg::data_store_t > const &get_arg_storage_pair() const {
                 GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
-                return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::storage_t > >(
+                return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::data_store_t > >(
                     m_agg.get_arg_storage_pairs()));
             }
 
             // specialization for creating view instance for data stores
             template < typename ViewFusionMapElem,
                 typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(
+            typename boost::enable_if< is_data_store< typename Arg::data_store_t >, void >::type operator()(
                 ViewFusionMapElem &t) const {
                 GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
-                // make a view
-                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
-                    t = make_device_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
+                t = make_device_view(get_arg_storage_pair< ViewFusionMapElem >().m_value);
             }
 
             // specialization for creating view instance for data store fields
             template < typename ViewFusionMapElem,
                 typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
+            typename boost::enable_if< is_data_store_field< typename Arg::data_store_t >, void >::type operator()(
                 ViewFusionMapElem &t) const {
                 GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
                 // make a view
-                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
-                    t = make_field_device_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
+                t = make_field_device_view(get_arg_storage_pair< ViewFusionMapElem >().m_value);
             }
         };
 

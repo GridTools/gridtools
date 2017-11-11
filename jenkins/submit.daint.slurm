@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --job-name=gridtools_test
 #SBATCH --nodes=<MPI_NODES>
 #SBATCH --ntasks=<MPI_TASKS>
 #SBATCH --ntasks-per-node=<MPI_PPN>

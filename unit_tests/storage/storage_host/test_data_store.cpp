@@ -47,19 +47,6 @@ typedef host_storage_info< 0, layout_map< 0, 1, 2 > > storage_info_t;
 typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 2, 1, 0 > > storage_info_halo_t;
 typedef host_storage_info< 0, layout_map< 0, 1, 2 >, halo< 2, 1, 0 >, alignment< 16 > > storage_info_halo_aligned_t;
 
-void invalid_copy() {
-    storage_info_t si(3, 3, 3);
-    data_store< host_storage< double >, storage_info_t > ds1;
-    data_store< host_storage< double >, storage_info_t > ds2 = ds1;
-}
-
-void invalid_copy_assign() {
-    storage_info_t si(3, 3, 3);
-    data_store< host_storage< double >, storage_info_t > ds1;
-    data_store< host_storage< double >, storage_info_t > ds2(si);
-    ds2 = ds1;
-}
-
 TEST(DataStoreTest, Simple) {
     constexpr storage_info_t si(3, 3, 3);
     constexpr storage_info_halo_t si_halo(7, 5, 3);
@@ -109,17 +96,6 @@ TEST(DataStoreTest, Simple) {
 
     // create unallocated data_store
     data_store< host_storage< double >, storage_info_t > ds;
-// try to copy and get_storage -> should fail
-#ifndef NDEBUG
-    std::cout << "Execute death tests.\n";
-    data_store< host_storage< double >, storage_info_t > ds_tmp;
-    ds_tmp.allocate(si);
-    EXPECT_THROW(ds_tmp.allocate(si), std::runtime_error);
-    EXPECT_THROW(ds.get_storage_ptr(), std::runtime_error);
-    EXPECT_THROW(ds.get_storage_info_ptr(), std::runtime_error);
-    EXPECT_THROW(invalid_copy(), std::runtime_error);
-    EXPECT_THROW(invalid_copy_assign(), std::runtime_error);
-#endif
     // allocate space
     ds.allocate(si);
     data_store< host_storage< double >, storage_info_t > ds_tmp_1(si);
@@ -128,10 +104,6 @@ TEST(DataStoreTest, Simple) {
     data_store< host_storage< double >, storage_info_t > ds1;
     ds1.allocate(si);
     ds1.reset(); // destroy the data_store
-#ifndef NDEBUG
-    std::cout << "Execute death tests.\n";
-    EXPECT_THROW(ds1.get_storage_ptr(), std::runtime_error);
-#endif
 
     // create a copy of a data_store and check equivalence
     data_store< host_storage< double >, storage_info_t > datast(si, 5.3);

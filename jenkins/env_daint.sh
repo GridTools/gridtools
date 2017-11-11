@@ -12,11 +12,10 @@ module unload CMake
 module load daint-gpu
 module load cudatoolkit
 module rm   PrgEnv-cray
-module load PrgEnv-gnu
-#module load Boost
 module load CMake
 
 if [[ ${COMPILER} == "gcc" ]]; then
+  module load PrgEnv-gnu
   case ${VERSION} in
     "5.3")
       module swap gcc/5.3.0
@@ -35,7 +34,6 @@ if [[ ${COMPILER} == "gcc" ]]; then
   esac
   export HOST_COMPILER=`which CC`
 elif [[ ${COMPILER} == "clang" ]]; then
-  module unload PrgEnv-gnu
   case ${VERSION} in
     "3.9")
       module load /users/vogtha/modules/compilers/clang/3.9.1
@@ -50,6 +48,9 @@ elif [[ ${COMPILER} == "clang" ]]; then
       module load /users/vogtha/modules/compilers/clang/3.8.1
   esac
   export HOST_COMPILER=`which clang++`
+elif [[ ${COMPILER} == "icc" ]]; then
+  module load PrgEnv-intel
+  export HOST_COMPILER=`which icpc`
 else
   echo "compiler not supported in environment: ${COMPILER}"
   exit_if_error 444
