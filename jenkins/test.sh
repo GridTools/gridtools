@@ -34,7 +34,7 @@ fi
 testfile=${JENKINSPATH}/../build/test.out
 test -e ${testfile}
 if [ $? -eq 0 ] ; then
-    echo Deleting previus test results
+    echo Deleting previous test results
     rm ${testfile}
 fi
 
@@ -50,6 +50,8 @@ elif [ $myhost == "kesch" ]; then
 elif [ $myhost == "dom" ]; then
     cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
 elif [ $myhost == "daint" ]; then
+    cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
+elif [ $myhost == "tave" ]; then
     cmd="srun bash ${JENKINSPATH}/../build/run_tests.sh"
 fi
 echo "replacing in ${slurm_script} command by ${cmd}"
@@ -89,7 +91,7 @@ if [[ "$DO_MPI" == "ON" ]]; then
     testfile=${JENKINSPATH}/../build/test$MPI_TASKS\.out
     test -e ${testfile}
     if [ $? -eq 0 ] ; then
-        echo Deleting previus test results
+        echo Deleting previous test results
         rm ${testfile}
     fi
 
@@ -137,7 +139,7 @@ if [[ $DO_MPI == "ON" && $DO_GPU == "ON" ]]; then
     testfile=${JENKINSPATH}/../build/gputest$MPI_TASKS\.out
     test -e ${testfile}
     if [ $? -eq 0 ] ; then
-        echo Deleting previus test results
+        echo Deleting previous test results
         rm ${testfile}
     fi
 
