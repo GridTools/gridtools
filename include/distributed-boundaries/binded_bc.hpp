@@ -129,49 +129,28 @@ namespace gridtools {
         }
     } // namespace _impl
 
-    template < typename BCApply, typename BCDataStoresTuple, typename EXCDataStoresTuple >
-    struct binded_bc_with_ro {
+    template < typename BCApply, typename DataStores, typename ExcStores >
+    struct binded_bc {
         using boundary_class = BCApply;
         boundary_class m_bcapply;
-        using stores_type = BCDataStoresTuple;
+        using stores_type = DataStores;
         stores_type m_stores;
-        using exc_stores_type = EXCDataStoresTuple;
+        using exc_stores_type = ExcStores;
         exc_stores_type m_exc_stores;
 
-        binded_bc_with_ro(BCApply bca, BCDataStoresTuple stores_list, EXCDataStoresTuple exc_stores)
-            : m_bcapply{bca}, m_stores{stores_list}, m_exc_stores{exc_stores} {}
+        binded_bc(BCApply bca, stores_type stores_list, exc_stores_type exc_stores_list)
+            : m_bcapply{bca}, m_stores{stores_list}, m_exc_stores{exc_stores_list} {}
 
         stores_type stores() { return m_stores; }
         stores_type const stores() const { return m_stores; }
 
         exc_stores_type exc_stores() { return m_exc_stores; }
-        exc_stores_type const exc_stores() const { return m_exc_stores; }
-
-        boundary_class boundary_to_apply() const { return m_bcapply; }
-    };
-
-    template < typename BCApply, typename... DataStores >
-    struct binded_bc {
-        using boundary_class = BCApply;
-        boundary_class m_bcapply;
-        using stores_type = std::tuple< DataStores... >;
-        stores_type m_stores;
-        using exc_stores_type = stores_type;
-        exc_stores_type m_exc_stores;
-
-        binded_bc(BCApply bca, DataStores... stores_list)
-            : m_bcapply{bca}, m_stores{stores_list...}, m_exc_stores{stores_list...} {}
-
-        stores_type stores() { return m_stores; }
-        stores_type const stores() const { return m_stores; }
-
-        stores_type exc_stores() { return m_exc_stores; }
         stores_type const exc_stores() const { return m_exc_stores; }
 
         boundary_class boundary_to_apply() const { return m_bcapply; }
 
         template < typename... ReadOnly >
-        auto associate(ReadOnly... ro_stores) const -> binded_bc_with_ro< BCApply,
+        auto associate(ReadOnly... ro_stores) const -> binded_bc< BCApply,
             decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
                 m_stores,
                 typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(m_stores) >::value >::type{})),
@@ -183,14 +162,15 @@ namespace gridtools {
                 typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(m_stores) >::value >::type{});
             auto without_plcs = _impl::remove_placeholders(m_stores);
 
-            return binded_bc_with_ro< BCApply, decltype(full_list), decltype(without_plcs) >(
+            return binded_bc< BCApply, decltype(full_list), decltype(without_plcs) >(
                 m_bcapply, full_list, without_plcs);
         }
     };
 
     template < typename BCApply, typename... DataStores >
-    binded_bc< BCApply, DataStores... > bind_bc(BCApply bc_apply, DataStores &... stores) {
-        return {bc_apply, stores...};
+    binded_bc< BCApply, std::tuple< DataStores... >, std::tuple< DataStores... > > bind_bc(
+        BCApply bc_apply, DataStores... stores) {
+        return {bc_apply, std::make_tuple(stores...), std::make_tuple(stores...)};
     }
 
     template < typename T >
@@ -200,11 +180,6 @@ namespace gridtools {
 
     template < typename... T >
     struct is_binded_bc< binded_bc< T... > > {
-        static constexpr bool value = true;
-    };
-
-    template < typename... T >
-    struct is_binded_bc< binded_bc_with_ro< T... > > {
         static constexpr bool value = true;
     };
 
