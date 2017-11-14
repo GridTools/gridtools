@@ -33,45 +33,53 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "../gridtools.hpp"
+
+#include <common/make_from_permutation.hpp>
+
+#include <utility>
+
+#include <gtest/gtest.h>
+
+#include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/comparison.hpp>
+#include <boost/fusion/include/make_vector.hpp>
+
 namespace gridtools {
 
-    template < ushort_t I, typename T, typename LocationType, bool Temporary >
-    struct arg;
+    using boost::fusion::vector;
+    using boost::fusion::make_vector;
 
-    template < typename T, typename V >
-    struct arg_storage_pair;
+    TEST(_, LRef) {
+        vector<> src;
+        EXPECT_TRUE(make_from_permutation< vector<> >(src) == make_vector());
+    }
 
-    /**
-       @brief struct containing conditionals for several types.
+    TEST(_, CLRef) {
+        vector<> const src;
+        EXPECT_TRUE(make_from_permutation< vector<> >(src) == make_vector());
+    }
 
-       To be used with e.g. mpl::sort
-    */
-    struct arg_comparator {
-        template < typename T1, typename T2 >
-        struct apply;
+    template < typename Res, typename... Args >
+    Res testee(Args &&... args) {
+        return make_from_permutation< Res >(make_vector(std::forward< Args >(args)...));
+    }
 
-        /**specialization for storage pairs*/
-        template < typename T1, typename T2, typename T3, typename T4 >
-        struct apply< arg_storage_pair< T1, T2 >, arg_storage_pair< T3, T4 > >
-            : public boost::mpl::bool_< (T1::index_t::value < T3::index_t::value) > {};
+    TEST(_, Empty) { EXPECT_TRUE(testee< vector<> >() == make_vector()); }
 
-        /**specialization for storage placeholders*/
-        template < ushort_t I1,
-            typename T1,
-            typename L1,
-            bool Temporary1,
-            ushort_t I2,
-            typename T2,
-            typename L2,
-            bool Temporary2 >
-        struct apply< arg< I1, T1, L1, Temporary1 >, arg< I2, T2, L2, Temporary2 > >
-            : public boost::mpl::bool_< (I1 < I2) > {};
+    TEST(_, One) { EXPECT_TRUE(testee< vector< int > >(42) == make_vector(42)); }
 
-        /**specialization for static integers*/
-        template < typename T, T T1, T T2 >
-        struct apply< boost::mpl::integral_c< T, T1 >, boost::mpl::integral_c< T, T2 > >
-            : public boost::mpl::bool_< (T1 < T2) > {};
-    };
+    TEST(_, Functional) {
+        using res_t = vector< int, char, double >;
+        res_t expected{42, 'a', .1};
+        EXPECT_TRUE(testee< res_t >(42, 'a', .1) == expected);
+        EXPECT_TRUE(testee< res_t >(42, .1, 'a') == expected);
+        EXPECT_TRUE(testee< res_t >('a', 42, .1) == expected);
+        EXPECT_TRUE(testee< res_t >('a', .1, 42) == expected);
+        EXPECT_TRUE(testee< res_t >(.1, 42, 'a') == expected);
+        EXPECT_TRUE(testee< res_t >(.1, 'a', 42) == expected);
+    }
+
+    TEST(_, UnusedExtraArgs) { EXPECT_TRUE((testee< vector< int > >('a', 42, .1) == make_vector(42))); }
+
+    TEST(_, DuplicatesInRes) { EXPECT_TRUE((testee< vector< int, int > >(42) == make_vector(42, 42))); }
 }
