@@ -184,26 +184,16 @@ namespace gridtools {
         typedef typename Backend::template obtain_storage_wrapper_list_t< AggregatorType, MssComponentsArray >::type
             all_tmps;
 
-        // get all the storages from the placeholders
-        typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, get_storage_from_arg< boost::mpl::_2 > > >::type storage_list_t;
-        // convert the storages into views
-        typedef typename boost::mpl::transform< storage_list_t, _impl::get_view_t >::type view_list_t;
-
         // for every placeholder we push back an element that is either a new storage_wrapper type
         // for a normal data_store(_field), or in case it is a tmp we get the element out of the all_tmps list.
         // if we find a read-only tmp void will be pushed back, but this will be filtered out in the
         // last step.
-        typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1,
-                                               boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
-                                                   storage_wrapper_elem< boost::mpl::_2, all_tmps >,
-                                                   storage_wrapper< boost::mpl::_2,
-                                                                    create_view< boost::mpl::_2 >,
-                                                                    tile< 0, 0, 0 >,
-                                                                    tile< 0, 0, 0 > > > > >::type complete_list;
+        typedef typename boost::mpl::transform_view<
+            typename AggregatorType::placeholders_t,
+            boost::mpl::if_< is_tmp_arg< boost::mpl::_ >,
+                storage_wrapper_elem< boost::mpl::_, all_tmps >,
+                storage_wrapper< boost::mpl::_, create_view< boost::mpl::_ >, tile< 0, 0, 0 >, tile< 0, 0, 0 > > > >::
+            type complete_list;
         // filter the list
         typedef
             typename boost::mpl::filter_view< complete_list, is_storage_wrapper< boost::mpl::_1 > >::type filtered_list;
