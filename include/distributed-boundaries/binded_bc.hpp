@@ -92,22 +92,22 @@ namespace gridtools {
             return std::make_tuple(std::get< IDs + 1u >(x)...);
         }
 
-        std::tuple<> do_stuff(std::tuple<> const &) { return {}; }
+        std::tuple<> remove_placeholders(std::tuple<> const &) { return {}; }
 
         template < typename First >
-        std::tuple< First > do_stuff(std::tuple< First > const &x,
+        std::tuple< First > remove_placeholders(std::tuple< First > const &x,
             typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type = nullptr) {
             return {x};
         }
 
         template < typename First >
-        std::tuple<> do_stuff(std::tuple< First > const &x,
+        std::tuple<> remove_placeholders(std::tuple< First > const &x,
             typename std::enable_if< (std::is_placeholder< First >::value > 0), void * >::type = nullptr) {
             return {};
         }
 
         template < typename First, typename... Elems >
-        auto do_stuff(std::tuple< First, Elems... > const &x,
+        auto remove_placeholders(std::tuple< First, Elems... > const &x,
             typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type = nullptr)
             -> decltype(std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
                 do_stuff(rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{})))) {
@@ -116,19 +116,29 @@ namespace gridtools {
         }
 
         template < typename First, typename... Elems >
-        auto do_stuff(std::tuple< First, Elems... > const &x,
+        auto remove_placeholders(std::tuple< First, Elems... > const &x,
             typename std::enable_if< (std::is_placeholder< First >::value > 0), void * >::type = nullptr)
             -> decltype(
                 do_stuff(rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{}))) {
             return do_stuff(rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{}));
         }
 
-        template < typename TupleWithPlcs >
-        auto remove_placeholders(TupleWithPlcs const &with_plcs) -> decltype(do_stuff(with_plcs)) {
-            return do_stuff(with_plcs);
-        }
     } // namespace _impl
 
+    /**
+     * @brief class to associate data stores to gridtools::boundary class for
+     * boundary condition class, and explicitly keeps a list of data stores to
+     * use in halo-update opetrations.
+     *
+     * User is not supposed to instantiate this class explicitly but insted
+     * gridtools::bind_bc function, which is a maker, will be used to indicate
+     * the boundary conditions to be applied in a distributed boundary
+     * conditions application.
+     *
+     * \tparam BCApply The class name with boudary condition functions applied by gridtools::boundary
+     * \tparam DataStored Tuple type of data stores (or placeholders) to be passed for boundary condition application
+     * \tparam ExcStores Tuple type for data stores that require halo-update operations
+     */
     template < typename BCApply, typename DataStores, typename ExcStores >
     struct binded_bc {
         using boundary_class = BCApply;
@@ -138,17 +148,41 @@ namespace gridtools {
         using exc_stores_type = ExcStores;
         exc_stores_type m_exc_stores;
 
+        /**
+         * @brief Constructor to associate the objects whose types are listed in the
+         * template argument list to the corresponding data members
+         */
+
         binded_bc(BCApply bca, stores_type stores_list, exc_stores_type exc_stores_list)
             : m_bcapply{bca}, m_stores{stores_list}, m_exc_stores{exc_stores_list} {}
 
-        stores_type stores() { return m_stores; }
-        stores_type const stores() const { return m_stores; }
+        /**
+         * @brief Function to retrieve the tuple of data stores to pass to the the boundary
+         * condition class
+         */
+        stores_type stores() const { return m_stores; }
 
-        exc_stores_type exc_stores() { return m_exc_stores; }
-        stores_type const exc_stores() const { return m_exc_stores; }
+        /**
+         * @brief Function to retrieve the tuple of data stores to pass to the the halo-update
+         * communication pattern
+         */
+        stores_type exc_stores() const { return m_exc_stores; }
 
+        /**
+         * @brief Function to retrieve the boundary condition application class
+         */
         boundary_class boundary_to_apply() const { return m_bcapply; }
 
+        /**
+         * @brief In the case in which the DataStores passed as template to the binded_bc class
+         * contains placeholders, this member function will return a binded_bc object in which
+         * the placeholders have been substituted with the data stores in the corresponding
+         * position. These data stores will not be passed to the halo-update operation, thus
+         * implementing a separation between read-only data stores and the others.
+         *
+         * \tparam ReadOnly Variadic pack with the types of the data stores to associate to placeholfders
+         * \param ro_stores Variadic pack with the data stores to associate to placeholders
+         */
         template < typename... ReadOnly >
         auto associate(ReadOnly... ro_stores) const -> binded_bc< BCApply,
             decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
@@ -167,12 +201,28 @@ namespace gridtools {
         }
     };
 
+    /**
+     * @brief Free-standing function used to construcs a gridtools::binded_bc object, which is
+     * used to run boundary condition application and halo-update operations.
+     *
+     * If the DataStores provided are std::placeholders, a subsequent call to
+     * gridtools::binded_bc::associate to substitute the placeholders with data stores
+     * that will be then excluded by halo-update operations.
+     *
+     * \tparam BCApply Boundary condition class (usually deduced)
+     * \tparam DataStores Parameter pack type with the data stores or placeholders (std::placeholders should be used) (deduced)
+     *
+     * \param bc_apply The boundary condition class
+     * \param stores Parameter pack with the data stores or placeholders (std::placeholders hosuld be used)
+     */
     template < typename BCApply, typename... DataStores >
     binded_bc< BCApply, std::tuple< DataStores... >, std::tuple< DataStores... > > bind_bc(
         BCApply bc_apply, DataStores... stores) {
         return {bc_apply, std::make_tuple(stores...), std::make_tuple(stores...)};
     }
 
+    /** @brief Metafunctions to query if a type is a binded_bc
+    */
     template < typename T >
     struct is_binded_bc {
         static constexpr bool value = false;
