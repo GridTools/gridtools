@@ -40,8 +40,6 @@
  *      Author: carlosos
  */
 
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
-
 #ifdef NDEBUG
 #undef NDEBUG
 #define __WAS_DEBUG
@@ -60,9 +58,9 @@
 
 namespace positional_when_debug_test {
 
+    using grid_t = gridtools::grid< gridtools::axis< 1 >::axis_interval_t >;
     typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
     typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis_t;
-    typedef gridtools::grid< axis_t > grid_t;
 
     struct test_functor {
         typedef gridtools::accessor< 0, gridtools::enumtype::inout > in;
@@ -101,7 +99,7 @@ TEST(test_make_computation, positional_when_debug) {
        This is a TODO in aggregator_type.hpp */
     aggregator_type< accessor_list_t > dm(a_storage);
     auto test_computation = make_computation< BACKEND >(dm,
-        positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}),
+        positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
         make_multistage // mss_descriptor
         (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));
 

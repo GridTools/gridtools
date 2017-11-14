@@ -52,8 +52,7 @@ namespace ico_operators {
 #endif
 
     using backend_t = BACKEND;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using x_interval = axis< 1 >::full_interval;
 
     using icosahedral_topology_t = icosahedral_topology< backend_t >;
 }

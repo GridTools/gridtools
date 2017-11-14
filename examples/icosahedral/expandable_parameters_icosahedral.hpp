@@ -44,8 +44,7 @@ namespace test_expandable_parameters_icosahedral {
     using namespace expressions;
     using namespace enumtype;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using x_interval = axis< 1 >::full_interval;
 
 #ifdef __CUDACC__
 #define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
@@ -77,7 +76,8 @@ namespace test_expandable_parameters_icosahedral {
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
         using backend_t = BACKEND;
-        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type =
+            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, double >;
 
         icosahedral_topology_t icosahedral_grid(d1, d2, d3);
 
@@ -111,12 +111,7 @@ namespace test_expandable_parameters_icosahedral {
 
         std::vector< decltype(storage10) > list_in_ = {storage10, storage20, storage30, storage40, storage50};
 
-        array< uint_t, 5 > di = {0, 0, 0, d1 - 1, d1};
-        array< uint_t, 5 > dj = {0, 0, 0, d2 - 1, d2};
-
-        gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(icosahedral_grid, d1, d2, d3);
 
         using p_list_out = arg< 0, std::vector< decltype(storage1) >, enumtype::cells >;
         using p_list_in = arg< 1, std::vector< decltype(storage10) >, enumtype::cells >;

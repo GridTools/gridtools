@@ -48,14 +48,11 @@ namespace test_cycle_and_swap {
     using namespace gridtools;
     using namespace enumtype;
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
     struct functor {
         typedef inout_accessor< 0, extent<>, 5 > p_i;
         typedef boost::mpl::vector< p_i > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_i()) += eval(p_i());
         }
     };
@@ -68,7 +65,7 @@ namespace test_cycle_and_swap {
 
         typedef boost::mpl::vector< p_data > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(p_data(time(1))) = (eval(p_data(i - 1)) + eval(p_data(i + 1))) * (float_t)0.5;
         }
     };
@@ -98,12 +95,7 @@ namespace test_cycle_and_swap {
         iv.get< 0, 0 >()(0, 0, 0) = 0;
         iv.get< 0, 1 >()(0, 0, 0) = 1;
 
-        uint_t di[5] = {0, 0, 0, 0, 1};
-        uint_t dj[5] = {0, 0, 0, 0, 1};
-
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = 0;
+        auto grid = make_grid((uint_t)1, (uint_t)1, (uint_t)1);
 
         typedef arg< 0, data_store_field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
@@ -156,12 +148,10 @@ namespace test_cycle_and_swap {
         iv.get< 0, 1 >()(0, 0, 0) = 1.;
 
         const uint_t halo_size = 1;
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(di, dj, d3);
 
         typedef arg< 0, data_store_field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;
@@ -249,12 +239,10 @@ namespace test_cycle_and_swap {
 #endif
 
         const uint_t halo_size = 0;
-        uint_t di[5] = {halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
+        halo_descriptor di{halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, 1 - halo_size - 1, 1};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = 0;
+        auto grid = make_grid(di, dj, (uint_t)1);
 
         typedef arg< 0, data_store_field_t > p_i_data;
         typedef boost::mpl::vector< p_i_data > accessor_list;

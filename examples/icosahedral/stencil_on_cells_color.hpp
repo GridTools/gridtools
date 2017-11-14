@@ -69,8 +69,7 @@ namespace socc {
     using backend_t = BACKEND;
     using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using x_interval = axis< 1 >::full_interval;
 
     template < uint_t Color >
     struct on_cells_color_functor {
@@ -96,7 +95,8 @@ namespace socc {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        using cell_storage_type = typename icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, double >;
+        using cell_storage_type =
+            typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, double >;
 
         const uint_t halo_nc = 1;
         const uint_t halo_mc = 1;
@@ -129,12 +129,11 @@ namespace socc {
         typedef boost::mpl::vector< p_in_cells, p_out_cells > accessor_list_t;
 
         gridtools::aggregator_type< accessor_list_t > domain(in_cells, out_cells);
-        array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
-        array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-        gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
+        halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
+
+        auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
 
         auto stencil_ = gridtools::make_computation< backend_t >(
             domain,

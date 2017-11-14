@@ -21,3 +21,7 @@ set( TEST_CUDA_MPI_SCRIPT ${CMAKE_BINARY_DIR}/run_cuda_mpi_tests.sh )
 set( ENABLE_CACHING "ON" CACHE BOOL "Enable caching functionality" )
 set( NVCC_CLANG_SPECIFIC_OPTIONS "" CACHE STRING "Options passed to NVCC when compiling with clang as host compiler" )
 set( WERROR "OFF" CACHE BOOL "Treat warnings as errors" )
+set( CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )
+set_property(CACHE CXX_STANDARD PROPERTY STRINGS "c++11;c++14")
+set( DISABLE_TESTING "OFF" CACHE BOOL "Disables all unit tests/examples")
+

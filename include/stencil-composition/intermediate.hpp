@@ -541,12 +541,13 @@ namespace gridtools {
         using base_t::m_domain;
 
       public:
-        intermediate(DomainType const &domain,
+        template < typename Domain >
+        intermediate(Domain &&domain,
             Grid const &grid,
             ConditionalsSet conditionals_,
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
-            : base_t(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
-              m_reduction_data(reduction_initial_value) {
+            : base_t(std::forward< Domain >(domain)), m_grid(grid), m_meter("NoName"),
+              m_conditionals_set(conditionals_), m_reduction_data(reduction_initial_value) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
         }
@@ -582,11 +583,6 @@ namespace gridtools {
         virtual void finalize() {
             // sync the data stores that should be synced
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
-
-            auto &all_arg_storage_pairs = m_domain.get_arg_storage_pairs();
-            boost::fusion::filter_view< typename DomainType::arg_storage_pair_fusion_list_t,
-                is_arg_storage_pair_to_tmp< boost::mpl::_ > > filter(all_arg_storage_pairs);
-            boost::fusion::for_each(filter, _impl::delete_tmp_data_store());
         }
 
         virtual reduction_type_t run() {
@@ -617,7 +613,10 @@ namespace gridtools {
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
-        void reassign_aggregator(DomainType &new_domain) { m_domain = new_domain; }
+        // TODO(anstaf): This accessor breaks encapsulation and needed only for intermedite_expand implementation.
+        //               Refactor ASAP.
+        DomainType &domain() { return m_domain; }
+        const DomainType &domain() const { return m_domain; }
     };
 
 } // namespace gridtools

@@ -135,9 +135,6 @@ namespace assembly {
         value_type m_values[accumulate(multiplies(), Dims...)];
     };
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
     struct integration {
         typedef global_accessor< 0 > phi_t;
         typedef global_accessor< 1 > psi_t;
@@ -147,7 +144,7 @@ namespace assembly {
         typedef boost::mpl::vector< phi_t, psi_t, jac, f, result > arg_list;
         using quad = dimension< 4 >;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             dimension< 1 > i;
             dimension< 2 > j;
             dimension< 3 > k;
@@ -227,11 +224,9 @@ namespace assembly {
            The grid constructor takes the horizontal plane dimensions,
            hile the vertical ones are set according the the axis property soon after
         */
-        uint_t di[5] = {1, 1, 1, d1 - 3, d1};
-        uint_t dj[5] = {1, 1, 1, d2 - 3, d2};
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 2;
+        halo_descriptor di{1, 1, 1, d1 - 3, d1};
+        halo_descriptor dj{1, 1, 1, d2 - 3, d2};
+        auto grid = make_grid(di, dj, d3 - 1);
 
         auto fe_comp = make_computation< gridtools::BACKEND >(
             domain,

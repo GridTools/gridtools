@@ -63,6 +63,7 @@
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
 
+#include "../common/default_host_container.hpp"
 #include "../common/metadata_set.hpp"
 #include "../storage/storage-facility.hpp"
 
@@ -94,15 +95,15 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::type::value > 0),
             "The aggregator_type must be constructed with at least one storage placeholder. If you don't use any "
             "storage you are probably trying to do something which is not a stencil operation, aren't you?");
-        typedef typename boost::mpl::sort< Placeholders, arg_comparator >::type sorted_placeholders_t;
+        typedef typename boost::mpl::sort< Placeholders, arg_comparator >::type placeholders_t;
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< sorted_placeholders_t, is_arg >::type::value),
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< placeholders_t, is_arg >::type::value),
             "wrong type: the aggregator_type template argument must be an MPL vector of placeholders (arg<...>)");
 
-        GRIDTOOLS_STATIC_ASSERT((_impl::continuous_indices_check< sorted_placeholders_t >::type::value),
+        GRIDTOOLS_STATIC_ASSERT((_impl::continuous_indices_check< placeholders_t >::type::value),
             "Storage placeholders must have consecutive indices starting with 0.");
 
-        const static uint_t len = boost::mpl::size< sorted_placeholders_t >::type::value;
+        const static uint_t len = boost::mpl::size< placeholders_t >::type::value;
 
         // create a unique id that will be used as temporary storage info id
         typedef typename boost::mpl::fold< Placeholders,
@@ -111,18 +112,6 @@ namespace gridtools {
                                                boost::mpl::_1,
                                                boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > > >::type
             non_tmp_placeholders_t;
-        typedef typename boost::mpl::next< typename boost::mpl::deref<
-            typename boost::mpl::max_element< typename boost::mpl::transform< non_tmp_placeholders_t,
-                _impl::extract_storage_info_id_from_arg >::type >::type >::type >::type tmp_storage_info_id_t;
-
-        // replace the storage_info_t of all temporary args with the new index type
-        typedef
-            typename boost::mpl::fold< sorted_placeholders_t,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1,
-                                           boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
-                                               _impl::replace_arg_storage_info< tmp_storage_info_id_t, boost::mpl::_2 >,
-                                               boost::mpl::_2 > > >::type placeholders_t;
 
         // filter out the storage infos which are the same
         typedef typename boost::mpl::fold< placeholders_t,
@@ -168,7 +157,8 @@ namespace gridtools {
         /**
          * fusion::vector of pointers to storages
          */
-        arg_storage_pair_fusion_list_t m_arg_storage_pair_list;
+        arg_storage_pair_fusion_list_t m_arg_storage_pair_list =
+            default_host_container< arg_storage_pair_fusion_list_t >();
 
         /**
            tuple of pointers to the storages metadata. Note that metadata is constant,
@@ -181,10 +171,10 @@ namespace gridtools {
            to the arg_storage_pair_fusion_list_t element. Also the metadata_set is updated properly.
          */
         template < typename... ArgStoragePairs,
-            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check<
+                                           typename std::decay< ArgStoragePairs >::type... >::type,
                 int >::type = 0 >
-        aggregator_type(ArgStoragePairs... arg_storage_pairs)
-            : m_arg_storage_pair_list(), m_metadata_set() {
+        aggregator_type(ArgStoragePairs &&... arg_storage_pairs) {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(ArgStoragePairs) > 0),
                 "Computations with no data_stores are not supported. "
@@ -199,9 +189,9 @@ namespace gridtools {
                 "of "
                 "args to non-temporaries. Double check the temporary flag in the arg types or add the "
                 "necessary arg_storage_pairs.");
-            _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign((*arg_storage_pairs.ptr.get())...);
-            _impl::fill_arg_storage_pair_list< arg_storage_pair_fusion_list_t >(m_arg_storage_pair_list)
-                .reassign(arg_storage_pairs...);
+            _impl::fill_arg_storage_pair_list< arg_storage_pair_fusion_list_t >{m_arg_storage_pair_list}.reassign(
+                std::forward< ArgStoragePairs >(arg_storage_pairs)...);
+            update_metadata_set();
         }
 
         /**
@@ -211,10 +201,10 @@ namespace gridtools {
            updated properly.
          */
         template < typename... DataStores,
-            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
-                0 >
-        aggregator_type(DataStores &... ds)
-            : m_arg_storage_pair_list(), m_metadata_set() {
+            typename boost::enable_if<
+                typename _impl::aggregator_storage_check< typename std::decay< DataStores >::type... >::type,
+                int >::type = 0 >
+        aggregator_type(DataStores &&... ds) {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
                 "Computations with no data_stores are not supported. "
@@ -226,10 +216,8 @@ namespace gridtools {
                         boost::mpl::count_if< placeholders_t, is_tmp_arg< boost::mpl::_ > >::value ==
                     sizeof...(DataStores)),
                 "The number of arguments specified when constructing the aggregator_type is not the same as the number "
-                "of "
-                "args to non-temporaries. Double check the temporary flag in the arg types or add the "
+                "of args to non-temporaries. Double check the temporary flag in the arg types or add the "
                 "necessary storages.");
-            _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(ds...);
 
             // create a fusion vector that contains all the arg_storage_pairs to all non temporary args
             typedef typename boost::mpl::transform< non_tmp_placeholders_t,
@@ -237,18 +225,34 @@ namespace gridtools {
             typedef typename boost::fusion::result_of::as_vector< non_tmp_arg_storage_pairs_mpl_vec >::type
                 non_tmp_arg_storage_pairs_fusion_vec;
             // initialize those arg_storage_pairs with the given data_stores
-            non_tmp_arg_storage_pairs_fusion_vec tmp_arg_storage_pair_vec(&ds...);
+            non_tmp_arg_storage_pairs_fusion_vec tmp_arg_storage_pair_vec(std::forward< DataStores >(ds)...);
 
             // create a filter view to filter all the non temporary arg_storage_pairs from m_arg_storage_pair_list
             // and initialize with the previously created temporary vector.
             boost::fusion::filter_view< arg_storage_pair_fusion_list_t,
-                boost::mpl::not_< is_arg_storage_pair_to_tmp< boost::mpl::_ > > >
-                filtered_vals(m_arg_storage_pair_list);
+                boost::mpl::not_< is_tmp_arg< boost::mpl::_ > > > filtered_vals(m_arg_storage_pair_list);
             boost::fusion::copy(tmp_arg_storage_pair_vec, filtered_vals);
+            update_metadata_set();
         }
 
-        aggregator_type(aggregator_type const &other)
-            : m_arg_storage_pair_list(other.m_arg_storage_pair_list), m_metadata_set(other.m_metadata_set) {}
+        aggregator_type(aggregator_type const &other) : m_arg_storage_pair_list(other.m_arg_storage_pair_list) {
+            update_metadata_set();
+        }
+        aggregator_type &operator=(aggregator_type const &other) {
+            m_arg_storage_pair_list = other.m_arg_storage_pair_list;
+            update_metadata_set();
+            return *this;
+        }
+
+        aggregator_type(aggregator_type &&other) noexcept
+            : m_arg_storage_pair_list(std::move(other.m_arg_storage_pair_list)) {
+            update_metadata_set();
+        }
+        aggregator_type &operator=(aggregator_type &&other) noexcept {
+            m_arg_storage_pair_list = std::move(other.m_arg_storage_pair_list);
+            update_metadata_set();
+            return *this;
+        }
 
         void print() const {
             printf("aggregator_type: Storage pointers\n");
@@ -268,19 +272,16 @@ namespace gridtools {
          * an arg to an instance of a data_store, data_store_field, or std::vector.
          */
         arg_storage_pair_fusion_list_t &get_arg_storage_pairs() { return m_arg_storage_pair_list; }
+        const arg_storage_pair_fusion_list_t &get_arg_storage_pairs() const { return m_arg_storage_pair_list; }
 
         /**
          * @brief returning by const reference an arg storage pair. An arg storage pair maps
          * an arg to an instance of a data_store, data_store_field, or std::vector.
          */
-        template < typename StoragePlaceholder,
-            typename RealStoragePlaceholder = typename boost::mpl::if_< is_tmp_arg< StoragePlaceholder >,
-                typename _impl::replace_arg_storage_info< tmp_storage_info_id_t, StoragePlaceholder >::type,
-                StoragePlaceholder >::type >
-        typename _impl::create_arg_storage_pair_type< RealStoragePlaceholder >::type const &
-        get_arg_storage_pair() const {
+        template < typename StoragePlaceholder >
+        typename _impl::create_arg_storage_pair_type< StoragePlaceholder >::type const &get_arg_storage_pair() const {
             return boost::fusion::deref(
-                boost::fusion::find< typename _impl::create_arg_storage_pair_type< RealStoragePlaceholder >::type >(
+                boost::fusion::find< typename _impl::create_arg_storage_pair_type< StoragePlaceholder >::type >(
                     m_arg_storage_pair_list));
         }
 
@@ -289,51 +290,57 @@ namespace gridtools {
          * arg_storage_pair that maps the arg to an instance of either a data_store, data_store_field, or std::vector.
          */
         template < typename StoragePlaceholder >
-        void set_arg_storage_pair(pointer< typename StoragePlaceholder::storage_t > storagePtr) {
-            typename _impl::create_arg_storage_pair_type< StoragePlaceholder >::type tmp(storagePtr.get());
+        void set_arg_storage_pair(typename StoragePlaceholder::data_store_t &&data_store) {
             boost::fusion::deref(
                 boost::fusion::find< typename _impl::create_arg_storage_pair_type< StoragePlaceholder >::type >(
-                    m_arg_storage_pair_list)) = tmp;
-            _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(storagePtr);
+                    m_arg_storage_pair_list))
+                .m_value = std::move(data_store);
+            update_metadata_set();
         }
 
         template < typename... DataStores,
-            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
-                0 >
-        void reassign_storages_impl(DataStores &... stores) {
+            typename boost::enable_if<
+                typename _impl::aggregator_storage_check< typename std::decay< DataStores >::type... >::type,
+                int >::type = 0 >
+        void reassign_storages_impl(DataStores &&... stores) {
 
             GRIDTOOLS_STATIC_ASSERT((sizeof...(DataStores) > 0),
                 "the reassign_storages_impl must be called with at least one argument. "
                 "otherwise what are you calling it for?");
-            _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign(stores...);
-
             // create a fusion vector that contains all the arg_storage_pairs to all non temporary args
             typedef typename boost::mpl::transform< non_tmp_placeholders_t,
                 _impl::create_arg_storage_pair_type< boost::mpl::_1 > >::type non_tmp_arg_storage_pairs_mpl_vec;
             typedef typename boost::fusion::result_of::as_vector< non_tmp_arg_storage_pairs_mpl_vec >::type
                 non_tmp_arg_storage_pairs_fusion_vec;
             // initialize those arg_storage_pairs with the given data_stores
-            non_tmp_arg_storage_pairs_fusion_vec tmp_arg_storage_pair_vec(&stores...);
+            non_tmp_arg_storage_pairs_fusion_vec tmp_arg_storage_pair_vec(std::forward< DataStores >(stores)...);
 
             // create a filter view to filter all the non temporary arg_storage_pairs from m_arg_storage_pair_list
             // and initialize with the previously created temporary vector.
             boost::fusion::filter_view< arg_storage_pair_fusion_list_t,
-                boost::mpl::not_< is_arg_storage_pair_to_tmp< boost::mpl::_ > > >
-                filtered_vals(m_arg_storage_pair_list);
+                boost::mpl::not_< is_tmp_arg< boost::mpl::_ > > > filtered_vals(m_arg_storage_pair_list);
             boost::fusion::copy(tmp_arg_storage_pair_vec, filtered_vals);
+            update_metadata_set();
         }
 
         template < typename... ArgStoragePairs,
             typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
                 int >::type = 0 >
-        void reassign_arg_storage_pairs_impl(ArgStoragePairs... arg_storage_pairs) {
+        void reassign_arg_storage_pairs_impl(ArgStoragePairs &&... arg_storage_pairs) {
             GRIDTOOLS_STATIC_ASSERT((sizeof...(ArgStoragePairs) > 0),
                 "the reassign_arg_storage_pairs_impl must be called with at least one argument. "
                 "otherwise what are you calling it for?");
 
-            _impl::fill_metadata_set< metadata_set_t >(m_metadata_set).reassign((*arg_storage_pairs.ptr.get())...);
-            _impl::fill_arg_storage_pair_list< arg_storage_pair_fusion_list_t >(m_arg_storage_pair_list)
-                .reassign(arg_storage_pairs...);
+            _impl::fill_arg_storage_pair_list< arg_storage_pair_fusion_list_t >{m_arg_storage_pair_list}.reassign(
+                std::forward< ArgStoragePairs >(arg_storage_pairs)...);
+            update_metadata_set();
+        }
+
+      private:
+        void update_metadata_set() {
+            m_metadata_set = {};
+            boost::fusion::for_each(
+                m_arg_storage_pair_list, _impl::add_to_metadata_set< metadata_set_t >{m_metadata_set});
         }
     };
 
@@ -342,17 +349,5 @@ namespace gridtools {
 
     template < typename Placeholders >
     struct is_aggregator_type< aggregator_type< Placeholders > > : boost::mpl::true_ {};
-
-    template < uint_t... Indices, typename... Storages >
-    aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > > instantiate_aggregator_type(
-        gt_integer_sequence< uint_t, Indices... > seq_, Storages &... storages_) {
-        return aggregator_type< boost::mpl::vector< arg< Indices, Storages >... > >(storages_...);
-    }
-
-    template < typename... Storage >
-    auto make_aggregator_type(Storage &... storages_) -> decltype(
-        instantiate_aggregator_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...)) {
-        return instantiate_aggregator_type(make_gt_integer_sequence< uint_t, sizeof...(Storage) >(), storages_...);
-    }
 
 } // namespace gridtools

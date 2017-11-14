@@ -72,6 +72,9 @@ namespace gridtools {
         // and 1. All together we have 6 storages.)
         std::array< DataStore, num_of_storages > m_field;
 
+        // This prevents nvcc to decorate the implicitly defined operator= with __device__
+        data_store_field &operator=(const data_store_field &) = default;
+
         /**
          * @brief data_store_field constructor
          */

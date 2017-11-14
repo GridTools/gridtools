@@ -87,12 +87,6 @@ GT_FUNCTION float_type droplet_(uint_t i, uint_t j, DX dx, DY dy, H height) {
 using BACKEND = backend< BACKEND_ARCH, GRIDBACKEND, Block >;
 
 namespace shallow_water {
-    // This is the definition of the special regions in the "vertical" direction
-    // [intervals]
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
-    // [intervals]
-
     // [functor_traits]
     /**@brief This traits class defined the necessary typesand functions used by all the functors defining the shallow
      * water model*/
@@ -139,7 +133,7 @@ namespace shallow_water {
         using arg_list = boost::mpl::vector2< tmpx, sol >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
 
             const float_type &tl = 2.;
 #ifndef CUDA8
@@ -198,7 +192,7 @@ namespace shallow_water {
         using arg_list = boost::mpl::vector< tmpy, sol >;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
 
             const float_type &tl = 2.;
 #ifndef CUDA8
@@ -260,7 +254,7 @@ namespace shallow_water {
         // Using a strategy to define some arguments beforehand
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             const float_type &tl = 2.;
 #ifndef CUDA8
             dimension< 1 > i;
@@ -437,10 +431,9 @@ namespace shallow_water {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         //! [grid]
-        gridtools::grid< axis > grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
-            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]});
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid({halo[0], halo[0], halo[0], d1 + halo[0] - 1, d1 + 2 * halo[0]},
+            {halo[1], halo[1], halo[1], d2 + halo[1] - 1, d2 + 2 * halo[1]},
+            d3);
         //! [grid]
 
         //! [computation]

@@ -40,8 +40,6 @@
  *      Author: carlosos
  */
 
-#define BOOST_NO_CXX11_RVALUE_REFERENCES
-
 #include <gridtools.hpp>
 #include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
@@ -71,7 +69,7 @@ using namespace enumtype;
 
 namespace make_reduction_test {
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    using x_interval = gridtools::interval< level< 0, -1 >, level< 1, -1 > >;
 
     struct test_functor {
         typedef accessor< 0 > in;

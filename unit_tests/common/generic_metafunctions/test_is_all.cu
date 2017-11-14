@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_storage_info_rt.cpp"
+#include "test_is_all.cpp"

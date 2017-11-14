@@ -33,4 +33,41 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_storage_info_rt.cpp"
+
+#include "gtest/gtest.h"
+#include <common/defs.hpp>
+#include <common/generic_metafunctions/is_all.hpp>
+#include <common/generic_metafunctions/is_all_integrals.hpp>
+
+using namespace gridtools;
+
+TEST(AllIntegrals, is_all_integral) {
+    GRIDTOOLS_STATIC_ASSERT((is_all_integral< int, u_int, long >::value), "not all integral");
+    GRIDTOOLS_STATIC_ASSERT((!is_all_integral< int, double >::value), "all integral (but shouldn't be)");
+}
+
+TEST(AllIntegrals, is_all_static_integral) {
+    GRIDTOOLS_STATIC_ASSERT((is_all_static_integral< static_int< 0 >,
+                                static_uint< 1 >,
+                                static_short< 2 >,
+                                static_ushort< 3 >,
+                                static_bool< 1 > >::value),
+        "not all static integral");
+}
+
+template < typename... Ts, typename = all_integral< Ts... > >
+bool is_enabled_on_all_integral(Ts... vals) {
+    return true;
+}
+
+TEST(AllIntegrals, enable_with_all_integral) { ASSERT_TRUE(is_enabled_on_all_integral(1, 2, 3)); }
+TEST(AllIntegrals, enable_with_all_integral_empty) { ASSERT_TRUE(is_enabled_on_all_integral()); }
+
+#ifdef CUDA8
+template < typename... Ts, typename = all_< boost::is_integral, Ts... > >
+bool is_enabled_on_all_(Ts... vals) {
+    return true;
+}
+
+TEST(test_all_, enable_with_is_integral_and_all_) { ASSERT_TRUE(is_enabled_on_all_(1, 2, 3)); }
+#endif

@@ -58,10 +58,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace horizontal_diffusion_functions {
-    // This is the definition of the special regions in the "vertical" direction
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
         typedef accessor< 0, enumtype::inout > out;
@@ -244,12 +240,10 @@ namespace horizontal_diffusion_functions {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::grid<axis> grids(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        gridtools::grid< axis > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(di, dj, d3);
 
         auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
             domain_,
