@@ -55,7 +55,6 @@
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/push_back.hpp>
-#include <boost/mpl/range_c.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits/remove_const.hpp>
@@ -164,52 +163,47 @@ namespace gridtools {
         typedef condition< type1, type2, Cond > type;
     };
 
+    template < typename Placeholder >
+    struct create_view {
+        using type = typename _impl::get_view_t::apply< typename get_storage_from_arg< Placeholder >::type >::type;
+    };
+
     template < typename AggregatorType >
     struct create_view_fusion_map {
         GRIDTOOLS_STATIC_ASSERT(
             (is_aggregator_type< AggregatorType >::value), "Internal Error: Given type is not an aggregator_type.");
+
+        using arg_and_view_seq = typename boost::mpl::transform_view< typename AggregatorType::placeholders_t,
+            boost::fusion::pair< boost::mpl::_, create_view< boost::mpl::_ > > >::type;
+        using type = typename boost::fusion::result_of::as_map< arg_and_view_seq >::type;
+    };
+
+    template < typename Backend, typename AggregatorType, typename MssComponentsArray >
+    struct create_storage_wrapper_list {
+        // handle all tmps, obtain the storage_wrapper_list for written tmps
+        typedef typename Backend::template obtain_storage_wrapper_list_t< AggregatorType, MssComponentsArray >::type
+            all_tmps;
 
         // get all the storages from the placeholders
         typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1, get_storage_from_arg< boost::mpl::_2 > > >::type storage_list_t;
         // convert the storages into views
-        typedef typename boost::mpl::transform< storage_list_t, _impl::get_view_t >::type data_views_t;
-        // equip with args
-        typedef typename boost::mpl::fold<
-            boost::mpl::range_c< unsigned, 0, AggregatorType::len >,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1,
-                boost::fusion::pair< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
-                                       boost::mpl::at< data_views_t, boost::mpl::_2 > > > >::type arg_to_view_vec;
-        // fusion map from args to views
-        typedef typename boost::fusion::result_of::as_map< arg_to_view_vec >::type type;
-    };
-
-    template < typename Backend, typename AggregatorType, typename ViewList, typename MssComponentsArray >
-    struct create_storage_wrapper_list {
-        // handle all tmps, obtain the storage_wrapper_list for written tmps
-        typedef typename Backend::template obtain_storage_wrapper_list_t< AggregatorType, MssComponentsArray >::type
-            all_tmps;
+        typedef typename boost::mpl::transform< storage_list_t, _impl::get_view_t >::type view_list_t;
 
         // for every placeholder we push back an element that is either a new storage_wrapper type
         // for a normal data_store(_field), or in case it is a tmp we get the element out of the all_tmps list.
         // if we find a read-only tmp void will be pushed back, but this will be filtered out in the
         // last step.
-        typedef boost::mpl::range_c< int, 0, AggregatorType::len > iter_range;
-        typedef typename boost::mpl::fold<
-            iter_range,
+        typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
             boost::mpl::vector0<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                boost::mpl::if_<
-                    is_tmp_arg< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 > >,
-                    storage_wrapper_elem< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
-                        all_tmps >,
-                    storage_wrapper< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
-                        boost::mpl::at< ViewList, boost::mpl::_2 >,
-                        tile< 0, 0, 0 >,
-                        tile< 0, 0, 0 > > > > >::type complete_list;
+            boost::mpl::push_back< boost::mpl::_1,
+                                               boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
+                                                   storage_wrapper_elem< boost::mpl::_2, all_tmps >,
+                                                   storage_wrapper< boost::mpl::_2,
+                                                                    create_view< boost::mpl::_2 >,
+                                                                    tile< 0, 0, 0 >,
+                                                                    tile< 0, 0, 0 > > > > >::type complete_list;
         // filter the list
         typedef
             typename boost::mpl::filter_view< complete_list, is_storage_wrapper< boost::mpl::_1 > >::type filtered_list;
@@ -488,10 +482,8 @@ namespace gridtools {
         typedef typename create_view_fusion_map< DomainType >::type view_list_fusion_t;
 
         // create storage_wrapper_list
-        typedef typename create_storage_wrapper_list< Backend,
-            DomainType,
-            typename create_view_fusion_map< DomainType >::data_views_t,
-            mss_components_array_t >::type storage_wrapper_list_t;
+        typedef typename create_storage_wrapper_list< Backend, DomainType, mss_components_array_t >::type
+            storage_wrapper_list_t;
 
         // create storage_wrapper_fusion_list
         typedef

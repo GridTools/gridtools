@@ -33,6 +33,8 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+#pragma once
+
 #include <type_traits>
 
 #include <boost/fusion/include/begin.hpp>
