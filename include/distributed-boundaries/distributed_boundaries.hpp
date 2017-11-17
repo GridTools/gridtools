@@ -73,7 +73,6 @@ namespace gridtools {
         };
     } // namespace _workaround
 
-
     /**
         @brief This class takes a communication traits class and provide a facility to
         perform boundary conditions and communications in a single call.
@@ -119,18 +118,21 @@ namespace gridtools {
             typename CTraits::comm_arch_type,
             CTraits::version >;
 
-    private:
+      private:
         array< halo_descriptor, 3 > m_halos;
         array< int_t, 3 > m_sizes;
         pattern_type m_he;
 
-    public:
+      public:
         /**
             @brief Constructor of distributed_boundaries.
 
-            \param gridtools::halos array of 3 gridtools::halo_desctiptor containing the halo information to be used for communication
-            \param period Periodicity specification, a gridtools::boollist with three elements, one for each dimension. true mean the dimension is periodic
-            \param max_stores Maximum number of data_stores to be used in communication. PAssing more will couse a runtime error (probably segmentation fault), passing less will underutilize the memory
+            \param gridtools::halos array of 3 gridtools::halo_desctiptor containing the halo information to be used for
+           communication
+            \param period Periodicity specification, a gridtools::boollist with three elements, one for each dimension.
+           true mean the dimension is periodic
+            \param max_stores Maximum number of data_stores to be used in communication. PAssing more will couse a
+           runtime error (probably segmentation fault), passing less will underutilize the memory
             \param MPI_Comm MPI communicator to use in the halo update operation.
         */
         distributed_boundaries(
@@ -167,7 +169,7 @@ namespace gridtools {
 
         typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
 
-    private:
+      private:
         template < typename BoundaryApply, typename ArgsTuple, uint_t... Ids >
         void call_apply(BoundaryApply boundary_apply, ArgsTuple args, gt_integer_sequence< uint_t, Ids... >) {
             boundary_apply.apply(std::get< Ids >(args)...);
@@ -218,7 +220,6 @@ namespace gridtools {
                 access_mode::ReadWrite,
                 typename std::tuple_element< Ids, Stores >::type >::make(std::get< Ids >(stores)))...);
         }
-
     };
 
 } // namespace gridtools

@@ -252,7 +252,8 @@ namespace gridtools {
      * that will be then excluded by halo-update operations.
      *
      * \tparam BCApply Boundary condition class (usually deduced)
-     * \tparam DataStores Parameter pack type with the data stores or placeholders (std::placeholders should be used) (deduced)
+     * \tparam DataStores Parameter pack type with the data stores or placeholders (std::placeholders should be used)
+     * (deduced)
      *
      * \param bc_apply The boundary condition class
      * \param stores Parameter pack with the data stores or placeholders (std::placeholders hosuld be used)
