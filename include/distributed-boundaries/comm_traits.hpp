@@ -36,23 +36,31 @@
 
 #pragma once
 
-#include <iosfwd>
+#include "../gridtools.hpp"
+#include "../stencil-composition/stencil-composition.hpp"
+#include "../communication/low-level/proc_grids_3D.hpp"
 
-/**
-   @brief Small value type to use in tests where we want to check the
-   values in a fields, for instance to check if layouts works, on in
-   communication tests
-*/
-struct triplet {
-    int a = 0, b = 0, c = 0;
+namespace gridtools {
 
-    constexpr triplet() = default;
+    template < typename StorageType, typename Arch >
+    struct comm_traits {
+        template < typename GCLArch, typename = void >
+        struct compute_arch_of {
+            static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Host;
+        };
 
-    constexpr triplet(int a, int b, int c) : a(a), b(b), c(c) {}
+        template < typename T >
+        struct compute_arch_of< gridtools::gcl_gpu, T > {
+            static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Cuda;
+        };
 
-    constexpr bool operator==(triplet other) const { return (a == other.a) and (b == other.b) and (c == other.c); }
+        using proc_layout = gridtools::layout_map< 0, 1, 2 >;
+        using proc_grid_type = gridtools::MPI_3D_process_grid_t< 3 >;
+        using comm_arch_type = Arch;
+        static constexpr gridtools::enumtype::platform compute_arch = compute_arch_of< comm_arch_type >::value;
+        static constexpr int version = gridtools::version_manual;
+        using data_layout = typename StorageType::storage_info_t::layout_t;
+        using value_type = typename StorageType::data_t;
+    };
 
-    constexpr bool operator!=(triplet other) const { return not(*this == other); }
-};
-
-std::ostream &operator<<(std::ostream &s, triplet t) { return s << "[" << t.a << " " << t.b << " " << t.c << "]"; }
+} // namespace gridtools
