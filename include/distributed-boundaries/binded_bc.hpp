@@ -152,17 +152,20 @@ namespace gridtools {
         auto remove_placeholders(std::tuple< First, Elems... > const &x,
             typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type = nullptr)
             -> decltype(std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
-                do_stuff(rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{})))) {
+                remove_placeholders(rest_tuple(
+                    x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{})))) {
             return std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
-                do_stuff(rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{})));
+                remove_placeholders(rest_tuple(
+                    x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{})));
         }
 
         template < typename First, typename... Elems >
         auto remove_placeholders(std::tuple< First, Elems... > const &x,
             typename std::enable_if< (std::is_placeholder< First >::value > 0), void * >::type = nullptr)
-            -> decltype(
-                do_stuff(rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{}))) {
-            return do_stuff(rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{}));
+            -> decltype(remove_placeholders(
+                rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{}))) {
+            return remove_placeholders(
+                rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{}));
         }
 
     } // namespace _impl
@@ -208,7 +211,7 @@ namespace gridtools {
          * @brief Function to retrieve the tuple of data stores to pass to the the halo-update
          * communication pattern
          */
-        stores_type exc_stores() const { return m_exc_stores; }
+        exc_stores_type exc_stores() const { return m_exc_stores; }
 
         /**
          * @brief Function to retrieve the boundary condition application class
