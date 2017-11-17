@@ -49,6 +49,7 @@
 namespace gridtools {
 
     namespace _workaround {
+        /** \internal Workaround for NVCC that has troubles with tuple_cat */
         template < typename... Tuples >
         struct pairwise_tuple_cat;
 
@@ -72,6 +73,42 @@ namespace gridtools {
         };
     } // namespace _workaround
 
+
+    /**
+        @brief This class takes a communication traits class and provide a facility to
+        perform boundary conditions and communications in a single call.
+
+        After construction a call to gridtools::distributed_boundaries::exchange takes
+        a list of gridtools::data_store or girdtools::binded_bc. The data stores will be
+        directly used in communication primitives for performing halo_update operation,
+        while binded_bc elements will be priocessed by exracting the data stores that need
+        communication and others that will go through boundary condition application as
+        specified in the binded_bc class.
+
+        Example of use (where `a`, `b`, `c`, and `d` are of data_store type:
+        \verbatim
+            using storage_info_t = storage_tr::storage_info_t< 0, 3, halo< 2, 2, 0 > >;
+            using storage_type = storage_tr::data_store_t< triplet, storage_info_t >;
+
+            halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+            halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+            halo_descriptor dk{0, 0, 0, d3 - 1, d3};
+            array< halo_descriptor, 3 > halos{di, dj, dk};
+
+            using cabc_t = distributed_boundaries< comm_traits< storage_type, gcl_cpu > >;
+
+            cabc_t cabc{halos, // halos for communication
+                        {false, false, false}, // Periodicity in first, second and third dimension
+                        4, // Maximum number of data_stores to be handled by this communicatio obeject
+                        GCL_WORLD}; // Communicator to be used
+
+            cabc.exchange(bind_bc(value_boundary< triplet >{triplet{42, 42, 42}}, a),
+                          bind_bc(copy_boundary{}, b, _1).associate(c),
+                          d);
+        \endverbatim
+
+        \tparal CTraits Communication traits. To see an example see gridtools::comm_traits
+    */
     template < typename CTraits >
     struct distributed_boundaries {
 
@@ -82,14 +119,55 @@ namespace gridtools {
             typename CTraits::comm_arch_type,
             CTraits::version >;
 
+    private:
         array< halo_descriptor, 3 > m_halos;
         array< int_t, 3 > m_sizes;
         pattern_type m_he;
 
+    public:
+        /**
+            @brief Constructor of distributed_boundaries.
+
+            \param gridtools::halos array of 3 gridtools::halo_desctiptor containing the halo information to be used for communication
+            \param period Periodicity specification, a gridtools::boollist with three elements, one for each dimension. true mean the dimension is periodic
+            \param max_stores Maximum number of data_stores to be used in communication. PAssing more will couse a runtime error (probably segmentation fault), passing less will underutilize the memory
+            \param MPI_Comm MPI communicator to use in the halo update operation.
+        */
         distributed_boundaries(
             array< halo_descriptor, 3 > halos, boollist< 3 > period, uint_t max_stores, MPI_Comm CartComm)
             : m_halos{halos}, m_sizes{0, 0, 0}, m_he(period, CartComm, m_sizes) {}
 
+        /**
+            @brief Member function to perform boundary condition and communication on a list of jobs.
+            A job is either a gridtools::data_store to be used during communication or a gridtools::binded_bc
+            to apply boundary conditions and halo_update operations for the data_stores that are not input-only
+            (that will be indicated with the gridtools::binded_bc::associate member function.)
+
+            \param jobs Variadic list of jobs
+        */
+        template < typename... Jobs >
+        void exchange(Jobs... jobs) {
+#ifdef __CUDACC__
+            // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
+            // This can be removed when nvcc supports it.
+            auto all_stores_for_exc = _workaround::tuple_cat(collect_stores(jobs)...);
+#else
+            auto all_stores_for_exc = std::tuple_cat(collect_stores(jobs)...);
+#endif
+            call_pack(all_stores_for_exc,
+                typename make_gt_integer_sequence< uint_t,
+                          std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
+            m_he.exchange();
+            using execute_in_order = int[];
+            execute_in_order{(apply_boundary(jobs), 0)...};
+            call_unpack(all_stores_for_exc,
+                typename make_gt_integer_sequence< uint_t,
+                            std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
+        }
+
+        typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
+
+    private:
         template < typename BoundaryApply, typename ArgsTuple, uint_t... Ids >
         void call_apply(BoundaryApply boundary_apply, ArgsTuple args, gt_integer_sequence< uint_t, Ids... >) {
             boundary_apply.apply(std::get< Ids >(args)...);
@@ -97,7 +175,7 @@ namespace gridtools {
 
         template < typename BCApply >
         typename std::enable_if< is_binded_bc< BCApply >::value, void >::type apply_boundary(BCApply bcapply) {
-            /*Apply doundaty to data*/
+            /*Apply boundary to data*/
             call_apply(boundary< typename BCApply::boundary_class,
                            CTraits::compute_arch,
                            proc_grid_predicate< typename CTraits::proc_grid_type > >(m_halos,
@@ -141,27 +219,6 @@ namespace gridtools {
                 typename std::tuple_element< Ids, Stores >::type >::make(std::get< Ids >(stores)))...);
         }
 
-        template < typename... Jobs >
-        void exchange(Jobs... jobs) {
-#ifdef __CUDACC__
-            // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
-            // This can be removed when nvcc supports it.
-            auto all_stores_for_exc = _workaround::tuple_cat(collect_stores(jobs)...);
-#else
-            auto all_stores_for_exc = std::tuple_cat(collect_stores(jobs)...);
-#endif
-            call_pack(all_stores_for_exc,
-                typename make_gt_integer_sequence< uint_t,
-                          std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
-            m_he.exchange();
-            using execute_in_order = int[];
-            execute_in_order{(apply_boundary(jobs), 0)...};
-            call_unpack(all_stores_for_exc,
-                typename make_gt_integer_sequence< uint_t,
-                            std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
-        }
-
-        typename CTraits::proc_grid_type const &proc_grid() const { return m_he.comm(); }
     };
 
 } // namespace gridtools

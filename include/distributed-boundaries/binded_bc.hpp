@@ -44,9 +44,23 @@
 namespace gridtools {
     namespace _impl {
 
+        /** \internal
+            @brief Tag type to indicate that a type is a placeholder
+        */
         struct Plc {};
+        /** \internal
+            @brief Tag type to indicate that a type is a placeholder
+        */
         struct NotPlc {};
 
+        /** \internal
+            @brief Small metafunction that return a type indicating if a typeis a placeholder or not.
+            Since std::is_placeholder does not return a boolean but the index of the placeholder if
+            the passed type is a placeholder or zero otherwise, this metafunction takes as input an
+            index. The use of this metafunction is as this:
+
+            PlcOtNot<std::is_placeholder<T> >::type
+        */
         template < int V >
         struct PlcOrNot {
             using type = Plc;
@@ -57,6 +71,11 @@ namespace gridtools {
             using type = NotPlc;
         };
 
+        /** \internal
+            @brief This function is used by gridtools::_impl::substitute_placeholders to
+            discrimintate between placeholders and other elements in a tuple. There is a
+            specialization for Plc and one for NotPlc.
+        */
         template < uint_t I, typename ROTuple, typename AllTuple >
         auto select_element(ROTuple const &ro_tuple, AllTuple const &all, Plc) -> decltype(
             std::get< std::is_placeholder< typename std::tuple_element< I, AllTuple >::type >::value - 1 >(ro_tuple)) {
@@ -69,6 +88,18 @@ namespace gridtools {
             return std::get< I >(all);
         }
 
+        /** \internal
+            @brief This functions takes a tuple that may contain placeholders and returns a tuple
+            for which the placeholders have been substituted by the corresponding elements
+            of the another tuple. The function takes a gt_integer_sequence of the size of the tuple
+            with placeholders.
+
+            This facility uses gridtools::_impl::select_element to discriminate between elements that
+            are placeholders from elements that are not.
+
+            \param ro_tuple Tuple of elements to replace the placeholders
+            \param all      Tuple of elements that may include placeholders
+        */
         template < typename ROTuple, typename AllTuple, uint_t... IDs >
         auto substitute_placeholders(
             ROTuple const &ro_tuple, AllTuple const &all, gt_integer_sequence< uint_t, IDs... >)
@@ -86,12 +117,23 @@ namespace gridtools {
 
         std::tuple<> rest_tuple(std::tuple<>, gt_integer_sequence< uint_t >) { return {}; }
 
+        /** \internal
+            Small facility to obtain a tuple with the elements of am input  tuple execpt the first.
+        */
         template < typename... Elems, uint_t... IDs >
         auto rest_tuple(std::tuple< Elems... > const &x, gt_integer_sequence< uint_t, IDs... >)
             -> decltype(std::make_tuple(std::get< IDs + 1u >(x)...)) {
             return std::make_tuple(std::get< IDs + 1u >(x)...);
         }
 
+        /** \internal
+            @brief The next functions are used to remove placeholders from a tuple. The
+            operation is a compaction, so that the elements that have not been removed
+            takes the places of the one removed, but their order remanin the same.
+
+            This cannot be done with integer sequences but through recursion, this is why
+            there are many overloads.
+        */
         std::tuple<> remove_placeholders(std::tuple<> const &) { return {}; }
 
         template < typename First >
