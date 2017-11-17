@@ -99,20 +99,20 @@ namespace gridtools {
         }
 
         /*
+         * @brief host_storage destructor.
+         */
+        ~host_storage() {
+            if (m_ownership == ownership::Full && m_cpu_ptr)
+                delete[] m_cpu_ptr;
+        }
+
+        /*
          * @brief swap implementation for host_storage
          */
         void swap_impl(host_storage &other) {
             using std::swap;
             swap(m_cpu_ptr, other.m_cpu_ptr);
             swap(m_ownership, other.m_ownership);
-        }
-
-        /*
-         * @brief host_storage destructor.
-         */
-        ~host_storage() {
-            if (m_ownership == ownership::Full && m_cpu_ptr)
-                delete[] m_cpu_ptr;
         }
 
         /*
