@@ -99,8 +99,8 @@ namespace gridtools {
             constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
             constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
 
-            const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
-            const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
+            const uint_t threads_i = Backend::n_i_pes(grid.i_high_bound() - grid.i_low_bound());
+            const uint_t threads_j = Backend::n_j_pes(grid.j_high_bound() - grid.j_low_bound());
             // create and return the storage info instance
             return storage_info_t((StorageWrapper::tileI_t::s_tile + 2 * halo_i) * threads_i,
                 colors,
@@ -121,8 +121,8 @@ namespace gridtools {
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.k_max() + 1);
             constexpr uint_t colors = StorageWrapper::arg_t::location_t::n_colors::value;
-            const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
-            const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
+            const uint_t threads_i = Backend::n_i_pes(grid.i_high_bound() - grid.i_low_bound());
+            const uint_t threads_j = Backend::n_j_pes(grid.j_high_bound() - grid.j_low_bound());
 
             constexpr int full_block_size = StorageWrapper::tileI_t::s_tile + 2 * MaxExtent::value;
             constexpr int diff_between_blocks = ((storage_info_t::alignment_t::value > 1)

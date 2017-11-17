@@ -95,40 +95,6 @@ namespace gridtools {
     template < typename T >
     struct if_condition_extract_index_t;
 
-    template < enumtype::platform >
-    struct setup_computation;
-
-    template <>
-    struct setup_computation< enumtype::Cuda > {
-
-        template < typename AggregatorType, typename Grid >
-        static uint_t apply(AggregatorType &aggregator, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT(
-                is_aggregator_type< AggregatorType >::value, GT_INTERNAL_ERROR_MSG("wrong domain type"));
-            GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
-                                        is_arg_storage_pair >::type::value),
-                "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
-            grid.clone_to_device();
-            return GT_NO_ERRORS;
-        }
-    };
-
-    template <>
-    struct setup_computation< enumtype::Host > {
-        template < typename AggregatorType, typename Grid >
-        static uint_t apply(AggregatorType &aggregator, Grid const &grid) {
-            GRIDTOOLS_STATIC_ASSERT(
-                is_aggregator_type< AggregatorType >::value, GT_INTERNAL_ERROR_MSG("wrong domain type"));
-            GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
-                                        is_arg_storage_pair >::type::value),
-                "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
-
-            return GT_NO_ERRORS;
-        }
-    };
-
     /**
      * @brief metafunction that create the mss local domain type
      */
@@ -181,8 +147,8 @@ namespace gridtools {
     template < typename Backend, typename AggregatorType, typename MssComponentsArray >
     struct create_storage_wrapper_list {
         // handle all tmps, obtain the storage_wrapper_list for written tmps
-        typedef typename Backend::template obtain_storage_wrapper_list_t< AggregatorType, MssComponentsArray >::type
-            all_tmps;
+        typedef
+            typename _impl::obtain_storage_wrapper_list_t< Backend, AggregatorType, MssComponentsArray >::type all_tmps;
 
         // for every placeholder we push back an element that is either a new storage_wrapper type
         // for a normal data_store(_field), or in case it is a tmp we get the element out of the all_tmps list.
@@ -535,12 +501,12 @@ namespace gridtools {
             // sync the data stores that should be synced
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
             // fill view list
-            Backend::template instantiate_views< DomainType, view_list_fusion_t >(m_domain, m_view_list);
+            _impl::instantiate_views< Backend >(m_domain.get_arg_storage_pairs(), m_view_list);
             // fill storage_wrapper_list
             boost::fusion::for_each(
                 m_storage_wrapper_list, _impl::initialize_storage_wrappers< view_list_fusion_t >(m_view_list));
             // setup the computation for given backend (e.g., move grid to device)
-            setup_computation< Backend::s_backend_id >::template apply(m_domain, m_grid);
+            Backend::setup_grid(m_grid);
             // instantiate mss_local_domains and wrapped local_domains with the right view_wrappers
             boost::fusion::for_each(m_mss_local_domain_list,
                 _impl::instantiate_mss_local_domain< Backend, storage_wrapper_fusion_list_t, DomainType, IsStateful >(

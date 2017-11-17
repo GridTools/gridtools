@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <boost/fusion/include/move.hpp>
+
 #include "mss_local_domain.hpp"
 #include "tile.hpp"
 
@@ -210,8 +212,8 @@ namespace gridtools {
                     // feed the local domain with a storage info ptr
                     boost::fusion::deref(
                         boost::fusion::find< ld_storage_info_ptr_t >(m_local_domain.m_local_storage_info_ptrs)) =
-                        Backend::template extract_storage_info_ptrs< ms_storage_info_ptr_t, AggregatorType >(
-                            m_aggregator);
+                        Backend::extract_storage_info_ptr(
+                            m_aggregator.metadata_set_view().template get< ms_storage_info_ptr_t >().get());
                 }
             };
 
@@ -321,26 +323,6 @@ namespace gridtools {
             };
         };
 
-        /**
-           \brief defines a method which associates an
-           tmp storage, whose extent depends on an index, to the
-           element in the Temporaries vector at that index position.
-
-           \tparam Temporaries is the vector of temporary placeholder types.
-        */
-        template < uint_t BI, uint_t BJ >
-        struct get_storage_wrapper {
-            template < typename MapElem >
-            struct apply {
-                typedef typename boost::mpl::second< MapElem >::type extent_t;
-                typedef typename boost::mpl::first< MapElem >::type temporary;
-                typedef storage_wrapper< temporary,
-                    typename get_view_t::apply< typename temporary::data_store_t >::type,
-                    tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
-                    tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > > type;
-            };
-        };
-
         /** @brief Functor used to check the consistency of all views */
         template < typename AggregatorType >
         struct check_view_consistency {
@@ -378,6 +360,189 @@ namespace gridtools {
                 typedef typename arg_from_storage_wrapper< T >::type arg_t;
                 t.initialize(boost::fusion::at_key< arg_t >(m_views));
             }
+        };
+
+        template < typename Backend >
+        struct make_view_elem_f {
+            template < typename A, typename DS >
+            auto operator()(const arg_storage_pair< A, DS > &src) const
+                GT_AUTO_RETURN(boost::fusion::make_pair< A >(Backend::make_view(src.m_value)));
+        };
+
+        template < typename Backend, typename Src, typename Dst >
+        static void instantiate_views(const Src &src, Dst &dst) {
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Src, is_arg_storage_pair >::value), GT_INTERNAL_ERROR);
+            boost::fusion::move(boost::fusion::transform(src, make_view_elem_f< Backend >{}), dst);
+        }
+
+        template < typename T1, typename T2 >
+        struct matching {
+            typedef typename boost::is_same< T1, T2 >::type type;
+        };
+
+        template < typename T1, typename T2 >
+        struct contains {
+            typedef typename boost::mpl::fold< T1,
+                boost::mpl::false_,
+                boost::mpl::or_< boost::mpl::_1, matching< boost::mpl::_2, T2 > > >::type type;
+        };
+
+        /**
+         * @brief metafunction that computes the list of extents associated to each functor.
+         * It assumes the temporary is written only by one esf.
+         * TODO This assumption is probably wrong?, a temporary could be written my multiple esf concatenated. The
+         * algorithm
+         * we need to use here is find the maximum extent associated to a temporary instead.
+         * @tparam TempsPerFunctor vector of vectors containing the list of temporaries written per esf
+         * @tparam ExtendSizes extents associated to each esf (i.e. due to read access patterns of later esf's)
+         */
+        template < typename TMap, typename Temp, typename TempsPerFunctor, typename ExtendSizes >
+        struct associate_extents_map {
+            template < typename TTemp >
+            struct is_temp_there {
+                template < typename TempsInEsf >
+                struct apply {
+                    typedef typename contains< TempsInEsf, TTemp >::type type;
+                };
+            };
+
+            typedef typename boost::mpl::find_if< TempsPerFunctor,
+                typename is_temp_there< Temp >::template apply< boost::mpl::_ > >::type iter;
+
+            typedef typename boost::mpl::if_<
+                typename boost::is_same< iter, typename boost::mpl::end< TempsPerFunctor >::type >::type,
+                TMap,
+                typename boost::mpl::insert< TMap,
+                    boost::mpl::pair< Temp, typename boost::mpl::at< ExtendSizes, typename iter::pos >::type > >::
+                    type >::type type;
+        };
+
+        /**
+         * @brief metafunction that computes the map of all the temporaries and their associated ij extents
+         * @tparam AggregatorType domain type containing the placeholders for all storages (including temporaries)
+         * @tparam MssComponents the mss components of the MSS
+         * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
+         *      defined for the different functors of a MSS.
+         */
+        template < typename AggregatorType, typename MssComponents >
+        struct obtain_map_extents_temporaries_mss {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
+            typedef typename MssComponents::extent_sizes_t ExtendSizes;
+
+            // filter all the temporary args
+            typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
+                boost::mpl::vector0<>,
+                boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
+                                                   boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
+                                                   boost::mpl::_1 > >::type list_of_temporaries;
+
+            // vector of written temporaries per functor (vector of vectors)
+            typedef typename MssComponents::written_temps_per_functor_t written_temps_per_functor_t;
+
+            typedef typename boost::mpl::fold< list_of_temporaries,
+                boost::mpl::map0<>,
+                associate_extents_map< boost::mpl::_1, boost::mpl::_2, written_temps_per_functor_t, ExtendSizes > >::
+                type type;
+        };
+
+        /**
+         * @brief metafunction that merges two maps of <temporary, ij extent>
+         * The merge is performed by computing the union of all the extents found associated
+         * to the same temporary, i.e. the enclosing extent.
+         * @tparam extent_map1 first map to merge
+         * @tparam extent_map2 second map to merge
+          */
+        template < typename extent_map1, typename extent_map2 >
+        struct merge_extent_temporary_maps {
+            typedef typename boost::mpl::fold<
+                extent_map1,
+                extent_map2,
+                boost::mpl::if_< boost::mpl::has_key< extent_map2, boost::mpl::first< boost::mpl::_2 > >,
+                    boost::mpl::insert< boost::mpl::_1,
+                                     boost::mpl::pair< boost::mpl::first< boost::mpl::_2 >,
+                                            enclosing_extent< boost::mpl::second< boost::mpl::_2 >,
+                                                           boost::mpl::at< extent_map2,
+                                                                  boost::mpl::first< boost::mpl::_2 > > > > >,
+                    boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > >::type type;
+        };
+
+        /**
+         * @brief metafunction that computes the map of all the temporaries and their associated ij extents
+         * for all the Mss components in an array (corresponding to a Computation)
+         * @tparam AggregatorType domain type containing the placeholders for all storages (including temporaries)
+         * @tparam MssComponentsArray meta array of the mss components of all MSSs
+         * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
+         *      defined for the temporary in all MSSs.
+         */
+        template < typename AggregatorType, typename MssComponentsArray >
+        struct obtain_map_extents_temporaries_mss_array {
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+
+            typedef typename boost::mpl::fold<
+                typename MssComponentsArray::elements,
+                boost::mpl::map0<>,
+                merge_extent_temporary_maps< boost::mpl::_1,
+                    obtain_map_extents_temporaries_mss< AggregatorType, boost::mpl::_2 > > >::type type;
+        };
+
+        template < typename AggregatorType, typename MssArray1, typename MssArray2, typename Cond >
+        struct obtain_map_extents_temporaries_mss_array< AggregatorType, condition< MssArray1, MssArray2, Cond > > {
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+
+            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray1 >::type type1;
+            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray2 >::type type2;
+            typedef
+                typename boost::mpl::fold< type2, type1, boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type
+                    type;
+        };
+
+        /**
+           \brief defines a method which associates an
+           tmp storage, whose extent depends on an index, to the
+           element in the Temporaries vector at that index position.
+        */
+        template < uint_t BI, uint_t BJ >
+        struct get_storage_wrapper {
+            template < typename MapElem >
+            struct apply {
+                typedef typename boost::mpl::second< MapElem >::type extent_t;
+                typedef typename boost::mpl::first< MapElem >::type temporary;
+                typedef storage_wrapper< temporary,
+                    typename get_view_t::apply< typename temporary::data_store_t >::type,
+                    tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
+                    tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > > type;
+            };
+        };
+
+        /**
+         * @brief compute a list with all the storage_wrappers
+         * @tparam AggregatorType domain
+         * @tparam MssComponentsArray meta array of mss components
+         */
+        template < typename Backend, typename AggregatorType, typename MssComponentsArray >
+        struct obtain_storage_wrapper_list_t {
+
+            GRIDTOOLS_STATIC_ASSERT((is_condition< MssComponentsArray >::value ||
+                                        is_meta_array_of< MssComponentsArray, is_mss_components >::value),
+                GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
+
+            using block_size_t = typename Backend::block_size_t;
+
+            static const uint_t tileI = block_size_t::i_size_t::value;
+            static const uint_t tileJ = block_size_t::j_size_t::value;
+
+            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssComponentsArray >::type
+                map_of_extents;
+
+            typedef typename boost::mpl::fold<
+                map_of_extents,
+                boost::mpl::vector0<>,
+                boost::mpl::push_back< boost::mpl::_1,
+                    typename get_storage_wrapper< tileI, tileJ >::template apply< boost::mpl::_2 > > >::type type;
         };
 
     } // namespace _impl
