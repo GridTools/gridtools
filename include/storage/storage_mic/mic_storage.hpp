@@ -151,9 +151,9 @@ namespace gridtools {
         bool device_needs_update_impl() const { return false; }
 
         /*
-         * @brief mic_needs_update implementation for mic_storage.
+         * @brief host_needs_update implementation for mic_storage.
          */
-        bool mic_needs_update_impl() const { return false; }
+        bool host_needs_update_impl() const { return false; }
 
         /*
          * @brief reactivate_device_write_views implementation for mic_storage.
