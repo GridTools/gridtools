@@ -56,6 +56,8 @@ using namespace enumtype;
 
 #ifdef __CUDACC__
 #define GT_ARCH Cuda
+#elif defined(__AVX512F__)
+#define GT_ARCH Mic
 #else
 #define GT_ARCH Host
 #endif

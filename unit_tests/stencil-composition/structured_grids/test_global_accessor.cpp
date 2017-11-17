@@ -45,6 +45,9 @@ using namespace enumtype;
 #ifdef __CUDACC__
 typedef backend< Cuda, structured, Block > backend_t;
 typedef storage_traits< Cuda > storage_traits_t;
+#elif defined(__AVX512F__)
+typedef backend< Mic, structured, Block > backend_t;
+typedef storage_traits< Mic > storage_traits_t;
 #else
 typedef backend< Host, structured, Naive > backend_t;
 typedef storage_traits< Host > storage_traits_t;

@@ -78,6 +78,8 @@ GT_FUNCTION float_type droplet_(uint_t i, uint_t j, DX dx, DY dy, H height) {
 
 #ifdef __CUDACC__
 #define BACKEND_ARCH Cuda
+#elif defined(__AVX512F__)
+#define BACKEND_ARCH Mic
 #else
 #define BACKEND_ARCH Host
 #endif

@@ -59,6 +59,10 @@ class test_expressions : public testing::Test {
 #ifdef __CUDACC__
 #define BACKEND_ARCH Cuda
 #define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#elif defined(__AVX512F__)
+#define BACKEND_ARCH Mic
+#define BACKEND backend< Mic, GRIDBACKEND, Block >
 #else
 #define BACKEND_ARCH Host
 #ifdef BACKEND_BLOCK

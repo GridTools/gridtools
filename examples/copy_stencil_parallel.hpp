@@ -62,6 +62,8 @@ using namespace enumtype;
 
 #ifdef __CUDACC__
 #define BACKEND_ARCH Cuda
+#elif defined(__AVX512F__)
+#define BACKEND_ARCH Mic
 #else
 #define BACKEND_ARCH Host
 #endif

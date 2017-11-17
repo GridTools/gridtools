@@ -130,6 +130,21 @@ namespace gridtools {
         }
     };
 
+    template <>
+    struct setup_computation< enumtype::Mic > {
+        template < typename AggregatorType, typename Grid >
+        static uint_t apply(AggregatorType &aggregator, Grid const &grid) {
+            GRIDTOOLS_STATIC_ASSERT(
+                is_aggregator_type< AggregatorType >::value, GT_INTERNAL_ERROR_MSG("wrong domain type"));
+            GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
+                                        is_arg_storage_pair >::type::value),
+                "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
+
+            return GT_NO_ERRORS;
+        }
+    };
+
     /**
      * @brief metafunction that create the mss local domain type
      */

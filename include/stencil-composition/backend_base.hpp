@@ -45,6 +45,8 @@
 
 #ifdef __CUDACC__
 #include "./backend_cuda/backend_cuda.hpp"
+#elif defined(__AVX512F__)
+#include "./backend_mic/backend_mic.hpp"
 #else
 #include "./backend_host/backend_host.hpp"
 #endif

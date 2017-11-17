@@ -45,6 +45,8 @@ namespace test_copy_stencil_icosahedral {
 
 #ifdef __CUDACC__
 #define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
+#elif defined(__AVX512F__)
+#define BACKEND backend< enumtype::Mic, GRIDBACKEND, enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
 #define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Block >

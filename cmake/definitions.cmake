@@ -32,9 +32,9 @@ if(Boost_FOUND)
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-if(NOT USE_GPU)
+if(NOT USE_GPU AND NOT USE_MIC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
-endif(NOT USE_GPU)
+endif()
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
@@ -92,6 +92,15 @@ if( USE_GPU )
 else()
   set (CUDA_LIBRARIES "")
 endif()
+
+if( USE_MIC )
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xmic-avx512")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=knl -mtune=knl")
+    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_MIC_")
+endif( USE_MIC )
 
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
