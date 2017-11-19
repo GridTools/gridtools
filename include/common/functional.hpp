@@ -66,8 +66,8 @@ namespace gridtools {
 
     struct identity {
         template < typename Arg >
-        Arg operator()(Arg &&arg) {
-            return std::forward< Arg >(arg);
+        Arg operator()(Arg &&arg) const {
+            return arg;
         }
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
