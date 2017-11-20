@@ -35,7 +35,11 @@
 */
 #pragma once
 
+#include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/move.hpp>
+
+#include "common/generic_metafunctions/copy_into_set.hpp"
+#include "common/make_from_permutation.hpp"
 
 #include "mss_local_domain.hpp"
 #include "tile.hpp"
@@ -181,6 +185,48 @@ namespace gridtools {
 
     namespace _impl {
 
+        template < typename ArgStoragePair >
+        struct get_arg;
+
+        template < typename A, typename D >
+        struct get_arg< arg_storage_pair< A, D > > {
+            static_assert(is_arg< A >{}, "fuck");
+            using type = A;
+        };
+
+        template < typename ArgStoragePair >
+        struct get_meta_ptr {
+            using type = typename ArgStoragePair::arg_t::data_store_t::storage_info_t const *;
+        };
+
+        template < typename ArgStoragePairs >
+        using get_storage_info_ptrs_t = typename boost::fusion::result_of::as_set<
+            typename copy_into_set< boost::mpl::transform_view< ArgStoragePairs, get_meta_ptr< boost::mpl::_ > >,
+                boost::mpl::set0<> >::type >::type;
+
+        struct get_data_store_f {
+            template < typename S, typename SI >
+            data_store< S, SI > const &operator()(data_store< S, SI > const &src) const {
+                return src;
+            }
+            template < typename S, uint_t... N >
+            S const &operator()(data_store_field< S, N... > const &src) const {
+                return src.template get< 0, 0 >();
+            }
+        };
+
+        struct get_storage_info_ptr_f {
+            template < typename Src >
+            auto operator()(Src const &src) const
+                GT_AUTO_RETURN(get_data_store_f{}(src.m_value).get_storage_info_ptr().get());
+        };
+
+        template < typename ArgStoragePairs, typename Res = get_storage_info_ptrs_t< ArgStoragePairs > >
+        Res get_storage_info_ptrs(ArgStoragePairs const &src) {
+            return make_from_permutation< Res >(
+                boost::fusion::as_vector(boost::fusion::transform(src, get_storage_info_ptr_f{})));
+        }
+
         /** @brief Functor used to instantiate the local domains to be passed to each
             elementary stencil function */
         template < typename Backend, typename StorageWrapperFusionVec, typename AggregatorType, bool IsStateful >
@@ -201,19 +247,16 @@ namespace gridtools {
                     // storage_info type that should be in the local domain
                     typedef typename boost::add_pointer< typename boost::add_const<
                         typename StorageWrapper::storage_info_t >::type >::type ld_storage_info_ptr_t;
-                    // storage_info type that should be in the metadata_set
-                    typedef gridtools::pointer< const typename StorageWrapper::storage_info_t > ms_storage_info_ptr_t;
                     // get the correct storage wrapper from the list of all storage wrappers
                     auto sw = boost::fusion::deref(boost::fusion::find< StorageWrapper >(m_storage_wrappers));
                     // feed the local domain with data ptrs
                     sw.assign(boost::fusion::deref(boost::fusion::find< typename StorageWrapper::arg_t >(
                                                        m_local_domain.m_local_data_ptrs))
                                   .second);
-                    // feed the local domain with a storage info ptr
                     boost::fusion::deref(
                         boost::fusion::find< ld_storage_info_ptr_t >(m_local_domain.m_local_storage_info_ptrs)) =
-                        Backend::extract_storage_info_ptr(
-                            m_aggregator.metadata_set_view().template get< ms_storage_info_ptr_t >().get());
+                        Backend::extract_storage_info_ptr(boost::fusion::at_key< ld_storage_info_ptr_t >(
+                            get_storage_info_ptrs(m_aggregator.get_arg_storage_pairs())));
                 }
             };
 

@@ -296,11 +296,11 @@ namespace gridtools {
                iteration when a `true` is returned, so the iteration
                returns `false` when the check passes.
 
-               \tparam The type element of a metadata_set which is a gridtools::pointer to a metadata
-               \param mde The element of a metadata_set which is a gridtools::pointer to a metadata
+               \tparam The type element of a metadata set which is a pointer to a metadata
+               \param mde The element of a metadata set which is a pointer to a metadata
              */
             template < typename MetaDataElem >
-            bool operator()(MetaDataElem const &mde) const {
+            bool operator()(MetaDataElem const *mde) const {
                 bool result = true;
 
                 // Here we need to use the at_ interface instead of
@@ -323,15 +323,15 @@ namespace gridtools {
                 // simple cases). This is why the check is left as
                 // before here, but may be updated with more accurate
                 // ones when the convention is updated
-                if (MetaDataElem::value_type::layout_t::template at_< GridTraits::dim_k_t::value >::value >= 0) {
+                if (MetaDataElem::layout_t::template at_< GridTraits::dim_k_t::value >::value >= 0) {
                     result = result && (grid.k_max() + 1 <= mde->template dim< GridTraits::dim_k_t::value >());
                 }
 
-                if (MetaDataElem::value_type::layout_t::template at_< GridTraits::dim_j_t::value >::value >= 0) {
+                if (MetaDataElem::layout_t::template at_< GridTraits::dim_j_t::value >::value >= 0) {
                     result = result && (grid.j_high_bound() + 1 <= mde->template dim< GridTraits::dim_j_t::value >());
                 }
 
-                if (MetaDataElem::value_type::layout_t::template at_< GridTraits::dim_i_t::value >::value >= 0) {
+                if (MetaDataElem::layout_t::template at_< GridTraits::dim_i_t::value >::value >= 0) {
                     result = result && (grid.i_high_bound() + 1 <= mde->template dim< GridTraits::dim_i_t::value >());
                 }
 
@@ -355,7 +355,7 @@ namespace gridtools {
     */
     template < typename GridTraits, typename Grid, typename Aggregator >
     void check_fields_sizes(Grid const &grid, Aggregator const &aggr) {
-        auto metadata_view = aggr.metadata_set_view().sequence_view();
+        auto metadata_view = _impl::get_storage_info_ptrs(aggr.get_arg_storage_pairs());
         bool is_wrong = boost::fusion::any(metadata_view, _impl::check_with< GridTraits, Grid >(grid));
         if (is_wrong) {
             throw std::runtime_error(

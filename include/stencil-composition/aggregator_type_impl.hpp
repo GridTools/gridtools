@@ -53,53 +53,7 @@
 #include "arg.hpp"
 #include "../storage/storage-facility.hpp"
 
-template < typename RegularStorageType >
-struct no_storage_type_yet;
-
 namespace gridtools {
-
-    namespace _debug {
-        struct print_type {
-            template < typename T >
-            typename boost::enable_if_c< is_pointer< T >::value, void >::type operator()(T const &t) const {
-                std::cout << boost::typeindex::type_id< T >().pretty_name() << std::endl;
-                std::cout << t.get() << "\n---\n";
-            }
-
-            template < typename T >
-            typename boost::enable_if_c< (is_arg_storage_pair< T >::value &&
-                                             is_data_store< typename T::data_store_t >::value),
-                void >::type
-            operator()(T const &t) const {
-                std::cout << boost::typeindex::type_id< typename T::data_store_t >().pretty_name() << std::endl;
-                std::cout << t.m_value.m_name << "\n---\n";
-            }
-
-            template < typename T >
-            typename boost::enable_if_c< (is_arg_storage_pair< T >::value &&
-                                             is_vector< typename T::data_store_t >::value),
-                void >::type
-            operator()(T const &t) const {
-                std::cout << boost::typeindex::type_id< typename T::data_store_t >().pretty_name() << std::endl;
-                for (unsigned i = 0; i < t.m_value.size(); ++i) {
-                    std::cout << "\t" << &t.m_value[i] << " -> " << t.m_value[i].get_storage_ptr().get() << std::endl;
-                }
-            }
-
-            template < typename T >
-            typename boost::enable_if_c< is_arg_storage_pair< T >::value &&
-                                             is_data_store_field< typename T::data_store_t >::value,
-                void >::type
-            operator()(T const &t) const {
-                std::cout << boost::typeindex::type_id< typename T::data_store_t >().pretty_name() << std::endl;
-                for (auto &e : t.m_value.get_field()) {
-                    auto *ptr = e.get_storage_ptr().get();
-                    std::cout << "\t" << &e << " -> " << ptr << std::endl;
-                }
-            }
-        };
-    }
-
     namespace _impl {
 
         // metafunction that checks if argument is a suitable aggregator element (only arg_storage_pair)
@@ -150,41 +104,6 @@ namespace gridtools {
         struct create_arg_storage_pair_type {
             GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR_MSG("The given type is not an arg type"));
             typedef arg_storage_pair< Arg, typename Arg::data_store_t > type;
-        };
-
-        /** Metafunction class.
-         *  This class is filling a storage_info_set with pointers from given storages (data_store, data_store_field,
-         * std::vector)
-         */
-        template < typename MetaDataSet >
-        struct add_to_metadata_set {
-            MetaDataSet &m_dst;
-
-            // specialization for std::vector (expandable param)
-            template < typename T >
-            void operator()(const std::vector< T > &src) const {
-                if (!src.empty())
-                    (*this)(src.front());
-            }
-
-            // specialization for data store type
-            template < typename S, typename SI >
-            void operator()(const data_store< S, SI > &src) const {
-                GRIDTOOLS_STATIC_ASSERT((is_storage_info< SI >::value), GT_INTERNAL_ERROR);
-                if (auto &&ptr = src.get_storage_info_ptr())
-                    m_dst.insert(make_pointer(*ptr));
-            }
-
-            // specialization for data store field type
-            template < typename S, uint_t... N >
-            void operator()(const data_store_field< S, N... > &src) const {
-                (*this)(src.template get< 0, 0 >());
-            }
-
-            template < typename Arg, typename DataStoreType >
-            void operator()(const arg_storage_pair< Arg, DataStoreType > &src) const {
-                (*this)(src.m_value);
-            }
         };
 
         template < typename Lhs, typename Rhs >
