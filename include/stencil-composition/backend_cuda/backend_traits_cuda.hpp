@@ -82,8 +82,7 @@ namespace gridtools {
             template < typename S, typename SI >
             auto operator()(data_store< S, SI > const &src) const GT_AUTO_RETURN(make_device_view(src));
             template < typename S, uint_t... N >
-            auto operator()(is_data_store_field< S, N... > const &src) const
-                GT_AUTO_RETURN(make_field_device_view(src));
+            auto operator()(data_store_field< S, N... > const &src) const GT_AUTO_RETURN(make_field_device_view(src));
         };
 
         template < typename Arguments >

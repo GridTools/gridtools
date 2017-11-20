@@ -205,8 +205,8 @@ namespace gridtools {
                 boost::mpl::set0<> >::type >::type;
 
         struct get_data_store_f {
-            template < typename S, typename SI >
-            data_store< S, SI > const &operator()(data_store< S, SI > const &src) const {
+            template < typename S >
+            S const &operator()(S const &src) const {
                 return src;
             }
             template < typename S, uint_t... N >

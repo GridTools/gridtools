@@ -378,11 +378,10 @@ namespace gridtools {
         bool IsStateful,
         uint_t RepeatFunctor >
     struct intermediate : public computation< DomainType, ReductionType > {
-        // fix the temporaries by replacing the given storage info index with a new one
-        // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
 
         using base_t = computation< DomainType, ReductionType >;
 
+        // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
         typedef
             typename fix_mss_arg_indices< MssDescriptorArrayIn, DomainType, RepeatFunctor >::type MssDescriptorArray;
 
