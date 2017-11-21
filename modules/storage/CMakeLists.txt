@@ -57,6 +57,10 @@ target_link_libraries( gridtools_common INTERFACE ${GRIDTOOLS_LINK_LIBRARIES} )
 add_library( gridtools_storage INTERFACE )
 target_link_libraries( gridtools_storage INTERFACE gridtools_common )
 
+## gridtools_storage_files target to visualise files in IDE's ##
+file( GLOB_RECURSE src ${GRIDTOOLS_SOURCE_DIR}/include * )
+add_custom_target( gridtools_storage_files SOURCES ${src} )
+
 # =============
 # Summary
 # =============
