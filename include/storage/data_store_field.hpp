@@ -275,12 +275,11 @@ namespace gridtools {
         static void by(data_store_field< T, N... > &data_field) {
             GRIDTOOLS_STATIC_ASSERT((is_data_store_field< data_store_field< T, N... > >::value),
                 GT_INTERNAL_ERROR_MSG("Passed type is no data_store_field type."));
-            const int size = get_value_from_pack(Dim, N...);
-            if (F % size == 0)
-                return;
-            // cycle with only using swaps, no temporaries
-            const int f = ((F % size) + size) % size;
-            for (int j = 1; j < size / f; ++j) {
+            constexpr int size = get_value_from_pack(Dim, N...);
+            // cycle with only swaps, no temporaries
+            constexpr int f = ((F % size) + size) % size;
+            constexpr int sf = (f == 0) ? 0 : size / f;
+            for (int j = 1; j < sf; ++j) {
                 for (int i = 0; i < f; ++i) {
                     auto &a = data_field.get(Dim, i);
                     auto &b = data_field.get(Dim, j * f + i);
@@ -289,7 +288,7 @@ namespace gridtools {
             }
             for (int i = 0; i < f; ++i) {
                 auto &a = data_field.get(Dim, i);
-                auto &b = data_field.get(Dim, ((size / f) * f + i) % size);
+                auto &b = data_field.get(Dim, (sf * f + i) % size);
                 a.get_storage_ptr()->swap(*b.get_storage_ptr());
             }
         }
