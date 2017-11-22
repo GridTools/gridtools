@@ -181,16 +181,19 @@ namespace gridtools {
      * conditions application.
      *
      * \tparam BCApply The class name with boudary condition functions applied by gridtools::boundary
-     * \tparam DataStored Tuple type of data stores (or placeholders) to be passed for boundary condition application
+     * \tparam DataStores Tuple type of data stores (or placeholders) to be passed for boundary condition application
      * \tparam ExcStores Tuple type for data stores that require halo-update operations
      */
     template < typename BCApply, typename DataStores, typename ExcStores >
-    struct bound_bc {
+    struct bound_bc;
+
+    template < typename BCApply, typename... DataStores, typename... ExcStores >
+    struct bound_bc< BCApply, std::tuple< DataStores... >, std::tuple< ExcStores... > > {
         using boundary_class = BCApply;
         boundary_class m_bcapply;
-        using stores_type = DataStores;
+        using stores_type = std::tuple< DataStores... >;
         stores_type m_stores;
-        using exc_stores_type = ExcStores;
+        using exc_stores_type = std::tuple< ExcStores... >;
         exc_stores_type m_exc_stores;
 
         /**
