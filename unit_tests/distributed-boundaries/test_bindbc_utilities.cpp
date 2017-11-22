@@ -35,7 +35,7 @@
 */
 
 #include "gtest/gtest.h"
-#include <distributed-boundaries/binded_bc.hpp>
+#include <distributed-boundaries/bound_bc.hpp>
 
 using namespace std::placeholders;
 namespace gt = gridtools;

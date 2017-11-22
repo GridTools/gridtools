@@ -185,7 +185,7 @@ namespace gridtools {
      * \tparam ExcStores Tuple type for data stores that require halo-update operations
      */
     template < typename BCApply, typename DataStores, typename ExcStores >
-    struct binded_bc {
+    struct bound_bc {
         using boundary_class = BCApply;
         boundary_class m_bcapply;
         using stores_type = DataStores;
@@ -198,7 +198,7 @@ namespace gridtools {
          * template argument list to the corresponding data members
          */
 
-        binded_bc(BCApply bca, stores_type stores_list, exc_stores_type exc_stores_list)
+        bound_bc(BCApply bca, stores_type stores_list, exc_stores_type exc_stores_list)
             : m_bcapply{bca}, m_stores{stores_list}, m_exc_stores{exc_stores_list} {}
 
         /**
@@ -219,8 +219,8 @@ namespace gridtools {
         boundary_class boundary_to_apply() const { return m_bcapply; }
 
         /**
-         * @brief In the case in which the DataStores passed as template to the binded_bc class
-         * contains placeholders, this member function will return a binded_bc object in which
+         * @brief In the case in which the DataStores passed as template to the bound_bc class
+         * contains placeholders, this member function will return a bound_bc object in which
          * the placeholders have been substituted with the data stores in the corresponding
          * position. These data stores will not be passed to the halo-update operation, thus
          * implementing a separation between read-only data stores and the others.
@@ -229,7 +229,7 @@ namespace gridtools {
          * \param ro_stores Variadic pack with the data stores to associate to placeholders
          */
         template < typename... ReadOnly >
-        auto associate(ReadOnly... ro_stores) const -> binded_bc< BCApply,
+        auto associate(ReadOnly... ro_stores) const -> bound_bc< BCApply,
             decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
                 m_stores,
                 typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(m_stores) >::value >::type{})),
@@ -241,17 +241,16 @@ namespace gridtools {
                 typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(m_stores) >::value >::type{});
             auto without_plcs = _impl::remove_placeholders(m_stores);
 
-            return binded_bc< BCApply, decltype(full_list), decltype(without_plcs) >(
-                m_bcapply, full_list, without_plcs);
+            return bound_bc< BCApply, decltype(full_list), decltype(without_plcs) >(m_bcapply, full_list, without_plcs);
         }
     };
 
     /**
-     * @brief Free-standing function used to construcs a gridtools::binded_bc object, which is
+     * @brief Free-standing function used to construcs a gridtools::bound_bc object, which is
      * used to run boundary condition application and halo-update operations.
      *
      * If the DataStores provided are std::placeholders, a subsequent call to
-     * gridtools::binded_bc::associate to substitute the placeholders with data stores
+     * gridtools::bound_bc::associate to substitute the placeholders with data stores
      * that will be then excluded by halo-update operations.
      *
      * \tparam BCApply Boundary condition class (usually deduced)
@@ -262,20 +261,20 @@ namespace gridtools {
      * \param stores Parameter pack with the data stores or placeholders (std::placeholders hosuld be used)
      */
     template < typename BCApply, typename... DataStores >
-    binded_bc< BCApply, std::tuple< DataStores... >, std::tuple< DataStores... > > bind_bc(
+    bound_bc< BCApply, std::tuple< DataStores... >, std::tuple< DataStores... > > bind_bc(
         BCApply bc_apply, DataStores... stores) {
         return {bc_apply, std::make_tuple(stores...), std::make_tuple(stores...)};
     }
 
-    /** @brief Metafunctions to query if a type is a binded_bc
+    /** @brief Metafunctions to query if a type is a bound_bc
     */
     template < typename T >
-    struct is_binded_bc {
+    struct is_bound_bc {
         static constexpr bool value = false;
     };
 
     template < typename... T >
-    struct is_binded_bc< binded_bc< T... > > {
+    struct is_bound_bc< bound_bc< T... > > {
         static constexpr bool value = true;
     };
 

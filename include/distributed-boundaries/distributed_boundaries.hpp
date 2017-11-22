@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "./binded_bc.hpp"
+#include "./bound_bc.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
 #include "../gridtools.hpp"
@@ -78,11 +78,11 @@ namespace gridtools {
         perform boundary conditions and communications in a single call.
 
         After construction a call to gridtools::distributed_boundaries::exchange takes
-        a list of gridtools::data_store or girdtools::binded_bc. The data stores will be
+        a list of gridtools::data_store or girdtools::bound_bc. The data stores will be
         directly used in communication primitives for performing halo_update operation,
-        while binded_bc elements will be priocessed by exracting the data stores that need
+        while bound_bc elements will be priocessed by exracting the data stores that need
         communication and others that will go through boundary condition application as
-        specified in the binded_bc class.
+        specified in the bound_bc class.
 
         Example of use (where `a`, `b`, `c`, and `d` are of data_store type:
         \verbatim
@@ -141,9 +141,9 @@ namespace gridtools {
 
         /**
             @brief Member function to perform boundary condition and communication on a list of jobs.
-            A job is either a gridtools::data_store to be used during communication or a gridtools::binded_bc
+            A job is either a gridtools::data_store to be used during communication or a gridtools::bound_bc
             to apply boundary conditions and halo_update operations for the data_stores that are not input-only
-            (that will be indicated with the gridtools::binded_bc::associate member function.)
+            (that will be indicated with the gridtools::bound_bc::associate member function.)
 
             \param jobs Variadic list of jobs
         */
@@ -176,7 +176,7 @@ namespace gridtools {
         }
 
         template < typename BCApply >
-        typename std::enable_if< is_binded_bc< BCApply >::value, void >::type apply_boundary(BCApply bcapply) {
+        typename std::enable_if< is_bound_bc< BCApply >::value, void >::type apply_boundary(BCApply bcapply) {
             /*Apply boundary to data*/
             call_apply(boundary< typename BCApply::boundary_class,
                            CTraits::compute_arch,
@@ -189,20 +189,20 @@ namespace gridtools {
         }
 
         template < typename BCApply >
-        typename std::enable_if< not is_binded_bc< BCApply >::value, void >::type apply_boundary(BCApply) {
+        typename std::enable_if< not is_bound_bc< BCApply >::value, void >::type apply_boundary(BCApply) {
             /* do nothing for a pure data_store*/
         }
 
         template < typename FirstJob >
         auto collect_stores(
-            FirstJob firstjob, typename std::enable_if< is_binded_bc< FirstJob >::value, void * >::type = nullptr)
+            FirstJob firstjob, typename std::enable_if< is_bound_bc< FirstJob >::value, void * >::type = nullptr)
             -> decltype(firstjob.exc_stores()) {
             return firstjob.exc_stores();
         }
 
         template < typename FirstJob >
         auto collect_stores(
-            FirstJob first_job, typename std::enable_if< not is_binded_bc< FirstJob >::value, void * >::type = nullptr)
+            FirstJob first_job, typename std::enable_if< not is_bound_bc< FirstJob >::value, void * >::type = nullptr)
             -> decltype(std::make_tuple(first_job)) {
             return std::make_tuple(first_job);
         }
