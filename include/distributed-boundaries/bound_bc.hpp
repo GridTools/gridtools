@@ -201,8 +201,8 @@ namespace gridtools {
          * template argument list to the corresponding data members
          */
 
-        bound_bc(BCApply bca, stores_type stores_list, exc_stores_type exc_stores_list)
-            : m_bcapply{bca}, m_stores{stores_list}, m_exc_stores{exc_stores_list} {}
+        bound_bc(BCApply bca, stores_type &&stores_list, exc_stores_type &&exc_stores_list)
+            : m_bcapply{bca}, m_stores{std::move(stores_list)}, m_exc_stores{std::move(exc_stores_list)} {}
 
         /**
          * @brief Function to retrieve the tuple of data stores to pass to the the boundary
@@ -244,7 +244,8 @@ namespace gridtools {
                 typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(m_stores) >::value >::type{});
             auto without_plcs = _impl::remove_placeholders(m_stores);
 
-            return bound_bc< BCApply, decltype(full_list), decltype(without_plcs) >(m_bcapply, full_list, without_plcs);
+            return bound_bc< BCApply, decltype(full_list), decltype(without_plcs) >(
+                m_bcapply, std::move(full_list), std::move(without_plcs));
         }
     };
 
