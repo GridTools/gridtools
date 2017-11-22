@@ -190,12 +190,15 @@ namespace gridtools {
     template < typename BCApply, typename... DataStores, typename... ExcStores >
     struct bound_bc< BCApply, std::tuple< DataStores... >, std::tuple< ExcStores... > > {
         using boundary_class = BCApply;
-        boundary_class m_bcapply;
         using stores_type = std::tuple< DataStores... >;
-        stores_type m_stores;
         using exc_stores_type = std::tuple< ExcStores... >;
+
+      private:
+        boundary_class m_bcapply;
+        stores_type m_stores;
         exc_stores_type m_exc_stores;
 
+      public:
         /**
          * @brief Constructor to associate the objects whose types are listed in the
          * template argument list to the corresponding data members
@@ -208,18 +211,18 @@ namespace gridtools {
          * @brief Function to retrieve the tuple of data stores to pass to the the boundary
          * condition class
          */
-        stores_type stores() const { return m_stores; }
+        stores_type const &stores() const { return m_stores; }
 
         /**
          * @brief Function to retrieve the tuple of data stores to pass to the the halo-update
          * communication pattern
          */
-        exc_stores_type exc_stores() const { return m_exc_stores; }
+        exc_stores_type const &exc_stores() const { return m_exc_stores; }
 
         /**
          * @brief Function to retrieve the boundary condition application class
          */
-        boundary_class boundary_to_apply() const { return m_bcapply; }
+        boundary_class const &boundary_to_apply() const { return m_bcapply; }
 
         /**
          * @brief In the case in which the DataStores passed as template to the bound_bc class
