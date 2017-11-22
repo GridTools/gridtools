@@ -172,9 +172,6 @@ namespace copy_stencil {
 
             bool success = verify();
 
-#ifdef BENCHMARK
-            benchmarker::run(copy, t_steps);
-#endif
             copy->finalize();
 
             return success;
