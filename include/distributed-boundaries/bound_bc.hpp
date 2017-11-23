@@ -168,14 +168,40 @@ namespace gridtools {
                 rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{}));
         }
 
+        template < typename T >
+        constexpr bool data_store_or_placeholder(
+            typename std::enable_if< (is_data_store< T >::value or (std::is_placeholder< T >::value > 0)),
+                void * >::type = nullptr) {
+            return true;
+        }
+
+        template < typename T >
+        constexpr bool data_store_or_placeholder(
+            typename std::enable_if< not(is_data_store< T >::value or (std::is_placeholder< T >::value > 0)),
+                void * >::type = nullptr) {
+            return false;
+        }
+
+        constexpr bool _and() { return true; }
+
+        template < typename First, typename... Bs >
+        constexpr bool _and(First f, Bs... bs) {
+            return f and _and(bs...);
+        }
+
+        template < typename... Stores >
+        constexpr bool data_stores_or_placeholders() {
+            return _and(data_store_or_placeholder< Stores >()...);
+        }
+
     } // namespace _impl
 
     /**
-     * @brief class to associate data stores to gridtools::boundary class for
+     * @brief class to associate data store to gridtools::boundary class for
      * boundary condition class, and explicitly keeps a list of data stores to
      * use in halo-update opetrations.
      *
-     * User is not supposed to instantiate this class explicitly but insted
+     * User is not supposed to instantiate this class explicitly but instead
      * gridtools::bind_bc function, which is a maker, will be used to indicate
      * the boundary conditions to be applied in a distributed boundary
      * conditions application.
@@ -270,6 +296,11 @@ namespace gridtools {
     template < typename BCApply, typename... DataStores >
     bound_bc< BCApply, std::tuple< DataStores... >, std::tuple< DataStores... > > bind_bc(
         BCApply bc_apply, DataStores... stores) {
+
+        // Concept checking on BCApply is not ready yet.
+        // Check that the stores... are either data stores or placeholders
+        GRIDTOOLS_STATIC_ASSERT(_impl::data_stores_or_placeholders< DataStores... >(),
+            "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
         return {bc_apply, std::make_tuple(stores...), std::make_tuple(stores...)};
     }
 

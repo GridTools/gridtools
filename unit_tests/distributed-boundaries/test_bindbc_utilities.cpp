@@ -36,6 +36,9 @@
 
 #include "gtest/gtest.h"
 #include <distributed-boundaries/bound_bc.hpp>
+#include <storage/data_store.hpp>
+#include <storage/storage_host/host_storage.hpp>
+#include <storage/storage_host/host_storage_info.hpp>
 
 using namespace std::placeholders;
 namespace gt = gridtools;
@@ -67,6 +70,18 @@ TEST(DistributedBoundaries, RestTuple) {
         tup, typename gt::make_gt_integer_sequence< gt::uint_t, std::tuple_size< decltype(tup) >::value - 1 >::type{});
 
     EXPECT_EQ(rest, (std::tuple< int, int, int, int >(2, 3, 4, 5)));
+}
+
+TEST(DistributedBoundaries, DataStoreOrPlc) {
+    typedef gt::host_storage_info< 0, gt::layout_map< 0, 1, 2 > > storage_info_t;
+    using ds = gt::data_store< gt::host_storage< double >, storage_info_t >;
+
+    EXPECT_EQ((gt::_impl::data_stores_or_placeholders< decltype(_1), decltype(_2) >()), true);
+    EXPECT_EQ((gt::_impl::data_stores_or_placeholders< ds, ds >()), true);
+    EXPECT_EQ((gt::_impl::data_stores_or_placeholders< decltype(_1), ds, decltype(_2), ds >()), true);
+    EXPECT_EQ((gt::_impl::data_stores_or_placeholders< decltype(_1), int, decltype(_2) >()), false);
+    EXPECT_EQ((gt::_impl::data_stores_or_placeholders< ds, int, ds >()), false);
+    EXPECT_EQ((gt::_impl::data_stores_or_placeholders< decltype(_1), ds, int, decltype(_2), ds >()), false);
 }
 
 TEST(DistributedBoundaries, RemovePlaceholders) {
