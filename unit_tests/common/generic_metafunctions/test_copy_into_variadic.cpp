@@ -33,26 +33,26 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "boost/mpl/equal.hpp"
-#include "boost/mpl/quote.hpp"
-#include "boost/mpl/vector.hpp"
-#include "boost/type_traits/is_integral.hpp"
-#include "common/defs.hpp"
-#include "common/meta_array.hpp"
-#include "gtest/gtest.h"
 
-using namespace gridtools;
-template < typename T >
-struct is_integer : boost::mpl::false_ {};
-template <>
-struct is_integer< int > : boost::mpl::true_ {};
+#include <common/generic_metafunctions/copy_into_variadic.hpp>
 
-TEST(meta_array, test_meta_array_element) {
+#include <type_traits>
 
-    typedef meta_array< boost::mpl::vector4< int, int, int, int >, boost::mpl::quote1< boost::is_integral > >
-        meta_array_t;
+#include <boost/mpl/vector.hpp>
 
-    ASSERT_TRUE((boost::mpl::equal< meta_array_t::elements, boost::mpl::vector4< int, int, int, int > >::value));
+namespace gridtools {
+    namespace {
+        template < typename... >
+        struct dst;
+        template < typename... Ts >
+        using src_t = boost::mpl::vector< Ts... >;
 
-    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< meta_array_t, boost::is_integral >::value), "Error");
+        static_assert(std::is_same< copy_into_variadic_t< src_t<>, dst<> >, dst<> >{}, "empty into empty");
+        static_assert(std::is_same< copy_into_variadic_t< src_t< int, void >, dst<> >, dst< int, void > >{},
+            "non empty into empty");
+        static_assert(std::is_same< copy_into_variadic_t< src_t<>, dst< int, void > >, dst< int, void > >{},
+            "empty into non empty");
+        static_assert(std::is_same< copy_into_variadic_t< src_t< void >, dst< int > >, dst< int, void > >{},
+            "non empty into non empty");
+    }
 }

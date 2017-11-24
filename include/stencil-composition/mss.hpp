@@ -34,14 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../common/meta_array.hpp"
-#include "caches/cache_metafunctions.hpp"
-#include "esf.hpp"
-#include "functor_do_methods.hpp"
-#include "independent_esf.hpp"
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/map/map0.hpp>
 #include <boost/mpl/transform.hpp>
+
+#include "caches/cache_metafunctions.hpp"
+#include "caches/cache_traits.hpp"
+#include "esf.hpp"
+#include "functor_do_methods.hpp"
+#include "independent_esf.hpp"
+
 // #include "stencil-composition/sfinae.hpp"
 
 /**

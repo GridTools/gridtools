@@ -62,6 +62,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/vector_traits.hpp"
 #include "../../common/functional.hpp"
+#include "../../common/generic_metafunctions/is_sequence_of.hpp"
 #include "../../storage/data_store_field.hpp"
 #include "../arg.hpp"
 #include "../backend_metafunctions.hpp"
@@ -266,7 +267,7 @@ namespace gridtools {
        intermediate object does not get instantiated.
      */
     template < typename Backend,
-        typename MssDescriptorArray,
+        typename MssDescriptors,
         typename Aggregator,
         typename Grid,
         typename ConditionalsSet,
@@ -275,8 +276,7 @@ namespace gridtools {
         typename ExpandFactor >
     class intermediate_expand : public computation< Aggregator, ReductionType > {
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Aggregator >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
@@ -285,7 +285,7 @@ namespace gridtools {
 
         template < uint N >
         using converted_intermediate = intermediate< Backend,
-            MssDescriptorArray,
+            MssDescriptors,
             _impl::expand_detail::converted_aggregator_type< N, Aggregator >,
             Grid,
             ConditionalsSet,

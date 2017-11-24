@@ -37,7 +37,6 @@
 
 #include <boost/mpl/assert.hpp>
 
-#include "../common/meta_array.hpp"
 #include "../common/gt_assert.hpp"
 #include "./reductions/reduction_descriptor.hpp"
 #include "grid.hpp"
@@ -59,11 +58,11 @@ namespace gridtools {
     /**
      * @brief metafunction that takes an MSS with multiple ESFs and split it into multiple MSS with one ESF each
      * Only to be used for CPU. GPU always fuses ESFs and there is no clear way to split the caches.
-     * @tparam MssArray meta array of MSS
+     * @tparam Msses computaion token sequence
      */
-    template < typename MssArray >
+    template < typename Msses >
     struct split_mss_into_independent_esfs {
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssArray, is_computation_token >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Msses, is_computation_token >::value), GT_INTERNAL_ERROR);
 
         template < typename MssDescriptor >
         struct mss_split_esfs {
@@ -89,12 +88,10 @@ namespace gridtools {
                 typename mss_split_multiple_esf::type >::type type;
         };
 
-        typedef meta_array<
-            typename boost::mpl::reverse_fold< typename MssArray::elements,
-                boost::mpl::vector0<>,
-                boost::mpl::copy< boost::mpl::_1, boost::mpl::back_inserter< mss_split_esfs< boost::mpl::_2 > > > >::
-                type,
-            boost::mpl::quote1< is_computation_token > > type;
+        typedef typename boost::mpl::reverse_fold< Msses,
+            boost::mpl::vector0<>,
+            boost::mpl::copy< boost::mpl::_1, boost::mpl::back_inserter< mss_split_esfs< boost::mpl::_2 > > > >::type
+            type;
     };
 
     /**
@@ -104,17 +101,15 @@ namespace gridtools {
      * @tparam extent_sizes sequence of sequence of extents
      */
     template < enumtype::platform BackendId,
-        typename MssDescriptorArray,
+        typename MssDescriptorSeq,
         typename ExtentSizes,
         typename RepeatFunctor,
         typename Axis >
     struct build_mss_components_array {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorSeq, is_computation_token >::value), GT_INTERNAL_ERROR);
 
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename MssDescriptorArray::elements >::value ==
-                                    boost::mpl::size< ExtentSizes >::value),
-            GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::size< MssDescriptorSeq >::value == boost::mpl::size< ExtentSizes >::value), GT_INTERNAL_ERROR);
 
         template < typename _ExtentSizes_ >
         struct unroll_extent_sizes {
@@ -131,28 +126,26 @@ namespace gridtools {
         };
 
         typedef typename boost::mpl::eval_if< typename backend_traits_from_id< BackendId >::mss_fuse_esfs_strategy,
-            boost::mpl::identity< MssDescriptorArray >,
-            split_mss_into_independent_esfs< MssDescriptorArray > >::type mss_array_t;
+            boost::mpl::identity< MssDescriptorSeq >,
+            split_mss_into_independent_esfs< MssDescriptorSeq > >::type mss_seq_t;
 
         typedef typename boost::mpl::eval_if< typename backend_traits_from_id< BackendId >::mss_fuse_esfs_strategy,
             boost::mpl::identity< ExtentSizes >,
             unroll_extent_sizes< ExtentSizes > >::type extent_sizes_unrolled_t;
 
         GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< typename mss_array_t::elements >::value ==
-                boost::mpl::size< extent_sizes_unrolled_t >::value),
+            (boost::mpl::size< mss_seq_t >::value == boost::mpl::size< extent_sizes_unrolled_t >::value),
             GT_INTERNAL_ERROR_MSG(
                 "Wrong size of the arg_list vector defined inside at least one of the user functions"));
 
-        typedef meta_array< typename boost::mpl::fold<
-                                boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
-                                boost::mpl::vector0<>,
-                                boost::mpl::push_back< boost::mpl::_1,
-                                    mss_components< boost::mpl::at< typename mss_array_t::elements, boost::mpl::_2 >,
-                                                           boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
-                                                           RepeatFunctor,
-                                                           Axis > > >::type,
-            boost::mpl::quote1< is_mss_components > > type;
+        typedef typename boost::mpl::fold<
+            boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back< boost::mpl::_1,
+                mss_components< boost::mpl::at< mss_seq_t, boost::mpl::_2 >,
+                                       boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
+                                       RepeatFunctor,
+                                       Axis > > >::type type;
     }; // struct build_mss_components_array
 
     /**
@@ -167,14 +160,13 @@ namespace gridtools {
     template < enumtype::platform BackendId,
         typename MssDescriptorArray1,
         typename MssDescriptorArray2,
-        typename Predicate,
         typename Condition,
         typename ExtentSizes1,
         typename ExtentSizes2,
         typename RepeatFunctor,
         typename Axis >
     struct build_mss_components_array< BackendId,
-        meta_array< condition< MssDescriptorArray1, MssDescriptorArray2, Condition >, Predicate >,
+        condition< MssDescriptorArray1, MssDescriptorArray2, Condition >,
         condition< ExtentSizes1, ExtentSizes2, Condition >,
         RepeatFunctor,
         Axis > {
@@ -182,16 +174,11 @@ namespace gridtools {
         //     typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type
         //     , typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type >
         // ::type type;
-        typedef condition< typename build_mss_components_array< BackendId,
-                               meta_array< MssDescriptorArray1, Predicate >,
-                               ExtentSizes1,
-                               RepeatFunctor,
-                               Axis >::type,
-            typename build_mss_components_array< BackendId,
-                               meta_array< MssDescriptorArray2, Predicate >,
-                               ExtentSizes2,
-                               RepeatFunctor,
-                               Axis >::type,
+        typedef condition<
+            typename build_mss_components_array< BackendId, MssDescriptorArray1, ExtentSizes1, RepeatFunctor, Axis >::
+                type,
+            typename build_mss_components_array< BackendId, MssDescriptorArray2, ExtentSizes2, RepeatFunctor, Axis >::
+                type,
             Condition > type;
     }; // build_mss_components_array
 
@@ -408,14 +395,10 @@ namespace gridtools {
      * @brief metafunction that fixes the storage info type IDs that is contained in
      * all temporary placeholders used in ESF types and Cache types.
      */
-    template < typename MetaArray, typename AggregatorType, uint_t RepeatFunctor >
-    struct fix_mss_arg_indices;
-
-    template < typename Sequence, typename TPred, typename AggregatorType, uint_t RepeatFunctor >
-    struct fix_mss_arg_indices< meta_array< Sequence, TPred >, AggregatorType, RepeatFunctor > {
+    template < typename Sequence, typename AggregatorType, uint_t RepeatFunctor >
+    struct fix_mss_arg_indices {
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-        typedef typename fix_arg_sequences< Sequence, fix_esf_sequence< AggregatorType, RepeatFunctor > >::type mss_t;
-        typedef meta_array< mss_t, TPred > type;
+        typedef typename fix_arg_sequences< Sequence, fix_esf_sequence< AggregatorType, RepeatFunctor > >::type type;
     };
 
 } // namespace gridtools

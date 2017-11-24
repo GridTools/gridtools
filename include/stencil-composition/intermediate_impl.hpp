@@ -518,14 +518,13 @@ namespace gridtools {
          * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
          *      defined for the temporary in all MSSs.
          */
-        template < typename AggregatorType, typename MssComponentsArray >
+        template < typename AggregatorType, typename MssComponents >
         struct obtain_map_extents_temporaries_mss_array {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             typedef typename boost::mpl::fold<
-                typename MssComponentsArray::elements,
+                MssComponents,
                 boost::mpl::map0<>,
                 merge_extent_temporary_maps< boost::mpl::_1,
                     obtain_map_extents_temporaries_mss< AggregatorType, boost::mpl::_2 > > >::type type;
@@ -565,11 +564,11 @@ namespace gridtools {
          * @tparam AggregatorType domain
          * @tparam MssComponentsArray meta array of mss components
          */
-        template < typename Backend, typename AggregatorType, typename MssComponentsArray >
+        template < typename Backend, typename AggregatorType, typename MssComponents >
         struct obtain_storage_wrapper_list_t {
 
-            GRIDTOOLS_STATIC_ASSERT((is_condition< MssComponentsArray >::value ||
-                                        is_meta_array_of< MssComponentsArray, is_mss_components >::value),
+            GRIDTOOLS_STATIC_ASSERT(
+                (is_condition< MssComponents >::value || is_sequence_of< MssComponents, is_mss_components >::value),
                 GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
@@ -578,8 +577,8 @@ namespace gridtools {
             static const uint_t tileI = block_size_t::i_size_t::value;
             static const uint_t tileJ = block_size_t::j_size_t::value;
 
-            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssComponentsArray >::type
-                map_of_extents;
+            typedef
+                typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssComponents >::type map_of_extents;
 
             typedef typename boost::mpl::fold<
                 map_of_extents,

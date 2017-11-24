@@ -49,7 +49,6 @@
 #include "./backend_host/backend_host.hpp"
 #endif
 
-#include "../common/meta_array.hpp"
 #include "../common/pair.hpp"
 #include "./accessor.hpp"
 #include "./aggregator_type.hpp"
@@ -194,20 +193,18 @@ namespace gridtools {
          * \tparam Grid Coordinate class with domain sizes and splitter grid
          * \tparam MssLocalDomainArray sequence of mss local domain (containing each the sequence of local domain list)
          */
-        template < typename MssComponentsArray,
+        template < typename MssComponents,
             typename Grid,
-            typename MssLocalDomainArray,
+            typename MssLocalDomains,
             typename ReductionData > // List of local domain to be pbassed to functor at<i>
         static void
-        run(Grid const &grid, MssLocalDomainArray &mss_local_domain_list, ReductionData &reduction_data) {
+        run(Grid const &grid, MssLocalDomains &mss_local_domain_list, ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomains, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
 
-            strategy_traits_t::template fused_mss_loop< MssComponentsArray, backend_ids_t, ReductionData >::run(
+            strategy_traits_t::template fused_mss_loop< MssComponents, backend_ids_t, ReductionData >::run(
                 mss_local_domain_list, grid, reduction_data);
         }
 

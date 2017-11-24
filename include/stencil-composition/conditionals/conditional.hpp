@@ -45,6 +45,8 @@
 */
 #include <functional>
 
+#include "../../common/defs.hpp"
+
 namespace gridtools {
     struct condition_functor {
         std::function< short_t() > m_1;

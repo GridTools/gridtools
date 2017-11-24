@@ -34,25 +34,24 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/map.hpp>
-#include <boost/fusion/mpl/insert.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/fusion/algorithm/transformation/insert.hpp>
-#include <boost/fusion/include/insert.hpp>
-#include <boost/fusion/algorithm/transformation/push_back.hpp>
-#include <boost/fusion/include/push_back.hpp>
+
+#include <boost/mpl/copy.hpp>
+#include <boost/mpl/inserter.hpp>
 
 namespace gridtools {
 
-    /**
-     * @struct vector_to_map
-     * convert a vector of pairs into a make_pair
-     */
-    template < typename Vec >
-    struct vector_to_map {
-        typedef typename boost::mpl::fold< Vec,
-            boost::mpl::map0<>,
-            boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type type;
+    template < typename Dst, typename Elem >
+    struct push_back_to_variadic;
+
+    template < template < typename... > class L, class... Ts, typename E >
+    struct push_back_to_variadic< L< Ts... >, E > {
+        using type = L< Ts..., E >;
     };
 
-} // namespace gridtools
+    template < class Src, class Dst >
+    using copy_into_variadic =
+        boost::mpl::copy< Src, boost::mpl::inserter< Dst, push_back_to_variadic< boost::mpl::_1, boost::mpl::_2 > > >;
+
+    template < class Src, class Dst >
+    using copy_into_variadic_t = typename copy_into_variadic< Src, Dst >::type;
+}

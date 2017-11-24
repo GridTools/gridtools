@@ -63,7 +63,6 @@
 #include <boost/fusion/container/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/type_traits/remove_const.hpp>
-#include "../common/meta_array.hpp"
 #include "./amss_descriptor.hpp"
 #include "./backend_base.hpp"
 #include "./backend_metafunctions.hpp"
@@ -98,10 +97,10 @@ namespace gridtools {
     /**
      * @brief metafunction that create the mss local domain type
      */
-    template < enumtype::platform BackendId, typename MssComponentsArray, typename StorageWrapperList, bool IsStateful >
+    template < enumtype::platform BackendId, typename MssComponents, typename StorageWrapperList, bool IsStateful >
     struct create_mss_local_domains {
 
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
 
         struct get_the_mss_local_domain {
             template < typename T >
@@ -110,8 +109,7 @@ namespace gridtools {
             };
         };
 
-        typedef typename boost::mpl::transform< typename MssComponentsArray::elements, get_the_mss_local_domain >::type
-            type;
+        typedef typename boost::mpl::transform< MssComponents, get_the_mss_local_domain >::type type;
     };
 
     template < enumtype::platform BackendId,
@@ -370,7 +368,7 @@ namespace gridtools {
      *  @brief structure collecting helper metafunctions
      */
     template < typename Backend,
-        typename MssDescriptorArrayIn,
+        typename MssDescriptorsIn,
         typename DomainType,
         typename Grid,
         typename ConditionalsSet,
@@ -379,56 +377,49 @@ namespace gridtools {
         uint_t RepeatFunctor >
     struct intermediate : public computation< DomainType, ReductionType > {
 
+        //        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorsIn, is_computation_token >::value),
+        //        GT_INTERNAL_ERROR);
+
         using base_t = computation< DomainType, ReductionType >;
 
         // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
-        typedef
-            typename fix_mss_arg_indices< MssDescriptorArrayIn, DomainType, RepeatFunctor >::type MssDescriptorArray;
+        typedef typename fix_mss_arg_indices< MssDescriptorsIn, DomainType, RepeatFunctor >::type MssDescriptors;
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
+        //        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_computation_token >::value),
+        //        GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-        // GRIDTOOLS_STATIC_ASSERT((is_conditionals_set<ConditionalsSet>::value), GT_INTERNAL_ERROR);
 
         typedef ConditionalsSet conditionals_set_t;
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::backend_ids_t backend_ids_t;
         typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
-
-        // substituting the std::vector type in the args<> with a correspondent
-        // expandable_parameter placeholder
-        typedef typename substitute_expandable_params< typename DomainType::placeholders_t, RepeatFunctor >::type
-            placeholders_t;
+        typedef typename DomainType::placeholders_t placeholders_t;
 
         // First we need to compute the association between placeholders and extents.
         // This information is needed to allocate temporaries, and to provide the
         // extent information to the user.
-        typedef typename placeholder_to_extent_map< typename MssDescriptorArray::elements,
-            grid_traits_t,
-            placeholders_t,
-            RepeatFunctor >::type extent_map_t;
+        typedef typename placeholder_to_extent_map< MssDescriptors, grid_traits_t, placeholders_t, RepeatFunctor >::type
+            extent_map_t;
         // Second we need to associate an extent to each esf, so that
         // we can associate loop bounds to the functors.
-        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
-            extent_map_t,
-            RepeatFunctor >::type extent_sizes_t;
+        typedef typename associate_extents_to_esfs< MssDescriptors, extent_map_t, RepeatFunctor >::type extent_sizes_t;
 
         typedef typename boost::mpl::if_<
-            boost::mpl::is_sequence< typename MssDescriptorArray::elements >,
-            typename boost::mpl::fold< typename MssDescriptorArray::elements,
+            boost::mpl::is_sequence< MssDescriptors >,
+            typename boost::mpl::fold< MssDescriptors,
                 boost::mpl::false_,
                 boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type,
             boost::mpl::false_ >::type has_reduction_t;
 
-        typedef reduction_data< MssDescriptorArray, has_reduction_t::value > reduction_data_t;
+        typedef reduction_data< MssDescriptors, has_reduction_t::value > reduction_data_t;
         typedef typename reduction_data_t::reduction_type_t reduction_type_t;
         GRIDTOOLS_STATIC_ASSERT((boost::is_same< reduction_type_t, ReductionType >::value),
             "Error deducing the reduction. Check that if there is a reduction, this appears in the last mss");
 
         typedef typename build_mss_components_array< backend_id< Backend >::value,
-            MssDescriptorArray,
+            MssDescriptors,
             extent_sizes_t,
             static_int< RepeatFunctor >,
             typename Grid::axis_type >::type mss_components_array_t;
@@ -462,7 +453,6 @@ namespace gridtools {
 
         const Grid m_grid;
 
-        bool is_storage_ready;
         performance_meter_t m_meter;
 
         conditionals_set_t m_conditionals_set;

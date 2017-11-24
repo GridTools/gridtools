@@ -34,15 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "../common/generic_metafunctions/copy_into_set.hpp"
 
 namespace gridtools {
 
     namespace _impl {
 
-        template < typename Domain, typename Grid, typename... Mss >
+        template < typename Grid, typename... Mss >
         struct create_conditionals_set {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_aggregator_type< Domain >::value), "syntax error in make_computation: invalid domain type");
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), "syntax error in make_computation: invalid grid type");
             GRIDTOOLS_STATIC_ASSERT((accumulate(logical_and(), is_computation_token< Mss >::value...)),
                 "syntax error in make_computation: invalid token");
@@ -54,7 +53,7 @@ namespace gridtools {
                                                    construct_conditionals_set< boost::mpl::_1, boost::mpl::_2 >,
                                                    boost::mpl::_1 > >::type conditionals_set_mpl_t;
 
-            typedef typename vector_to_set< conditionals_set_mpl_t >::type conditionals_check_t;
+            typedef typename copy_into_set< boost::mpl::set0<>, conditionals_set_mpl_t >::type conditionals_check_t;
 
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< conditionals_check_t >::type::value ==
                                         boost::mpl::size< conditionals_set_mpl_t >::type::value),

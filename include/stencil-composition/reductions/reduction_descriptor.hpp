@@ -35,16 +35,12 @@
 */
 #pragma once
 #include "../esf.hpp"
-#include "../caches/cache_metafunctions.hpp"
 
 /**
 @file
 @brief descriptor of the Multi Stage Stencil (MSS)
 */
 namespace gridtools {
-
-    template < typename T >
-    struct is_cache;
 
     /** @brief Descriptors for  a reduction type of mss
      * @tparam ReductionType basic type of the fields being reduced

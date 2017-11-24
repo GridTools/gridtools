@@ -34,7 +34,16 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <utility>
+#include <type_traits>
+
+#include <boost/mpl/logical.hpp>
+
+#include "../../common/defs.hpp"
+#include "../reductions/reduction_descriptor.hpp"
 #include "conditional.hpp"
+
 /**@file*/
 namespace gridtools {
 
@@ -66,9 +75,16 @@ namespace gridtools {
         constexpr condition(index_t cond, first_t const &first_, second_t const &second_)
             : m_value(cond), m_first(first_), m_second(second_) {}
 
-        constexpr index_t value() const { return m_value; }
+        constexpr index_t const &value() const { return m_value; }
         constexpr second_t const &second() const { return m_second; }
+        second_t &second() { return m_second; }
         constexpr first_t const &first() const { return m_first; }
+        first_t &first() { return m_first; }
+    };
+    template < typename T, typename L, typename R >
+    condition< typename std::decay< L >::type, typename std::decay< R >::type, typename std::decay< T >::type >
+    make_condition(T &&t, L &&l, R &&r) {
+        return {std::forward< T >(t), std::forward< L >(l), std::forward< R >(r)};
     };
 
     template < typename T >

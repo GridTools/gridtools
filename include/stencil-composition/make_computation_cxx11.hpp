@@ -36,7 +36,7 @@
 #pragma once
 #include <memory>
 
-#include "../common/generic_metafunctions/vector_to_set.hpp"
+#include "../common/meta_array_generator.hpp"
 #include "computation_grammar.hpp"
 #include "conditionals/fill_conditionals.hpp"
 #include "intermediate.hpp"
@@ -46,33 +46,13 @@
 
 namespace gridtools {
 
-    namespace _impl {
-        /**
-         * @brief metafunction that extracts a meta array with all the mss descriptors found in the Sequence of types
-         * @tparam Sequence sequence of types that contains some mss descriptors
-         */
-        template < typename Sequence >
-        struct get_mss_array {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::is_sequence< Sequence >::value), GT_INTERNAL_ERROR);
-
-            typedef typename boost::mpl::fold< Sequence,
-                boost::mpl::vector0<>,
-                boost::mpl::eval_if< is_mss_descriptor< boost::mpl::_2 >,
-                                                   boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
-                                                   boost::mpl::_1 > >::type mss_vector;
-
-            typedef meta_array< mss_vector, boost::mpl::quote1< is_computation_token > > type;
-        };
-    } // namespace _impl
-
     /**TODO: use auto when C++14 becomes supported*/
     template < bool Positional, typename Backend, typename Domain, typename Grid, typename... Mss >
     std::shared_ptr< intermediate< Backend,
-        meta_array< typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-                                       boost::mpl::quote1< is_computation_token > >,
+        typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
         Domain,
         Grid,
-        typename _impl::create_conditionals_set< Domain, Grid, Mss... >::type,
+        typename _impl::create_conditionals_set< Grid, Mss... >::type,
         typename _impl::reduction_helper< Mss... >::reduction_type_t,
         Positional > >
     make_computation_impl(Domain &domain, const Grid &grid, Mss... args_) {
@@ -80,15 +60,14 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< Domain, Mss... >::type::value),
             "Some placeholders used in the computation are not listed in the aggregator");
 
-        typedef typename _impl::create_conditionals_set< Domain, Grid, Mss... >::type conditionals_set_t;
+        typedef typename _impl::create_conditionals_set< Grid, Mss... >::type conditionals_set_t;
 
         conditionals_set_t conditionals_set_;
 
         fill_conditionals(conditionals_set_, args_...);
 
         return std::make_shared< intermediate< Backend,
-            meta_array< typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-                                                   boost::mpl::quote1< is_computation_token > >,
+            typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
             Domain,
             Grid,
             conditionals_set_t,

@@ -133,14 +133,14 @@ namespace gridtools {
 
     /*recursion anchor*/
     template < typename ConditionalsSet >
-    static void fill_conditionals(ConditionalsSet &set_) {}
+    void fill_conditionals(ConditionalsSet &set_) {}
 
     /**@brief filling the set of conditionals with the corresponding values passed as arguments
 
        The arguments passed come directly from the user interface (e.g. @ref gridtools::make_mss)
      */
     template < typename ConditionalsSet, typename First, typename... Mss >
-    static void fill_conditionals(ConditionalsSet &set_, First const &first_, Mss const &... args_) {
+    void fill_conditionals(ConditionalsSet &set_, First const &first_, Mss const &... args_) {
         fill_conditionals_set< typename boost::mpl::has_key< ConditionalsSet,
             typename if_condition_extract_index_t< First >::type >::type >::apply(set_, first_, args_...);
         fill_conditionals(set_, args_...);

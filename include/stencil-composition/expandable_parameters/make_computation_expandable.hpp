@@ -39,7 +39,7 @@
 #include <memory>
 
 #include "../conditionals/fill_conditionals.hpp"
-#include "../../common/generic_metafunctions/vector_to_set.hpp"
+#include "../../common/meta_array_generator.hpp"
 #include "../computation_grammar.hpp"
 #include "expand_factor.hpp"
 #include "intermediate_expand.hpp"
@@ -61,15 +61,14 @@ namespace gridtools {
         Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
 
         // doing type checks and defining the conditionals set
-        typedef typename _impl::create_conditionals_set< Domain, Grid, Mss... >::type conditionals_set_t;
+        typedef typename _impl::create_conditionals_set< Grid, Mss... >::type conditionals_set_t;
 
         conditionals_set_t conditionals_set_;
 
         fill_conditionals(conditionals_set_, args_...);
 
         return std::make_shared< intermediate_expand< Backend,
-            meta_array< typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-                                                          boost::mpl::quote1< is_computation_token > >,
+            typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
             Domain,
             Grid,
             conditionals_set_t,

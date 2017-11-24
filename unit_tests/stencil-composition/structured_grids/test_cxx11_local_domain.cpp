@@ -102,11 +102,10 @@ TEST(test_local_domain, merge_mss_local_domains) {
     auto grid = gridtools::make_grid(d1, d2, d3);
 
     typedef intermediate< gridtools::backend< Host, GRIDBACKEND, Naive >,
-        meta_array< boost::mpl::vector< decltype(gridtools::make_multistage // mss_descriptor
-                        (execute< forward >(),
-                            gridtools::make_stage< local_domain_stencil::dummy_functor >(p_in(), p_buff()),
-                            gridtools::make_stage< local_domain_stencil::dummy_functor >(p_buff(), p_out()))) >,
-                              boost::mpl::quote1< gridtools::is_computation_token > >,
+        boost::mpl::vector< decltype(gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                gridtools::make_stage< local_domain_stencil::dummy_functor >(p_in(), p_buff()),
+                gridtools::make_stage< local_domain_stencil::dummy_functor >(p_buff(), p_out()))) >,
         gridtools::aggregator_type< accessor_list >,
         gridtools::grid< gridtools::axis< 1 >::axis_interval_t >,
         boost::fusion::set<>,
@@ -116,8 +115,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
     typedef intermediate_backend< intermediate_t >::type backend_t;
     typedef intermediate_aggregator_type< intermediate_t >::type domain_t;
     typedef intermediate_mss_components_array< intermediate_t >::type mss_components_array_t;
-
-    typedef mss_components_array_t::elements mss_elements_t;
+    typedef mss_components_array_t mss_elements_t;
 
     typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
 

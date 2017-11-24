@@ -38,11 +38,11 @@
 
 namespace gridtools {
 
-    template < typename MssDescriptorArray, bool HasReduction >
+    template < typename MssDescriptors, bool HasReduction >
     struct reduction_data;
 
-    template < typename MssDescriptorArray >
-    struct reduction_data< MssDescriptorArray, false > {
+    template < typename MssDescriptors >
+    struct reduction_data< MssDescriptors, false > {
         typedef notype reduction_type_t;
 
         reduction_data(const reduction_type_t val) {}
@@ -53,14 +53,13 @@ namespace gridtools {
         void reduce() {}
     };
 
-    template < typename MssDescriptorArray >
-    struct reduction_data< MssDescriptorArray, true > {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_meta_array_of< MssDescriptorArray, is_computation_token >::value), GT_INTERNAL_ERROR);
+    template < typename MssDescriptors >
+    struct reduction_data< MssDescriptors, true > {
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
 
-        typedef typename boost::mpl::fold< typename MssDescriptorArray::elements,
+        typedef typename boost::mpl::fold< MssDescriptors,
             boost::mpl::vector0<>,
-            boost::mpl::eval_if< amss_descriptor_is_reduction< boost::mpl::_2 >,
+            boost::mpl::eval_if< mss_descriptor_is_reduction< boost::mpl::_2 >,
                                                boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
                                                boost::mpl::_1 > >::type reduction_descriptor_seq_t;
 
@@ -100,6 +99,6 @@ namespace gridtools {
     template < typename T >
     struct is_reduction_data;
 
-    template < typename MssDescriptorArray, bool HasReduction >
-    struct is_reduction_data< reduction_data< MssDescriptorArray, HasReduction > > : boost::mpl::true_ {};
+    template < typename MssDescriptors, bool HasReduction >
+    struct is_reduction_data< reduction_data< MssDescriptors, HasReduction > > : boost::mpl::true_ {};
 }
