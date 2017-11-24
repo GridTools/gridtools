@@ -231,7 +231,8 @@ namespace gridtools {
          */
 
         bound_bc(BCApply bca, stores_type &&stores_list, exc_stores_type &&exc_stores_list)
-            : m_bcapply{bca}, m_stores{std::move(stores_list)}, m_exc_stores{std::move(exc_stores_list)} {}
+            : m_bcapply{bca}, m_stores{std::forward< stores_type >(stores_list)},
+              m_exc_stores{std::forward< exc_stores_type >(exc_stores_list)} {}
 
         /**
          * @brief Function to retrieve the tuple of data stores to pass to the the boundary
@@ -307,11 +308,9 @@ namespace gridtools {
     /** @brief Metafunctions to query if a type is a bound_bc
     */
     template < typename T >
-    struct is_bound_bc : std::false_type {
-    }
+    struct is_bound_bc : std::false_type {};
 
     template < typename... T >
-    struct is_bound_bc< bound_bc< T... > > : std::true_type {
-    }
+    struct is_bound_bc< bound_bc< T... > > : std::true_type {};
 
 } // namespace gridtools
