@@ -301,19 +301,17 @@ namespace gridtools {
         // Check that the stores... are either data stores or placeholders
         GRIDTOOLS_STATIC_ASSERT(_impl::data_stores_or_placeholders< DataStores... >(),
             "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
-        return {bc_apply, std::make_tuple(stores...), std::make_tuple(stores...)};
+        return {bc_apply, std::forward_as_tuple(stores...), std::forward_as_tuple(stores...)};
     }
 
     /** @brief Metafunctions to query if a type is a bound_bc
     */
     template < typename T >
-    struct is_bound_bc {
-        static constexpr bool value = false;
-    };
+    struct is_bound_bc : std::false_type {
+    }
 
     template < typename... T >
-    struct is_bound_bc< bound_bc< T... > > {
-        static constexpr bool value = true;
-    };
+    struct is_bound_bc< bound_bc< T... > > : std::true_type {
+    }
 
 } // namespace gridtools
