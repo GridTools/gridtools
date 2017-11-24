@@ -76,14 +76,14 @@ namespace gridtools {
             discrimintate between placeholders and other elements in a tuple. There is a
             specialization for Plc and one for NotPlc.
         */
-        template < uint_t I, typename ROTuple, typename AllTuple >
+        template < std::size_t I, typename ROTuple, typename AllTuple >
         auto select_element(ROTuple const &ro_tuple, AllTuple const &all, Plc) -> decltype(
             std::get< std::is_placeholder< typename std::tuple_element< I, AllTuple >::type >::value - 1 >(ro_tuple)) {
             return std::get< std::is_placeholder< typename std::tuple_element< I, AllTuple >::type >::value - 1 >(
                 ro_tuple);
         }
 
-        template < uint_t I, typename ROTuple, typename AllTuple >
+        template < std::size_t I, typename ROTuple, typename AllTuple >
         auto select_element(ROTuple const &ro_tuple, AllTuple const &all, NotPlc) -> decltype(std::get< I >(all)) {
             return std::get< I >(all);
         }
@@ -100,9 +100,9 @@ namespace gridtools {
             \param ro_tuple Tuple of elements to replace the placeholders
             \param all      Tuple of elements that may include placeholders
         */
-        template < typename ROTuple, typename AllTuple, uint_t... IDs >
+        template < typename ROTuple, typename AllTuple, std::size_t... IDs >
         auto substitute_placeholders(
-            ROTuple const &ro_tuple, AllTuple const &all, gt_integer_sequence< uint_t, IDs... >)
+            ROTuple const &ro_tuple, AllTuple const &all, gt_integer_sequence< std::size_t, IDs... >)
             -> decltype(std::make_tuple(select_element< IDs >(
                 ro_tuple,
                 all,
@@ -115,13 +115,13 @@ namespace gridtools {
                     std::is_placeholder< typename std::tuple_element< IDs, AllTuple >::type >::value >::type{})...);
         }
 
-        std::tuple<> rest_tuple(std::tuple<>, gt_integer_sequence< uint_t >) { return {}; }
+        std::tuple<> rest_tuple(std::tuple<>, gt_integer_sequence< std::size_t >) { return {}; }
 
         /** \internal
             Small facility to obtain a tuple with the elements of am input  tuple execpt the first.
         */
-        template < typename... Elems, uint_t... IDs >
-        auto rest_tuple(std::tuple< Elems... > const &x, gt_integer_sequence< uint_t, IDs... >)
+        template < typename... Elems, std::size_t... IDs >
+        auto rest_tuple(std::tuple< Elems... > const &x, gt_integer_sequence< std::size_t, IDs... >)
             -> decltype(std::make_tuple(std::get< IDs + 1u >(x)...)) {
             return std::make_tuple(std::get< IDs + 1u >(x)...);
         }
@@ -153,19 +153,19 @@ namespace gridtools {
             typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type = nullptr)
             -> decltype(std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
                 remove_placeholders(rest_tuple(
-                    x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{})))) {
+                    x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{})))) {
             return std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
                 remove_placeholders(rest_tuple(
-                    x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{})));
+                    x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{})));
         }
 
         template < typename First, typename... Elems >
         auto remove_placeholders(std::tuple< First, Elems... > const &x,
             typename std::enable_if< (std::is_placeholder< First >::value > 0), void * >::type = nullptr)
             -> decltype(remove_placeholders(
-                rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{}))) {
+                rest_tuple(x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{}))) {
             return remove_placeholders(
-                rest_tuple(x, typename make_gt_integer_sequence< uint_t, sizeof...(Elems) >::type{}));
+                rest_tuple(x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{}));
         }
 
         template < typename T >
@@ -265,13 +265,14 @@ namespace gridtools {
         auto associate(ReadOnly... ro_stores) const -> bound_bc< BCApply,
             decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
                 m_stores,
-                typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(m_stores) >::value >::type{})),
+                typename make_gt_integer_sequence< std::size_t,
+                                                        std::tuple_size< decltype(m_stores) >::value >::type{})),
             decltype(_impl::remove_placeholders(m_stores)) > {
             auto ro_store_tuple = std::make_tuple(ro_stores...);
             // we need to substitute the placeholders with the
             auto full_list = _impl::substitute_placeholders(ro_store_tuple,
                 m_stores,
-                typename make_gt_integer_sequence< uint_t, std::tuple_size< decltype(m_stores) >::value >::type{});
+                typename make_gt_integer_sequence< std::size_t, std::tuple_size< decltype(m_stores) >::value >::type{});
             auto without_plcs = _impl::remove_placeholders(m_stores);
 
             return bound_bc< BCApply, decltype(full_list), decltype(without_plcs) >(
