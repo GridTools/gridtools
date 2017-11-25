@@ -168,6 +168,51 @@ namespace gridtools {
                 rest_tuple(x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{}));
         }
 
+        template < typename S1, typename S2 >
+        struct append;
+
+        template < typename Uint, Uint... S1, Uint... S2 >
+        struct append< gt_integer_sequence< Uint, S1... >, gt_integer_sequence< Uint, S2... > > {
+            using type = gt_integer_sequence< Uint, S1..., S2... >;
+        };
+
+        /**
+           @brief Metafunction to return an gt_integer_sequence indicating
+           the elements in the Tuple that are not std::placeholders
+
+           \tparam Tuple Tuple to be evaluated
+        */
+        template < typename InputTuple >
+        struct comm_indices {
+            template < std::size_t I, typename ISeq, typename Tuple, typename VOID = void >
+            struct collect_indices;
+
+            template < std::size_t I, typename ISeq >
+            struct collect_indices< I, ISeq, std::tuple<> > {
+                using type = ISeq;
+            };
+
+            template < std::size_t I, typename ISeq, typename First, typename... Elems >
+            struct collect_indices< I,
+                ISeq,
+                std::tuple< First, Elems... >,
+                typename std::enable_if< (std::is_placeholder< First >::value == 0), void >::type > {
+                using type = typename collect_indices< I + 1,
+                    typename append< ISeq, gt_integer_sequence< std::size_t, I > >::type,
+                    std::tuple< Elems... > >::type;
+            };
+
+            template < std::size_t I, typename ISeq, typename First, typename... Elems >
+            struct collect_indices< I,
+                ISeq,
+                std::tuple< First, Elems... >,
+                typename std::enable_if< (std::is_placeholder< First >::value > 0), void >::type > {
+                using type = typename collect_indices< I + 1, ISeq, std::tuple< Elems... > >::type;
+            };
+
+            using type = typename collect_indices< 0, gt_integer_sequence< std::size_t >, InputTuple >::type;
+        };
+
         template < typename T >
         constexpr bool data_store_or_placeholder(
             typename std::enable_if< (is_data_store< T >::value or (std::is_placeholder< T >::value > 0)),
@@ -210,19 +255,18 @@ namespace gridtools {
      * \tparam DataStores Tuple type of data stores (or placeholders) to be passed for boundary condition application
      * \tparam ExcStores Tuple type for data stores that require halo-update operations
      */
-    template < typename BCApply, typename DataStores, typename ExcStores >
+    template < typename BCApply, typename DataStores, typename ExcStoresIndicesSeq >
     struct bound_bc;
 
-    template < typename BCApply, typename... DataStores, typename... ExcStores >
-    struct bound_bc< BCApply, std::tuple< DataStores... >, std::tuple< ExcStores... > > {
+    template < typename BCApply, typename... DataStores, std::size_t... ExcStoresIndices >
+    struct bound_bc< BCApply, std::tuple< DataStores... >, gt_integer_sequence< std::size_t, ExcStoresIndices... > > {
         using boundary_class = BCApply;
         using stores_type = std::tuple< DataStores... >;
-        using exc_stores_type = std::tuple< ExcStores... >;
+        using exc_stores_type = std::tuple< typename std::tuple_element< ExcStoresIndices, stores_type >::type... >;
 
       private:
         boundary_class m_bcapply;
         stores_type m_stores;
-        exc_stores_type m_exc_stores;
 
       public:
         /**
@@ -230,9 +274,8 @@ namespace gridtools {
          * template argument list to the corresponding data members
          */
 
-        bound_bc(BCApply bca, stores_type &&stores_list, exc_stores_type &&exc_stores_list)
-            : m_bcapply{bca}, m_stores{std::forward< stores_type >(stores_list)},
-              m_exc_stores{std::forward< exc_stores_type >(exc_stores_list)} {}
+        bound_bc(BCApply bca, stores_type &&stores_list)
+            : m_bcapply{bca}, m_stores{std::forward< stores_type >(stores_list)} {}
 
         /**
          * @brief Function to retrieve the tuple of data stores to pass to the the boundary
@@ -244,7 +287,7 @@ namespace gridtools {
          * @brief Function to retrieve the tuple of data stores to pass to the the halo-update
          * communication pattern
          */
-        exc_stores_type const &exc_stores() const { return m_exc_stores; }
+        exc_stores_type exc_stores() const { return std::make_tuple(std::get< ExcStoresIndices >(m_stores)...); }
 
         /**
          * @brief Function to retrieve the boundary condition application class
@@ -267,16 +310,16 @@ namespace gridtools {
                 m_stores,
                 typename make_gt_integer_sequence< std::size_t,
                                                         std::tuple_size< decltype(m_stores) >::value >::type{})),
-            decltype(_impl::remove_placeholders(m_stores)) > {
+            typename _impl::comm_indices< stores_type >::type > {
             auto ro_store_tuple = std::make_tuple(ro_stores...);
             // we need to substitute the placeholders with the
             auto full_list = _impl::substitute_placeholders(ro_store_tuple,
                 m_stores,
                 typename make_gt_integer_sequence< std::size_t, std::tuple_size< decltype(m_stores) >::value >::type{});
-            auto without_plcs = _impl::remove_placeholders(m_stores);
+            //            auto without_plcs = _impl::remove_placeholders(m_stores);
 
-            return bound_bc< BCApply, decltype(full_list), decltype(without_plcs) >(
-                m_bcapply, std::move(full_list), std::move(without_plcs));
+            return bound_bc< BCApply, decltype(full_list), typename _impl::comm_indices< stores_type >::type >{
+                m_bcapply, std::move(full_list)};
         }
     };
 
@@ -296,14 +339,16 @@ namespace gridtools {
      * \param stores Parameter pack with the data stores or placeholders (std::placeholders hosuld be used)
      */
     template < typename BCApply, typename... DataStores >
-    bound_bc< BCApply, std::tuple< DataStores... >, std::tuple< DataStores... > > bind_bc(
-        BCApply bc_apply, DataStores... stores) {
+    bound_bc< BCApply,
+        std::tuple< DataStores... >,
+        typename make_gt_integer_sequence< std::size_t, sizeof...(DataStores) >::type >
+    bind_bc(BCApply bc_apply, DataStores... stores) {
 
         // Concept checking on BCApply is not ready yet.
         // Check that the stores... are either data stores or placeholders
         GRIDTOOLS_STATIC_ASSERT(_impl::data_stores_or_placeholders< DataStores... >(),
             "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
-        return {bc_apply, std::forward_as_tuple(stores...), std::forward_as_tuple(stores...)};
+        return {bc_apply, std::forward_as_tuple(stores...)};
     }
 
     /** @brief Metafunctions to query if a type is a bound_bc

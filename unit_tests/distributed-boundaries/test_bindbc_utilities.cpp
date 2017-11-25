@@ -53,25 +53,6 @@ TEST(DistributedBoundaries, SelectElement) {
     EXPECT_EQ(gt::_impl::select_element< 3 >(sub, all, gt::_impl::Plc{}), 4);
 }
 
-TEST(DistributedBoundaries, SubstitutePlaceholders) {
-    auto all = std::make_tuple(1, _1, 3, _2);
-    auto sub = std::make_tuple(2, 4);
-
-    auto res = gt::_impl::substitute_placeholders(
-        sub, all, typename gt::make_gt_integer_sequence< gt::uint_t, std::tuple_size< decltype(all) >::value >::type{});
-
-    EXPECT_EQ(res, (std::tuple< int, int, int, int >(1, 2, 3, 4)));
-}
-
-TEST(DistributedBoundaries, RestTuple) {
-    auto tup = std::make_tuple(1, 2, 3, 4, 5);
-
-    auto rest = gt::_impl::rest_tuple(
-        tup, typename gt::make_gt_integer_sequence< gt::uint_t, std::tuple_size< decltype(tup) >::value - 1 >::type{});
-
-    EXPECT_EQ(rest, (std::tuple< int, int, int, int >(2, 3, 4, 5)));
-}
-
 TEST(DistributedBoundaries, DataStoreOrPlc) {
     typedef gt::host_storage_info< 0, gt::layout_map< 0, 1, 2 > > storage_info_t;
     using ds = gt::data_store< gt::host_storage< double >, storage_info_t >;
@@ -82,6 +63,34 @@ TEST(DistributedBoundaries, DataStoreOrPlc) {
     EXPECT_EQ((gt::_impl::data_stores_or_placeholders< decltype(_1), int, decltype(_2) >()), false);
     EXPECT_EQ((gt::_impl::data_stores_or_placeholders< ds, int, ds >()), false);
     EXPECT_EQ((gt::_impl::data_stores_or_placeholders< decltype(_1), ds, int, decltype(_2), ds >()), false);
+}
+
+TEST(DistributedBoundaries, Append) {
+    using s1 = gt::gt_integer_sequence< std::size_t, 2, 1, 3 >;
+    using s2 = gt::gt_integer_sequence< std::size_t, 5, 6 >;
+
+    EXPECT_EQ((std::is_same< gt::_impl::append< s1, s2 >::type,
+                  gt::gt_integer_sequence< std::size_t, 2, 1, 3, 5, 6 > >::value),
+        true);
+    ;
+}
+
+TEST(DistributedBoundaries, CollectIndices) {
+    using p1 = decltype(_1);
+    using p2 = decltype(_2);
+
+    EXPECT_TRUE((std::is_same<
+        typename gt::_impl::collect_indices< 0, gt::gt_integer_sequence< std::size_t >, std::tuple< int, int > >::type,
+        gt::gt_integer_sequence< std::size_t, 0, 1 > >::value));
+
+    EXPECT_TRUE((std::is_same< typename gt::_impl::collect_indices< 0,
+                                   gt::gt_integer_sequence< std::size_t >,
+                                   std::tuple< int, p1, int, p2 > >::type,
+        gt::gt_integer_sequence< std::size_t, 0, 2 > >::value));
+
+    EXPECT_TRUE((std::is_same<
+        typename gt::_impl::collect_indices< 0, gt::gt_integer_sequence< std::size_t >, std::tuple< p1, p2 > >::type,
+        gt::gt_integer_sequence< std::size_t > >::value));
 }
 
 TEST(DistributedBoundaries, RemovePlaceholders) {
