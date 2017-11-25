@@ -146,6 +146,11 @@ namespace gridtools {
         fill_conditionals(set_, args_...);
     }
 
+    struct fill_conditionals_f {
+        template < typename... Args >
+        auto operator()(Args &&... args) const GT_AUTO_RETURN(fill_conditionals(std::forward< Args >(args)...));
+    };
+
     /**@brief reaching a leaf, while recursively constructing the conditinals_set*/
     template < typename Vec, typename Mss >
     struct construct_conditionals_set {

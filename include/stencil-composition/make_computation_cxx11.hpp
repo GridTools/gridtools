@@ -35,71 +35,112 @@
 */
 #pragma once
 #include <memory>
+#include <type_traits>
+#include <utility>
 
-#include "../common/meta_array_generator.hpp"
-#include "computation_grammar.hpp"
-#include "conditionals/fill_conditionals.hpp"
+#include <boost/fusion/include/make_vector.hpp>
+
+#include "../common/defs.hpp"
+#include "expandable_parameters/expand_factor.hpp"
+#include "expandable_parameters/intermediate_expand.hpp"
 #include "intermediate.hpp"
-#include "make_computation_cxx11_impl.hpp"
-#include "make_computation_helper_cxx11.hpp"
-#include "all_args_in_aggregator.hpp"
 
 namespace gridtools {
 
-    /**TODO: use auto when C++14 becomes supported*/
-    template < bool Positional, typename Backend, typename Domain, typename Grid, typename... Mss >
-    std::shared_ptr< intermediate< Backend,
-        typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-        Domain,
-        Grid,
-        typename _impl::create_conditionals_set< Grid, Mss... >::type,
-        typename _impl::reduction_helper< Mss... >::reduction_type_t,
-        Positional > >
-    make_computation_impl(Domain &domain, const Grid &grid, Mss... args_) {
+    //    typename _impl::reduction_helper< Mss... >::reduction_type_t
 
-        GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< Domain, Mss... >::type::value),
-            "Some placeholders used in the computation are not listed in the aggregator");
+    //    template < bool Positional,
+    //            typename Backend,
+    //            typename Expand,
+    //            typename Domain,
+    //            typename Grid,
+    //            typename... Args>
+    //    std::shared_ptr< computation< Domain, ReductionType > > make_computation_expandable_impl(
+    //            Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
+    //
+    //        // doing type checks and defining the conditionals set
+    //        typedef typename _impl::create_conditionals_set< Grid, Mss... >::type conditionals_set_t;
+    //
+    //        conditionals_set_t conditionals_set_;
+    //
+    //        fill_conditionals(conditionals_set_, args_...);
+    //
+    //        return std::make_shared< intermediate_expand< Backend,
+    //                typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
+    //                Domain,
+    //                Grid,
+    //                conditionals_set_t,
+    //                ReductionType,
+    //                Positional,
+    //                Expand > >(domain, grid, conditionals_set_);
+    //    }
 
-        typedef typename _impl::create_conditionals_set< Grid, Mss... >::type conditionals_set_t;
+    namespace _impl {
+        template < bool Positional,
+            typename Backend,
+            typename Domain,
+            typename Grid,
+            typename... MssDescriptorTrees,
+            typename Res = intermediate< Backend,
+                boost::fusion::vector< typename std::decay< MssDescriptorTrees >::type... >,
+                typename std::decay< Domain >::type,
+                Grid,
+                Positional > >
+        std::shared_ptr< Res > make_computation(
+            Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
+            return std::make_shared< Res >(std::forward< Domain >(domain),
+                grid,
+                boost::fusion::make_vector(std::forward< MssDescriptorTrees >(mss_descriptor_trees)...));
+        }
 
-        conditionals_set_t conditionals_set_;
+        template < bool Positional,
+            typename Backend,
+            typename Expand,
+            typename Domain,
+            typename Grid,
+            typename... MssDescriptorTrees,
+            typename Res = intermediate_expand< Backend,
+                boost::fusion::vector< typename std::decay< MssDescriptorTrees >::type... >,
+                typename std::decay< Domain >::type,
+                Grid,
+                Positional,
+                Expand > >
+        std::shared_ptr< Res > make_computation_expandable(
+            Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
+            return std::make_shared< Res >(std::forward< Domain >(domain),
+                grid,
+                boost::fusion::make_vector(std::forward< MssDescriptorTrees >(mss_descriptor_trees)...));
+        }
 
-        fill_conditionals(conditionals_set_, args_...);
+        template < bool Positional,
+            typename Backend,
+            typename Arg,
+            typename... Args,
+            typename = typename std::enable_if< is_aggregator_type< typename std::decay< Arg >::type >::value >::type >
+        auto make_computation_proxy(Arg &&arg, Args &&... args) GT_AUTO_RETURN(
+            (make_computation< Positional, Backend >(std::forward< Arg >(arg), std::forward< Args >(args)...)));
 
-        return std::make_shared< intermediate< Backend,
-            typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-            Domain,
-            Grid,
-            conditionals_set_t,
-            typename _impl::reduction_helper< Mss... >::reduction_type_t,
-            Positional > >(
-            domain, grid, conditionals_set_, _impl::reduction_helper< Mss... >::extract_initial_value(args_...));
+        template < bool Positional,
+            typename Backend,
+            typename Arg,
+            typename... Args,
+            typename = typename std::enable_if< is_expand_factor< Arg >::value >::type >
+        auto make_computation_proxy(Arg arg, Args &&... args)
+            GT_AUTO_RETURN((make_computation_expandable< Positional, Backend, Arg >(std::forward< Args >(args)...)));
+
+        // user protections
+        template < bool, typename, typename... Args >
+        short_t make_computation_proxy(Args...) {
+            GRIDTOOLS_STATIC_ASSERT((sizeof...(Args)), "The computation is malformed");
+            return -1;
+        }
     }
 
-    template < typename Backend,
-        typename Domain,
-        typename Grid,
-        typename... Mss,
-        typename = typename std::enable_if< is_aggregator_type< Domain >::value >::type >
-    auto make_computation(Domain &domain, const Grid &grid, Mss... args_)
-        -> decltype(make_computation_impl< POSITIONAL_WHEN_DEBUGGING, Backend >(domain, grid, args_...)) {
-        return make_computation_impl< POSITIONAL_WHEN_DEBUGGING, Backend >(domain, grid, args_...);
-    }
+    template < typename Backend, typename... Args >
+    auto make_computation(Args &&... args) GT_AUTO_RETURN(
+        (_impl::make_computation_proxy< POSITIONAL_WHEN_DEBUGGING, Backend >(std::forward< Args >(args)...)));
 
-    template < typename Backend,
-        typename Domain,
-        typename Grid,
-        typename... Mss,
-        typename = typename std::enable_if< is_aggregator_type< Domain >::value >::type >
-    auto make_positional_computation(Domain &domain, const Grid &grid, Mss... args_)
-        -> decltype(make_computation_impl< true, Backend >(domain, grid, args_...)) {
-        return make_computation_impl< true, Backend >(domain, grid, args_...);
-    }
-
-    // user protections
-    template < typename... Args >
-    short_t make_computation(Args...) {
-        GRIDTOOLS_STATIC_ASSERT((sizeof...(Args)), "The computation is malformed");
-        return -1;
-    }
+    template < typename Backend, typename... Args >
+    auto make_positional_computation(Args &&... args)
+        GT_AUTO_RETURN((_impl::make_computation_proxy< true, Backend >(std::forward< Args >(args)...)));
 }

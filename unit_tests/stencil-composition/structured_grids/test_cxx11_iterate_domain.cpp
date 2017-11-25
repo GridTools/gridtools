@@ -99,8 +99,7 @@ namespace test_iterate_domain {
         auto mss_ = gridtools::make_multistage // mss_descriptor
             (enumtype::execute< enumtype::forward >(),
                 gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()));
-        auto computation_ =
-            make_computation_impl< false, gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
+        auto computation_ = make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
         typedef decltype(gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out())) esf_t;
 

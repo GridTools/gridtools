@@ -209,5 +209,7 @@ namespace gridtools {
         };
 
         TEST(branch_selector, extra_args) { EXPECT_EQ(make_branch_selector(1).apply(second_f{}, 8), 8); }
+
+        TEST(branch_selector, void_return) { make_branch_selector(1).apply(noop{}); }
     }
 }

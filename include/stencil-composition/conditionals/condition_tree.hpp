@@ -48,6 +48,9 @@
 #include <boost/fusion/include/as_vector.hpp>
 
 #include <boost/mpl/logical.hpp>
+#include <boost/mpl/vector.hpp>
+#include <boost/mpl/single_view.hpp>
+#include <boost/mpl/joint_view.hpp>
 #include <boost/mpl/empty.hpp>
 
 #include "../../common/defs.hpp"

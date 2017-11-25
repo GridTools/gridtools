@@ -40,13 +40,15 @@
 #endif
 #include <utility>
 
-#include <boost/shared_ptr.hpp>
-#include <boost/fusion/container/vector.hpp>
+#include <boost/fusion/include/mpl.hpp>
+#include <boost/fusion/include/vector.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/include/copy.hpp>
 #include <boost/fusion/include/for_each.hpp>
 #include <boost/fusion/include/transform.hpp>
 #include <boost/fusion/include/any.hpp>
+#include <boost/fusion/include/copy.hpp>
+#include <boost/fusion/include/invoke.hpp>
 #include <boost/mpl/assert.hpp>
 #include <boost/mpl/at.hpp>
 #include <boost/mpl/bool.hpp>
@@ -60,30 +62,39 @@
 #include <boost/type_traits/remove_const.hpp>
 #include <boost/mpl/min_element.hpp>
 #include <boost/mpl/max_element.hpp>
-#include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/include/copy.hpp>
-#include <boost/type_traits/remove_const.hpp>
-#include "./amss_descriptor.hpp"
-#include "./backend_base.hpp"
-#include "./backend_metafunctions.hpp"
-#include "./backend_traits_fwd.hpp"
-#include "./computation.hpp"
-#include "./compute_extents_metafunctions.hpp"
-#include "./conditionals/switch_variable.hpp"
-#include "./esf.hpp"
-#include "./functor_do_method_lookup_maps.hpp"
-#include "./functor_do_methods.hpp"
-#include "./grid.hpp"
-#include "./grid_traits.hpp"
-#include "./intermediate_impl.hpp"
-#include "./level.hpp"
-#include "./local_domain.hpp"
-#include "./loopintervals.hpp"
-#include "./mss_components_metafunctions.hpp"
-#include "./mss_local_domain.hpp"
-#include "./reductions/reduction_data.hpp"
-#include "./storage_wrapper.hpp"
-#include "./wrap_type.hpp"
+#include <stencil-composition/conditionals/fill_conditionals.hpp>
+
+#include "../common/generic_metafunctions/copy_into_variadic.hpp"
+
+#include "amss_descriptor.hpp"
+#include "backend_base.hpp"
+#include "backend_metafunctions.hpp"
+#include "backend_traits_fwd.hpp"
+#include "computation.hpp"
+#include "compute_extents_metafunctions.hpp"
+#include "conditionals/condition_tree.hpp"
+#include "conditionals/switch_variable.hpp"
+#include "esf.hpp"
+#include "functor_do_method_lookup_maps.hpp"
+#include "functor_do_methods.hpp"
+#include "grid.hpp"
+#include "grid_traits.hpp"
+#include "intermediate_impl.hpp"
+#include "level.hpp"
+#include "local_domain.hpp"
+#include "loopintervals.hpp"
+#include "mss_components_metafunctions.hpp"
+#include "mss_local_domain.hpp"
+#include "reductions/reduction_data.hpp"
+#include "storage_wrapper.hpp"
+#include "wrap_type.hpp"
+#include "make_computation_helper_cxx11.hpp"
+
+#include "../common/meta_array_generator.hpp"
+#include "computation_grammar.hpp"
+#include "make_computation_cxx11_impl.hpp"
+#include "make_computation_helper_cxx11.hpp"
+#include "all_args_in_aggregator.hpp"
 
 /**
  * @file
@@ -367,26 +378,55 @@ namespace gridtools {
      * @class
      *  @brief structure collecting helper metafunctions
      */
+
+    //        typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
+    //        typename _impl::create_conditionals_set< Grid, Mss... >::type,
+    //        typename _impl::reduction_helper< Mss... >::reduction_type_t,
+
+    //        typedef typename _impl::create_conditionals_set< Grid, Mss... >::type conditionals_set_t;
+    //        conditionals_set_t conditionals_set_;
+    //        fill_conditionals(conditionals_set_, args_...);
+    //    conditionals_set_, _impl::reduction_helper< Mss... >::extract_initial_value(args_...)
+
     template < typename Backend,
-        typename MssDescriptorsIn,
+        typename MssDescriptorForest,
         typename DomainType,
         typename Grid,
-        typename ConditionalsSet,
-        typename ReductionType,
         bool IsStateful,
         uint_t RepeatFunctor >
-    struct intermediate : public computation< DomainType, ReductionType > {
+    struct intermediate
+        : public computation< DomainType,
+              typename _impl::reduction_helper<
+                                  typename boost::mpl::back< MssDescriptorForest >::type >::reduction_type_t > {
 
-        //        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorsIn, is_computation_token >::value),
-        //        GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_condition_forest_of< MssDescriptorForest, is_computation_token >::value),
+            "make_computation args should be mss descriptors or condition trees of mss descriptors");
+
+        //        GRIDTOOLS_STATIC_ASSERT(
+        //            (copy_into_variadic_t< MssDescriptorForest, _impl::all_args_in_aggregator< DomainType >
+        //            >::type::value),
+        //            "Some placeholders used in the computation are not listed in the aggregator");
+
+        using reduction_helper_t = _impl::reduction_helper< typename boost::mpl::back< MssDescriptorForest >::type >;
+
+        using ReductionType = typename reduction_helper_t::reduction_type_t;
+
+        using ConditionalsSet =
+            typename copy_into_variadic_t< MssDescriptorForest, _impl::create_conditionals_set< Grid > >::type;
+
+        using MssDescriptorsIn =
+            typename copy_into_variadic_t< MssDescriptorForest, meta_array_generator< boost::mpl::vector0<> > >::type;
+
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_condition_tree_of_sequence_of< MssDescriptorsIn, is_computation_token >::value), GT_INTERNAL_ERROR);
 
         using base_t = computation< DomainType, ReductionType >;
 
         // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
         typedef typename fix_mss_arg_indices< MssDescriptorsIn, DomainType, RepeatFunctor >::type MssDescriptors;
 
-        //        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_computation_token >::value),
-        //        GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (is_condition_tree_of_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
@@ -463,13 +503,14 @@ namespace gridtools {
         using base_t::m_domain;
 
       public:
-        template < typename Domain >
-        intermediate(Domain &&domain,
-            Grid const &grid,
-            ConditionalsSet conditionals_,
-            typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
+        template < typename Domain, typename Forest >
+        intermediate(Domain &&domain, Grid const &grid, Forest &&forest)
             : base_t(std::forward< Domain >(domain)), m_grid(grid), m_meter("NoName"),
-              m_conditionals_set(conditionals_), m_reduction_data(reduction_initial_value) {
+              m_reduction_data(reduction_helper_t::extract_initial_value(
+                  boost::fusion::at_c< boost::mpl::size< MssDescriptorForest >::value - 1 >(forest))) {
+            boost::fusion::invoke(
+                std::bind(fill_conditionals_f{}, std::ref(m_conditionals_set)), std::forward< Forest >(forest));
+
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
         }

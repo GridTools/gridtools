@@ -267,29 +267,29 @@ namespace gridtools {
        intermediate object does not get instantiated.
      */
     template < typename Backend,
-        typename MssDescriptors,
+        typename MssDescriptorForest,
         typename Aggregator,
         typename Grid,
-        typename ConditionalsSet,
-        typename ReductionType,
         bool IsStateful,
         typename ExpandFactor >
-    class intermediate_expand : public computation< Aggregator, ReductionType > {
+    class intermediate_expand : public computation< Aggregator, notype > {
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_condition_forest_of< MssDescriptorForest, is_computation_token >::value),
+            "make_computation args should be mss descriptors or condition trees of mss descriptors");
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Aggregator >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT(
-            (std::is_same< ReductionType, notype >::value), "Reduction is not allowed with expandable parameters");
+            (std::is_same< typename _impl::reduction_helper<
+                               typename boost::mpl::back< MssDescriptorForest >::type >::reduction_type_t,
+                notype >::value),
+            "Reduction is not allowed with expandable parameters");
 
         template < uint N >
         using converted_intermediate = intermediate< Backend,
-            MssDescriptors,
+            MssDescriptorForest,
             _impl::expand_detail::converted_aggregator_type< N, Aggregator >,
             Grid,
-            ConditionalsSet,
-            ReductionType,
             IsStateful,
             N >;
 
@@ -309,13 +309,14 @@ namespace gridtools {
            dimension given by  @ref gridtools::expand_factor
          */
         template < typename Domain >
-        intermediate_expand(Domain &&domain, Grid const &grid, ConditionalsSet const &conditionals)
+        intermediate_expand(Domain &&domain, Grid const &grid, const MssDescriptorForest &mss_descriptor_forest)
             : base_t(std::forward< Domain >(domain)), m_size(_impl::expand_detail::get_expandable_size(m_domain)),
               m_intermediate(m_size >= ExpandFactor::value
-                                 ? create_intermediate< ExpandFactor::value >(m_domain, grid, conditionals)
+                                 ? create_intermediate< ExpandFactor::value >(m_domain, grid, mss_descriptor_forest)
                                  : nullptr),
-              m_intermediate_remainder(
-                  m_size % ExpandFactor::value ? create_intermediate< 1 >(m_domain, grid, conditionals) : nullptr) {}
+              m_intermediate_remainder(m_size % ExpandFactor::value
+                                           ? create_intermediate< 1 >(m_domain, grid, mss_descriptor_forest)
+                                           : nullptr) {}
 
         /**
            @brief run the execution
@@ -326,7 +327,7 @@ namespace gridtools {
            iterations, if the number of parameters is not multiple of the expand factor, the remaining
            chunck of storage pointers is consumed.
          */
-        ReductionType run() override {
+        notype run() override {
             assign_and_call(_impl::expand_detail::run{});
             return {};
         }
@@ -386,8 +387,9 @@ namespace gridtools {
 
       private:
         template < uint_t N, typename Res = converted_intermediate< N > >
-        static Res *create_intermediate(const Aggregator &src, Grid const &grid, const ConditionalsSet &conditionals) {
-            return new Res(_impl::expand_detail::convert_aggregator< N >(src), grid, conditionals);
+        static Res *create_intermediate(
+            const Aggregator &src, Grid const &grid, const MssDescriptorForest &mss_descriptor_forest) {
+            return new Res(_impl::expand_detail::convert_aggregator< N >(src), grid, mss_descriptor_forest);
         }
 
         template < typename Dst >
