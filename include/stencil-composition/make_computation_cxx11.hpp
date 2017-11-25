@@ -46,35 +46,6 @@
 #include "intermediate.hpp"
 
 namespace gridtools {
-
-    //    typename _impl::reduction_helper< Mss... >::reduction_type_t
-
-    //    template < bool Positional,
-    //            typename Backend,
-    //            typename Expand,
-    //            typename Domain,
-    //            typename Grid,
-    //            typename... Args>
-    //    std::shared_ptr< computation< Domain, ReductionType > > make_computation_expandable_impl(
-    //            Expand /**/, Domain &domain, const Grid &grid, Mss... args_) {
-    //
-    //        // doing type checks and defining the conditionals set
-    //        typedef typename _impl::create_conditionals_set< Grid, Mss... >::type conditionals_set_t;
-    //
-    //        conditionals_set_t conditionals_set_;
-    //
-    //        fill_conditionals(conditionals_set_, args_...);
-    //
-    //        return std::make_shared< intermediate_expand< Backend,
-    //                typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-    //                Domain,
-    //                Grid,
-    //                conditionals_set_t,
-    //                ReductionType,
-    //                Positional,
-    //                Expand > >(domain, grid, conditionals_set_);
-    //    }
-
     namespace _impl {
         template < bool Positional,
             typename Backend,
@@ -130,7 +101,7 @@ namespace gridtools {
 
         // user protections
         template < bool, typename, typename... Args >
-        short_t make_computation_proxy(Args...) {
+        short_t make_computation_dispatch(Args...) {
             GRIDTOOLS_STATIC_ASSERT((sizeof...(Args)), "The computation is malformed");
             return -1;
         }
@@ -138,9 +109,9 @@ namespace gridtools {
 
     template < typename Backend, typename... Args >
     auto make_computation(Args &&... args) GT_AUTO_RETURN(
-        (_impl::make_computation_proxy< POSITIONAL_WHEN_DEBUGGING, Backend >(std::forward< Args >(args)...)));
+        (_impl::make_computation_dispatch< POSITIONAL_WHEN_DEBUGGING, Backend >(std::forward< Args >(args)...)));
 
     template < typename Backend, typename... Args >
     auto make_positional_computation(Args &&... args)
-        GT_AUTO_RETURN((_impl::make_computation_proxy< true, Backend >(std::forward< Args >(args)...)));
+        GT_AUTO_RETURN((_impl::make_computation_dispatch< true, Backend >(std::forward< Args >(args)...)));
 }
