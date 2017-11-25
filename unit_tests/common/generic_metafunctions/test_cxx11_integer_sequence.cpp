@@ -94,6 +94,18 @@ TEST(integer_sequence, fill_templated_container) {
         (boost::is_same< extent_test< 0, 1, -2, 3 >, extent_t >::value), "Error in test_integer_sequence");
 }
 
+TEST(integer_sequence, Append) {
+    using s1 = gt_integer_sequence< std::size_t, 2, 1, 3 >;
+    using s2 = gt_integer_sequence< std::size_t, 5, 6 >;
+    using s3 = gt_integer_sequence< std::size_t >;
+
+    EXPECT_TRUE((std::is_same< append< s1, s2 >::type, gt_integer_sequence< std::size_t, 2, 1, 3, 5, 6 > >::value));
+
+    EXPECT_TRUE((std::is_same< append< s1, s3 >::type, gt_integer_sequence< std::size_t, 2, 1, 3 > >::value));
+
+    EXPECT_TRUE((std::is_same< append< s3, s1 >::type, gt_integer_sequence< std::size_t, 2, 1, 3 > >::value));
+}
+
 template < int Idx >
 struct transform {
 

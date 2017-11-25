@@ -65,32 +65,24 @@ TEST(DistributedBoundaries, DataStoreOrPlc) {
     EXPECT_EQ((gt::_impl::data_stores_or_placeholders< decltype(_1), ds, int, decltype(_2), ds >()), false);
 }
 
-TEST(DistributedBoundaries, Append) {
-    using s1 = gt::gt_integer_sequence< std::size_t, 2, 1, 3 >;
-    using s2 = gt::gt_integer_sequence< std::size_t, 5, 6 >;
-
-    EXPECT_EQ((std::is_same< gt::_impl::append< s1, s2 >::type,
-                  gt::gt_integer_sequence< std::size_t, 2, 1, 3, 5, 6 > >::value),
-        true);
-    ;
-}
-
 TEST(DistributedBoundaries, CollectIndices) {
     using p1 = decltype(_1);
     using p2 = decltype(_2);
 
-    EXPECT_TRUE((std::is_same<
-        typename gt::_impl::collect_indices< 0, gt::gt_integer_sequence< std::size_t >, std::tuple< int, int > >::type,
-        gt::gt_integer_sequence< std::size_t, 0, 1 > >::value));
+    EXPECT_TRUE(
+        (std::is_same< typename gt::_impl::comm_indices< std::tuple<> >::
+                           collect_indices< 0, gt::gt_integer_sequence< std::size_t >, std::tuple< int, int > >::type,
+            gt::gt_integer_sequence< std::size_t, 0, 1 > >::value));
 
-    EXPECT_TRUE((std::is_same< typename gt::_impl::collect_indices< 0,
+    EXPECT_TRUE((std::is_same< typename gt::_impl::comm_indices< std::tuple<> >::collect_indices< 0,
                                    gt::gt_integer_sequence< std::size_t >,
                                    std::tuple< int, p1, int, p2 > >::type,
         gt::gt_integer_sequence< std::size_t, 0, 2 > >::value));
 
-    EXPECT_TRUE((std::is_same<
-        typename gt::_impl::collect_indices< 0, gt::gt_integer_sequence< std::size_t >, std::tuple< p1, p2 > >::type,
-        gt::gt_integer_sequence< std::size_t > >::value));
+    EXPECT_TRUE(
+        (std::is_same< typename gt::_impl::comm_indices< std::tuple<> >::
+                           collect_indices< 0, gt::gt_integer_sequence< std::size_t >, std::tuple< p1, p2 > >::type,
+            gt::gt_integer_sequence< std::size_t > >::value));
 }
 
 TEST(DistributedBoundaries, RemovePlaceholders) {
