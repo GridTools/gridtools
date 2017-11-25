@@ -168,14 +168,6 @@ namespace gridtools {
                 rest_tuple(x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{}));
         }
 
-        template < typename S1, typename S2 >
-        struct append;
-
-        template < typename Uint, Uint... S1, Uint... S2 >
-        struct append< gt_integer_sequence< Uint, S1... >, gt_integer_sequence< Uint, S2... > > {
-            using type = gt_integer_sequence< Uint, S1..., S2... >;
-        };
-
         /**
            @brief Metafunction to return an gt_integer_sequence indicating
            the elements in the Tuple that are not std::placeholders
