@@ -88,7 +88,7 @@ namespace gridtools {
             typename Arg,
             typename... Args,
             typename = typename std::enable_if< is_aggregator_type< typename std::decay< Arg >::type >::value >::type >
-        auto make_computation_proxy(Arg &&arg, Args &&... args) GT_AUTO_RETURN(
+        auto make_computation_dispatch(Arg &&arg, Args &&... args) GT_AUTO_RETURN(
             (make_computation< Positional, Backend >(std::forward< Arg >(arg), std::forward< Args >(args)...)));
 
         template < bool Positional,
@@ -96,7 +96,7 @@ namespace gridtools {
             typename Arg,
             typename... Args,
             typename = typename std::enable_if< is_expand_factor< Arg >::value >::type >
-        auto make_computation_proxy(Arg arg, Args &&... args)
+        auto make_computation_dispatch(Arg arg, Args &&... args)
             GT_AUTO_RETURN((make_computation_expandable< Positional, Backend, Arg >(std::forward< Args >(args)...)));
 
         // user protections
