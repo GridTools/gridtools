@@ -62,7 +62,6 @@
 #include <boost/type_traits/remove_const.hpp>
 #include <boost/mpl/min_element.hpp>
 #include <boost/mpl/max_element.hpp>
-#include <stencil-composition/conditionals/fill_conditionals.hpp>
 
 #include "../common/generic_metafunctions/copy_into_variadic.hpp"
 
@@ -92,7 +91,6 @@
 
 #include "../common/meta_array_generator.hpp"
 #include "computation_grammar.hpp"
-#include "make_computation_cxx11_impl.hpp"
 #include "make_computation_helper_cxx11.hpp"
 #include "all_args_in_aggregator.hpp"
 
@@ -175,64 +173,6 @@ namespace gridtools {
         typedef typename boost::mpl::fold< filtered_list,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type type;
-    };
-
-    template < typename IsPresent, typename MssComponentsArray, typename Backend >
-    struct run_conditionally;
-
-    /**@brief calls the run method when conditionals are defined
-
-       specialization for when the next MSS is not a conditional
-    */
-    template < typename MssComponentsArray, typename Backend >
-    struct run_conditionally< boost::mpl::true_, MssComponentsArray, Backend > {
-        template < typename ConditionalSet, typename Grid, typename MssLocalDomainList, typename ReductionData >
-        static void apply(ConditionalSet const & /**/,
-            Grid const &grid_,
-            MssLocalDomainList const &mss_local_domain_list_,
-            ReductionData &reduction_data) {
-            Backend::template run< MssComponentsArray >(grid_, mss_local_domain_list_, reduction_data);
-        }
-    };
-
-    /**
-       @brief calls the run method when conditionals are defined
-
-       specialization for when the next MSS is a conditional
-     */
-    template < typename Array1, typename Array2, typename Cond, typename Backend >
-    struct run_conditionally< boost::mpl::true_, condition< Array1, Array2, Cond >, Backend > {
-        template < typename ConditionalSet, typename Grid, typename MssLocalDomainList, typename ReductionData >
-        static void apply(ConditionalSet const &conditionals_set_,
-            Grid const &grid_,
-            MssLocalDomainList const &mss_local_domain_list_,
-            ReductionData &reduction_data) {
-            // std::cout<<"true? "<<boost::fusion::at_key< Cond >(conditionals_set_).value()<<std::endl;
-            if (boost::fusion::at_key< Cond >(conditionals_set_).value()) {
-                run_conditionally< boost::mpl::true_, Array1, Backend >::apply(
-                    conditionals_set_, grid_, mss_local_domain_list_, reduction_data);
-            } else
-                run_conditionally< boost::mpl::true_, Array2, Backend >::apply(
-                    conditionals_set_, grid_, mss_local_domain_list_, reduction_data);
-        }
-    };
-
-    /**@brief calls the run method when no conditional is defined
-
-       the 2 cases are separated into 2 different partial template specialization, because
-       the fusion::at_key doesn't compile when the key is not present in the set
-       (i.e. the present situation).
-     */
-    template < typename MssComponentsArray, typename Backend >
-    struct run_conditionally< boost::mpl::false_, MssComponentsArray, Backend > {
-        template < typename ConditionalSet, typename Grid, typename MssLocalDomainList, typename ReductionData >
-        static void apply(ConditionalSet const &,
-            Grid const &grid_,
-            MssLocalDomainList const &mss_local_domain_list_,
-            ReductionData &reduction_data) {
-
-            Backend::template run< MssComponentsArray >(grid_, mss_local_domain_list_, reduction_data);
-        }
     };
 
     template < typename Vec >
@@ -379,15 +319,6 @@ namespace gridtools {
      *  @brief structure collecting helper metafunctions
      */
 
-    //        typename meta_array_generator< boost::mpl::vector0<>, Mss... >::type,
-    //        typename _impl::create_conditionals_set< Grid, Mss... >::type,
-    //        typename _impl::reduction_helper< Mss... >::reduction_type_t,
-
-    //        typedef typename _impl::create_conditionals_set< Grid, Mss... >::type conditionals_set_t;
-    //        conditionals_set_t conditionals_set_;
-    //        fill_conditionals(conditionals_set_, args_...);
-    //    conditionals_set_, _impl::reduction_helper< Mss... >::extract_initial_value(args_...)
-
     template < typename Backend,
         typename MssDescriptorForest,
         typename DomainType,
@@ -396,23 +327,18 @@ namespace gridtools {
         uint_t RepeatFunctor >
     struct intermediate
         : public computation< DomainType,
-              typename _impl::reduction_helper<
-                                  typename boost::mpl::back< MssDescriptorForest >::type >::reduction_type_t > {
+              typename _impl::get_reduction_type< typename boost::mpl::back< MssDescriptorForest >::type >::type > {
 
         GRIDTOOLS_STATIC_ASSERT((is_condition_forest_of< MssDescriptorForest, is_computation_token >::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
+
+        using branch_selector_t = branch_selector< MssDescriptorForest >;
+        using branches_t = typename branch_selector_t::branches_t;
 
         //        GRIDTOOLS_STATIC_ASSERT(
         //            (copy_into_variadic_t< MssDescriptorForest, _impl::all_args_in_aggregator< DomainType >
         //            >::type::value),
         //            "Some placeholders used in the computation are not listed in the aggregator");
-
-        using reduction_helper_t = _impl::reduction_helper< typename boost::mpl::back< MssDescriptorForest >::type >;
-
-        using ReductionType = typename reduction_helper_t::reduction_type_t;
-
-        using ConditionalsSet =
-            typename copy_into_variadic_t< MssDescriptorForest, _impl::create_conditionals_set< Grid > >::type;
 
         using MssDescriptorsIn =
             typename copy_into_variadic_t< MssDescriptorForest, meta_array_generator< boost::mpl::vector0<> > >::type;
@@ -420,18 +346,16 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (is_condition_tree_of_sequence_of< MssDescriptorsIn, is_computation_token >::value), GT_INTERNAL_ERROR);
 
-        using base_t = computation< DomainType, ReductionType >;
-
-        // fix the and expandable parameters by replacing the vector type with an expandable_paramter type
-        typedef typename fix_mss_arg_indices< MssDescriptorsIn, DomainType, RepeatFunctor >::type MssDescriptors;
+        // fix expandable parameters by replacing the vector type with an expandable_paramter type
+        typedef typename fix_mss_arg_indices< MssDescriptorsIn, RepeatFunctor >::type MssDescriptors;
 
         GRIDTOOLS_STATIC_ASSERT(
             (is_condition_tree_of_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
+
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
-        typedef ConditionalsSet conditionals_set_t;
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::backend_ids_t backend_ids_t;
         typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
@@ -440,11 +364,10 @@ namespace gridtools {
         // First we need to compute the association between placeholders and extents.
         // This information is needed to allocate temporaries, and to provide the
         // extent information to the user.
-        typedef typename placeholder_to_extent_map< MssDescriptors, grid_traits_t, placeholders_t, RepeatFunctor >::type
-            extent_map_t;
+        typedef typename placeholder_to_extent_map< MssDescriptors, grid_traits_t, placeholders_t >::type extent_map_t;
         // Second we need to associate an extent to each esf, so that
         // we can associate loop bounds to the functors.
-        typedef typename associate_extents_to_esfs< MssDescriptors, extent_map_t, RepeatFunctor >::type extent_sizes_t;
+        typedef typename associate_extents_to_esfs< MssDescriptors, extent_map_t >::type extent_sizes_t;
 
         typedef typename boost::mpl::if_<
             boost::mpl::is_sequence< MssDescriptors >,
@@ -455,8 +378,6 @@ namespace gridtools {
 
         typedef reduction_data< MssDescriptors, has_reduction_t::value > reduction_data_t;
         typedef typename reduction_data_t::reduction_type_t reduction_type_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::is_same< reduction_type_t, ReductionType >::value),
-            "Error deducing the reduction. Check that if there is a reduction, this appears in the last mss");
 
         typedef typename build_mss_components_array< backend_id< Backend >::value,
             MssDescriptors,
@@ -491,26 +412,42 @@ namespace gridtools {
         // member fields
         mss_local_domain_list_t m_mss_local_domain_list;
 
-        const Grid m_grid;
+        Grid m_grid;
 
         performance_meter_t m_meter;
 
-        conditionals_set_t m_conditionals_set;
-        reduction_data_t m_reduction_data;
+        branch_selector< MssDescriptorForest > m_branch_selector;
         view_list_fusion_t m_view_list;
         storage_wrapper_fusion_list_t m_storage_wrapper_list;
 
-        using base_t::m_domain;
+        using intermediate::computation::m_domain;
+
+        template < typename MssDescs >
+        using convert_to_mss_components_t = typename build_mss_components_array< backend_id< Backend >::value,
+            typename fix_mss_arg_indices< MssDescs, RepeatFunctor >::type,
+            typename associate_extents_to_esfs< typename fix_mss_arg_indices< MssDescs, RepeatFunctor >::type,
+                                                                                     extent_map_t >::type,
+            static_int< RepeatFunctor >,
+            typename Grid::axis_type >::type;
+
+        struct run_f {
+            template < typename MssDescs >
+            reduction_type_t operator()(MssDescs const &mss_descriptors,
+                Grid const &grid,
+                mss_local_domain_list_t const &mss_local_domain_list) const {
+                reduction_data_t reduction_data(_impl::extract_reduction_intial_value_f{}(
+                    boost::fusion::at_c< boost::mpl::size< MssDescriptorForest >::value - 1 >(mss_descriptors)));
+                Backend::template run< convert_to_mss_components_t< MssDescs > >(
+                    grid, mss_local_domain_list, reduction_data);
+                return reduction_data.reduced_value();
+            }
+        };
 
       public:
         template < typename Domain, typename Forest >
         intermediate(Domain &&domain, Grid const &grid, Forest &&forest)
-            : base_t(std::forward< Domain >(domain)), m_grid(grid), m_meter("NoName"),
-              m_reduction_data(reduction_helper_t::extract_initial_value(
-                  boost::fusion::at_c< boost::mpl::size< MssDescriptorForest >::value - 1 >(forest))) {
-            boost::fusion::invoke(
-                std::bind(fill_conditionals_f{}, std::ref(m_conditionals_set)), std::forward< Forest >(forest));
-
+            : intermediate::computation(std::forward< Domain >(domain)), m_grid(grid), m_meter("NoName"),
+              m_branch_selector(forest) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
         }
@@ -556,16 +493,10 @@ namespace gridtools {
                 steady();
             }
 
-            // typedef allowing compile-time dispatch: we separate the path when the first
-            // multi stage stencil is a conditional
-            typedef typename boost::fusion::result_of::has_key< conditionals_set_t,
-                typename if_condition_extract_index_t< mss_components_array_t >::type >::type is_present_t;
-
             m_meter.start();
-            run_conditionally< is_present_t, mss_components_array_t, Backend >::apply(
-                m_conditionals_set, m_grid, m_mss_local_domain_list, m_reduction_data);
+            auto res = m_branch_selector.apply(run_f{}, std::cref(m_grid), std::cref(m_mss_local_domain_list));
             m_meter.pause();
-            return m_reduction_data.reduced_value();
+            return res;
         }
 
         virtual std::string print_meter() { return m_meter.to_string(); }

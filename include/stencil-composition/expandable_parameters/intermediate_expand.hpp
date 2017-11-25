@@ -279,11 +279,6 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Aggregator >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (std::is_same< typename _impl::reduction_helper<
-                               typename boost::mpl::back< MssDescriptorForest >::type >::reduction_type_t,
-                notype >::value),
-            "Reduction is not allowed with expandable parameters");
 
         template < uint N >
         using converted_intermediate = intermediate< Backend,

@@ -45,7 +45,7 @@ namespace gridtools {
     struct reduction_data< MssDescriptors, false > {
         typedef notype reduction_type_t;
 
-        reduction_data(const reduction_type_t val) {}
+        reduction_data(reduction_type_t val) {}
         constexpr reduction_type_t reduced_value() const { return 0; }
         reduction_type_t initial_value() const { return 0; }
 
@@ -72,10 +72,10 @@ namespace gridtools {
 
         typedef typename reduction_descriptor_t::bin_op_t bin_op_t;
 
-        reduction_data(const reduction_type_t val)
+        reduction_data(reduction_type_t val)
             : m_initial_value(val), m_parallel_reduced_val(omp_get_max_threads(), val) {}
         const reduction_type_t &initial_value() const { return m_initial_value; }
-        const reduction_type_t &parallel_reduced_val(const int elem) const { return m_parallel_reduced_val[elem]; }
+        const reduction_type_t &parallel_reduced_val(int elem) const { return m_parallel_reduced_val[elem]; }
 
         void assign(uint_t elem, const reduction_type_t &reduction_value) {
             assert(elem < m_parallel_reduced_val.size());

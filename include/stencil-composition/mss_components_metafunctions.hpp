@@ -248,7 +248,7 @@ namespace gridtools {
      * aggregator and in order to be able to map the args contained in the aggregator to the
      * args contained in the ESF types we have to replace them in the same way.
      */
-    template < typename AggregatorType, uint_t RepeatFunctor >
+    template < uint_t RepeatFunctor >
     struct fix_esf_sequence {
 
         template < typename ArgArray >
@@ -347,58 +347,12 @@ namespace gridtools {
     };
 
     /**
-     * @brief metafunction that replaces the storage info ID contained in all the
-     * placeholders of all temporaries. This metafunction is taking an MSS descriptor
-     * and iterates (and modifies) all the Caches.
-     */
-    template < typename MssDesc, typename Functor >
-    struct fix_cache_sequences {
-        typedef typename boost::mpl::fold< MssDesc,
-            boost::mpl::vector<>,
-            boost::mpl::push_back< boost::mpl::_1, fix_cache_sequences< boost::mpl::_2, Functor > > >::type type;
-    };
-
-    /**
-     * @brief specialization for reduction_descriptor types
-     */
-    template < typename ReductionType, typename BinOp, typename EsfDescrSequence, typename Functor >
-    struct fix_cache_sequences< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence >, Functor > {
-        typedef reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > type;
-    };
-
-    /**
-     * @brief specialization for mss_descriptor types
-     */
-    template < typename ExecutionEngine, typename ESFSeq, typename CacheSeq, typename Functor >
-    struct fix_cache_sequences< mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq >, Functor > {
-        typedef mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq > MssDesc;
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_mss_descriptor< MssDesc >::value), GT_INTERNAL_ERROR_MSG("Given type is no mss_descriptor."));
-        typedef typename boost::mpl::transform< CacheSeq, Functor >::type new_cache_sequence_t;
-        typedef mss_descriptor< ExecutionEngine, ESFSeq, new_cache_sequence_t > type;
-    };
-
-    /**
-     * @brief specialization for condition types
-     */
-    template < typename Sequence1, typename Sequence2, typename Tag, typename Functor >
-    struct fix_cache_sequences< condition< Sequence1, Sequence2, Tag >, Functor > {
-        typedef condition< Sequence1, Sequence2, Tag > MssDesc;
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_condition< MssDesc >::value), GT_INTERNAL_ERROR_MSG("Given type is no mss_descriptor."));
-        typedef typename fix_cache_sequences< Sequence1, Functor >::type sequence1_t;
-        typedef typename fix_cache_sequences< Sequence2, Functor >::type sequence2_t;
-        typedef condition< sequence1_t, sequence2_t, Tag > type;
-    };
-
-    /**
      * @brief metafunction that fixes the storage info type IDs that is contained in
      * all temporary placeholders used in ESF types and Cache types.
      */
-    template < typename Sequence, typename AggregatorType, uint_t RepeatFunctor >
+    template < typename Sequence, uint_t RepeatFunctor >
     struct fix_mss_arg_indices {
-        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-        typedef typename fix_arg_sequences< Sequence, fix_esf_sequence< AggregatorType, RepeatFunctor > >::type type;
+        typedef typename fix_arg_sequences< Sequence, fix_esf_sequence< RepeatFunctor > >::type type;
     };
 
 } // namespace gridtools
