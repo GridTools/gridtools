@@ -318,7 +318,7 @@ namespace gridtools {
         typename DomainType,
         typename Grid,
         bool IsStateful,
-        uint_t RepeatFunctor >
+        uint_t RepeatFunctor = 1 >
     struct intermediate
         : public computation< DomainType,
               typename _impl::get_reduction_type< typename boost::mpl::back< MssDescriptorForest >::type >::type > {
@@ -500,4 +500,18 @@ namespace gridtools {
         const DomainType &domain() const { return m_domain; }
     };
 
+    template < typename T >
+    struct intermediate_mss_local_domains;
+
+    template < typename Backend,
+        typename MssArray,
+        typename DomainType,
+        typename Grid,
+        bool IsStateful,
+        uint_t RepeatFunctor >
+    struct intermediate_mss_local_domains<
+        intermediate< Backend, MssArray, DomainType, Grid, IsStateful, RepeatFunctor > > {
+        using type = typename intermediate< Backend, MssArray, DomainType, Grid, IsStateful, RepeatFunctor >::
+            mss_local_domains_t;
+    };
 } // namespace gridtools
