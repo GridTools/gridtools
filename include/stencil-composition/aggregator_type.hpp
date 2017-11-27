@@ -65,7 +65,8 @@
 #include "../common/generic_metafunctions/variadic_to_vector.hpp"
 
 #include "../common/default_host_container.hpp"
-#include "../common/make_from_permutation.hpp"
+#include "../common/fusion.hpp"
+#include "../common/permute_to.hpp"
 #include "../storage/storage-facility.hpp"
 
 #include "aggregator_type_impl.hpp"
@@ -208,8 +209,8 @@ namespace gridtools {
 
         template < typename NonTmp, typename Tmp = tmp_arg_storage_pair_fusion_list_t >
         aggregator_type(_impl::private_ctor_t, NonTmp &&non_tmp, Tmp &&tmp = default_host_container< Tmp >())
-            : aggregator_type(make_from_permutation< arg_storage_pair_fusion_list_t >(
-                  _impl::make_joint_view(std::forward< NonTmp >(non_tmp), std::forward< Tmp >(tmp)))) {}
+            : aggregator_type(permute_to< arg_storage_pair_fusion_list_t >(
+                  make_joint_view(std::forward< NonTmp >(non_tmp), std::forward< Tmp >(tmp)))) {}
 
         template < typename Key >
         Key &at() {

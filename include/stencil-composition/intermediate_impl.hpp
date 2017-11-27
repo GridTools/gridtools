@@ -39,7 +39,7 @@
 #include <boost/fusion/include/move.hpp>
 
 #include "common/generic_metafunctions/copy_into_set.hpp"
-#include "common/make_from_permutation.hpp"
+#include "common/permute_to.hpp"
 
 #include "mss_local_domain.hpp"
 #include "tile.hpp"
@@ -76,8 +76,7 @@ namespace gridtools {
 
         template < typename ArgStoragePairs, typename Res = get_storage_info_ptrs_t< ArgStoragePairs > >
         Res get_storage_info_ptrs(ArgStoragePairs const &src) {
-            return make_from_permutation< Res >(
-                boost::fusion::as_vector(boost::fusion::transform(src, get_storage_info_ptr_f{})));
+            return permute_to< Res >(boost::fusion::as_vector(boost::fusion::transform(src, get_storage_info_ptr_f{})));
         }
 
         /** @brief Functor used to instantiate the local domains to be passed to each

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/make_from_permutation.hpp>
+#include <common/permute_to.hpp>
 
 #include <utility>
 
@@ -49,26 +49,26 @@ namespace gridtools {
     using boost::fusion::vector;
     using boost::fusion::make_vector;
 
-    TEST(_, LRef) {
+    TEST(permute_to, lref) {
         vector<> src;
-        EXPECT_TRUE(make_from_permutation< vector<> >(src) == make_vector());
+        EXPECT_TRUE(permute_to< vector<> >(src) == make_vector());
     }
 
-    TEST(_, CLRef) {
+    TEST(permute_to, cref) {
         vector<> const src;
-        EXPECT_TRUE(make_from_permutation< vector<> >(src) == make_vector());
+        EXPECT_TRUE(permute_to< vector<> >(src) == make_vector());
     }
 
     template < typename Res, typename... Args >
     Res testee(Args &&... args) {
-        return make_from_permutation< Res >(make_vector(std::forward< Args >(args)...));
+        return permute_to< Res >(make_vector(std::forward< Args >(args)...));
     }
 
-    TEST(_, Empty) { EXPECT_TRUE(testee< vector<> >() == make_vector()); }
+    TEST(permute_to, empty) { EXPECT_TRUE(testee< vector<> >() == make_vector()); }
 
-    TEST(_, One) { EXPECT_TRUE(testee< vector< int > >(42) == make_vector(42)); }
+    TEST(permute_to, one) { EXPECT_TRUE(testee< vector< int > >(42) == make_vector(42)); }
 
-    TEST(_, Functional) {
+    TEST(permute_to, functional) {
         using res_t = vector< int, char, double >;
         res_t expected{42, 'a', .1};
         EXPECT_TRUE(testee< res_t >(42, 'a', .1) == expected);
@@ -79,7 +79,7 @@ namespace gridtools {
         EXPECT_TRUE(testee< res_t >(.1, 'a', 42) == expected);
     }
 
-    TEST(_, UnusedExtraArgs) { EXPECT_TRUE((testee< vector< int > >('a', 42, .1) == make_vector(42))); }
+    TEST(permute_to, unused_extra_args) { EXPECT_TRUE((testee< vector< int > >('a', 42, .1, 12) == make_vector(42))); }
 
-    TEST(_, DuplicatesInRes) { EXPECT_TRUE((testee< vector< int, int > >(42) == make_vector(42, 42))); }
+    TEST(permute_to, duplicates_in_res) { EXPECT_TRUE((testee< vector< int, int > >(42) == make_vector(42, 42))); }
 }
