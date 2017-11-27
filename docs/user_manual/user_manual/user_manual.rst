@@ -20,6 +20,7 @@ User Manual
 .. include:: advanced_functionality.hrst
 .. include:: performance.hrst
 .. include:: halo_update.hrst
+.. include:: comm_and_bc.hrst
 .. include:: data_management.hrst
 .. include:: interface.hrst
 .. include:: benchmarking.hrst
@@ -31,4 +32,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
