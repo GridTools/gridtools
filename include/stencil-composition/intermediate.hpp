@@ -35,9 +35,6 @@
 */
 #pragma once
 
-#ifdef VERBOSE
-#include <iostream>
-#endif
 #include <utility>
 
 #include <boost/fusion/include/mpl.hpp>
@@ -99,9 +96,6 @@
  * \brief this file contains mainly helper metafunctions which simplify the interface for the application developer
  * */
 namespace gridtools {
-
-    template < typename T >
-    struct if_condition_extract_index_t;
 
     /**
      * @brief metafunction that create the mss local domain type
@@ -335,19 +329,12 @@ namespace gridtools {
         using branch_selector_t = branch_selector< MssDescriptorForest >;
         using branches_t = typename branch_selector_t::branches_t;
 
-        //        GRIDTOOLS_STATIC_ASSERT(
-        //            (copy_into_variadic_t< MssDescriptorForest, _impl::all_args_in_aggregator< DomainType >
-        //            >::type::value),
-        //            "Some placeholders used in the computation are not listed in the aggregator");
-
-        using MssDescriptorsIn =
-            typename copy_into_variadic_t< MssDescriptorForest, meta_array_generator< boost::mpl::vector0<> > >::type;
-
         GRIDTOOLS_STATIC_ASSERT(
-            (is_condition_tree_of_sequence_of< MssDescriptorsIn, is_computation_token >::value), GT_INTERNAL_ERROR);
+            (copy_into_variadic_t< MssDescriptorForest, _impl::all_args_in_aggregator< DomainType > >::type::value),
+            "Some placeholders used in the computation are not listed in the aggregator");
 
-        // fix expandable parameters by replacing the vector type with an expandable_paramter type
-        typedef typename fix_mss_arg_indices< MssDescriptorsIn, RepeatFunctor >::type MssDescriptors;
+        using MssDescriptors =
+            typename copy_into_variadic_t< MssDescriptorForest, meta_array_generator< boost::mpl::vector0<> > >::type;
 
         GRIDTOOLS_STATIC_ASSERT(
             (is_condition_tree_of_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
@@ -424,9 +411,8 @@ namespace gridtools {
 
         template < typename MssDescs >
         using convert_to_mss_components_t = typename build_mss_components_array< backend_id< Backend >::value,
-            typename fix_mss_arg_indices< MssDescs, RepeatFunctor >::type,
-            typename associate_extents_to_esfs< typename fix_mss_arg_indices< MssDescs, RepeatFunctor >::type,
-                                                                                     extent_map_t >::type,
+            MssDescs,
+            typename associate_extents_to_esfs< MssDescs, extent_map_t >::type,
             static_int< RepeatFunctor >,
             typename Grid::axis_type >::type;
 
@@ -451,6 +437,7 @@ namespace gridtools {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
         }
+
         /**
            @brief This method allocates on the heap the temporary variables.
            Calls heap_allocated_temps::prepare_temporaries(...).

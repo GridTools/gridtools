@@ -46,6 +46,7 @@
 #include <boost/fusion/include/joint_view.hpp>
 #include <boost/fusion/include/is_sequence.hpp>
 #include <boost/fusion/include/as_vector.hpp>
+#include <boost/fusion/include/transform.hpp>
 
 #include <boost/mpl/logical.hpp>
 #include <boost/mpl/vector.hpp>
@@ -167,6 +168,37 @@ namespace gridtools {
             }
         };
 
+        template < typename TransformLeaf >
+        struct condition_transform_f {
+            template < typename >
+            struct result;
+
+            template < typename T >
+            using res_t = typename result< condition_transform_f(T const &) >::type;
+
+            template < typename T >
+            struct result< condition_transform_f(T const &) > {
+                using type = typename std::result_of< TransformLeaf(T const &) >::type;
+            };
+
+            template < typename Lhs, typename Rhs, typename C >
+            struct result< condition_transform_f(condition< Lhs, Rhs, C > const &) > {
+                using type = condition< res_t< Lhs >, res_t< Rhs >, C >;
+            };
+
+            TransformLeaf m_transform_leaf;
+
+            template < typename T >
+            res_t< T > operator()(T const &src) const {
+                return m_transform_leaf(src);
+            }
+
+            template < typename Lhs, typename Rhs, typename C >
+            res_t< condition< Lhs, Rhs, C > > operator()(condition< Lhs, Rhs, C > const &src) const {
+                return {src.value(), this->operator()(src.first()), this->operator()(src.second())};
+            }
+        };
+
         template < typename Fun >
         struct apply_with_condtion_tree_f {
             template < typename >
@@ -249,7 +281,14 @@ namespace gridtools {
     auto make_condition_tree_from_forest(Forest &&forest) GT_AUTO_RETURN(boost::fusion::fold(
         std::forward< Forest >(forest), boost::fusion::make_vector(), _impl::compose_condition_trees()));
 
-    // TODO(anstaf): add condition_tree_transform.
+    template < typename Tree, typename Fun >
+    auto condition_tree_transform(Tree &&tree, Fun &&fun)
+        GT_AUTO_RETURN(_impl::condition_transform_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tree >(tree)));
+
+    template < typename Forest, typename Fun >
+    auto condition_forest_transform(Forest &&forest, Fun &&fun)
+        GT_AUTO_RETURN((boost::fusion::as_vector(boost::fusion::transform(
+            std::forward< Forest >(forest), _impl::condition_transform_f< Fun >{std::forward< Fun >(fun)}))));
 
     template < typename Forest >
     class branch_selector {

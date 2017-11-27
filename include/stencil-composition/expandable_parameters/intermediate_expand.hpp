@@ -71,6 +71,8 @@
 #include "../grid.hpp"
 #include "../intermediate.hpp"
 #include "../intermediate_impl.hpp"
+#include "../mss_components_metafunctions.hpp"
+#include "../conditionals/condition_tree.hpp"
 #include "expand_factor.hpp"
 
 namespace gridtools {
@@ -185,6 +187,21 @@ namespace gridtools {
                                      convert_arg_storage_pair< N >()));
             }
 
+            template < uint_t N >
+            struct convert_mss_descriptors_forest_f {
+                template < typename T >
+                auto operator()(T const &src) const
+                    GT_AUTO_RETURN((condition_forest_transform(src, fix_mss_arg_indices_f< N >{})));
+            };
+
+            template < uint_t N, typename MssDescriptorsForest >
+            auto convert_mss_descriptors_forest(const MssDescriptorsForest &forest)
+                GT_AUTO_RETURN(convert_mss_descriptors_forest_f< N >{}(forest));
+
+            template < uint_t N, typename MssDescriptorsForest >
+            using converted_mss_descriptors_forest =
+                typename std::result_of< convert_mss_descriptors_forest_f< N >(const MssDescriptorsForest &) >::type;
+
             struct assign_storage {
                 size_t m_offset;
                 template < typename Src, typename Dst, uint_t N >
@@ -282,7 +299,7 @@ namespace gridtools {
 
         template < uint N >
         using converted_intermediate = intermediate< Backend,
-            MssDescriptorForest,
+            _impl::expand_detail::converted_mss_descriptors_forest< N, MssDescriptorForest >,
             _impl::expand_detail::converted_aggregator_type< N, Aggregator >,
             Grid,
             IsStateful,
@@ -384,7 +401,9 @@ namespace gridtools {
         template < uint_t N, typename Res = converted_intermediate< N > >
         static Res *create_intermediate(
             const Aggregator &src, Grid const &grid, const MssDescriptorForest &mss_descriptor_forest) {
-            return new Res(_impl::expand_detail::convert_aggregator< N >(src), grid, mss_descriptor_forest);
+            return new Res(_impl::expand_detail::convert_aggregator< N >(src),
+                grid,
+                _impl::expand_detail::convert_mss_descriptors_forest< N >(mss_descriptor_forest));
         }
 
         template < typename Dst >

@@ -72,14 +72,20 @@ namespace gridtools {
       public:
         constexpr condition(){};
 
-        constexpr condition(index_t cond, first_t const &first_, second_t const &second_)
+        constexpr condition(index_t const &cond, first_t const &first_, second_t const &second_)
             : m_value(cond), m_first(first_), m_second(second_) {}
 
-        constexpr index_t const &value() const { return m_value; }
-        constexpr second_t const &second() const { return m_second; }
-        second_t &second() { return m_second; }
-        constexpr first_t const &first() const { return m_first; }
-        first_t &first() { return m_first; }
+        condition(index_t &&cond, first_t &&first_, second_t &&second_)
+            : m_value(std::move(cond)), m_first(std::move(first_)), m_second(std::move(second_)) {}
+
+        constexpr index_t const &value() const & { return m_value; }
+        index_t &&value() && { return std::move(m_value); }
+        constexpr second_t const &second() const & { return m_second; }
+        second_t &second() & { return m_second; }
+        second_t &&second() && { return std::move(m_second); }
+        constexpr first_t const &first() const & { return m_first; }
+        first_t &first() & { return m_first; }
+        first_t &&first() && { return std::move(m_first); }
     };
     template < typename T, typename L, typename R >
     condition< typename std::decay< L >::type, typename std::decay< R >::type, typename std::decay< T >::type >

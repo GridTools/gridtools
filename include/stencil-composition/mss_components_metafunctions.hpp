@@ -94,6 +94,20 @@ namespace gridtools {
             type;
     };
 
+    template < typename State, typename Sequence >
+    struct insert_unfold {
+        typedef typename boost::mpl::fold< Sequence,
+            State,
+            boost::mpl::push_back< boost::mpl::_1, boost::mpl::vector1< boost::mpl::_2 > > >::type type;
+    };
+
+    template < typename ExtentSizes >
+    struct unroll_extent_sizes {
+        typedef typename boost::mpl::fold< ExtentSizes,
+            boost::mpl::vector0<>,
+            insert_unfold< boost::mpl::_1, boost::mpl::_2 > >::type type;
+    };
+
     /**
      * @brief metafunction that builds the array of mss components
      * @tparam BackendId id of the backend (which decides whether the MSS with multiple ESF are split or not)
@@ -110,20 +124,6 @@ namespace gridtools {
 
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size< MssDescriptorSeq >::value == boost::mpl::size< ExtentSizes >::value), GT_INTERNAL_ERROR);
-
-        template < typename _ExtentSizes_ >
-        struct unroll_extent_sizes {
-            template < typename State, typename Sequence >
-            struct insert_unfold {
-                typedef typename boost::mpl::fold< Sequence,
-                    State,
-                    boost::mpl::push_back< boost::mpl::_1, boost::mpl::vector1< boost::mpl::_2 > > >::type type;
-            };
-
-            typedef typename boost::mpl::fold< _ExtentSizes_,
-                boost::mpl::vector0<>,
-                insert_unfold< boost::mpl::_1, boost::mpl::_2 > >::type type;
-        };
 
         typedef typename boost::mpl::eval_if< typename backend_traits_from_id< BackendId >::mss_fuse_esfs_strategy,
             boost::mpl::identity< MssDescriptorSeq >,
@@ -146,7 +146,7 @@ namespace gridtools {
                                        boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
                                        RepeatFunctor,
                                        Axis > > >::type type;
-    }; // struct build_mss_components_array
+    };
 
     /**
      * @brief metafunction that builds a pair of arrays of mss components, to be handled at runtime
@@ -170,17 +170,13 @@ namespace gridtools {
         condition< ExtentSizes1, ExtentSizes2, Condition >,
         RepeatFunctor,
         Axis > {
-        // typedef typename pair<
-        //     typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type
-        //     , typename build_mss_components_array<BackendId, MssDescriptorArray1, ExtentSizes>::type >
-        // ::type type;
         typedef condition<
             typename build_mss_components_array< BackendId, MssDescriptorArray1, ExtentSizes1, RepeatFunctor, Axis >::
                 type,
             typename build_mss_components_array< BackendId, MssDescriptorArray2, ExtentSizes2, RepeatFunctor, Axis >::
                 type,
             Condition > type;
-    }; // build_mss_components_array
+    };
 
     /**
      * @brief metafunction that computes the mss functor do methods
@@ -298,27 +294,16 @@ namespace gridtools {
         };
     };
 
-    /**
-     * @brief metafunction that replaces the storage info ID contained in all the ESF
-     * placeholders of all temporaries. This metafunction is taking an MSS descriptor
-     * and iterates (and modifies) all the ESFs.
-     */
-    template < typename MssDesc, typename Functor >
-    struct fix_arg_sequences {
-        typedef typename boost::mpl::fold< MssDesc,
-            boost::mpl::vector<>,
-            boost::mpl::push_back< boost::mpl::_1, fix_arg_sequences< boost::mpl::_2, Functor > > >::type type;
-    };
+    template < typename T, typename Functor >
+    struct fix_arg_sequences;
 
     /**
      * @brief specialization for mss_descriptor types
      */
     template < typename ExecutionEngine, typename ESFSeq, typename CacheSeq, typename Functor >
     struct fix_arg_sequences< mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq >, Functor > {
-        typedef mss_descriptor< ExecutionEngine, ESFSeq, CacheSeq > MssDesc;
-        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< MssDesc >::value), "Given type is no mss_descriptor.");
-        typedef typename boost::mpl::transform< ESFSeq, Functor >::type new_esf_sequence_t;
-        typedef mss_descriptor< ExecutionEngine, new_esf_sequence_t, CacheSeq > type;
+        using type =
+            mss_descriptor< ExecutionEngine, typename boost::mpl::transform< ESFSeq, Functor >::type, CacheSeq >;
     };
 
     /**
@@ -326,24 +311,9 @@ namespace gridtools {
      */
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence, typename Functor >
     struct fix_arg_sequences< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence >, Functor > {
-        typedef reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > MssDesc;
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_reduction_descriptor< MssDesc >::value), GT_INTERNAL_ERROR_MSG("Given type is no mss_descriptor."));
-        typedef typename boost::mpl::transform< EsfDescrSequence, Functor >::type new_esf_sequence_t;
-        typedef reduction_descriptor< ReductionType, BinOp, new_esf_sequence_t > type;
-    };
-
-    /**
-     * @brief specialization for condition types
-     */
-    template < typename Sequence1, typename Sequence2, typename Tag, typename Functor >
-    struct fix_arg_sequences< condition< Sequence1, Sequence2, Tag >, Functor > {
-        typedef condition< Sequence1, Sequence2, Tag > MssDesc;
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_condition< MssDesc >::value), GT_INTERNAL_ERROR_MSG("Given type is no mss_descriptor."));
-        typedef typename fix_arg_sequences< Sequence1, Functor >::type sequence1_t;
-        typedef typename fix_arg_sequences< Sequence2, Functor >::type sequence2_t;
-        typedef condition< sequence1_t, sequence2_t, Tag > type;
+        using type = reduction_descriptor< ReductionType,
+            BinOp,
+            typename boost::mpl::transform< EsfDescrSequence, Functor >::type >;
     };
 
     /**
@@ -353,6 +323,21 @@ namespace gridtools {
     template < typename Sequence, uint_t RepeatFunctor >
     struct fix_mss_arg_indices {
         typedef typename fix_arg_sequences< Sequence, fix_esf_sequence< RepeatFunctor > >::type type;
+    };
+
+    template < uint_t RepeatFunctor >
+    struct fix_mss_arg_indices_f {
+        template < typename T >
+        using res_t = typename fix_mss_arg_indices< T, RepeatFunctor >::type;
+
+        template < typename T >
+        res_t< T > operator()(T) const {
+            return {};
+        }
+        template < typename R, typename B, typename E >
+        res_t< reduction_descriptor< R, B, E > > operator()(reduction_descriptor< R, B, E > src) const {
+            return {src.get()};
+        }
     };
 
 } // namespace gridtools

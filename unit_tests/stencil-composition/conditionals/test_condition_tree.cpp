@@ -95,6 +95,14 @@ namespace gridtools {
             return make_condition(conditional_t{fun}, lhs, rhs);
         };
 
+        TEST(tree_transform, leaf) { EXPECT_EQ(condition_tree_transform(1, std::negate< int >{}), -1); }
+
+        TEST(tree_transform, node) {
+            auto actual = condition_tree_transform(make_node(1, 2), std::negate< int >{});
+            EXPECT_EQ(actual.first(), -1);
+            EXPECT_EQ(actual.second(), -2);
+        }
+
         TEST(branch_selector, minimalistic) {
             auto testee = make_branch_selector(1);
             EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(1)));
