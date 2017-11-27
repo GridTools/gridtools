@@ -187,13 +187,6 @@ namespace gridtools {
             }
         };
 
-        template < typename Lhs, typename Rhs >
-        boost::fusion::joint_view< typename std::remove_reference< Lhs >::type,
-            typename std::remove_reference< Rhs >::type >
-        make_joint_view(Lhs &&lhs, Rhs &&rhs) {
-            return {lhs, rhs};
-        }
-
         /** Metafunction class.
          *  This class is filling a fusion::vector of pointers to storages with pointers from given arg_storage_pairs
          */
