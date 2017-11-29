@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to upcoming's documentation!
+Upcoming Features
 ====================================
 
 .. highlight:: C++
@@ -16,7 +16,6 @@ Welcome to upcoming's documentation!
    :numbered:
 
    user_specified_extents
-   comm_and_bc
    link_to_umesh
 
 
@@ -26,4 +25,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

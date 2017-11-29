@@ -13,7 +13,9 @@ This is the entry page to the |GT| documentation.
 
    getting_started/getting_started
    user_manual/user_manual
+   upcoming/upcoming
    concepts/concepts
+   internal/internal
    faq/faq
 
 Indices and tables
@@ -22,4 +24,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
