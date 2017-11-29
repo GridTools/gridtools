@@ -56,15 +56,10 @@ namespace gridtools {
 
     // metafunction to access the storage type given the arg
     template < typename T >
-    struct get_storage_from_arg;
+    struct get_data_store_from_arg;
 
     template < unsigned I, typename T, typename L, bool B >
-    struct get_storage_from_arg< arg< I, T, L, B > > {
-        typedef T type;
-    };
-
-    template < unsigned I, typename T, typename L, bool B >
-    struct get_storage_from_arg< arg< I, std::vector< T >, L, B > > {
+    struct get_data_store_from_arg< arg< I, T, L, B > > {
         typedef T type;
     };
 

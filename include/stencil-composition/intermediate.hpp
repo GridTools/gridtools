@@ -132,7 +132,7 @@ namespace gridtools {
 
     template < typename Placeholder >
     struct create_view {
-        using type = typename _impl::get_view_t::apply< typename get_storage_from_arg< Placeholder >::type >::type;
+        using type = typename _impl::get_view_t::apply< typename get_data_store_from_arg< Placeholder >::type >::type;
     };
 
     template < typename AggregatorType >

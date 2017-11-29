@@ -49,7 +49,6 @@
 #include "backend_traits_fwd.hpp"
 #include "local_domain.hpp"
 #include "local_domain_metafunctions.hpp"
-#include "mss_components.hpp"
 #include "storage_wrapper.hpp"
 
 namespace gridtools {
