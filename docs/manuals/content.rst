@@ -1,6 +1,6 @@
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    getting_started/getting_started
    user_manual/user_manual

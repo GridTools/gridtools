@@ -1,3 +1,5 @@
+.. include:: ../defs.hrst
+
 ===================================================
 Indexing algorithm (pointer offset computation)
 ===================================================
@@ -8,7 +10,7 @@ fields is extracted. This means we extract the raw pointers to the data from the
 information is from the ``storage_info`` objects. The pointers and the strides informations are stored in the ``iterate_domain``.
 In order to save registers and not wasting resources different ``storage_info`` instances with a matching ID parameter are 
 treated as a single instance. This can be done because the contained stride information has to be the same if the ID is equal.
-Figure [Fig. \[fig:new\_indexing:flow\]]{} shows the storage flow from the frontend to the backend. In this example three data 
+Figure below shows the storage flow from the frontend to the backend. In this example three data 
 stores are created by the user, and two temporaries are created in the ``intermediate``. The ``intermediate`` is extracting the needed
 information from the ``data_store`` and ``storage_info`` objects and is feeding the backend with raw data pointers and stride information. 
 
@@ -22,7 +24,7 @@ As seen before the backend contains stride information and raw data pointers. Un
 The backend additionally has to store an offset (called index). The reason for this is that the compute domain is
 split up into several blocks. Each block is passed to a GPU streaming multiprocessor that contains several cores. 
 Each core has to know its position within the block in order to compute at the right point. So additionally to the
-stride and pointer information that is shared per block an index is stored per core. Figure [Fig. \[fig:new\_indexing:block\_contents\]]{}   
+stride and pointer information that is shared per block an index is stored per core. The next figure
 shows the contents of two independent blocks. As visible the stride and pointer information is the same but the index is different for each
 thread.
 
@@ -31,7 +33,7 @@ thread.
 The index is computed as follows. If there is no halo the index will be 
 
 .. math::
-i = (block\_id\_x * block\_size\_x + thread\_id\_x) * stride\_i + (block\_id\_y * block\_size\_y + thread\_id\_y) * stride\_j
+  i = (block\_id\_x * block\_size\_x + thread\_id\_x) * stride\_i + (block\_id\_y * block\_size\_y + thread\_id\_y) * stride\_j
 
 In case of a halo the index is shifted into the right direction (like visible in Figure [Fig. \[fig:new\_indexing:block\_contents\]]{}). 
 
@@ -46,26 +48,34 @@ problem with redundant computations the temporary storages, that are allocated i
 number of elements. The size of the cuda block is known beforehand and also the size of the halo and the number of blocks/threads 
 is known. With this information an extended temporary storage can be instantiated. For performance reasons we want the first 
 non-halo data point of each block to be in an aligned memory position. Therefore we add a certain number of padding elements between 
-the blocks. Figure [Fig. \[fig:new\_indexing:temporary\]]{} compares the non-aligned versus the aligned storages. The green dots 
+the blocks. The next figure compares the non-aligned versus the aligned storages. The green dots 
 are marking the halo points. It can be seen that each block has its own halo region. The blue squares are padding elements and the yellow
 squares are data points. As visible on the right part of the drawing the first data point should be in an aligned memory position.
 In order to achieve this padding elements are added between the blocks.
 
 .. figure:: figures/temporary.png
 
-__Base pointer change__
+---------------------------------------------------
+Base pointer change
+---------------------------------------------------
 
-When the aligned temporary improvement was introduced the logic in the backend was slightly changed. As shown before the backend contains
-a pointer to each of the ``storage``. In combination with an index the cuda thread can identify its compute position. When temporaries are used
-one cannot just simply use a base pointer for all the cuda blocks and just multiply the current block index with the block size like shown
-in the formula above. The base pointer has to be computed per block. So each block contains a pointer to its own temporary storage. 
+When the aligned temporary improvement was introduced the logic in the
+backend was slightly  changed. As shown before the  backend contains a
+pointer to each  of the ``storage``. In combination with  an index the
+cuda thread  can identify its  compute position. When  temporaries are
+used one cannot just simply use a base pointer for all the cuda blocks
+and just  multiply the current  block index  with the block  size like
+shown in  the formula above. The  base pointer has to  be computed per
+block. So each block contains a pointer to its own temporary storage.
 
 .. figure:: figures/temporary_block_contents.png
 
 There is no difference in resource consumption when using the changed base pointer approach. It was mainly introduced for
 convenience and in order to smoothly integrate the aligned temporary block improvement.
 
-__Multiple temporaries with different halo__
+---------------------------------------------------
+Multiple temporaries with different halo
+---------------------------------------------------
 
 Formerly |GT| used one ``storage_info`` per temporary storage. This is convenient but consumes more resources than needed.
 Therefore it was replaced by the more resource efficient \"one ``storage_info`` for all temporaries\" solution.
@@ -77,7 +87,9 @@ the temporary written in the flx stage will be properly aligned because it is ac
 the missing offset is added when setting the base pointer. The information that is passed to the algorithm that extracts the base pointer knows about
 the used halo of each ``storage`` and also the maximum halo in the alinged direction. A value of $max\_halo - used\_halo$ is added to each base pointer.
 
-__Passing huge types down to the offset computation__
+---------------------------------------------------
+Passing huge types down to the offset computation
+---------------------------------------------------
 
 In order to fix the alignment when using different halos we have to pass a lot of type information from the ``intermediate`` down to the backend. This is exhaustive for the compiler and the performance suffers. This could lead to problems, especially when trying to compile computations with many stages and
 a high number of fields.
@@ -88,7 +100,7 @@ pdated indexing algorithm
 --------------------------------
 
 The new indexing approach tries to avoid the strategy of setting the base pointer to the first point of the block. The new approach is to set the
-pointer to the first non-halo point of the block. The method that is setting the index of each cuda thread has to be modified. Figure [Fig. \[fig:new\_indexing:new_temporary_block_contents\]]{} shows the new indexing. As shown, the first non halo point is used as base pointer. The index
+pointer to the first non-halo point of the block. The method that is setting the index of each cuda thread has to be modified. The next figure shows the new indexing. As shown, the first non halo point is used as base pointer. The index
 is also modified in order to point to the correct data location.
 
 .. figure:: figures/new_temporary_block_contents.png
