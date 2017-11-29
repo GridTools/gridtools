@@ -121,7 +121,6 @@ namespace test_iterate_domain {
 
 #ifdef __AVX512F__
         typedef iterate_domain_mic<
-            iterate_domain,
             iterate_domain_arguments< backend_ids< Mic, GRIDBACKEND, Block >,
                 boost::mpl::at_c< typename mss_local_domain1_t::fused_local_domain_sequence_t, 0 >::type,
                 boost::mpl::vector1< esf_t >,
@@ -340,6 +339,7 @@ namespace test_iterate_domain {
         array< int_t, 3 > index;
         it_domain.get_index(index);
         assert(index[0] == 0 && index[1] == 0 && index[2] == 0);
+#ifndef __AVX512F__
         index[0] += 3;
         index[1] += 2;
         index[2] += 1;
@@ -347,6 +347,7 @@ namespace test_iterate_domain {
 
         it_domain.get_index(index);
         assert(index[0] == 3 && index[1] == 2 && index[2] == 1);
+#endif
 
         auto mdo = out.template get< 0, 0 >().get_storage_info_ptr();
         auto mdb = buff.template get< 0, 0 >().get_storage_info_ptr();

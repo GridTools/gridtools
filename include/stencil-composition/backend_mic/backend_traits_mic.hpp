@@ -143,7 +143,7 @@ namespace gridtools {
             const int thread_offset =
                 (sinfo->padded_total_length() - StorageInfo::get_initial_offset()) * thread / total_threads;
             const int inner_offset = sinfo->begin() - sinfo->total_begin();
-            return StorageInfo::get_initial_offset() + thread_offset + inner_offset;
+            return StorageInfo::get_initial_offset() + thread_offset;
         }
 
         /**
@@ -218,13 +218,13 @@ namespace gridtools {
 #ifdef STRUCTURED_GRIDS
             template < typename _IterateDomainArguments >
             struct select_positional_iterate_domain {
-                typedef iterate_domain_mic< positional_iterate_domain, _IterateDomainArguments > type;
+                typedef iterate_domain_mic< _IterateDomainArguments > type;
             };
 #endif
 
             template < typename _IterateDomainArguments >
             struct select_basic_iterate_domain {
-                typedef iterate_domain_mic< iterate_domain, _IterateDomainArguments > type;
+                typedef iterate_domain_mic< _IterateDomainArguments > type;
             };
 
             typedef typename boost::mpl::eval_if<

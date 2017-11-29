@@ -41,7 +41,6 @@
 #include "stencil-composition/iterate_domain_metafunctions.hpp"
 
 namespace gridtools {
-
     /**
  * @brief iterate domain class for the Mic backend
  */
@@ -168,6 +167,11 @@ namespace gridtools {
     template < template < class > class IterateDomainBase, typename IterateDomainArguments >
     struct is_iterate_domain< iterate_domain_mic< IterateDomainBase, IterateDomainArguments > >
         : public boost::mpl::true_ {};
+
+    template < template < class > class IterateDomainBase, typename IterateDomainArguments >
+    struct iterate_domain_backend_id< iterate_domain_mic< IterateDomainBase, IterateDomainArguments > > {
+        typedef enumtype::enum_type< enumtype::platform, enumtype::Mic > type;
+    };
 
     //    template<
     //            template<class> class IterateDomainBase,
