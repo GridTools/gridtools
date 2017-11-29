@@ -117,6 +117,10 @@ namespace gridtools {
         friend struct accessor_base;
 
       public:
+#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#define constexpr
+#endif
+
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount
            of extra instructions (gcc 4.8.2), and degrades the performances (which is probably a compiler bug, I
@@ -176,6 +180,10 @@ namespace gridtools {
                 "of the storage. Check that you are not accessing a non existing dimension, or increase the dimension "
                 "D of the accessor (accessor<Id, extent, D>)");
         }
+
+#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#undef constexpr
+#endif
 
         static void info() { std::cout << "Arg_type storage with index " << I << " and extent " << Extend() << " "; }
 

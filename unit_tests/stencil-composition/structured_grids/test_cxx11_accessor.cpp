@@ -53,16 +53,24 @@ namespace interface {
     }
 
     bool test_array() {
+#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
+#else
         constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
         GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1), "ERROR");
+#endif
         return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
     }
 
     bool test_array_and_dim() {
+#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(
+            array< int_t, 3 >{3, 2, -1}, dimension< 1 >(2));
+#else
         constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(
             array< int_t, 3 >{3, 2, -1}, dimension< 1 >(2));
-
         GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1), "ERROR");
+#endif
         return first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1;
     }
 
@@ -87,9 +95,13 @@ namespace interface {
         constexpr dimension< 3 > k;
 
         constexpr dimension< 4 > t;
+#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
+#else
         constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
 
         GRIDTOOLS_STATIC_ASSERT(first.get< 3 - 0 >() == -5, "ERROR");
+#endif
         return first.get< 3 - 0 >() == -5 && first.get< 3 - 1 >() == 0 && first.get< 3 - 2 >() == 8 &&
                first.get< 3 - 3 >() == 2;
     }
@@ -100,10 +112,10 @@ namespace interface {
         The aforementioned offset is guaranteed to be treated as compile-time static constant value.
     */
     bool test_static_alias() {
-
+#ifndef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
         // mixing compile time and runtime values
         using t = dimension< 15 >;
-        typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 > arg_t;
+        using arg_t accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 >;
         using alias_t = alias< arg_t, t, dimension< 1 >, dimension< 7 > >::set< -3, 4, 2 >;
 
         alias_t first(dimension< 8 >(23), dimension< 3 >(-5));
@@ -111,6 +123,9 @@ namespace interface {
         GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr< 14 >() == 4, "ERROR");
         return first.get< 14 - 6 >() == 2 && first.get< 14 - 0 >() == 4 && first.get< 14 - 14 >() == -3 &&
                first.get< 14 - 7 >() == 23 && first.get< 14 - 2 >() == -5;
+#else
+        return true;
+#endif
     }
 
     /** @brief interface with aliases defined at run-time
