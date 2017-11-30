@@ -32,9 +32,9 @@ if(Boost_FOUND)
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-if(NOT USE_GPU)
+if(NOT ENABLE_CUDA)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
-endif(NOT USE_GPU)
+endif(NOT ENABLE_CUDA)
 
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
@@ -51,9 +51,16 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=${CXX_STANDARD}")
 
+if(ENABLE_HOST)
+  set(HOST_BACKEND_DEFINE "BACKEND_HOST")
+endif(ENABLE_HOST)
+
+if(ENABLE_MIC)
+    set(MIC_BACKEND_DEFINE "BACKEND_MIC")
+endif(ENABLE_MIC)
+
 ## cuda support ##
-if( USE_GPU )
-  message(STATUS "Using GPU")
+if( ENABLE_CUDA )
   find_package(CUDA REQUIRED)
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
@@ -89,6 +96,7 @@ if( USE_GPU )
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
   endif()
 
+  set(CUDA_BACKEND_DEFINE "BACKEND_CUDA")
 else()
   set (CUDA_LIBRARIES "")
 endif()
@@ -153,13 +161,13 @@ endif()
 
 ## precision ##
 if(SINGLE_PRECISION)
-  if(USE_GPU)
+  if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
   endif()
   add_definitions("-DFLOAT_PRECISION=4")
   message(STATUS "Computations in single precision")
 else()
-  if(USE_GPU)
+  if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
   endif()
   add_definitions("-DFLOAT_PRECISION=8") 
