@@ -136,7 +136,7 @@ namespace gridtools {
         */
         std::tuple<> remove_placeholders(std::tuple<> const &) { return {}; }
 
-#ifdef __GNUC__
+#ifndef __clang__
         template < typename First >
         std::tuple< First > remove_placeholders(std::tuple< First > const &x,
             typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type = nullptr) {
@@ -155,15 +155,15 @@ namespace gridtools {
             typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type = nullptr)
             -> decltype(std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
                 remove_placeholders(rest_tuple(
-                                               x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{}))));
+                    x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{}))));
 
         template < typename First, typename... Elems >
         auto remove_placeholders(std::tuple< First, Elems... > const &x,
             typename std::enable_if< (std::is_placeholder< First >::value > 0), void * >::type = nullptr)
             -> decltype(remove_placeholders(
-                                            rest_tuple(x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{})));
+                rest_tuple(x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{})));
 
-            template < typename First, typename... Elems >
+        template < typename First, typename... Elems >
         auto remove_placeholders(std::tuple< First, Elems... > const &x,
             typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type)
             -> decltype(std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
