@@ -156,7 +156,7 @@ TEST_F(kcachef, bpfilll_forward) {
     aggregator_type< accessor_list > domain((p_in() = m_in), (p_out() = m_out));
 
     auto kcache_stencil =
-        make_computation< BACKEND >(domain,
+        make_computation< backend_t >(domain,
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
@@ -206,7 +206,7 @@ TEST_F(kcachef, bpfilll_backward) {
     aggregator_type< accessor_list > domain((p_in() = m_in), (p_out() = m_out));
 
     auto kcache_stencil =
-        make_computation< BACKEND >(domain,
+        make_computation< backend_t >(domain,
             m_gridb,
             make_multistage // mss_descriptor
             (execute< backward >(),
@@ -261,7 +261,7 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
     aggregator_type< accessor_list > domain((p_buff() = buff), (p_out() = m_out));
 
     auto kcache_stencil =
-        make_computation< BACKEND >(domain,
+        make_computation< backend_t >(domain,
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
@@ -314,7 +314,7 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
     aggregator_type< accessor_list > domain((p_buff() = buff), (p_out() = m_out));
 
     auto kcache_stencil =
-        make_computation< BACKEND >(domain,
+        make_computation< backend_t >(domain,
             m_gridb,
             make_multistage // mss_descriptor
             (execute< backward >(),

@@ -138,10 +138,10 @@ std::ostream &operator<<(std::ostream &s, functor3) { return s << "functor3"; }
 std::ostream &operator<<(std::ostream &s, functor4) { return s << "functor4"; }
 std::ostream &operator<<(std::ostream &s, functor5) { return s << "functor5"; }
 std::ostream &operator<<(std::ostream &s, functor6) { return s << "functor6"; }
-#define BACKEND backend< Host, GRIDBACKEND, Block >
+#define backend_t backend< Host, GRIDBACKEND, Block >
 
-typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > storage_t;
+typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > storage_t;
 
 typedef arg< 0, storage_t > o0;
 typedef arg< 1, storage_t > o1;

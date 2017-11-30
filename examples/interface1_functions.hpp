@@ -234,7 +234,7 @@ namespace horizontal_diffusion_functions {
 
         auto grid_ = make_grid(di, dj, d3);
 
-        auto horizontal_diffusion = gridtools::make_computation< gridtools::backend_t >(
+        auto horizontal_diffusion = gridtools::make_computation< backend_t >(
             domain_,
             grid_,
             gridtools::make_multistage // mss_descriptor

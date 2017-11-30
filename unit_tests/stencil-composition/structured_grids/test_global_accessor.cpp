@@ -39,18 +39,14 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <storage/storage-facility.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef __CUDACC__
-typedef backend< Cuda, structured, Block > backend_t;
-typedef storage_traits< Cuda > storage_traits_t;
-#else
-typedef backend< Host, structured, Naive > backend_t;
-typedef storage_traits< Host > storage_traits_t;
-#endif
-typedef storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
-typedef storage_traits_t::data_store_t< float_type, storage_info_t > data_store_t;
+using storage_traits_t = typename backend_t::storage_traits_t;
+using storage_info_t = storage_traits_t::storage_info_t< 0, 3 >;
+using data_store_t = storage_traits_t::data_store_t< float_type, storage_info_t >;
 
 struct boundary {
 

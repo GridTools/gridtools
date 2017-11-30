@@ -42,6 +42,7 @@
 #include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "tools/verifier.hpp"
+#include "backend_select.hpp"
 
 constexpr int halo_size = 1;
 
@@ -84,14 +85,8 @@ namespace test_cache_stencil {
         }
     };
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, structured, Block >
-#else
-#define BACKEND backend< Host, structured, Block >
-#endif
-
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo< halo_size, halo_size, 0 > > storage_info_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3, halo< halo_size, halo_size, 0 > > storage_info_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;
@@ -139,7 +134,7 @@ TEST_F(cache_stencil, ij_cache) {
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
     auto pstencil =
-        make_computation< gridtools::BACKEND >(domain,
+        make_computation< backend_t >(domain,
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
@@ -183,7 +178,7 @@ TEST_F(cache_stencil, ij_cache_offset) {
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
     auto pstencil =
-        make_computation< gridtools::BACKEND >(domain,
+        make_computation< backend_t >(domain,
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
@@ -227,7 +222,7 @@ TEST_F(cache_stencil, multi_cache) {
     typedef boost::mpl::vector5< p_in, p_out, p_buff, p_buff_2, p_buff_3 > accessor_list;
     gridtools::aggregator_type< accessor_list > domain(m_in, m_out);
 
-    auto stencil = make_computation< gridtools::BACKEND >(
+    auto stencil = make_computation< backend_t >(
         domain,
         m_grid,
         make_multistage // mss_descriptor

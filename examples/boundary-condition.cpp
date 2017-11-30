@@ -135,7 +135,7 @@ int main(int argc, char **argv) {
     in_s.sync();
     out_s.sync();
 
-    gridtools::template boundary< direction_bc_input< uint_t >, GT_ARCH >(halos, direction_bc_input< uint_t >(2))
+    gridtools::template boundary< direction_bc_input< uint_t >, backend_t::s_backend_id >(halos, direction_bc_input< uint_t >(2))
         .apply(in_s, out_s);
 
     // sync the data stores if needed

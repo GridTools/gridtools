@@ -146,7 +146,7 @@ namespace shorizontal_diffusion {
 
         auto grid = make_grid(di, dj, d3);
 
-        auto simple_hori_diff = gridtools::make_computation< gridtools::backend_t >(
+        auto simple_hori_diff = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor

@@ -128,7 +128,7 @@ namespace positional_copy_stencil {
 
         auto grid = make_grid(d1, d2, d3);
 
-        auto init = gridtools::make_positional_computation< gridtools::backend_t >(
+        auto init = gridtools::make_positional_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor
@@ -141,7 +141,7 @@ namespace positional_copy_stencil {
         init->run();
         init->finalize();
 
-        auto copy = gridtools::make_computation< gridtools::backend_t >(
+        auto copy = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor

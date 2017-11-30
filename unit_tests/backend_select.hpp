@@ -34,44 +34,23 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <storage/storage-facility.hpp>
-#include <stencil-composition/arg.hpp>
-#include <stencil-composition/aggregator_type.hpp>
-#include <common/defs.hpp>
-#include <stencil-composition/stencil.hpp>
-#include "backend_select.hpp"
 
-namespace domain_reassign {
+#include <stencil-composition/stencil-composition.hpp>
 
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< gridtools::float_type,
-        storage_info_t > storage_t;
-
-    class gt_example {
-
-        typedef gridtools::arg< 0, storage_t > p_in;
-        typedef gridtools::arg< 1, storage_t > p_out;
-        typedef gridtools::tmp_arg< 2, storage_t > p_tmp;
-
-        typedef boost::mpl::vector< p_in, p_out, p_tmp > accessor_list;
-
-      private:
-        std::shared_ptr< gridtools::computation< gridtools::aggregator_type< accessor_list >, gridtools::notype > >
-            m_stencil;
-
-      public:
-        gt_example(gridtools::uint_t d1, gridtools::uint_t d2, gridtools::uint_t d3, storage_t &in, storage_t &out);
-
-        void run(storage_t &in, storage_t &out);
-
-        void run_plch(storage_t &in, storage_t &out);
-
-        void run_on(storage_t &in, storage_t &out);
-
-        void run_on_output(storage_t &out);
-
-        void run_on_plch(storage_t &in, storage_t &out);
-
-        void finalize();
-    };
-}
+#ifdef BACKEND_HOST
+#ifdef BACKEND_STRATEGY_NAIVE
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >;
+#else
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#endif
+#elif defined(BACKEND_MIC)
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Mic, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#elif defined(BACKEND_CUDA)
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#else
+#error "no backend selected"
+#endif

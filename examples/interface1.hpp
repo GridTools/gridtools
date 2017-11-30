@@ -181,7 +181,7 @@ namespace horizontal_diffusion {
           3) The actual grid dimensions
         */
 
-        auto horizontal_diffusion = gridtools::make_computation< gridtools::backend_t >(
+        auto horizontal_diffusion = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor

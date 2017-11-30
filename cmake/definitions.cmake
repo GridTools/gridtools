@@ -55,10 +55,6 @@ if(ENABLE_HOST)
   set(HOST_BACKEND_DEFINE "BACKEND_HOST")
 endif(ENABLE_HOST)
 
-if(ENABLE_MIC)
-    set(MIC_BACKEND_DEFINE "BACKEND_MIC")
-endif(ENABLE_MIC)
-
 ## cuda support ##
 if( ENABLE_CUDA )
   find_package(CUDA REQUIRED)

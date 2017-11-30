@@ -248,7 +248,7 @@ namespace vertical_advection_dycore {
 
         auto grid = make_grid(di, dj, axis_t(d3));
 
-        auto vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
+        auto vertical_advection = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor

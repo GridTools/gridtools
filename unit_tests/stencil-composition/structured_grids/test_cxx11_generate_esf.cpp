@@ -340,11 +340,11 @@ int main() {
     }
 
     // boilerplate
-    program += "#define BACKEND backend<Host, GRIDBACKEND, Block >\n";
+    program += "#define backend_t backend<Host, GRIDBACKEND, Block >\n";
     program += "\n";
     program += "typedef layout_map<2,1,0> layout_t;\n";
-    program += "typedef BACKEND::storage_info<0, layout_t > storage_info_type;\n";
-    program += "typedef BACKEND::storage_type<float_type, storage_info_type >::type storage_type;\n";
+    program += "typedef backend_t::storage_info<0, layout_t > storage_info_type;\n";
+    program += "typedef backend_t::storage_type<float_type, storage_info_type >::type storage_type;\n";
     program += "\n";
     program += "\n";
 
