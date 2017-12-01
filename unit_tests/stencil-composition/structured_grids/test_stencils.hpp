@@ -39,11 +39,6 @@
 #include <stencil-composition/stencil-composition.hpp>
 
 #include <gridtools.hpp>
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda/backend_cuda.hpp>
-#else
-#include <stencil-composition/backend_host/backend_host.hpp>
-#endif
 
 #include <boost/fusion/include/make_vector.hpp>
 
