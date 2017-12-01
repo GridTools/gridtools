@@ -272,27 +272,27 @@ namespace gridtools {
        In case the total number of parameters is a multiple of the expand factor, the second
        intermediate object does not get instantiated.
      */
-    template < typename Backend,
-        typename MssDescriptorForest,
+    template < typename ExpandFactor,
+        bool IsStateful,
+        typename Backend,
         typename Aggregator,
         typename Grid,
-        bool IsStateful,
-        typename ExpandFactor >
-    class intermediate_expand : public computation< Aggregator, notype > {
+        typename MssDescriptorForest >
+    class intermediate_expand : public computation< Aggregator > {
+        GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_condition_forest_of< MssDescriptorForest, is_computation_token >::value),
-            "make_computation args should be mss descriptors or condition trees of mss descriptors");
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Aggregator >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_condition_forest_of< MssDescriptorForest, is_computation_token >::value),
+            "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
         template < uint N >
-        using converted_intermediate = intermediate< Backend,
-            _impl::expand_detail::converted_mss_descriptors_forest< N, MssDescriptorForest >,
+        using converted_intermediate = intermediate< N,
+            IsStateful,
+            Backend,
             _impl::expand_detail::converted_aggregator_type< N, Aggregator >,
             Grid,
-            IsStateful,
-            N >;
+            _impl::expand_detail::converted_mss_descriptors_forest< N, MssDescriptorForest > >;
 
         using base_t = typename intermediate_expand::computation;
         using base_t::m_domain;

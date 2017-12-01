@@ -42,7 +42,6 @@
 
 #include "../common/gt_assert.hpp"
 #include "./amss_descriptor.hpp"
-#include "./conditionals/condition.hpp"
 #include "./esf_metafunctions.hpp"
 #include "./grid_traits_metafunctions.hpp"
 #include "./linearize_mss_functions.hpp"
@@ -350,47 +349,30 @@ namespace gridtools {
         \tparam GridTraits The traits of the grids
         \tparam Placeholders The placeholders used in the computation
      */
-    template < typename MssDescriptorArray, typename GridTraits, typename Placeholders >
-    struct placeholder_to_extent_map {
 
+    template < typename MssDescriptors, typename GridTraits, typename Placeholders >
+    struct placeholder_to_extent_map {
       private:
         template < typename T >
-        struct is_mss_or_reduction {
-            typedef typename boost::mpl::or_< is_mss_descriptor< T >, is_reduction_descriptor< T > >::type type;
-        };
+        using is_mss_or_reduction = boost::mpl::or_< is_mss_descriptor< T >, is_reduction_descriptor< T > >;
 
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorArray, is_mss_or_reduction >::value ||
-                                    is_condition< MssDescriptorArray >::value),
-            GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_mss_or_reduction >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id< GridTraits >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value), GT_INTERNAL_ERROR);
 
-      public:
-        typedef typename GridTraits::select_mss_compute_extent_sizes mss_compute_extent_sizes_t;
-        typedef
-            typename GridTraits::template select_init_map_of_extents< Placeholders >::type initial_map_of_placeholders;
-
+        using mss_compute_extent_sizes_t = typename GridTraits::select_mss_compute_extent_sizes;
+        using initial_map_of_placeholders_t =
+            typename GridTraits::template select_init_map_of_extents< Placeholders >::type;
         // This is where the data-dependence analysis happens
         template < typename CurrentMap, typename Mss >
-        struct update_map {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_mss_descriptor< Mss >::value || is_reduction_descriptor< Mss >::value), GT_INTERNAL_ERROR);
+        using update_extent_map = typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss >;
 
-            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss >::type type;
-        };
-
-        // The case of conditionals
-        template < typename CurrentMap, typename Mss1, typename Mss2, typename Cond >
-        struct update_map< CurrentMap, condition< Mss1, Mss2, Cond > > {
-            typedef typename mss_compute_extent_sizes_t::template apply< CurrentMap, Mss1 >::type FirstMap;
-            typedef typename mss_compute_extent_sizes_t::template apply< FirstMap, Mss2 >::type type;
-        };
-
+      public:
         // we need to iterate over the multistage computations in the computation and
         // update the map accordingly.
-        typedef typename boost::mpl::fold< MssDescriptorArray,
-            initial_map_of_placeholders,
-            update_map< boost::mpl::_1, boost::mpl::_2 > >::type type;
+        using type = typename boost::mpl::fold< MssDescriptors,
+            initial_map_of_placeholders_t,
+            update_extent_map< boost::mpl::_1, boost::mpl::_2 > >::type;
     };
 
     namespace _impl {
@@ -422,7 +404,7 @@ namespace gridtools {
        parameters). This argument is used to substitute the user types (std::vector of storages) with expandable
        parameters when necessary.
      */
-    template < typename MssDescriptorArrayElements, typename ExtentsMap >
+    template < typename MssDescriptors, typename ExtentsMap >
     struct associate_extents_to_esfs {
 
       private:
@@ -507,17 +489,10 @@ namespace gridtools {
         }; // struct iterate_over_esfs<reduction>
 
         // Iterate over all the MSSes in the computation
-        typedef typename boost::mpl::fold< MssDescriptorArrayElements,
+        typedef typename boost::mpl::fold< MssDescriptors,
             boost::mpl::vector0<>,
             typename boost::mpl::push_back< boost::mpl::_1, iterate_over_esfs< ExtentsMap, boost::mpl::_2 > > >::type
             type;
-    };
-
-    template < typename Mss1, typename Mss2, typename Cond, typename ExtentsMap >
-    struct associate_extents_to_esfs< condition< Mss1, Mss2, Cond >, ExtentsMap > {
-        typedef typename associate_extents_to_esfs< Mss1, ExtentsMap >::type type1;
-        typedef typename associate_extents_to_esfs< Mss2, ExtentsMap >::type type2;
-        typedef condition< type1, type2, Cond > type;
     };
 
     // extract the extent vector of a given extent type

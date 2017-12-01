@@ -149,36 +149,6 @@ namespace gridtools {
     };
 
     /**
-     * @brief metafunction that builds a pair of arrays of mss components, to be handled at runtime
-     via conditional switches
-
-     * @tparam BackendId id of the backend (which decides whether the MSS with multiple ESF are split or not)
-     * @tparam MssDescriptorArray1 meta array of mss descriptors
-     * @tparam MssDescriptorArray2 meta array of mss descriptors
-     * @tparam extent_sizes sequence of sequence of extents
-     */
-    template < enumtype::platform BackendId,
-        typename MssDescriptorArray1,
-        typename MssDescriptorArray2,
-        typename Condition,
-        typename ExtentSizes1,
-        typename ExtentSizes2,
-        typename RepeatFunctor,
-        typename Axis >
-    struct build_mss_components_array< BackendId,
-        condition< MssDescriptorArray1, MssDescriptorArray2, Condition >,
-        condition< ExtentSizes1, ExtentSizes2, Condition >,
-        RepeatFunctor,
-        Axis > {
-        typedef condition<
-            typename build_mss_components_array< BackendId, MssDescriptorArray1, ExtentSizes1, RepeatFunctor, Axis >::
-                type,
-            typename build_mss_components_array< BackendId, MssDescriptorArray2, ExtentSizes2, RepeatFunctor, Axis >::
-                type,
-            Condition > type;
-    };
-
-    /**
      * @brief metafunction that computes the mss functor do methods
      */
     template < typename MssComponents, typename Grid >

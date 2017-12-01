@@ -86,7 +86,6 @@
 #include "wrap_type.hpp"
 #include "make_computation_helper_cxx11.hpp"
 
-#include "../common/meta_array_generator.hpp"
 #include "computation_grammar.hpp"
 #include "make_computation_helper_cxx11.hpp"
 #include "all_args_in_aggregator.hpp"
@@ -113,21 +112,6 @@ namespace gridtools {
         };
 
         typedef typename boost::mpl::transform< MssComponents, get_the_mss_local_domain >::type type;
-    };
-
-    template < enumtype::platform BackendId,
-        typename MssArray1,
-        typename MssArray2,
-        typename Cond,
-        typename StorageWrapperList,
-        bool IsStateful >
-    struct create_mss_local_domains< BackendId,
-        condition< MssArray1, MssArray2, Cond >,
-        StorageWrapperList,
-        IsStateful > {
-        typedef typename create_mss_local_domains< BackendId, MssArray1, StorageWrapperList, IsStateful >::type type1;
-        typedef typename create_mss_local_domains< BackendId, MssArray2, StorageWrapperList, IsStateful >::type type2;
-        typedef condition< type1, type2, Cond > type;
     };
 
     template < typename Placeholder >
@@ -167,23 +151,6 @@ namespace gridtools {
         typedef typename boost::mpl::fold< filtered_list,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type type;
-    };
-
-    template < typename Vec >
-    struct extract_mss_domains {
-        typedef Vec type;
-    };
-
-    template < typename Vec1, typename Vec2, typename Cond >
-    struct extract_mss_domains< condition< Vec1, Vec2, Cond > > {
-
-        // TODO: how to do the check described below?
-        // GRIDTOOLS_STATIC_ASSERT((boost::is_same<typename extract_mss_domains<Vec1>::type, typename
-        // extract_mss_domains<Vec2>::type>::type::value), "The case in which 2 different mss are enabled/disabled using
-        // conditionals is supported only when they work with the same placeholders. Here you are trying to switch
-        // between MSS for which the type (or the order) of the placeholders is not the same");
-        // consider the first one
-        typedef typename extract_mss_domains< Vec1 >::type type;
     };
 
     // function that checks if the given extents (I+- and J+-)
@@ -308,40 +275,34 @@ namespace gridtools {
         }
     }
 
+    namespace _impl {}
+
     /**
      * @class
      *  @brief structure collecting helper metafunctions
      */
 
-    template < typename Backend,
-        typename MssDescriptorForest,
+    template < uint_t RepeatFunctor,
+        bool IsStateful,
+        typename Backend,
         typename DomainType,
         typename Grid,
-        bool IsStateful,
-        uint_t RepeatFunctor = 1 >
+        typename MssDescriptorForest >
     struct intermediate
         : public computation< DomainType,
               typename _impl::get_reduction_type< typename boost::mpl::back< MssDescriptorForest >::type >::type > {
 
         GRIDTOOLS_STATIC_ASSERT((is_condition_forest_of< MssDescriptorForest, is_computation_token >::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
-
-        using branch_selector_t = branch_selector< MssDescriptorForest >;
-        using branches_t = typename branch_selector_t::branches_t;
-
         GRIDTOOLS_STATIC_ASSERT(
             (copy_into_variadic_t< MssDescriptorForest, _impl::all_args_in_aggregator< DomainType > >::type::value),
             "Some placeholders used in the computation are not listed in the aggregator");
-
-        using MssDescriptors =
-            typename copy_into_variadic_t< MssDescriptorForest, meta_array_generator< boost::mpl::vector0<> > >::type;
-
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_condition_tree_of_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
-
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+
+        using branch_selector_t = branch_selector< MssDescriptorForest >;
+        using all_mss_descriptors_t = typename branch_selector_t::all_leaves_t;
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
         typedef typename Backend::backend_ids_t backend_ids_t;
@@ -351,26 +312,17 @@ namespace gridtools {
         // First we need to compute the association between placeholders and extents.
         // This information is needed to allocate temporaries, and to provide the
         // extent information to the user.
-        typedef typename placeholder_to_extent_map< MssDescriptors, grid_traits_t, placeholders_t >::type extent_map_t;
-        // Second we need to associate an extent to each esf, so that
-        // we can associate loop bounds to the functors.
-        typedef typename associate_extents_to_esfs< MssDescriptors, extent_map_t >::type extent_sizes_t;
+        using extent_map_t =
+            typename placeholder_to_extent_map< all_mss_descriptors_t, grid_traits_t, placeholders_t >::type;
 
-        typedef typename boost::mpl::if_<
-            boost::mpl::is_sequence< MssDescriptors >,
-            typename boost::mpl::fold< MssDescriptors,
-                boost::mpl::false_,
-                boost::mpl::or_< boost::mpl::_1, mss_descriptor_is_reduction< boost::mpl::_2 > > >::type,
-            boost::mpl::false_ >::type has_reduction_t;
-
-        typedef reduction_data< MssDescriptors, has_reduction_t::value > reduction_data_t;
-        typedef typename reduction_data_t::reduction_type_t reduction_type_t;
-
-        typedef typename build_mss_components_array< backend_id< Backend >::value,
-            MssDescriptors,
-            extent_sizes_t,
+        template < typename MssDescs >
+        using convert_to_mss_components_t = typename build_mss_components_array< backend_id< Backend >::value,
+            MssDescs,
+            typename associate_extents_to_esfs< MssDescs, extent_map_t >::type,
             static_int< RepeatFunctor >,
-            typename Grid::axis_type >::type mss_components_array_t;
+            typename Grid::axis_type >::type;
+
+        typedef typename convert_to_mss_components_t< all_mss_descriptors_t >::type mss_components_array_t;
 
         // creates a fusion sequence of views
         typedef typename create_view_fusion_map< DomainType >::type view_list_fusion_t;
@@ -393,8 +345,7 @@ namespace gridtools {
             IsStateful >::type mss_local_domains_t;
 
         // creates a fusion vector of local domains
-        typedef typename boost::fusion::result_of::as_vector<
-            typename extract_mss_domains< mss_local_domains_t >::type >::type mss_local_domain_list_t;
+        typedef typename boost::fusion::result_of::as_vector< mss_local_domains_t >::type mss_local_domain_list_t;
 
         // member fields
         mss_local_domain_list_t m_mss_local_domain_list;
@@ -403,26 +354,18 @@ namespace gridtools {
 
         performance_meter_t m_meter;
 
-        branch_selector< MssDescriptorForest > m_branch_selector;
+        branch_selector_t m_branch_selector;
         view_list_fusion_t m_view_list;
         storage_wrapper_fusion_list_t m_storage_wrapper_list;
 
         using intermediate::computation::m_domain;
 
-        template < typename MssDescs >
-        using convert_to_mss_components_t = typename build_mss_components_array< backend_id< Backend >::value,
-            MssDescs,
-            typename associate_extents_to_esfs< MssDescs, extent_map_t >::type,
-            static_int< RepeatFunctor >,
-            typename Grid::axis_type >::type;
-
         struct run_f {
             template < typename MssDescs >
-            reduction_type_t operator()(MssDescs const &mss_descriptors,
+            reduction_type< MssDescs > operator()(MssDescs const &mss_descriptors,
                 Grid const &grid,
                 mss_local_domain_list_t const &mss_local_domain_list) const {
-                reduction_data_t reduction_data(_impl::extract_reduction_intial_value_f{}(
-                    boost::fusion::at_c< boost::mpl::size< MssDescriptorForest >::value - 1 >(mss_descriptors)));
+                auto reduction_data = make_reduction_data(mss_descriptors);
                 Backend::template run< convert_to_mss_components_t< MssDescs > >(
                     grid, mss_local_domain_list, reduction_data);
                 return reduction_data.reduced_value();
@@ -472,7 +415,7 @@ namespace gridtools {
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
         }
 
-        virtual reduction_type_t run() {
+        virtual typename intermediate::return_t run() {
             // check if all views are still consistent, otherwise we have to call steady again
             _impl::check_view_consistency< DomainType > check_views(m_domain);
             boost::fusion::for_each(m_view_list, check_views);
@@ -503,15 +446,16 @@ namespace gridtools {
     template < typename T >
     struct intermediate_mss_local_domains;
 
-    template < typename Backend,
-        typename MssArray,
+    template < uint_t RepeatFunctor,
+        bool IsStateful,
+        typename Backend,
         typename DomainType,
         typename Grid,
-        bool IsStateful,
-        uint_t RepeatFunctor >
+        typename MssDescriptorForest >
     struct intermediate_mss_local_domains<
-        intermediate< Backend, MssArray, DomainType, Grid, IsStateful, RepeatFunctor > > {
-        using type = typename intermediate< Backend, MssArray, DomainType, Grid, IsStateful, RepeatFunctor >::
-            mss_local_domains_t;
+        intermediate< RepeatFunctor, IsStateful, Backend, DomainType, Grid, MssDescriptorForest > > {
+        using type =
+            typename intermediate< RepeatFunctor, IsStateful, Backend, DomainType, Grid, MssDescriptorForest >::
+                mss_local_domains_t;
     };
 } // namespace gridtools

@@ -54,15 +54,5 @@ namespace gridtools {
             using type = typename reduction_descriptor< ExecutionEngine, BinOp, EsfDescrSequence >::reduction_type_t;
         };
 
-        struct extract_reduction_intial_value_f {
-            template < class T >
-            notype operator()(T const &) const {
-                return {};
-            }
-            template < typename ExecutionEngine, typename BinOp, typename EsfDescrSequence >
-            auto operator()(reduction_descriptor< ExecutionEngine, BinOp, EsfDescrSequence > const &red) const
-                GT_AUTO_RETURN(red.get());
-        };
-
     } // namespace _impl
 } // namespace gridtools

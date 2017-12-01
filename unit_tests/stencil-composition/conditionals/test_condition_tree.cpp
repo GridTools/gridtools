@@ -44,6 +44,9 @@
 #include <boost/fusion/include/comparison.hpp>
 #include <boost/fusion/include/transform.hpp>
 
+#include <boost/mpl/equal.hpp>
+#include <boost/mpl/set.hpp>
+
 #include <gtest/gtest.h>
 
 #include <common/functional.hpp>
@@ -54,6 +57,7 @@
 namespace gridtools {
     namespace {
         namespace f = boost::fusion;
+        namespace m = boost::mpl;
 
         using conditional_t = conditional< 42 >;
 
@@ -105,18 +109,14 @@ namespace gridtools {
 
         TEST(branch_selector, minimalistic) {
             auto testee = make_branch_selector(1);
+            static_assert(m::equal< decltype(testee)::all_leaves_t, m::set< int > >{}, "all_leaves");
             EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(1)));
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));
         }
 
-        TEST(branch_selector, mutable_branches) {
-            auto testee = make_branch_selector(1);
-            f::at_c< 0 >(f::at_c< 0 >(testee.branches())) = 2;
-            EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(2)));
-        }
-
         TEST(branch_selector, no_conditions) {
             auto testee = make_branch_selector(1, 2);
+            static_assert(m::equal< decltype(testee)::all_leaves_t, m::set< int > >{}, "all_leaves");
             EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(1, 2)));
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1, 2));
         }
@@ -155,6 +155,7 @@ namespace gridtools {
             std::array< bool, 2 > keys;
             auto testee =
                 make_branch_selector(make_node(1, make_node(2, 3, [&] { return keys[1]; }), [&] { return keys[0]; }));
+            static_assert(m::equal< decltype(testee)::all_leaves_t, m::set< int > >{}, "all_leaves");
             EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(1), f::make_vector(2), f::make_vector(3)));
             keys = {true};
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));

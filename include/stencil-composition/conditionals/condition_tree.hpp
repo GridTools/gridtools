@@ -53,9 +53,11 @@
 #include <boost/mpl/single_view.hpp>
 #include <boost/mpl/joint_view.hpp>
 #include <boost/mpl/empty.hpp>
+#include <boost/mpl/set.hpp>
+#include <boost/mpl/empty_sequence.hpp>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/copy_into_variadic.hpp"
+#include "../../common/generic_metafunctions/copy_into_set.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 
 #include "condition.hpp"
@@ -156,6 +158,11 @@ namespace gridtools {
                 using type = boost::fusion::joint_view< const res_t< Lhs >, const res_t< Rhs > >;
             };
 
+            template < typename Lhs, typename Rhs, typename C >
+            struct result< condition_leaves_view_f(condition< Lhs, Rhs, C > const &) > {
+                using type = boost::fusion::joint_view< const res_t< Lhs const >, const res_t< Rhs const > >;
+            };
+
             template < typename T >
             res_t< T > operator()(T &leaf) const {
                 return res_t< T >{leaf};
@@ -163,7 +170,11 @@ namespace gridtools {
 
             template < typename Lhs, typename Rhs, typename C >
             res_t< condition< Lhs, Rhs, C > > operator()(condition< Lhs, Rhs, C > &node) const {
-                auto a = this->operator()(node.first());
+                return {this->operator()(node.first()), this->operator()(node.second())};
+            }
+
+            template < typename Lhs, typename Rhs, typename C >
+            res_t< const condition< Lhs, Rhs, C > > operator()(const condition< Lhs, Rhs, C > &node) const {
                 return {this->operator()(node.first()), this->operator()(node.second())};
             }
         };
@@ -244,6 +255,22 @@ namespace gridtools {
         apply_with_condtion_tree_f< Fun > apply_with_condtion_tree(Fun &&fun, Args &&... args) {
             return {fun};
         }
+
+        template < typename T >
+        struct all_leaves_in_tree {
+            using type = boost::mpl::single_view< typename std::decay< T >::type >;
+        };
+
+        template < typename Lhs, typename Rhs, typename Cond >
+        struct all_leaves_in_tree< condition< Lhs, Rhs, Cond > > {
+            using type = boost::mpl::joint_view< typename all_leaves_in_tree< Lhs >::type,
+                typename all_leaves_in_tree< Rhs >::type >;
+        };
+
+        template < typename Forest >
+        using all_leaves_in_forest_t = typename boost::mpl::fold< Forest,
+            boost::mpl::empty_sequence,
+            boost::mpl::joint_view< boost::mpl::_1, all_leaves_in_tree< std::decay< boost::mpl::_2 > > > >::type;
     }
 
     template < typename Leaf, template < typename > class Pred >
@@ -299,14 +326,15 @@ namespace gridtools {
         tree_t m_tree;
 
       public:
-        using const_branches_t = typename std::result_of< _impl::condition_leaves_view_f(tree_t const &) >::type;
-        using branches_t = typename std::result_of< _impl::condition_leaves_view_f(tree_t &) >::type;
+        using all_leaves_t =
+            typename copy_into_set< _impl::all_leaves_in_forest_t< Forest >, boost::mpl::set0<> >::type;
+        using branches_t = typename std::result_of< _impl::condition_leaves_view_f(tree_t const &) >::type;
 
         branch_selector(Forest const &src) : m_tree(make_condition_tree_from_forest(src)) {}
         branch_selector(Forest &&src) noexcept : m_tree(make_condition_tree_from_forest(std::move(src))) {}
 
         auto branches() const GT_AUTO_RETURN(_impl::condition_leaves_view_f{}(m_tree));
-        auto branches() GT_AUTO_RETURN(_impl::condition_leaves_view_f{}(m_tree));
+        //        auto branches() GT_AUTO_RETURN(_impl::condition_leaves_view_f{}(m_tree));
 
         // TODO(anstaf): add mutable version and test it
         template < typename Fun, typename... Args >

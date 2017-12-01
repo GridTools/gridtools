@@ -36,69 +36,97 @@
 #pragma once
 #include <vector>
 
+#include <boost/mpl/count_if.hpp>
+#include <boost/mpl/filter_view.hpp>
+#include <boost/mpl/front.hpp>
+#include <boost/mpl/void.hpp>
+
+#include <boost/fusion/include/find_if.hpp>
+#include <boost/fusion/include/is_sequence.hpp>
+
+#include "../../common/defs.hpp"
+
+#include "reduction_descriptor.hpp"
+
 namespace gridtools {
 
-    template < typename MssDescriptors, bool HasReduction >
-    struct reduction_data;
+    namespace _impl {
 
-    template < typename MssDescriptors >
-    struct reduction_data< MssDescriptors, false > {
-        typedef notype reduction_type_t;
+        template < typename = void >
+        struct reduction_data {
+            using reduction_type_t = notype;
+            notype reduced_value() const { return {}; }
+            notype initial_value() const { return {}; }
+            void assign(uint_t, notype) {}
+            void reduce() {}
+        };
 
-        reduction_data(reduction_type_t val) {}
-        constexpr reduction_type_t reduced_value() const { return 0; }
-        reduction_type_t initial_value() const { return 0; }
+        template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
+        struct reduction_data< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
+            using reduction_type_t = ReductionType;
 
-        void assign(uint_t, const reduction_type_t &) {}
-        void reduce() {}
-    };
+          private:
+            BinOp m_bin_op;
+            std::vector< ReductionType > m_parallel_reduced_val;
+            ReductionType m_initial_value;
+            ReductionType m_reduced_value;
 
-    template < typename MssDescriptors >
-    struct reduction_data< MssDescriptors, true > {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
-
-        typedef typename boost::mpl::fold< MssDescriptors,
-            boost::mpl::vector0<>,
-            boost::mpl::eval_if< mss_descriptor_is_reduction< boost::mpl::_2 >,
-                                               boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
-                                               boost::mpl::_1 > >::type reduction_descriptor_seq_t;
-
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< reduction_descriptor_seq_t >::value == 1), "Error: more than one reduction found");
-
-        typedef typename boost::mpl::front< reduction_descriptor_seq_t >::type reduction_descriptor_t;
-
-        typedef typename reduction_descriptor_type< reduction_descriptor_t >::type reduction_type_t;
-
-        typedef typename reduction_descriptor_t::bin_op_t bin_op_t;
-
-        reduction_data(reduction_type_t val)
-            : m_initial_value(val), m_parallel_reduced_val(omp_get_max_threads(), val) {}
-        const reduction_type_t &initial_value() const { return m_initial_value; }
-        const reduction_type_t &parallel_reduced_val(int elem) const { return m_parallel_reduced_val[elem]; }
-
-        void assign(uint_t elem, const reduction_type_t &reduction_value) {
-            assert(elem < m_parallel_reduced_val.size());
-            m_parallel_reduced_val[elem] = bin_op_t()(m_parallel_reduced_val[elem], reduction_value);
-        }
-
-        void reduce() {
-            m_reduced_value = m_initial_value;
-            for (auto val : m_parallel_reduced_val) {
-                m_reduced_value = bin_op_t()(m_reduced_value, val);
+          public:
+            reduction_data(ReductionType val)
+                : m_initial_value(val), m_parallel_reduced_val(omp_get_max_threads(), val) {}
+            ReductionType initial_value() const { return m_initial_value; }
+            ReductionType parallel_reduced_val(int elem) const { return m_parallel_reduced_val[elem]; }
+            void assign(uint_t elem, ReductionType reduction_value) {
+                assert(elem < m_parallel_reduced_val.size());
+                m_parallel_reduced_val[elem] = m_bin_op(m_parallel_reduced_val[elem], reduction_value);
             }
-        }
-        reduction_type_t reduced_value() const { return m_reduced_value; }
+            void reduce() {
+                m_reduced_value = m_initial_value;
+                for (auto val : m_parallel_reduced_val) {
+                    m_reduced_value = m_bin_op(m_reduced_value, val);
+                }
+            }
+            ReductionType reduced_value() const { return m_reduced_value; }
+        };
 
-      private:
-        std::vector< reduction_type_t > m_parallel_reduced_val;
-        reduction_type_t m_initial_value;
-        reduction_type_t m_reduced_value;
-    };
+        template < typename MssDescriptors >
+        using has_reduction_descriptor =
+            boost::mpl::count_if< MssDescriptors, mss_descriptor_is_reduction< boost::mpl::_ > >;
 
-    template < typename T >
-    struct is_reduction_data;
+        template < typename MssDescriptors >
+        struct get_reduction_descrpitor {
+            using descriptors_t =
+                boost::mpl::filter_view< MssDescriptors, mss_descriptor_is_reduction< boost::mpl::_ > >;
+            GRIDTOOLS_STATIC_ASSERT(
+                (boost::mpl::size< descriptors_t >::value < 2), "Error: more than one reduction found");
+            using type = typename boost::mpl::eval_if< boost::mpl::empty< descriptors_t >,
+                boost::mpl::void_,
+                boost::mpl::front< descriptors_t > >::type;
+        };
 
-    template < typename MssDescriptors, bool HasReduction >
-    struct is_reduction_data< reduction_data< MssDescriptors, HasReduction > > : boost::mpl::true_ {};
+        template < typename MssDescriptors >
+        using get_reduction_data_t = reduction_data< typename get_reduction_descrpitor< MssDescriptors >::type >;
+    }
+
+    template < typename MssDescriptors >
+    using reduction_type = typename _impl::get_reduction_data_t< MssDescriptors >::reduction_type_t;
+
+    template < typename MssDescriptors,
+        typename std::enable_if< _impl::has_reduction_descriptor< MssDescriptors >::value, int >::type = 0 >
+    _impl::get_reduction_data_t< MssDescriptors > make_reduction_data(MssDescriptors const &src) {
+        GRIDTOOLS_STATIC_ASSERT((boost::fusion::traits::is_sequence< MssDescriptors >::value), GT_INTERNAL_ERROR);
+        return {boost::fusion::find_if< mss_descriptor_is_reduction< boost::mpl::_ > >(src)->get()};
+    }
+
+    template < typename MssDescriptors,
+        typename std::enable_if< !_impl::has_reduction_descriptor< MssDescriptors >::value, int >::type = 0 >
+    _impl::reduction_data<> make_reduction_data(MssDescriptors) {
+        return {};
+    }
+
+    template < typename... T >
+    struct is_reduction_data : std::false_type {};
+
+    template < typename... T >
+    struct is_reduction_data< _impl::reduction_data< T... > > : std::true_type {};
 }

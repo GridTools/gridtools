@@ -382,17 +382,6 @@ namespace gridtools {
                     obtain_map_extents_temporaries_mss< AggregatorType, boost::mpl::_2 > > >::type type;
         };
 
-        template < typename AggregatorType, typename MssArray1, typename MssArray2, typename Cond >
-        struct obtain_map_extents_temporaries_mss_array< AggregatorType, condition< MssArray1, MssArray2, Cond > > {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-
-            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray1 >::type type1;
-            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray2 >::type type2;
-            typedef
-                typename boost::mpl::fold< type2, type1, boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type
-                    type;
-        };
-
         /**
            \brief defines a method which associates an
            tmp storage, whose extent depends on an index, to the

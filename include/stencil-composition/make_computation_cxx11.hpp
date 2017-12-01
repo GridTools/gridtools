@@ -52,11 +52,12 @@ namespace gridtools {
             typename Domain,
             typename Grid,
             typename... MssDescriptorTrees,
-            typename Res = intermediate< Backend,
-                boost::fusion::vector< typename std::decay< MssDescriptorTrees >::type... >,
+            typename Res = intermediate< 1,
+                Positional,
+                Backend,
                 typename std::decay< Domain >::type,
                 Grid,
-                Positional > >
+                boost::fusion::vector< typename std::decay< MssDescriptorTrees >::type... > > >
         std::shared_ptr< Res > make_computation(
             Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
             return std::make_shared< Res >(std::forward< Domain >(domain),
@@ -64,18 +65,18 @@ namespace gridtools {
                 boost::fusion::make_vector(std::forward< MssDescriptorTrees >(mss_descriptor_trees)...));
         }
 
-        template < bool Positional,
+        template < typename Expand,
+            bool Positional,
             typename Backend,
-            typename Expand,
             typename Domain,
             typename Grid,
             typename... MssDescriptorTrees,
-            typename Res = intermediate_expand< Backend,
-                boost::fusion::vector< typename std::decay< MssDescriptorTrees >::type... >,
+            typename Res = intermediate_expand< Expand,
+                Positional,
+                Backend,
                 typename std::decay< Domain >::type,
                 Grid,
-                Positional,
-                Expand > >
+                boost::fusion::vector< typename std::decay< MssDescriptorTrees >::type... > > >
         std::shared_ptr< Res > make_computation_expandable(
             Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
             return std::make_shared< Res >(std::forward< Domain >(domain),
@@ -96,8 +97,8 @@ namespace gridtools {
             typename Arg,
             typename... Args,
             typename = typename std::enable_if< is_expand_factor< Arg >::value >::type >
-        auto make_computation_dispatch(Arg arg, Args &&... args)
-            GT_AUTO_RETURN((make_computation_expandable< Positional, Backend, Arg >(std::forward< Args >(args)...)));
+        auto make_computation_dispatch(Arg, Args &&... args)
+            GT_AUTO_RETURN((make_computation_expandable< Arg, Positional, Backend >(std::forward< Args >(args)...)));
 
         // user protections
         template < bool, typename, typename... Args >
