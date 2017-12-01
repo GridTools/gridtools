@@ -1,7 +1,8 @@
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 if(NOT STRUCTURED_GRIDS)
     add_subdirectory(icosahedral)
 else()
-
   file(GLOB_RECURSE INC_ALL_ "[a-z|A-Z|0-9]*.hpp")
   list ( APPEND INC_ALL ${INC_ALL_} )
   file(GLOB_RECURSE INC_ALL_ "../include/[a-z|A-Z|0-9]*.hpp")
