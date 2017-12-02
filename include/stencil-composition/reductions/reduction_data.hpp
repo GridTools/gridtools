@@ -64,6 +64,7 @@ namespace gridtools {
         template < typename ReductionType, typename BinOp, typename EsfDescrSequence >
         struct reduction_data< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
             using reduction_type_t = ReductionType;
+            using bin_op_t = BinOp;
 
           private:
             BinOp m_bin_op;
@@ -73,9 +74,8 @@ namespace gridtools {
 
           public:
             reduction_data(ReductionType val)
-                : m_initial_value(val), m_parallel_reduced_val(omp_get_max_threads(), val) {}
+                : m_initial_value{val}, m_parallel_reduced_val{omp_get_max_threads(), val} {}
             ReductionType initial_value() const { return m_initial_value; }
-            ReductionType parallel_reduced_val(int elem) const { return m_parallel_reduced_val[elem]; }
             void assign(uint_t elem, ReductionType reduction_value) {
                 assert(elem < m_parallel_reduced_val.size());
                 m_parallel_reduced_val[elem] = m_bin_op(m_parallel_reduced_val[elem], reduction_value);
@@ -115,7 +115,7 @@ namespace gridtools {
         typename std::enable_if< _impl::has_reduction_descriptor< MssDescriptors >::value, int >::type = 0 >
     _impl::get_reduction_data_t< MssDescriptors > make_reduction_data(MssDescriptors const &src) {
         GRIDTOOLS_STATIC_ASSERT((boost::fusion::traits::is_sequence< MssDescriptors >::value), GT_INTERNAL_ERROR);
-        return {boost::fusion::find_if< mss_descriptor_is_reduction< boost::mpl::_ > >(src)->get()};
+        return {(*boost::fusion::find_if< mss_descriptor_is_reduction< boost::mpl::_ > >(src)).get()};
     }
 
     template < typename MssDescriptors,
