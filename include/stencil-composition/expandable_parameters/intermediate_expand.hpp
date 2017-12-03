@@ -188,19 +188,19 @@ namespace gridtools {
             }
 
             template < uint_t N >
-            struct convert_mss_descriptors_forest_f {
+            struct convert_mss_descriptors_tree_f {
                 template < typename T >
                 auto operator()(T const &src) const
-                    GT_AUTO_RETURN((condition_forest_transform(src, fix_mss_arg_indices_f< N >{})));
+                    GT_AUTO_RETURN((condition_tree_transform(src, fix_mss_arg_indices_f< N >{})));
             };
 
-            template < uint_t N, typename MssDescriptorsForest >
-            auto convert_mss_descriptors_forest(const MssDescriptorsForest &forest)
-                GT_AUTO_RETURN(convert_mss_descriptors_forest_f< N >{}(forest));
+            template < uint_t N, typename MssDescriptorsTree >
+            auto convert_mss_descriptors_tree(MssDescriptorsTree const &src)
+                GT_AUTO_RETURN(convert_mss_descriptors_tree_f< N >{}(src));
 
-            template < uint_t N, typename MssDescriptorsForest >
-            using converted_mss_descriptors_forest =
-                typename std::result_of< convert_mss_descriptors_forest_f< N >(const MssDescriptorsForest &) >::type;
+            template < uint_t N, typename MssDescriptorsTree >
+            using converted_mss_descriptors_tree =
+                typename std::result_of< convert_mss_descriptors_tree_f< N >(MssDescriptorsTree const &) >::type;
 
             struct assign_storage {
                 size_t m_offset;
@@ -277,13 +277,14 @@ namespace gridtools {
         typename Backend,
         typename Aggregator,
         typename Grid,
-        typename MssDescriptorForest >
+        typename... MssDescriptorTrees >
     class intermediate_expand : public computation< Aggregator > {
         GRIDTOOLS_STATIC_ASSERT((is_expand_factor< ExpandFactor >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< Aggregator >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_condition_forest_of< MssDescriptorForest, is_computation_token >::value),
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< std::true_type,
+                                    is_condition_tree_of< MssDescriptorTrees, is_computation_token >... >::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
         template < uint N >
@@ -292,7 +293,7 @@ namespace gridtools {
             Backend,
             _impl::expand_detail::converted_aggregator_type< N, Aggregator >,
             Grid,
-            _impl::expand_detail::converted_mss_descriptors_forest< N, MssDescriptorForest > >;
+            _impl::expand_detail::converted_mss_descriptors_tree< N, MssDescriptorTrees >... >;
 
         using base_t = typename intermediate_expand::computation;
         using base_t::m_domain;
@@ -310,13 +311,13 @@ namespace gridtools {
            dimension given by  @ref gridtools::expand_factor
          */
         template < typename Domain >
-        intermediate_expand(Domain &&domain, Grid const &grid, const MssDescriptorForest &mss_descriptor_forest)
+        intermediate_expand(Domain &&domain, Grid const &grid, MssDescriptorTrees const &... mss_descriptor_trees)
             : base_t(std::forward< Domain >(domain)), m_size(_impl::expand_detail::get_expandable_size(m_domain)),
               m_intermediate(m_size >= ExpandFactor::value
-                                 ? create_intermediate< ExpandFactor::value >(m_domain, grid, mss_descriptor_forest)
+                                 ? create_intermediate< ExpandFactor::value >(m_domain, grid, mss_descriptor_trees...)
                                  : nullptr),
               m_intermediate_remainder(m_size % ExpandFactor::value
-                                           ? create_intermediate< 1 >(m_domain, grid, mss_descriptor_forest)
+                                           ? create_intermediate< 1 >(m_domain, grid, mss_descriptor_trees...)
                                            : nullptr) {}
 
         /**
@@ -389,10 +390,10 @@ namespace gridtools {
       private:
         template < uint_t N, typename Res = converted_intermediate< N > >
         static Res *create_intermediate(
-            const Aggregator &src, Grid const &grid, const MssDescriptorForest &mss_descriptor_forest) {
+            const Aggregator &src, Grid const &grid, MssDescriptorTrees const &... mss_descriptor_trees) {
             return new Res(_impl::expand_detail::convert_aggregator< N >(src),
                 grid,
-                _impl::expand_detail::convert_mss_descriptors_forest< N >(mss_descriptor_forest));
+                _impl::expand_detail::convert_mss_descriptors_tree< N >(mss_descriptor_trees)...);
         }
 
         template < typename Dst >

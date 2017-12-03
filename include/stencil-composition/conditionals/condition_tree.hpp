@@ -67,13 +67,6 @@
 namespace gridtools {
 
     namespace _impl {
-        template < template < typename, template < typename > class > class ContainerPred,
-            template < typename > class ElementPred >
-        struct predicate_compose {
-            template < typename Container >
-            using apply = ContainerPred< Container, ElementPred >;
-        };
-
         struct push_back_f {
             template < typename S, typename T >
             auto operator()(S &&sec, T &&elem) const GT_AUTO_RETURN(
@@ -142,43 +135,11 @@ namespace gridtools {
             return {std::forward< ComposeLeafs >(compose_leafs)};
         }
 
-        struct condition_leaves_view_f {
-            template < typename >
-            struct result;
-
-            template < typename T >
-            using res_t = typename result< condition_leaves_view_f(T &) >::type;
-
-            template < typename T >
-            struct result< condition_leaves_view_f(T &) > {
-                using type = boost::fusion::single_view< T & >;
-            };
-
-            template < typename Lhs, typename Rhs, typename C >
-            struct result< condition_leaves_view_f(condition< Lhs, Rhs, C > &) > {
-                using type = boost::fusion::joint_view< const res_t< Lhs >, const res_t< Rhs > >;
-            };
-
-            template < typename Lhs, typename Rhs, typename C >
-            struct result< condition_leaves_view_f(condition< Lhs, Rhs, C > const &) > {
-                using type = boost::fusion::joint_view< const res_t< Lhs const >, const res_t< Rhs const > >;
-            };
-
-            template < typename T >
-            res_t< T > operator()(T &leaf) const {
-                return res_t< T >{leaf};
-            }
-
-            template < typename Lhs, typename Rhs, typename C >
-            res_t< condition< Lhs, Rhs, C > > operator()(condition< Lhs, Rhs, C > &node) const {
-                return {this->operator()(node.first()), this->operator()(node.second())};
-            }
-
-            template < typename Lhs, typename Rhs, typename C >
-            res_t< const condition< Lhs, Rhs, C > > operator()(const condition< Lhs, Rhs, C > &node) const {
-                return {this->operator()(node.first()), this->operator()(node.second())};
-            }
-        };
+        template < typename... Trees >
+        auto make_condition_tree_from_forest(Trees &&... trees)
+            GT_AUTO_RETURN(boost::fusion::fold(boost::fusion::make_vector(std::forward< Trees >(trees)...),
+                boost::fusion::make_vector(),
+                _impl::compose_condition_trees()));
 
         template < typename TransformLeaf >
         struct condition_transform_f {
@@ -217,43 +178,33 @@ namespace gridtools {
             struct result;
 
             template < typename T >
-            using res_t = typename result< apply_with_condtion_tree_f(T &) >::type;
+            using res_t = typename result< apply_with_condtion_tree_f(T const &) >::type;
 
             template < typename T >
-            struct result< apply_with_condtion_tree_f(T &) > {
-                using type = typename std::result_of< Fun(T &) >::type;
-            };
-
-            template < typename Lhs, typename Rhs, typename C >
-            struct result< apply_with_condtion_tree_f(condition< Lhs, Rhs, C > &) > {
-                using type = typename std::common_type< res_t< Lhs >, res_t< Rhs > >::type;
+            struct result< apply_with_condtion_tree_f(T const &) > {
+                using type = typename std::result_of< Fun(T const &) >::type;
             };
 
             template < typename Lhs, typename Rhs, typename C >
             struct result< apply_with_condtion_tree_f(condition< Lhs, Rhs, C > const &) > {
-                using type = typename std::common_type< res_t< Lhs const >, res_t< Rhs const > >::type;
+                using type = typename std::common_type< res_t< Lhs >, res_t< Rhs > >::type;
             };
 
             Fun m_fun;
 
             template < typename T >
-            res_t< T > operator()(T &leaf) const {
+            res_t< T > operator()(T const &leaf) const {
                 return m_fun(leaf);
             }
 
             template < typename Lhs, typename Rhs, typename C >
-            res_t< condition< Lhs, Rhs, C > > operator()(condition< Lhs, Rhs, C > &node) const {
-                return node.value().value() ? this->operator()(node.first()) : this->operator()(node.second());
-            }
-
-            template < typename Lhs, typename Rhs, typename C >
-            res_t< condition< Lhs, Rhs, C > const > operator()(condition< Lhs, Rhs, C > const &node) const {
+            res_t< condition< Lhs, Rhs, C > > operator()(condition< Lhs, Rhs, C > const &node) const {
                 return node.value().value() ? this->operator()(node.first()) : this->operator()(node.second());
             }
         };
 
-        template < typename Fun, typename... Args >
-        apply_with_condtion_tree_f< Fun > apply_with_condtion_tree(Fun &&fun, Args &&... args) {
+        template < typename Fun >
+        apply_with_condtion_tree_f< Fun > apply_with_condtion_tree(Fun &&fun) {
             return {fun};
         }
 
@@ -268,8 +219,8 @@ namespace gridtools {
                 typename all_leaves_in_tree< Rhs >::type >;
         };
 
-        template < typename Forest >
-        using all_leaves_in_forest_t = typename boost::mpl::fold< Forest,
+        template < typename... Trees >
+        using all_leaves_in_forest_t = typename boost::mpl::fold< boost::mpl::vector< Trees... >,
             boost::mpl::empty_sequence,
             boost::mpl::joint_view< boost::mpl::_1, all_leaves_in_tree< std::decay< boost::mpl::_2 > > > >::type;
     }
@@ -281,83 +232,30 @@ namespace gridtools {
     struct is_condition_tree_of< condition< Lhs, Rhs, conditional< Tag, SwitchId > >, Pred >
         : boost::mpl::and_< is_condition_tree_of< Lhs, Pred >, is_condition_tree_of< Rhs, Pred > > {};
 
-    template < typename T, template < typename > class Pred >
-    using is_condition_forest_of =
-        is_sequence_of< T, _impl::predicate_compose< is_condition_tree_of, Pred >::template apply >;
-
-    template < typename T, template < typename > class Pred >
-    using is_condition_tree_of_sequence_of =
-        is_condition_tree_of< T, _impl::predicate_compose< is_sequence_of, Pred >::template apply >;
-
-    template < typename Lhs, typename Rhs, typename LeavesEqual = std::is_same< boost::mpl::_1, boost::mpl::_2 > >
-    struct condition_tree_equal : boost::mpl::apply< LeavesEqual, Lhs, Rhs >::type {};
-
-    template < typename LLhs,
-        typename LRhs,
-        typename LConditional,
-        typename RLhs,
-        typename RRhs,
-        typename RConditional,
-        typename LeavesEqual >
-    struct condition_tree_equal< condition< LLhs, LRhs, LConditional >,
-        condition< RLhs, RRhs, RConditional >,
-        LeavesEqual > : boost::mpl::and_< std::is_same< LConditional, RConditional >,
-                            condition_tree_equal< LLhs, RLhs, LeavesEqual >,
-                            condition_tree_equal< LRhs, RRhs, LeavesEqual > > {};
-
-    template < typename Forest >
-    auto make_condition_tree_from_forest(Forest &&forest) GT_AUTO_RETURN(boost::fusion::fold(
-        std::forward< Forest >(forest), boost::fusion::make_vector(), _impl::compose_condition_trees()));
-
     template < typename Tree, typename Fun >
     auto condition_tree_transform(Tree &&tree, Fun &&fun)
         GT_AUTO_RETURN(_impl::condition_transform_f< Fun >{std::forward< Fun >(fun)}(std::forward< Tree >(tree)));
 
-    template < typename Forest, typename Fun >
-    auto condition_forest_transform(Forest &&forest, Fun &&fun)
-        GT_AUTO_RETURN((boost::fusion::as_vector(boost::fusion::transform(
-            std::forward< Forest >(forest), _impl::condition_transform_f< Fun >{std::forward< Fun >(fun)}))));
-
-    template < typename Forest >
+    template < typename... Trees >
     class branch_selector {
-        GRIDTOOLS_STATIC_ASSERT(boost::fusion::traits::is_sequence< Forest >::value, "Forest should be a sequence");
-        GRIDTOOLS_STATIC_ASSERT(!boost::mpl::empty< Forest >::value, "Forest should not be empty.");
-
-        using tree_t = decltype(make_condition_tree_from_forest(std::declval< Forest >()));
+        using tree_t = decltype(_impl::make_condition_tree_from_forest(std::declval< Trees >()...));
         tree_t m_tree;
 
       public:
-        using all_leaves_t = typename boost::mpl::copy< _impl::all_leaves_in_forest_t< Forest >,
+        using all_leaves_t = typename boost::mpl::copy< _impl::all_leaves_in_forest_t< Trees... >,
             boost::mpl::back_inserter< boost::mpl::vector0<> > >::type;
-        using branches_t = typename std::result_of< _impl::condition_leaves_view_f(tree_t const &) >::type;
 
-        branch_selector(Forest const &src) : m_tree(make_condition_tree_from_forest(src)) {}
-        branch_selector(Forest &&src) noexcept : m_tree(make_condition_tree_from_forest(std::move(src))) {}
+        branch_selector(Trees const &... trees) : m_tree(_impl::make_condition_tree_from_forest(trees...)) {}
+        branch_selector(Trees &&... trees) noexcept
+            : m_tree(_impl::make_condition_tree_from_forest(std::move(trees)...)) {}
 
-        auto branches() const GT_AUTO_RETURN(_impl::condition_leaves_view_f{}(m_tree));
-        //        auto branches() GT_AUTO_RETURN(_impl::condition_leaves_view_f{}(m_tree));
-
-        // TODO(anstaf): add mutable version and test it
         template < typename Fun, typename... Args >
         auto apply(Fun &&fun, Args &&... args) const GT_AUTO_RETURN(_impl::apply_with_condtion_tree(
             std::bind(std::forward< Fun >(fun), std::placeholders::_1, std::forward< Args >(args)...))(m_tree));
     };
-
-    template < typename T,
-        typename Forest = typename std::decay< T >::type,
-        typename std::enable_if< boost::fusion::traits::is_sequence< Forest >::value, int >::type = 0 >
-    branch_selector< Forest > make_branch_selector(T &&src) {
-        return src;
-    }
-
-    template < typename T,
-        typename Tree = typename std::decay< T >::type,
-        typename std::enable_if< !boost::fusion::traits::is_sequence< Tree >::value, int >::type = 0 >
-    auto make_branch_selector(T &&tree)
-        GT_AUTO_RETURN(make_branch_selector(boost::fusion::make_vector(std::forward< T >(tree))));
-
-    template < typename Tree1, typename Tree2, typename... Trees >
-    auto make_branch_selector(Tree1 &&tree1, Tree2 &&tree2, Trees &&... trees)
-        GT_AUTO_RETURN(make_branch_selector(boost::fusion::make_vector(
-            std::forward< Tree1 >(tree1), std::forward< Tree2 >(tree2), std::forward< Trees >(trees)...)));
+    template < typename Tree, typename... Trees >
+    branch_selector< typename std::decay< Tree >::type, typename std::decay< Trees >::type... > make_branch_selector(
+        Tree &&tree, Trees &&... trees) {
+        return {std::forward< Tree >(tree), std::forward< Trees >(trees)...};
+    };
 }

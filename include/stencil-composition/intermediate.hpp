@@ -84,10 +84,8 @@
 #include "reductions/reduction_data.hpp"
 #include "storage_wrapper.hpp"
 #include "wrap_type.hpp"
-#include "make_computation_helper_cxx11.hpp"
 
 #include "computation_grammar.hpp"
-#include "make_computation_helper_cxx11.hpp"
 #include "all_args_in_aggregator.hpp"
 
 /**
@@ -275,6 +273,17 @@ namespace gridtools {
         }
     }
 
+    namespace _impl {
+        struct dummy_run_f {
+            template < typename Branch >
+            reduction_type< Branch > operator()(Branch const &) const;
+        };
+
+        template < typename... MssDescriptors >
+        using reduction_type_from_forest_t =
+            decltype(std::declval< branch_selector< MssDescriptors... > >().apply(dummy_run_f{}));
+    }
+
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -285,21 +294,20 @@ namespace gridtools {
         typename Backend,
         typename DomainType,
         typename Grid,
-        typename MssDescriptorForest >
-    struct intermediate
-        : public computation< DomainType,
-              typename _impl::get_reduction_type< typename boost::mpl::back< MssDescriptorForest >::type >::type > {
+        typename... MssDescriptors >
+    struct intermediate : public computation< DomainType, _impl::reduction_type_from_forest_t< MssDescriptors... > > {
 
-        GRIDTOOLS_STATIC_ASSERT((is_condition_forest_of< MssDescriptorForest, is_computation_token >::value),
-            "make_computation args should be mss descriptors or condition trees of mss descriptors");
-        GRIDTOOLS_STATIC_ASSERT(
-            (copy_into_variadic_t< MssDescriptorForest, _impl::all_args_in_aggregator< DomainType > >::type::value),
-            "Some placeholders used in the computation are not listed in the aggregator");
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::mpl::and_< std::true_type,
+                typename is_condition_tree_of< MssDescriptors, is_computation_token >::type... >::value),
+            "make_computation args should be mss descriptors or condition trees of mss descriptors");
+        GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< DomainType, MssDescriptors... >::type::value),
+            "Some placeholders used in the computation are not listed in the aggregator");
 
-        using branch_selector_t = branch_selector< MssDescriptorForest >;
+        using branch_selector_t = branch_selector< MssDescriptors... >;
         using all_mss_descriptors_t = typename branch_selector_t::all_leaves_t;
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
@@ -371,10 +379,10 @@ namespace gridtools {
         };
 
       public:
-        template < typename Domain, typename Forest >
-        intermediate(Domain &&domain, Grid const &grid, Forest &&forest)
+        template < typename Domain, typename... Msses >
+        intermediate(Domain &&domain, Grid const &grid, Msses &&... msses)
             : intermediate::computation(std::forward< Domain >(domain)), m_grid(grid), m_meter("NoName"),
-              m_branch_selector(forest) {
+              m_branch_selector(std::forward< Msses >(msses)...) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
         }

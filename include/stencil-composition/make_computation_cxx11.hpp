@@ -47,6 +47,7 @@
 
 namespace gridtools {
     namespace _impl {
+
         template < bool Positional,
             typename Backend,
             typename Domain,
@@ -57,12 +58,11 @@ namespace gridtools {
                 Backend,
                 typename std::decay< Domain >::type,
                 Grid,
-                boost::fusion::vector< typename std::decay< MssDescriptorTrees >::type... > > >
+                typename std::decay< MssDescriptorTrees >::type... > >
         std::shared_ptr< Res > make_computation(
             Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
-            return std::make_shared< Res >(std::forward< Domain >(domain),
-                grid,
-                boost::fusion::make_vector(std::forward< MssDescriptorTrees >(mss_descriptor_trees)...));
+            return std::make_shared< Res >(
+                std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...);
         }
 
         template < typename Expand,
@@ -76,12 +76,11 @@ namespace gridtools {
                 Backend,
                 typename std::decay< Domain >::type,
                 Grid,
-                boost::fusion::vector< typename std::decay< MssDescriptorTrees >::type... > > >
+                typename std::decay< MssDescriptorTrees >::type... > >
         std::shared_ptr< Res > make_computation_expandable(
             Domain &&domain, const Grid &grid, MssDescriptorTrees &&... mss_descriptor_trees) {
-            return std::make_shared< Res >(std::forward< Domain >(domain),
-                grid,
-                boost::fusion::make_vector(std::forward< MssDescriptorTrees >(mss_descriptor_trees)...));
+            return std::make_shared< Res >(
+                std::forward< Domain >(domain), grid, std::forward< MssDescriptorTrees >(mss_descriptor_trees)...);
         }
 
         template < bool Positional,

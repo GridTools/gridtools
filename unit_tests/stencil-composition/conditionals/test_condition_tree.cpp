@@ -75,25 +75,6 @@ namespace gridtools {
         static_assert(!is_condition_tree_of< node_t< int *, int >, std::is_pointer >{}, "bad node");
         static_assert(!is_condition_tree_of< node_t< int *, node_t< long, void * > >, std::is_pointer >{}, "bad tree");
 
-        static_assert(is_condition_tree_of_sequence_of< seq_t<>, std::is_pointer >::value, "empty");
-        static_assert(is_condition_tree_of_sequence_of< seq_t< int * >, std::is_pointer >::value, "good leaf");
-        static_assert(
-            is_condition_tree_of_sequence_of< node_t< seq_t< int * >, seq_t< void * > >, std::is_pointer >::value,
-            "good node");
-
-        static_assert(is_condition_forest_of< seq_t<>, std::is_pointer >::value, "empty");
-        static_assert(is_condition_forest_of< seq_t< int * >, std::is_pointer >::value, "good leaf seq");
-        static_assert(
-            is_condition_forest_of< seq_t< node_t< int *, void * > >, std::is_pointer >::value, "good node seq");
-
-        static_assert(condition_tree_equal< int, int >{}, "same leaves");
-        static_assert(condition_tree_equal< node_t< int, double >, node_t< int, double > >{}, "same nodes");
-        static_assert(!condition_tree_equal< node_t< int, double >, int >{}, "node vs leaf");
-        static_assert(!condition_tree_equal< int, void * >{}, "different leaves");
-        static_assert(!condition_tree_equal< node_t< int, double >, node_t< int, int > >{}, "different nodes");
-        static_assert(!condition_tree_equal< node_t< int, double >, condition< int, double, conditional< 0 > > >{},
-            "different tags");
-
         template < typename Lhs, typename Rhs >
         node_t< Lhs, Rhs > make_node(Lhs lhs, Rhs rhs, std::function< bool() > fun = {}) {
             return make_condition(conditional_t{fun}, lhs, rhs);
@@ -110,21 +91,18 @@ namespace gridtools {
         TEST(branch_selector, minimalistic) {
             auto testee = make_branch_selector(1);
             static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int > >{}, "all_leaves");
-            EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(1)));
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));
         }
 
         TEST(branch_selector, no_conditions) {
             auto testee = make_branch_selector(1, 2);
             static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int, int > >{}, "all_leaves");
-            EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(1, 2)));
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1, 2));
         }
 
         TEST(branch_selector, one_condition) {
             bool key;
             auto testee = make_branch_selector(make_node(1, 2, [&] { return key; }));
-            EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(1), f::make_vector(2)));
             key = true;
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));
             key = false;
@@ -134,7 +112,6 @@ namespace gridtools {
         TEST(branch_selector, one_condition_with_prefix) {
             bool key;
             auto testee = make_branch_selector(0, make_node(1, 2, [&] { return key; }));
-            EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(0, 1), f::make_vector(0, 2)));
             key = true;
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(0, 1));
             key = false;
@@ -144,7 +121,6 @@ namespace gridtools {
         TEST(branch_selector, one_condition_with_suffix) {
             bool key;
             auto testee = make_branch_selector(make_node(1, 2, [&] { return key; }), 3);
-            EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(1, 3), f::make_vector(2, 3)));
             key = true;
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1, 3));
             key = false;
@@ -156,7 +132,6 @@ namespace gridtools {
             auto testee =
                 make_branch_selector(make_node(1, make_node(2, 3, [&] { return keys[1]; }), [&] { return keys[0]; }));
             static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int, int, int > >{}, "all_leaves");
-            EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(1), f::make_vector(2), f::make_vector(3)));
             keys = {true};
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));
             keys = {false, true};
@@ -169,9 +144,6 @@ namespace gridtools {
             std::array< bool, 2 > keys;
             auto testee = make_branch_selector(
                 make_node(1, 2, [&] { return keys[0]; }), make_node(10, 20, [&] { return keys[1]; }));
-            EXPECT_EQ(testee.branches(),
-                f::make_vector(
-                          f::make_vector(1, 10), f::make_vector(1, 20), f::make_vector(2, 10), f::make_vector(2, 20)));
             keys = {true, true};
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1, 10));
             keys = {true, false};
@@ -202,7 +174,6 @@ namespace gridtools {
         TEST(branch_selector, different_types) {
             bool key;
             auto testee = make_branch_selector(make_node(val_t< 1 >{}, val_t< 2 >{}, [&] { return key; }));
-            EXPECT_EQ(testee.branches(), f::make_vector(f::make_vector(val_t< 1 >{}), f::make_vector(val_t< 2 >{})));
             key = true;
             transform_f< get_elem_f > fun;
             EXPECT_EQ(testee.apply(fun), f::make_vector(1));
