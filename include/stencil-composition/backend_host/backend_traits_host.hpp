@@ -197,10 +197,7 @@ namespace gridtools {
         /**
          * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
          */
-        struct mss_fuse_esfs_strategy {
-            typedef boost::mpl::bool_< false > type;
-            BOOST_STATIC_CONSTANT(bool, value = (type::value));
-        };
+        typedef std::false_type mss_fuse_esfs_strategy;
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
         typedef boost::mpl::quote2< run_esf_functor_host > run_esf_functor_h_t;

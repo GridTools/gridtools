@@ -72,14 +72,15 @@ typedef arg< 1, storage_buff_t > p_buff;
 typedef arg< 2, storage_t > p_out;
 typedef boost::mpl::vector< p_in, p_buff, p_out > accessor_list;
 
-typedef intermediate< backend< Host, GRIDBACKEND, Naive >,
+typedef intermediate< 1,
+    false,
+    backend< Host, GRIDBACKEND, Naive >,
+    aggregator_type< accessor_list >,
+    grid< axis< 1 >::axis_interval_t >,
     boost::fusion::vector< decltype(make_multistage // mss_descriptor
         (execute< forward >(),
             make_stage< dummy_functor >(p_in(), p_buff()),
-            make_stage< dummy_functor >(p_buff(), p_out()))) >,
-    aggregator_type< accessor_list >,
-    grid< axis< 1 >::axis_interval_t >,
-    false > intermediate_t;
+            make_stage< dummy_functor >(p_buff(), p_out()))) > > intermediate_t;
 
 typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
 

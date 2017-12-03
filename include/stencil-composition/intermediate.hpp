@@ -275,8 +275,6 @@ namespace gridtools {
         }
     }
 
-    namespace _impl {}
-
     /**
      * @class
      *  @brief structure collecting helper metafunctions
@@ -305,8 +303,7 @@ namespace gridtools {
         using all_mss_descriptors_t = typename branch_selector_t::all_leaves_t;
 
         typedef typename Backend::backend_traits_t::performance_meter_t performance_meter_t;
-        typedef typename Backend::backend_ids_t backend_ids_t;
-        typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
+        typedef typename Backend::grid_traits_t grid_traits_t;
         typedef typename DomainType::placeholders_t placeholders_t;
 
         // First we need to compute the association between placeholders and extents.
@@ -316,13 +313,14 @@ namespace gridtools {
             typename placeholder_to_extent_map< all_mss_descriptors_t, grid_traits_t, placeholders_t >::type;
 
         template < typename MssDescs >
-        using convert_to_mss_components_t = typename build_mss_components_array< backend_id< Backend >::value,
-            MssDescs,
-            typename associate_extents_to_esfs< MssDescs, extent_map_t >::type,
-            static_int< RepeatFunctor >,
-            typename Grid::axis_type >::type;
+        using convert_to_mss_components_array_t =
+            typename build_mss_components_array< typename Backend::mss_fuse_esfs_strategy,
+                MssDescs,
+                extent_map_t,
+                static_int< RepeatFunctor >,
+                typename Grid::axis_type >::type;
 
-        typedef typename convert_to_mss_components_t< all_mss_descriptors_t >::type mss_components_array_t;
+        typedef convert_to_mss_components_array_t< all_mss_descriptors_t > mss_components_array_t;
 
         // creates a fusion sequence of views
         typedef typename create_view_fusion_map< DomainType >::type view_list_fusion_t;
@@ -366,7 +364,7 @@ namespace gridtools {
                 Grid const &grid,
                 mss_local_domain_list_t const &mss_local_domain_list) const {
                 auto reduction_data = make_reduction_data(mss_descriptors);
-                Backend::template run< convert_to_mss_components_t< MssDescs > >(
+                Backend::template run< convert_to_mss_components_array_t< MssDescs > >(
                     grid, mss_local_domain_list, reduction_data);
                 return reduction_data.reduced_value();
             }
@@ -444,18 +442,7 @@ namespace gridtools {
     };
 
     template < typename T >
-    struct intermediate_mss_local_domains;
-
-    template < uint_t RepeatFunctor,
-        bool IsStateful,
-        typename Backend,
-        typename DomainType,
-        typename Grid,
-        typename MssDescriptorForest >
-    struct intermediate_mss_local_domains<
-        intermediate< RepeatFunctor, IsStateful, Backend, DomainType, Grid, MssDescriptorForest > > {
-        using type =
-            typename intermediate< RepeatFunctor, IsStateful, Backend, DomainType, Grid, MssDescriptorForest >::
-                mss_local_domains_t;
+    struct intermediate_mss_local_domains {
+        using type = typename T::mss_local_domains_t;
     };
 } // namespace gridtools

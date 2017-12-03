@@ -48,6 +48,8 @@
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/transform.hpp>
 
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/copy.hpp>
 #include <boost/mpl/logical.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/mpl/single_view.hpp>
@@ -57,7 +59,6 @@
 #include <boost/mpl/empty_sequence.hpp>
 
 #include "../../common/defs.hpp"
-#include "../../common/generic_metafunctions/copy_into_set.hpp"
 #include "../../common/generic_metafunctions/is_sequence_of.hpp"
 
 #include "condition.hpp"
@@ -326,8 +327,8 @@ namespace gridtools {
         tree_t m_tree;
 
       public:
-        using all_leaves_t =
-            typename copy_into_set< _impl::all_leaves_in_forest_t< Forest >, boost::mpl::set0<> >::type;
+        using all_leaves_t = typename boost::mpl::copy< _impl::all_leaves_in_forest_t< Forest >,
+            boost::mpl::back_inserter< boost::mpl::vector0<> > >::type;
         using branches_t = typename std::result_of< _impl::condition_leaves_view_f(tree_t const &) >::type;
 
         branch_selector(Forest const &src) : m_tree(make_condition_tree_from_forest(src)) {}

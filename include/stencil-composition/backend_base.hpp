@@ -185,6 +185,8 @@ namespace gridtools {
 
         using block_size_t = typename backend_traits_t::template get_block_size< StrategyId >::type;
 
+        using mss_fuse_esfs_strategy = typename backend_traits_t::mss_fuse_esfs_strategy;
+
         /**
          * \brief calls the \ref gridtools::run_functor for each functor in the FunctorList.
          * the loop over the functors list is unrolled at compile-time using the for_each construct.

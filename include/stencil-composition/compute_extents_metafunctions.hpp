@@ -393,106 +393,77 @@ namespace gridtools {
             static const bool value = type::value;
         };
 
-    } // namespace _impl
-
-    /**
-       This metafunction accociate an extent to each ESF of a
-       computation made of many MSSes
-
-       \tparam MssDescriptorArrayElements The ::elements in a MSS descriptor
-       \tparam ExtentsMap Map between placeholders and extents that will be then associated to stencil operators
-       parameters). This argument is used to substitute the user types (std::vector of storages) with expandable
-       parameters when necessary.
-     */
-    template < typename MssDescriptors, typename ExtentsMap >
-    struct associate_extents_to_esfs {
-
-      private:
         template < typename Element >
-        struct __pairs_of {
+        struct is_extent_map_element {
             typedef typename is_arg< typename Element::first >::type one;
             typedef typename is_extent< typename Element::second >::type two;
 
             typedef typename boost::mpl::and_< one, two >::type type;
         };
 
-      public:
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< ExtentsMap, __pairs_of >::value), GT_INTERNAL_ERROR);
+        template < typename T >
+        using is_extent_map = is_sequence_of< T, is_extent_map_element >;
 
-        /** This is the metafucntion to iterate over the esfs of a multi-stage stencil
-            and gather the outputs (check that they have the same extents), and associate
-            to them the corresponding extent */
-        template < typename MapOfPlaceholders, /*, typename BackendIds,*/ typename Mss >
-        struct iterate_over_esfs {
+    } // namespace _impl
 
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MapOfPlaceholders, __pairs_of >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss >::value), GT_INTERNAL_ERROR);
+    template < typename Esf, typename ExtentMap >
+    struct get_extent_for {
 
-            template < typename Esf >
-            struct get_extent_for {
+        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
 
-                GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
+        typedef typename esf_get_w_per_functor< Esf >::type w_plcs;
+        typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
+        typedef typename boost::mpl::at< ExtentMap, first_out >::type extent;
+        // TODO recover
+        //                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs,
+        //                extent >::value),
+        //                    "The output of the ESF do not have all the save extents, so it is not possible to
+        //                    select the "
+        //                    "extent for the whole ESF.");
 
-                typedef typename esf_get_w_per_functor< Esf >::type w_plcs;
-                typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
-                typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
-                // TODO recover
-                //                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs,
-                //                extent >::value),
-                //                    "The output of the ESF do not have all the save extents, so it is not possible to
-                //                    select the "
-                //                    "extent for the whole ESF.");
+        typedef extent type;
+    };
 
-                typedef extent type;
-            };
+    template < typename Esf, typename ExtentMap >
+    struct reduction_get_extent_for {
+        typedef typename esf_args< Esf >::type w_plcs;
+        typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
+        typedef typename boost::mpl::at< ExtentMap, first_out >::type extent;
 
-            typedef typename mss_descriptor_linear_esf_sequence< Mss >::type esfs;
+        // TODO recover
+        //                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs,
+        //                extent >::value),
+        //                    "The output of the ESF do not have all the save extents, so it is not possible to
+        //                    select the "
+        //                    "extent for the whole ESF.");
 
-            // Iterate over each ESF of the MSS to generate a vector
-            // of extens whose elements correspond to the elements of
-            // the esfs vector (this is to comply with the API for the
-            // backend)
-            typedef typename boost::mpl::fold< esfs,
-                boost::mpl::vector0<>,
-                typename boost::mpl::push_back< boost::mpl::_1, get_extent_for< boost::mpl::_2 > > >::type type;
-        }; // struct iterate_over_esfs
+        typedef extent type;
+    };
 
-        /** A reduction is always the last stage, so the outputs
-            always have the null-extent. In this case then, the map do
-            not need to be updated.
-         */
-        template < typename MapOfPlaceholders, typename ReductionType, typename BinOp, typename EsfDescrSequence >
-        struct iterate_over_esfs< MapOfPlaceholders,
-            /*BackendIds,*/
-            reduction_descriptor< ReductionType, BinOp, EsfDescrSequence > > {
+    /** This is the metafucntion to iterate over the esfs of a multi-stage stencil
+        and gather the outputs (check that they have the same extents), and associate
+        to them the corresponding extent */
+    template < typename Mss, typename ExtentMap >
+    struct get_extent_sizes {
+        GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((_impl::is_extent_map< ExtentMap >::value), GT_INTERNAL_ERROR);
 
-            template < typename Esf >
-            struct get_extent_for {
-                typedef typename esf_args< Esf >::type w_plcs;
-                typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
-                typedef typename boost::mpl::at< MapOfPlaceholders, first_out >::type extent;
+        // Iterate over each ESF of the MSS to generate a vector of extens whose elements correspond to the elements of
+        // the esfs vector (this is to comply with the API for the backend)
+        using type = typename boost::mpl::transform< typename mss_descriptor_linear_esf_sequence< Mss >::type,
+            get_extent_for< boost::mpl::_, ExtentMap > >::type;
+    };
 
-                // TODO recover
-                //                GRIDTOOLS_STATIC_ASSERT((_impl::_check_extents_on_outputs< MapOfPlaceholders, w_plcs,
-                //                extent >::value),
-                //                    "The output of the ESF do not have all the save extents, so it is not possible to
-                //                    select the "
-                //                    "extent for the whole ESF.");
-
-                typedef extent type;
-            };
-
-            // Iterate over each ESF of the REDUCTION
-            typedef typename boost::mpl::fold< EsfDescrSequence,
-                boost::mpl::vector0<>,
-                typename boost::mpl::push_back< boost::mpl::_1, get_extent_for< boost::mpl::_2 > > >::type type;
-        }; // struct iterate_over_esfs<reduction>
-
-        // Iterate over all the MSSes in the computation
-        typedef typename boost::mpl::fold< MssDescriptors,
-            boost::mpl::vector0<>,
-            typename boost::mpl::push_back< boost::mpl::_1, iterate_over_esfs< ExtentsMap, boost::mpl::_2 > > >::type
-            type;
+    /** A reduction is always the last stage, so the outputs
+        always have the null-extent. In this case then, the map do
+        not need to be updated.
+     */
+    template < typename ReductionType, typename BinOp, typename EsfDescrSequence, typename ExtentMap >
+    struct get_extent_sizes< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence >, ExtentMap > {
+        GRIDTOOLS_STATIC_ASSERT((_impl::is_extent_map< ExtentMap >::value), GT_INTERNAL_ERROR);
+        // Iterate over each ESF of the REDUCTION
+        using type = typename boost::mpl::transform< EsfDescrSequence,
+            reduction_get_extent_for< boost::mpl::_, ExtentMap > >::type;
     };
 
     // extract the extent vector of a given extent type

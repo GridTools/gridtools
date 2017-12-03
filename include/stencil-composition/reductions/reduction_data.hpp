@@ -74,7 +74,7 @@ namespace gridtools {
 
           public:
             reduction_data(ReductionType val)
-                : m_initial_value{val}, m_parallel_reduced_val{omp_get_max_threads(), val} {}
+                : m_initial_value{val}, m_parallel_reduced_val(omp_get_max_threads(), val) {}
             ReductionType initial_value() const { return m_initial_value; }
             void assign(uint_t elem, ReductionType reduction_value) {
                 assert(elem < m_parallel_reduced_val.size());

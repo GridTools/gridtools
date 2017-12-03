@@ -36,6 +36,8 @@
 #pragma once
 
 #include <boost/mpl/assert.hpp>
+#include <boost/mpl/back_inserter.hpp>
+#include <boost/mpl/zip_view.hpp>
 
 #include "../common/gt_assert.hpp"
 #include "./reductions/reduction_descriptor.hpp"
@@ -54,6 +56,27 @@ namespace gridtools {
     struct mss_components_is_reduction< mss_components< MssDescriptor, ExtentSizes, RepeatFunctor, Axis > >
         : MssDescriptor::is_reduction_t {};
 
+    template < typename MssDescriptor >
+    struct mss_split_esfs {
+        GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), GT_INTERNAL_ERROR);
+
+        using execution_engine_t = typename mss_descriptor_execution_engine< MssDescriptor >::type;
+
+        template < typename Esf_ >
+        using compose_mss_ = mss_descriptor< execution_engine_t, boost::mpl::vector1< Esf_ > >;
+
+        using mss_split_multiple_esf_t =
+            typename boost::mpl::fold< typename mss_descriptor_linear_esf_sequence< MssDescriptor >::type,
+                boost::mpl::vector0<>,
+                boost::mpl::push_back< boost::mpl::_1, compose_mss_< boost::mpl::_2 > > >::type;
+
+        using type = typename boost::mpl::if_c<
+            // if the number of esf contained in the mss is 1, there is no need to split
+            (boost::mpl::size< typename mss_descriptor_linear_esf_sequence< MssDescriptor >::type >::value == 1),
+            boost::mpl::vector1< MssDescriptor >,
+            mss_split_multiple_esf_t >::type;
+    };
+
     // TODOCOSUNA unittest this
     /**
      * @brief metafunction that takes an MSS with multiple ESFs and split it into multiple MSS with one ESF each
@@ -64,88 +87,32 @@ namespace gridtools {
     struct split_mss_into_independent_esfs {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Msses, is_computation_token >::value), GT_INTERNAL_ERROR);
 
-        template < typename MssDescriptor >
-        struct mss_split_esfs {
-            GRIDTOOLS_STATIC_ASSERT((is_computation_token< MssDescriptor >::value), GT_INTERNAL_ERROR);
-
-            typedef typename mss_descriptor_execution_engine< MssDescriptor >::type execution_engine_t;
-
-            template < typename Esf_ >
-            struct compose_mss_ {
-                typedef mss_descriptor< execution_engine_t, boost::mpl::vector1< Esf_ > > type;
-            };
-
-            struct mss_split_multiple_esf {
-                typedef typename boost::mpl::fold< typename mss_descriptor_linear_esf_sequence< MssDescriptor >::type,
-                    boost::mpl::vector0<>,
-                    boost::mpl::push_back< boost::mpl::_1, compose_mss_< boost::mpl::_2 > > >::type type;
-            };
-
-            typedef typename boost::mpl::if_c<
-                // if the number of esf contained in the mss is 1, there is no need to split
-                (boost::mpl::size< typename mss_descriptor_linear_esf_sequence< MssDescriptor >::type >::value == 1),
-                boost::mpl::vector1< MssDescriptor >,
-                typename mss_split_multiple_esf::type >::type type;
-        };
-
         typedef typename boost::mpl::reverse_fold< Msses,
             boost::mpl::vector0<>,
             boost::mpl::copy< boost::mpl::_1, boost::mpl::back_inserter< mss_split_esfs< boost::mpl::_2 > > > >::type
             type;
     };
 
-    template < typename State, typename Sequence >
-    struct insert_unfold {
-        typedef typename boost::mpl::fold< Sequence,
-            State,
-            boost::mpl::push_back< boost::mpl::_1, boost::mpl::vector1< boost::mpl::_2 > > >::type type;
-    };
-
-    template < typename ExtentSizes >
-    struct unroll_extent_sizes {
-        typedef typename boost::mpl::fold< ExtentSizes,
-            boost::mpl::vector0<>,
-            insert_unfold< boost::mpl::_1, boost::mpl::_2 > >::type type;
-    };
-
     /**
      * @brief metafunction that builds the array of mss components
      * @tparam BackendId id of the backend (which decides whether the MSS with multiple ESF are split or not)
-     * @tparam MssDescriptorArray meta array of mss descriptors
+     * @tparam MssDescriptors mss descriptor sequence
      * @tparam extent_sizes sequence of sequence of extents
      */
-    template < enumtype::platform BackendId,
-        typename MssDescriptorSeq,
-        typename ExtentSizes,
+    template < typename MssFuseEsfStrategy,
+        typename MssDescriptors,
+        typename ExtentMap,
         typename RepeatFunctor,
         typename Axis >
     struct build_mss_components_array {
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptorSeq, is_computation_token >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
 
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< MssDescriptorSeq >::value == boost::mpl::size< ExtentSizes >::value), GT_INTERNAL_ERROR);
+        using mss_seq_t = typename boost::mpl::eval_if< MssFuseEsfStrategy,
+            boost::mpl::identity< MssDescriptors >,
+            split_mss_into_independent_esfs< MssDescriptors > >::type;
 
-        typedef typename boost::mpl::eval_if< typename backend_traits_from_id< BackendId >::mss_fuse_esfs_strategy,
-            boost::mpl::identity< MssDescriptorSeq >,
-            split_mss_into_independent_esfs< MssDescriptorSeq > >::type mss_seq_t;
-
-        typedef typename boost::mpl::eval_if< typename backend_traits_from_id< BackendId >::mss_fuse_esfs_strategy,
-            boost::mpl::identity< ExtentSizes >,
-            unroll_extent_sizes< ExtentSizes > >::type extent_sizes_unrolled_t;
-
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< mss_seq_t >::value == boost::mpl::size< extent_sizes_unrolled_t >::value),
-            GT_INTERNAL_ERROR_MSG(
-                "Wrong size of the arg_list vector defined inside at least one of the user functions"));
-
-        typedef typename boost::mpl::fold<
-            boost::mpl::range_c< int, 0, boost::mpl::size< extent_sizes_unrolled_t >::value >,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1,
-                mss_components< boost::mpl::at< mss_seq_t, boost::mpl::_2 >,
-                                       boost::mpl::at< extent_sizes_unrolled_t, boost::mpl::_2 >,
-                                       RepeatFunctor,
-                                       Axis > > >::type type;
+        using type = typename boost::mpl::transform< mss_seq_t,
+            mss_components< boost::mpl::_, get_extent_sizes< boost::mpl::_, ExtentMap >, RepeatFunctor, Axis > >::type;
     };
 
     /**
