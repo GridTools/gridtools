@@ -37,35 +37,30 @@
 
 #include <array>
 #include <functional>
+#include <type_traits>
 
-#include <boost/fusion/include/mpl.hpp>
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/comparison.hpp>
+#include <boost/fusion/include/make_vector.hpp>
+#include <boost/fusion/include/mpl.hpp>
 #include <boost/fusion/include/transform.hpp>
 
 #include <boost/mpl/equal.hpp>
-#include <boost/mpl/set.hpp>
+#include <boost/mpl/vector.hpp>
 
 #include <gtest/gtest.h>
 
 #include <common/functional.hpp>
 
 #include <stencil-composition/conditionals/condition.hpp>
-#include <stencil-composition/conditionals/conditional.hpp>
 
 namespace gridtools {
     namespace {
         namespace f = boost::fusion;
         namespace m = boost::mpl;
 
-        using conditional_t = conditional< 42 >;
-
         template < typename Lhs, typename Rhs >
-        using node_t = condition< Lhs, Rhs, conditional< 42 > >;
-
-        template < typename... Ts >
-        using seq_t = f::vector< Ts... >;
+        using node_t = condition< Lhs, Rhs, std::function< bool() > >;
 
         static_assert(is_condition_tree_of< int *, std::is_pointer >{}, "good leaf");
         static_assert(is_condition_tree_of< node_t< int *, void * >, std::is_pointer >{}, "good node");
@@ -75,17 +70,23 @@ namespace gridtools {
         static_assert(!is_condition_tree_of< node_t< int *, int >, std::is_pointer >{}, "bad node");
         static_assert(!is_condition_tree_of< node_t< int *, node_t< long, void * > >, std::is_pointer >{}, "bad tree");
 
-        template < typename Lhs, typename Rhs >
-        node_t< Lhs, Rhs > make_node(Lhs lhs, Rhs rhs, std::function< bool() > fun = {}) {
-            return make_condition(conditional_t{fun}, lhs, rhs);
+        template < typename Lhs, typename Rhs, typename Cond = std::function< bool() > >
+        condition< Lhs, Rhs, Cond > make_node(Lhs lhs, Rhs rhs, Cond fun = {}) {
+            return {fun, lhs, rhs};
         };
 
         TEST(tree_transform, leaf) { EXPECT_EQ(condition_tree_transform(1, std::negate< int >{}), -1); }
 
         TEST(tree_transform, node) {
             auto actual = condition_tree_transform(make_node(1, 2), std::negate< int >{});
-            EXPECT_EQ(actual.first(), -1);
-            EXPECT_EQ(actual.second(), -2);
+            EXPECT_EQ(actual.m_first, -1);
+            EXPECT_EQ(actual.m_second, -2);
+        }
+
+        TEST(branch_selector, empty) {
+            auto testee = make_branch_selector();
+            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector<> >{}, "all_leaves");
+            EXPECT_EQ(testee.apply(identity{}), f::make_vector());
         }
 
         TEST(branch_selector, minimalistic) {

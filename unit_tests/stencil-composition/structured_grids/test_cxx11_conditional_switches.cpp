@@ -84,9 +84,9 @@ namespace test_conditional_switches {
     bool test() {
 
         bool p = true;
-        auto cond_ = new_switch_variable([&p]() { return p ? 0 : 5; });
-        auto nested_cond_ = new_switch_variable([]() { return 1; });
-        auto other_cond_ = new_switch_variable([&p]() { return p ? 1 : 2; });
+        auto cond_ = [&p]() { return p ? 0 : 5; };
+        auto nested_cond_ = []() { return 1; };
+        auto other_cond_ = [&p]() { return p ? 1 : 2; };
 
         auto grid_ = make_grid(1, 1, 2);
 

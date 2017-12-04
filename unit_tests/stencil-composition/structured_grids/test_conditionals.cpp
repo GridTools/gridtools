@@ -65,13 +65,10 @@ namespace test_conditionals {
         }
     };
 
-    bool predicate1() { return false; }
-    bool predicate2() { return true; }
-
     bool test() {
 
-        auto cond = new_cond([]() { return false; });
-        auto cond2 = new_cond([]() { return true; });
+        auto cond = []() { return false; };
+        auto cond2 = []() { return true; };
 
         auto grid_ = make_grid((uint_t)2, (uint_t)2, axis_t((uint_t)3));
 

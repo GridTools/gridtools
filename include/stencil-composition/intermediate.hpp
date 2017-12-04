@@ -69,7 +69,6 @@
 #include "computation.hpp"
 #include "compute_extents_metafunctions.hpp"
 #include "conditionals/condition_tree.hpp"
-#include "conditionals/switch_variable.hpp"
 #include "esf.hpp"
 #include "functor_do_method_lookup_maps.hpp"
 #include "functor_do_methods.hpp"
@@ -300,9 +299,8 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_backend< Backend >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< DomainType >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::and_< std::true_type,
-                typename is_condition_tree_of< MssDescriptors, is_computation_token >::type... >::value),
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< std::true_type,
+                                    is_condition_tree_of< MssDescriptors, is_computation_token >... >::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
         GRIDTOOLS_STATIC_ASSERT((_impl::all_args_in_aggregator< DomainType, MssDescriptors... >::type::value),
             "Some placeholders used in the computation are not listed in the aggregator");

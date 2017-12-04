@@ -34,5 +34,5 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#define new_cond conditional< __COUNTER__ >
-#define new_switch_variable switch_variable< __COUNTER__, int >
+#define new_cond(x) x
+#define new_switch_variable(x) x

@@ -408,9 +408,7 @@ namespace gridtools {
         template < typename Backend, typename AggregatorType, typename MssComponents >
         struct obtain_storage_wrapper_list_t {
 
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_condition< MssComponents >::value || is_sequence_of< MssComponents, is_mss_components >::value),
-                GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
 
             using block_size_t = typename Backend::block_size_t;

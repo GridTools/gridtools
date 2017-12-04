@@ -353,10 +353,7 @@ namespace gridtools {
     template < typename MssDescriptors, typename GridTraits, typename Placeholders >
     struct placeholder_to_extent_map {
       private:
-        template < typename T >
-        using is_mss_or_reduction = boost::mpl::or_< is_mss_descriptor< T >, is_reduction_descriptor< T > >;
-
-        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_mss_or_reduction >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssDescriptors, is_computation_token >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid_traits_from_id< GridTraits >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value), GT_INTERNAL_ERROR);
 
