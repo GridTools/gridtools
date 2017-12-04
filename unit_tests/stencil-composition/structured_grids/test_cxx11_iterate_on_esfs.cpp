@@ -71,7 +71,7 @@ namespace iterate_on_esfs_detail {
 
 class iterate_on_esfs_class : public testing::Test {
   public:
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef interval< level< 0, -1 >, level< 1, 1 > > axis_t;
 
     typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
     typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
@@ -89,7 +89,7 @@ class iterate_on_esfs_class : public testing::Test {
 
     halo_descriptor di;
     halo_descriptor dj;
-    gridtools::grid< axis > grid;
+    gridtools::grid< axis_t > grid;
 
     data_store_t in;
     data_store_t out;
@@ -98,11 +98,8 @@ class iterate_on_esfs_class : public testing::Test {
 
     iterate_on_esfs_class()
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
-          in(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }), out(meta_, -5), domain(in, out) {
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
-    }
+          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(make_grid(di, dj, d3)),
+          in(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }), out(meta_, -5), domain(in, out) {}
 };
 
 template < typename StencilOp >
