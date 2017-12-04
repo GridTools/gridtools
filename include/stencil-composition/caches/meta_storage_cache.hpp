@@ -60,7 +60,7 @@ namespace gridtools {
             return meta_storage_t(Dims...).template stride< Id >();
         }
 
-        template < typename... D, typename Dummy = all_integers< typename std::remove_reference< D >::type... > >
+        template < typename... D, typename Dummy = all_integral< typename std::remove_reference< D >::type... > >
         GT_FUNCTION constexpr int_t index(D &&... args_) const {
             return meta_storage_t(Dims...).index(args_...);
         }

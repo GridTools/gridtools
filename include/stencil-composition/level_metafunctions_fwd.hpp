@@ -34,32 +34,14 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "accumulate.hpp"
-#include "is_pack_of.hpp"
 
 namespace gridtools {
-    /**
-       SFINAE for the case in which all the components of a parameter pack are of integral type
-    */
-    template < typename... IntTypes >
-    using all_integers =
-#if defined(CUDA8) && !defined(_CRAYC)
-        is_pack_of< boost::is_integral, IntTypes... >;
-#else
-        typename boost::enable_if_c< accumulate(logical_and(), boost::is_integral< IntTypes >::type::value...),
-            bool >::type;
-#endif
+    template < uint_t VSplitter, int_t VOffset >
+    struct level;
 
-    /**
-       SFINAE for the case in which all the components of a parameter pack are of static integral type
-    */
-    template < typename... IntTypes >
-    using all_static_integers =
-#if defined(CUDA8) && !defined(_CRAYC)
-        is_pack_of< is_static_integral, IntTypes... >;
-#else
-        typename boost::enable_if_c< accumulate(logical_and(), is_static_integral< IntTypes >::type::value...),
-            bool >::type;
+    template < typename TLevel >
+    struct level_to_index;
 
-#endif
-}
+    template < typename TIndex >
+    struct index_to_level;
+} // namespace gridtools

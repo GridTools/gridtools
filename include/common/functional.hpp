@@ -33,30 +33,27 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
 #pragma once
+/**
+@file
+@brief Unstructured collection of small generic purpose functors and related helpers.
+*/
 
-#include "../../common/vector_traits.hpp"
+#include <utility>
 
-/** @file metafunctions used in @ref gridtools::intermediate_expand*/
+#include <boost/utility/result_of.hpp>
 
 namespace gridtools {
-    namespace _impl {
+    /// Forward the args to constructor.
+    template < typename T >
+    struct ctor {
+        template < typename... Args >
+        T operator()(Args &&... args) const {
+            return {std::forward< Args >(args)...};
+        }
 
-        // ********* metafunctions ************
-        template < typename T >
-        struct is_expandable_arg : boost::mpl::false_ {};
-
-        template < ushort_t N, typename Storage, typename Location, bool Temporary >
-        struct is_expandable_arg< arg< N, Storage, Location, Temporary > > : is_vector< Storage > {};
-
-        struct create_arg {
-            template < typename T, typename ExpandFactor >
-            struct apply {
-                typedef data_store_field< typename get_storage_from_arg< T >::type, ExpandFactor::value > exp_param_t;
-                typedef arg< arg_index< T >::value, exp_param_t, typename T::location_t, T::is_temporary > type;
-            };
-        };
-
-    } // namespace _impl
-} // namespace gridtools
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+        using result_type = T;
+#endif
+    };
+}

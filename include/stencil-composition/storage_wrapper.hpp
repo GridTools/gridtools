@@ -44,6 +44,7 @@
 
 #include "../storage/storage-facility.hpp"
 
+#include "../common/array.hpp"
 #include "../common/pointer.hpp"
 #include "arg.hpp"
 #include "tile.hpp"
@@ -75,19 +76,22 @@ namespace gridtools {
         using tileI_t = TileI;
         using tileJ_t = TileJ;
         using index_t = typename arg_t::index_t;
-        using storage_t = typename arg_t::storage_t;
-        using data_t = typename storage_t::data_t;
-        using storage_info_t = typename storage_t::storage_info_t;
+        using data_store_t = typename arg_t::data_store_t;
+        using data_t = typename data_store_t::data_t;
+        using storage_info_t = typename data_store_t::storage_info_t;
 
         // some more information
         constexpr static uint_t num_of_storages = view_t::num_of_storages;
         constexpr static bool is_temporary = arg_t::is_temporary;
         constexpr static bool is_read_only = (view_t::mode == access_mode::ReadOnly);
 
+        using data_ptrs_t = array< data_t *, num_of_storages >;
+
         // assign the data ptrs to some other ptrs
         template < typename T >
         void assign(T &d) const {
-            std::copy(this->m_data_ptrs, this->m_data_ptrs + num_of_storages, d);
+            using std::begin;
+            std::copy(this->m_data_ptrs.begin(), this->m_data_ptrs.end(), begin(d));
         }
 
         // tell me how I should initialize the ptr_t member called m_data_ptrs
@@ -97,7 +101,7 @@ namespace gridtools {
         }
 
         // data ptrs
-        data_t *m_data_ptrs[num_of_storages];
+        data_ptrs_t m_data_ptrs;
     };
 
     /* Storage Wrapper metafunctions */
@@ -128,13 +132,8 @@ namespace gridtools {
     };
 
     template < typename T >
-    struct storage_from_storage_wrapper {
-        typedef typename T::storage_t type;
-    };
-
-    template < typename T >
     struct data_ptr_from_storage_wrapper {
-        typedef typename T::data_t *type[T::num_of_storages];
+        typedef typename T::data_ptrs_t type;
     };
 
     template < typename T >

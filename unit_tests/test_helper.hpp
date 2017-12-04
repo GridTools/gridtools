@@ -34,49 +34,23 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/loop_hierarchy.hpp>
+#pragma once
 
-namespace loop_test {
-    using namespace gridtools;
-
-    // stub iterate_domain
-    struct iterate_domain_ {
-
-        template < typename Index >
-        GT_FUNCTION void get_index(Index idx) const {}
-
-        template < typename Index >
-        GT_FUNCTION void set_index(Index idx) {}
-
-        template < ushort_t index, typename Step >
-        GT_FUNCTION void increment() {}
-    };
-
-    struct functor {
-
-        functor() : m_iterations(0) {}
-
-        GT_FUNCTION void operator()() { m_iterations++; }
-
-        uint_t m_iterations;
-    };
-
-    bool test() {
-
-        typedef array< uint_t, 3 > array_t;
-        iterate_domain_ it_domain;
-        functor fun;
-
-        loop_hierarchy< array_t,
-            loop_item< 1, int_t, 1 >,
-            loop_item< 5, short_t, 1 >,
-            static_loop_item< 0, 0u, 10u, uint_t, 1 > > h(2, 5, 6, 8);
-        h.apply(it_domain, fun);
-
-        return fun.m_iterations == 4 * 3 * 11;
-    }
-} // namespace loop_test
-
-TEST(loop_hierarchy_test, functionality_test) { EXPECT_EQ(loop_test::test(), true); }
+/**
+ * Compare 2 types for equality. Will produce a readable error message (hopefully).
+ */
+template < typename expected, typename actual__, typename Enable = void >
+struct ASSERT_TYPE_EQ {
+    static_assert(sizeof(expected) >= 0, "forces template instantiation");
+    static_assert(sizeof(actual__) >= 0, "forces template instantiation");
+};
+template < typename expected, typename actual__ >
+struct ASSERT_TYPE_EQ< expected,
+    actual__,
+    typename std::enable_if< !std::is_same< expected, actual__ >::value >::type > {
+    static_assert(std::is_same< expected, actual__ >::value, "TYPES DON'T MATCH:");
+    typename expected::expected_type see_expected_type_above;
+    typename actual__::actual_type__ see_actual___type_above;
+    static_assert(sizeof(expected) >= 0, "forces template instantiation");
+    static_assert(sizeof(actual__) >= 0, "forces template instantiation");
+};

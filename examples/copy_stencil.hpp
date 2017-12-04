@@ -52,10 +52,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace copy_stencil {
-
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
 
@@ -103,8 +99,8 @@ namespace copy_stencil {
 
         gridtools::aggregator_type< accessor_list > domain;
 
-        uint_t di[5], dj[5];
-        gridtools::grid< axis > grid;
+        gridtools::grid< gridtools::axis< 1 >::axis_interval_t > grid;
+        // gridtools::grid< axis > grid;
         copy_stencil_test(uint_t x, uint_t y, uint_t z, uint_t t_steps, bool m_verify)
 
             : d1(x), d2(y), d3(z), t_steps(t_steps), m_verify(m_verify), meta_data_(x, y, z),
@@ -121,13 +117,11 @@ namespace copy_stencil {
               // The constructor takes the horizontal plane dimensions,
               // while the vertical ones are set according the the axis property soon after
               // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-              di{0, 0, 0, d1 - 1, d1}, dj{0, 0, 0, d2 - 1, d2}, grid(di, dj)
+              grid(halo_descriptor(d1),
+                  halo_descriptor(d2),
+                  _impl::intervals_to_indices(gridtools::axis< 1 >{d3}.interval_sizes()))
 
-        {
-
-            grid.value_list[0] = 0;
-            grid.value_list[1] = d3 - 1;
-        }
+        {}
 
         bool verify() {
             auto in_v = make_host_view(in);

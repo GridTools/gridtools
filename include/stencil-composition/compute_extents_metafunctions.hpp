@@ -70,9 +70,9 @@ namespace gridtools {
             typedef Placeholder type;
         };
 
-        template < ushort_t ID, typename Storage, typename Location, bool Temporary >
-        struct apply< arg< ID, std::vector< Storage >, Location, Temporary > > {
-            typedef arg< ID, data_store_field< Storage, Size >, Location, Temporary > type;
+        template < ushort_t ID, typename DataStoreType, typename Location, bool Temporary >
+        struct apply< arg< ID, std::vector< DataStoreType >, Location, Temporary > > {
+            typedef arg< ID, data_store_field< DataStoreType, Size >, Location, Temporary > type;
         };
 
         template < typename Arg, typename Extent >

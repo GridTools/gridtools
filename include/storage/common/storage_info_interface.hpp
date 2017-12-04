@@ -53,7 +53,7 @@
 #include "../../common/array_addons.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/layout_map.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
+#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 
 namespace gridtools {
 
@@ -252,13 +252,13 @@ namespace gridtools {
         }
 
       public:
-        const static int id = Id;
+        constexpr static uint_t id = Id;
 
         /*
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
          */
-        template < typename... Dims, typename = gridtools::all_integers< Dims... > >
+        template < typename... Dims, typename = gridtools::all_integral< Dims... > >
         GT_FUNCTION explicit constexpr storage_info_interface(Dims... dims_)
             : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                   handle_masked_dims< LayoutArgs >::extend(dims_))...},

@@ -256,44 +256,6 @@ namespace gridtools {
     };
 
     /**
-     * @brief metafunction class that replaces the storage info ID contained in all the
-     * placeholders of all temporaries used in Caches. This is needed because the ID is replaced
-     * in the aggregator and in order to be able to map the args contained in the aggregator to the
-     * args contained in the Cache types we have to replace them in the same way.
-     */
-    template < typename AggregatorType >
-    struct fix_cache_sequence {
-        template < typename T >
-        struct apply;
-
-        /**
-         * @brief specialization for cache_type
-         */
-        template < template < cache_type, typename, cache_io_policy, typename > class Cache,
-            cache_type CacheKind,
-            typename Arg,
-            cache_io_policy CacheStrategy,
-            typename Interval >
-        struct apply< Cache< CacheKind, Arg, CacheStrategy, Interval > > {
-            GRIDTOOLS_STATIC_ASSERT((is_cache< Cache< CacheKind, Arg, CacheStrategy, Interval > >::value),
-                GT_INTERNAL_ERROR_MSG("Given type is no cache."));
-            typedef typename boost::mpl::if_< is_tmp_arg< Arg >,
-                typename _impl::replace_arg_storage_info< typename AggregatorType::tmp_storage_info_id_t, Arg >::type,
-                Arg >::type new_arg_t;
-            typedef Cache< CacheKind, new_arg_t, CacheStrategy, Interval > type;
-        };
-
-        /**
-         * @brief specialization for independent ESF descriptor
-         */
-        template < template < typename > class IndependentEsfDescriptor, typename ESFVector >
-        struct apply< IndependentEsfDescriptor< ESFVector > > {
-            typedef typename boost::mpl::transform< ESFVector, fix_cache_sequence >::type fixed_cache_sequence_t;
-            typedef IndependentEsfDescriptor< fixed_cache_sequence_t > type;
-        };
-    };
-
-    /**
      * @brief metafunction class that replaces the storage info ID contained in all the ESF
      * placeholders of all temporaries. This is needed because the ID is replaced in the
      * aggregator and in order to be able to map the args contained in the aggregator to the
@@ -304,17 +266,7 @@ namespace gridtools {
 
         template < typename ArgArray >
         struct impl {
-            typedef typename boost::mpl::fold<
-                ArgArray,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back<
-                    boost::mpl::_1,
-                    boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
-                        _impl::replace_arg_storage_info< typename AggregatorType::tmp_storage_info_id_t,
-                                         boost::mpl::_2 >,
-                        boost::mpl::_2 > > >::type new_arg_array_t;
-            typedef typename boost::mpl::transform< new_arg_array_t,
-                substitute_expandable_param< RepeatFunctor > >::type type;
+            typedef typename boost::mpl::transform< ArgArray, substitute_expandable_param< RepeatFunctor > >::type type;
         };
 
         template < typename T >
@@ -476,9 +428,7 @@ namespace gridtools {
     template < typename Sequence, typename TPred, typename AggregatorType, uint_t RepeatFunctor >
     struct fix_mss_arg_indices< meta_array< Sequence, TPred >, AggregatorType, RepeatFunctor > {
         GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-        typedef
-            typename fix_arg_sequences< Sequence, fix_esf_sequence< AggregatorType, RepeatFunctor > >::type tmp_mss_t;
-        typedef typename fix_cache_sequences< tmp_mss_t, fix_cache_sequence< AggregatorType > >::type mss_t;
+        typedef typename fix_arg_sequences< Sequence, fix_esf_sequence< AggregatorType, RepeatFunctor > >::type mss_t;
         typedef meta_array< mss_t, TPred > type;
     };
 

@@ -56,13 +56,12 @@ using namespace enumtype;
 
 namespace vertical_advection_dycore {
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > kfull;
-    typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > kbody;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -2 > > kbody_low;
-    typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > kminimum;
-    typedef gridtools::interval< level< 1, -1 >, level< 1, -1 > > kmaximum;
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+    using axis_t = axis< 1 >;
+    using kbody = axis_t::full_interval::modify< 1, -1 >;
+    using kbody_low = axis_t::full_interval::modify< 0, -1 >;
+    using kfull = axis_t::full_interval;
+    using kminimum = axis_t::full_interval::first_level;
+    using kmaximum = axis_t::full_interval::last_level;
 
     template < typename T >
     struct u_forward_function {
@@ -231,9 +230,9 @@ namespace vertical_advection_dycore {
 
         gridtools::aggregator_type< placeholders_list > domain;
 
-        uint_t di[5];
-        uint_t dj[5];
-        gridtools::grid< axis > grid;
+        halo_descriptor di, dj;
+
+        gridtools::grid< axis_t::axis_interval_t > grid;
 
         vertical_advection_test(u_int d1, u_int d2, u_int d3)
             : repository(d1, d2, d3, halo_size), domain(repository.utens_stage(),
@@ -243,13 +242,11 @@ namespace vertical_advection_dycore {
                                                      repository.utens(),
                                                      repository.dtr_stage()),
               di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1},
-              dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2}, grid(di, dj) {
+              dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2},
+              grid(di, dj, _impl::intervals_to_indices(gridtools::axis< 1 >{d3}.interval_sizes())) {
             repository.init_fields();
 
             repository.generate_reference();
-
-            grid.value_list[0] = 0;
-            grid.value_list[1] = d3 - 1;
         }
 
         void reset() {

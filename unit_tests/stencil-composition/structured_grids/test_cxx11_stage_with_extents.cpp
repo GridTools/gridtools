@@ -47,7 +47,7 @@ namespace test_iterate_domain {
 
     // This is the definition of the special regions in the "vertical" direction
     typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
+    typedef interval< level< 0, -2 >, level< 1, 1 > > axis_t;
 
     struct stage1 {
         typedef accessor< 0, enumtype::in, extent< 42, 42, 42, 42 >, 6 > in;
@@ -85,10 +85,10 @@ TEST(testdomain, iterate_domain_with_extents) {
 
     aggregator_type< accessor_list > domain(in, out);
 
-    uint_t di[5] = {0, 0, 0, 2, 5};
-    uint_t dj[5] = {0, 0, 0, 2, 5};
+    halo_descriptor di = {0, 0, 0, 2, 5};
+    halo_descriptor dj = {0, 0, 0, 2, 5};
 
-    grid< axis > grid(di, dj);
+    auto grid = gridtools::make_grid(di, dj, 3);
     {
         auto mss_ = make_multistage(enumtype::execute< enumtype::forward >(),
             make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()));

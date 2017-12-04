@@ -52,41 +52,46 @@ namespace gridtools {
         using base_t::run;
 
       public:
-        computation(Aggregator const &domain) : m_domain(domain) {}
+        explicit computation(Aggregator const &domain) : m_domain(domain) {}
+        explicit computation(Aggregator &&domain) : m_domain(std::move(domain)) {}
 
         template < typename... DataStores,
-            typename boost::enable_if< typename _impl::aggregator_storage_check< DataStores... >::type, int >::type =
-                0 >
-        void reassign(DataStores &... stores) {
+            typename boost::enable_if<
+                typename _impl::aggregator_storage_check< typename std::decay< DataStores >::type... >::type,
+                int >::type = 0 >
+        void reassign(DataStores &&... stores) {
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
-            m_domain.reassign_storages_impl(stores...);
+            m_domain.reassign_storages_impl(std::forward< DataStores >(stores)...);
         }
 
         template < typename... DataStores,
-            typename boost::enable_if_c< _impl::aggregator_storage_check< DataStores... >::type::value &&
-                                             (sizeof...(DataStores) > 0),
+            typename boost::enable_if_c<
+                _impl::aggregator_storage_check< typename std::decay< DataStores >::type... >::type::value &&
+                    (sizeof...(DataStores) > 0),
                 int >::type = 0 >
-        typename base_t::return_t run(DataStores &... stores) {
+        typename base_t::return_t run(DataStores &&... stores) {
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
-            m_domain.reassign_storages_impl(stores...);
+            m_domain.reassign_storages_impl(std::forward< DataStores >(stores)...);
             return run();
         }
 
         template < typename... ArgStoragePairs,
-            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type,
+            typename boost::enable_if< typename _impl::aggregator_arg_storage_pair_check<
+                                           typename std::decay< ArgStoragePairs >::type... >::type,
                 int >::type = 0 >
-        void reassign(ArgStoragePairs... pairs) {
+        void reassign(ArgStoragePairs &&... pairs) {
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
-            m_domain.reassign_arg_storage_pairs_impl(pairs...);
+            m_domain.reassign_arg_storage_pairs_impl(std::forward< ArgStoragePairs >(pairs)...);
         }
 
         template < typename... ArgStoragePairs,
-            typename boost::enable_if_c< _impl::aggregator_arg_storage_pair_check< ArgStoragePairs... >::type::value &&
+            typename boost::enable_if_c< _impl::aggregator_arg_storage_pair_check<
+                                             typename std::decay< ArgStoragePairs >::type... >::type::value &&
                                              (sizeof...(ArgStoragePairs) > 0),
                 int >::type = 0 >
-        typename base_t::return_t run(ArgStoragePairs... pairs) {
+        typename base_t::return_t run(ArgStoragePairs &&... pairs) {
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
-            m_domain.reassign_arg_storage_pairs_impl(pairs...);
+            m_domain.reassign_arg_storage_pairs_impl(std::forward< ArgStoragePairs >(pairs)...);
 
             return run();
         }

@@ -295,7 +295,7 @@ namespace gridtools {
         template < typename Pair >
         struct _check {
             using type = static_bool<
-                accumulate_tparams_until< int_t, equal, logical_and, typename Pair::second, Extent, Limit >::value >;
+                accumulate_tparams_until< equal, logical_and, typename Pair::second, Extent, Limit >::value >;
         };
 
         typedef typename is_sequence_of< VectorOfPairs, _check >::type type;
