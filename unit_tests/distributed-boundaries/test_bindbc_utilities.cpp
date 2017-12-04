@@ -88,52 +88,36 @@ TEST(DistributedBoundaries, CollectIndices) {
 TEST(DistributedBoundaries, RestTuple) {
     {
         auto all = std::make_tuple();
-        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::make_gt_integer_sequence<std::size_t, 0>{}), (std::tuple<>{}));
+        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::make_gt_integer_sequence< std::size_t, 0 >{}), (std::tuple<>{}));
     }
     {
         auto all = std::make_tuple(1);
-        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::make_gt_integer_sequence<std::size_t, 0>{}), (std::tuple<>{}));
-    }
-    {
-        auto all = std::make_tuple(1,2);
-        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::make_gt_integer_sequence<std::size_t, 1>{}), (std::tuple<int>{2}));
-    }
-}
-
-TEST(DistributedBoundaries, RemovePlaceholders) {
-    {
-        auto all = std::make_tuple();
-
-        auto res = gt::_impl::remove_placeholders(all);
-
-        EXPECT_EQ(res, (std::tuple<>{}));
-    }
-    {
-        auto all = std::make_tuple(1);
-
-        auto res = gt::_impl::remove_placeholders(all);
-
-        EXPECT_EQ(res, (std::tuple< int >{1}));
+        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::make_gt_integer_sequence< std::size_t, 0 >{}), (std::tuple<>{}));
     }
     {
         auto all = std::make_tuple(1, 2);
-
-        auto res = gt::_impl::remove_placeholders(all);
-
-        EXPECT_EQ(res, (std::tuple< int, int >{1, 2}));
+        EXPECT_EQ(gt::_impl::rest_tuple(all, gt::make_gt_integer_sequence< std::size_t, 1 >{}), (std::tuple< int >{2}));
     }
+}
+
+TEST(DistributedBoundaries, ContainsPlaceholders) {
     {
-        auto all = std::make_tuple(_1);
-
-        auto res = gt::_impl::remove_placeholders(all);
-
-        EXPECT_EQ(res, (std::tuple<>{}));
+        auto x = std::make_tuple(3, 4, 5);
+        EXPECT_FALSE(gt::_impl::contains_placeholders< decltype(x) >::value);
     }
+
     {
-        auto all = std::make_tuple(1, _1);
+        auto x = std::make_tuple();
+        EXPECT_FALSE(gt::_impl::contains_placeholders< decltype(x) >::value);
+    }
 
-        auto res = gt::_impl::remove_placeholders(all);
+    {
+        auto x = std::make_tuple(3, 4, _1);
+        EXPECT_TRUE(gt::_impl::contains_placeholders< decltype(x) >::value);
+    }
 
-        EXPECT_EQ(res, (std::tuple< int >{1}));
+    {
+        auto x = std::make_tuple(3, _2, 5);
+        EXPECT_TRUE(gt::_impl::contains_placeholders< decltype(x) >::value);
     }
 }

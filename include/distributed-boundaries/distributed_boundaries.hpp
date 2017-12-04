@@ -148,7 +148,7 @@ namespace gridtools {
             \param jobs Variadic list of jobs
         */
         template < typename... Jobs >
-        void exchange(Jobs... jobs) {
+        void exchange(Jobs const &... jobs) {
 #ifdef __CUDACC__
             // Workaround for cuda to handle tuple_cat. Compilation is a little slower.
             // This can be removed when nvcc supports it.
@@ -171,7 +171,7 @@ namespace gridtools {
 
       private:
         template < typename BoundaryApply, typename ArgsTuple, uint_t... Ids >
-        void call_apply(BoundaryApply boundary_apply, ArgsTuple args, gt_integer_sequence< uint_t, Ids... >) {
+        void call_apply(BoundaryApply boundary_apply, ArgsTuple const &args, gt_integer_sequence< uint_t, Ids... >) {
             boundary_apply.apply(std::get< Ids >(args)...);
         }
 
@@ -195,16 +195,16 @@ namespace gridtools {
 
         template < typename FirstJob >
         auto collect_stores(
-            FirstJob firstjob, typename std::enable_if< is_bound_bc< FirstJob >::value, void * >::type = nullptr)
+            FirstJob const &firstjob, typename std::enable_if< is_bound_bc< FirstJob >::value, void * >::type = nullptr)
             -> decltype(firstjob.exc_stores()) {
             return firstjob.exc_stores();
         }
 
         template < typename FirstJob >
-        auto collect_stores(
-            FirstJob first_job, typename std::enable_if< not is_bound_bc< FirstJob >::value, void * >::type = nullptr)
+        auto collect_stores(FirstJob const &first_job,
+            typename std::enable_if< not is_bound_bc< FirstJob >::value, void * >::type = nullptr)
             -> decltype(std::make_tuple(first_job)) {
-            return std::make_tuple(first_job);
+            return std::make_tuple(std::cref(first_job));
         }
 
         template < typename Stores, uint_t... Ids >

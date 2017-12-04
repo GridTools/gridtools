@@ -108,11 +108,10 @@ namespace gridtools {
                 all,
                 typename PlcOrNot<
                     std::is_placeholder< typename std::tuple_element< IDs, AllTuple >::type >::value >::type{})...)) {
-            return std::make_tuple(select_element< IDs >(
-                ro_tuple,
+            return std::make_tuple(select_element< IDs >(ro_tuple,
                 all,
-                typename PlcOrNot<
-                    std::is_placeholder< typename std::tuple_element< IDs, AllTuple >::type >::value >::type{})...);
+                typename PlcOrNot< std::is_placeholder< typename std::decay<
+                    typename std::tuple_element< IDs, AllTuple >::type >::value >::type >::type{})...);
         }
 
         std::tuple<> rest_tuple(std::tuple<>, gt_integer_sequence< std::size_t >) { return {}; }
@@ -124,63 +123,6 @@ namespace gridtools {
         auto rest_tuple(std::tuple< Elems... > const &x, gt_integer_sequence< std::size_t, IDs... >)
             -> decltype(std::make_tuple(std::get< IDs + 1u >(x)...)) {
             return std::make_tuple(std::get< IDs + 1u >(x)...);
-        }
-
-        /** \internal
-            @brief The next functions are used to remove placeholders from a tuple. The
-            operation is a compaction, so that the elements that have not been removed
-            takes the places of the one removed, but their order remanin the same.
-
-            This cannot be done with integer sequences but through recursion, this is why
-            there are many overloads.
-        */
-        std::tuple<> remove_placeholders(std::tuple<> const &) { return {}; }
-
-#ifndef __clang__
-        template < typename First >
-        std::tuple< First > remove_placeholders(std::tuple< First > const &x,
-            typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type = nullptr) {
-            return {x};
-        }
-
-        template < typename First >
-        std::tuple<> remove_placeholders(std::tuple< First > const &x,
-            typename std::enable_if< (std::is_placeholder< First >::value > 0), void * >::type = nullptr) {
-            return {};
-        }
-#endif
-
-        template < typename First, typename... Elems >
-        auto remove_placeholders(std::tuple< First, Elems... > const &x,
-            typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type = nullptr)
-            -> decltype(std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
-                remove_placeholders(rest_tuple(
-                    x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{}))));
-
-        template < typename First, typename... Elems >
-        auto remove_placeholders(std::tuple< First, Elems... > const &x,
-            typename std::enable_if< (std::is_placeholder< First >::value > 0), void * >::type = nullptr)
-            -> decltype(remove_placeholders(
-                rest_tuple(x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{})));
-
-        template < typename First, typename... Elems >
-        auto remove_placeholders(std::tuple< First, Elems... > const &x,
-            typename std::enable_if< std::is_placeholder< First >::value == 0, void * >::type)
-            -> decltype(std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
-                remove_placeholders(rest_tuple(
-                    x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{})))) {
-            return std::tuple_cat(std::make_tuple(std::get< 0 >(x)),
-                remove_placeholders(rest_tuple(
-                    x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{})));
-        }
-
-        template < typename First, typename... Elems >
-        auto remove_placeholders(std::tuple< First, Elems... > const &x,
-            typename std::enable_if< (std::is_placeholder< First >::value > 0), void * >::type)
-            -> decltype(remove_placeholders(
-                rest_tuple(x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{}))) {
-            return remove_placeholders(
-                rest_tuple(x, typename make_gt_integer_sequence< std::size_t, sizeof...(Elems) >::type{}));
         }
 
         /**
@@ -246,12 +188,26 @@ namespace gridtools {
             return _and(data_store_or_placeholder< Stores >()...);
         }
 
+        template < typename T, typename VOID = void >
+        struct contains_placeholders : boost::false_type {};
+
+        template <>
+        struct contains_placeholders< std::tuple<> > : boost::false_type {};
+
+        template < typename T, typename... Ts >
+        struct contains_placeholders< std::tuple< T, Ts... >,
+            typename std::enable_if< (std::is_placeholder< T >::value == 0), void >::type >
+            : contains_placeholders< std::tuple< Ts... > >::type {};
+
+        template < typename T, typename... Ts >
+        struct contains_placeholders< std::tuple< T, Ts... >,
+            typename std::enable_if< (std::is_placeholder< T >::value > 0), void >::type > : boost::true_type {};
+
     } // namespace _impl
 
     /**
      * @brief class to associate data store to gridtools::boundary class for
-     * boundary condition class, and explicitly keeps a list of data stores to
-     * use in halo-update opetrations.
+     * boundary condition class, and data_stores
      *
      * User is not supposed to instantiate this class explicitly but instead
      * gridtools::bind_bc function, which is a maker, will be used to indicate
@@ -260,7 +216,8 @@ namespace gridtools {
      *
      * \tparam BCApply The class name with boudary condition functions applied by gridtools::boundary
      * \tparam DataStores Tuple type of data stores (or placeholders) to be passed for boundary condition application
-     * \tparam ExcStores Tuple type for data stores that require halo-update operations
+     * \tparam ExcStoresIndicesSeq gt_integer_sequence with the indices of data_stores in DataStores that will be
+     * undergo halo-update operations
      */
     template < typename BCApply, typename DataStores, typename ExcStoresIndicesSeq >
     struct bound_bc;
@@ -269,7 +226,8 @@ namespace gridtools {
     struct bound_bc< BCApply, std::tuple< DataStores... >, gt_integer_sequence< std::size_t, ExcStoresIndices... > > {
         using boundary_class = BCApply;
         using stores_type = std::tuple< DataStores... >;
-        using exc_stores_type = std::tuple< typename std::tuple_element< ExcStoresIndices, stores_type >::type... >;
+        using exc_stores_type =
+            std::tuple< typename std::tuple_element< ExcStoresIndices, stores_type >::type const &... >;
 
       private:
         boundary_class m_bcapply;
@@ -280,15 +238,20 @@ namespace gridtools {
          * @brief Constructor to associate the objects whose types are listed in the
          * template argument list to the corresponding data members
          */
-
-        bound_bc(BCApply bca, stores_type &&stores_list)
+        template < typename ST >
+        bound_bc(BCApply bca, ST &&stores_list)
             : m_bcapply{bca}, m_stores{std::forward< stores_type >(stores_list)} {}
 
         /**
          * @brief Function to retrieve the tuple of data stores to pass to the the boundary
          * condition class
          */
-        stores_type const &stores() const { return m_stores; }
+        stores_type const &stores() const {
+            GRIDTOOLS_STATIC_ASSERT(_impl::contains_placeholders< stores_type >::value,
+                "Some inputs to boundary conditions are placeholders. Remeber to use .associate(...) member function "
+                "to substitute tham");
+            return m_stores;
+        }
 
         /**
          * @brief Function to retrieve the tuple of data stores to pass to the the halo-update
@@ -299,7 +262,7 @@ namespace gridtools {
         /**
          * @brief Function to retrieve the boundary condition application class
          */
-        boundary_class const &boundary_to_apply() const { return m_bcapply; }
+        boundary_class boundary_to_apply() const { return m_bcapply; }
 
         /**
          * @brief In the case in which the DataStores passed as template to the bound_bc class
@@ -312,18 +275,17 @@ namespace gridtools {
          * \param ro_stores Variadic pack with the data stores to associate to placeholders
          */
         template < typename... ReadOnly >
-        auto associate(ReadOnly... ro_stores) const -> bound_bc< BCApply,
+        auto associate(ReadOnly &&... ro_stores) const -> bound_bc< BCApply,
             decltype(_impl::substitute_placeholders(std::make_tuple(ro_stores...),
                 m_stores,
                 typename make_gt_integer_sequence< std::size_t,
                                                         std::tuple_size< decltype(m_stores) >::value >::type{})),
             typename _impl::comm_indices< stores_type >::type > {
-            auto ro_store_tuple = std::make_tuple(ro_stores...);
+            auto ro_store_tuple = std::forward_as_tuple(ro_stores...);
             // we need to substitute the placeholders with the
             auto full_list = _impl::substitute_placeholders(ro_store_tuple,
                 m_stores,
                 typename make_gt_integer_sequence< std::size_t, std::tuple_size< decltype(m_stores) >::value >::type{});
-            //            auto without_plcs = _impl::remove_placeholders(m_stores);
 
             return bound_bc< BCApply, decltype(full_list), typename _impl::comm_indices< stores_type >::type >{
                 m_bcapply, std::move(full_list)};
@@ -347,13 +309,13 @@ namespace gridtools {
      */
     template < typename BCApply, typename... DataStores >
     bound_bc< BCApply,
-        std::tuple< DataStores... >,
+        std::tuple< typename std::decay< DataStores >::type... >,
         typename make_gt_integer_sequence< std::size_t, sizeof...(DataStores) >::type >
-    bind_bc(BCApply bc_apply, DataStores... stores) {
+    bind_bc(BCApply bc_apply, DataStores &&... stores) {
 
         // Concept checking on BCApply is not ready yet.
         // Check that the stores... are either data stores or placeholders
-        GRIDTOOLS_STATIC_ASSERT(_impl::data_stores_or_placeholders< DataStores... >(),
+        GRIDTOOLS_STATIC_ASSERT(_impl::data_stores_or_placeholders< std::decay< DataStores >::type... >(),
             "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
         return {bc_apply, std::forward_as_tuple(stores...)};
     }
