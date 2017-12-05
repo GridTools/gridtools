@@ -59,7 +59,7 @@ namespace gridtools {
 
             template < class T >
             struct result_converted_to_c< T,
-                typename std::enable_if< std::is_void< T >::value || std::is_integral< T >::value >::type > {
+                typename std::enable_if< std::is_void< T >::value || std::is_arithmetic< T >::value >::type > {
                 using type = T;
             };
 
@@ -73,17 +73,17 @@ namespace gridtools {
             struct param_converted_to_c;
 
             template < class T >
-            struct param_converted_to_c< T, typename std::enable_if< std::is_integral< T >::value >::type > {
+            struct param_converted_to_c< T, typename std::enable_if< std::is_arithmetic< T >::value >::type > {
                 using type = T;
             };
 
             template < class T >
-            struct param_converted_to_c< T *, typename std::enable_if< std::is_integral< T >::value >::type > {
+            struct param_converted_to_c< T *, typename std::enable_if< std::is_arithmetic< T >::value >::type > {
                 using type = T *;
             };
 
             template < class T >
-            struct param_converted_to_c< T &, typename std::enable_if< std::is_integral< T >::value >::type > {
+            struct param_converted_to_c< T &, typename std::enable_if< std::is_arithmetic< T >::value >::type > {
                 using type = T *;
             };
 
@@ -94,7 +94,7 @@ namespace gridtools {
                 using type = gt_handle *;
             };
 
-            template < class T, typename std::enable_if< std::is_integral< T >::value, int >::type = 0 >
+            template < class T, typename std::enable_if< std::is_arithmetic< T >::value, int >::type = 0 >
             T convert_to_c(T obj) {
                 return obj;
             }
@@ -152,6 +152,11 @@ namespace gridtools {
 
             template < class T >
             struct wrapped;
+
+            template < class R, class... Params >
+            struct wrapped< R (*)(Params...) > {
+                using type = typename wrapped< R(Params...) >::type;
+            };
 
             template < class R, class... Params >
             struct wrapped< R(Params...) > {

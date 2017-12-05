@@ -38,6 +38,7 @@
 
 #include <type_traits>
 #include <stack>
+#include <iostream>
 
 #include <gtest/gtest.h>
 
@@ -46,7 +47,7 @@ namespace gridtools {
         namespace {
 
             struct a_struct;
-            static_assert(std::is_same< wrapped_t< void() >, void() >{}, "");
+            static_assert(std::is_same< wrapped_t< void (*)() >, void() >{}, "");
             static_assert(std::is_same< wrapped_t< int() >, int() >{}, "");
             static_assert(std::is_same< wrapped_t< const int() >, const int() >{}, "");
             static_assert(std::is_same< wrapped_t< a_struct() >, gt_handle *() >{}, "");
