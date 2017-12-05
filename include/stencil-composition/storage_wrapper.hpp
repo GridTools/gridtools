@@ -75,7 +75,6 @@ namespace gridtools {
         using view_t = View;
         using tileI_t = TileI;
         using tileJ_t = TileJ;
-        using index_t = typename arg_t::index_t;
         using data_store_t = typename arg_t::data_store_t;
         using data_t = typename data_store_t::data_t;
         using storage_info_t = typename data_store_t::storage_info_t;
