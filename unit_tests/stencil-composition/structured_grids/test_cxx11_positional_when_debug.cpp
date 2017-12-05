@@ -55,6 +55,7 @@
 #include "stencil-composition/backend.hpp"
 #include "stencil-composition/make_computation.hpp"
 #include "stencil-composition/make_stencils.hpp"
+#include "backend_select.hpp"
 
 namespace positional_when_debug_test {
 
@@ -79,16 +80,9 @@ TEST(test_make_computation, positional_when_debug) {
 
     using namespace gridtools;
     using namespace gridtools::enumtype;
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#endif
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
     meta_data_t sinfo(3, 3, 3);
     storage_t a_storage(sinfo, 0);
 
@@ -98,7 +92,7 @@ TEST(test_make_computation, positional_when_debug) {
     /* canot use the assignment since with a single placeholder the wrong constructor is picked.
        This is a TODO in aggregator_type.hpp */
     aggregator_type< accessor_list_t > dm(a_storage);
-    auto test_computation = make_computation< BACKEND >(dm,
+    auto test_computation = make_computation< backend_t >(dm,
         positional_when_debug_test::grid_t(halo_descriptor{}, halo_descriptor{}, {0, 0}),
         make_multistage // mss_descriptor
         (execute< forward >(), make_stage< positional_when_debug_test::test_functor >(p_in())));

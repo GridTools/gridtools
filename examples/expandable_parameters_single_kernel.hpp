@@ -45,18 +45,7 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< enumtype::Mic, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-#endif
+#include "backend_select.hpp"
 
 namespace test_expandable_parameters {
 
@@ -101,8 +90,8 @@ namespace test_expandable_parameters {
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         meta_data_t meta_data_(d1, d2, d3);
 
@@ -159,7 +148,7 @@ namespace test_expandable_parameters {
 
         aggregator_type< args_t > domain_(
             storage1, storage2, storage3, storage4, storage5, storage10, storage20, storage30, storage40, storage50);
-        auto comp_ = make_computation< BACKEND >(domain_,
+        auto comp_ = make_computation< backend_t >(domain_,
             grid_,
             make_multistage(enumtype::execute< enumtype::forward >(),
                                                      define_caches(cache< IJ, cache_io_policy::local >(

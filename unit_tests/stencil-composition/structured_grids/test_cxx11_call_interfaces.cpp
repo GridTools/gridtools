@@ -37,6 +37,7 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <tools/verifier.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace gridtools::enumtype;
@@ -241,24 +242,13 @@ namespace call_interface_functors {
 
 class call_interface : public testing::Test {
   protected:
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
     const uint_t d1 = 13;
     const uint_t d2 = 9;
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
     storage_info_t meta_;
 
@@ -316,7 +306,7 @@ class call_interface : public testing::Test {
 };
 
 TEST_F(call_interface, call_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -328,7 +318,7 @@ TEST_F(call_interface, call_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_to_copy_functor_with_expression) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -340,7 +330,7 @@ TEST_F(call_interface, call_to_copy_functor_with_expression) {
 }
 
 TEST_F(call_interface, call_at_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -352,7 +342,7 @@ TEST_F(call_interface, call_at_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_with_offsets_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -364,7 +354,7 @@ TEST_F(call_interface, call_with_offsets_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_at_with_offsets_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -376,7 +366,7 @@ TEST_F(call_interface, call_at_with_offsets_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_to_copy_functor_default_interval) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -388,7 +378,7 @@ TEST_F(call_interface, call_to_copy_functor_default_interval) {
 }
 
 TEST_F(call_interface, call_to_copy_functor_default_interval_from_smaller_interval) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -401,7 +391,7 @@ TEST_F(call_interface, call_to_copy_functor_default_interval_from_smaller_interv
 }
 
 TEST_F(call_interface, call_to_copy_functor_default_interval_with_offset_in_k) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -414,7 +404,7 @@ TEST_F(call_interface, call_to_copy_functor_default_interval_with_offset_in_k) {
 }
 
 TEST_F(call_interface, call_to_call_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -426,7 +416,7 @@ TEST_F(call_interface, call_to_call_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_to_call_at_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -438,7 +428,7 @@ TEST_F(call_interface, call_to_call_at_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_to_call_with_offsets_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -450,7 +440,7 @@ TEST_F(call_interface, call_to_call_with_offsets_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_at_to_call_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -462,7 +452,7 @@ TEST_F(call_interface, call_at_to_call_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_at_to_call_at_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -474,7 +464,7 @@ TEST_F(call_interface, call_at_to_call_at_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_with_offsets_to_call_at_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -486,7 +476,7 @@ TEST_F(call_interface, call_with_offsets_to_call_at_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_at_to_call_with_offsets_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -498,7 +488,7 @@ TEST_F(call_interface, call_at_to_call_with_offsets_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_with_offsets_to_call_with_offsets_to_copy_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -517,8 +507,8 @@ class call_proc_interface : public testing::Test {
     const uint_t d3 = 7;
     const uint_t halo_size = 1;
 
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
     storage_info_t meta_;
 
@@ -731,7 +721,7 @@ namespace call_proc_interface_functors {
 }
 
 TEST_F(call_proc_interface, call_to_copy_functor_with_expression) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -744,7 +734,7 @@ TEST_F(call_proc_interface, call_to_copy_functor_with_expression) {
 }
 
 TEST_F(call_proc_interface, call_to_copy_twice_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -758,7 +748,7 @@ TEST_F(call_proc_interface, call_to_copy_twice_functor) {
 }
 
 TEST_F(call_proc_interface, call_with_offsets_to_copy_twice_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -772,7 +762,7 @@ TEST_F(call_proc_interface, call_with_offsets_to_copy_twice_functor) {
 }
 
 TEST_F(call_proc_interface, call_at_with_offsets_to_copy_twice_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -786,7 +776,7 @@ TEST_F(call_proc_interface, call_at_with_offsets_to_copy_twice_functor) {
 }
 
 TEST_F(call_proc_interface, call_to_copy_functor_default_interval) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -799,7 +789,7 @@ TEST_F(call_proc_interface, call_to_copy_functor_default_interval) {
 }
 
 TEST_F(call_proc_interface, call_to_copy_functor_default_interval_with_offset_in_k) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -812,7 +802,7 @@ TEST_F(call_proc_interface, call_to_copy_functor_default_interval_with_offset_in
 }
 
 TEST_F(call_proc_interface, call_to_call_to_copy_twice_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -826,7 +816,7 @@ TEST_F(call_proc_interface, call_to_call_to_copy_twice_functor) {
 }
 
 TEST_F(call_proc_interface, call_with_offsets_to_call_to_copy_twice_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
@@ -840,7 +830,7 @@ TEST_F(call_proc_interface, call_with_offsets_to_call_to_copy_twice_functor) {
 }
 
 TEST_F(call_proc_interface, call_with_offsets_to_call_with_offsets_to_copy_twice_functor) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(
@@ -856,7 +846,7 @@ TEST_F(call_proc_interface, call_with_offsets_to_call_with_offsets_to_copy_twice
 }
 
 TEST_F(call_proc_interface, call_using_local_variables) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),

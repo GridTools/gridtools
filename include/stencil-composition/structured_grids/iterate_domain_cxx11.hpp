@@ -212,9 +212,6 @@ namespace gridtools {
             return static_cast< IterateDomainImpl * >(this)->data_pointer_impl();
         }
 
-        friend data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer< iterate_domain >(
-            iterate_domain &);
-
       public:
         /**@brief constructor of the iterate_domain struct
 

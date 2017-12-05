@@ -41,8 +41,9 @@
 #include <stencil-composition/caches/define_caches.hpp>
 #include <tools/verifier.hpp>
 #include <stencil-composition/stencil-functions/stencil-functions.hpp>
-#include "./cache_flusher.hpp"
-#include "./defs.hpp"
+#include "cache_flusher.hpp"
+#include "defs.hpp"
+#include "backend_select.hpp"
 
 /**
   @file
@@ -198,18 +199,6 @@ namespace horizontal_diffusion_functions {
         uint_t d3 = z;
         uint_t halo_size = 2;
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
         typedef horizontal_diffusion::repository::storage_type storage_type;
 
         horizontal_diffusion::repository repository(d1, d2, d3, halo_size);
@@ -245,7 +234,7 @@ namespace horizontal_diffusion_functions {
 
         auto grid_ = make_grid(di, dj, d3);
 
-        auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
+        auto horizontal_diffusion = gridtools::make_computation< backend_t >(
             domain_,
             grid_,
             gridtools::make_multistage // mss_descriptor

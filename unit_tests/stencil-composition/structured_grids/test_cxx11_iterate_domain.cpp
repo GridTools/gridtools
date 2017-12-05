@@ -39,6 +39,7 @@
 #include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/structured_grids/accessor.hpp"
 #include "gtest/gtest.h"
+#include "backend_select.hpp"
 #include <iostream>
 
 namespace test_iterate_domain {
@@ -63,17 +64,10 @@ namespace test_iterate_domain {
         typedef layout_map< 0, 1, 2 > layout_kji_t;
         typedef layout_map< 0, 1 > layout_ij_t;
 
-#ifdef __AVX512F__
         typedef gridtools::backend< enumtype::Mic, enumtype::structured, enumtype::Block > backend_t;
-        typedef gridtools::mic_storage_info< 0, layout_ijkp_t > meta_ijkp_t;
-        typedef gridtools::mic_storage_info< 0, layout_kji_t > meta_kji_t;
-        typedef gridtools::mic_storage_info< 0, layout_ij_t > meta_ij_t;
-#else
-        typedef gridtools::backend< enumtype::Host, enumtype::structured, enumtype::Naive > backend_t;
-        typedef gridtools::host_storage_info< 0, layout_ijkp_t > meta_ijkp_t;
-        typedef gridtools::host_storage_info< 0, layout_kji_t > meta_kji_t;
-        typedef gridtools::host_storage_info< 0, layout_ij_t > meta_ij_t;
-#endif
+        typedef gridtools::storage_traits< enumtype::Mic >::custom_layout_storage_info_t< 0, layout_ijkp_t > meta_ijkp_t;
+        typedef gridtools::storage_traits< enumtype::Mic >::custom_layout_storage_info_t< 0, layout_kji_t > meta_kji_t;
+        typedef gridtools::storage_traits< enumtype::Mic >::custom_layout_storage_info_t< 0, layout_ij_t > meta_ij_t;
 
         typedef gridtools::storage_traits<
             backend_t::s_backend_id >::data_store_field_t< float_type, meta_ijkp_t, 3, 2, 1 > storage_t;
@@ -119,7 +113,7 @@ namespace test_iterate_domain {
 
         typedef boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
 
-#ifdef __AVX512F__
+#ifdef BACKEND_MIC
         typedef iterate_domain_mic<
             iterate_domain_arguments< backend_ids< Mic, GRIDBACKEND, Block >,
                 boost::mpl::at_c< typename mss_local_domain1_t::fused_local_domain_sequence_t, 0 >::type,
@@ -161,11 +155,7 @@ namespace test_iterate_domain {
         typedef typename it_domain_t::strides_cached_t strides_t;
         strides_t strides;
 
-#ifdef __AVX512F__
-        typedef backend_traits_from_id< Mic > backend_traits_t;
-#else
-        typedef backend_traits_from_id< Host > backend_traits_t;
-#endif
+        typedef backend_traits_from_id< backend_t::s_backend_id > backend_traits_t;
 
         it_domain.set_data_pointer_impl(&data_pointer);
         it_domain.set_strides_pointer_impl(&strides);
@@ -343,7 +333,7 @@ namespace test_iterate_domain {
         array< int_t, 3 > index;
         it_domain.get_index(index);
         assert(index[0] == 0 && index[1] == 0 && index[2] == 0);
-#ifndef __AVX512F__
+#ifndef BACKEND_MIC
         index[0] += 3;
         index[1] += 2;
         index[2] += 1;

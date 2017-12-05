@@ -37,31 +37,11 @@
 
 #include <gridtools.hpp>
 #include <storage/storage-facility.hpp>
+#include "backend_select.hpp"
 
 namespace horizontal_diffusion {
 
-#ifdef CUDA_EXAMPLE
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > hd_backend;
-    typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
-#elif defined(__AVX512F__)
-    typedef gridtools::backend< gridtools::enumtype::Mic,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > hd_backend;
-    typedef gridtools::storage_traits< gridtools::enumtype::Mic > storage_tr;
-#else
-#ifdef BACKEND_BLOCK
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > hd_backend;
-#else
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > hd_backend;
-#endif
-    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
-#endif
+    using storage_tr = gridtools::storage_traits< backend_t::s_backend_id >;
 
     using gridtools::uint_t;
     using gridtools::int_t;

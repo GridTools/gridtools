@@ -48,6 +48,8 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using gridtools::level;
 using gridtools::accessor;
@@ -152,20 +154,12 @@ check_intermediate() {
 TEST(test_local_domain, merge_mss_local_domains) {
     using namespace local_domain_stencil;
 
-#ifdef __AVX512F__
-    typedef gridtools::backend< enumtype::Mic, GRIDBACKEND, enumtype::Block > backend_t;
-#else
-    typedef gridtools::backend< enumtype::Host, GRIDBACKEND, enumtype::Naive > backend_t;
-#endif
     typedef gridtools::layout_map< 2, 1, 0 > layout_ijk_t;
     typedef gridtools::layout_map< 0, 1, 2 > layout_kji_t;
-#ifdef __AVX512F__
-    typedef gridtools::mic_storage_info< 0, layout_ijk_t > meta_ijk_t;
-    typedef gridtools::mic_storage_info< 0, layout_kji_t > meta_kji_t;
-#else
-    typedef gridtools::host_storage_info< 0, layout_ijk_t > meta_ijk_t;
-    typedef gridtools::host_storage_info< 0, layout_kji_t > meta_kji_t;
-#endif
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::custom_layout_storage_info_t< 0, layout_ijk_t >
+        meta_ijk_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::custom_layout_storage_info_t< 0, layout_kji_t >
+        meta_kji_t;
     typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, meta_ijk_t > storage_t;
     typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, meta_kji_t > storage_buff_t;
 

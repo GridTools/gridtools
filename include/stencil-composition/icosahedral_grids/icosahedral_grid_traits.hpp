@@ -37,8 +37,6 @@
 
 #ifdef __CUDACC__
 #include "backend_cuda/grid_traits_cuda.hpp"
-#elif defined(__AVX512F__)
-#include "backend_host/grid_traits_mic.hpp"
-#else
-#include "backend_host/grid_traits_host.hpp"
 #endif
+#include "backend_host/grid_traits_mic.hpp"
+#include "backend_host/grid_traits_host.hpp"

@@ -33,29 +33,29 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "stencil-composition/arg.hpp"
-#include "stencil-composition/aggregator_type.hpp"
+#pragma once
 
-using namespace gridtools;
-using namespace enumtype;
+#include <stencil-composition/stencil-composition.hpp>
 
-TEST(AggregatorType, ContinuousIndicesTest) {
-    typedef arg< 0, int_t > arg0_t;
-    typedef arg< 1, int_t > arg1_t;
-    typedef arg< 2, int_t > arg2_t;
-    typedef arg< 3, int_t > arg3_t;
-
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t, arg3_t > >::type::value));
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t > >::type::value));
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t > >::type::value));
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t > >::type::value));
-
-    typedef typename boost::mpl::sort< boost::mpl::vector< arg3_t, arg2_t, arg0_t, arg1_t >, arg_comparator >::type
-        placeholders_t;
-    ASSERT_TRUE((_impl::continuous_indices_check< placeholders_t >::type::value));
-    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg1_t, arg3_t, arg2_t > >::type::value));
-    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg2_t > >::type::value));
-    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg1_t > >::type::value));
-}
+#ifdef BACKEND_HOST
+#ifdef BACKEND_STRATEGY_NAIVE
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >;
+#else
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#endif
+#elif defined(BACKEND_MIC)
+#ifdef BACKEND_STRATEGY_NAIVE
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Mic, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >;
+#else
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Mic, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#endif
+#elif defined(BACKEND_CUDA)
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#else
+#error "no backend selected"
+#endif

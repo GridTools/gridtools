@@ -38,6 +38,7 @@
 #include <stencil-composition/stencil-functions/stencil-functions.hpp>
 #include <tools/verifier.hpp>
 #include "gtest/gtest.h"
+#include "backend_select.hpp"
 
 #ifdef __CUDACC__
 #ifdef FUNCTIONS_CALL
@@ -66,18 +67,6 @@ namespace multi_types_test {
     using namespace gridtools;
     using namespace enumtype;
     using namespace expressions;
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
 
     using axis_t = axis< 1 >;
     using region = axis< 1 >::full_interval;
@@ -240,14 +229,14 @@ namespace multi_types_test {
         uint_t d3 = z;
         uint_t halo_size = 0;
 
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info1_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 1, 3 > storage_info2_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 2, 3 > storage_info3_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< type1, storage_info1_t >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info1_t;
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 1, 3 > storage_info2_t;
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 2, 3 > storage_info3_t;
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< type1, storage_info1_t >
             data_store1_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< type2, storage_info2_t >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< type2, storage_info2_t >
             data_store2_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< type3, storage_info3_t >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< type3, storage_info3_t >
             data_store3_t;
 
         // TODO: Use storage_info as unnamed object - lifetime issues on GPUs
@@ -273,7 +262,7 @@ namespace multi_types_test {
 
         auto grid = make_grid(di, dj, axis_t(d3));
 
-        auto test_computation = gridtools::make_computation< BACKEND >(
+        auto test_computation = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor

@@ -32,7 +32,7 @@ if(Boost_FOUND)
   set(exe_LIBS "${Boost_LIBRARIES}" "${exe_LIBS}")
 endif()
 
-if(NOT USE_GPU AND NOT USE_MIC)
+if(NOT ENABLE_CUDA AND NOT ENABLE_MIC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
 endif()
 
@@ -51,9 +51,12 @@ endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --std=${CXX_STANDARD}")
 
+if(ENABLE_HOST)
+  set(HOST_BACKEND_DEFINE "BACKEND_HOST")
+endif(ENABLE_HOST)
+
 ## cuda support ##
-if( USE_GPU )
-  message(STATUS "Using GPU")
+if( ENABLE_CUDA )
   find_package(CUDA REQUIRED)
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MINOR=${CUDA_VERSION_MINOR}")
   set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DGT_CUDA_VERSION_MAJOR=${CUDA_VERSION_MAJOR}")
@@ -89,18 +92,19 @@ if( USE_GPU )
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ${NVCC_CLANG_SPECIFIC_OPTIONS}")
   endif()
 
+  set(CUDA_BACKEND_DEFINE "BACKEND_CUDA")
 else()
   set (CUDA_LIBRARIES "")
 endif()
 
-if( USE_MIC )
+if( ENABLE_MIC )
     if (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xmic-avx512")
     else()
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=knl -mtune=knl")
     endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_MIC_")
-endif( USE_MIC )
+    set(MIC_BACKEND_DEFINE "BACKEND_MIC")
+endif( ENABLE_MIC )
 
 ## clang ##
 if((CUDA_HOST_COMPILER MATCHES "(C|c?)lang") OR (CMAKE_CXX_COMPILER_ID MATCHES "(C|c?)lang"))
@@ -162,13 +166,13 @@ endif()
 
 ## precision ##
 if(SINGLE_PRECISION)
-  if(USE_GPU)
+  if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=4")
   endif()
   add_definitions("-DFLOAT_PRECISION=4")
   message(STATUS "Computations in single precision")
 else()
-  if(USE_GPU)
+  if(ENABLE_CUDA)
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} "-DFLOAT_PRECISION=8")
   endif()
   add_definitions("-DFLOAT_PRECISION=8") 

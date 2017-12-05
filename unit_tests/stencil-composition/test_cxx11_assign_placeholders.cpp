@@ -40,6 +40,8 @@
 #include <storage/storage-facility.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
+#include "backend_select.hpp"
+
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
@@ -47,27 +49,17 @@
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef __AVX512F__ // currently disable this test for MIC backend
+#ifdef BACKEND_MIC // currently disable this test for MIC backend
 TEST(assign_placeholders, test) {}
 #else
 
 TEST(assign_placeholders, test) {
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3, halo< 1, 1, 1 > > storage_info1_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3, halo< 2, 2, 2 > > storage_info2_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info1_t >
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 1, 1, 1 > > storage_info1_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 2, 2, 2 > > storage_info2_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info1_t >
         data_store1_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info2_t >
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info2_t >
         data_store2_t;
 
     uint_t d1 = 5;
@@ -123,7 +115,7 @@ TEST(assign_placeholders, test) {
 
     // Check data store type correctness
     typedef typename boost::is_same< decltype(domain.m_arg_storage_pair_list),
-        boost::fusion::vector6< gridtools::arg_storage_pair< gridtools::tmp_arg< 0u, dst1_tmp >, dst1_tmp >,
+        boost::fusion::set< gridtools::arg_storage_pair< gridtools::tmp_arg< 0u, dst1_tmp >, dst1_tmp >,
                                          gridtools::arg_storage_pair< gridtools::tmp_arg< 1u, dst1_tmp >, dst1_tmp >,
                                          gridtools::arg_storage_pair< gridtools::tmp_arg< 2u, dst2_tmp >, dst2_tmp >,
                                          gridtools::arg_storage_pair< gridtools::arg< 3u, dst2 >, dst2 >,
@@ -281,4 +273,4 @@ TEST(assign_placeholders, test) {
     assert(domain.template get_arg_storage_pair< p_out >().m_value == coeff_new_2);
 }
 
-#endif // AVX512F
+#endif // BACKEND_MIC

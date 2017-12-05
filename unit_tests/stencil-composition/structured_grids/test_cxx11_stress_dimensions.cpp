@@ -35,35 +35,34 @@
 */
 
 #include "gtest/gtest.h"
+#include <boost/type_traits/conditional.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
+
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-#ifdef __CUDACC__
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
+using layout_map_t = typename boost::conditional< backend_t::s_backend_id == Host,
+    layout_map< 3, 4, 5, 0, 1, 2 >,
+    layout_map< 5, 4, 3, 2, 1, 0 > >::type;
+using layout_map_global_quad_t = typename boost::conditional< backend_t::s_backend_id == Host,
+    layout_map< 1, 2, 3, 0 >,
+    layout_map< 3, 2, 1, 0 > >::type;
+using layout_map_local_quad_t = typename boost::conditional< backend_t::s_backend_id == Host,
+    layout_map< -1, -1, -1, 1, 2, 3, 0 >,
+    layout_map< -1, -1, -1, 3, 2, 1, 0 > >::type;
+
 template < unsigned Id, typename Layout >
-using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
-typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map< -1, -1, -1, 3, 2, 1, 0 > > metadata_local_quad_t;
-#elif defined(__AVX512F__)
-#define BACKEND backend< enumtype::Mic, enumtype::GRIDBACKEND, enumtype::Block >
-template < unsigned Id, typename Layout >
-using special_metadata_t = gridtools::mic_storage_info< Id, Layout >;
-typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map< -1, -1, -1, 3, 2, 1, 0 > > metadata_local_quad_t;
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-template < unsigned Id, typename Layout >
-using special_metadata_t = gridtools::host_storage_info< Id, Layout >;
-typedef special_metadata_t< 0, gridtools::layout_map< 3, 4, 5, 0, 1, 2 > > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map< 1, 2, 3, 0 > > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map< -1, -1, -1, 1, 2, 3, 0 > > metadata_local_quad_t;
-#endif
+using special_storage_info_t = typename backend_t::storage_traits_t::select_custom_layout_storage_info< Id,
+    Layout,
+    zero_halo< Layout::masked_length > >::type;
+
+using storage_info_t = special_storage_info_t< 0, layout_map_t >;
+using storage_info_global_quad_t = special_storage_info_t< 0, layout_map_global_quad_t >;
+using storage_info_local_quad_t = special_storage_info_t< 0, layout_map_local_quad_t >;
 
 //                      dims  x y z  qp
 //                   strides  1 x xy xyz
@@ -71,9 +70,9 @@ typedef layout_map< -1, -1, -1, 3, 2, 1, 0 > layoutphi_t;
 typedef layout_map< 3, 2, 1, 0 > layout4_t;
 typedef layout_map< 2, 1, 0, 3, 4, 5 > layout_t;
 
-typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_t > storage_type;
-typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_global_quad_t > storage_global_quad_t;
-typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad_t > storage_local_quad_t;
+typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_type;
+typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_global_quad_t > storage_global_quad_t;
+typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_local_quad_t > storage_local_quad_t;
 
 /**
   @file
@@ -119,15 +118,15 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
     uint_t b2 = 2;
     uint_t b3 = 2;
 
-    metadata_local_quad_t local_metadata(1, 1, 1, b1, b2, b3, nbQuadPt);
+    storage_info_local_quad_t local_storage_info(1, 1, 1, b1, b2, b3, nbQuadPt);
 
-    storage_local_quad_t phi(local_metadata, 0., "phi");
-    storage_local_quad_t psi(local_metadata, 0., "psi");
+    storage_local_quad_t phi(local_storage_info, 0., "phi");
+    storage_local_quad_t psi(local_storage_info, 0., "psi");
 
     // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
     // Or alternatively computing the values on the quadrature points on the GPU
-    metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
-    storage_global_quad_t jac(integration_metadata, 0., "jac");
+    storage_info_global_quad_t integration_storage_info(d1, d2, d3, nbQuadPt);
+    storage_global_quad_t jac(integration_storage_info, 0., "jac");
 
     auto jacv = make_host_view(jac);
     auto phiv = make_host_view(phi);
@@ -147,7 +146,7 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
                     psiv(0, 0, 0, i, j, k, q) = 11.;
                 }
 
-    metadata_t meta_(d1, d2, d3, b1, b2, b3);
+    storage_info_t meta_(d1, d2, d3, b1, b2, b3);
     storage_t f(meta_, (float_type)1.3, "f");
     auto fv = make_host_view(f);
 
@@ -262,15 +261,15 @@ namespace assembly {
         uint_t b2 = 2;
         uint_t b3 = 2;
         // basis functions available in a 2x2x2 cell, because of P1 FE
-        metadata_local_quad_t local_metadata(1, 1, 1, b1, b2, b3, nbQuadPt);
+        storage_info_local_quad_t local_storage_info(1, 1, 1, b1, b2, b3, nbQuadPt);
 
-        storage_local_quad_t phi(local_metadata, 0., "phi");
-        storage_local_quad_t psi(local_metadata, 0., "psi");
+        storage_local_quad_t phi(local_storage_info, 0., "phi");
+        storage_local_quad_t psi(local_storage_info, 0., "psi");
 
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU
-        metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
-        storage_global_quad_t jac(integration_metadata, 0., "jac");
+        storage_info_global_quad_t integration_storage_info(d1, d2, d3, nbQuadPt);
+        storage_global_quad_t jac(integration_storage_info, 0., "jac");
 
         auto jacv = make_host_view(jac);
         auto phiv = make_host_view(phi);
@@ -290,7 +289,7 @@ namespace assembly {
                         psiv(0, 0, 0, i, j, k, q) = 11.;
                     }
 
-        metadata_t meta_(d1, d2, d3, b1, b2, b3);
+        storage_info_t meta_(d1, d2, d3, b1, b2, b3);
         storage_type f(meta_, (float_type)1.3, "f");
         storage_type result(meta_, (float_type)0., "result");
 
@@ -305,7 +304,7 @@ namespace assembly {
         auto grid = make_grid(di, dj, d3 - 1);
 
         auto fe_comp =
-            make_computation< BACKEND >(domain,
+            make_computation< backend_t >(domain,
                 grid,
                 make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?

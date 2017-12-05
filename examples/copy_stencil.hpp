@@ -36,6 +36,7 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 #include "benchmarker.hpp"
 
 /**
@@ -78,23 +79,8 @@ namespace copy_stencil {
         uint_t d2 = y;
         uint_t d3 = z;
 
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND_ARCH Mic
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#define BACKEND_ARCH Host
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
+        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
         storage_info_t meta_data_(x, y, z);
 
@@ -115,7 +101,7 @@ namespace copy_stencil {
 
         auto grid = make_grid(d1, d2, d3);
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto copy = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage // mss_descriptor
             (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));

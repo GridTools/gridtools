@@ -67,7 +67,7 @@ namespace domain_reassign {
 
         aggregator_type< accessor_list > domain(in, out);
 
-        m_stencil = make_computation< gridtools::BACKEND >(domain,
+        m_stencil = make_computation< backend_t >(domain,
             grid,
             make_multistage // mss_descriptor
             (execute< forward >(),

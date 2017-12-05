@@ -35,23 +35,12 @@
 */
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace rw_test {
-
-#ifdef __CUDACC__
-    using backend_t = ::gridtools::backend< Cuda, GRIDBACKEND, Block >;
-#elif defined(__AVX512F__)
-    using backend_t = ::gridtools::backend< Mic, GRIDBACKEND, Block >;
-#else
-#ifdef BACKEND_BLOCK
-    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Block >;
-#else
-    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Naive >;
-#endif
-#endif
 
     typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 

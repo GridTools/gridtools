@@ -39,6 +39,7 @@
 // #include "stencil-composition/caches/define_caches.hpp"
 // #include "stencil-composition/interval.hpp"
 #include <stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -55,16 +56,8 @@ struct functor1 {
     GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
 };
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#endif
-
-typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
 typedef arg< 0, storage_t > p_in;
 typedef arg< 1, storage_t > p_out;

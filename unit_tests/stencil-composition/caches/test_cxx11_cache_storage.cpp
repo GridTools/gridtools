@@ -37,28 +37,17 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/offset_computation.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
-
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
 
 namespace test_multidimensional_caches {
 
     int test_ijcache() {
 
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
         typedef storage_wrapper< arg< 0, storage_t >,
             data_view< storage_t >,
             gridtools::tile< 0, 0, 0 >,
@@ -78,28 +67,6 @@ namespace test_multidimensional_caches {
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 3 >() == 3, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 4 >() == 2, "error");
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(1, 0, 0, 0, 0, 0))), 1);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(2, 0, 0, 0, 0, 0))), 2);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(3, 0, 0, 0, 0, 0))), 3);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(4, 0, 0, 0, 0, 0))), 4);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(5, 0, 0, 0, 0, 0))), 5);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(6, 0, 0, 0, 0, 0))), 6);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(7, 0, 0, 0, 0, 0))), 7);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(8, 0, 0, 0, 0, 0))), 8);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(9, 0, 0, 0, 0, 0))), 9);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 0, 0))), 0);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 1, 0, 0, 0, 0))), 10);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 2, 0, 0, 0, 0))), 20);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 3, 0, 0, 0, 0))), 30);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 4, 0, 0, 0, 0))), 40);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 5, 0, 0, 0, 0))), 50);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 6, 0, 0, 0, 0))), 60);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 1, 0, 0, 0))), 70);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 2, 0, 0, 0))), 140);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 1, 0, 0))), 70);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 1, 0))), 210);
-#else
         GRIDTOOLS_STATIC_ASSERT(
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(1, 0, 0, 0, 0, 0)) == 1), "error");
         GRIDTOOLS_STATIC_ASSERT(
@@ -140,13 +107,12 @@ namespace test_multidimensional_caches {
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 1, 0, 0)) == 70), "error");
         GRIDTOOLS_STATIC_ASSERT(
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 1, 0)) == 210), "error");
-#endif // GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
         return true;
     }
 
     int test_kcache() {
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
         typedef storage_wrapper< arg< 0, storage_t >,
             data_view< storage_t >,
             gridtools::tile< 0, 0, 0 >,
@@ -167,24 +133,18 @@ namespace test_multidimensional_caches {
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 3 >() == 2, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 4 >() == 4, "error");
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, -3, 0, 0, 0))), -3);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, -1, 0, 0, 0))), -1);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 2, 0, 0, 0))), 2);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 1, 0, 0))), 6);
-        EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 2, 0))), 24);
-#else
         GRIDTOOLS_STATIC_ASSERT(
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, -3, 0, 0, 0)) == -3), "error");
         GRIDTOOLS_STATIC_ASSERT(
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, -1, 0, 0, 0)) == -1), "error");
         GRIDTOOLS_STATIC_ASSERT(
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 2, 0, 0, 0)) == 2), "error");
+
         GRIDTOOLS_STATIC_ASSERT(
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 1, 0, 0)) == 6), "error");
+
         GRIDTOOLS_STATIC_ASSERT(
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 2, 0)) == 24), "error");
-#endif // GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
 
         return true;
     }

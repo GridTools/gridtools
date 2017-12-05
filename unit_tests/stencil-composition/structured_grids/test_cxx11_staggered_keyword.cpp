@@ -36,17 +36,7 @@
 #include "gtest/gtest.h"
 #include "stencil-composition/stencil-composition.hpp"
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
+#include "backend_select.hpp"
 
 namespace test_staggered_keyword {
     using namespace gridtools;
@@ -72,8 +62,8 @@ namespace test_staggered_keyword {
     uint_t functor::ok_j = 0;
 
     bool test() {
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         meta_data_t meta_((uint_t)30, (uint_t)20, (uint_t)1);
         storage_t i_data(meta_, [](int i, int j, int k) { return i; });
@@ -89,7 +79,7 @@ namespace test_staggered_keyword {
         typedef boost::mpl::vector< p_i_data, p_j_data > accessor_list;
 
         aggregator_type< accessor_list > domain(i_data, j_data);
-        auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        auto comp = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage(execute< forward >(),

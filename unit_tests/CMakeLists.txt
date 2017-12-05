@@ -1,5 +1,8 @@
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 # collect tests
 fetch_host_tests(.)
+fetch_mic_tests(.)
 fetch_gpu_tests(.)
 
 # include all subdirs

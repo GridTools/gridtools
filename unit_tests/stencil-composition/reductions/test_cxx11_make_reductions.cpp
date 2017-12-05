@@ -47,25 +47,14 @@
 #include "gtest/gtest.h"
 
 #include <stencil-composition/stencil-composition.hpp>
-#include "stencil-composition/backend.hpp"
-#include "stencil-composition/make_computation.hpp"
-#include "stencil-composition/make_stencils.hpp"
-#include "stencil-composition/reductions/reductions.hpp"
+#include <stencil-composition/backend.hpp>
+#include <stencil-composition/make_computation.hpp>
+#include <stencil-composition/make_stencils.hpp>
+#include <stencil-composition/reductions/reductions.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
-
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
 
 namespace make_reduction_test {
 
@@ -84,8 +73,8 @@ TEST(test_make_reduction, make_reduction) {
 
     using namespace gridtools;
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 6 > storage_info_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
     typedef arg< 0, storage_t > p_in;
     typedef arg< 1, storage_t > p_out;

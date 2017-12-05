@@ -44,9 +44,7 @@
 #ifdef _USE_GPU_
 #include "storage_traits_cuda.hpp"
 #endif
-#ifdef _USE_MIC_
 #include "storage_traits_mic.hpp"
-#endif
 #include "storage_traits_host.hpp"
 
 namespace gridtools {

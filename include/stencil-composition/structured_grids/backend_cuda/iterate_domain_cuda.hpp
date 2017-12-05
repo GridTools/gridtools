@@ -387,6 +387,9 @@ namespace gridtools {
       private:
         // array storing the (i,j) position of the current thread within the block
         array< int, 2 > m_thread_pos;
+
+        friend data_ptr_cached_t &RESTRICT advanced::get_iterate_domain_data_pointer< iterate_domain_cuda >(
+            iterate_domain_cuda &);
     };
 
     template < template < class > class IterateDomainBase, typename IterateDomainArguments >

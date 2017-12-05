@@ -37,6 +37,7 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
+#include "backend_select.hpp"
 
 namespace test_expandable_parameters_icosahedral {
 
@@ -45,20 +46,7 @@ namespace test_expandable_parameters_icosahedral {
     using namespace enumtype;
 
     using x_interval = axis< 1 >::full_interval;
-
-#ifdef __CUDACC__
-#define BACKEND backend< enumtype::Cuda, GRIDBACKEND, enumtype::Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< enumtype::Mic, GRIDBACKEND, enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, GRIDBACKEND, enumtype::Naive >
-#endif
-#endif
-
-    using icosahedral_topology_t = ::gridtools::icosahedral_topology< BACKEND >;
+    using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 
     template < uint_t Color >
     struct functor_exp {
@@ -75,7 +63,6 @@ namespace test_expandable_parameters_icosahedral {
 
     bool test(uint_t d1, uint_t d2, uint_t d3, uint_t t) {
 
-        using backend_t = BACKEND;
         using cell_storage_type =
             typename icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, double >;
 
@@ -120,7 +107,7 @@ namespace test_expandable_parameters_icosahedral {
 
         aggregator_type< args_t > domain_(list_out_, list_in_);
 
-        auto comp_ = make_computation< BACKEND >(
+        auto comp_ = make_computation< backend_t >(
             expand_factor< 2 >(),
             domain_,
             grid_,

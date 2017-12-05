@@ -115,7 +115,7 @@ namespace interface {
 #ifndef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
         // mixing compile time and runtime values
         using t = dimension< 15 >;
-        using arg_t accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 >;
+        using arg_t = accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 >;
         using alias_t = alias< arg_t, t, dimension< 1 >, dimension< 7 > >::set< -3, 4, 2 >;
 
         alias_t first(dimension< 8 >(23), dimension< 3 >(-5));

@@ -46,6 +46,8 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace gridtools::enumtype;
 using namespace gridtools::expressions;
@@ -56,28 +58,12 @@ namespace {
 
 class test_expressions : public testing::Test {
   protected:
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND_ARCH Mic
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#define BACKEND_ARCH Host
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
     const uint_t d1 = 100;
     const uint_t d2 = 9;
     const uint_t d3 = 7;
 
-    using storage_info_t = storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 >;
-    using data_store_t = storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t >;
+    using storage_info_t = storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 >;
+    using data_store_t = storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >;
 
     storage_info_t storage_info_;
 
@@ -193,7 +179,7 @@ namespace {
 }
 
 TEST_F(test_expressions, integration_test) {
-    auto comp = gridtools::make_positional_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_positional_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(

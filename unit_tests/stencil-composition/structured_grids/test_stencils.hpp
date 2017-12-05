@@ -39,13 +39,6 @@
 #include <stencil-composition/stencil-composition.hpp>
 
 #include <gridtools.hpp>
-#ifdef CUDA_EXAMPLE
-#include <stencil-composition/backend_cuda/backend_cuda.hpp>
-#elif defined(__AVX512F__)
-#include <stencil-composition/backend_mic/backend_mic.hpp>
-#else
-#include <stencil-composition/backend_host/backend_host.hpp>
-#endif
 
 #include <boost/fusion/include/make_vector.hpp>
 
@@ -53,6 +46,8 @@
 #include <papi_wrap.hpp>
 #include <papi.hpp>
 #endif
+
+#include "backend_select.hpp"
 
 /*
   This file shows an implementation of the "copy" stencil, simple copy of one field done on the backend
@@ -93,26 +88,15 @@ namespace copy_stencils_3D_2D_1D_0D {
         uint_t d2 = y;
         uint_t d3 = z;
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-        typedef gridtools::cuda_storage_info< 0, DstLayout > meta_dst_t;
-        typedef gridtools::cuda_storage_info< 0, SrcLayout > meta_src_t;
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-        typedef gridtools::mic_storage_info< 0, DstLayout > meta_dst_t;
-        typedef gridtools::mic_storage_info< 0, SrcLayout > meta_src_t;
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-        typedef gridtools::host_storage_info< 0, DstLayout > meta_dst_t;
-        typedef gridtools::host_storage_info< 0, SrcLayout > meta_src_t;
-#endif
+        using meta_dst_t = typename backend_t::storage_traits_t::select_custom_layout_storage_info< 0,
+            DstLayout,
+            zero_halo< DstLayout::masked_length > >::type;
+        using meta_src_t = typename backend_t::storage_traits_t::select_custom_layout_storage_info< 0,
+            SrcLayout,
+            zero_halo< SrcLayout::masked_length > >::type;
 
-        typedef BACKEND::storage_traits_t::data_store_t< T, meta_dst_t > storage_t;
-        typedef BACKEND::storage_traits_t::data_store_t< T, meta_src_t > src_storage_t;
+        typedef backend_t::storage_traits_t::data_store_t< T, meta_dst_t > storage_t;
+        typedef backend_t::storage_traits_t::data_store_t< T, meta_src_t > src_storage_t;
 
         meta_dst_t meta_dst_(d1, d2, d3);
         meta_src_t meta_src_(d1, d2, d3);
@@ -130,7 +114,7 @@ namespace copy_stencils_3D_2D_1D_0D {
 
         auto grid_ = make_grid(d1, d2, d3);
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto copy = gridtools::make_computation< backend_t >(domain,
             grid_,
             gridtools::make_multistage                                                    // mss_descriptor
             (execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out()) // esf_descriptor
@@ -159,135 +143,139 @@ namespace copy_stencils_3D_2D_1D_0D {
 
 } // namespace copy_stencils_3D_2D_1D_0D
 
+constexpr int_t size0 = 59;
+constexpr int_t size1 = 47;
+constexpr int_t size2 = 71;
+
 TEST(TESTCLASS, copies3D) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, 1, 2 >, gridtools::layout_map< 0, 1, 2 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies3Dtranspose) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 2, 1, 0 >, gridtools::layout_map< 0, 1, 2 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2Dij) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, 1, -1 >, gridtools::layout_map< 0, 1, 2 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2Dik) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, -1, 1 >, gridtools::layout_map< 0, 1, 2 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2Djk) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, 0, 1 >, gridtools::layout_map< 0, 1, 2 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2Di) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, -1, -1 >,
                   gridtools::layout_map< 0, 1, 2 >,
-                  double >(__Size0, __Size1, __Size2)),
+                  double >(size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2Dj) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, 0, -1 >,
                   gridtools::layout_map< 0, 1, 2 >,
-                  double >(__Size0, __Size1, __Size2)),
+                  double >(size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2Dk) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, -1, 0 >,
                   gridtools::layout_map< 0, 1, 2 >,
-                  double >(__Size0, __Size1, __Size2)),
+                  double >(size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2DScalar) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, -1, -1 >,
                   gridtools::layout_map< 0, 1, 2 >,
-                  double >(__Size0, __Size1, __Size2)),
+                  double >(size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies3DDst) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, 1, 2 >, gridtools::layout_map< 2, 0, 1 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies3DtransposeDst) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 2, 1, 0 >, gridtools::layout_map< 2, 0, 1 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2DijDst) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 1, 0, -1 >, gridtools::layout_map< 2, 0, 1 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2DikDst) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 1, -1, 0 >, gridtools::layout_map< 2, 0, 1 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2DjkDst) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, 1, 0 >, gridtools::layout_map< 2, 0, 1 >, double >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2DiDst) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, -1, -1 >,
                   gridtools::layout_map< 2, 0, 1 >,
-                  double >(__Size0, __Size1, __Size2)),
+                  double >(size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2DjDst) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, 0, -1 >,
                   gridtools::layout_map< 2, 0, 1 >,
-                  double >(__Size0, __Size1, __Size2)),
+                  double >(size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2DkDst) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, -1, 0 >,
                   gridtools::layout_map< 2, 0, 1 >,
-                  double >(__Size0, __Size1, __Size2)),
+                  double >(size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies2DScalarDst) {
     EXPECT_EQ((copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< -1, -1, -1 >,
                   gridtools::layout_map< 2, 0, 1 >,
-                  double >(__Size0, __Size1, __Size2)),
+                  double >(size0, size1, size2)),
         true);
 }
 
 TEST(TESTCLASS, copies3D_bool) {
     EXPECT_EQ(
         (copy_stencils_3D_2D_1D_0D::test< gridtools::layout_map< 0, 1, 2 >, gridtools::layout_map< 0, 1, 2 >, bool >(
-            __Size0, __Size1, __Size2)),
+            size0, size1, size2)),
         true);
 }

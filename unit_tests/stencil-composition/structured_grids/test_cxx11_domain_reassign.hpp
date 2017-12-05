@@ -39,23 +39,12 @@
 #include <stencil-composition/aggregator_type.hpp>
 #include <common/defs.hpp>
 #include <stencil-composition/stencil.hpp>
+#include "backend_select.hpp"
 
 namespace domain_reassign {
 
-#ifdef __CUDACC__
-#define BACKEND backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< gridtools::enumtype::Mic, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#define BACKEND backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
-#endif
-#endif
-
-    typedef gridtools::storage_traits< gridtools::BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< gridtools::BACKEND::s_backend_id >::data_store_t< gridtools::float_type,
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< gridtools::float_type,
         storage_info_t > storage_t;
 
     class gt_example {

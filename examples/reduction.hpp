@@ -40,6 +40,7 @@
 #include "cache_flusher.hpp"
 #include "defs.hpp"
 #include "tools/verifier.hpp"
+#include "backend_select.hpp"
 
 /**
   @file
@@ -93,20 +94,8 @@ namespace test_reduction {
 
         cache_flusher flusher(cache_flusher_size);
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#elif defined(__AVX512F__)
-#define BACKEND backend< Mic, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-        typedef BACKEND::storage_traits_t::storage_info_t< __COUNTER__, 3 > meta_data_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< __COUNTER__, 3 > meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         meta_data_t meta_data_(x, y, z);
 
@@ -139,7 +128,7 @@ namespace test_reduction {
         // Definition of the physical dimensions of the problem.
         auto grid = make_grid(d1, d2, axis_t(d3));
 
-        auto sum_red_ = make_computation< gridtools::BACKEND >(domain,
+        auto sum_red_ = make_computation< backend_t >(domain,
             grid,
             make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
             make_reduction< sum_red, binop::sum >((float_type)(0.0), p_out()));
@@ -164,7 +153,7 @@ namespace test_reduction {
         std::cout << "Sum Reduction : " << sum_red_->print_meter() << std::endl;
 #endif
 
-        auto prod_red_ = make_computation< gridtools::BACKEND >(domain,
+        auto prod_red_ = make_computation< backend_t >(domain,
             grid,
             make_multistage(execute< forward >(), make_stage< desf >(p_in(), p_out())),
             make_reduction< sum_red, binop::prod >((float_type)(1.0), p_out()));

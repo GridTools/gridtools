@@ -35,44 +35,36 @@
 */
 #pragma once
 
+#include <boost/type_traits/conditional.hpp>
+
 #include <stencil-composition/stencil-composition.hpp>
 #include "Options.hpp"
 #include "extended_4D_verify.hpp"
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 using namespace expressions;
 
-#ifdef __CUDACC__
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-template < unsigned Id, typename Layout >
-using special_metadata_t = gridtools::cuda_storage_info< Id, Layout >;
-typedef special_metadata_t< 0, gridtools::layout_map< 5, 4, 3, 2, 1, 0 > > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map< 3, 2, 1, 0 > > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map< 3, 2, 1, 0 > > metadata_local_quad_t;
-#elif defined(__AVX512F__)
-#define BACKEND backend< enumtype::Mic, enumtype::GRIDBACKEND, enumtype::Block >
-template < unsigned Id, typename Layout >
-using special_metadata_t = gridtools::mic_storage_info< Id, Layout >;
-typedef special_metadata_t< 0, gridtools::layout_map< 3, 4, 5, 0, 1, 2 > > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map< 1, 2, 3, 0 > > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map< 1, 2, 3, 0 > > metadata_local_quad_t;
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-template < unsigned Id, typename Layout >
-using special_metadata_t = gridtools::host_storage_info< Id, Layout >;
-typedef special_metadata_t< 0, gridtools::layout_map< 3, 4, 5, 0, 1, 2 > > metadata_t;
-typedef special_metadata_t< 1, gridtools::layout_map< 1, 2, 3, 0 > > metadata_global_quad_t;
-typedef special_metadata_t< 2, gridtools::layout_map< 1, 2, 3, 0 > > metadata_local_quad_t;
-#endif
+using layout_map_t = typename boost::conditional< backend_t::s_backend_id == Host,
+    layout_map< 3, 4, 5, 0, 1, 2 >,
+    layout_map< 5, 4, 3, 2, 1, 0 > >::type;
+using layout_map_quad_t = typename boost::conditional< backend_t::s_backend_id == Host,
+    layout_map< 1, 2, 3, 0 >,
+    layout_map< 3, 2, 1, 0 > >::type;
 
-typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_t > storage_t;
-typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_global_quad_t > storage_global_quad_t;
-typedef BACKEND::storage_traits_t::data_store_t< float_type, metadata_local_quad_t > storage_local_quad_t;
+template < unsigned Id, typename Layout >
+using special_storage_info_t = typename backend_t::storage_traits_t::select_custom_layout_storage_info< Id,
+    Layout,
+    zero_halo< Layout::masked_length > >::type;
+
+using storage_info_t = special_storage_info_t< 0, layout_map_t >;
+using storage_info_global_quad_t = special_storage_info_t< 1, layout_map_quad_t >;
+using storage_info_local_quad_t = special_storage_info_t< 2, layout_map_quad_t >;
+
+using storage_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_t >;
+using storage_global_quad_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_global_quad_t >;
+using storage_local_quad_t = backend_t::storage_traits_t::data_store_t< float_type, storage_info_local_quad_t >;
 
 /**
   @file
@@ -199,13 +191,13 @@ namespace assembly {
 
         // I might want to treat it as a temporary storage (will use less memory but constantly copying back and forth)
         // Or alternatively computing the values on the quadrature points on the GPU
-        metadata_global_quad_t integration_metadata(d1, d2, d3, nbQuadPt);
-        storage_global_quad_t jac(integration_metadata, [](int i, int j, int k, int q) { return 1. + q; }, "jac");
+        storage_info_global_quad_t integration_storage_info(d1, d2, d3, nbQuadPt);
+        storage_global_quad_t jac(integration_storage_info, [](int i, int j, int k, int q) { return 1. + q; }, "jac");
 
-        auto g_phi = BACKEND::make_global_parameter(phi);
-        auto g_psi = BACKEND::make_global_parameter(psi);
+        auto g_phi = backend_t::make_global_parameter(phi);
+        auto g_psi = backend_t::make_global_parameter(psi);
 
-        metadata_t meta_(d1, d2, d3, b1, b2, b3);
+        storage_info_t meta_(d1, d2, d3, b1, b2, b3);
         storage_t f(meta_, (float_type)1.3, "f");
         storage_t result(meta_, (float_type)0., "result");
 
@@ -217,7 +209,7 @@ namespace assembly {
 
         typedef boost::mpl::vector< p_phi, p_psi, p_jac, p_f, p_result > accessor_list;
 
-        gridtools::aggregator_type< accessor_list > domain(
+        aggregator_type< accessor_list > domain(
             (p_phi() = g_phi), (p_psi() = g_psi), (p_jac() = jac), (p_f() = f), (p_result() = result));
         /**
            - Definition of the physical dimensions of the problem.
@@ -228,7 +220,7 @@ namespace assembly {
         halo_descriptor dj{1, 1, 1, d2 - 3, d2};
         auto grid = make_grid(di, dj, d3 - 1);
 
-        auto fe_comp = make_computation< gridtools::BACKEND >(
+        auto fe_comp = make_computation< backend_t >(
             domain,
             grid,
             make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
