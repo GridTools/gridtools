@@ -33,29 +33,35 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "stencil-composition/arg.hpp"
-#include "stencil-composition/aggregator_type.hpp"
+/// An unstructured set of boost::fusion related helpers
+#pragma once
+#include <type_traits>
+#include <utility>
 
-using namespace gridtools;
-using namespace enumtype;
+#include <boost/fusion/include/filter_view.hpp>
+#include <boost/fusion/include/joint_view.hpp>
+#include <boost/fusion/include/zip_view.hpp>
 
-TEST(AggregatorType, ContinuousIndicesTest) {
-    typedef arg< 0, int_t > arg0_t;
-    typedef arg< 1, int_t > arg1_t;
-    typedef arg< 2, int_t > arg2_t;
-    typedef arg< 3, int_t > arg3_t;
+namespace gridtools {
 
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t, arg3_t > >::type::value));
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t > >::type::value));
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t > >::type::value));
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t > >::type::value));
+    /**
+     *  Here go generators for the fusion views that do the right C++11 perfect forwarding.
+     */
 
-    typedef typename boost::mpl::sort< boost::mpl::vector< arg3_t, arg2_t, arg0_t, arg1_t >, arg_comparator >::type
-        placeholders_t;
-    ASSERT_TRUE((_impl::continuous_indices_check< placeholders_t >::type::value));
-    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg1_t, arg3_t, arg2_t > >::type::value));
-    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg2_t > >::type::value));
-    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg1_t > >::type::value));
+    template < typename Lhs, typename Rhs >
+    boost::fusion::joint_view< typename std::remove_reference< Lhs >::type,
+        typename std::remove_reference< Rhs >::type >
+    make_joint_view(Lhs &&lhs, Rhs &&rhs) {
+        return {lhs, rhs};
+    }
+
+    template < typename Pred, typename Sec >
+    static boost::fusion::filter_view< typename std::remove_reference< Sec >::type, Pred > make_filter_view(Sec &&sec) {
+        return {std::forward< Sec >(sec)};
+    };
+
+    template < typename Secs >
+    static boost::fusion::zip_view< typename std::remove_reference< Secs >::type > make_zip_view(Secs &&secs) {
+        return {std::forward< Secs >(secs)};
+    };
 }
