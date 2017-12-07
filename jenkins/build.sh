@@ -105,12 +105,12 @@ cd build;
 
 if [ "x$TARGET" == "xgpu" ]; then
     ENABLE_HOST=OFF
-    ENABLE_GPU=ON
+    ENABLE_CUDA=ON
 else
     ENABLE_HOST=ON
-    ENABLE_GPU=OFF
+    ENABLE_CUDA=OFF
 fi
-echo "ENABLE_GPU=$ENABLE_GPU"
+echo "ENABLE_CUDA=$ENABLE_CUDA"
 echo "ENABLE_HOST=$ENABLE_HOST"
 
 if [[ "$FLOAT_TYPE" == "float" ]]; then
@@ -161,7 +161,7 @@ cmake \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
 -DENABLE_HOST:BOOL=$ENABLE_HOST \
--DENABLE_GPU:BOOL=$ENABLE_GPU \
+-DENABLE_CUDA:BOOL=$ENABLE_CUDA \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
@@ -233,7 +233,7 @@ fi
 
 
 if [[ "$RUN_MPI_TESTS" == "ON" ]]; then
-    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $ENABLE_GPU
+    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $ENABLE_CUDA
 else
     bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str}
 fi
