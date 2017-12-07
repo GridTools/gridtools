@@ -1,20 +1,13 @@
 #/bin/bash
 
-if [[ -z ${VERSION} ]]; then
-  VERSION="5.3"
-fi
-
-if [[ ${VERSION} == "5.3" ]] && [[ "${TARGET}" != "gpu" ]]; then
-  module unload GCC/4.9.3-binutils-2.25
-  module load GCC/5.3.0-binutils-2.25
-else
-  module load PrgEnv-gnu
-  module load GCC/4.9.3-binutils-2.25
-fi
-
-module load mvapich2gdr_gnu/2.1_cuda_7.0
-module load CMake/3.3.2
-module load cudatoolkit
+module load craype-network-infiniband
+module load craype-haswell
+module load craype-accel-nvidia35
+module load cray-libsci
+module load cudatoolkit/8.0.61
+module load mvapich2gdr_gnu/2.2_cuda_8.0
+module load gcc/5.4.0-2.26
+module load cmake/3.9.1
 
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
