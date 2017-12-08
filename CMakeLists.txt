@@ -41,17 +41,6 @@ set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX
 set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 
 # ===============
-# add all cpp files in src:
-# ===============
-file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-list(REMOVE_ITEM sources "${CMAKE_CURRENT_SOURCE_DIR}/src/GCL.cpp")
-foreach( src_file ${sources} )
-    get_filename_component (exec ${src_file} NAME_WE )
-    add_executable (${exec} ${src_file})
-    target_link_libraries(${exec} ${exe_LIBS})
-endforeach(src_file)
-
-# ===============
 # examples and tests
 # ===============
 include (fix_test_case_name)
