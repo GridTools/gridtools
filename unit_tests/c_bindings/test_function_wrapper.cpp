@@ -61,7 +61,7 @@ namespace gridtools {
 
             template < class T >
             std::stack< T > create() {
-                return {};
+	      return std::stack<T>{};
             }
 
             template < class T >

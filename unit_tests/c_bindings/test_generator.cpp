@@ -69,7 +69,8 @@ void foo();
 )?";
 
             TEST(generator, c_interface) {
-                EXPECT_EQ(generate_c_interface(std::ostringstream{}).str(), expected_c_interface);
+	      std::ostringstream strm;
+                EXPECT_EQ(generate_c_interface(strm).str(), expected_c_interface);
             }
         }
     }

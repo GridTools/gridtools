@@ -3,10 +3,10 @@ target_link_libraries(implementation c_bindings_generator)
 
 # TODO(anstaf): factor out cmake boilerplate for c interface generating
 add_executable(header_generator header_generator.cpp)
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+if (${APPLE})
     target_link_libraries(header_generator -force_load implementation)
 else()
-    target_link_libraries(header_generator -Wl,-whole-archive implementation)
+    target_link_libraries(header_generator -Wl,--whole-archive implementation -Wl,--no-whole-archive)
 endif()
 
 add_custom_command(OUTPUT implementation.h

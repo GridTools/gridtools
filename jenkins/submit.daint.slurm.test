@@ -1,0 +1,19 @@
+#!/bin/bash
+#SBATCH --job-name=gridtools_test
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --output=/scratch/snx3000/antonaf/gridtools/./jenkins/../build/test.out
+#SBATCH --time=00:15:00
+#SBATCH -C gpu
+#SBATCH --cpus-per-task=1
+#SBATCH --account=c14
+#SBATCH --partition=normal
+
+echo $LD_LIBRARY_PATH
+
+# set environmental parameters
+
+export LAUNCH_MPI_TEST=srun; export MPICH_RDMA_ENABLED_CUDA=1; export MPICH_G2G_PIPELINE=30
+
+srun bash /scratch/snx3000/antonaf/gridtools/./jenkins/../build/run_tests.sh

@@ -50,7 +50,7 @@ namespace {
 
     // Various flavours to create exported functions.
 
-    stack_t my_create_impl() { return {}; }
+    stack_t my_create_impl() { return stack_t{}; }
     GT_EXPORT_BINDING_0(my_create, my_create_impl);
 
     template < class T >
@@ -104,6 +104,7 @@ double my_top(gt_handle*);
 )?";
 
     TEST(export, c_interface) {
-        EXPECT_EQ(gridtools::c_bindings::generate_c_interface(std::ostringstream{}).str(), expected_c_interface);
+      std::ostringstream strm;
+        EXPECT_EQ(gridtools::c_bindings::generate_c_interface(strm).str(), expected_c_interface);
     }
 }
