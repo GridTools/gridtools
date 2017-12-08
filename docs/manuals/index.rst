@@ -5,8 +5,9 @@
 
 .. include:: defs.hrst
 
-This is the entry page to the |GT| documentation.
 
+.. highlight:: C++
+   :linenothreshold: 5
 
 .. toctree::
    :maxdepth: 2
@@ -17,6 +18,7 @@ This is the entry page to the |GT| documentation.
    concepts/concepts
    internal/internal
    faq/faq
+   coding_convention/coding_convention
 
 Indices and tables
 ==================

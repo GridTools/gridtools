@@ -7,25 +7,10 @@
 
 .. _internal:
 
+====================================
 Internal Documentation
 ====================================
 
-.. highlight:: C++
-   :linenothreshold: 5
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Table of Contents
-   :name: mastertoc
-   :numbered:
-
-   new_indexing
+.. include:: new_indexing.hrst
 
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

@@ -5,11 +5,13 @@
 
 .. include:: ../defs.hrst
 
-.. _upcoming-features:
+.. _coding_convention:
 
-Upcoming Features
+====================================
+Coding Convention
 ====================================
 
-.. include::   user_specified_extents.hrst
-.. include::   link_to_umesh.hrst
+.. include:: cmake.hrst
+.. include:: cpp.hrst
+
 

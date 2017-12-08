@@ -1,8 +1,12 @@
 .. _concepts:
 
 =========
-CONCEPTS
+Concepts
 =========
+
+---------------
+Basic concepts
+---------------
 
 .. glossary::
 

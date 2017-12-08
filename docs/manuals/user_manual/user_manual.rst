@@ -26,9 +26,3 @@ User Manual
 .. include:: benchmarking.hrst
 .. include:: serialbox_and_porting.hrst
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
