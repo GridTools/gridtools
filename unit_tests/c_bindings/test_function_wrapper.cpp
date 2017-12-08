@@ -49,12 +49,11 @@ namespace gridtools {
             struct a_struct;
             static_assert(std::is_same< wrapped_t< void (*)() >, void() >{}, "");
             static_assert(std::is_same< wrapped_t< int() >, int() >{}, "");
-            static_assert(std::is_same< wrapped_t< const int() >, const int() >{}, "");
             static_assert(std::is_same< wrapped_t< a_struct() >, gt_handle *() >{}, "");
             static_assert(std::is_same< wrapped_t< a_struct const &() >, gt_handle *() >{}, "");
             static_assert(std::is_same< wrapped_t< void(int) >, void(int) >{}, "");
             static_assert(std::is_same< wrapped_t< void(int &) >, void(int *) >{}, "");
-            static_assert(std::is_same< wrapped_t< void(int *) >, void(int *) >{}, "");
+            static_assert(std::is_same< wrapped_t< void(int const *) >, void(int const *) >{}, "");
             static_assert(std::is_same< wrapped_t< void(a_struct *) >, void(gt_handle *) >{}, "");
             static_assert(std::is_same< wrapped_t< void(a_struct &) >, void(gt_handle *) >{}, "");
             static_assert(std::is_same< wrapped_t< void(a_struct) >, void(gt_handle *) >{}, "");
