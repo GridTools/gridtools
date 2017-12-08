@@ -49,6 +49,28 @@
         typename boost::function_types::parameter_types<::gridtools::c_bindings::wrapped_t< signature > >::type, \
         i >::type param_##i
 
+/**
+ *   Defines the function with the given name with the C linkage.
+ *
+ *   The signature if the generated function will be transformed from the provided signature according to the following
+ *   rules:
+ *     - for result type:
+ *       - `void` and arithmetic types remain the same;
+ *       - classes (and structures) and references to them are transformed to the pointer to the opaque handle
+ *         (`gt_handle*`) which should be released by calling `void gt_release(gt_handle*)` function;
+ *       - all other result types will cause a compiler error.
+ *     - for parameter types:
+ *       - arithmetic types and pointers to them remain the same;
+ *       - references to arithmetic types are transformed to the corresponded pointers;
+ *       - classes (and structures) and references or pointers to them are transformed to `gt_handle*`;
+ *       - all other parameter types will cause a compiler error.
+ *   Additionally the newly generated function will be registered for automatic interface generation.
+ *
+ *   @param n The arity of the generated function.
+ *   @param name The name of the generated function.
+ *   @param signature The signature that will be used to invoke `impl`.
+ *   @param impl The functor that the generated function will delegate to.
+ */
 #define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, signature, impl)                                                  \
     static_assert(::boost::function_types::function_arity< signature >() == n, "arity mismatch");                   \
     extern "C"                                                                                                      \
@@ -58,8 +80,10 @@
     }                                                                                                               \
     GT_ADD_GENERATED_DECLARATION(::gridtools::c_bindings::wrapped_t< signature >, name)
 
+/// The flavour of GT_EXPORT_BINDING_WITH_SIGNATURE where the `impl` parameter is a function pointer.
 #define GT_EXPORT_BINDING(n, name, impl) GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, decltype(impl), impl)
 
+/// GT_EXPORT_BINDING_WITH_SIGNATURE shortcuts for the given arity
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_0(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(0, name, s, i)
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_1(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(1, name, s, i)
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_2(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(2, name, s, i)
@@ -71,6 +95,7 @@
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_8(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(8, name, s, i)
 #define GT_EXPORT_BINDING_WITH_SIGNATURE_9(name, s, i) GT_EXPORT_BINDING_WITH_SIGNATURE(9, name, s, i)
 
+/// GT_EXPORT_BINDING shortcuts for the given arity
 #define GT_EXPORT_BINDING_0(name, impl) GT_EXPORT_BINDING(0, name, impl)
 #define GT_EXPORT_BINDING_1(name, impl) GT_EXPORT_BINDING(1, name, impl)
 #define GT_EXPORT_BINDING_2(name, impl) GT_EXPORT_BINDING(2, name, impl)

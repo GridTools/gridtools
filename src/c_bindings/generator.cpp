@@ -41,8 +41,8 @@
 namespace gridtools {
     namespace c_bindings {
         namespace _impl {
-            void declarations::add(std::string name, generator_t generator) {
-                bool ok = m_generators.emplace(std::move(name), std::move(generator)).second;
+            void declarations::add(char const *name, generator_t generator) {
+                bool ok = m_generators.emplace(name, std::move(generator)).second;
                 assert(ok);
             }
 
@@ -52,7 +52,7 @@ namespace gridtools {
                 return strm;
             }
 
-            const char c_traits::m_prologue[] = R"?(
+            char const c_traits::m_prologue[] = R"?(
 struct gt_handle;
 
 #ifdef __cplusplus
@@ -63,14 +63,14 @@ typedef struct gt_handle gt_handle;
 
 void gt_release(gt_handle*);
 )?";
-            const char c_traits::m_epilogue[] = R"?(
+            char const c_traits::m_epilogue[] = R"?(
 #ifdef __cplusplus
 }
 #endif
 )?";
 
-            const char fortran_traits::m_prologue[] = R"?()?";
-            const char fortran_traits::m_epilogue[] = R"?()?";
+            char const fortran_traits::m_prologue[] = R"?()?";
+            char const fortran_traits::m_epilogue[] = R"?()?";
         }
     }
 }

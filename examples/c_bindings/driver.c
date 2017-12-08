@@ -51,12 +51,14 @@ typedef double float_type;
 #define J 10
 #define K 11
 
+float_type initial_value(int i, int j, int k) { return i + j + k; }
+
 void init_in(float_type arr[I][J][K]) {
     int i, j, k;
     for (i = 0; i != I; ++i)
         for (j = 0; j != J; ++j)
             for (k = 0; k != K; ++k)
-                arr[i][j][k] = i + j + k;
+                arr[i][j][k] = initial_value(i, j, k);
 }
 
 void verify(const char *label, float_type arr[I][J][K]) {
@@ -64,7 +66,7 @@ void verify(const char *label, float_type arr[I][J][K]) {
     for (i = 0; i != I; ++i)
         for (j = 0; j != J; ++j)
             for (k = 0; k != K; ++k)
-                if (arr[i][j][k] != i + j + k) {
+                if (arr[i][j][k] != initial_value(i, j, k)) {
                     fprintf(stderr,
                         "data mismatch in %s[%d][%d][%d]: actual - %f , expected - %f\n",
                         label,
@@ -72,7 +74,7 @@ void verify(const char *label, float_type arr[I][J][K]) {
                         j,
                         k,
                         arr[i][j][k],
-                        (float_type)(i + j + k));
+                        initial_value(i, j, k));
                     exit(i);
                 }
 }
@@ -90,14 +92,15 @@ int main() {
 
     steady_stencil(stencil);
     run_stencil(stencil);
+    sync_data_store(in_handle);
     sync_data_store(out_handle);
 
     verify("in", in);
     verify("out", in);
 
-    printf("done\n");
-
     gt_release(stencil);
     gt_release(in_handle);
     gt_release(out_handle);
+
+    printf("It works!\n");
 }

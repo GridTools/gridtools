@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <cassert>
+#include <cstring>
 #include <functional>
 #include <map>
 #include <ostream>
@@ -48,16 +50,17 @@
 namespace gridtools {
     namespace c_bindings {
 
-        enum class language { c, fortran };
-
         namespace _impl {
 
             class declarations {
-                using generator_t = std::function< void(std::ostream &, std::string const &) >;
-                std::map< std::string, generator_t > m_generators;
+                using generator_t = std::function< void(std::ostream &, char const *) >;
+                struct less {
+                    bool operator()(char const *lhs, char const *rhs) const { return strcmp(lhs, rhs) < 0; }
+                };
+                std::map< char const *, generator_t, less > m_generators;
 
               public:
-                void add(std::string name, generator_t generator);
+                void add(char const *name, generator_t generator);
                 friend std::ostream &operator<<(std::ostream &strm, declarations const &);
             };
 
@@ -102,7 +105,7 @@ namespace gridtools {
             };
 
             template < class Fun >
-            std::ostream &write_declaration(std::ostream &strm, const std::string &name) {
+            std::ostream &write_declaration(std::ostream &strm, char const *name) {
                 namespace ft = boost::function_types;
                 strm << get_c_type_name< typename ft::result_type< Fun >::type >() << " " << name << "(";
                 for_each_param< Fun >([&](const std::string &type_name, int i) {
@@ -115,29 +118,32 @@ namespace gridtools {
 
             struct c_traits {
                 template < class Fun >
-                static void generate_declaration(std::ostream &strm, std::string const &name) {
+                static void generate_declaration(std::ostream &strm, char const *name) {
                     write_declaration< Fun >(strm, name);
                 }
-                static const char m_prologue[];
-                static const char m_epilogue[];
+                static char const m_prologue[];
+                static char const m_epilogue[];
             };
 
+            // TODO(anstaf): implement this
             struct fortran_traits {
                 template < class Fun >
-                static void generate_declaration(std::ostream &strm, std::string const &name) {}
+                static void generate_declaration(std::ostream &strm, char const *name) {
+                    assert(false);
+                }
 
                 static const char m_prologue[];
                 static const char m_epilogue[];
             };
 
             template < class Traits, class Fun >
-            void add_declaration(std::string const &name) {
+            void add_declaration(char const *name) {
                 get_declarations< Traits >().add(name, Traits::template generate_declaration< Fun >);
             }
 
             template < class Fun >
             struct registrar {
-                registrar(const std::string &name) {
+                registrar(char const *name) {
                     add_declaration< _impl::c_traits, Fun >(name);
                     add_declaration< _impl::fortran_traits, Fun >(name);
                 }

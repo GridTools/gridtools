@@ -37,6 +37,8 @@
 #include <iostream>
 #include <functional>
 
+#include <boost/mpl/vector.hpp>
+
 #include <c_bindings/export.hpp>
 
 #include <stencil-composition/stencil-composition.hpp>
@@ -57,15 +59,16 @@ namespace {
 
     using namespace gridtools;
     using namespace enumtype;
+    namespace m = boost::mpl;
 
     struct copy_functor {
-        typedef accessor< 0, in, extent<>, 3 > in;
-        typedef accessor< 1, inout, extent<>, 3 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
+        using in = accessor< 0, enumtype::in, extent<>, 3 >;
+        using out = accessor< 1, enumtype::inout, extent<>, 3 >;
+        using arg_list = m::vector< in, out >;
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-            eval(out()) = eval(in());
+            eval(out{}) = eval(in{});
         }
     };
 
@@ -82,15 +85,15 @@ namespace {
     std::shared_ptr< stencil > make_copy_stencil(data_store_t in, data_store_t out) {
         using p_in = arg< 0, data_store_t >;
         using p_out = arg< 1, data_store_t >;
+
         auto dims = out.dims();
         auto grid = make_grid(dims[0], dims[1], dims[2]);
-        auto domain = aggregator_type< boost::mpl::vector< p_in, p_out > >{p_in{} = in, p_out{} = out};
+        auto domain = aggregator_type< m::vector< p_in, p_out > >{p_in{} = in, p_out{} = out};
         auto mss = make_multistage(execute< forward >(), make_stage< copy_functor >(p_in{}, p_out{}));
         auto res = make_computation< BACKEND >(domain, grid, mss);
         res->ready();
         return res;
     }
-
     GT_EXPORT_BINDING_2(create_copy_stencil, make_copy_stencil);
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(std::shared_ptr< stencil >), std::mem_fn(&stencil::run));
