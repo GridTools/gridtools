@@ -41,14 +41,7 @@
 
 #include <boost/any.hpp>
 
-extern "C" {
-
-struct gt_handle {
-    boost::any m_value;
-};
-
-void gt_release(gt_handle const *obj) { delete obj; }
-}
+#include "handle.hpp"
 
 namespace gridtools {
     namespace c_bindings {
@@ -112,7 +105,7 @@ namespace gridtools {
             using param_converted_to_c_t = typename param_converted_to_c< T >::type;
 
             template < class T,
-                typename std::enable_if< std::is_integral< typename std::remove_pointer< T >::type >::value,
+                typename std::enable_if< std::is_arithmetic< typename std::remove_pointer< T >::type >::value,
                     int >::type = 0 >
             T convert_from_c(T obj) {
                 return obj;
@@ -120,7 +113,7 @@ namespace gridtools {
 
             template < class T,
                 typename std::enable_if< std::is_reference< T >::value &&
-                                             std::is_integral< typename std::remove_reference< T >::type >::value,
+                                             std::is_arithmetic< typename std::remove_reference< T >::type >::value,
                     int >::type = 0 >
             T convert_from_c(typename std::remove_reference< T >::type *obj) {
                 return *obj;
@@ -131,31 +124,31 @@ namespace gridtools {
                 return boost::any_cast< T >(obj->m_value);
             }
 
-            template < class T >
+            template < class T, class Impl = T * >
             struct wrapped_f;
 
-            template < class R, class... Params >
-            struct wrapped_f< R (*)(Params...) > {
-                R (*m_fun)(Params...);
+            template < class R, class... Params, class Impl >
+            struct wrapped_f< R(Params...), Impl > {
+                Impl m_fun;
                 result_converted_to_c_t< R > operator()(param_converted_to_c_t< Params >... args) const {
                     return convert_to_c(m_fun(convert_from_c< Params >(args)...));
                 }
             };
 
-            template < class... Params >
-            struct wrapped_f< void (*)(Params...) > {
-                void (*m_fun)(Params...);
+            template < class... Params, class Impl >
+            struct wrapped_f< void(Params...), Impl > {
+                Impl m_fun;
                 void operator()(param_converted_to_c_t< Params >... args) const {
-                    return m_fun(convert_from_c< Params >(args)...);
+                    m_fun(convert_from_c< Params >(args)...);
                 }
             };
 
             template < class T >
             struct wrapped;
 
-            template < class R, class... Params >
-            struct wrapped< R (*)(Params...) > {
-                using type = typename wrapped< R(Params...) >::type;
+            template < class T >
+            struct wrapped< T * > {
+                using type = typename wrapped< T >::type;
             };
 
             template < class R, class... Params >
@@ -165,8 +158,13 @@ namespace gridtools {
         }
 
         template < class T >
-        constexpr _impl::wrapped_f< T > wrap(T obj) {
+        constexpr _impl::wrapped_f< T > wrap(T *obj) {
             return {obj};
+        }
+
+        template < class T, class Impl >
+        constexpr _impl::wrapped_f< T, typename std::decay< Impl >::type > wrap(Impl &&obj) {
+            return {std::forward< Impl >(obj)};
         }
 
         template < class T >

@@ -34,22 +34,25 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <c_bindings/handle.hpp>
-#include <c_bindings/generator.hpp>
+#include "c_bindings/generator.hpp"
 
-#include <sstream>
-
-#include <gtest/gtest.h>
+#include <cassert>
 
 namespace gridtools {
     namespace c_bindings {
-        namespace {
+        namespace _impl {
+            void declarations::add(std::string name, generator_t generator) {
+                bool ok = m_generators.emplace(std::move(name), std::move(generator)).second;
+                assert(ok);
+            }
 
-            GT_ADD_GENERATED_DECLARATION(void(), foo);
-            GT_ADD_GENERATED_DECLARATION(gt_handle *(int, double const *, gt_handle *), bar);
-            GT_ADD_GENERATED_DECLARATION(void(int *const *volatile *const *), baz);
+            std::ostream &operator<<(std::ostream &strm, declarations const &declarations) {
+                for (auto &&item : declarations.m_generators)
+                    item.second(strm, item.first);
+                return strm;
+            }
 
-            const char expected_c_interface[] = R"?(
+            const char c_traits::m_prologue[] = R"?(
 struct gt_handle;
 
 #ifdef __cplusplus
@@ -59,18 +62,15 @@ typedef struct gt_handle gt_handle;
 #endif
 
 void gt_release(gt_handle*);
-gt_handle* bar(int, double*, gt_handle*);
-void baz(int****);
-void foo();
-
+)?";
+            const char c_traits::m_epilogue[] = R"?(
 #ifdef __cplusplus
 }
 #endif
 )?";
 
-            TEST(generator, c_intterface) {
-                EXPECT_EQ(generate_c_interface(std::ostringstream{}).str(), expected_c_interface);
-            }
+            const char fortran_traits::m_prologue[] = R"?()?";
+            const char fortran_traits::m_epilogue[] = R"?()?";
         }
     }
 }

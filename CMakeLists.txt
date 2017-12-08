@@ -32,6 +32,13 @@ set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPE
 
 set(exe_LIBS ${exe_LIBS} gcl)
 
+# ===============
+# compile c_bindings_generator:
+# ===============
+add_library(c_bindings_generator src/c_bindings/generator.cpp src/c_bindings/handle.cpp)
+set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
+
+set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 
 # ===============
 # add all cpp files in src:

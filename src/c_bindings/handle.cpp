@@ -34,43 +34,6 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <c_bindings/handle.hpp>
-#include <c_bindings/generator.hpp>
+#include "c_bindings/handle.hpp"
 
-#include <sstream>
-
-#include <gtest/gtest.h>
-
-namespace gridtools {
-    namespace c_bindings {
-        namespace {
-
-            GT_ADD_GENERATED_DECLARATION(void(), foo);
-            GT_ADD_GENERATED_DECLARATION(gt_handle *(int, double const *, gt_handle *), bar);
-            GT_ADD_GENERATED_DECLARATION(void(int *const *volatile *const *), baz);
-
-            const char expected_c_interface[] = R"?(
-struct gt_handle;
-
-#ifdef __cplusplus
-extern "C" {
-#else
-typedef struct gt_handle gt_handle;
-#endif
-
-void gt_release(gt_handle*);
-gt_handle* bar(int, double*, gt_handle*);
-void baz(int****);
-void foo();
-
-#ifdef __cplusplus
-}
-#endif
-)?";
-
-            TEST(generator, c_intterface) {
-                EXPECT_EQ(generate_c_interface(std::ostringstream{}).str(), expected_c_interface);
-            }
-        }
-    }
-}
+void gt_release(gt_handle const *obj) { delete obj; }

@@ -36,6 +36,7 @@
 #pragma once
 
 #include <functional>
+#include <map>
 #include <ostream>
 #include <string>
 
@@ -44,15 +45,39 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/type_index.hpp>
 
-#include "function_wrapper.hpp"
-
 namespace gridtools {
     namespace c_bindings {
+
+        enum class language { c, fortran };
+
         namespace _impl {
 
+            class declarations {
+                using generator_t = std::function< void(std::ostream &, std::string const &) >;
+                std::map< std::string, generator_t > m_generators;
+
+              public:
+                void add(std::string name, generator_t generator);
+                friend std::ostream &operator<<(std::ostream &strm, declarations const &);
+            };
+
+            template < class >
+            declarations &get_declarations() {
+                static declarations obj;
+                return obj;
+            }
+
+            template < class T, class = void >
+            struct recursive_remove_cv : std::remove_cv< T > {};
+
             template < class T >
-            std::string get_type_name() {
-                return boost::typeindex::type_id_with_cvr< T >().pretty_name();
+            struct recursive_remove_cv< T, typename std::enable_if< std::is_pointer< T >::value >::type > {
+                using type = typename recursive_remove_cv< typename std::remove_pointer< T >::type >::type *;
+            };
+
+            template < class T >
+            std::string get_c_type_name() {
+                return boost::typeindex::type_id< typename recursive_remove_cv< T >::type >().pretty_name();
             }
 
             template < class T >
@@ -63,7 +88,7 @@ namespace gridtools {
             struct apply_to_param_f {
                 template < class Fun, class T >
                 void operator()(Fun &&fun, int &count, boxed< T >) const {
-                    std::forward< Fun >(fun)(get_type_name< T >(), count);
+                    std::forward< Fun >(fun)(get_c_type_name< T >(), count);
                     ++count;
                 }
             };
@@ -77,49 +102,72 @@ namespace gridtools {
             };
 
             template < class Fun >
-            std::ostream &write_delegation(std::ostream &strm, const std::string &name, const std::string &delegator) {
-                namespace ft = boost::function_types;
-                strm << get_type_name< typename ft::result_type< Fun >::type >() << " " << name << "(";
-                for_each_param< Fun >([&](const std::string &type_name, int i) {
-                    if (i)
-                        strm << ", ";
-                    strm << type_name << " arg_" << i;
-                });
-                strm << ") {\n";
-                strm << "    return " << delegator << "(";
-                for_each_param< Fun >([&](const std::string &type_name, int i) {
-                    if (i)
-                        strm << ", ";
-                    strm << " arg_" << i;
-                });
-                strm << ");\n";
-                strm << "}\n";
-                return strm;
-            }
-
-            template < class Fun >
             std::ostream &write_declaration(std::ostream &strm, const std::string &name) {
                 namespace ft = boost::function_types;
-                strm << get_type_name< typename ft::result_type< Fun >::type >() << " " << name << "(";
+                strm << get_c_type_name< typename ft::result_type< Fun >::type >() << " " << name << "(";
                 for_each_param< Fun >([&](const std::string &type_name, int i) {
                     if (i)
                         strm << ", ";
                     strm << type_name;
                 });
-                strm << ");\n";
-                return strm;
+                return strm << ");\n";
+            }
+
+            struct c_traits {
+                template < class Fun >
+                static void generate_declaration(std::ostream &strm, std::string const &name) {
+                    write_declaration< Fun >(strm, name);
+                }
+                static const char m_prologue[];
+                static const char m_epilogue[];
+            };
+
+            struct fortran_traits {
+                template < class Fun >
+                static void generate_declaration(std::ostream &strm, std::string const &name) {}
+
+                static const char m_prologue[];
+                static const char m_epilogue[];
+            };
+
+            template < class Traits, class Fun >
+            void add_declaration(std::string const &name) {
+                get_declarations< Traits >().add(name, Traits::template generate_declaration< Fun >);
+            }
+
+            template < class Fun >
+            struct registrar {
+                registrar(const std::string &name) {
+                    add_declaration< _impl::c_traits, Fun >(name);
+                    add_declaration< _impl::fortran_traits, Fun >(name);
+                }
+            };
+
+            template < class Traits >
+            void generate_interface(std::ostream &strm) {
+                strm << Traits::m_prologue << _impl::get_declarations< Traits >() << Traits::m_epilogue;
             }
         }
 
-        template < class Fun >
-        std::ostream &write_definition(std::ostream &strm, const std::string &name, const std::string &impl) {
-            return _impl::write_delegation< wrapped_t< Fun > >(
-                strm, name, "::grigtools::c_bindings::wrap(" + impl + ")");
+        /// Outputs the content of the C compatible header with the declarations added by GT_ADD_GENERATED_DECLARATION
+        template < class Strm >
+        Strm generate_c_interface(Strm &&strm) {
+            _impl::generate_interface< _impl::c_traits >(strm);
+            return std::forward< Strm >(strm);
         }
 
-        template < class Fun >
-        std::ostream &write_declaration(std::ostream &strm, const std::string &name) {
-            return _impl::write_declaration< wrapped_t< Fun > >(strm, name);
+        /// Outputs the content of the Fortran module with the declarations added by GT_ADD_GENERATED_DECLARATION
+        template < class Strm >
+        Strm generate_fortran_interface(Strm &&strm) {
+            _impl::generate_interface< _impl::fortran_traits >(strm);
+            return std::forward< Strm >(strm);
         }
     }
 }
+
+/**
+ *  Registers the function that for declaration generations.
+ *  Users should not this directly.
+ */
+#define GT_ADD_GENERATED_DECLARATION(signature, name) \
+    static ::gridtools::c_bindings::_impl::registrar< signature > generated_declaration_registrar_##name(#name)

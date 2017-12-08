@@ -107,6 +107,14 @@ namespace gridtools {
             TEST(warp, lambda) {
                 EXPECT_EQ(42, wrap(+[] { return 42; })());
             }
+
+            TEST(warp, lambda2) {
+                int val = 42;
+                auto testee = wrap< int() >([&] { return val; });
+                EXPECT_EQ(42, testee());
+                val = 1;
+                EXPECT_EQ(1, testee());
+            }
         }
     }
 }

@@ -34,22 +34,55 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <c_bindings/handle.hpp>
-#include <c_bindings/generator.hpp>
+#include "c_bindings/export.hpp"
 
+#include <functional>
 #include <sstream>
+#include <stack>
 
 #include <gtest/gtest.h>
 
-namespace gridtools {
-    namespace c_bindings {
-        namespace {
+#include "c_bindings/handle.hpp"
 
-            GT_ADD_GENERATED_DECLARATION(void(), foo);
-            GT_ADD_GENERATED_DECLARATION(gt_handle *(int, double const *, gt_handle *), bar);
-            GT_ADD_GENERATED_DECLARATION(void(int *const *volatile *const *), baz);
+namespace {
 
-            const char expected_c_interface[] = R"?(
+    using stack_t = std::stack< double >;
+
+    // Various flavours to create exported functions.
+
+    stack_t my_create_impl() { return {}; }
+    GT_EXPORT_BINDING_0(my_create, my_create_impl);
+
+    template < class T >
+    void push_impl(std::stack< T > &obj, T val) {
+        obj.push(val);
+    }
+    GT_EXPORT_BINDING_2(my_push, push_impl< double >);
+
+    GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_pop, void(stack_t &), [](stack_t &obj) { obj.pop(); });
+
+    struct top_impl {
+        template < class T >
+        T operator()(std::stack< T > const &container) const {
+            return container.top();
+        }
+    };
+    GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_top, double(stack_t const &), top_impl{});
+
+    GT_EXPORT_BINDING_WITH_SIGNATURE_1(my_empty, bool(stack_t const &), std::mem_fn(&stack_t::empty));
+
+    TEST(export, smoke) {
+        gt_handle *obj = my_create();
+        EXPECT_TRUE(my_empty(obj));
+        my_push(obj, 42);
+        EXPECT_FALSE(my_empty(obj));
+        EXPECT_EQ(42, my_top(obj));
+        my_pop(obj);
+        EXPECT_TRUE(my_empty(obj));
+        gt_release(obj);
+    }
+
+    const char expected_c_interface[] = R"?(
 struct gt_handle;
 
 #ifdef __cplusplus
@@ -59,18 +92,18 @@ typedef struct gt_handle gt_handle;
 #endif
 
 void gt_release(gt_handle*);
-gt_handle* bar(int, double*, gt_handle*);
-void baz(int****);
-void foo();
+gt_handle* my_create();
+bool my_empty(gt_handle*);
+void my_pop(gt_handle*);
+void my_push(gt_handle*, double);
+double my_top(gt_handle*);
 
 #ifdef __cplusplus
 }
 #endif
 )?";
 
-            TEST(generator, c_intterface) {
-                EXPECT_EQ(generate_c_interface(std::ostringstream{}).str(), expected_c_interface);
-            }
-        }
+    TEST(export, c_interface) {
+        EXPECT_EQ(gridtools::c_bindings::generate_c_interface(std::ostringstream{}).str(), expected_c_interface);
     }
 }
