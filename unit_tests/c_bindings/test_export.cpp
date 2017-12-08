@@ -104,7 +104,7 @@ double my_top(gt_handle*);
 )?";
 
     TEST(export, c_interface) {
-      std::ostringstream strm;
+        std::ostringstream strm;
         EXPECT_EQ(gridtools::c_bindings::generate_c_interface(strm).str(), expected_c_interface);
     }
 }
