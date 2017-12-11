@@ -60,8 +60,6 @@
 #include <boost/mpl/min_element.hpp>
 #include <boost/mpl/max_element.hpp>
 
-#include "../common/generic_metafunctions/copy_into_variadic.hpp"
-
 #include "amss_descriptor.hpp"
 #include "backend_base.hpp"
 #include "backend_metafunctions.hpp"
