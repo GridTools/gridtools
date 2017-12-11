@@ -72,6 +72,19 @@ namespace gridtools {
             template < typename Src >
             auto operator()(Src const &src) const
                 GT_AUTO_RETURN(get_data_store_f{}(src.m_value).get_storage_info_ptr().get());
+#ifdef BOOST_RESULT_OF_USE_TR1
+            template < typename >
+            struct result;
+            template < typename A, typename DS >
+            struct result< get_storage_info_ptr_f(arg_storage_pair< A, DS >) > {
+                using data_store_t =
+                    typename std::decay< typename std::result_of< get_data_store_f(DS const &) >::type >::type;
+                using type = typename data_store_t::storage_info_t const *;
+            };
+            template < typename Src >
+            struct result< get_storage_info_ptr_f(Src &) >
+                : result< get_storage_info_ptr_f(typename std::decay< Src >::type) > {};
+#endif
         };
 
         template < typename ArgStoragePairs, typename Res = get_storage_info_ptrs_t< ArgStoragePairs > >
@@ -107,7 +120,7 @@ namespace gridtools {
                                   .second);
                     boost::fusion::deref(
                         boost::fusion::find< ld_storage_info_ptr_t >(m_local_domain.m_local_storage_info_ptrs)) =
-                        Backend::extract_storage_info_ptr(boost::fusion::at_key< ld_storage_info_ptr_t >(
+                        typename Backend::extract_storage_info_ptr_f{}(boost::fusion::at_key< ld_storage_info_ptr_t >(
                             get_storage_info_ptrs(m_aggregator.get_arg_storage_pairs())));
                 }
             };
@@ -260,8 +273,17 @@ namespace gridtools {
         template < typename Backend >
         struct make_view_elem_f {
             template < typename A, typename DS >
-            auto operator()(const arg_storage_pair< A, DS > &src) const
-                GT_AUTO_RETURN(boost::fusion::make_pair< A >(Backend::make_view(src.m_value)));
+            auto operator()(arg_storage_pair< A, DS > const &src) const
+                GT_AUTO_RETURN(boost::fusion::make_pair< A >(typename Backend::make_view_f{}(src.m_value)));
+#ifdef BOOST_RESULT_OF_USE_TR1
+            template < typename >
+            struct result;
+            template < typename A, typename DS >
+            struct result< make_view_elem_f(arg_storage_pair< A, DS > const &) > {
+                using view_t = typename std::result_of< typename Backend::make_view_f(DS const &) >::type;
+                using type = boost::fusion::pair< A, view_t >;
+            };
+#endif
         };
 
         template < typename Backend, typename Src, typename Dst >

@@ -69,6 +69,10 @@ namespace gridtools {
                 template < typename... Args >
                 using res_t = typename result< compose_trees_f(Args const &...) >::type;
 
+                // This is needed only to make nvcc happy.
+                template < typename Lhs, typename Rhs >
+                struct result< compose_trees_f(Lhs &, Rhs &) > : result< compose_trees_f(Lhs const &, Rhs const &) > {};
+
                 template < typename Lhs, typename Rhs >
                 struct result< compose_trees_f(Lhs const &, Rhs const &) >
                     : std::result_of< ComposeLeafs(Lhs const &, Rhs const &) > {};

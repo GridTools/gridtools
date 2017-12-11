@@ -166,10 +166,10 @@ namespace gridtools {
             gp.sync();
         }
 
-        static constexpr typename backend_traits_t::make_view_f &&make_view = {};
+        using make_view_f = typename backend_traits_t::make_view_f;
 
         /// Method to extract a storage_info pointer.
-        static constexpr typename backend_traits_t::extract_storage_info_ptr_f &&extract_storage_info_ptr = {};
+        using extract_storage_info_ptr_f = typename backend_traits_t::extract_storage_info_ptr_f;
 
         /**
             Method to extract get a storage_info for a temporary storage (could either be a icosahedral or a standard
@@ -224,7 +224,7 @@ namespace gridtools {
         static constexpr query_i_threads_f n_i_pes = &backend_traits_t::n_i_pes;
         static constexpr query_j_threads_f n_j_pes = &backend_traits_t::n_j_pes;
 
-        static constexpr typename backend_traits_t::setup_grid_f &&setup_grid = {};
+        using setup_grid_f = typename backend_traits_t::setup_grid_f;
     };
 
 } // namespace gridtools

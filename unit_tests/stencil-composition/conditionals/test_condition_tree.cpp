@@ -62,13 +62,14 @@ namespace gridtools {
         template < typename Lhs, typename Rhs >
         using node_t = condition< Lhs, Rhs, std::function< bool() > >;
 
-        static_assert(is_condition_tree_of< int *, std::is_pointer >{}, "good leaf");
-        static_assert(is_condition_tree_of< node_t< int *, void * >, std::is_pointer >{}, "good node");
+        static_assert(is_condition_tree_of< int *, std::is_pointer >::value, "good leaf");
+        static_assert(is_condition_tree_of< node_t< int *, void * >, std::is_pointer >::value, "good node");
         static_assert(
-            is_condition_tree_of< node_t< int *, node_t< long *, void * > >, std::is_pointer >{}, "good tree");
-        static_assert(!is_condition_tree_of< int, std::is_pointer >{}, "bad leaf");
-        static_assert(!is_condition_tree_of< node_t< int *, int >, std::is_pointer >{}, "bad node");
-        static_assert(!is_condition_tree_of< node_t< int *, node_t< long, void * > >, std::is_pointer >{}, "bad tree");
+            is_condition_tree_of< node_t< int *, node_t< long *, void * > >, std::is_pointer >::value, "good tree");
+        static_assert(!is_condition_tree_of< int, std::is_pointer >::value, "bad leaf");
+        static_assert(!is_condition_tree_of< node_t< int *, int >, std::is_pointer >::value, "bad node");
+        static_assert(
+            !is_condition_tree_of< node_t< int *, node_t< long, void * > >, std::is_pointer >::value, "bad tree");
 
         template < typename Lhs, typename Rhs, typename Cond = std::function< bool() > >
         condition< Lhs, Rhs, Cond > make_node(Lhs lhs, Rhs rhs, Cond fun = {}) {
@@ -85,19 +86,19 @@ namespace gridtools {
 
         TEST(branch_selector, empty) {
             auto testee = make_branch_selector();
-            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector<> >{}, "all_leaves");
+            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector<> >::value, "all_leaves");
             EXPECT_EQ(testee.apply(identity{}), f::make_vector());
         }
 
         TEST(branch_selector, minimalistic) {
             auto testee = make_branch_selector(1);
-            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int > >{}, "all_leaves");
+            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int > >::value, "all_leaves");
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));
         }
 
         TEST(branch_selector, no_conditions) {
             auto testee = make_branch_selector(1, 2);
-            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int, int > >{}, "all_leaves");
+            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int, int > >::value, "all_leaves");
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1, 2));
         }
 
@@ -132,7 +133,7 @@ namespace gridtools {
             std::array< bool, 2 > keys;
             auto testee =
                 make_branch_selector(make_node(1, make_node(2, 3, [&] { return keys[1]; }), [&] { return keys[0]; }));
-            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int, int, int > >{}, "all_leaves");
+            static_assert(m::equal< decltype(testee)::all_leaves_t, m::vector< int, int, int > >::value, "all_leaves");
             keys = {true};
             EXPECT_EQ(testee.apply(identity{}), f::make_vector(1));
             keys = {false, true};
@@ -159,10 +160,13 @@ namespace gridtools {
         using val_t = std::integral_constant< size_t, I >;
 
         struct get_elem_f {
-            template < typename T, T I >
-            T operator()(std::integral_constant< T, I >) const {
+            template < size_t I >
+            size_t operator()(val_t< I >) const {
                 return I;
             }
+#ifdef BOOST_RESULT_OF_USE_TR1
+            using result_type = size_t;
+#endif
         };
 
         template < typename Fun >

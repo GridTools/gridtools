@@ -72,7 +72,7 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT(is_storage_info< StorageInfo >::value, GT_INTERNAL_ERROR);
                 return t->get_gpu_ptr();
             }
-        }
+        };
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the CUDA backend we return device view

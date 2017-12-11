@@ -301,7 +301,16 @@ namespace gridtools {
         // private members
         const size_t m_size;
         const std::unique_ptr< converted_intermediate< ExpandFactor::value > > m_intermediate;
-        const std::unique_ptr< converted_intermediate< 1 > > m_intermediate_remainder;
+        // For some reason nvcc goes nuts here (even though the previous line is OK):
+        // const std::unique_ptr< converted_intermediate< 1 > > m_intermediate_remainder;
+        // I have to expand `converted_intermediate` alias manually:
+        const std::unique_ptr< intermediate< 1,
+            IsStateful,
+            Backend,
+            _impl::expand_detail::converted_aggregator_type< 1, Aggregator >,
+            Grid,
+            _impl::expand_detail::converted_mss_descriptors_tree< 1, MssDescriptorTrees >... > >
+            m_intermediate_remainder;
 
       public:
         /**
