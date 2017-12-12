@@ -43,6 +43,7 @@
 #include <gridtools.hpp>
 #include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/vector.hpp>
+#include "gtest/gtest.h"
 
 #include <stencil-composition/stencil-composition.hpp>
 
@@ -105,3 +106,6 @@ BOOST_STATIC_ASSERT((boost::mpl::size< mss_local_domain2_t::fused_local_domain_s
 BOOST_STATIC_ASSERT((boost::mpl::equal<
     local_domain_esf_args< boost::mpl::front< mss_local_domain2_t::unfused_local_domain_sequence_t >::type >::type,
     boost::mpl::vector2< p_buff, p_out > >::value));
+
+// icc build fails to build unit tests without a single test.
+TEST(dummy, dummy) {}
