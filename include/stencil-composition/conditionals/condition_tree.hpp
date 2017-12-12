@@ -33,6 +33,16 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
+/**
+ * @file Utilities for dealing with binary trees nodes are gridtools::condition instantiations.
+ *
+ * Examples of the tree types in the context of this file:
+ *   - [some type, that is not gridstool::condition instantiation] - a tree with the only leaf.
+ *   - condition<Mss1, Mss2, Cond> - a tree with one node and two leafs.
+ *   - condition<Mss1, condition<Mss2, Mss3, Cond2>, Cond1> - a tree with two nodes and three leafs.
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -217,6 +227,7 @@ namespace gridtools {
         }
     }
 
+    /// Check that the object is a condition tree and al leafs satisfy the given predicate.
     template < typename Leaf, template < typename > class Pred >
     struct is_condition_tree_of : Pred< Leaf > {};
 
@@ -224,17 +235,31 @@ namespace gridtools {
     struct is_condition_tree_of< condition< Lhs, Rhs, Condition >, Pred >
         : boost::mpl::and_< is_condition_tree_of< Lhs, Pred >, is_condition_tree_of< Rhs, Pred > > {};
 
+    /// Transforms the condition tree by applying to all leaves the given functor
     template < typename Tree, typename Fun >
     auto condition_tree_transform(Tree &&tree, Fun &&fun)
         GT_AUTO_RETURN(_impl::condition_tree::transform_f< typename std::decay< Fun >::type >{std::forward< Fun >(fun)}(
             std::forward< Tree >(tree)));
 
+    /**
+     *  A helper for runtime dispatch on a sequence of condition trees.
+     *
+     *  The class does the following:
+     *    - takes a sequence of trees in constructor [typees of the trees are template parameters];
+     *    - the original sequence trees is composed into the tree of fusion sequences [those sequences are called
+     *      branches below]
+     *    - there is `apply` method, that performs the evaluation of conditions within the nodes and invokes
+     *      the provided functor with the choosen branch as a first argument.
+     *
+     * @tparam Trees - condition trees
+     */
     template < typename... Trees >
     class branch_selector {
         using tree_t = decltype(_impl::condition_tree::make_tree_from_forest(std::declval< Trees >()...));
         tree_t m_tree;
 
       public:
+        /// MPL sequence, containing all leafs of al trees. I.e. the flat view for all trees.
         using all_leaves_t = typename boost::mpl::copy< _impl::condition_tree::all_leaves_in_forest_t< Trees... >,
             boost::mpl::back_inserter< boost::mpl::vector0<> > >::type;
 
@@ -242,11 +267,24 @@ namespace gridtools {
         branch_selector(Trees &&... trees) noexcept
             : m_tree(_impl::condition_tree::make_tree_from_forest(std::move(trees)...)) {}
 
+        /**
+         *  Performs the evaluation of conditions in the trees;
+         *  chooses the sequence of leafs (one per each tree) based on that evaluation
+         *  applies the provided functor with the chosen sequence as a first parameter.
+         *
+         * @tparam Fun - the type of the functor to be invoked.
+         * @tparam Args - the types of the rest of the arguments that are passed to the functor after the branch
+         * @param fun - the functor to be invoked : fun(<selected_branch>, args...)
+         * @param args - the rest of the arguments that are passed to the functor after the branch
+         * @return - what `fun` invocation actually returns. The result type is calculated as a std::common_type
+         *           functor invocations return values for all possible branches.
+         */
         template < typename Fun, typename... Args >
         auto apply(Fun &&fun, Args &&... args) const GT_AUTO_RETURN((_impl::condition_tree::apply_with_tree(
             std::bind(std::forward< Fun >(fun), std::placeholders::_1, std::forward< Args >(args)...))(m_tree)));
     };
 
+    /// Empty case specialization.
     template <>
     class branch_selector<> {
       public:
@@ -257,6 +295,7 @@ namespace gridtools {
             GT_AUTO_RETURN((std::forward< Fun >(fun)(boost::fusion::make_vector(), std::forward< Args >(args)...)));
     };
 
+    /// Generator for branch_selector
     template < typename... Trees >
     branch_selector< typename std::decay< Trees >::type... > make_branch_selector(Trees &&... trees) {
         return {std::forward< Trees >(trees)...};
