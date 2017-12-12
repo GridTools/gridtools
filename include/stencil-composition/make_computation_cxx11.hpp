@@ -87,7 +87,7 @@ namespace gridtools {
             typename Backend,
             typename Arg,
             typename... Args,
-            typename = typename std::enable_if< is_aggregator_type< typename std::decay< Arg >::type >::value >::type >
+            typename std::enable_if< is_aggregator_type< typename std::decay< Arg >::type >::value, int >::type = 0 >
         auto make_computation_dispatch(Arg &&arg, Args &&... args) GT_AUTO_RETURN(
             (make_computation< Positional, Backend >(std::forward< Arg >(arg), std::forward< Args >(args)...)));
 
@@ -95,15 +95,14 @@ namespace gridtools {
             typename Backend,
             typename Arg,
             typename... Args,
-            typename = typename std::enable_if< is_expand_factor< Arg >::value >::type >
+            typename std::enable_if< is_expand_factor< Arg >::value, int >::type = 0 >
         auto make_computation_dispatch(Arg, Args &&... args)
             GT_AUTO_RETURN((make_computation_expandable< Arg, Positional, Backend >(std::forward< Args >(args)...)));
 
         // user protections
         template < bool, typename, typename... Args >
-        short_t make_computation_dispatch(Args...) {
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(Args)), "The computation is malformed");
-            return -1;
+        void make_computation_dispatch(Args &&...) {
+            GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) < 0, "The computation is malformed");
         }
     }
 
