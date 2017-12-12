@@ -151,9 +151,14 @@ namespace gridtools {
                 using type = typename wrapped< T >::type;
             };
 
+            template < class T >
+            struct wrapped< T & > {
+                using type = typename wrapped< T >::type;
+            };
+
             template < class R, class... Params >
             struct wrapped< R(Params...) > {
-                using type = result_converted_to_c_t< R >(param_converted_to_c_t< Params >...);
+                using type = result_converted_to_c_t< R >(typename param_converted_to_c< Params >::type...);
             };
         }
 

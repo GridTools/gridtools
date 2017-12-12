@@ -47,16 +47,16 @@ namespace gridtools {
         namespace {
 
             struct a_struct;
-            static_assert(std::is_same< wrapped_t< void (*)() >, void() >{}, "");
-            static_assert(std::is_same< wrapped_t< int() >, int() >{}, "");
-            static_assert(std::is_same< wrapped_t< a_struct() >, gt_handle *() >{}, "");
-            static_assert(std::is_same< wrapped_t< a_struct const &() >, gt_handle *() >{}, "");
-            static_assert(std::is_same< wrapped_t< void(int) >, void(int) >{}, "");
-            static_assert(std::is_same< wrapped_t< void(int &) >, void(int *) >{}, "");
-            static_assert(std::is_same< wrapped_t< void(int const *) >, void(int const *) >{}, "");
-            static_assert(std::is_same< wrapped_t< void(a_struct *) >, void(gt_handle *) >{}, "");
-            static_assert(std::is_same< wrapped_t< void(a_struct &) >, void(gt_handle *) >{}, "");
-            static_assert(std::is_same< wrapped_t< void(a_struct) >, void(gt_handle *) >{}, "");
+            static_assert(std::is_same< wrapped_t< void (*)() >, void() >::value, "");
+            static_assert(std::is_same< wrapped_t< int() >, int() >::value, "");
+            static_assert(std::is_same< wrapped_t< a_struct() >, gt_handle *() >::value, "");
+            static_assert(std::is_same< wrapped_t< a_struct const &() >, gt_handle *() >::value, "");
+            static_assert(std::is_same< wrapped_t< void(int) >, void(int) >::value, "");
+            static_assert(std::is_same< wrapped_t< void(int &) >, void(int *) >::value, "");
+            static_assert(std::is_same< wrapped_t< void(int const *) >, void(int const *) >::value, "");
+            static_assert(std::is_same< wrapped_t< void(a_struct *) >, void(gt_handle *) >::value, "");
+            static_assert(std::is_same< wrapped_t< void(a_struct &) >, void(gt_handle *) >::value, "");
+            static_assert(std::is_same< wrapped_t< void(a_struct) >, void(gt_handle *) >::value, "");
 
             template < class T >
             std::stack< T > create() {

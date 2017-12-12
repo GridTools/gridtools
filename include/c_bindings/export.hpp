@@ -72,7 +72,7 @@
  *   @param impl The functor that the generated function will delegate to.
  */
 #define GT_EXPORT_BINDING_WITH_SIGNATURE(n, name, signature, impl)                                                  \
-    static_assert(::boost::function_types::function_arity< signature >() == n, "arity mismatch");                   \
+    static_assert(::boost::function_types::function_arity< signature >::value == n, "arity mismatch");              \
     extern "C"                                                                                                      \
         typename ::boost::function_types::result_type<::gridtools::c_bindings::wrapped_t< signature > >::type name( \
             BOOST_PP_ENUM(n, GT_EXPORT_BINDING_IMPL_PARAM_DECL, signature)) {                                       \
