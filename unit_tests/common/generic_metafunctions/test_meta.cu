@@ -33,4 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cxx11_meta.cpp"
+#include "test_meta.cpp"
