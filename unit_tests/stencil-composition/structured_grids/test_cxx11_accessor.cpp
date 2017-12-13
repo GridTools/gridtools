@@ -89,15 +89,21 @@ namespace interface {
     using namespace expressions;
 
     bool test_alternative2() {
+#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+        dimension< 1 > i;
+        dimension< 2 > j;
+        dimension< 3 > k;
 
+        dimension< 4 > t;
+
+        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
+#else
         constexpr dimension< 1 > i;
         constexpr dimension< 2 > j;
         constexpr dimension< 3 > k;
 
         constexpr dimension< 4 > t;
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
-        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
-#else
+
         constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
 
         GRIDTOOLS_STATIC_ASSERT(first.get< 3 - 0 >() == -5, "ERROR");

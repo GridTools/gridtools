@@ -49,6 +49,9 @@ namespace gridtools {
     template < ushort_t Coordinate >
     struct dimension {
 
+#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#define constexpr
+#endif
         GT_FUNCTION constexpr dimension() : value(0) {}
 
         template < typename IntType >
@@ -62,6 +65,10 @@ namespace gridtools {
         /**@brief Constructor*/
         GT_FUNCTION
         constexpr dimension(dimension const &other) : value(other.value) {}
+
+#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#undef constexpr
+#endif
 
         // TODO can I rename direction by index?
         static const ushort_t direction = Coordinate;
