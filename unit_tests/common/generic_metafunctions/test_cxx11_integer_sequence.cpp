@@ -65,11 +65,11 @@ struct get_component_type {
     static constexpr int value = Elem::value;
 };
 
-static_assert(std::is_same< gt_integer_sequence< int >::value_type, int >{}, "");
+static_assert(std::is_same< gt_integer_sequence< int >::value_type, int >::value, "");
 static_assert(gt_integer_sequence< int, 1, 2, 3 >::size() == 3, "");
 
-static_assert(std::is_same< make_gt_integer_sequence< int, 3 >, gt_integer_sequence< int, 0, 1, 2 > >{}, "");
-static_assert(std::is_same< make_gt_integer_sequence< bool, 1 >, gt_integer_sequence< bool, false > >{}, "");
+static_assert(std::is_same< make_gt_integer_sequence< int, 3 >, gt_integer_sequence< int, 0, 1, 2 > >::value, "");
+static_assert(std::is_same< make_gt_integer_sequence< bool, 1 >, gt_integer_sequence< bool, false > >::value, "");
 
 TEST(integer_sequence, fill_array) {
 
@@ -116,7 +116,7 @@ struct transform {
 };
 
 struct lambda {
-    constexpr int operator()(const int i, const int j, const int k, const int l, const int add) const {
+    GT_FUNCTION constexpr int operator()(const int i, const int j, const int k, const int l, const int add) const {
         return add * (i + j + k + l);
     }
 };

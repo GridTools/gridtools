@@ -157,7 +157,7 @@ namespace gridtools {
 
             template < class List >
             struct list_to_iseq;
-            template < template < class... > class L, class Int, size_t... Is >
+            template < template < class... > class L, class Int, Int... Is >
             struct list_to_iseq< L< std::integral_constant< Int, Is >... > > {
                 using type = gt_integer_sequence< Int, Is... >;
             };
