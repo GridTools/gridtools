@@ -35,6 +35,13 @@
 */
 #pragma once
 
+/**
+ *  @file Minimalistic C++11 metaprogramming library
+ *
+ *  The metafunctions in this library operate on typelists.
+ *  Any instantiation of the template class with class template parameters is treated as a typelist.
+ */
+
 #include <type_traits>
 
 #include "gt_integer_sequence.hpp"
@@ -43,7 +50,7 @@ namespace gridtools {
     namespace meta {
 
         template < class... >
-        struct list {};
+        struct list;
 
         template < class >
         struct is_list : std::false_type {};
@@ -55,6 +62,8 @@ namespace gridtools {
         template < template < class... > class L, class... Ts >
         struct length< L< Ts... > > : std::integral_constant< size_t, sizeof...(Ts) > {};
 
+        /// Extracts "producing template" from the typelist.
+        /// I.e ctor<some_instantiation_of_std_tuple>::apply is the alias of std::tuple.
         template < class List >
         struct ctor;
         template < template < class... > class L, class... Ts >
@@ -116,26 +125,16 @@ namespace gridtools {
                 using type = L< Us..., Ts... >;
             };
 
-            template < template < class... > class F, class List >
-            struct rename;
-            template < template < class... > class F, template < class... > class From, class... Ts >
-            struct rename< F, From< Ts... > > {
-                using type = F< Ts... >;
-            };
-
-            template < template < class... > class F, class... Lists >
-            struct transform;
-            template < template < class... > class F, template < class... > class L, class... Ts >
-            struct transform< F, L< Ts... > > {
-                using type = L< F< Ts >... >;
-            };
-            template < template < class... > class F,
-                template < class... > class L1,
-                class... T1s,
-                template < class... > class L2,
-                class... T2s >
-            struct transform< F, L1< T1s... >, L2< T2s... > > {
-                using type = L1< F< T1s, T2s >... >;
+            template < template < class... > class F >
+            struct rename {
+                template < class List >
+                struct apply;
+                template < template < class... > class From, class... Ts >
+                struct apply< From< Ts... > > {
+                    using type = F< Ts... >;
+                };
+                template < class List >
+                using apply_t = typename apply< List >::type;
             };
 
             template < template < class U, U > class F, class ISec >
@@ -178,8 +177,8 @@ namespace gridtools {
 
             template < class SomeList, class List >
             struct drop_front;
-            template < class... Us, template < class... > class L, class... Ts >
-            struct drop_front< list< Us... >, L< Ts... > > {
+            template < template < class... > class L_, class... Us, template < class... > class L, class... Ts >
+            struct drop_front< L_< Us... >, L< Ts... > > {
                 template < class... Vs >
                 static L< typename Vs::type... > select(any_arg_t< Us >..., Vs...);
                 using type = decltype(select(id< Ts >()...));
@@ -224,7 +223,7 @@ namespace gridtools {
                 using type = typename decltype(select(std::declval< inherit< ipair< Ts, Is >... > >()))::type;
             };
 
-            template < template < class... > class F, class List, size_t N >
+            template < template < class... > class F, class List, size_t N = length< List >::value >
             struct combine;
             template < template < class... > class F, class List, size_t N >
             struct combine {
@@ -282,6 +281,28 @@ namespace gridtools {
             };
             template < class T, class U >
             using zip_helper_t = typename zip_helper< T, U >::type;
+
+            template < template < class... > class F, class... Lists >
+            struct transform;
+
+            template < class... Args >
+            using zip_args = typename transform< zip_helper_t, Args... >::type;
+
+            template < template < class... > class F, class... Lists >
+            struct transform
+                : transform< rename< F >::template apply_t, typename combine< zip_args, list< Lists... > >::type > {};
+            template < template < class... > class F, template < class... > class L, class... Ts >
+            struct transform< F, L< Ts... > > {
+                using type = L< F< Ts >... >;
+            };
+            template < template < class... > class F,
+                template < class... > class L1,
+                class... T1s,
+                template < class... > class L2,
+                class... T2s >
+            struct transform< F, L1< T1s... >, L2< T2s... > > {
+                using type = L1< F< T1s, T2s >... >;
+            };
 
             template < template < class... > class F, class S, class List >
             struct rfold;
@@ -356,24 +377,27 @@ namespace gridtools {
         template < class List, class... Ts >
         using push_back = typename _impl::push_back< List, Ts... >::type;
 
+        /// Instantiate F with the parameters taken from List
         template < template < class... > class F, class List >
-        using rename = typename _impl::rename< F, List >::type;
-        template < template < class... > class F >
-        struct rename_f {
-            template < class List >
-            using apply = rename< F, List >;
-        };
+        using rename = typename _impl::rename< F >::template apply< List >::type;
 
+        template < template < class... > class F, class List >
+        using combine = typename _impl::combine< F, List >::type;
+
+        /**
+         *   Transform Lists by applying F element wise.
+         *
+         *   I.e the first element of resulting typelist would be F<first_from_l0, first_froml1, ...>;
+         *   the second would be F<second_from_l0, ...> and so on.
+         */
         template < template < class... > class F, class... Lists >
         using transform = typename _impl::transform< F, Lists... >::type;
-        template < template < class... > class F >
-        struct transform_f {
-            template < class... Lists >
-            using apply = transform< F, Lists... >;
-        };
 
         template < template < class U, U > class F, class ISec >
         using transform_c = typename _impl::transform_c< F, ISec >::type;
+
+        template < class... Lists >
+        using zip = transform< list, Lists... >;
 
         template < size_t N, class T >
         using repeat = transform< always< T >::template apply, _impl::index_list< N > >;
@@ -383,9 +407,6 @@ namespace gridtools {
 
         template < size_t N, class List >
         using drop_front = typename _impl::drop_front< _impl::index_list< N >, List >::type;
-
-        template < template < class... > class F, class List, size_t N = length< List >::value >
-        using combine = typename _impl::combine< F, List, N >::type;
 
         template < template < class... > class F, class S, class List >
         using lfold = typename _impl::lfold< F, S, List >::type;
@@ -466,9 +487,5 @@ namespace gridtools {
             template < class... Ts >
             struct apply< L< Ts... > > : std::true_type {};
         };
-
-        template < class... Lists >
-        using zip = transform< rename_f< list >::template apply,
-            combine< transform_f< _impl::zip_helper_t >::template apply, list< Lists... > > >;
     }
 }
