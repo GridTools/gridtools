@@ -81,11 +81,9 @@ namespace gridtools {
             };
 
             array< std::size_t, 3 > configuration;
+            array< array< array< shape, 3 >, 3 >, 3 > sizes;
 
             kernel_configuration(array< halo_descriptor, 3 > const &halos) : configuration{0, 0, 0} {
-                array< array< array< shape, 3 >, 3 >, 3 > sizes;
-
-                array< array< array< shape, 3 >, 3 >, 3 > permuted_sizes;
 
                 array< array< std::size_t, 3 >, 3 > segments;
 
@@ -106,19 +104,10 @@ namespace gridtools {
                 for (int i = 0; i < 3; ++i) {
                     for (int j = 0; j < 3; ++j) {
                         for (int k = 0; k < 3; ++k) {
-                            permuted_sizes[i][j][k] =
-                                shape(sizes[i][j][k].max(), sizes[i][j][k].median(), sizes[i][j][k].min());
-                        }
-                    }
-                }
-
-                for (int i = 0; i < 3; ++i) {
-                    for (int j = 0; j < 3; ++j) {
-                        for (int k = 0; k < 3; ++k) {
                             if (i != 1 or j != 1 or k != 1) {
-                                configuration[0] = std::max(configuration[0], permuted_sizes[i][j][k].x());
-                                configuration[1] = std::max(configuration[1], permuted_sizes[i][j][k].y());
-                                configuration[2] = std::max(configuration[2], permuted_sizes[i][j][k].z());
+                                configuration[0] = std::max(configuration[0], sizes[i][j][k].max());
+                                configuration[1] = std::max(configuration[1], sizes[i][j][k].median());
+                                configuration[2] = std::max(configuration[2], sizes[i][j][k].min());
                             }
                         }
                     }
