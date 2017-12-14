@@ -36,6 +36,8 @@
 #pragma once
 
 #include "../common/defs.hpp"
+#include "../common/array.hpp"
+#include "../common/halo_descriptor.hpp"
 #include "direction.hpp"
 #include "predicate.hpp"
 
@@ -46,6 +48,84 @@ direation, an arbitrary number of data fields, and the coordinates ID) in the ha
 gridtools::halo_descriptor
 */
 namespace gridtools {
+
+    namespace _impl {
+        struct kernel_configuration {
+            struct shape {
+                array< std::size_t, 3 > data;
+                array< std::size_t, 3 > out;
+                array< std::size_t, 3 > perm = {{0, 1, 2}};
+
+                shape() = default;
+
+                shape(std::size_t x, std::size_t y, std::size_t z) : data{x, y, z}, out{data} {
+                    for (int i = 0; i < 3; ++i) {
+                        for (int j = i; j < 3; ++j) {
+                            if (out[i] < out[j]) {
+                                std::swap(out[i], out[j]);
+                                std::swap(perm[i], perm[j]);
+                            }
+                        }
+                    }
+                }
+
+                std::size_t x() const { return data[0]; }
+                std::size_t y() const { return data[1]; }
+                std::size_t z() const { return data[2]; }
+
+                std::size_t max() const { return out[0]; }
+
+                std::size_t min() const { return out[2]; }
+
+                std::size_t median() const { return out[1]; }
+            };
+
+            array< std::size_t, 3 > configuration;
+
+            kernel_configuration(array< halo_descriptor, 3 > const &halos) : configuration{0, 0, 0} {
+                array< array< array< shape, 3 >, 3 >, 3 > sizes;
+
+                array< array< array< shape, 3 >, 3 >, 3 > permuted_sizes;
+
+                array< array< std::size_t, 3 >, 3 > segments;
+
+                for (int i = 0; i < 3; ++i) {
+                    segments[i][0] = halos[i].minus();
+                    segments[i][1] = halos[i].end() - halos[i].begin() + 1;
+                    segments[i][2] = halos[i].plus();
+                }
+
+                for (int i = 0; i < 3; ++i) {
+                    for (int j = 0; j < 3; ++j) {
+                        for (int k = 0; k < 3; ++k) {
+                            sizes[i][j][k] = shape(segments[0][i], segments[1][j], segments[2][k]);
+                        }
+                    }
+                }
+
+                for (int i = 0; i < 3; ++i) {
+                    for (int j = 0; j < 3; ++j) {
+                        for (int k = 0; k < 3; ++k) {
+                            permuted_sizes[i][j][k] =
+                                shape(sizes[i][j][k].max(), sizes[i][j][k].median(), sizes[i][j][k].min());
+                        }
+                    }
+                }
+
+                for (int i = 0; i < 3; ++i) {
+                    for (int j = 0; j < 3; ++j) {
+                        for (int k = 0; k < 3; ++k) {
+                            if (i != 1 or j != 1 or k != 1) {
+                                configuration[0] = std::max(configuration[0], permuted_sizes[i][j][k].x());
+                                configuration[1] = std::max(configuration[1], permuted_sizes[i][j][k].y());
+                                configuration[2] = std::max(configuration[2], permuted_sizes[i][j][k].z());
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    } // namespace _impl
 
     /**
        @brief kernel to appy boundary conditions to the data fields requested
