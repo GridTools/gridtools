@@ -46,7 +46,7 @@ namespace gridtools {
 
     struct default_predicate {
         template < typename Direction >
-        bool operator()(Direction) const {
+        GT_FUNCTION bool operator()(Direction) const {
             return true;
         }
     };
@@ -57,10 +57,11 @@ namespace gridtools {
     struct proc_grid_predicate {
         ProcGrid const &m_grid;
 
+        GT_FUNCTION
         proc_grid_predicate(ProcGrid const &g) : m_grid{g} {}
 
         template < sign I, sign J, sign K >
-        bool operator()(direction< I, J, K >) const {
+        GT_FUNCTION bool operator()(direction< I, J, K >) const {
             return (m_grid.template proc< I, J, K >() == -1);
         }
     };
