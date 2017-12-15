@@ -47,7 +47,7 @@
  *
  *  Examples of lists:
  *    meta::list<void, int> : elements are void and int
- *    std::tuple<double, double> : elements are double and int
+ *    std::tuple<double, double> : elements are double and double
  *    std::vector<std::tuple<>, some_allocator>: elements are std::tuple<> and some_allocator
  *
  *  Examples of non lists:
@@ -158,6 +158,7 @@ namespace gridtools {
         template < class... >
         struct list;
 
+        // TODO(anstaf): concept checks for function, meta class and meta function
         /**
          *   list concept check.
          *
