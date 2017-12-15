@@ -56,6 +56,20 @@ namespace gridtools {
         static_assert(is_list< std::pair< int, double > >{}, "");
         static_assert(is_list< std::tuple< int, double > >{}, "");
 
+        // has_type
+        static_assert(!has_type< int >{}, "");
+        static_assert(!has_type< f<> >{}, "");
+        static_assert(has_type< lazy< void > >{}, "");
+        static_assert(has_type< std::is_void< int > >{}, "");
+
+        // is_meta_class
+        static_assert(!is_meta_class< int >{}, "");
+        static_assert(!is_meta_class< f< int > >{}, "");
+        static_assert(!is_meta_class< std::is_void< int > >{}, "");
+        static_assert(is_meta_class< always< int > >{}, "");
+        static_assert(is_meta_class< compose< f > >{}, "");
+        static_assert(is_meta_class< ctor< f<> > >{}, "");
+
         // length
         static_assert(length< list<> >::value == 0, "");
         static_assert(length< std::tuple< int > >::value == 1, "");

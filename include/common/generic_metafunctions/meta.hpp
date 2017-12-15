@@ -151,6 +151,26 @@ namespace gridtools {
         using meta_t_ = compose< t_, F >;
 
         /**
+         *  drop-off for C++17 void_t
+         */
+        template < class... >
+        struct lazy_void_t {
+            using type = void;
+        };
+        template < class... Ts >
+        using void_t = t_< lazy_void_t< Ts... > >;
+
+        /**
+         *  Meta version of void_t
+         */
+        template < template < class... > class... >
+        struct lazy_meta_void_t {
+            using type = void;
+        };
+        template < template < class... > class... Fs >
+        using meta_void_t = t_< lazy_meta_void_t< Fs... > >;
+
+        /**
          *   The default list constructor.
          *
          *   Used within the library when it needed to produce sometning, that satisfy list concept.
@@ -158,7 +178,6 @@ namespace gridtools {
         template < class... >
         struct list;
 
-        // TODO(anstaf): concept checks for function, meta class and meta function
         /**
          *   list concept check.
          *
@@ -168,6 +187,22 @@ namespace gridtools {
         struct is_list : std::false_type {};
         template < template < class... > class L, class... Ts >
         struct is_list< L< Ts... > > : std::true_type {};
+
+        /**
+         *  Check if the class has inner `type`
+         */
+        template < class, class = void >
+        struct has_type : std::false_type {};
+        template < class T >
+        struct has_type< T, void_t< t_< T > > > : std::true_type {};
+
+        /**
+         *   meta class concept check
+         */
+        template < class, class = void >
+        struct is_meta_class : std::false_type {};
+        template < class T >
+        struct is_meta_class< T, meta_void_t< T::template apply > > : std::true_type {};
 
         template < class >
         struct length;
