@@ -145,10 +145,16 @@ namespace gridtools {
         using t_ = typename T::type;
 
         /**
-         *  Remove laziness from the function
+         *  Remove laziness from a function
          */
         template < template < class... > class F >
         using meta_t_ = compose< t_, F >;
+
+        /**
+         *  Remove laziness from a meta class
+         */
+        template < class T >
+        using meta_class_t_ = meta_t_< T::template apply >;
 
         /**
          *  drop-off for C++17 void_t
@@ -228,56 +234,20 @@ namespace gridtools {
             using apply = T;
         };
 
-        template < class >
-        struct lazy_first;
-        template < template < class... > class L, class T, class... Ts >
-        struct lazy_first< L< T, Ts... > > {
-            using type = T;
-        };
-        template < class List >
-        using first = t_< lazy_first< List > >;
-
-        template < class >
-        struct lazy_second;
-        template < template < class... > class L, class T, class U, class... Ts >
-        struct lazy_second< L< T, U, Ts... > > {
-            using type = U;
-        };
-        template < class List >
-        using second = t_< lazy_second< List > >;
-
-        template < class, class... >
-        struct lazy_push_front;
-        template < template < class... > class L, class... Us, class... Ts >
-        struct lazy_push_front< L< Us... >, Ts... > {
-            using type = L< Ts..., Us... >;
-        };
-        template < class List, class... Ts >
-        using push_front = t_< lazy_push_front< List, Ts... > >;
-
-        template < class, class... >
-        struct lazy_push_back;
-        template < template < class... > class L, class... Us, class... Ts >
-        struct lazy_push_back< L< Us... >, Ts... > {
-            using type = L< Us..., Ts... >;
-        };
-        template < class List, class... Ts >
-        using push_back = t_< lazy_push_back< List, Ts... > >;
-
         /**
          *   Instantiate F with the parameters taken from List.
          */
         template < template < class... > class F >
-        struct rename {
+        struct lazy_rename {
             template < class >
-            struct lazy_apply;
+            struct apply;
             template < template < class... > class From, class... Ts >
-            struct lazy_apply< From< Ts... > > {
+            struct apply< From< Ts... > > {
                 using type = F< Ts... >;
             };
-            template < class List >
-            using apply = t_< lazy_apply< List > >;
         };
+        template < template < class... > class F >
+        using rename = meta_class_t_< lazy_rename< F > >;
 
         /**
          *  Convert an integer sequence to a list of corresponding integral constants.
@@ -358,21 +328,21 @@ namespace gridtools {
         template < template < class... > class F >
         struct combine {
             template < class List, size_t N >
-            struct lazy_apply {
+            struct apply_impl {
                 static_assert(N > 0, "N in combine_impl<F, List, N> must be positive");
                 static const size_t m = N / 2;
-                using type = F< t_< lazy_apply< List, m > >, t_< lazy_apply< drop_front< m, List >, N - m > > >;
+                using type = F< t_< apply_impl< List, m > >, t_< apply_impl< drop_front< m, List >, N - m > > >;
             };
             template < template < class... > class L, class T, class... Ts >
-            struct lazy_apply< L< T, Ts... >, 1 > {
+            struct apply_impl< L< T, Ts... >, 1 > {
                 using type = T;
             };
             template < template < class... > class L, class T1, class T2, class... Ts >
-            struct lazy_apply< L< T1, T2, Ts... >, 2 > {
+            struct apply_impl< L< T1, T2, Ts... >, 2 > {
                 using type = F< T1, T2 >;
             };
             template < class List >
-            using apply = t_< lazy_apply< List, length< List >::value > >;
+            using apply = t_< apply_impl< List, length< List >::value > >;
         };
 
         // internals
@@ -442,24 +412,24 @@ namespace gridtools {
          *   For N lists M elements each complexity is O(log(N))
          */
         template < template < class... > class F >
-        struct transform {
+        struct lazy_transform {
             template < class... >
-            struct lazy_apply;
-            template < class... Lists >
-            using apply = t_< lazy_apply< Lists... > >;
+            struct apply;
             template < template < class... > class L, class... Ts >
-            struct lazy_apply< L< Ts... > > {
+            struct apply< L< Ts... > > {
                 using type = L< F< Ts >... >;
             };
             template < template < class... > class L1, class... T1s, template < class... > class L2, class... T2s >
-            struct lazy_apply< L1< T1s... >, L2< T2s... > > {
+            struct apply< L1< T1s... >, L2< T2s... > > {
                 using type = L1< F< T1s, T2s >... >;
             };
         };
         template < template < class... > class F >
+        using transform = meta_class_t_< lazy_transform< F > >;
+        template < template < class... > class F >
         template < class... Lists >
-        struct transform< F >::lazy_apply
-            : transform< rename< F >::template apply >::template lazy_apply<
+        struct lazy_transform< F >::apply
+            : lazy_transform< rename< F >::template apply >::template apply<
                   combine< transform< meta_t_< zip_helper_impl >::apply >::apply >::apply< list< Lists... > > > {};
 
         /**
@@ -471,53 +441,69 @@ namespace gridtools {
          *   complexity is O(log(N))) as alternatives.
          */
         template < template < class... > class F >
-        struct rfold {
+        struct lazy_rfold {
             template < class, class >
-            struct lazy_apply;
-            template < class S, class List >
-            using apply = t_< lazy_apply< S, List > >;
+            struct apply;
             template < class S, template < class... > class L >
-            struct lazy_apply< S, L<> > {
+            struct apply< S, L<> > {
                 using type = S;
             };
             template < class S, template < class... > class L, class T, class... Ts >
-            struct lazy_apply< S, L< T, Ts... > > {
-                using type = F< T, apply< S, L< Ts... > > >;
+            struct apply< S, L< T, Ts... > > {
+                using type = F< T, t_< apply< S, L< Ts... > > > >;
             };
         };
         template < template < class... > class F >
-        struct lfold {
+        using rfold = meta_class_t_< lazy_rfold< F > >;
+
+        template < template < class... > class F >
+        struct lazy_lfold {
             template < class, class >
-            struct lazy_apply;
-            template < class S, class List >
-            using apply = t_< lazy_apply< S, List > >;
+            struct apply;
             template < class S, template < class... > class L >
-            struct lazy_apply< S, L<> > {
+            struct apply< S, L<> > {
                 using type = S;
             };
             template < class S, template < class... > class L, class T, class... Ts >
-            struct lazy_apply< S, L< T, Ts... > > {
-                using type = apply< F< S, T >, L< Ts... > >;
+            struct apply< S, L< T, Ts... > > {
+                using type = t_< apply< F< S, T >, L< Ts... > > >;
             };
         };
+        template < template < class... > class F >
+        using lfold = meta_class_t_< lazy_lfold< F > >;
 
-        // internals
-        template < class List1, class List2 >
-        struct lazy_concat2_impl;
-        template < class List, template < class... > class L, class... Ts >
-        struct lazy_concat2_impl< List, L< Ts... > > : lazy_push_back< List, Ts... > {};
+        /**
+         *  Concatenate lists
+         */
+        template < class... >
+        struct lazy_concat;
+        template < template < class... > class L, class... Ts >
+        struct lazy_concat< L< Ts... > > {
+            using type = L< Ts... >;
+        };
+        template < template < class... > class L1, class... T1s, template < class... > class L2, class... T2s >
+        struct lazy_concat< L1< T1s... >, L2< T2s... > > {
+            using type = L1< T1s..., T2s... >;
+        };
+        template < class... Lists >
+        using concat = t_< lazy_concat< Lists... > >;
 
         /**
          *  Flatten a list of lists.
          */
         template < class Lists >
-        using flatten = apply< combine< meta_t_< lazy_concat2_impl >::apply >, Lists >;
+        using flatten = apply< combine< concat >, Lists >;
 
-        /**
-         *  Concatenate lists
-         */
         template < class... Lists >
-        using concat = flatten< list< Lists... > >;
+        struct lazy_concat {
+            using type = flatten< list< Lists... > >;
+        };
+
+        template < class List, class... Ts >
+        using push_front = concat< list< Ts... >, List >;
+
+        template < class List, class... Ts >
+        using push_back = concat< List, list< Ts... > >;
 
         /**
          *  Zip lists
@@ -527,7 +513,7 @@ namespace gridtools {
 
         // internals
         template < template < class... > class Pred >
-        struct filter1_impl {
+        struct filter_impl {
             template < class T >
             using apply = t_< std::conditional< Pred< T >::value, list< T >, list<> > >;
         };
@@ -536,10 +522,7 @@ namespace gridtools {
          *  Filter the list based of predicate
          */
         template < template < class... > class Pred >
-        struct filter {
-            template < class List >
-            using apply = flatten< meta::apply< transform< filter1_impl< Pred >::template apply >, List > >;
-        };
+        using filter = compose< flatten, transform< filter_impl< Pred >::template apply >::template apply >;
 
         // internals
         template < class T, class S >
@@ -555,9 +538,34 @@ namespace gridtools {
          *   Take Nth element of the List
          */
         template < class List, class N >
-        using at = second< mp_find< zip< make_indices_for< List >, List >, N > >;
+        struct lazy_at;
+        template < template < class... > class L, class T, class... Ts, template < class I, I > class Const, class Int >
+        struct lazy_at< L< T, Ts... >, Const< Int, 0 > > {
+            using type = T;
+        };
+        template < template < class... > class L,
+            class T,
+            class U,
+            class... Ts,
+            template < class I, I > class Const,
+            class Int >
+        struct lazy_at< L< T, U, Ts... >, Const< Int, 1 > > {
+            using type = U;
+        };
+        template < class List, class N >
+        using at = t_< lazy_at< List, N > >;
         template < class List, size_t N >
         using at_c = at< List, std::integral_constant< size_t, N > >;
+        template < class List, size_t N >
+        using lazy_at_c = lazy_at< List, std::integral_constant< size_t, N > >;
+        template < class List, class N >
+        struct lazy_at {
+            using type = at_c< mp_find< zip< make_indices_for< List >, List >, N >, 1 >;
+        };
+        template < class List >
+        using first = at_c< List, 0 >;
+        template < class List >
+        using second = at_c< List, 1 >;
 
         /**
          *  return the position of T in the Set
@@ -566,7 +574,7 @@ namespace gridtools {
          */
         template < class Set, class T, class Pair = mp_find< zip< Set, make_indices_for< Set > >, T > >
         using st_position =
-            t_< t_< std::conditional< std::is_void< Pair >::value, length< Set >, lazy_second< Pair > > > >;
+            t_< t_< std::conditional< std::is_void< Pair >::value, length< Set >, lazy_at_c< Pair, 1 > > > >;
 
         /**
          *  Produce a list of N identical elements
