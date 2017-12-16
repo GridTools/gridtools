@@ -113,15 +113,15 @@ namespace gridtools {
         /**
          *   Meta function that performs function composition.
          */
-        template < template < class... > class F, template < class... > class... Fs >
+        template < template < class... > class F, template < class... > class G, template < class... > class... Fs >
         struct compose {
             template < class... Args >
-            using apply = F< meta::apply< compose< Fs... >, Args... > >;
+            using apply = F< meta::apply< compose< G, Fs... >, Args... > >;
         };
-        template < template < class... > class F >
-        struct compose< F > {
+        template < template < class... > class F, template < class... > class G >
+        struct compose< F, G > {
             template < class... Args >
-            using apply = F< Args... >;
+            using apply = F< G< Args... > >;
         };
 
         /**
@@ -155,6 +155,15 @@ namespace gridtools {
          */
         template < class T >
         using meta_class_t_ = meta_t_< T::template apply >;
+
+        /**
+         *  Wrap a function into a meta class
+         */
+        template < template < class... > class F >
+        struct quote {
+            template < class... Args >
+            using apply = F< Args... >;
+        };
 
         /**
          *  drop-off for C++17 void_t
@@ -223,10 +232,7 @@ namespace gridtools {
         template < class >
         struct ctor;
         template < template < class... > class L, class... Ts >
-        struct ctor< L< Ts... > > {
-            template < class... Us >
-            using apply = L< Us... >;
-        };
+        struct ctor< L< Ts... > > : quote< L > {};
 
         template < class T >
         struct always {
@@ -295,13 +301,15 @@ namespace gridtools {
             any_arg_impl(T &&);
         };
         template < class SomeList, class List >
-        struct drop_front_impl;
+        class drop_front_impl;
         template < class... Us, template < class... > class L, class... Ts >
-        struct drop_front_impl< list< Us... >, L< Ts... > > {
+        class drop_front_impl< list< Us... >, L< Ts... > > {
             template < class >
             using any_arg_t = any_arg_impl;
             template < class... Vs >
             static L< t_< Vs >... > select(any_arg_t< Us >..., Vs...);
+
+          public:
             using type = decltype(select(lazy< Ts >()...));
         };
 
@@ -372,36 +380,18 @@ namespace gridtools {
          *  @return the inner list with a given Key or `void` if not found
          */
         template < class Map, class Key >
-        struct lazy_mp_find;
+        class lazy_mp_find;
         template < class Key, template < class... > class L, class... Ts >
-        struct lazy_mp_find< L< Ts... >, Key > {
+        class lazy_mp_find< L< Ts... >, Key > {
             template < template < class... > class Elem, class... Vals >
             static Elem< Key, Vals... > select(lazy< Elem< Key, Vals... > >);
             static void select(...);
+
+          public:
             using type = decltype(select(std::declval< inherit_impl< lazy< Ts >... > >()));
         };
         template < class Map, class Key >
         using mp_find = t_< lazy_mp_find< Map, Key > >;
-
-        // internals
-        template < class... >
-        struct zipper_impl;
-        template < class T, class U >
-        struct zip_helper_impl {
-            using type = zipper_impl< T, U >;
-        };
-        template < class T, class... Ts >
-        struct zip_helper_impl< T, zipper_impl< Ts... > > {
-            using type = zipper_impl< T, Ts... >;
-        };
-        template < class T, class... Ts >
-        struct zip_helper_impl< zipper_impl< Ts... >, T > {
-            using type = zipper_impl< Ts..., T >;
-        };
-        template < class... Ts, class... Us >
-        struct zip_helper_impl< zipper_impl< Ts... >, zipper_impl< Us... > > {
-            using type = zipper_impl< Ts..., Us... >;
-        };
 
         /**
          *   Transform Lists by applying F element wise.
@@ -423,14 +413,52 @@ namespace gridtools {
             struct apply< L1< T1s... >, L2< T2s... > > {
                 using type = L1< F< T1s, T2s >... >;
             };
+            // Note, that the generic form of lazy_transform is not yet defined here.
         };
         template < template < class... > class F >
         using transform = meta_class_t_< lazy_transform< F > >;
+
+        // internals for generic transform
+        namespace transform_impl {
+            // Serves as a placeholder.
+            template < class... >
+            struct plc;
+            /// An associative binary lazy function that returns `plc` list.
+            template < class T, class U >
+            struct zip_helper {
+                using type = plc< T, U >;
+            };
+            template < class T, class... Ts >
+            struct zip_helper< T, plc< Ts... > > {
+                using type = plc< T, Ts... >;
+            };
+            template < class T, class... Ts >
+            struct zip_helper< plc< Ts... >, T > {
+                using type = plc< Ts..., T >;
+            };
+            template < class... Ts, class... Us >
+            struct zip_helper< plc< Ts... >, plc< Us... > > {
+                using type = plc< Ts..., Us... >;
+            };
+        };
+
+        // generic transform
         template < template < class... > class F >
         template < class... Lists >
-        struct lazy_transform< F >::apply
-            : lazy_transform< rename< F >::template apply >::template apply<
-                  combine< transform< meta_t_< zip_helper_impl >::apply >::apply >::apply< list< Lists... > > > {};
+        class lazy_transform< F >::apply {
+            // A meta class, containing the function which takes two lists and returns the list of `plc`es from
+            // the first and the second list element wise.
+            // This function inherits associativity from the `zip_helper`
+            using zip2 = transform< meta_t_< transform_impl::zip_helper >::apply >;
+            // Now we cook general version of `zip` by applying `combine' with `zip2`.
+            // It produces the list of `plc`es, collected from all argument lists element wise.
+            using zip = compose< combine< zip2::apply >::apply, list >;
+            // A function that renames all lists in the list to F.
+            using rename_all = transform< rename< F >::template apply >;
+
+          public:
+            using type = meta::apply< rename_all, zip::apply< Lists... > >;
+        };
 
         /**
          *   Classic folds.

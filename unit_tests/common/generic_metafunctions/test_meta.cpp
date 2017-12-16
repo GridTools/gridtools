@@ -67,7 +67,7 @@ namespace gridtools {
         static_assert(!is_meta_class< f< int > >{}, "");
         static_assert(!is_meta_class< std::is_void< int > >{}, "");
         static_assert(is_meta_class< always< int > >{}, "");
-        static_assert(is_meta_class< compose< f > >{}, "");
+        static_assert(is_meta_class< quote< f > >{}, "");
         static_assert(is_meta_class< ctor< f<> > >{}, "");
 
         // length
