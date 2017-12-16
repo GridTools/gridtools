@@ -637,11 +637,11 @@ namespace gridtools {
         template < class List >
         using any = apply< rename< disjunction >, List >;
 
-        template < template < class... > class Pred, class List >
-        using all_of = all< apply< transform< Pred >, List > >;
+        template < template < class... > class Pred >
+        using all_of = compose< all, transform< Pred >::template apply >;
 
-        template < template < class... > class Pred, class List >
-        using any_of = any< apply< transform< Pred >, List > >;
+        template < template < class... > class Pred >
+        using any_of = compose< any, transform< Pred >::template apply >;
 
         /// placeholder  definitions fo bind
         template < size_t >

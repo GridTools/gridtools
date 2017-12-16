@@ -153,7 +153,7 @@ namespace gridtools {
             "");
 
         // all_of
-        static_assert(all_of< is_list, list< list<>, list< int > > >{}, "");
+        static_assert(apply< all_of< is_list >, list< list<>, list< int > > >{}, "");
 
         // dedup
         static_assert(std::is_same< dedup< list<> >, list<> >{}, "");
