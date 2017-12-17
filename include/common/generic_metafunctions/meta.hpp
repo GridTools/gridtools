@@ -554,7 +554,7 @@ namespace gridtools {
 
         // internals
         template < class T, class S >
-        using dedup_step_impl = t_< std::conditional< t_< st_contains< S, T > >::value, S, push_front< S, T > > >;
+        using dedup_step_impl = t_< std::conditional< st_contains< S, T >::value, S, push_front< S, T > > >;
 
         /**
          *  Removes duplicates from the List
