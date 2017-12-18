@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node=<MPI_PPN>
 #SBATCH --output=<OUTPUTFILE>
 #SBATCH --partition=<QUEUE>
-#SBATCH --time=00:30:00
+#SBATCH --time=00:15:00
 #SBATCH --gres=gpu:<MPI_TASKS>
 #SBATCH --cpus-per-task=<CPUSPERTASK>
 
