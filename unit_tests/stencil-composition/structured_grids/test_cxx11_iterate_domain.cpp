@@ -107,7 +107,7 @@ namespace test_iterate_domain {
         computation_->steady();
 
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
-        typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
+        typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;
 
         typedef boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
 

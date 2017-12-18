@@ -35,7 +35,6 @@
 */
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/conditionals/condition_pool.hpp>
 
 namespace test_conditionals {
     using namespace gridtools;

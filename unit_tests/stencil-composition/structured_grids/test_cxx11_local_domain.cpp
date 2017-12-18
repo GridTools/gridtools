@@ -83,7 +83,7 @@ typedef intermediate< 1,
                               make_stage< dummy_functor >(p_in(), p_buff()),
                               make_stage< dummy_functor >(p_buff(), p_out()))) > intermediate_t;
 
-typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
+typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;
 
 BOOST_STATIC_ASSERT((boost::mpl::size< mss_local_domains_t >::value == 2));
 

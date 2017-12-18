@@ -41,6 +41,24 @@
  *   - [some type, that is not gridstool::condition instantiation] - a tree with the only leaf.
  *   - condition<Mss1, Mss2, Cond> - a tree with one node and two leafs.
  *   - condition<Mss1, condition<Mss2, Mss3, Cond2>, Cond1> - a tree with two nodes and three leafs.
+ *
+ * In the context of stencil computation condition trees correspond to [possibly nested] `if_` constructs or to
+ * `switch/case` construct. I.e. the variadic pack within `make_computation` template function signature in it's
+ * general form is a sequence of condition trees of computation tokens. Where computation token is either MSS
+ * descriptor or reduction descriptor.
+ *
+ * This module provides the interface for condition tree manipulations to the rest of stencil computation code base.
+ * This interface consists of:
+ *    - `is_condition_tree_of` compile time predicate;
+ *    - `condition_tree_transform` template function;
+ *    - `branch_selector` class.
+ *
+ *   THe current usage:
+ *
+ *  - `is_condition_tree_of` is used within static_asserts to protect a user against `make_computation` grammar misuse.
+ *  - `condition_tree_transform` is used in the implementation of expandable parameters to convert `arg`s within
+ *    MSS descriptors that contain std::vector as a data_storage.
+ *  - `branch_selector` encapsulates the work with condition tree within `intermediate` class.
  */
 
 #pragma once
@@ -245,7 +263,7 @@ namespace gridtools {
      *  A helper for runtime dispatch on a sequence of condition trees.
      *
      *  The class does the following:
-     *    - takes a sequence of trees in constructor [typees of the trees are template parameters];
+     *    - takes a sequence of trees in constructor [types of the trees are template parameters];
      *    - the original sequence trees is composed into the tree of fusion sequences [those sequences are called
      *      branches below]
      *    - there is `apply` method, that performs the evaluation of conditions within the nodes and invokes
@@ -271,6 +289,23 @@ namespace gridtools {
          *  Performs the evaluation of conditions in the trees;
          *  chooses the sequence of leafs (one per each tree) based on that evaluation
          *  applies the provided functor with the chosen sequence as a first parameter.
+         *
+         *  Example (simplified usage pattern in `intermediate` class):
+         *    template <class... MssTrees> class intermediate {
+         *      branch_selector<MssTrees...> m_selector;
+         *      struct run_f {
+         *        template <class MssFlatSequence>
+         *        void operator()(MssFlatSequence mss_sequence) const {
+         *           // Do the actual computation here.
+         *           // At this point all conditions are evaluated and the correspondent
+         *           // flat sequence is provided to the caller as a parameter.
+         *        }
+         *      };
+         *    public:
+         *      void run {
+         *        m_selector.apply(run_f{});
+         *      }
+         *    };
          *
          * @tparam Fun - the type of the functor to be invoked.
          * @tparam Args - the types of the rest of the arguments that are passed to the functor after the branch

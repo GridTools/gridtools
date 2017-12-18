@@ -445,8 +445,14 @@ namespace gridtools {
         const DomainType &domain() const { return m_domain; }
     };
 
-    template < typename T >
-    struct intermediate_mss_local_domains {
-        using type = typename T::mss_local_domains_t;
-    };
+    /**
+     *  This metafunction exposes intermediate implementation specific details to a couple of unit tests.
+     *
+     *  @todo(anstaf):
+     *  I would consider this as a design flaw. `mss_local_domains_t` is not logically the interface of `intermediate`.
+     *  Probably the creation of local domains should be factored out into a separate component to resolve this issue.
+     */
+    template < typename Intermediate >
+    using intermediate_mss_local_domains = typename Intermediate::mss_local_domains_t;
+
 } // namespace gridtools

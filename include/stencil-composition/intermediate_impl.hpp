@@ -292,18 +292,6 @@ namespace gridtools {
             boost::fusion::move(boost::fusion::transform(src, make_view_elem_f< Backend >{}), dst);
         }
 
-        template < typename T1, typename T2 >
-        struct matching {
-            typedef typename boost::is_same< T1, T2 >::type type;
-        };
-
-        template < typename T1, typename T2 >
-        struct contains {
-            typedef typename boost::mpl::fold< T1,
-                boost::mpl::false_,
-                boost::mpl::or_< boost::mpl::_1, matching< boost::mpl::_2, T2 > > >::type type;
-        };
-
         /**
          * @brief metafunction that computes the list of extents associated to each functor.
          * It assumes the temporary is written only by one esf.
@@ -319,7 +307,7 @@ namespace gridtools {
             struct is_temp_there {
                 template < typename TempsInEsf >
                 struct apply {
-                    typedef typename contains< TempsInEsf, TTemp >::type type;
+                    typedef typename boost::mpl::contains< TempsInEsf, TTemp >::type type;
                 };
             };
 
