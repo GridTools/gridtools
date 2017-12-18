@@ -25,11 +25,11 @@ export GCLOCK=875
 export CUDA_AUTO_BOOST=0
 export MALLOC_MMAP_MAX_=0
 export MALLOC_TRIM_THRESHOLD_=536870912
-export G2G=1
+export G2G=2
 export MV2_USE_GPUDIRECT=0
 
 
-export JOB_ENV="export CUDA_AUTO_BOOST=0;export GCLOCK=875; export G2G=1;export LD_PRELOAD=/opt/mvapich2/gdr/no-mcast/2.2/cuda8.0/mpirun/gnu4.8.5/lib64/libmpi.so;export OMP_NUM_THREADS=1;export MALLOC_MMAP_MAX_=0;export MALLOC_TRIM_THRESHOLD_=536870912;export MV2_USE_GPUDIRECT=0;"
+export JOB_ENV="export CUDA_AUTO_BOOST=0;export GCLOCK=875; export G2G=2;export LD_PRELOAD=/opt/mvapich2/gdr/no-mcast/2.2/cuda8.0/mpirun/gnu4.8.5/lib64/libmpi.so;export OMP_NUM_THREADS=1;export MALLOC_MMAP_MAX_=0;export MALLOC_TRIM_THRESHOLD_=536870912;export MV2_USE_GPUDIRECT=0;"
 export MPI_HOST_JOB_ENV=""
 export MPI_CUDA_JOB_ENV="${JOB_ENV}"
 export USE_MPI_COMPILER=ON
