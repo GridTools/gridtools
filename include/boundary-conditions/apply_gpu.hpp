@@ -77,6 +77,8 @@ namespace gridtools {
                 shape_type(uint_t x, uint_t y, uint_t z, uint_t s0, uint_t s1, uint_t s2)
                     : m_size{x, y, z}, m_sorted{m_size}, m_start{s0, s1, s2} {
                     array< uint_t, 3 > forward_perm = {{0, 1, 2}};
+                    // Performing a simple insertion sort to compute the sorted sizes
+                    // and then recover the permutation needed in the cuda kernel
                     for (int i = 0; i < 3; ++i) {
                         for (int j = i; j < 3; ++j) {
                             if (m_sorted[i] <= m_sorted[j]) {
@@ -90,6 +92,12 @@ namespace gridtools {
                             }
                         }
                     }
+                    // This loops computes the permutation needed later.
+                    // forward_perm tells in what poition the sorted size comes from,
+                    // the final m_perm tells in which position a given size is going
+                    // after the sorting. This is the information needed to map threads
+                    // to dimensions, since threads will come from a sorted (by
+                    // decreasing sizes) pool
                     for (int i = 0; i < 3; ++i) {
                         m_perm[forward_perm[i]] = i;
                     }
