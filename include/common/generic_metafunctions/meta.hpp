@@ -69,7 +69,7 @@
  *    - std::is_same
  *    - std::pair
  *    - std::tuple
- *    - meta::_t
+ *    - meta::t_
  *    - meta::list
  *    - meta::is_list
  *
@@ -89,6 +89,10 @@
  *  Meta Function
  *  -------------
  *  A template class or alias with template of class class template parameters.
+ *  Examples of metafuction signatures:
+ *  template <template <class...> class> struct foo;
+ *  template <template <class...> class, template <class...> class> struct bar;
+ *  template <template <class...> class...> struct baz;
  *
  *  Examples:
  *    - meta::rename
@@ -300,8 +304,7 @@ namespace gridtools {
 
         // internals
         struct any_arg_impl {
-            template < class T >
-            any_arg_impl(T &&);
+            any_arg_impl(...);
         };
         template < class SomeList, class List >
         class drop_front_impl;
@@ -422,27 +425,26 @@ namespace gridtools {
         using transform = meta_class_t_< lazy_transform< F > >;
 
         // internals for generic transform
-        namespace transform_impl {
-            // Serves as a placeholder.
-            template < class... >
-            struct plc;
-            /// An associative binary lazy function that returns `plc` list.
-            template < class T, class U >
-            struct zip_helper {
-                using type = plc< T, U >;
-            };
-            template < class T, class... Ts >
-            struct zip_helper< T, plc< Ts... > > {
-                using type = plc< T, Ts... >;
-            };
-            template < class T, class... Ts >
-            struct zip_helper< plc< Ts... >, T > {
-                using type = plc< Ts..., T >;
-            };
-            template < class... Ts, class... Us >
-            struct zip_helper< plc< Ts... >, plc< Us... > > {
-                using type = plc< Ts..., Us... >;
-            };
+
+        // Serves as a placeholder.
+        template < class... >
+        struct plc_impl;
+        // An associative binary lazy function that returns `plc` list.
+        template < class T, class U >
+        struct zip_helper_impl {
+            using type = plc_impl< T, U >;
+        };
+        template < class T, class... Ts >
+        struct zip_helper_impl< T, plc_impl< Ts... > > {
+            using type = plc_impl< T, Ts... >;
+        };
+        template < class T, class... Ts >
+        struct zip_helper_impl< plc_impl< Ts... >, T > {
+            using type = plc_impl< Ts..., T >;
+        };
+        template < class... Ts, class... Us >
+        struct zip_helper_impl< plc_impl< Ts... >, plc_impl< Us... > > {
+            using type = plc_impl< Ts..., Us... >;
         };
 
         // generic transform
@@ -452,7 +454,7 @@ namespace gridtools {
             // A meta class, containing the function which takes two lists and returns the list of `plc`es from
             // the first and the second list element wise.
             // This function inherits associativity from the `zip_helper`
-            using zip2 = transform< meta_t_< transform_impl::zip_helper >::apply >;
+            using zip2 = transform< meta_t_< zip_helper_impl >::apply >;
             // Now we cook general version of `zip` by applying `combine' with `zip2`.
             // It produces the list of `plc`es, collected from all argument lists element wise.
             using zip = compose< combine< zip2::apply >::apply, list >;
@@ -618,7 +620,8 @@ namespace gridtools {
          *
          *  Note on `conjunction` and `disjunction`:
          *    - short-circuiting is not implemented as required by C++17 standard
-         *    - from the other side , compexity is O(1) because of it.
+         *    - from the other side, amortized complexity is O(1) because of it
+         *      [in terms of the number of template instantiations].
          */
         template < bool Val >
         using bool_constant = std::integral_constant< bool, Val >;
