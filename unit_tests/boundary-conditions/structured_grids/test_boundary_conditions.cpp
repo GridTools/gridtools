@@ -39,11 +39,7 @@
 #include <gridtools.hpp>
 #include "common/halo_descriptor.hpp"
 
-#ifdef __CUDACC__
-#include <boundary-conditions/apply_gpu.hpp>
-#else
-#include <boundary-conditions/apply.hpp>
-#endif
+#include <boundary-conditions/boundary.hpp>
 
 #include <boundary-conditions/zero.hpp>
 #include <boundary-conditions/value.hpp>
@@ -66,12 +62,15 @@ using namespace gridtools;
 using namespace enumtype;
 
 #ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define ARCH Cuda
+#define BACKEND backend< ARCH, GRIDBACKEND, Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
+#define ARCH Host
+#define BACKEND backend< ARCH, GRIDBACKEND, Block >
 #else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define ARCH Host
+#define BACKEND backend< ARCH, GRIDBACKEND, Naive >
 #endif
 #endif
 
@@ -80,6 +79,7 @@ struct bc_basic {
     // relative coordinates
     template < typename Direction, typename DataField0 >
     GT_FUNCTION void operator()(Direction, DataField0 &data_field0, uint_t i, uint_t j, uint_t k) const {
+        printf("%d, %d, %d\n", i, j, k);
         data_field0(i, j, k) = i + j + k;
     }
 };
@@ -160,8 +160,8 @@ struct minus_predicate {
 
 bool basic() {
 
-    uint_t d1 = 5;
-    uint_t d2 = 5;
+    uint_t d1 = 4;
+    uint_t d2 = 3;
     uint_t d3 = 5;
 
     typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
@@ -178,12 +178,8 @@ bool basic() {
     halos[2] = gridtools::halo_descriptor(1, 1, 1, d3 - 2, d3);
 
     in.sync();
-#ifdef __CUDACC__
-    auto indv = make_device_view(in);
-    gridtools::boundary_apply_gpu< bc_basic >(halos, bc_basic()).apply(indv);
-#else
-    gridtools::boundary_apply< bc_basic >(halos, bc_basic()).apply(inv);
-#endif
+    gridtools::boundary< bc_basic, ARCH >(halos, bc_basic()).apply(in);
+
     in.sync();
 
     bool result = true;
@@ -1057,18 +1053,18 @@ bool usingcopy_3() {
     return result;
 }
 
-// TEST(boundaryconditions, predicate) { EXPECT_EQ(predicate(), true); }
+TEST(boundaryconditions, predicate) { EXPECT_EQ(predicate(), true); }
 
-// TEST(boundaryconditions, twosurfaces) { EXPECT_EQ(twosurfaces(), true); }
+TEST(boundaryconditions, twosurfaces) { EXPECT_EQ(twosurfaces(), true); }
 
-// TEST(boundaryconditions, usingzero_1) { EXPECT_EQ(usingzero_1(), true); }
+TEST(boundaryconditions, usingzero_1) { EXPECT_EQ(usingzero_1(), true); }
 
-// TEST(boundaryconditions, usingzero_2) { EXPECT_EQ(usingzero_2(), true); }
+TEST(boundaryconditions, usingzero_2) { EXPECT_EQ(usingzero_2(), true); }
 
-// TEST(boundaryconditions, usingzero_3_empty_halos) { EXPECT_EQ(usingzero_3_empty_halos(), true); }
+TEST(boundaryconditions, usingzero_3_empty_halos) { EXPECT_EQ(usingzero_3_empty_halos(), true); }
 
 TEST(boundaryconditions, basic) { EXPECT_EQ(basic(), true); }
 
-// TEST(boundaryconditions, usingvalue2) { EXPECT_EQ(usingvalue_2(), true); }
+TEST(boundaryconditions, usingvalue2) { EXPECT_EQ(usingvalue_2(), true); }
 
-// TEST(boundaryconditions, usingcopy3) { EXPECT_EQ(usingcopy_3(), true); }
+TEST(boundaryconditions, usingcopy3) { EXPECT_EQ(usingcopy_3(), true); }
