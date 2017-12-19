@@ -83,23 +83,22 @@ namespace gridtools {
         static_assert(std::is_same< apply< ctor< f< double > >, int, void >, f< int, void > >{}, "");
 
         // rename
-        static_assert(std::is_same< apply< rename< f >, list< int, double > >, f< int, double > >{}, "");
+        static_assert(std::is_same< apply< rename< f >, g< int, double > >, f< int, double > >{}, "");
 
         // transform
-        static_assert(std::is_same< apply< transform< f >, list<> >, list<> >{}, "");
-        static_assert(std::is_same< apply< transform< f >, list< int, void > >, list< f< int >, f< void > > >{}, "");
-        static_assert(
-            std::is_same< apply< transform< f >, list< int, void >, list< int *, void * >, list< int **, void ** > >,
-                list< f< int, int *, int ** >, f< void, void *, void ** > > >{},
+        static_assert(std::is_same< apply< transform< f >, g<> >, g<> >{}, "");
+        static_assert(std::is_same< apply< transform< f >, g< int, void > >, g< f< int >, f< void > > >{}, "");
+        static_assert(std::is_same< apply< transform< f >, g< int, void >, g< int *, void * >, g< int **, void ** > >,
+                          g< f< int, int *, int ** >, f< void, void *, void ** > > >{},
             "");
 
         // st_contains
-        static_assert(st_contains< list< int, bool >, int >{}, "");
-        static_assert(!st_contains< list< int, bool >, void >{}, "");
+        static_assert(st_contains< g< int, bool >, int >{}, "");
+        static_assert(!st_contains< g< int, bool >, void >{}, "");
 
         // mp_find
-        using map = list< list< int, void * >, list< void, double * >, list< float, double * > >;
-        static_assert(std::is_same< mp_find< map, int >, list< int, void * > >{}, "");
+        using map = f< g< int, void * >, g< void, double * >, g< float, double * > >;
+        static_assert(std::is_same< mp_find< map, int >, g< int, void * > >{}, "");
         static_assert(std::is_same< mp_find< map, double >, void >{}, "");
 
         // repeat
@@ -107,13 +106,13 @@ namespace gridtools {
         static_assert(std::is_same< repeat< 3, int >, list< int, int, int > >{}, "");
 
         // drop_front
-        static_assert(std::is_same< drop_front< 0, list< int, double > >, list< int, double > >{}, "");
-        static_assert(std::is_same< drop_front< 1, list< int, double > >, list< double > >{}, "");
-        static_assert(std::is_same< drop_front< 2, list< int, double > >, list<> >{}, "");
+        static_assert(std::is_same< drop_front< 0, f< int, double > >, f< int, double > >{}, "");
+        static_assert(std::is_same< drop_front< 1, f< int, double > >, f< double > >{}, "");
+        static_assert(std::is_same< drop_front< 2, f< int, double > >, f<> >{}, "");
 
         // at
-        static_assert(std::is_same< at_c< list< int, double >, 0 >, int >{}, "");
-        static_assert(std::is_same< at_c< list< int, double >, 1 >, double >{}, "");
+        static_assert(std::is_same< at_c< f< int, double >, 0 >, int >{}, "");
+        static_assert(std::is_same< at_c< f< int, double >, 1 >, double >{}, "");
 
         // conjunction
         static_assert(conjunction<>{}, "");
@@ -130,42 +129,43 @@ namespace gridtools {
         static_assert(!disjunction< std::false_type, std::false_type >{}, "");
 
         // st_position
-        static_assert(st_position< list< int, double >, int >{} == 0, "");
-        static_assert(st_position< list< double, int >, int >{} == 1, "");
-        static_assert(st_position< list< double, int >, void >{} == 2, "");
+        static_assert(st_position< f< int, double >, int >{} == 0, "");
+        static_assert(st_position< f< double, int >, int >{} == 1, "");
+        static_assert(st_position< f< double, int >, void >{} == 2, "");
 
         // combine
-        static_assert(std::is_same< apply< combine< f >, list< int > >, int >{}, "");
+        static_assert(std::is_same< apply< combine< f >, g< int > >, int >{}, "");
         static_assert(std::is_same< apply< combine< f >, repeat< 8, int > >,
                           f< f< f< int, int >, f< int, int > >, f< f< int, int >, f< int, int > > > >{},
             "");
 
         // concat
-        static_assert(std::is_same< concat< list< int > >, list< int > >{}, "");
-        static_assert(std::is_same< concat< list< int >, list< void > >, list< int, void > >{}, "");
-        static_assert(std::is_same< concat< list< int >, list< void, double >, list< void, int > >,
-                          list< int, void, double, void, int > >{},
+        static_assert(std::is_same< concat< g< int > >, g< int > >{}, "");
+        static_assert(std::is_same< concat< g< int >, f< void > >, g< int, void > >{}, "");
+        static_assert(
+            std::is_same< concat< g< int >, g< void, double >, g< void, int > >, g< int, void, double, void, int > >{},
             "");
 
         // filter
-        static_assert(std::is_same< apply< filter< std::is_pointer >, list< void, int *, double, double ** > >,
-                          list< int *, double ** > >{},
+        static_assert(std::is_same< apply< filter< std::is_pointer >, f<> >, f<> >{}, "");
+        static_assert(std::is_same< apply< filter< std::is_pointer >, f< void, int *, double, double ** > >,
+                          f< int *, double ** > >{},
             "");
 
         // all_of
-        static_assert(apply< all_of< is_list >, list< list<>, list< int > > >{}, "");
+        static_assert(apply< all_of< is_list >, f< f<>, f< int > > >{}, "");
 
         // dedup
-        static_assert(std::is_same< dedup< list<> >, list<> >{}, "");
-        static_assert(std::is_same< dedup< list< int, void > >, list< int, void > >{}, "");
-        static_assert(std::is_same< dedup< list< int, void, void, void, int, void > >, list< int, void > >{}, "");
+        static_assert(std::is_same< dedup< f<> >, f<> >{}, "");
+        static_assert(std::is_same< dedup< f< int > >, f< int > >{}, "");
+        static_assert(std::is_same< dedup< f< int, void > >, f< int, void > >{}, "");
+        static_assert(std::is_same< dedup< f< int, void, void, void, int, void > >, f< int, void > >{}, "");
 
         // zip
-        static_assert(std::is_same< zip< list< int >, list< void > >, list< list< int, void > > >{}, "");
+        static_assert(std::is_same< zip< f< int >, f< void > >, f< list< int, void > > >{}, "");
         static_assert(
-            std::is_same<
-                zip< list< int, int *, int ** >, list< void, void *, void ** >, list< char, char *, char ** > >,
-                list< list< int, void, char >, list< int *, void *, char * >, list< int **, void **, char ** > > >{},
+            std::is_same< zip< f< int, int *, int ** >, f< void, void *, void ** >, f< char, char *, char ** > >,
+                f< list< int, void, char >, list< int *, void *, char * >, list< int **, void **, char ** > > >{},
             "");
 
         // bind

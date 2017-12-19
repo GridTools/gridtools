@@ -65,11 +65,13 @@ struct get_component_type {
     static constexpr int value = Elem::value;
 };
 
-static_assert(std::is_same< gt_integer_sequence< int >::value_type, int >::value, "");
-static_assert(gt_integer_sequence< int, 1, 2, 3 >::size() == 3, "");
+GRIDTOOLS_STATIC_ASSERT((std::is_same< gt_integer_sequence< int >::value_type, int >::value), "");
+GRIDTOOLS_STATIC_ASSERT((gt_integer_sequence< int, 1, 2, 3 >::size() == 3), "");
 
-static_assert(std::is_same< make_gt_integer_sequence< int, 3 >, gt_integer_sequence< int, 0, 1, 2 > >::value, "");
-static_assert(std::is_same< make_gt_integer_sequence< bool, 1 >, gt_integer_sequence< bool, false > >::value, "");
+GRIDTOOLS_STATIC_ASSERT(
+    (std::is_same< make_gt_integer_sequence< int, 3 >, gt_integer_sequence< int, 0, 1, 2 > >::value), "");
+GRIDTOOLS_STATIC_ASSERT(
+    (std::is_same< make_gt_integer_sequence< bool, 1 >, gt_integer_sequence< bool, false > >::value), "");
 
 TEST(integer_sequence, fill_array) {
 
@@ -91,8 +93,7 @@ TEST(integer_sequence, fill_templated_container) {
     using seq = gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, 4 >::type >;
 
     // calling the array constexpr copy constructor
-    using extent_t = seq::template apply_t< int,
-        extent_test,
+    using extent_t = seq::template apply_t< extent_test,
         get_component_meta,
         static_int< 0 >,
         static_int< 1 >,

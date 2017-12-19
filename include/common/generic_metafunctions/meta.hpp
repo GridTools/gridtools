@@ -234,6 +234,9 @@ namespace gridtools {
         template < template < class... > class L, class... Ts >
         struct ctor< L< Ts... > > : quote< L > {};
 
+        template < class List >
+        using clear = apply< ctor< List > >;
+
         template < class T >
         struct always {
             template < class... >
@@ -528,7 +531,7 @@ namespace gridtools {
         };
 
         template < class List, class... Ts >
-        using push_front = concat< list< Ts... >, List >;
+        using push_front = concat< apply< ctor< List >, Ts... >, List >;
 
         template < class List, class... Ts >
         using push_back = concat< List, list< Ts... > >;
@@ -539,18 +542,18 @@ namespace gridtools {
         template < class... Lists >
         using zip = apply< transform< list >, Lists... >;
 
-        // internals
-        template < template < class... > class Pred >
-        struct filter_impl {
-            template < class T >
-            using apply = t_< std::conditional< Pred< T >::value, list< T >, list<> > >;
-        };
-
         /**
          *  Filter the list based of predicate
          */
         template < template < class... > class Pred >
-        using filter = compose< flatten, transform< filter_impl< Pred >::template apply >::template apply >;
+        class filter {
+            template < class T >
+            using helper = t_< std::conditional< Pred< T >::value, list< T >, list<> > >;
+
+          public:
+            template < class List >
+            using apply = flatten< concat< list< clear< List > >, meta::apply< transform< helper >, List > > >;
+        };
 
         // internals
         template < class T, class S >
@@ -559,7 +562,7 @@ namespace gridtools {
         /**
          *  Removes duplicates from the List
          */
-        template < class List, class State = apply< ctor< List > > >
+        template < class List, class State = clear< List > >
         using dedup = apply< rfold< dedup_step_impl >, State, List >;
 
         /**
