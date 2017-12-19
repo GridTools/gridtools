@@ -119,7 +119,7 @@ TEST(assign_placeholders, test) {
 
     // Check data store type correctness
     typedef typename boost::is_same< decltype(domain.m_arg_storage_pair_list),
-        boost::fusion::vector6< gridtools::arg_storage_pair< gridtools::tmp_arg< 0u, dst1_tmp >, dst1_tmp >,
+        boost::fusion::set< gridtools::arg_storage_pair< gridtools::tmp_arg< 0u, dst1_tmp >, dst1_tmp >,
                                          gridtools::arg_storage_pair< gridtools::tmp_arg< 1u, dst1_tmp >, dst1_tmp >,
                                          gridtools::arg_storage_pair< gridtools::tmp_arg< 2u, dst2_tmp >, dst2_tmp >,
                                          gridtools::arg_storage_pair< gridtools::arg< 3u, dst2 >, dst2 >,
