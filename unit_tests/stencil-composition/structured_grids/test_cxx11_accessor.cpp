@@ -53,7 +53,7 @@ namespace interface {
     }
 
     bool test_array() {
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
         accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
 #else
         constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
@@ -63,7 +63,7 @@ namespace interface {
     }
 
     bool test_array_and_dim() {
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
         accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(
             array< int_t, 3 >{3, 2, -1}, dimension< 1 >(2));
 #else
@@ -89,7 +89,7 @@ namespace interface {
     using namespace expressions;
 
     bool test_alternative2() {
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
         dimension< 1 > i;
         dimension< 2 > j;
         dimension< 3 > k;
@@ -118,7 +118,7 @@ namespace interface {
         The aforementioned offset is guaranteed to be treated as compile-time static constant value.
     */
     bool test_static_alias() {
-#ifndef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifndef GT_NO_CONSTEXPR_ACCESSES
         // mixing compile time and runtime values
         using t = dimension< 15 >;
         using arg_t = accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 >;

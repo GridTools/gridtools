@@ -67,7 +67,7 @@ namespace test_multidimensional_caches {
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 3 >() == 3, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 4 >() == 2, "error");
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
         EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(1, 0, 0, 0, 0, 0))), 1);
         EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(2, 0, 0, 0, 0, 0))), 2);
         EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(3, 0, 0, 0, 0, 0))), 3);
@@ -129,7 +129,7 @@ namespace test_multidimensional_caches {
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 1, 0, 0)) == 70), "error");
         GRIDTOOLS_STATIC_ASSERT(
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 1, 0)) == 210), "error");
-#endif // GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#endif // GT_NO_CONSTEXPR_ACCESSES
         return true;
     }
 
@@ -156,7 +156,7 @@ namespace test_multidimensional_caches {
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 3 >() == 2, "error");
         GRIDTOOLS_STATIC_ASSERT(m_t::template dim< 4 >() == 4, "error");
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
         EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, -3, 0, 0, 0))), -3);
         EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, -1, 0, 0, 0))), -1);
         EXPECT_EQ((_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 2, 0, 0, 0))), 2);
@@ -177,7 +177,7 @@ namespace test_multidimensional_caches {
 
         GRIDTOOLS_STATIC_ASSERT(
             (_impl::get_cache_offset< typename cache_storage_t::meta_t >(acc_t(0, 0, 0, 0, 2, 0)) == 24), "error");
-#endif // GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#endif // GT_NO_CONSTEXPR_ACCESSES
 
         return true;
     }

@@ -51,7 +51,7 @@
 
 namespace gridtools {
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
 #define constexpr
 #endif
 
@@ -181,7 +181,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr offset_tuple() : super(), m_offset(0) {}
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
 #undef constexpr
 #endif
 
@@ -229,7 +229,7 @@ namespace gridtools {
     struct offset_tuple< 0, NDim > {
         static const int_t n_dimensions = NDim;
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
 #define constexpr
 #endif
 
@@ -252,7 +252,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr offset_tuple() {}
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
 #undef constexpr
 #endif
 

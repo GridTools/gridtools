@@ -107,11 +107,17 @@ namespace gridtools {
                 for (int_t k = kfirst; iteration_policy_t::condition(k, klast); iteration_policy_t::increment(k)) {
                     for (int_t j = jfirst; j <= jlast; ++j) {
                         m_it_domain.set_index(0, j, k, block_base_i, block_base_j);
+
 #pragma ivdep
 #pragma omp simd
                         for (int_t i = ifirst; i <= ilast; ++i) {
                             m_it_domain.template set_block_index< 0 >(i);
                             run_esf(index);
+
+#if defined(__INTEL_COMPILER) && !defined(GT_NO_CONSTEXPR_ACCESSES)
+#warning \
+    "The usage of the constexpr constructors of accessor_base, tuple_offset and dimension together with the Intel compiler can lead to incorrect code generation in this loop."
+#endif
                         }
                     }
                 }

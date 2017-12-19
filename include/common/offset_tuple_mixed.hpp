@@ -46,7 +46,7 @@ namespace gridtools {
         return dimension< Pair::first >{Pair::second};
     }
 
-#ifndef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifndef GT_NO_CONSTEXPR_ACCESSES
 
     /** @brief tuple of integers mixing runtime and compile time offsets
 
@@ -144,9 +144,9 @@ namespace gridtools {
 #else
     template < typename ArgType, typename... Pair >
     struct offset_tuple_mixed {
-        GRIDTOOLS_STATIC_ASSERT(sizeof(ArgType) < 0, "offset_tuple_mixed is disabled due to the definition of GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR");
+        GRIDTOOLS_STATIC_ASSERT(sizeof(ArgType) < 0, "offset_tuple_mixed is disabled due to the definition of GT_NO_CONSTEXPR_ACCESSES");
     };
-#endif // GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#endif // GT_NO_CONSTEXPR_ACCESSES
 
 } // namespace gridtools
 #endif // CUDA8

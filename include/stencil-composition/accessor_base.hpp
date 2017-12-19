@@ -117,7 +117,7 @@ namespace gridtools {
         friend struct accessor_base;
 
       public:
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
 #define constexpr
 #endif
 
@@ -181,7 +181,7 @@ namespace gridtools {
                 "D of the accessor (accessor<Id, extent, D>)");
         }
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
 #undef constexpr
 #endif
 

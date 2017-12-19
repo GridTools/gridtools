@@ -49,7 +49,7 @@ namespace gridtools {
     template < ushort_t Coordinate >
     struct dimension {
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
 #define constexpr
 #endif
         GT_FUNCTION constexpr dimension() : value(0) {}
@@ -66,7 +66,7 @@ namespace gridtools {
         GT_FUNCTION
         constexpr dimension(dimension const &other) : value(other.value) {}
 
-#ifdef GT_NO_CONSTEXPR_OFFSET_TUPLE_CONSTR
+#ifdef GT_NO_CONSTEXPR_ACCESSES
 #undef constexpr
 #endif
 
