@@ -46,6 +46,19 @@
 @brief definition of the functions which apply the boundary conditions (arbitrary functions having as argument the
 direation, an arbitrary number of data fields, and the coordinates ID) in the halo region, see \ref
 gridtools::halo_descriptor
+
+For GPUs the idea is to let a single kernel deal with all the 26 boundary areas. The kernel configuration
+will depends on the largest dimensions of these boundary areas. The configuration shape will have dimensions
+sorted by decreasing sizes.
+
+For this reason each boundary area dimensions will be sorted by decreasing sizes and then the permutation
+needed to map the threads to the coordinates to use in the user provided boundary operartors are kept.
+
+The shape information is kept in \ref _impl::kernel_configuration::shape class, while the kernel
+configuration and the collections of shapes to be accessed in the kernel are stored in the \ref
+ _impl::kernel_configuration class.
+
+The kernel will then apply the user provided boubary functions in order to all the areas one after the other.
 */
 namespace gridtools {
 
@@ -169,11 +182,11 @@ namespace gridtools {
        @brief kernel to appy boundary conditions to the data fields requested
      */
     template < typename BoundaryFunction, typename Predicate, typename Halos, typename... DataViews >
-    __global__ void loop_kernel(BoundaryFunction boundary_function,
-        Predicate predicate,
-        _impl::kernel_configuration conf,
-        Halos halos,
-        DataViews... data_views) {
+    __global__ void loop_kernel(BoundaryFunction const boundary_function,
+        Predicate const predicate,
+        _impl::kernel_configuration const conf,
+        Halos const halos,
+        DataViews const... data_views) {
         array< uint_t, 3 > th{blockIdx.x * blockDim.x + threadIdx.x,
             blockIdx.y * blockDim.y + threadIdx.y,
             blockIdx.z * blockDim.z + threadIdx.z};
