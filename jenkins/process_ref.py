@@ -99,13 +99,13 @@ def run_and_extract_times(path, executable, host, sizes, halos, filter_=None, st
         path = "./"+ path + "/" + os.path.basename(executable) + "_" + sizes[0] + "_" + sizes[1] + "_" + sizes[2]
         if target == "cpu": 
             path = path + "_" + re.sub('thread','',thread)
-        path = path + ".svg"
+        path = path + ".png"
         ensure_dir(path)
         matplotlib.pyplot.plot(np.array(list(range(0,nrep))), np.array(times), 'ro')
         matplotlib.pyplot.axis([0, nrep, 0, np.array(times).max()*1.1])
         matplotlib.pyplot.savefig(path)
         matplotlib.pyplot.close()
-        print("wrote svg file: "+path)
+        print("wrote png file: "+path)
     return (med_val,rms)
 
 class Plotter:
@@ -162,7 +162,7 @@ class Plotter:
         plt.tick_params(axis='both', which='minor', labelsize=6)
         plt.legend(prop={'size':6})
 
-        fig.savefig(filename, format="svg")
+        fig.savefig(filename, format="png")
       
     def plot_titlepage(self, filename):
        x,y = 0.1,0.4
@@ -179,7 +179,7 @@ class Plotter:
 #       ax = plt.axes()
        ax.xaxis.set_visible(False)
        ax.yaxis.set_visible(False)
-       plt.savefig(filename, format="svg")
+       plt.savefig(filename, format="png")
 
 
 
@@ -203,12 +203,12 @@ class Plotter:
                 gridtools_err = self.gridtools_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot(self.perf_vs_stella_dir_+"/plot_"+astencil+"_"+adomain+".svg", astencil, labels, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
+                self.plot(self.perf_vs_stella_dir_+"/plot_"+astencil+"_"+adomain+".png", astencil, labels, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
 
         if not os.path.exists(self.perf_vs_reference_dir_):
             os.makedirs(self.perf_vs_reference_dir_)
 
-        self.plot_titlepage(self.config_.output_dir_+"/aaa_titlepage.svg")
+        self.plot_titlepage(self.config_.output_dir_+"/aaa_titlepage.png")
 
         for astencil in self.gridtools_avg_times_:
             for adomain in self.gridtools_avg_times_[astencil]:
@@ -220,7 +220,7 @@ class Plotter:
                 reference_err = self.reference_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot(self.perf_vs_reference_dir_+"/plot_"+astencil+"_"+adomain+".svg", astencil + ' ' + adomain, labels, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
+                self.plot(self.perf_vs_reference_dir_+"/plot_"+astencil+"_"+adomain+".png", astencil + ' ' + adomain, labels, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
 
     def stella_has_stencil(self, stencil_name):
         return (stencil_name in self.stella_timers_)
