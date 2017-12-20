@@ -211,14 +211,19 @@ namespace gridtools {
         void call_pack(Stores const &stores, gt_integer_sequence< uint_t, Ids... >) {
             m_he.pack(advanced::get_initial_address_of(_impl::proper_view< CTraits::compute_arch,
                 access_mode::ReadWrite,
-                typename std::tuple_element< Ids, Stores >::type >::make(std::get< Ids >(stores)))...);
+                typename std::decay< typename std::tuple_element< Ids, Stores >::type >::type >::
+                    make(std::get< Ids >(stores)))...);
         }
+
+        template < typename Stores, uint_t... Ids >
+        void call_pack(Stores const &stores, gt_integer_sequence< uint_t >) {}
 
         template < typename Stores, uint_t... Ids >
         void call_unpack(Stores const &stores, gt_integer_sequence< uint_t, Ids... >) {
             m_he.unpack(advanced::get_initial_address_of(_impl::proper_view< CTraits::compute_arch,
                 access_mode::ReadWrite,
-                typename std::tuple_element< Ids, Stores >::type >::make(std::get< Ids >(stores)))...);
+                typename std::decay< typename std::tuple_element< Ids, Stores >::type >::type >::
+                    make(std::get< Ids >(stores)))...);
         }
     };
 
