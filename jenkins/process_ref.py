@@ -68,9 +68,9 @@ def run_and_extract_times(path, executable, host, sizes, halos, filter_=None, st
         try:
             if verbosity:
                 print(cmd)
-            output=subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            output=(subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)).decode("utf-8")
             if verbosity:
-                print(output)
+              print(output)
             m = re.search('.*\[s\]\s*(\d+(\.\d*)?|\.\d+)',output)
             if m:
                 extracted_time =  m.group(1)
@@ -79,7 +79,7 @@ def run_and_extract_times(path, executable, host, sizes, halos, filter_=None, st
             else:
                 sys.exit('Problem found extracting timings')
 
-        except subprocess.CalledProcessError, e:
+        except subprocess.CalledProcessError as e:
             sys.exit('Command called raised error:\n'+e.output)
     # select the best 3 values and calculate the average
     best_times = np.sort(np.array(times))[0:3]
@@ -221,7 +221,7 @@ class Plotter:
                 self.plot(self.perf_vs_reference_dir_+"/plot_"+astencil+"_"+adomain+".svg", astencil + ' ' + adomain, labels, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
 
     def stella_has_stencil(self, stencil_name):
-        return self.stella_timers_.has_key(stencil_name)
+        return (stencil_name in self.stella_timers_)
 
     def extract_metrics(self):
 
@@ -239,9 +239,9 @@ class Plotter:
 
             for athread_num in gridtools_this_stencil_data:
                 for adomain in gridtools_this_stencil_data[athread_num]:
-                    if not self.gridtools_avg_times_[astencil].has_key(adomain):
+                    if adomain not in self.gridtools_avg_times_[astencil]:
                         if self.stella_has_stencil(astencil):
-	                    self.stella_avg_times_[astencil][adomain] = []
+                            self.stella_avg_times_[astencil][adomain] = []
                             self.stella_err_[astencil][adomain] = []
                         self.gridtools_avg_times_[astencil][adomain] = []
                         self.labels_[astencil][adomain] = []
@@ -272,7 +272,7 @@ def create_dict(adict, props):
     if not props: return
 
     current_prop = props.pop()
-    if not adict.has_key(current_prop):
+    if current_prop not in adict:
         adict[current_prop]={}
 
     create_dict(adict[current_prop], props)
@@ -374,8 +374,7 @@ if __name__ == "__main__":
     if args.v:
         verbose=True
 
-    host = filter(lambda x: x.isalpha(), socket.gethostname())
-
+    host = ''.join(list(filter(lambda x: x.isalpha(), socket.gethostname())))
     if not re.match('greina', host) and not re.match('kesch', host):
         sys.exit('WARNING: host '+host+' not known. Not loading any environment')
     
@@ -413,10 +412,10 @@ if __name__ == "__main__":
         executable = gridtools_path+'/'+stencil_conf['exec']+'_'+target_suff
 
         stella_filter = None
-        if stencil_conf.has_key('stella_filter'):
+        if 'stella_filter' in stencil_conf:
             stella_filter = stencil_conf['stella_filter']
 
-        if not stencil_data[target][prec].has_key(std):
+        if std not in stencil_data[target][prec]:
             continue
         print(stencil_name, stencil_data)
         for thread in stencil_data[target][prec][std]: 
