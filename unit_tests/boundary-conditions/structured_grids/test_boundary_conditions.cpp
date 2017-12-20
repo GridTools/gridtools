@@ -79,7 +79,7 @@ struct bc_basic {
     // relative coordinates
     template < typename Direction, typename DataField0 >
     GT_FUNCTION void operator()(Direction, DataField0 &data_field0, uint_t i, uint_t j, uint_t k) const {
-        printf("%d, %d, %d\n", i, j, k);
+        // printf("%d, %d, %d\n", i, j, k);
         data_field0(i, j, k) = i + j + k;
     }
 };
@@ -151,7 +151,7 @@ struct bc_two {
 
 struct minus_predicate {
     template < sign I, sign J, sign K >
-    GT_FUNCTION bool operator()(direction< I, J, K >) const {
+    bool operator()(direction< I, J, K >) const {
         if (I == minus_ || J == minus_ || K == minus_)
             return false;
         return true;

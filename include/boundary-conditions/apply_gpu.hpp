@@ -63,6 +63,57 @@ The kernel will then apply the user provided boubary functions in order to all t
 namespace gridtools {
 
     namespace _impl {
+        struct precomputed_pred {
+            array< array< array< bool, 3 >, 3 >, 3 > m_values;
+
+            template < typename Predicate >
+            precomputed_pred(Predicate const &p) {
+                m_values[0][0][0] = p(direction< minus_, minus_, minus_ >{});
+                m_values[0][0][1] = p(direction< minus_, minus_, zero_ >{});
+                m_values[0][0][2] = p(direction< minus_, minus_, plus_ >{});
+
+                m_values[0][1][0] = p(direction< minus_, zero_, minus_ >{});
+                m_values[0][1][1] = p(direction< minus_, zero_, zero_ >{});
+                m_values[0][1][2] = p(direction< minus_, zero_, plus_ >{});
+
+                m_values[0][2][0] = p(direction< minus_, plus_, minus_ >{});
+                m_values[0][2][1] = p(direction< minus_, plus_, zero_ >{});
+                m_values[0][2][2] = p(direction< minus_, plus_, plus_ >{});
+
+                m_values[1][0][0] = p(direction< zero_, minus_, minus_ >{});
+                m_values[1][0][1] = p(direction< zero_, minus_, zero_ >{});
+                m_values[1][0][2] = p(direction< zero_, minus_, plus_ >{});
+
+                m_values[1][1][0] = p(direction< zero_, zero_, minus_ >{});
+
+                m_values[1][1][2] = p(direction< zero_, zero_, plus_ >{});
+
+                m_values[1][2][0] = p(direction< zero_, plus_, minus_ >{});
+                m_values[1][2][1] = p(direction< zero_, plus_, zero_ >{});
+                m_values[1][2][2] = p(direction< zero_, plus_, plus_ >{});
+
+                m_values[2][0][0] = p(direction< plus_, minus_, minus_ >{});
+                m_values[2][0][1] = p(direction< plus_, minus_, zero_ >{});
+                m_values[2][0][2] = p(direction< plus_, minus_, plus_ >{});
+
+                m_values[2][1][0] = p(direction< plus_, zero_, minus_ >{});
+                m_values[2][1][1] = p(direction< plus_, zero_, zero_ >{});
+                m_values[2][1][2] = p(direction< plus_, zero_, plus_ >{});
+
+                m_values[2][2][0] = p(direction< plus_, plus_, minus_ >{});
+                m_values[2][2][1] = p(direction< plus_, plus_, zero_ >{});
+                m_values[2][2][2] = p(direction< plus_, plus_, plus_ >{});
+            }
+
+            GT_FUNCTION
+            precomputed_pred(precomputed_pred const &) = default;
+
+            template < sign I, sign J, sign K >
+            GT_FUNCTION bool operator()(direction< I, J, K >) const {
+                return m_values[static_cast< int >(I) + 1][static_cast< int >(J) + 1][static_cast< int >(K) + 1];
+            }
+        };
+
         struct kernel_configuration {
             struct shape_type {
                 array< uint_t, 3 > m_size;
@@ -189,9 +240,9 @@ namespace gridtools {
     /**
        @brief kernel to appy boundary conditions to the data fields requested
      */
-    template < typename BoundaryFunction, typename Predicate, typename Halos, typename... DataViews >
+    template < typename BoundaryFunction, typename Halos, typename... DataViews >
     __global__ void loop_kernel(BoundaryFunction const boundary_function,
-        Predicate const predicate,
+        _impl::precomputed_pred const predicate,
         _impl::kernel_configuration const conf,
         Halos const halos,
         DataViews const... data_views) {
@@ -273,8 +324,11 @@ namespace gridtools {
             uint_t nbz = (nz == 0) ? (1) : ((nz + ntz - 1) / ntz);
             assert(nx > 0 || ny > 0 || nz > 0 && "all boundary extents are empty");
             dim3 blocks(nbx, nby, nbz);
-            loop_kernel<<< blocks, threads >>>(
-                m_boundary_function, m_predicate, m_conf, m_halo_descriptors, data_field_views...);
+            loop_kernel<<< blocks, threads >>>(m_boundary_function,
+                _impl::precomputed_pred{m_predicate},
+                m_conf,
+                m_halo_descriptors,
+                data_field_views...);
             cudaDeviceSynchronize();
 #ifndef NDEBUG
             cudaError_t error = cudaGetLastError();
