@@ -137,6 +137,9 @@ class Plotter:
         opacity = 0.4
         error_config = {'ecolor': '0.3'}
 
+        fig = plt.figure()
+        fig.set_tight_layout(True)
+
         y1_bar = plt.bar(index , y1, yerr = y1_err, width=bar_width,
               alpha=opacity,
               color='r',
@@ -159,8 +162,7 @@ class Plotter:
         plt.tick_params(axis='both', which='minor', labelsize=6)
         plt.legend(prop={'size':6})
 
-        plt.tight_layout()
-        plt.savefig(filename, format="svg")
+        fig.savefig(filename, format="svg")
       
     def plot_titlepage(self, filename):
        x,y = 0.1,0.4
