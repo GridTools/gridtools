@@ -104,7 +104,9 @@ namespace gridtools {
 
         template < typename... DataFields >
         void apply(DataFields &... data_fields) const {
-            bc_apply.apply(_impl::proper_view< Arch, access_mode::ReadWrite, DataFields >::make(data_fields)...);
+            bc_apply.apply(
+                _impl::proper_view< Arch, access_mode::ReadWrite, typename std::decay< DataFields >::type >::make(
+                    data_fields)...);
         }
     };
 

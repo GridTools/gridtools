@@ -103,15 +103,15 @@ namespace gridtools {
         template < typename ROTuple, typename AllTuple, std::size_t... IDs >
         auto substitute_placeholders(
             ROTuple const &ro_tuple, AllTuple const &all, gt_integer_sequence< std::size_t, IDs... >)
-            -> decltype(std::make_tuple(select_element< IDs >(
-                ro_tuple,
+            -> decltype(std::make_tuple(select_element< IDs >(ro_tuple,
                 all,
-                typename PlcOrNot<
-                    std::is_placeholder< typename std::tuple_element< IDs, AllTuple >::type >::value >::type{})...)) {
+                typename PlcOrNot< std::is_placeholder< /*typename std::decay<*/
+                    typename std::tuple_element< IDs, AllTuple >::type /*>::type*/ >::value >::type{})...)) {
             return std::make_tuple(select_element< IDs >(ro_tuple,
                 all,
-                typename PlcOrNot< std::is_placeholder< typename std::decay<
-                    typename std::tuple_element< IDs, AllTuple >::type >::value >::type >::type{})...);
+                typename PlcOrNot< std::is_placeholder<
+                    /*typename std::decay<*/
+                    typename std::tuple_element< IDs, AllTuple >::type /*>::type*/ >::value >::type{})...);
         }
 
         std::tuple<> rest_tuple(std::tuple<>, gt_integer_sequence< std::size_t >) { return {}; }
@@ -247,7 +247,7 @@ namespace gridtools {
          * condition class
          */
         stores_type const &stores() const {
-            GRIDTOOLS_STATIC_ASSERT(_impl::contains_placeholders< stores_type >::value,
+            GRIDTOOLS_STATIC_ASSERT(not _impl::contains_placeholders< stores_type >::value,
                 "Some inputs to boundary conditions are placeholders. Remeber to use .associate(...) member function "
                 "to substitute tham");
             return m_stores;
@@ -315,7 +315,7 @@ namespace gridtools {
 
         // Concept checking on BCApply is not ready yet.
         // Check that the stores... are either data stores or placeholders
-        GRIDTOOLS_STATIC_ASSERT(_impl::data_stores_or_placeholders< std::decay< DataStores >::type... >(),
+        GRIDTOOLS_STATIC_ASSERT(_impl::data_stores_or_placeholders< typename std::decay< DataStores >::type... >(),
             "The arguments of bind_bc, after the first, must be data_stores or std::placeholders");
         return {bc_apply, std::forward_as_tuple(stores...)};
     }
