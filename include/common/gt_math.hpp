@@ -154,18 +154,9 @@ namespace gridtools {
         /**
         * Function computing the exponential
         */
-        template < typename Value >
-        GT_FUNCTION Value exp(const Value x);
+        GT_FUNCTION float exp(const float x) { return ::expf(x); }
 
-        template <>
-        GT_FUNCTION float exp(const float x) {
-            return ::expf(x);
-        }
-
-        template <>
-        GT_FUNCTION double exp(const double x) {
-            return ::exp(x);
-        }
+        GT_FUNCTION double exp(const double x) { return ::exp(x); }
 #else
         template < typename Value >
         GT_FUNCTION Value exp(const Value x) {
