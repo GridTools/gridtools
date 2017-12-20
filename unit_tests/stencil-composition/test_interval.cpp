@@ -33,29 +33,25 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "stencil-composition/arg.hpp"
-#include "stencil-composition/aggregator_type.hpp"
+#include "stencil-composition/interval.hpp"
+#include "../test_helper.hpp"
 
 using namespace gridtools;
-using namespace enumtype;
 
-TEST(AggregatorType, ContinuousIndicesTest) {
-    typedef arg< 0, int_t > arg0_t;
-    typedef arg< 1, int_t > arg1_t;
-    typedef arg< 2, int_t > arg2_t;
-    typedef arg< 3, int_t > arg3_t;
+TEST(test_interval, modify) {
+    using my_interval = interval< level< 0, -1 >, level< 1, -1 > >;
 
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t, arg3_t > >::type::value));
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t, arg2_t > >::type::value));
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg1_t > >::type::value));
-    ASSERT_TRUE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t > >::type::value));
+    ASSERT_TYPE_EQ< interval< level< 0, -2 >, level< 1, -1 > >, my_interval::modify< -1, 0 > >();
+    ASSERT_TYPE_EQ< interval< level< 0, 1 >, level< 1, 1 > >, my_interval::modify< 1, 1 > >();
+}
 
-    typedef typename boost::mpl::sort< boost::mpl::vector< arg3_t, arg2_t, arg0_t, arg1_t >, arg_comparator >::type
-        placeholders_t;
-    ASSERT_TRUE((_impl::continuous_indices_check< placeholders_t >::type::value));
-    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg1_t, arg3_t, arg2_t > >::type::value));
-    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg0_t, arg2_t > >::type::value));
-    ASSERT_FALSE((_impl::continuous_indices_check< boost::mpl::vector< arg1_t > >::type::value));
+TEST(test_interval, join) {
+    using interval1 = interval< level< 1, -2 >, level< 1, -1 > >;
+    using interval2 = interval< level< 0, -1 >, level< 3, -1 > >;
+    using interval3 = interval< level< 2, -2 >, level< 3, -1 > >;
+    using joined_interval = join_interval< interval1, interval2, interval3 >;
+
+    ASSERT_TYPE_EQ< interval< level< 0, -1 >, level< 3, -1 > >, joined_interval >();
 }

@@ -56,29 +56,29 @@ namespace ico_operators {
         using halo_t = halo< 2, 0, 2, 0 >;
         using halo_5d_t = halo< 2, 0, 2, 0, 0 >;
         using cell_storage_type =
-            icosahedral_topology_t::storage_t< icosahedral_topology_t::cells, float_type, halo_t >;
+            icosahedral_topology_t::data_store_t< icosahedral_topology_t::cells, float_type, halo_t >;
         using edge_storage_type =
-            icosahedral_topology_t::storage_t< icosahedral_topology_t::edges, float_type, halo_t >;
+            icosahedral_topology_t::data_store_t< icosahedral_topology_t::edges, float_type, halo_t >;
         using vertex_storage_type =
-            icosahedral_topology_t::storage_t< icosahedral_topology_t::vertices, float_type, halo_t >;
+            icosahedral_topology_t::data_store_t< icosahedral_topology_t::vertices, float_type, halo_t >;
 
         using cell_2d_storage_type = icosahedral_topology_t::
-            storage_t< icosahedral_topology_t::cells, float_type, halo_t, selector< 1, 1, 1, 0 > >;
+            data_store_t< icosahedral_topology_t::cells, float_type, halo_t, selector< 1, 1, 1, 0 > >;
         using edge_2d_storage_type = icosahedral_topology_t::
-            storage_t< icosahedral_topology_t::edges, float_type, halo_t, selector< 1, 1, 1, 0 > >;
+            data_store_t< icosahedral_topology_t::edges, float_type, halo_t, selector< 1, 1, 1, 0 > >;
         using vertex_2d_storage_type = icosahedral_topology_t::
-            storage_t< icosahedral_topology_t::vertices, float_type, halo_t, selector< 1, 1, 1, 0 > >;
+            data_store_t< icosahedral_topology_t::vertices, float_type, halo_t, selector< 1, 1, 1, 0 > >;
 
         using vertices_4d_storage_type = icosahedral_topology_t::
-            storage_t< icosahedral_topology_t::vertices, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >;
+            data_store_t< icosahedral_topology_t::vertices, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >;
         using cells_4d_storage_type = icosahedral_topology_t::
-            storage_t< icosahedral_topology_t::cells, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >;
+            data_store_t< icosahedral_topology_t::cells, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >;
         using edges_4d_storage_type = icosahedral_topology_t::
-            storage_t< icosahedral_topology_t::edges, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >;
+            data_store_t< icosahedral_topology_t::edges, float_type, halo_5d_t, selector< 1, 1, 1, 1, 1 > >;
         using edges_of_cells_storage_type = icosahedral_topology_t::
-            storage_t< icosahedral_topology_t::cells, float_type, halo_5d_t, selector< 1, 1, 1, 0, 1 > >;
+            data_store_t< icosahedral_topology_t::cells, float_type, halo_5d_t, selector< 1, 1, 1, 0, 1 > >;
         using edges_of_vertices_storage_type = icosahedral_topology_t::
-            storage_t< icosahedral_topology_t::vertices, float_type, halo_5d_t, selector< 1, 1, 1, 0, 1 > >;
+            data_store_t< icosahedral_topology_t::vertices, float_type, halo_5d_t, selector< 1, 1, 1, 0, 1 > >;
 
       private:
         icosahedral_topology_t icosahedral_grid_;

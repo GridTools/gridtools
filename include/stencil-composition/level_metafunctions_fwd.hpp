@@ -33,4 +33,15 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "test_cxx11_all_integrals.cpp"
+#pragma once
+
+namespace gridtools {
+    template < uint_t VSplitter, int_t VOffset >
+    struct level;
+
+    template < typename TLevel >
+    struct level_to_index;
+
+    template < typename TIndex >
+    struct index_to_level;
+} // namespace gridtools

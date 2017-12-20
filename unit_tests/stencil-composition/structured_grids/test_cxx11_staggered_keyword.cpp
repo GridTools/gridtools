@@ -50,9 +50,6 @@ namespace test_staggered_keyword {
     using namespace gridtools;
     using namespace enumtype;
 
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
     struct functor {
         static uint_t ok_i;
         static uint_t ok_j;
@@ -61,7 +58,7 @@ namespace test_staggered_keyword {
         typedef accessor< 1 > p_j;
         typedef boost::mpl::vector< p_i, p_j > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             // std::cout<<"i: "<< eval(p_i(-5,-5,0)) <<", j: "<<eval(p_j(-5,-5,0))<< std::endl;
             if (eval(p_i(-5, -5, 0)) == 5)
                 ok_i++;
@@ -80,12 +77,10 @@ namespace test_staggered_keyword {
         storage_t i_data(meta_, [](int i, int j, int k) { return i; });
         storage_t j_data(meta_, [](int i, int j, int k) { return j; });
 
-        uint_t di[5] = {0, 0, 5, 30 - 1, 30};
-        uint_t dj[5] = {0, 0, 5, 20 - 1, 20};
+        halo_descriptor di{0, 0, 5, 30 - 1, 30};
+        halo_descriptor dj{0, 0, 5, 20 - 1, 20};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = 1 - 1;
+        auto grid = make_grid(di, dj, (uint_t)1);
 
         typedef arg< 0, storage_t > p_i_data;
         typedef arg< 1, storage_t > p_j_data;

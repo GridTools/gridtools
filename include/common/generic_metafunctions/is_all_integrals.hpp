@@ -34,44 +34,49 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../gridtools.hpp"
+#include "is_all.hpp"
+
 namespace gridtools {
-
-    template < ushort_t I, typename T, typename LocationType, bool Temporary >
-    struct arg;
-
-    template < typename T, typename V >
-    struct arg_storage_pair;
+    /**
+    * @brief SFINAE for the case in which all the components of a parameter pack are of integral type
+    */
+    template < typename... IntTypes >
+    using all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        all_< boost::is_integral, IntTypes... >;
+#else
+        typename boost::enable_if_c< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...),
+            bool >::type;
+#endif
 
     /**
-       @brief struct containing conditionals for several types.
-
-       To be used with e.g. mpl::sort
+    * @brief SFINAE for the case in which all the components of a parameter pack are of static integral type
     */
-    struct arg_comparator {
-        template < typename T1, typename T2 >
-        struct apply;
+    template < typename... IntTypes >
+    using all_static_integral = all_< is_static_integral, IntTypes... >;
 
-        /**specialization for storage pairs*/
-        template < typename T1, typename T2, typename T3, typename T4 >
-        struct apply< arg_storage_pair< T1, T2 >, arg_storage_pair< T3, T4 > >
-            : public boost::mpl::bool_< (T1::index_t::value < T3::index_t::value) > {};
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_integral =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< boost::is_integral, IntTypes... >;
+#else
+        boost::mpl::bool_< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...) >;
+#endif
 
-        /**specialization for storage placeholders*/
-        template < ushort_t I1,
-            typename T1,
-            typename L1,
-            bool Temporary1,
-            ushort_t I2,
-            typename T2,
-            typename L2,
-            bool Temporary2 >
-        struct apply< arg< I1, T1, L1, Temporary1 >, arg< I2, T2, L2, Temporary2 > >
-            : public boost::mpl::bool_< (I1 < I2) > {};
+    /* check if all given types are integral types */
+    template < typename... IntTypes >
+    using is_all_static_integral = is_all< is_static_integral, IntTypes... >;
 
-        /**specialization for static integers*/
-        template < typename T, T T1, T T2 >
-        struct apply< boost::mpl::integral_c< T, T1 >, boost::mpl::integral_c< T, T2 > >
-            : public boost::mpl::bool_< (T1 < T2) > {};
-    };
+    /* check if all given types are integral types */
+    template < typename T >
+    struct is_integral_or_enum : boost::mpl::or_< boost::is_integral< T >, boost::is_enum< T > > {};
+
+    template < typename... IntTypes >
+    using is_all_integral_or_enum =
+#if defined(CUDA8) && !defined(_CRAYC)
+        is_all< is_integral_or_enum, IntTypes... >;
+#else
+        boost::mpl::bool_< accumulate(logical_and(), true, is_integral_or_enum< IntTypes >::type::value...) >;
+#endif
 }
