@@ -44,16 +44,16 @@ namespace gridtools {
     template < enumtype::strategy >
     struct strategy_from_id_mic;
 
+    template <>
+    struct strategy_from_id_mic< enumtype::Naive > {};
+
     /**
-       @brief specialization for the \ref gridtools::_impl::Naive strategy
+       @brief specialization for the \ref gridtools::_impl::Block strategy
+       The loops over i and j are split according to the values of BI and BJ
     */
     template <>
-    struct strategy_from_id_mic< enumtype::Naive > {
-        // default block size for Naive strategy
-        typedef block_size< 0, 0, 0 > block_size_t;
-        static const uint_t BI = block_size_t::i_size_t::value;
-        static const uint_t BJ = block_size_t::j_size_t::value;
-        static const uint_t BK = 0;
+    struct strategy_from_id_mic< enumtype::Block > {
+        using block_size_t = block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 >;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -67,9 +67,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-            typedef boost::mpl::range_c< uint_t,
+            using iter_range = boost::mpl::range_c< uint_t,
                 0,
-                boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
+                boost::mpl::size< typename MssComponentsArray::elements >::type::value >;
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
@@ -78,150 +78,6 @@ namespace gridtools {
                 boost::mpl::for_each< iter_range >(
                     mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(
                         local_domain_lists, grid, reduction_data, 0, 0));
-            }
-        };
-
-        /**
-         * @brief main execution of a mss. Defines the IJ loop bounds of this particular block
-         * and sequentially executes all the functors in the mss
-         * @tparam RunFunctorArgs run functor arguments
-         */
-        template < typename RunFunctorArgs >
-        struct mss_loop {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
-            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
-            template < typename LocalDomain, typename Grid, typename ReductionData >
-            static void run(const LocalDomain &local_domain,
-                const Grid &grid,
-                ReductionData &reduction_data,
-                const uint_t bi,
-                const uint_t bj) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
-
-                typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
-                typedef
-                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
-
-                // getting the architecture and grid dependent traits
-                typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
-                    kernel_functor_executor_t;
-
-                typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-                kernel_functor_executor_t(local_domain, grid, reduction_data)();
-            }
-        };
-    };
-
-    /**
-       @brief specialization for the \ref gridtools::_impl::Block strategy
-       The loops over i and j are split according to the values of BI and BJ
-    */
-    template <>
-    struct strategy_from_id_mic< enumtype::Block > {
-        // default block size for Block strategy
-        typedef block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 > block_size_t;
-
-        static const uint_t BI = block_size_t::i_size_t::value;
-        static const uint_t BJ = block_size_t::j_size_t::value;
-        static const uint_t BK = 0;
-
-        /**
-         * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam MssComponentsArray a meta array with the mss components of all MSS
-         * @tparam BackendIds ids of backend
-         */
-        template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
-        struct fused_mss_loop {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
-
-            typedef boost::mpl::range_c< uint_t,
-                0,
-                boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
-
-            template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-
-                uint_t n = grid.i_high_bound() - grid.i_low_bound();
-                uint_t m = grid.j_high_bound() - grid.j_low_bound();
-
-                uint_t NBI = n / BI;
-                uint_t NBJ = m / BJ;
-
-#pragma omp parallel
-                {
-#pragma omp for collapse(2) nowait
-                    for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                        for (uint_t bi = 0; bi <= NBI; ++bi) {
-                            boost::mpl::for_each< iter_range >(mss_functor< MssComponentsArray,
-                                Grid,
-                                LocalDomainListArray,
-                                BackendIds,
-                                ReductionData >(local_domain_lists, grid, reduction_data, bi, bj));
-                        }
-                    }
-                }
-            }
-        };
-
-        /**
-         * @brief main execution of a mss for a given IJ block. Defines the IJ loop bounds of this particular block
-         * and sequentially executes all the functors in the mss
-         * @tparam RunFunctorArgs run functor arguments
-         */
-        template < typename RunFunctorArgs >
-        struct mss_loop {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
-
-            typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
-
-            template < typename LocalDomain, typename Grid, typename ReductionData >
-            static void run(const LocalDomain &local_domain,
-                const Grid &grid,
-                ReductionData &reduction_data,
-                const uint_t bi,
-                const uint_t bj) {
-                GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-                GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
-
-                typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
-                typedef
-                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type arch_grid_traits_t;
-
-                typedef typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type
-                    kernel_functor_executor_t;
-
-                typedef typename RunFunctorArgs::functor_list_t functor_list_t;
-
-                uint_t n = grid.i_high_bound() - grid.i_low_bound();
-                uint_t m = grid.j_high_bound() - grid.j_low_bound();
-
-                uint_t NBI = n / BI;
-                uint_t NBJ = m / BJ;
-
-                uint_t first_i = bi * BI + grid.i_low_bound();
-                uint_t first_j = bj * BJ + grid.j_low_bound();
-
-                uint_t last_i = BI - 1;
-                uint_t last_j = BJ - 1;
-
-                if (bi == NBI && bj == NBJ) {
-                    last_i = n - NBI * BI;
-                    last_j = m - NBJ * BJ;
-                } else if (bi == NBI) {
-                    last_i = n - NBI * BI;
-                } else if (bj == NBJ) {
-                    last_j = m - NBJ * BJ;
-                }
-
-                kernel_functor_executor_t(
-                    local_domain, grid, reduction_data, first_i, first_j, last_i, last_j, bi, bj)();
             }
         };
     };

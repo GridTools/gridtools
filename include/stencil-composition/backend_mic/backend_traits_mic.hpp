@@ -142,7 +142,6 @@ namespace gridtools {
             const int total_threads = omp_get_max_threads();
             const int thread_offset =
                 (sinfo->padded_total_length() - StorageInfo::get_initial_offset()) * thread / total_threads;
-            const int inner_offset = sinfo->begin() - sinfo->total_begin();
             return StorageInfo::get_initial_offset() + thread_offset;
         }
 
@@ -170,15 +169,19 @@ namespace gridtools {
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const uint_t bi,
-                const uint_t bj) {
+                const uint_t,
+                const uint_t) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-                // each strategy executes a different high level loop for a mss
-                strategy_from_id_mic< backend_ids_t::s_strategy_id >::template mss_loop<
-                    RunFunctorArgs >::template run(local_domain, grid, reduction_data, bi, bj);
+                using grid_traits_t = grid_traits_from_id< backend_ids_t::s_grid_type_id >;
+                using arch_grid_traits_t =
+                    typename grid_traits_t::template with_arch< backend_ids_t::s_backend_id >::type;
+                using kernel_functor_executor_t =
+                    typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type;
+
+                kernel_functor_executor_t(local_domain, grid, reduction_data)();
             }
         };
 

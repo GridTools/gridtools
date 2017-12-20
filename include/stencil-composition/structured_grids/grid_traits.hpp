@@ -85,7 +85,8 @@ namespace gridtools {
 
         // get a temporary storage for Host Naive
         template < typename MaxExtent, typename Backend, typename StorageWrapper, typename Grid >
-        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive),
+        static typename boost::enable_if_c< (Backend::s_strategy_id == enumtype::Naive &&
+                                                Backend::s_backend_id == enumtype::Host),
             typename StorageWrapper::storage_info_t >::type
         instantiate_storage_info(Grid const &grid) {
             // get all the params (size in i,j,k and number of threads in i,j)
