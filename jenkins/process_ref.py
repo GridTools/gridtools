@@ -154,9 +154,9 @@ class Plotter:
         y2_errbar = plt.errorbar(index + bar_width*1.5, y2, yerr= y2_err, color='b', ls='none')
 
 
-        plt.xlabel('Stencil Name')
-        plt.ylabel('Stencil time (s)')
-        plt.title(title)
+        plt.xlabel('Stencil Name', fontsize='xx-small')
+        plt.ylabel('Stencil time (s)', fontsize='xx-small')
+        fig.suptitle(title, fontsize=12)
         plt.xticks(index + bar_width*1.5, xtick_labels, rotation=90, fontsize='xx-small')
         plt.tick_params(axis='both', which='major', labelsize=10)
         plt.tick_params(axis='both', which='minor', labelsize=6)
