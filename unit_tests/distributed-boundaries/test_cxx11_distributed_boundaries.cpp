@@ -81,11 +81,13 @@ void show_view(View const &view) {
 TEST(DistributedBoundaries, Test) {
 
 #ifdef __CUDACC__
+    using comm_arch = gridtools::gcl_gpu;
     typedef gridtools::backend< gridtools::enumtype::Cuda,
         gridtools::enumtype::GRIDBACKEND,
         gridtools::enumtype::Block > hd_backend;
     typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
 #else
+    using comm_arch = gridtools::gcl_cpu;
 #ifdef BACKEND_BLOCK
     typedef gridtools::backend< gridtools::enumtype::Host,
         gridtools::enumtype::GRIDBACKEND,
@@ -115,7 +117,7 @@ TEST(DistributedBoundaries, Test) {
 
     storage_info_t storage_info(d1, d2, d3);
 
-    using cabc_t = distributed_boundaries< comm_traits< storage_type, gcl_cpu > >;
+    using cabc_t = distributed_boundaries< comm_traits< storage_type, comm_arch > >;
 
     cabc_t cabc{halos, {false, false, false}, 4, GCL_WORLD};
 

@@ -46,13 +46,17 @@
 struct triplet {
     int a = 0, b = 0, c = 0;
 
-    constexpr triplet() = default;
+    GT_FUNCTION
+    triplet() = default;
 
-    constexpr triplet(int a, int b, int c) : a(a), b(b), c(c) {}
+    GT_FUNCTION
+    triplet(int a, int b, int c) : a(a), b(b), c(c) {}
 
-    constexpr bool operator==(triplet other) const { return (a == other.a) and (b == other.b) and (c == other.c); }
+    GT_FUNCTION
+    bool operator==(triplet other) const { return (a == other.a) and (b == other.b) and (c == other.c); }
 
-    constexpr bool operator!=(triplet other) const { return not(*this == other); }
+    GT_FUNCTION
+    bool operator!=(triplet other) const { return not(*this == other); }
 };
 
 std::ostream &operator<<(std::ostream &s, triplet t) { return s << "[" << t.a << " " << t.b << " " << t.c << "]"; }

@@ -50,7 +50,7 @@ namespace gridtools {
         };
 
         template < typename T >
-        struct compute_arch_of< gridtools::gcl_gpu, T > {
+        struct compute_arch_of< gcl_gpu, T > {
             static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Cuda;
         };
 

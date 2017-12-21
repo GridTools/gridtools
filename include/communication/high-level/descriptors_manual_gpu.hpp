@@ -33,6 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
+#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+
 #ifdef __CUDACC__
 #include "m_packZL.hpp"
 #include "m_packZU.hpp"
@@ -503,6 +506,38 @@ namespace gridtools {
                 printf("Error transferring buffer table to device\n");
             }
         }
+
+        /**
+           Function to pack data before sending
+
+           \param[in] fields vector with data fields pointers to be packed from
+        */
+        template < typename... Pointers >
+        void pack(const Pointers *... fields) {
+            typedef translate_t< 3, default_layout_map< 3 >::type > translate;
+            auto ints = typename make_gt_integer_sequence< unsigned int, sizeof...(Pointers) >::type{};
+            if (send_size[translate()(0, 0, -1)]) {
+                m_packZL_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+            }
+
+            Usa il diff per trovare le differenze tra i m_pack cosi` da evitare errori impossibili
+// if (send_size[translate()(0, 0, 1)]) {
+//     m_packZU_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+// }
+#ifdef GCL_MULTI_STREAMS
+                cudaStreamSynchronize(ZL_stream);
+            cudaStreamSynchronize(ZU_stream);
+            cudaStreamSynchronize(YL_stream);
+            cudaStreamSynchronize(YU_stream);
+            cudaStreamSynchronize(XL_stream);
+            cudaStreamSynchronize(XU_stream);
+#else
+            cudaDeviceSynchronize();
+#endif
+        }
+
+        template < typename... Pointers >
+        void unpack(const Pointers *... fields) {}
 
         /**
            Function to pack data before sending
