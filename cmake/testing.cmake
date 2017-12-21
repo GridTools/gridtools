@@ -28,7 +28,6 @@ set( exe_LIBS ${exe_LIBS} gtest)
 # This function will fetch all host test cases in the given directory.
 # Only used for gcc or clang compilations
 function(fetch_host_tests subfolder)
-    # don't care if ENABLE_HOST is not set
     if (ENABLE_HOST)
         # get all source files in the current directory
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cpp" )
@@ -56,7 +55,6 @@ endfunction(fetch_host_tests)
 # This function will fetch all gpu test cases in the given directory.
 # Only used for nvcc compilations
 function(fetch_gpu_tests subfolder)
-    # don't care if ENABLE_CUDA is not set
     if(ENABLE_CUDA)
         # get all source files in the current directory
         file(GLOB test_sources_cxx11 "${CMAKE_CURRENT_SOURCE_DIR}/${subfolder}/test_cxx11_*.cu" )
@@ -82,7 +80,6 @@ endfunction(fetch_gpu_tests)
 
 # This function can be used to add a custom host test
 function(add_custom_host_test name sources cc_flags ld_flags)
-    # don't care if ENABLE_HOST is not set
     if (ENABLE_HOST)
         set(name "${name}_host")
         # set binary output name and dir
@@ -100,7 +97,6 @@ endfunction(add_custom_host_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_gpu_test name sources cc_flags ld_flags)
-    # don't care if ENABLE_CUDA is not set
     if (ENABLE_CUDA)
         set(name "${name}_cuda")
         # set binary output name and dir
@@ -116,7 +112,6 @@ endfunction(add_custom_gpu_test)
 
 
 function(add_custom_mpi_host_test name sources cc_flags ld_flags)
-    # don't care if ENABLE_HOST is not set
     if (ENABLE_HOST)
         set(name "${name}_host")
         # set binary output name and dir
@@ -133,7 +128,6 @@ endfunction(add_custom_mpi_host_test)
 
 # This function can be used to add a custom gpu test
 function(add_custom_mpi_gpu_test name sources cc_flags ld_flags)
-    # don't care if ENABLE_CUDA is not set
     if (ENABLE_CUDA)
         set(name "${name}_cuda")
         # set binary output name and dir
