@@ -61,7 +61,7 @@ namespace gridtools {
         struct run_f_on_interval;
 
         /**
-           @brief partial specialization for the forward or backward cases
+           @brief partial specialization for the forward or backward cases (currently also used for the parallel case)
         */
         template < enumtype::execution IterationType, typename RunFunctorArguments >
         struct run_f_on_interval< enumtype::execute< IterationType >, RunFunctorArguments >
@@ -119,16 +119,5 @@ namespace gridtools {
             }
         };
 
-        /**
-           @brief partial specialization for the parallel case (to be implemented)
-           stub
-         */
-        template < typename RunFunctorArguments >
-        struct run_f_on_interval< typename enumtype::execute< enumtype::parallel >, RunFunctorArguments >
-            : public run_f_on_interval_base<
-                  run_f_on_interval< enumtype::execute< enumtype::parallel >, RunFunctorArguments > > {
-            GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-            //*TODO implement me
-        };
     } // namespace _impl
 } // namespace gridtools
