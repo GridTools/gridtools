@@ -235,6 +235,15 @@ int call_kernel_ZL(Blocks blocks,
     int ny,
     unsigned int i) {
     m_packZLKernel<<< blocks, threads, b, ZL_stream >>>(d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, i);
+
+#ifdef CUDAMSG
+    int err = cudaGetLastError();
+    if (err != cudaSuccess) {
+        printf("Kernel launch failure\n");
+        exit(-1);
+    }
+#endif
+
     return 0;
 }
 
@@ -275,8 +284,6 @@ void m_packZL_variadic(value_type **d_msgbufTab,
     cudaEventRecord(start, 0);
 #endif
 
-    // run the compression a few times, just to get a bit
-    // more statistics
     const int niter = std::tuple_size< datas >::value;
 
     int nothing[niter] = {call_kernel_ZL(blocks,
@@ -289,15 +296,6 @@ void m_packZL_variadic(value_type **d_msgbufTab,
         nx,
         ny,
         Ids)...};
-
-// clang-format on
-#ifdef CUDAMSG
-    int err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        printf("Kernel launch failure\n");
-        exit(-1);
-    }
-#endif
 
 // more timing stuff and conversion into reasonable units
 // for display
