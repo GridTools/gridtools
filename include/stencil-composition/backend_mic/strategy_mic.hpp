@@ -53,7 +53,7 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_mic< enumtype::Block > {
-        using block_size_t = block_size< GT_DEFAULT_TILE_I, GT_DEFAULT_TILE_J, 1 >;
+        using block_size_t = block_size< 0, 0, 0>;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block

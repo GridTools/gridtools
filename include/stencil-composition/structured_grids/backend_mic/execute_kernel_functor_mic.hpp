@@ -33,12 +33,6 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-/*
- * execute_kernel_functor_mic.h
- *
- *  Created on: Apr 25, 2015
- *      Author: cosuna
- */
 
 #pragma once
 #include "../../execution_policy.hpp"
@@ -50,34 +44,59 @@
 namespace gridtools {
 
     namespace _impl {
-
-        template < typename ExecutionEngine, typename RunFunctorArguments, typename Interval >
-        struct functor_loop_mic {
-            typedef typename RunFunctorArguments::grid_t grid_t;
-            typedef typename RunFunctorArguments::functor_list_t functor_list_t;
-            typedef typename RunFunctorArguments::extent_sizes_t extent_sizes_t;
-            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-            typedef typename RunFunctorArguments::local_domain_t local_domain_t;
-            typedef
-                typename backend_traits_from_id< RunFunctorArguments::backend_ids_t::s_backend_id >::run_esf_functor_h_t
-                    run_esf_functor_h_t;
+        template < typename ExecutionEngine, typename RunFunctorArguments >
+        class run_on_block_mic {
+          public:
+            using grid_t = typename RunFunctorArguments::grid_t;
+            using functor_list_t = typename RunFunctorArguments::functor_list_t;
+            using extent_sizes_t = typename RunFunctorArguments::extent_sizes_t;
+            using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+            using local_domain_t = typename RunFunctorArguments::local_domain_t;
+            using run_esf_functor_h_t = typename backend_traits_from_id<
+                RunFunctorArguments::backend_ids_t::s_backend_id >::run_esf_functor_h_t;
 
             GT_FUNCTION
-            functor_loop_mic(iterate_domain_t &it_domain,
+            run_on_block_mic(iterate_domain_t &it_domain,
                 grid_t const &grid,
-                const int_t i_first,
-                const int_t j_first,
-                const int_t i_size,
-                const int_t j_size)
+                int_t i_first,
+                int_t j_first,
+                int_t i_size,
+                int_t j_size)
                 : m_it_domain(it_domain), m_grid(grid), m_i_first(i_first), m_j_first(j_first), m_i_size(i_size),
                   m_j_size(j_size) {}
 
+          protected:
+            iterate_domain_t &m_it_domain;
+            grid_t const &m_grid;
+            const int_t m_i_first, m_j_first, m_i_size, m_j_size;
+        };
+
+        template < typename ExecutionEngine, typename RunFunctorArguments, typename Interval >
+        class run_esf_mic : public run_on_block_mic< ExecutionEngine, RunFunctorArguments > {
+            using base = run_on_block_mic< ExecutionEngine, RunFunctorArguments >;
+
+            using grid_t = typename base::grid_t;
+            using functor_list_t = typename base::functor_list_t;
+            using extent_sizes_t = typename base::extent_sizes_t;
+            using iterate_domain_t = typename base::iterate_domain_t;
+            using local_domain_t = typename base::local_domain_t;
+            using run_esf_functor_h_t = typename base::run_esf_functor_h_t;
+
+            using from_t = typename index_to_level< typename Interval::first >::type;
+            using to_t = typename index_to_level< typename Interval::second >::type;
+            using iteration_policy_t = iteration_policy< from_t,
+                to_t,
+                typename grid_traits_from_id< RunFunctorArguments::backend_ids_t::s_grid_type_id >::dim_k_t,
+                ExecutionEngine::type::iteration >;
+            using run_esf_functor_t =
+                typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type;
+
+          public:
+            using base::run_on_block_mic;
+
             template < typename Index >
             GT_FUNCTION void operator()(Index const &index) const {
-                typedef typename index_to_level< typename Interval::first >::type from_t;
-                typedef typename index_to_level< typename Interval::second >::type to_t;
-
-                typedef typename boost::mpl::at< extent_sizes_t, Index >::type extent_t;
+                using extent_t = typename boost::mpl::at< extent_sizes_t, Index >::type;
 
                 // check that the axis specified by the user are containing the k interval
                 GRIDTOOLS_STATIC_ASSERT(
@@ -85,31 +104,22 @@ namespace gridtools {
                         level_to_index< typename grid_t::axis_type::ToLevel >::value >= Interval::second::value),
                     "the k interval exceeds the axis you specified for the grid instance");
 
-                typedef iteration_policy< from_t,
-                    to_t,
-                    typename grid_traits_from_id< RunFunctorArguments::backend_ids_t::s_grid_type_id >::dim_k_t,
-                    ExecutionEngine::type::iteration >
-                    iteration_policy_t;
+                constexpr int_t i_first = extent_t::iminus::value;
+                const int_t i_last = this->m_i_size + extent_t::iplus::value;
+                constexpr int_t j_first = extent_t::jminus::value;
+                const int_t j_last = this->m_j_size + extent_t::jplus::value;
+                const int_t k_first = this->m_grid.template value_at< typename iteration_policy_t::from >();
+                const int_t k_last = this->m_grid.template value_at< typename iteration_policy_t::to >();
 
-                constexpr int_t ifirst = extent_t::iminus::value;
-                const int_t ilast = m_i_size + extent_t::iplus::value;
-                constexpr int_t jfirst = extent_t::jminus::value;
-                const int_t jlast = m_j_size + extent_t::jplus::value;
-                const int_t kfirst = m_grid.template value_at< typename iteration_policy_t::from >();
-                const int_t klast = m_grid.template value_at< typename iteration_policy_t::to >();
-
-                typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
-                    run_esf_functor_t;
-
-                run_esf_functor_t run_esf(m_it_domain);
-                for (int_t k = kfirst; iteration_policy_t::condition(k, klast); iteration_policy_t::increment(k)) {
-                    for (int_t j = jfirst; j < jlast; ++j) {
-                        m_it_domain.set_index(0, j, k, m_i_first, m_j_first);
+                run_esf_functor_t run_esf(this->m_it_domain);
+                for (int_t k = k_first; iteration_policy_t::condition(k, k_last); iteration_policy_t::increment(k)) {
+                    for (int_t j = j_first; j < j_last; ++j) {
+                        this->m_it_domain.set_index(0, j, k, this->m_i_first, this->m_j_first);
 
 #pragma ivdep
 #pragma omp simd
-                        for (int_t i = ifirst; i < ilast; ++i) {
-                            m_it_domain.template set_block_index< 0 >(i);
+                        for (int_t i = i_first; i < i_last; ++i) {
+                            this->m_it_domain.template set_block_index< 0 >(i);
                             run_esf(index);
 
 #if defined(__INTEL_COMPILER) && !defined(GT_NO_CONSTEXPR_ACCESSES)
@@ -120,103 +130,196 @@ namespace gridtools {
                     }
                 }
             }
-
-          protected:
-            iterate_domain_t &m_it_domain;
-            grid_t const &m_grid;
-            int_t m_i_first, m_j_first, m_i_size, m_j_size;
         };
 
-        template < typename ExecutionEngine, typename RunFunctorArguments >
-        struct block_loop_mic {
-            typedef typename RunFunctorArguments::grid_t grid_t;
-            typedef typename RunFunctorArguments::functor_list_t functor_list_t;
-            typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-            typedef typename RunFunctorArguments::local_domain_t local_domain_t;
+        template < typename ExecutionEngine, typename RunFunctorArguments, typename Interval >
+        class run_esf_kparallel_mic : public run_on_block_mic< ExecutionEngine, RunFunctorArguments > {
+          protected:
+            using base = run_on_block_mic< ExecutionEngine, RunFunctorArguments >;
 
+            using grid_t = typename base::grid_t;
+            using functor_list_t = typename base::functor_list_t;
+            using extent_sizes_t = typename base::extent_sizes_t;
+            using iterate_domain_t = typename base::iterate_domain_t;
+            using local_domain_t = typename base::local_domain_t;
+            using run_esf_functor_h_t = typename base::run_esf_functor_h_t;
+
+          public:
             GT_FUNCTION
-            block_loop_mic(iterate_domain_t &it_domain,
+            run_esf_kparallel_mic(iterate_domain_t &it_domain,
                 grid_t const &grid,
                 int_t i_first,
                 int_t j_first,
                 int_t i_size,
-                int_t j_size)
-                : m_it_domain(it_domain), m_grid(grid), m_i_first(i_first), m_j_first(j_first), m_i_size(i_size),
-                  m_j_size(j_size) {}
+                int_t j_size,
+                int_t k)
+                : base(it_domain, grid, i_first, j_first, i_size, j_size), m_k(k) {}
 
-            template < typename Interval >
-            GT_FUNCTION void operator()(Interval const &) const {
-                typedef functor_loop_mic< ExecutionEngine, RunFunctorArguments, Interval > functor_loop_mic_t;
+            template < typename Index >
+            GT_FUNCTION void operator()(Index const &index) const {
+                using extent_t = typename boost::mpl::at< extent_sizes_t, Index >::type;
 
-                boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
-                    functor_loop_mic_t(m_it_domain, m_grid, m_i_first, m_j_first, m_i_size, m_j_size));
+                constexpr int_t i_first = extent_t::iminus::value;
+                const int_t i_last = this->m_i_size + extent_t::iplus::value;
+                constexpr int_t j_first = extent_t::jminus::value;
+                const int_t j_last = this->m_j_size + extent_t::jplus::value;
+
+                typedef typename run_esf_functor_h_t::template apply< RunFunctorArguments, Interval >::type
+                    run_esf_functor_t;
+
+                run_esf_functor_t run_esf(this->m_it_domain);
+                for (int_t j = j_first; j < j_last; ++j) {
+                    this->m_it_domain.set_index(0, j, m_k, this->m_i_first, this->m_j_first);
+
+#pragma ivdep
+#pragma omp simd
+                    for (int_t i = i_first; i < i_last; ++i) {
+                        this->m_it_domain.template set_block_index< 0 >(i);
+                        run_esf(index);
+
+#if defined(__INTEL_COMPILER) && !defined(GT_NO_CONSTEXPR_ACCESSES)
+#warning \
+    "The usage of the constexpr constructors of accessor_base, tuple_offset and dimension together with the Intel compiler can lead to incorrect code generation in this loop."
+#endif
+                    }
+                }
             }
 
           protected:
-            iterate_domain_t &m_it_domain;
-            grid_t const &m_grid;
-            int_t m_i_first, m_j_first, m_i_size, m_j_size;
+            int_t m_k;
+        };
+
+        template < typename ExecutionEngine, typename RunFunctorArguments >
+        struct run_f_on_interval_mic : run_on_block_mic< ExecutionEngine, RunFunctorArguments > {
+            using base = run_on_block_mic< ExecutionEngine, RunFunctorArguments >;
+
+            using grid_t = typename base::grid_t;
+            using functor_list_t = typename base::functor_list_t;
+            using extent_sizes_t = typename base::extent_sizes_t;
+            using iterate_domain_t = typename base::iterate_domain_t;
+            using local_domain_t = typename base::local_domain_t;
+            using run_esf_functor_h_t = typename base::run_esf_functor_h_t;
+
+            using base::run_on_block_mic;
+
+            template < typename Interval >
+            GT_FUNCTION void operator()(Interval const &) const {
+                run_esf_mic< ExecutionEngine, RunFunctorArguments, Interval > run(
+                    this->m_it_domain, this->m_grid, this->m_i_first, this->m_j_first, this->m_i_size, this->m_j_size);
+                boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(run);
+            }
+        };
+
+        template < typename ExecutionEngine, typename RunFunctorArguments >
+        struct run_f_on_interval_kparallel_mic : run_on_block_mic< ExecutionEngine, RunFunctorArguments > {
+            using base = run_on_block_mic< ExecutionEngine, RunFunctorArguments >;
+
+            using grid_t = typename base::grid_t;
+            using functor_list_t = typename base::functor_list_t;
+            using extent_sizes_t = typename base::extent_sizes_t;
+            using iterate_domain_t = typename base::iterate_domain_t;
+            using local_domain_t = typename base::local_domain_t;
+            using run_esf_functor_h_t = typename base::run_esf_functor_h_t;
+
+            GT_FUNCTION
+            run_f_on_interval_kparallel_mic(iterate_domain_t &it_domain,
+                grid_t const &grid,
+                int_t i_first,
+                int_t j_first,
+                int_t i_size,
+                int_t j_size,
+                int_t k)
+                : base(it_domain, grid, i_first, j_first, i_size, j_size), m_k(k) {}
+
+            template < typename Interval >
+            GT_FUNCTION void operator()(Interval const &) const {
+
+                typedef typename index_to_level< typename Interval::first >::type from_t;
+                typedef typename index_to_level< typename Interval::second >::type to_t;
+
+                const int_t k_first = this->m_grid.template value_at< from_t >();
+                const int_t k_last = this->m_grid.template value_at< to_t >();
+
+                if (k_first <= m_k && m_k <= k_last) {
+                    run_esf_kparallel_mic< ExecutionEngine, RunFunctorArguments, Interval > run(this->m_it_domain,
+                        this->m_grid,
+                        this->m_i_first,
+                        this->m_j_first,
+                        this->m_i_size,
+                        this->m_j_size,
+                        m_k);
+
+                    boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
+                        run);
+                }
+            }
+
+          private:
+            int_t m_k;
+        };
+
+        template < class Left, class Right >
+        struct merge_intervals {
+          private:
+            using left_from_t = typename index_to_level< typename Left::first >::type;
+            using left_to_t = typename index_to_level< typename Left::second >::type;
+            using right_from_t = typename index_to_level< typename Right::first >::type;
+            using right_to_t = typename index_to_level< typename Right::second >::type;
+
+            using from_t =
+                typename boost::mpl::if_< level_lt< left_from_t, right_from_t >, left_from_t, right_from_t >::type;
+            using to_t = typename boost::mpl::if_< level_gt< left_to_t, right_to_t >, left_to_t, right_to_t >::type;
+
+          public:
+            using type =
+                boost::mpl::pair< typename level_to_index< from_t >::type, typename level_to_index< to_t >::type >;
         };
 
     } // namespace _impl
 
     namespace strgrid {
 
-        /**
-        * @brief main functor that setups the CUDA kernel for a MSS and launchs it
-        * @tparam RunFunctorArguments run functor argument type with the main configuration of the MSS
-        */
         template < typename RunFunctorArguments >
-        struct execute_kernel_functor_mic {
+        class execute_kernel_functor_mic {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-            typedef typename RunFunctorArguments::local_domain_t local_domain_t;
-            typedef typename RunFunctorArguments::grid_t grid_t;
-            typedef typename RunFunctorArguments::reduction_data_t reduction_data_t;
-            typedef typename reduction_data_t::reduction_type_t reduction_type_t;
-
-          private:
-            const local_domain_t &m_local_domain;
-            const grid_t &m_grid;
-            reduction_data_t &m_reduction_data;
+            using local_domain_t = typename RunFunctorArguments::local_domain_t;
+            using grid_t = typename RunFunctorArguments::grid_t;
+            using reduction_data_t = typename RunFunctorArguments::reduction_data_t;
+            using reduction_type_t = typename reduction_data_t::reduction_type_t;
+            using loop_intervals_t = typename RunFunctorArguments::loop_intervals_t;
+            using execution_type_t = typename RunFunctorArguments::execution_type_t;
+            using iterate_domain_t = typename RunFunctorArguments::iterate_domain_t;
+            using backend_traits_t = backend_traits_from_id< enumtype::Mic >;
+            using data_ptr_cached_t = typename iterate_domain_t::data_ptr_cached_t;
+            using strides_cached_t = typename iterate_domain_t::strides_cached_t;
 
           public:
-            /**
-            * @brief core of the kernel execution
-            * @tparam Traits traits class defined in \ref gridtools::_impl::run_functor_traits
-            */
-            explicit execute_kernel_functor_mic(const local_domain_t &local_domain,
-                const grid_t &grid,
-                reduction_data_t &reduction_data)
+            execute_kernel_functor_mic(
+                const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
                 : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data) {}
 
-            void operator()() {
-                typedef typename RunFunctorArguments::loop_intervals_t loop_intervals_t;
-                typedef typename RunFunctorArguments::execution_type_t execution_type_t;
-                typedef typename RunFunctorArguments::iterate_domain_t iterate_domain_t;
-                typedef backend_traits_from_id< enumtype::Mic > backend_traits_t;
+            template < class Execution = execution_type_t >
+            typename std::enable_if< Execution::type::execution != enumtype::parallel_impl >::type operator()() {
+                using namespace gridtools::_impl;
 
 #pragma omp parallel
                 {
-                    typename iterate_domain_t::data_ptr_cached_t data_pointer;
-                    typedef typename iterate_domain_t::strides_cached_t strides_t;
-                    strides_t strides;
-
                     iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
-                    it_domain.set_data_pointer_impl(&data_pointer);
-                    it_domain.set_strides_pointer_impl(&strides);
+                    data_ptr_cached_t data_ptr;
+                    strides_cached_t strides;
+                    int_t i_grid_size, j_grid_size, i_block_size, j_block_size, i_blocks, j_blocks;
 
-                    it_domain.template assign_storage_pointers< backend_traits_t >();
-                    it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
-
-                    constexpr int_t i_block_size = GT_DEFAULT_TILE_I;
-                    constexpr int_t j_block_size = GT_DEFAULT_TILE_J;
-
-                    const int_t i_grid_size = m_grid.i_high_bound() - m_grid.i_low_bound() + 1;
-                    const int_t j_grid_size = m_grid.j_high_bound() - m_grid.j_low_bound() + 1;
-
-                    const int i_blocks = (i_grid_size + i_block_size - 1) / i_block_size;
-                    const int j_blocks = (j_grid_size + j_block_size - 1) / j_block_size;
+#pragma omp barrier
+                    init_iteration(it_domain,
+                        data_ptr,
+                        strides,
+                        i_grid_size,
+                        j_grid_size,
+                        i_block_size,
+                        j_block_size,
+                        i_blocks,
+                        j_blocks);
 
 #pragma omp for collapse(2)
                     for (int_t bj = 0; bj < j_blocks; ++bj) {
@@ -227,9 +330,9 @@ namespace gridtools {
                             const int_t i_bs = (bi == i_blocks - 1) ? i_grid_size - bi * i_block_size : i_block_size;
                             const int_t j_bs = (bj == j_blocks - 1) ? j_grid_size - bj * j_block_size : j_block_size;
 
-                            boost::mpl::for_each< loop_intervals_t >(
-                                ::gridtools::_impl::block_loop_mic< execution_type_t, RunFunctorArguments >(
-                                    it_domain, m_grid, i_first, j_first, i_bs, j_bs));
+                            run_f_on_interval_mic< execution_type_t, RunFunctorArguments > run(
+                                it_domain, m_grid, i_first, j_first, i_bs, j_bs);
+                            boost::mpl::for_each< loop_intervals_t >(run);
                         }
                     }
 
@@ -237,6 +340,93 @@ namespace gridtools {
                 }
                 m_reduction_data.reduce();
             }
+
+            template < class Execution = execution_type_t >
+            typename std::enable_if< Execution::type::execution == enumtype::parallel_impl >::type operator()() {
+                namespace mpl = boost::mpl;
+                using namespace boost::mpl::placeholders;
+                using namespace gridtools::_impl;
+
+                using merged_interval_t = typename mpl::fold< loop_intervals_t,
+                    typename mpl::front< loop_intervals_t >::type,
+                    merge_intervals< _1, _2 > >::type;
+                using from_t = typename index_to_level< typename merged_interval_t::first >::type;
+                using to_t = typename index_to_level< typename merged_interval_t::second >::type;
+
+#pragma omp parallel
+                {
+                    iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
+
+                    data_ptr_cached_t data_ptr;
+                    strides_cached_t strides;
+                    int_t i_grid_size, j_grid_size, i_block_size, j_block_size, i_blocks, j_blocks;
+
+                    init_iteration(it_domain,
+                        data_ptr,
+                        strides,
+                        i_grid_size,
+                        j_grid_size,
+                        i_block_size,
+                        j_block_size,
+                        i_blocks,
+                        j_blocks);
+
+                    const int_t k_first = m_grid.template value_at< from_t >();
+                    const int_t k_last = m_grid.template value_at< to_t >();
+
+#pragma omp for collapse(3)
+                    for (int_t k = k_first; k <= k_last; ++k) {
+                        for (int_t bj = 0; bj < j_blocks; ++bj) {
+                            for (int_t bi = 0; bi < i_blocks; ++bi) {
+                                const int_t i_first = bi * i_block_size + m_grid.i_low_bound();
+                                const int_t j_first = bj * j_block_size + m_grid.j_low_bound();
+
+                                const int_t i_bs =
+                                    (bi == i_blocks - 1) ? i_grid_size - bi * i_block_size : i_block_size;
+                                const int_t j_bs =
+                                    (bj == j_blocks - 1) ? j_grid_size - bj * j_block_size : j_block_size;
+
+                                run_f_on_interval_mic< execution_type_t, RunFunctorArguments > run(
+                                    it_domain, m_grid, i_first, j_first, i_bs, j_bs);
+                                mpl::for_each< loop_intervals_t >(run);
+                            }
+                        }
+                    }
+
+                    m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
+                }
+                m_reduction_data.reduce();
+            }
+
+          protected:
+            const local_domain_t &m_local_domain;
+            const grid_t &m_grid;
+            reduction_data_t &m_reduction_data;
+
+            void init_iteration(iterate_domain_t &it_domain,
+                data_ptr_cached_t &data_ptr,
+                strides_cached_t &strides,
+                int_t &i_grid_size,
+                int_t &j_grid_size,
+                int_t &i_block_size,
+                int_t &j_block_size,
+                int_t &i_blocks,
+                int_t &j_blocks) const {
+                it_domain.set_data_pointer_impl(&data_ptr);
+                it_domain.set_strides_pointer_impl(&strides);
+
+                it_domain.template assign_storage_pointers< backend_traits_t >();
+                it_domain.template assign_stride_pointers< backend_traits_t, strides_cached_t >();
+
+                std::tie(i_block_size, j_block_size) = grid_traits_arch< enumtype::Mic >::block_size_mic(m_grid);
+
+                i_grid_size = m_grid.i_high_bound() - m_grid.i_low_bound() + 1;
+                j_grid_size = m_grid.j_high_bound() - m_grid.j_low_bound() + 1;
+
+                i_blocks = (i_grid_size + i_block_size - 1) / i_block_size;
+                j_blocks = (j_grid_size + j_block_size - 1) / j_block_size;
+            }
         };
+
     } // namespace strgrid
 } // namespace gridtools

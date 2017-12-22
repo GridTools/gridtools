@@ -135,9 +135,10 @@ namespace gridtools {
             constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
             const int threads = omp_get_max_threads();
 
-            return storage_info_t(StorageWrapper::tileI_t::s_tile + 2 * halo_i,
-                StorageWrapper::tileJ_t::s_tile + 2 * halo_j,
-                k_size * threads);
+            int_t i_block_size, j_block_size;
+            std::tie(i_block_size, j_block_size) = strgrid::grid_traits_arch< enumtype::Mic >::block_size_mic(grid);
+
+            return storage_info_t(i_block_size + 2 * halo_i, j_block_size + 2 * halo_j, k_size * threads);
         }
 
         // get a temporary storage for Cuda

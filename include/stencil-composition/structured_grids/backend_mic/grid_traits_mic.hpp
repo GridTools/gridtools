@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <utility>
+
 #include "execute_kernel_functor_mic_fwd.hpp"
 #include "../../run_functor_arguments_fwd.hpp"
 
@@ -48,6 +50,31 @@ namespace gridtools {
                 GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
                 typedef execute_kernel_functor_mic< RunFunctorArguments > type;
             };
+
+            template < typename Grid >
+            static std::pair< int_t, int_t > block_size_mic(Grid const &grid) {
+                const int_t i_grid_size = grid.i_high_bound() - grid.i_low_bound() + 1;
+                const int_t j_grid_size = grid.j_high_bound() - grid.j_low_bound() + 1;
+
+                const int_t threads = omp_get_max_threads();
+                int_t i_blocks = 1;
+                int_t j_blocks = threads;
+
+                while (i_grid_size / i_blocks >= 32 && j_grid_size / j_blocks < 1) {
+                    i_blocks *= 2;
+                    j_blocks /= 2;
+                }
+
+                int_t i_block_size = i_grid_size / i_blocks;
+                int_t j_block_size = j_grid_size / j_blocks;
+
+                if (i_block_size < 1)
+                    i_block_size = 1;
+                if (j_block_size < 1)
+                    j_block_size = 1;
+
+                return std::make_pair(i_block_size, j_block_size);
+            }
         };
     }
 }
