@@ -215,7 +215,7 @@ int call_kernel_ZL_u(Blocks blocks,
     int nx,
     int ny,
     int tranlation_const,
-    unsigned int i) {
+    int i) {
     m_unpackZLKernel<<< blocks, threads, b, ZL_stream >>>(
         d_data, d_msgbufTab, d_msgsize, halo_d, nx, ny, tranlation_const, i);
 
@@ -235,7 +235,7 @@ void m_unpackZL_variadic(value_type **d_msgbufTab_r,
     int d_msgsize_r[27],
     const gridtools::halo_descriptor halo[3],
     const gridtools::halo_descriptor halo_d[3],
-    datas const &d_datas,
+    const datas &d_datas,
     gridtools::gt_integer_sequence< unsigned int, Ids... >) {
     // threads per block. Should be at least one warp in x, could be wider in y
     const int ntx = 32;
@@ -268,10 +268,10 @@ void m_unpackZL_variadic(value_type **d_msgbufTab_r,
 #endif
 
     const int niter = std::tuple_size< datas >::value;
-    int nothing[niter] = {call_kernel_ZL(blocks,
+    int nothing[niter] = {call_kernel_ZL_u(blocks,
         threads,
         0,
-        static_cast< value_type const * >(std::get< Ids >(d_datas)),
+        static_cast< value_type * >(std::get< Ids >(d_datas)),
         d_msgbufTab_r,
         d_msgsize_r,
         halo_d,

@@ -553,7 +553,7 @@ namespace gridtools {
         }
 
         template < typename... Pointers >
-        void unpack(const Pointers *... fields) {
+        void unpack(Pointers *... fields) {
             auto ints = typename make_gt_integer_sequence< unsigned int, sizeof...(Pointers) >::type{};
             typedef translate_t< 3, default_layout_map< 3 >::type > translate;
             if (recv_size[translate()(0, 0, -1)]) {

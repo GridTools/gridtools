@@ -452,7 +452,7 @@ namespace gridtools {
            \param[in] _fields data fields where to unpack data
         */
         template < typename... FIELDS >
-        void unpack(const FIELDS *... _fields) {
+        void unpack(FIELDS *... _fields) {
             hd.unpack(_fields...);
         }
 
