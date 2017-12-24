@@ -560,26 +560,26 @@ namespace gridtools {
                 m_unpackZL_variadic(
                     d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
             }
-            // if (recv_size[translate()(0, 0, 1)]) {
-            //     m_unpackZU_variadic(d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r,
-            //     std::make_tuple(fields...), ints);
-            // }
-            // if (recv_size[translate()(0, -1, 0)]) {
-            //     m_unpackYL_variadic(d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r,
-            //     std::make_tuple(fields...), ints);
-            // }
-            // if (recv_size[translate()(0, 1, 0)]) {
-            //     m_unpackYU_variadic(d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r,
-            //     std::make_tuple(fields...), ints);
-            // }
-            // if (recv_size[translate()(-1, 0, 0)]) {
-            //     m_unpackXL_variadic(d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r,
-            //     std::make_tuple(fields...), ints);
-            // }
-            // if (recv_size[translate()(1, 0, 0)]) {
-            //     m_unpackXU_variadic(d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r,
-            //     std::make_tuple(fields...), ints);
-            // }
+            if (recv_size[translate()(0, 0, 1)]) {
+                m_unpackZU_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
+            if (recv_size[translate()(0, -1, 0)]) {
+                m_unpackYL_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
+            if (recv_size[translate()(0, 1, 0)]) {
+                m_unpackYU_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
+            if (recv_size[translate()(-1, 0, 0)]) {
+                m_unpackXL_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
+            if (recv_size[translate()(1, 0, 0)]) {
+                m_unpackXU_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
         }
 
         /**
