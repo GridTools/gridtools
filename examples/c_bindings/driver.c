@@ -96,7 +96,7 @@ int main() {
     sync_data_store(out_handle);
 
     verify("in", in);
-    verify("out", in);
+    verify("out", out);
 
     gt_release(stencil);
     gt_release(in_handle);

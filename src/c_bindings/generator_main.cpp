@@ -34,7 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "c_bindings/generator.hpp"
+#include <fstream>
 #include <iostream>
 
-int main() { gridtools::c_bindings::generate_c_interface(std::cout); }
+#include "c_bindings/generator.hpp"
+
+int main(int argc, const char *argv[]) {
+    if (argc > 2) {
+        std::ofstream dst(argv[2]);
+        gridtools::c_bindings::generate_fortran_interface(dst);
+    }
+    if (argc > 1) {
+        std::ofstream dst(argv[1]);
+        gridtools::c_bindings::generate_c_interface(dst);
+    } else {
+        gridtools::c_bindings::generate_c_interface(std::cout);
+    }
+}

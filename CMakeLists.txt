@@ -40,6 +40,9 @@ set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX
 
 set(exe_LIBS ${exe_LIBS} c_bindings_generator)
 
+add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
+target_link_libraries(c_bindings_generator_main c_bindings_generator)
+
 # ===============
 # examples and tests
 # ===============

@@ -1,22 +1,16 @@
-add_library(implementation implementation.cpp)
-target_link_libraries(implementation c_bindings_generator)
+include(bindings)
 
-# TODO(anstaf): factor out cmake boilerplate for c interface generating
-add_executable(header_generator header_generator.cpp)
-if (${APPLE})
-    target_link_libraries(header_generator -force_load implementation)
-else()
-    target_link_libraries(header_generator -Wl,--whole-archive implementation -Wl,--no-whole-archive)
-endif()
+add_bindings_library(implementation implementation.cpp)
 
-add_custom_command(OUTPUT implementation.h
-        COMMAND header_generator > implementation.h
-        DEPENDS $<TARGET_FILE:header_generator>)
-
-add_custom_target(implementation_header DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/implementation.h)
-
-add_executable(driver driver.c ${CMAKE_CURRENT_BINARY_DIR}/implementation.h)
-target_include_directories(driver PUBLIC "${CMAKE_CURRENT_BINARY_DIR}")
+add_executable(driver driver.c)
+target_include_directories(driver PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 target_link_libraries(driver implementation)
+add_dependencies(driver implementation_decl)
 
-add_dependencies(driver implementation_header)
+enable_language (Fortran)
+
+set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
+
+add_executable(fdriver fdriver.f90 ${CMAKE_CURRENT_BINARY_DIR}/implementation.f90)
+target_link_libraries(fdriver implementation)
+add_dependencies(fdriver implementation_decl)

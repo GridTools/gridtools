@@ -69,8 +69,35 @@ void gt_release(gt_handle*);
 #endif
 )?";
 
-            char const fortran_traits::m_prologue[] = R"?()?";
-            char const fortran_traits::m_epilogue[] = R"?()?";
+            char const fortran_traits::m_prologue[] = R"?(
+module gt_import
+implicit none
+  interface
+    subroutine gt_release(h) bind(c)
+      use iso_c_binding
+      type(c_ptr), value :: h
+    end
+)?";
+            char const fortran_traits::m_epilogue[] = R"?(
+  end interface
+end
+)?";
+            template <>
+            char const fortran_kind_name< int >::value[] = "c_int";
+            template <>
+            char const fortran_kind_name< short >::value[] = "c_short";
+            template <>
+            char const fortran_kind_name< long >::value[] = "c_long";
+            template <>
+            char const fortran_kind_name< long long >::value[] = "c_long_long";
+            template <>
+            char const fortran_kind_name< float >::value[] = "c_float";
+            template <>
+            char const fortran_kind_name< double >::value[] = "c_double";
+            template <>
+            char const fortran_kind_name< long double >::value[] = "c_long_double";
+            template <>
+            char const fortran_kind_name< signed char >::value[] = "c_signed_char";
         }
     }
 }

@@ -78,6 +78,13 @@ namespace gridtools {
                 using type = typename recursive_remove_cv< typename std::remove_pointer< T >::type >::type *;
             };
 
+            struct get_c_type_name_f {
+                template < class T >
+                std::string operator()() const {
+                    return boost::typeindex::type_id< typename recursive_remove_cv< T >::type >().pretty_name();
+                }
+            };
+
             template < class T >
             std::string get_c_type_name() {
                 return boost::typeindex::type_id< typename recursive_remove_cv< T >::type >().pretty_name();
@@ -89,31 +96,129 @@ namespace gridtools {
             };
 
             struct apply_to_param_f {
-                template < class Fun, class T >
-                void operator()(Fun &&fun, int &count, boxed< T >) const {
-                    std::forward< Fun >(fun)(get_c_type_name< T >(), count);
+                template < class Fun, class TypeToStr, class T >
+                void operator()(Fun &&fun, TypeToStr &&type_to_str, int &count, boxed< T >) const {
+                    std::forward< Fun >(fun)(type_to_str.template operator() < T > (), count);
                     ++count;
                 }
             };
 
-            template < class Signature, class Fun >
-            void for_each_param(Fun &&fun) {
+            template < class Signature, class TypeToStr, class Fun >
+            void for_each_param(TypeToStr &&type_to_str, Fun &&fun) {
                 namespace m = boost::mpl;
                 int count = 0;
                 m::for_each< typename boost::function_types::parameter_types< Signature >::type, boxed< m::_ > >(
-                    std::bind(apply_to_param_f{}, std::forward< Fun >(fun), std::ref(count), std::placeholders::_1));
+                    std::bind(apply_to_param_f{},
+                        std::forward< Fun >(fun),
+                        std::forward< TypeToStr >(type_to_str),
+                        std::ref(count),
+                        std::placeholders::_1));
             };
 
             template < class Fun >
             std::ostream &write_declaration(std::ostream &strm, char const *name) {
                 namespace ft = boost::function_types;
                 strm << get_c_type_name< typename ft::result_type< Fun >::type >() << " " << name << "(";
-                for_each_param< Fun >([&](const std::string &type_name, int i) {
-                    if (i)
-                        strm << ", ";
-                    strm << type_name;
-                });
+                for_each_param< Fun >(get_c_type_name_f{},
+                    [&](const std::string &type_name, int i) {
+                        if (i)
+                            strm << ", ";
+                        strm << type_name;
+                    });
                 return strm << ");\n";
+            }
+
+            template < class >
+            struct fortran_kind_name {
+                static char const value[];
+            };
+
+            template <>
+            char const fortran_kind_name< int >::value[];
+            template <>
+            char const fortran_kind_name< short >::value[];
+            template <>
+            char const fortran_kind_name< long >::value[];
+            template <>
+            char const fortran_kind_name< long long >::value[];
+            template <>
+            char const fortran_kind_name< float >::value[];
+            template <>
+            char const fortran_kind_name< double >::value[];
+            template <>
+            char const fortran_kind_name< long double >::value[];
+            template <>
+            char const fortran_kind_name< signed char >::value[];
+
+            template < class T, typename std::enable_if< std::is_integral< T >::value, int >::type = 0 >
+            std::string fortran_type_name() {
+                return std::string("integer(") + fortran_kind_name< typename std::make_signed< T >::type >::value + ")";
+            }
+
+            template < class T, typename std::enable_if< std::is_floating_point< T >::value, int >::type = 0 >
+            std::string fortran_type_name() {
+                return std::string("real(") + fortran_kind_name< T >::value + ")";
+            }
+
+            template < class T,
+                typename std::enable_if< std::is_pointer< T >::value &&
+                                             std::is_class< typename std::remove_pointer< T >::type >::value,
+                    int >::type = 0 >
+            std::string fortran_type_name() {
+                return "type(c_ptr)";
+            }
+
+            template < class T, typename std::enable_if< std::is_void< T >::value, int >::type = 0 >
+            std::string fortran_return_type() {
+                return "subroutine";
+            }
+
+            template < class T, typename std::enable_if< !std::is_void< T >::value, int >::type = 0 >
+            std::string fortran_return_type() {
+                return fortran_type_name< T >() + " function";
+            }
+
+            struct ignore_type_f {
+                template < class T >
+                std::string operator()() const {
+                    return "";
+                }
+            };
+
+            struct fortran_param_type_f {
+                template < class T,
+                    typename std::enable_if< !std::is_pointer< T >::value ||
+                                                 std::is_class< typename std::remove_pointer< T >::type >::value,
+                        int >::type = 0 >
+                std::string operator()() const {
+                    return fortran_type_name< T >() + ", value";
+                }
+
+                template < class T,
+                    typename std::enable_if< std::is_pointer< T >::value &&
+                                                 std::is_arithmetic< typename std::remove_pointer< T >::type >::value,
+                        int >::type = 0 >
+                std::string operator()() const {
+                    return fortran_type_name< typename std::remove_pointer< T >::type >() + ", dimension(*)";
+                }
+            };
+
+            template < class Fun >
+            std::ostream &write_fortran_declaration(std::ostream &strm, char const *name) {
+                namespace ft = boost::function_types;
+                strm << "    " << fortran_return_type< typename ft::result_type< Fun >::type >() << " " << name << "(";
+                for_each_param< Fun >(ignore_type_f{},
+                    [&](const std::string &type_name, int i) {
+                        if (i)
+                            strm << ", ";
+                        strm << "arg" << i;
+                    });
+                strm << ") bind(c)\n      use iso_c_binding\n";
+                for_each_param< Fun >(fortran_param_type_f{},
+                    [&](const std::string &type_name, int i) {
+                        strm << "      " << type_name << " :: arg" << i << "\n";
+                    });
+                return strm << "    end\n";
             }
 
             struct c_traits {
@@ -129,7 +234,7 @@ namespace gridtools {
             struct fortran_traits {
                 template < class Fun >
                 static void generate_declaration(std::ostream &strm, char const *name) {
-                    assert(false);
+                    write_fortran_declaration< Fun >(strm, name);
                 }
 
                 static const char m_prologue[];
