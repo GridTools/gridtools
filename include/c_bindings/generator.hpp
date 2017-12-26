@@ -230,7 +230,6 @@ namespace gridtools {
                 static char const m_epilogue[];
             };
 
-            // TODO(anstaf): implement this
             struct fortran_traits {
                 template < class Fun >
                 static void generate_declaration(std::ostream &strm, char const *name) {
