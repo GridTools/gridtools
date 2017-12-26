@@ -36,14 +36,14 @@ program main
     use iso_c_binding
     use gt_import
     implicit none
-    integer, parameter :: ii = 9, jj = 10, kk = 11
-    real(FLOAT_PRECISION), dimension(ii, jj, kk) :: in, out
+    integer, parameter :: i = 9, j = 10, k = 11
+    real(FLOAT_PRECISION), dimension(i, j, k) :: in, out
     type(c_ptr) in_handle, out_handle, stencil
 
     in = initial()
 
-    in_handle = create_data_store(ii, jj, kk, in)
-    out_handle = create_data_store(ii, jj, kk, out)
+    in_handle = create_data_store(i, j, k, in)
+    out_handle = create_data_store(i, j, k, out)
     stencil = create_copy_stencil(in_handle, out_handle)
 
     call steady_stencil(stencil)
@@ -62,8 +62,8 @@ program main
 
 contains
     function initial()
-        integer :: i
-        integer, dimension(ii, jj, kk) :: initial
-        initial = reshape((/(i, i = 1, size(initial))/) , shape(initial))
+        integer :: x
+        integer, dimension(i, j, k) :: initial
+        initial = reshape((/(x, x = 1, size(initial))/) , shape(initial))
     end
 end
