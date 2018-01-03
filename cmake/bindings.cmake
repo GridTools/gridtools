@@ -6,7 +6,7 @@ macro(add_bindings_library)
     if (${APPLE})
         target_link_libraries(${ARGV0}_decl_generator -force_load ${ARGV0} c_bindings_generator_main)
     else()
-        target_link_libraries(${ARGV0}_decl_generator -Wl,--whole-archive ${ARGV0} -Wl,--no-whole-archive,
+        target_link_libraries(${ARGV0}_decl_generator -Wl,--whole-archive ${ARGV0} -Wl,--no-whole-archive
                 c_bindings_generator_main)
     endif()
     add_custom_command(OUTPUT ${ARGV0}.h ${ARGV0}.f90
