@@ -84,6 +84,8 @@ implicit none
 end
 )?";
             template <>
+            char const fortran_kind_name< bool >::value[] = "c_bool";
+            template <>
             char const fortran_kind_name< int >::value[] = "c_int";
             template <>
             char const fortran_kind_name< short >::value[] = "c_short";

@@ -134,6 +134,8 @@ namespace gridtools {
             };
 
             template <>
+            char const fortran_kind_name< bool >::value[];
+            template <>
             char const fortran_kind_name< int >::value[];
             template <>
             char const fortran_kind_name< short >::value[];
@@ -150,7 +152,16 @@ namespace gridtools {
             template <>
             char const fortran_kind_name< signed char >::value[];
 
-            template < class T, typename std::enable_if< std::is_integral< T >::value, int >::type = 0 >
+            template < class T,
+                typename std::enable_if< std::is_same< typename std::decay< T >::type, bool >::value, int >::type = 0 >
+            std::string fortran_type_name() {
+                using decayed_t = typename std::decay< T >::type;
+                return std::string("logical(") + fortran_kind_name< decayed_t >::value + ")";
+            }
+            template < class T,
+                typename std::enable_if< std::is_integral< T >::value &&
+                                             !std::is_same< typename std::decay< T >::type, bool >::value,
+                    int >::type = 0 >
             std::string fortran_type_name() {
                 using signed_decayed_t = typename std::make_signed< typename std::decay< T >::type >::type;
                 return std::string("integer(") + fortran_kind_name< signed_decayed_t >::value + ")";
