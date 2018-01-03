@@ -73,6 +73,7 @@ void gt_release(gt_handle*);
 module gt_import
 implicit none
   interface
+
     subroutine gt_release(h) bind(c)
       use iso_c_binding
       type(c_ptr), value :: h

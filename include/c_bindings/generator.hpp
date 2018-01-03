@@ -152,20 +152,28 @@ namespace gridtools {
 
             template < class T, typename std::enable_if< std::is_integral< T >::value, int >::type = 0 >
             std::string fortran_type_name() {
-                return std::string("integer(") + fortran_kind_name< typename std::make_signed< T >::type >::value + ")";
+                using signed_decayed_t = typename std::make_signed< typename std::decay< T >::type >::type;
+                return std::string("integer(") + fortran_kind_name< signed_decayed_t >::value + ")";
             }
 
             template < class T, typename std::enable_if< std::is_floating_point< T >::value, int >::type = 0 >
             std::string fortran_type_name() {
-                return std::string("real(") + fortran_kind_name< T >::value + ")";
+                using decayed_t = typename std::decay< T >::type;
+                return std::string("real(") + fortran_kind_name< decayed_t >::value + ")";
+            }
+
+            template < class T, typename std::enable_if< std::is_pointer< T >::value, int >::type = 0 >
+            std::string fortran_type_name() {
+                return "type(c_ptr)";
             }
 
             template < class T,
-                typename std::enable_if< std::is_pointer< T >::value &&
-                                             std::is_class< typename std::remove_pointer< T >::type >::value,
+                typename std::enable_if< !std::is_pointer< T >::value && !std::is_integral< T >::value &&
+                                             !std::is_floating_point< T >::value,
                     int >::type = 0 >
             std::string fortran_type_name() {
-                return "type(c_ptr)";
+                assert("Unsupported fortran type." && false);
+                return "";
             }
 
             template < class T, typename std::enable_if< std::is_void< T >::value, int >::type = 0 >
@@ -200,6 +208,15 @@ namespace gridtools {
                         int >::type = 0 >
                 std::string operator()() const {
                     return fortran_type_name< typename std::remove_pointer< T >::type >() + ", dimension(*)";
+                }
+                template < class T,
+                    typename std::enable_if<
+                        std::is_pointer< T >::value &&
+                            !std::is_arithmetic< typename std::remove_pointer< T >::type >::value &&
+                            !std::is_class< typename std::remove_pointer< T >::type >::value,
+                        int >::type = 0 >
+                std::string operator()() const {
+                    return "type(c_ptr)";
                 }
             };
 

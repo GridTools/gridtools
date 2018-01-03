@@ -72,6 +72,38 @@ void foo();
                 std::ostringstream strm;
                 EXPECT_EQ(generate_c_interface(strm).str(), expected_c_interface);
             }
+
+            const char expected_fortran_interface[] = R"?(
+module gt_import
+implicit none
+  interface
+
+    subroutine gt_release(h) bind(c)
+      use iso_c_binding
+      type(c_ptr), value :: h
+    end
+    type(c_ptr) function bar(arg0, arg1, arg2) bind(c)
+      use iso_c_binding
+      integer(c_int), value :: arg0
+      real(c_double), dimension(*) :: arg1
+      type(c_ptr), value :: arg2
+    end
+    subroutine baz(arg0) bind(c)
+      use iso_c_binding
+      type(c_ptr) :: arg0
+    end
+    subroutine foo() bind(c)
+      use iso_c_binding
+    end
+
+  end interface
+end
+)?";
+
+            TEST(generator, fortran_interface) {
+                std::ostringstream strm;
+                EXPECT_EQ(generate_fortran_interface(strm).str(), expected_fortran_interface);
+            }
         }
     }
 }
