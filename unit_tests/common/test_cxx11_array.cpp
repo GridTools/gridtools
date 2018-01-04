@@ -47,10 +47,24 @@ TEST(array, test_append) {
     ASSERT_TRUE((mod_a[4] == 5));
 }
 
+TEST(array, test_append_to_empty) {
+    array< uint_t, 0 > a{};
+    auto mod_a = a.append_dim(5);
+    ASSERT_TRUE((mod_a == array< uint_t, 1 >{5}));
+    ASSERT_TRUE((mod_a[0] == 5));
+}
+
 TEST(array, test_prepend) {
     constexpr array< uint_t, 4 > a{1, 2, 3, 4};
     auto mod_a = a.prepend_dim(5);
     ASSERT_TRUE((mod_a == array< uint_t, 5 >{5, 1, 2, 3, 4}));
+    ASSERT_TRUE((mod_a[0] == 5));
+}
+
+TEST(array, test_prepend_to_empty) {
+    array< uint_t, 0 > a{};
+    auto mod_a = a.prepend_dim(5);
+    ASSERT_TRUE((mod_a == array< uint_t, 1 >{5}));
     ASSERT_TRUE((mod_a[0] == 5));
 }
 
@@ -59,4 +73,27 @@ TEST(array, test_copyctr) {
     constexpr auto mod_a(a);
     ASSERT_TRUE((mod_a == array< uint_t, 4 >{4, 2, 3, 1}));
     ASSERT_TRUE((mod_a[0] == 4));
+}
+
+TEST(array, iterate_empty) {
+    array< uint_t, 0 > a{};
+
+    ASSERT_EQ(a.begin(), a.end());
+
+    for (auto it = a.begin(); it < a.end(); ++it) {
+        FAIL();
+    }
+}
+
+TEST(array, iterate) {
+    const int N = 5;
+    array< double, N > a{};
+
+    ASSERT_EQ(N * sizeof(double), reinterpret_cast< char * >(a.end()) - reinterpret_cast< char * >(a.begin()));
+
+    int count = 0;
+    for (auto it = a.begin(); it < a.end(); ++it) {
+        count++;
+    }
+    ASSERT_EQ(N, count);
 }

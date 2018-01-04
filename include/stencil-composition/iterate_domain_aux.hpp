@@ -253,7 +253,7 @@ namespace gridtools {
                 const StorageInfo * >::type::pos index_t;
 
             GRIDTOOLS_STATIC_ASSERT(
-                (index_t::value < ArrayIndex::n_dimensions), "Accessing an index out of bound in fusion tuple");
+                (index_t::value < ArrayIndex::size()), "Accessing an index out of bound in fusion tuple");
 
             // get the max coordinate of given StorageInfo
             typedef typename boost::mpl::deref< typename boost::mpl::max_element<
@@ -388,7 +388,7 @@ namespace gridtools {
             constexpr int_t additional_offset =
                 (Coordinate == i_pos && tmp_info_t::value) ? StorageInfo::halo_t::template at< i_pos >() : 0;
             GRIDTOOLS_STATIC_ASSERT(
-                (index_t::value < ArrayIndex::n_dimensions), "Accessing an index out of bound in fusion tuple");
+                (index_t::value < ArrayIndex::size()), "Accessing an index out of bound in fusion tuple");
             const int_t initial_pos =
                 ((tmp_info_t::value)
                         ? ((m_initial_pos)-m_block *
