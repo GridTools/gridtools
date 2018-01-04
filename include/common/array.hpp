@@ -50,17 +50,28 @@
 
 namespace gridtools {
 
+    namespace impl_ {
+        template < typename T, std::size_t N >
+        struct array_traits {
+            using type = T[N];
+        };
+
+        template < typename T >
+        struct array_traits< T, 0 > {
+            using type = T[1]; // maybe use implementation from std::array instead?
+        };
+    }
+
     template < typename T >
     struct is_array;
 
     template < typename T, size_t D >
     class array {
         typedef array< T, D > type;
-        static const uint_t _size = (D > 0) ? D : 1;
 
-        // we make the members public to make this class an aggregate
       public:
-        T _array[_size];
+        // we make the members public to make this class an aggregate
+        typename impl_::array_traits< T, D >::type _array;
 
         typedef T value_type;
         static const size_t n_dimensions = D;
@@ -69,7 +80,7 @@ namespace gridtools {
         T operator*(type &other) {
             // TODO assert T is a primitive
             T result = 0;
-            for (int i = 0; i < n_dimensions; ++i) {
+            for (int i = 0; i < D; ++i) {
                 result += _array[i] * other[i];
             }
             return result;
@@ -100,10 +111,10 @@ namespace gridtools {
         T *begin() { return &_array[0]; }
 
         GT_FUNCTION
-        T const *end() const { return &_array[_size]; }
+        T const *end() const { return &_array[n_dimensions]; }
 
         GT_FUNCTION
-        T *end() { return &_array[_size]; }
+        T *end() { return &_array[n_dimensions]; }
 
         GT_FUNCTION
         constexpr const T *data() const noexcept { return _array; }
@@ -115,25 +126,25 @@ namespace gridtools {
 
         template < size_t I >
         GT_FUNCTION constexpr T get() const {
-            GRIDTOOLS_STATIC_ASSERT((I < n_dimensions), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
+            GRIDTOOLS_STATIC_ASSERT((I < D), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
             return _array[I];
         }
 
         GT_FUNCTION
         T &operator[](size_t i) {
-            assert((i < _size));
+            assert((i < n_dimensions));
             return _array[i];
         }
 
         template < typename A >
         GT_FUNCTION array &operator=(A const &a) {
-            assert(a.size() == _size);
+            assert(a.size() == n_dimensions);
             std::copy(a.begin(), a.end(), _array);
             return *this;
         }
 
         GT_FUNCTION
-        static constexpr size_t size() { return _size; }
+        static constexpr size_t size() { return n_dimensions; }
     };
 
     template < typename T >
