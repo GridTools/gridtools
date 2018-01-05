@@ -33,67 +33,25 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "common/array.hpp"
-#include "common/array_addons.hpp"
+#pragma once
 
-using namespace gridtools;
+#include <boost/mpl/bool.hpp>
+#include "../common/array.hpp"
+#include "../common/defs.hpp"
 
-TEST(array, test_append) {
-    array< uint_t, 4 > a{1, 2, 3, 4};
-    auto mod_a = a.append_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 5 >{1, 2, 3, 4, 5}));
-    ASSERT_TRUE((mod_a[4] == 5));
-}
+namespace gridtools {
+    // TODO
+    // - add an explanation for this type
+    // - this type is only needed in icosahedral (if I understand correctly), however the offset_computation (which is
+    // common) is using it, seems like a refactoring is needed to decouple this strange dependency
 
-TEST(array, test_append_to_empty) {
-    array< uint_t, 0 > a{};
-    auto mod_a = a.append_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 1 >{5}));
-    ASSERT_TRUE((mod_a[0] == 5));
-}
-
-TEST(array, test_prepend) {
-    constexpr array< uint_t, 4 > a{1, 2, 3, 4};
-    auto mod_a = a.prepend_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 5 >{5, 1, 2, 3, 4}));
-    ASSERT_TRUE((mod_a[0] == 5));
-}
-
-TEST(array, test_prepend_to_empty) {
-    array< uint_t, 0 > a{};
-    auto mod_a = a.prepend_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 1 >{5}));
-    ASSERT_TRUE((mod_a[0] == 5));
-}
-
-TEST(array, test_copyctr) {
-    constexpr array< uint_t, 4 > a{4, 2, 3, 1};
-    constexpr auto mod_a(a);
-    ASSERT_TRUE((mod_a == array< uint_t, 4 >{4, 2, 3, 1}));
-    ASSERT_TRUE((mod_a[0] == 4));
-}
-
-TEST(array, iterate_empty) {
-    array< uint_t, 0 > a{};
-
-    ASSERT_EQ(a.begin(), a.end());
-
-    for (auto it = a.begin(); it < a.end(); ++it) {
-        FAIL();
-    }
-}
-
-TEST(array, iterate) {
-    const int N = 5;
-    array< double, N > a{};
-
-    ASSERT_EQ(N * sizeof(double), reinterpret_cast< char * >(a.end()) - reinterpret_cast< char * >(a.begin()));
-
-    int count = 0;
-    for (auto it = a.begin(); it < a.end(); ++it) {
-        count++;
-    }
-    ASSERT_EQ(N, count);
+    class position_offset_type : public array< int_t, 4 > {
+      public:
+        constexpr GT_FUNCTION position_offset_type(int_t i0, int_t i1, int_t i2, int_t i3)
+            : array< int_t, 4 >({i0, i1, i2, i3}) {}
+    };
+    template < typename T >
+    struct is_position_offset_type : boost::mpl::false_ {};
+    template <>
+    struct is_position_offset_type< position_offset_type > : boost::mpl::true_ {};
 }

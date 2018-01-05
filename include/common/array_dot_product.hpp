@@ -33,67 +33,19 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "common/array.hpp"
-#include "common/array_addons.hpp"
+#pragma once
+#include "array.hpp"
 
-using namespace gridtools;
-
-TEST(array, test_append) {
-    array< uint_t, 4 > a{1, 2, 3, 4};
-    auto mod_a = a.append_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 5 >{1, 2, 3, 4, 5}));
-    ASSERT_TRUE((mod_a[4] == 5));
-}
-
-TEST(array, test_append_to_empty) {
-    array< uint_t, 0 > a{};
-    auto mod_a = a.append_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 1 >{5}));
-    ASSERT_TRUE((mod_a[0] == 5));
-}
-
-TEST(array, test_prepend) {
-    constexpr array< uint_t, 4 > a{1, 2, 3, 4};
-    auto mod_a = a.prepend_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 5 >{5, 1, 2, 3, 4}));
-    ASSERT_TRUE((mod_a[0] == 5));
-}
-
-TEST(array, test_prepend_to_empty) {
-    array< uint_t, 0 > a{};
-    auto mod_a = a.prepend_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 1 >{5}));
-    ASSERT_TRUE((mod_a[0] == 5));
-}
-
-TEST(array, test_copyctr) {
-    constexpr array< uint_t, 4 > a{4, 2, 3, 1};
-    constexpr auto mod_a(a);
-    ASSERT_TRUE((mod_a == array< uint_t, 4 >{4, 2, 3, 1}));
-    ASSERT_TRUE((mod_a[0] == 4));
-}
-
-TEST(array, iterate_empty) {
-    array< uint_t, 0 > a{};
-
-    ASSERT_EQ(a.begin(), a.end());
-
-    for (auto it = a.begin(); it < a.end(); ++it) {
-        FAIL();
+namespace gridtools {
+    /**
+     * @brief dot product for gridtools::array (enabled for all arithmetic types)
+     */
+    template < typename T, size_t D, typename std::enable_if< std::is_arithmetic< T >::value, T >::type = 0 >
+    T operator*(const array< T, D > a, const array< T, D > &b) {
+        T result = 0;
+        for (int i = 0; i < D; ++i) {
+            result += a[i] * b[i];
+        }
+        return result;
     }
-}
-
-TEST(array, iterate) {
-    const int N = 5;
-    array< double, N > a{};
-
-    ASSERT_EQ(N * sizeof(double), reinterpret_cast< char * >(a.end()) - reinterpret_cast< char * >(a.begin()));
-
-    int count = 0;
-    for (auto it = a.begin(); it < a.end(); ++it) {
-        count++;
-    }
-    ASSERT_EQ(N, count);
-}
+} // namespace gridtools

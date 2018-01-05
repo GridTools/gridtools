@@ -36,19 +36,29 @@
 #pragma once
 /**
 @file
-@briefImplementation of an array class
+@brief Implementation of an array class
 */
 
-#include <stddef.h>
 #include <algorithm>
-#include <boost/type_traits/has_trivial_constructor.hpp>
-
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include "generic_metafunctions/accumulate.hpp"
 
 namespace gridtools {
+
+    namespace impl_ {
+        template < typename T, std::size_t N >
+        struct array_traits {
+            using type = T[N];
+            static constexpr GT_FUNCTION bool assert_range(size_t i) { return i < N; }
+        };
+
+        template < typename T >
+        struct array_traits< T, 0 > {
+            using type = T[1]; // maybe use implementation from std::array instead?
+            static constexpr GT_FUNCTION bool assert_range(size_t) { return false; }
+        };
+    }
 
     template < typename T >
     struct is_array;
@@ -56,24 +66,12 @@ namespace gridtools {
     template < typename T, size_t D >
     class array {
         typedef array< T, D > type;
-        static const uint_t _size = (D > 0) ? D : 1;
 
-        // we make the members public to make this class an aggregate
       public:
-        T _array[_size];
+        // we make the members public to make this class an aggregate
+        typename impl_::array_traits< T, D >::type _array;
 
         typedef T value_type;
-        static const size_t n_dimensions = D;
-
-        // TODO provide a constexpr version
-        T operator*(type &other) {
-            // TODO assert T is a primitive
-            T result = 0;
-            for (int i = 0; i < n_dimensions; ++i) {
-                result += _array[i] * other[i];
-            }
-            return result;
-        }
 
         array< T, D + 1 > append_dim(T const &val) const {
             array< T, D + 1 > ret;
@@ -100,10 +98,10 @@ namespace gridtools {
         T *begin() { return &_array[0]; }
 
         GT_FUNCTION
-        T const *end() const { return &_array[_size]; }
+        T const *end() const { return &_array[D]; }
 
         GT_FUNCTION
-        T *end() { return &_array[_size]; }
+        T *end() { return &_array[D]; }
 
         GT_FUNCTION
         constexpr const T *data() const noexcept { return _array; }
@@ -115,25 +113,25 @@ namespace gridtools {
 
         template < size_t I >
         GT_FUNCTION constexpr T get() const {
-            GRIDTOOLS_STATIC_ASSERT((I < n_dimensions), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
+            GRIDTOOLS_STATIC_ASSERT((I < D), GT_INTERNAL_ERROR_MSG("Array out of bounds access."));
             return _array[I];
         }
 
         GT_FUNCTION
         T &operator[](size_t i) {
-            assert((i < _size));
+            assert((impl_::array_traits< T, D >::assert_range(i)));
             return _array[i];
         }
 
         template < typename A >
         GT_FUNCTION array &operator=(A const &a) {
-            assert(a.size() == _size);
+            assert(a.size() == D);
             std::copy(a.begin(), a.end(), _array);
             return *this;
         }
 
         GT_FUNCTION
-        static constexpr size_t size() { return _size; }
+        static constexpr size_t size() { return D; }
     };
 
     template < typename T >
@@ -147,5 +145,11 @@ namespace gridtools {
 
     template < size_t D, typename Value >
     struct is_array_of< array< Value, D >, Value > : boost::mpl::true_ {};
+
+    template < typename T >
+    class tuple_size;
+
+    template < typename T, size_t D >
+    class tuple_size< array< T, D > > : public gridtools::static_size_t< D > {};
 
 } // namespace gridtools
