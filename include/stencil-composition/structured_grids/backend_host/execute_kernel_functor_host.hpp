@@ -185,8 +185,6 @@ namespace gridtools {
                     typename ::gridtools::grid_traits_from_id< enumtype::structured >::dim_k_t,
                     execution_type_t::type::iteration > iteration_policy_t;
 
-                typedef array< int_t, iterate_domain_t::N_META_STORAGES > array_t;
-
                 const int_t ifirst = m_first_pos[0] + extent_t::iminus::value;
                 const int_t ilast = m_first_pos[0] + m_last_pos[0] + extent_t::iplus::value;
                 const int_t jfirst = m_first_pos[1] + extent_t::jminus::value;
@@ -208,19 +206,19 @@ namespace gridtools {
                 innermost_functor_t f(it_domain, m_grid);
 
                 // run the nested ij loop
-                array_t irestore_index, jrestore_index;
+                typename iterate_domain_t::array_index_t irestore_index, jrestore_index;
                 for (int_t i = ifirst; i <= ilast; ++i) {
 #if defined(VERBOSE) && !defined(NDEBUG)
                     std::cout << "iteration " << i << ", index i" << std::endl;
 #endif
                     _impl::reset_index_if_positional< 0 >(it_domain, i);
-                    it_domain.get_index(irestore_index);
+                    irestore_index = it_domain.index();
                     for (int_t j = jfirst; j <= jlast; ++j) {
 #if defined(VERBOSE) && !defined(NDEBUG)
                         std::cout << "iteration " << j << ", index j" << std::endl;
 #endif
                         _impl::reset_index_if_positional< 1 >(it_domain, j);
-                        it_domain.get_index(jrestore_index);
+                        jrestore_index = it_domain.index();
                         f();
                         it_domain.set_index(jrestore_index);
                         it_domain.template increment< 1, static_uint< 1 > >();

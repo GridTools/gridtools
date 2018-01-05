@@ -311,14 +311,14 @@ namespace test_iterate_domain {
         // check index initialization and increment
 
         array< int_t, 3 > index;
-        it_domain.get_index(index);
+        index = it_domain.index();
         assert(index[0] == 0 && index[1] == 0 && index[2] == 0);
         index[0] += 3;
         index[1] += 2;
         index[2] += 1;
         it_domain.set_index(index);
 
-        it_domain.get_index(index);
+        index = it_domain.index();
         assert(index[0] == 3 && index[1] == 2 && index[2] == 1);
 
         auto mdo = out.template get< 0, 0 >().get_storage_info_ptr();
@@ -329,7 +329,7 @@ namespace test_iterate_domain {
         it_domain.increment< 0, static_uint< 1 > >(); // increment i
         it_domain.increment< 1, static_uint< 1 > >(); // increment j
         it_domain.increment< 2, static_uint< 1 > >(); // increment k
-        it_domain.get_index(new_index);
+        new_index = it_domain.index();
 
         // even thought the first case is 4D, we incremented only i,j,k, thus in the check below we don't need the extra
         // stride
