@@ -80,7 +80,7 @@ namespace gridtools {
     }
 
     namespace impl {
-        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
+        template < typename StorageInfo, typename Array, unsigned N = tuple_size< Array >::value, typename... Rest >
         constexpr typename boost::enable_if_c< (N == 0), StorageInfo >::type get_storage_info_from_array(
             Array arr, Rest... r) {
             GRIDTOOLS_STATIC_ASSERT(
@@ -88,7 +88,7 @@ namespace gridtools {
             return StorageInfo(r...);
         }
 
-        template < typename StorageInfo, typename Array, unsigned N = Array::n_dimensions, typename... Rest >
+        template < typename StorageInfo, typename Array, unsigned N = tuple_size< Array >::value, typename... Rest >
         constexpr typename boost::enable_if_c< (N > 0), StorageInfo >::type get_storage_info_from_array(
             Array arr, Rest... r) {
             GRIDTOOLS_STATIC_ASSERT(

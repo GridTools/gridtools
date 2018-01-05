@@ -36,17 +36,13 @@
 #pragma once
 /**
 @file
-@briefImplementation of an array class
+@brief Implementation of an array class
 */
 
-#include <stddef.h>
 #include <algorithm>
-#include <boost/type_traits/has_trivial_constructor.hpp>
-
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
-#include "generic_metafunctions/accumulate.hpp"
 
 namespace gridtools {
 

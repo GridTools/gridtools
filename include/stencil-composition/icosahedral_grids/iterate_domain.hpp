@@ -49,6 +49,7 @@
 #include "../location_type.hpp"
 #include "../iterate_domain_impl_metafunctions.hpp"
 #include "../iterate_domain_aux.hpp"
+#include "../grid_position_type.hpp"
 #include "accessor_metafunctions.hpp"
 #include "on_neighbors.hpp"
 
@@ -172,7 +173,7 @@ namespace gridtools {
         // TODOMEETING do we need m_index?
         array_index_t m_index;
 
-        array< uint_t, 4 > m_grid_position;
+        grid_position_type m_grid_position;
 
       public:
         /**@brief constructor of the iterate_domain struct
@@ -300,11 +301,11 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        array< uint_t, 4 > const &position() const { return m_grid_position; }
+        grid_position_type const &position() const { return m_grid_position; }
 
         /**@brief getter for the index array */
         GT_FUNCTION
-        void get_position(array< uint_t, 4 > &position) const { position = m_grid_position; }
+        void get_position(grid_position_type &position) const { position = m_grid_position; }
 
         /**@brief method for setting the index array */
         template < typename Value >
@@ -322,7 +323,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION
-        void set_position(array< uint_t, 4 > const &position) { m_grid_position = position; }
+        void set_position(grid_position_type const &position) { m_grid_position = position; }
 
         template < typename Accessor >
         GT_FUNCTION
@@ -516,8 +517,8 @@ namespace gridtools {
             ushort_t FieldDimensions >
         GT_FUNCTION typename std::remove_reference<
             typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
-            _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
-                array< int_t, 4 > const &RESTRICT position_offset) const {
+        _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
+            position_offset_type const &RESTRICT position_offset) const {
             using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< accessor_t >::value), "Using EVAL is only allowed for an accessor type");
