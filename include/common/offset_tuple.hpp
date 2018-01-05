@@ -226,7 +226,7 @@ namespace gridtools {
             typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d) {
             GRIDTOOLS_STATIC_ASSERT((ArrayDim <= NDim),
-                GT_INTERNAL_ERROR_MSG("ERROR, can not speficy offsets with larger dimension than accessor dimensions"));
+                GT_INTERNAL_ERROR_MSG("ERROR, cannot specify offsets with larger dimension than accessor dimensions"));
         }
 
         template < typename... GenericElements,

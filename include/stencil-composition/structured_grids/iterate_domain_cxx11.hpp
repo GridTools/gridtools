@@ -266,6 +266,7 @@ namespace gridtools {
 
         /**@brief getter for the index array */
         GT_FUNCTION
+        // TODO refactor (not using procedure style "get")
         void get_index(array< int_t, N_META_STORAGES > &index) const {
             set_index_recur< N_META_STORAGES - 1 >::set(m_index, index);
         }
@@ -281,8 +282,7 @@ namespace gridtools {
             set_index_recur< N_META_STORAGES - 1 >::set(index, m_index);
         }
 
-        GT_FUNCTION
-        void set_index(const int index) { set_index_recur< N_META_STORAGES - 1 >::set(index, m_index); }
+        GT_FUNCTION void reset_index() { set_index_recur< N_META_STORAGES - 1 >::set(0, m_index); }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
            \tparam Coordinate dimension being incremented

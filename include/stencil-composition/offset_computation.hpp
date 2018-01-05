@@ -35,9 +35,9 @@
 */
 #pragma once
 
-#include "../common/gt_assert.hpp"
-#include "grid_position_type.hpp"
 #include <boost/mpl/eval_if.hpp>
+#include "../common/gt_assert.hpp"
+#include "position_offset_type.hpp"
 
 namespace gridtools {
 

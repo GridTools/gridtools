@@ -200,7 +200,7 @@ namespace test_iterate_domain {
         // check field storage access
 
         // using compile-time constexpr accessors (through alias::set) when the data field is not "rectangular"
-        it_domain.set_index(0);
+        it_domain.reset_index();
         auto inv = make_field_host_view(in);
         inv.get< 0, 0 >()(0, 0, 0, 0) = 0.; // is accessor<0>
         inv.get< 0, 1 >()(0, 0, 0, 0) = 1.;

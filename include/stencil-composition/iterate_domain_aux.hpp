@@ -276,6 +276,7 @@ namespace gridtools {
 
        similar to the increment_index class, but assigns the indices, and it does not depend on the storage type
     */
+    // TODO move to array_addons (this is a generic array operation which has nothing to do with the iterate_domain)
     template < uint_t ID >
     struct set_index_recur {
         /**@brief does the actual assignment

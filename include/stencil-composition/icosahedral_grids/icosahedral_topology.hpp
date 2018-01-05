@@ -60,6 +60,7 @@
 
 #include "../../common/array.hpp"
 #include "../../common/gt_assert.hpp"
+#include "../position_offset_type.hpp"
 #include "../location_type.hpp"
 #include "../../common/array_addons.hpp"
 #include "../../common/gpu_clone.hpp"
@@ -167,7 +168,7 @@ namespace gridtools {
             constexpr get_element() {}
 
             template < typename Offsets >
-            GT_FUNCTION constexpr static array< uint_t, 4 > apply(array< uint_t, 3 > const &i, Offsets offsets) {
+            GT_FUNCTION constexpr static position_offset_type apply(array< uint_t, 3 > const &i, Offsets offsets) {
                 return {i[0] + offsets[Idx][0],
                     SourceColor + offsets[Idx][1],
                     i[1] + offsets[Idx][2],
@@ -242,8 +243,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{1, -1, 0, 0}, {0, -1, 0, 0}, {0, -1, 1, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{1, -1, 0, 0}, {0, -1, 0, 0}, {0, -1, 1, 0}}};
         }
     };
 
@@ -268,8 +269,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{-1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, -1, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{-1, 1, 0, 0}, {0, 1, 0, 0}, {0, 1, -1, 0}}};
         }
     };
 
@@ -297,8 +298,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{
                 {{0, 0, -1, 0}, {-1, 0, 0, 0}, {-1, 0, 1, 0}, {0, 0, 1, 0}, {1, 0, 0, 0}, {1, 0, -1, 0}}};
         }
     };
@@ -324,8 +325,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, 2, -1, 0}, {0, 1, 0, 0}, {0, 2, 0, 0}, {1, 1, -1, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{0, 2, -1, 0}, {0, 1, 0, 0}, {0, 2, 0, 0}, {1, 1, -1, 0}}};
         }
     };
 
@@ -352,8 +353,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{-1, 1, 0, 0}, {-1, -1, 1, 0}, {0, 1, 0, 0}, {0, -1, 0, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{-1, 1, 0, 0}, {-1, -1, 1, 0}, {0, 1, 0, 0}, {0, -1, 0, 0}}};
         }
     };
 
@@ -378,8 +379,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -2, 0, 0}, {0, -1, 0, 0}, {0, -2, 1, 0}, {1, -1, 0, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{0, -2, 0, 0}, {0, -1, 0, 0}, {0, -2, 1, 0}, {1, -1, 0, 0}}};
         }
     };
 
@@ -403,8 +404,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, -1, 1, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{1, 0, 0, 0}, {0, 1, 0, 0}, {0, -1, 1, 0}}};
         }
     };
 
@@ -429,8 +430,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, 1, 0, 0}, {0, 2, 0, 0}, {0, 0, 0, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{0, 1, 0, 0}, {0, 2, 0, 0}, {0, 0, 0, 0}}};
         }
     };
 
@@ -456,8 +457,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 1, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{1, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 1, 0}}};
         }
     };
 
@@ -483,8 +484,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -1, 1, 0}, {1, -1, 1, 0}, {1, -1, 0, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{0, -1, 1, 0}, {1, -1, 1, 0}, {1, -1, 0, 0}}};
         }
     };
 
@@ -508,8 +509,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, 1, -1, 0}, {0, 0, 0, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{0, 1, -1, 0}, {0, 0, 0, 0}}};
         }
     };
 
@@ -536,8 +537,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{-1, 0, 0, 0}, {0, -1, 0, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{-1, 0, 0, 0}, {0, -1, 0, 0}}};
         }
     };
 
@@ -561,8 +562,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {0, -2, 0, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{0, -1, 0, 0}, {0, -2, 0, 0}}};
         }
     };
 
@@ -588,8 +589,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{1, 0, 0, 0}, {0, 0, 0, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{1, 0, 0, 0}, {0, 0, 0, 0}}};
         }
     };
 
@@ -616,8 +617,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -1, 0, 0}, {0, -1, 1, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{0, -1, 0, 0}, {0, -1, 1, 0}}};
         }
     };
 
@@ -643,8 +644,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{{{0, -2, 1, 0}, {1, -2, 0, 0}}};
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{{{0, -2, 1, 0}, {1, -2, 0, 0}}};
         }
     };
 
@@ -671,8 +672,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{
                 {{-1, 1, -1, 0}, {-1, 0, 0, 0}, {-1, 1, 0, 0}, {0, 0, 0, 0}, {0, 1, -1, 0}, {0, 0, -1, 0}}};
         }
     };
@@ -700,8 +701,8 @@ namespace gridtools {
          @endverbatim
          */
         GT_FUNCTION
-        constexpr static return_t< array< int_t, 4 > > offsets() {
-            return return_t< array< int_t, 4 > >{
+        constexpr static return_t< position_offset_type > offsets() {
+            return return_t< position_offset_type >{
                 {{0, 1, -1, 0}, {-1, 0, 0, 0}, {-1, 2, 0, 0}, {0, 1, 0, 0}, {0, 0, 0, 0}, {0, 2, -1, 0}}};
         }
     };
@@ -720,9 +721,9 @@ namespace gridtools {
             (!boost::is_same< SrcLocation, vertices >::value || Color < 1), "Error: Color index beyond color length");
 
         GT_FUNCTION
-        constexpr static
-            typename return_type< typename from< SrcLocation >::template to< DestLocation >, array< int_t, 4 > >::type
-            offsets() {
+        constexpr static typename return_type< typename from< SrcLocation >::template to< DestLocation >,
+            position_offset_type >::type
+        offsets() {
             return from< SrcLocation >::template to< DestLocation >::template with_color<
                 static_uint< Color > >::offsets();
         }

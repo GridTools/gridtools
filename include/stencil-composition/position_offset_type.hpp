@@ -40,22 +40,16 @@
 #include "../common/defs.hpp"
 
 namespace gridtools {
-
     // TODO
-    // - can someone add an explanation for these two types? Should they be the same or not?
-    // - change the name of this header into something that describes both or split them
+    // - add an explanation for this type
     // - this type is only needed in icosahedral (if I understand correctly), however the offset_computation (which is
     // common) is using it, seems like a refactoring is needed to decouple this strange dependency
 
-    using grid_position_type = array< uint_t, 4 >;
-    template < typename T >
-    struct is_grid_position_type : boost::mpl::false_ {};
-    // in the unlikely case where you want to differentiate between array<int_t,4> and grid_position_type
-    // you are doomed
-    template <>
-    struct is_grid_position_type< grid_position_type > : boost::mpl::true_ {};
-
-    using position_offset_type = array< int_t, 4 >;
+    class position_offset_type : public array< int_t, 4 > {
+      public:
+        constexpr GT_FUNCTION position_offset_type(int_t i0, int_t i1, int_t i2, int_t i3)
+            : array< int_t, 4 >({i0, i1, i2, i3}) {}
+    };
     template < typename T >
     struct is_position_offset_type : boost::mpl::false_ {};
     template <>

@@ -193,7 +193,7 @@ namespace gridtools {
                 const int_t jlast = m_first_pos[1] + m_last_pos[1] + extent_t::jplus::value;
 
                 // reset the index
-                it_domain.set_index(0);
+                it_domain.reset_index();
                 it_domain.template initialize< 0 >(ifirst, m_block_id[0]);
                 it_domain.template initialize< 1 >(jfirst, m_block_id[1]);
 
