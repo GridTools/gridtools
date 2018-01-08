@@ -37,7 +37,7 @@
 #include <gtest/gtest.h>
 #include "common/cuda_is_ptr.hpp"
 
-TEST(cuda_helper, host_ptr_is_no_cuda_ptr) {
+TEST(test_is_gpu_ptr, host_ptr_is_no_cuda_ptr) {
     double *ptr = new double;
 
     ASSERT_FALSE(gridtools::is_gpu_ptr(ptr));
