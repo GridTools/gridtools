@@ -43,6 +43,7 @@
 #include "defs.hpp"
 #include "gt_assert.hpp"
 #include "host_device.hpp"
+#include <type_traits>
 
 namespace gridtools {
 
@@ -134,9 +135,38 @@ namespace gridtools {
         static constexpr size_t size() { return D; }
     };
 
+#if __cplusplus >= 201402L
     template < typename T, typename U, size_t D >
-    constexpr bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-        return std::equal(a.begin(), a.end(), b.begin());
+    constexpr GT_FUNCTION bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+        for (size_t i = 0; i < D; ++i) {
+            if (a[i] != b[i])
+                return false;
+        }
+        return true;
+    }
+#else
+    namespace impl_ {
+        template < size_t It, typename T, typename U, size_t D >
+        constexpr GT_FUNCTION typename std::enable_if< It == 0, bool >::type equal(
+            gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+            return a[0] == b[0];
+        }
+        template < size_t It, typename T, typename U, size_t D >
+        constexpr GT_FUNCTION typename std::enable_if< (It > 0), bool >::type equal(
+            gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+            return (a[It] == b[It]) && equal< It - 1 >(a, b);
+        }
+    }
+    // recursive cxx11 constexpr
+    template < typename T, typename U, size_t D >
+    constexpr GT_FUNCTION bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+        return impl_::equal< D - 1 >(a, b);
+    }
+#endif
+
+    template < typename T, typename U, size_t D >
+    constexpr GT_FUNCTION bool operator!=(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+        return !(a == b);
     }
 
     template < typename T >

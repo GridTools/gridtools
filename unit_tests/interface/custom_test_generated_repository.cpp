@@ -33,59 +33,24 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "common/array.hpp"
-#include "common/make_array.hpp"
-#include "../test_helper.hpp"
+
+#include <gtest/gtest.h>
+#include <boost/variant/apply_visitor.hpp>
+
+#include "storage/storage-facility.hpp"
+#include "interface/repository/repository.hpp"
 
 using namespace gridtools;
 
-TEST(make_array_test, only_int) {
-    auto a = make_array(1, 2, 3);
+using IJKStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 0, 3 >;
+using IJKDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJKStorageInfo >;
+using IJStorageInfo = typename storage_traits< enumtype::Host >::storage_info_t< 1, 2 >;
+using IJDataStore = typename storage_traits< enumtype::Host >::data_store_t< float_type, IJStorageInfo >;
 
-    auto expected = array< int, 3 >{1, 2, 3};
+// We include a repository file which is generated from preprocessor output
+#include "/home/vogtha/git/gridtools/build/cuda_Debug/unit_tests/interface/generated_repository.cpp"
 
-    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
-    ASSERT_EQ(expected, a);
-}
-
-TEST(make_array_test, constexpr_only_int) {
-    constexpr auto a = make_array(1, 2, 3);
-
-    const auto expected = array< int, 3 >{1, 2, 3};
-
-    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
-
-    ASSERT_EQ(expected, a);
-    constexpr bool force_constexpr = (expected == a);
-    ASSERT_TRUE(force_constexpr);
-}
-
-TEST(make_array_test, int_and_long) {
-    auto a = make_array(1, 2, 3l);
-
-    auto expected = array< long int, 3 >{1l, 2l, 3l};
-
-    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
-    ASSERT_EQ(expected, a);
-}
-
-TEST(make_array_test, int_and_double) {
-    double a_double = 3;
-    auto a = make_array(1, 2, a_double);
-
-    auto expected = array< double, 3 >{1., 2., a_double};
-
-    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
-    ASSERT_EQ(expected, a);
-}
-
-TEST(make_array_test, force_double_for_ints) {
-    auto a = make_array< double >(1, 2, 3);
-
-    auto expected = array< double, 3 >{1., 2., 3.};
-
-    ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
-    ASSERT_EQ(expected, a);
+TEST(generated_repository, simple_tests) {
+    my_repository repo(3, 4, 5);
+    ASSERT_EQ(3, repo.u().dim< 0 >());
 }
