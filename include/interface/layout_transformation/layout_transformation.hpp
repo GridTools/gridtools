@@ -33,60 +33,39 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
-#include "array.hpp"
+
+#include "../../common/defs.hpp"
+#include "../../common/cuda_is_ptr.hpp"
+#include "layout_transformation_config.hpp"
+#include "layout_transformation_helper.hpp"
+#include "layout_transformation_impl_cuda.hpp"
+#include "layout_transformation_impl_omp.hpp"
+
+#include <vector>
 
 namespace gridtools {
-    template < typename T, size_t D >
-    std::ostream &operator<<(std::ostream &s, array< T, D > const &a) {
-        s << " {  ";
-        for (int i = 0; i < D - 1; ++i) {
-            s << a[i] << ", ";
-        }
-        s << a[D - 1] << "  } ";
-
-        return s;
-    }
-
-    template < typename T, size_t D >
-    std::vector< T > to_vector(array< T, D > const &a) {
-        std::vector< T > v(D);
-        for (int i = 0; i < D; ++i) {
-            v.at(i) = a[i];
-        }
-        return v;
-    }
-
     namespace impl {
-        template < typename Value >
-        struct array_initializer {
-            template < int Idx >
-            struct type {
-                constexpr type() {}
-
-                template < long unsigned int ndims >
-                constexpr static Value apply(const std::array< Value, ndims > data) {
-                    return data[Idx];
-                }
-                template < long unsigned int ndims >
-                constexpr static Value apply(const gridtools::array< Value, ndims > data) {
-                    return data[Idx];
-                }
-            };
-        };
+        bool both_gpu_ptrs(void *ptr1, void *ptr2) { return is_gpu_ptr(ptr1) && is_gpu_ptr(ptr2); }
+        bool both_not_gpu_ptrs(void *ptr1, void *ptr2) { return !is_gpu_ptr(ptr1) && !is_gpu_ptr(ptr2); }
     }
-} // namespace gridtools
 
-template < typename T, typename U, size_t D >
-bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-    // shortcut
-    if (a.size() != b.size())
-        return false;
-
-    // sort and check for equivalence
-    gridtools::array< T, D > a0 = a;
-    gridtools::array< U, D > b0 = b;
-    std::sort(a0.begin(), a0.end());
-    std::sort(b0.begin(), b0.end());
-    return std::equal(a0.begin(), a0.end(), b0.begin());
+    namespace interface {
+        template < typename DataType >
+        void transform(DataType *dst,
+            DataType *src,
+            const std::vector< uint_t > &dims,
+            const std::vector< uint_t > &dst_strides,
+            const std::vector< uint_t > &src_strides) {
+            if (impl::both_gpu_ptrs(dst, src))
+                impl::transform_cuda_loop(dst, src, dims, dst_strides, src_strides);
+            else if (impl::both_not_gpu_ptrs(dst, src))
+                impl::transform_openmp_loop(dst, src, dims, dst_strides, src_strides);
+            else
+                // TODO should we support this mixed mode?
+                throw std::runtime_error("transform(): source and destination pointers need to be from the same memory "
+                                         "space (both host or both gpu pointers)");
+        }
+    }
 }

@@ -33,60 +33,50 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#include "array.hpp"
 
-namespace gridtools {
-    template < typename T, size_t D >
-    std::ostream &operator<<(std::ostream &s, array< T, D > const &a) {
-        s << " {  ";
-        for (int i = 0; i < D - 1; ++i) {
-            s << a[i] << ", ";
-        }
-        s << a[D - 1] << "  } ";
+#include <gtest/gtest.h>
 
-        return s;
+#include "test_cuda_is_ptr.cpp"
+
+TEST(test_is_gpu_ptr, cuda_ptr_is_cuda_ptr) {
+    double *ptr;
+    cudaError_t error = cudaMalloc(&ptr, sizeof(double));
+    if (error != cudaSuccess) {
+        fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+        exit(-1);
     }
 
-    template < typename T, size_t D >
-    std::vector< T > to_vector(array< T, D > const &a) {
-        std::vector< T > v(D);
-        for (int i = 0; i < D; ++i) {
-            v.at(i) = a[i];
-        }
-        return v;
+    ASSERT_TRUE(gridtools::is_gpu_ptr(ptr));
+
+    cudaFree(ptr);
+}
+
+TEST(test_is_gpu_ptr, cudaMallocHost_ptr_is_not_cuda_ptr) {
+    double *ptr;
+    cudaError_t error = cudaMallocHost(&ptr, sizeof(double));
+    if (error != cudaSuccess) {
+        fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+        exit(-1);
     }
 
-    namespace impl {
-        template < typename Value >
-        struct array_initializer {
-            template < int Idx >
-            struct type {
-                constexpr type() {}
+    ASSERT_FALSE(gridtools::is_gpu_ptr(ptr));
 
-                template < long unsigned int ndims >
-                constexpr static Value apply(const std::array< Value, ndims > data) {
-                    return data[Idx];
-                }
-                template < long unsigned int ndims >
-                constexpr static Value apply(const gridtools::array< Value, ndims > data) {
-                    return data[Idx];
-                }
-            };
-        };
+    cudaFreeHost(ptr);
+}
+
+TEST(test_is_gpu_ptr, cuda_ptr_inner_region_are_cuda_ptr) {
+    double *ptr;
+    const size_t n_elem = 32;
+    cudaError_t error = cudaMalloc(&ptr, sizeof(double) * n_elem);
+    if (error != cudaSuccess) {
+        fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
+        exit(-1);
     }
-} // namespace gridtools
 
-template < typename T, typename U, size_t D >
-bool same_elements(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-    // shortcut
-    if (a.size() != b.size())
-        return false;
+    for (size_t i = 0; i < n_elem; ++i) {
+        ASSERT_TRUE(gridtools::is_gpu_ptr(&ptr[i]));
+    }
+    ASSERT_FALSE(gridtools::is_gpu_ptr(&ptr[n_elem + 1])); // out of bounds
 
-    // sort and check for equivalence
-    gridtools::array< T, D > a0 = a;
-    gridtools::array< U, D > b0 = b;
-    std::sort(a0.begin(), a0.end());
-    std::sort(b0.begin(), b0.end());
-    return std::equal(a0.begin(), a0.end(), b0.begin());
+    cudaFree(ptr);
 }

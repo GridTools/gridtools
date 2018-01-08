@@ -92,36 +92,6 @@ namespace gridtools {
                 ((Plus::value - Minus::value) > 0 ? (Tiles::value - Minus::value + Plus::value) : 1)... >::type type;
         };
 
-        namespace impl {
-            template < ushort_t D >
-            struct get_layout_map_;
-
-            template <>
-            struct get_layout_map_< 2 > {
-                typedef layout_map< 1, 0 > type;
-            };
-
-            template <>
-            struct get_layout_map_< 3 > {
-                typedef layout_map< 2, 1, 0 > type;
-            };
-
-            template <>
-            struct get_layout_map_< 4 > {
-                typedef layout_map< 3, 2, 1, 0 > type;
-            };
-
-            template <>
-            struct get_layout_map_< 5 > {
-                typedef layout_map< 4, 3, 2, 1, 0 > type;
-            };
-
-            template <>
-            struct get_layout_map_< 6 > {
-                typedef layout_map< 5, 4, 3, 2, 1, 0 > type;
-            };
-        }
-
         template < typename T >
         struct generate_layout_map;
 
