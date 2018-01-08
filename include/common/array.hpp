@@ -75,7 +75,7 @@ namespace gridtools {
 
         array< T, D + 1 > append_dim(T const &val) const {
             array< T, D + 1 > ret;
-            for (uint_t c = 0; c < D; ++c) {
+            for (size_t c = 0; c < D; ++c) {
                 ret[c] = this->operator[](c);
             }
             ret[D] = val;
@@ -84,7 +84,7 @@ namespace gridtools {
 
         array< T, D + 1 > prepend_dim(T const &val) const {
             array< T, D + 1 > ret;
-            for (uint_t c = 1; c <= D; ++c) {
+            for (size_t c = 1; c <= D; ++c) {
                 ret[c] = this->operator[](c - 1);
             }
             ret[0] = val;
@@ -133,6 +133,11 @@ namespace gridtools {
         GT_FUNCTION
         static constexpr size_t size() { return D; }
     };
+
+    template < typename T, typename U, size_t D >
+    constexpr bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+        return std::equal(a.begin(), a.end(), b.begin());
+    }
 
     template < typename T >
     struct is_array : boost::mpl::false_ {};
