@@ -169,6 +169,11 @@ namespace gridtools {
          * @brief get_state_machine_ptr implementation for host_storage.
          */
         state_machine *get_state_machine_ptr_impl() { return nullptr; }
+
+        /*
+         * @brief returns storage_type.
+         */
+        storage_type get_storage_type_impl() const { return storage_type::Cuda; }
     };
 
     // simple metafunction to check if a type is a host storage

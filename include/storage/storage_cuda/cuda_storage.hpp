@@ -238,6 +238,11 @@ namespace gridtools {
          * @brief valid implementation for cuda_storage.
          */
         bool valid_impl() const { return m_cpu_ptr && m_gpu_ptr; }
+
+        /*
+         * @brief returns storage_type.
+         */
+        storage_type get_storage_type_impl() const { return storage_type::Cuda; }
     };
 
     // simple metafunction to check if a type is a cuda storage
