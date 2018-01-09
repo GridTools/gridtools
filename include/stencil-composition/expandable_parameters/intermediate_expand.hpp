@@ -273,7 +273,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (std::is_same< ReductionType, notype >::value), "Reduction is not allowed with expandable parameters");
 
-        template < uint N >
+        template < uint_t N >
         using converted_intermediate = intermediate< Backend,
             MssDescriptorArray,
             _impl::expand_detail::converted_aggregator_type< N, Aggregator >,
