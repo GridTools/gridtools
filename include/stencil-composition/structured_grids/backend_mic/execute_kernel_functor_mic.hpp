@@ -310,7 +310,6 @@ namespace gridtools {
                     strides_cached_t strides;
                     int_t i_grid_size, j_grid_size, i_block_size, j_block_size, i_blocks, j_blocks;
 
-#pragma omp barrier
                     init_iteration(it_domain,
                         data_ptr,
                         strides,
@@ -386,8 +385,8 @@ namespace gridtools {
                                 const int_t j_bs =
                                     (bj == j_blocks - 1) ? j_grid_size - bj * j_block_size : j_block_size;
 
-                                run_f_on_interval_mic< execution_type_t, RunFunctorArguments > run(
-                                    it_domain, m_grid, i_first, j_first, i_bs, j_bs);
+                                run_f_on_interval_kparallel_mic< execution_type_t, RunFunctorArguments > run(
+                                    it_domain, m_grid, i_first, j_first, i_bs, j_bs, k);
                                 mpl::for_each< loop_intervals_t >(run);
                             }
                         }
