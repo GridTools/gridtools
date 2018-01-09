@@ -189,6 +189,22 @@ namespace gridtools {
             int_t m_k;
         };
 
+        template < typename F >
+        GT_FUNCTION void for_n_impl_mic(F &&f, std::integral_constant< std::size_t, 0 >) {
+            f(std::integral_constant< std::size_t, 0 >());
+        }
+
+        template < typename F, std::size_t Index >
+        GT_FUNCTION void for_n_impl_mic(F &&f, std::integral_constant< std::size_t, Index >) {
+            for_n_impl_mic(std::forward< F >(f), std::integral_constant< std::size_t, Index - 1 >());
+            f(std::integral_constant< std::size_t, Index >());
+        }
+
+        template < std::size_t N, typename F >
+        GT_FUNCTION void for_n_mic(F &&f) {
+            for_n_impl_mic(std::forward< F >(f), std::integral_constant< std::size_t, N - 1 >());
+        }
+
         template < typename ExecutionEngine, typename RunFunctorArguments >
         struct run_f_on_interval_mic : run_on_block_mic< ExecutionEngine, RunFunctorArguments > {
             using base = run_on_block_mic< ExecutionEngine, RunFunctorArguments >;
@@ -206,7 +222,7 @@ namespace gridtools {
             GT_FUNCTION void operator()(Interval const &) const {
                 run_esf_mic< ExecutionEngine, RunFunctorArguments, Interval > run(
                     this->m_it_domain, this->m_grid, this->m_i_first, this->m_j_first, this->m_i_size, this->m_j_size);
-                boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(run);
+                for_n_mic< boost::mpl::size< functor_list_t >::value >(run);
             }
         };
 
@@ -249,8 +265,7 @@ namespace gridtools {
                         this->m_j_size,
                         m_k);
 
-                    boost::mpl::for_each< boost::mpl::range_c< int, 0, boost::mpl::size< functor_list_t >::value > >(
-                        run);
+                    for_n_mic< boost::mpl::size< functor_list_t >::value >(run);
                 }
             }
 
