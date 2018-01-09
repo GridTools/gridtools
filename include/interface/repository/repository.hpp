@@ -76,12 +76,16 @@
         GTREPO_data_store_types_get_typename(tuple), _info);
 
 /*
- * @brief makes a getter for a data_store member variable
+ * @brief makes a getter for a data_store member variable (const and non-const version)
  */
-#define GTREPO_make_data_store_getter(r, data, tuple)                                     \
-    GTREPO_data_stores_get_typename(tuple) &                                              \
-        BOOST_PP_CAT(GTREPO_GETTER_PREFIX, GTREPO_data_stores_get_member_name(tuple))() { \
-        return GTREPO_data_stores_get_member_name_underscore(tuple);                      \
+#define GTREPO_make_data_store_getter(r, data, tuple)                                           \
+    GTREPO_data_stores_get_typename(tuple) &                                                    \
+        BOOST_PP_CAT(GTREPO_GETTER_PREFIX, GTREPO_data_stores_get_member_name(tuple))() {       \
+        return GTREPO_data_stores_get_member_name_underscore(tuple);                            \
+    }                                                                                           \
+    const GTREPO_data_stores_get_typename(tuple) &                                              \
+        BOOST_PP_CAT(GTREPO_GETTER_PREFIX, GTREPO_data_stores_get_member_name(tuple))() const { \
+        return GTREPO_data_stores_get_member_name_underscore(tuple);                            \
     }
 
 /*
@@ -129,6 +133,8 @@
 
 /*
  * @brief GTREPO_make_ctor_dims makes a constructor with uint_t for dimensions as described below
+ * TODO we should allow a version which does allocate the storage_infos but not yet the data_stores as
+ * for the interface we don't know yet if we want to allocate them for ptr sharing  mode (external ptr)
  */
 // helper to generate the arguments of the form (dim0, dim1, ...) from the DimTuple (0,1,...)
 #define GTREPO_make_dim_args_helper(r, data, n, dim_value) BOOST_PP_COMMA_IF(n) BOOST_PP_CAT(dim, dim_value)
@@ -225,6 +231,9 @@
         name(name &&) = delete;                                                  /* non-movable */                     \
         BOOST_PP_SEQ_FOR_EACH(GTREPO_make_data_store_getter, ~, data_stores_seq) /* getter for each data_store */      \
         auto data_stores() -> decltype(data_store_map_) & { return data_store_map_; } /* getter for data_store map */  \
+        const std::unordered_map< std::string, BOOST_PP_CAT(name, _variant) > &data_stores() const {                   \
+            return data_store_map_;                                                                                    \
+        } /* const getter for data_store map */                                                                        \
     };
 
 /*
