@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -18,9 +18,6 @@
   3. Neither the name of the copyright holder nor the names of its
   contributors may be used to endorse or promote products derived from
   this software without specific prior written permission.
-
-
-
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
@@ -55,9 +52,6 @@ using namespace gridtools::expressions;
 
 namespace {
     const double DEFAULT_VALUE = -999.;
-
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
 }
 
 class test_expressions : public testing::Test {
@@ -77,16 +71,13 @@ class test_expressions : public testing::Test {
     const uint_t d1 = 100;
     const uint_t d2 = 9;
     const uint_t d3 = 7;
-    const uint_t halo_size = 0;
 
     using storage_info_t = storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 >;
     using data_store_t = storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t >;
 
     storage_info_t storage_info_;
 
-    halo_descriptor di;
-    halo_descriptor dj;
-    gridtools::grid<::axis > grid;
+    gridtools::grid< axis< 1 >::axis_interval_t > grid;
 
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
@@ -104,18 +95,15 @@ class test_expressions : public testing::Test {
     aggregator_type< accessor_list > domain;
 
     test_expressions()
-        : storage_info_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
+        : storage_info_(d1, d2, d3), grid(make_grid(d1, d2, d3)),
 #if FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
           verifier_(1e-12),
 #endif
-          verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
-          val2(storage_info_, 2., "val2"), val3(storage_info_, 3., "val3"), out(storage_info_, -555, "out"),
-          reference(storage_info_, ::DEFAULT_VALUE, "reference"), domain(val2, val3, out) {
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+          verifier_halos{{{0, 0}, {0, 0}, {0, 0}}}, val2(storage_info_, 2., "val2"), val3(storage_info_, 3., "val3"),
+          out(storage_info_, -555, "out"), reference(storage_info_, ::DEFAULT_VALUE, "reference"),
+          domain(val2, val3, out) {
     }
 
     template < typename Computation >
@@ -144,7 +132,7 @@ namespace {
         typedef inout_accessor< 2, extent<>, 3 > out;
         typedef boost::mpl::vector< val2, val3, out > arg_list;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             constexpr gridtools::dimension< 1 > i{};
             constexpr gridtools::dimension< 2 > j{};
             constexpr gridtools::dimension< 3 > k{};

@@ -35,7 +35,6 @@ are_independent "boundary-conditions" "communication" #maybe they can have a dep
 are_independent "boundary-conditions" "tools"
 are_independent "boundary-conditions" "interface"
 
-are_independent "communication" "tools"
 no_dependency "communication" "storage"
 #are_independent "communication" "storage" #TODO: violated by partitioner
 are_independent "communication" "interface"

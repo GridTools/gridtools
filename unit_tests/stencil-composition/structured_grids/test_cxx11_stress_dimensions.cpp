@@ -1,18 +1,24 @@
 /*
   GridTools Libraries
+
   Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
+
   Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are
   met:
+
   1. Redistributions of source code must retain the above copyright
   notice, this list of conditions and the following disclaimer.
+
   2. Redistributions in binary form must reproduce the above copyright
   notice, this list of conditions and the following disclaimer in the
   documentation and/or other materials provided with the distribution.
+
   3. Neither the name of the copyright holder nor the names of its
   contributors may be used to endorse or promote products derived from
   this software without specific prior written permission.
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
@@ -24,6 +30,7 @@
   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
   For information: http://eth-cscs.github.io/gridtools/
 */
 
@@ -182,10 +189,6 @@ bool do_verification(uint_t d1, uint_t d2, uint_t d3, Storage const &result_, Gr
 }
 
 namespace assembly {
-
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
-
     struct integration {
         typedef in_accessor< 0, extent<>, 7 > phi;
         typedef in_accessor< 1, extent<>, 7 > psi; // how to detect when index is wrong??
@@ -195,7 +198,7 @@ namespace assembly {
         typedef boost::mpl::vector< phi, psi, jac, f, result > arg_list;
         using quad = dimension< 7 >;
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             dimension< 1 > i;
             dimension< 2 > j;
             dimension< 3 > k;
@@ -290,11 +293,9 @@ namespace assembly {
            The grid constructor takes the horizontal plane dimensions,
            hile the vertical ones are set according the the axis property soon after
         */
-        uint_t di[5] = {1, 1, 1, d1 - 3, d1};
-        uint_t dj[5] = {1, 1, 1, d2 - 3, d2};
-        grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 2;
+        halo_descriptor di{1, 1, 1, d1 - 3, d1};
+        halo_descriptor dj{1, 1, 1, d2 - 3, d2};
+        auto grid = make_grid(di, dj, d3 - 1);
 
         auto fe_comp =
             make_computation< BACKEND >(domain,

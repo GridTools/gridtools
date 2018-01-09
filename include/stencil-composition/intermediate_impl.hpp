@@ -256,14 +256,6 @@ namespace gridtools {
             AggregatorType const &m_aggregator;
         };
 
-        /** @brief Functor used to delete all temporary storages */
-        struct delete_tmp_data_store {
-            template < typename T >
-            void operator()(T &t) const {
-                t.ptr.destroy();
-            }
-        };
-
         /** @brief Functor used to instantiate and allocate all temporary storages */
         template < typename MaxExtent, typename AggregatorType, typename Grid, typename Backend >
         struct instantiate_tmps {
@@ -274,14 +266,10 @@ namespace gridtools {
 
             template < typename T, typename boost::enable_if_c< T::is_temporary, int >::type = 0 >
             void operator()(T const &) const {
-                assert(!m_agg.template get_arg_storage_pair< typename T::arg_t >().ptr.get() &&
-                       "temporary storage already initialized (maybe ready() was called multiple times). "
-                       "reinitialization would produce a memory leak. ");
                 // instantiate the right storage info (according to grid and used strategy)
                 auto storage_info = Backend::template instantiate_storage_info< MaxExtent, T >(m_grid);
                 // create a storage and fill the aggregator
-                auto ptr = gridtools::pointer< typename T::storage_t >(new typename T::storage_t(storage_info));
-                m_agg.template set_arg_storage_pair< typename T::arg_t >(ptr);
+                m_agg.template set_arg_storage_pair< typename T::arg_t >(typename T::data_store_t(storage_info));
             }
 
             template < typename T, typename boost::enable_if_c< !T::is_temporary, int >::type = 1 >
@@ -292,27 +280,24 @@ namespace gridtools {
         struct sync_data_stores {
             // case for non temporary storages (perform sync)
             template < typename T >
-            typename boost::enable_if_c< !is_arg_storage_pair_to_tmp< T >::value &&
-                                             is_vector< typename T::storage_t >::value,
+            typename boost::enable_if_c< !is_tmp_arg< T >::value && is_vector< typename T::data_store_t >::value,
                 void >::type
             operator()(T const &t) const {
-                for (unsigned i = 0; i < t.ptr.get()->size(); ++i)
-                    (*t.ptr)[i].sync();
+                for (auto &&item : t.m_value)
+                    item.sync();
             }
 
             // case for non temporary storages (perform sync)
             template < typename T >
-            typename boost::enable_if_c< !is_arg_storage_pair_to_tmp< T >::value &&
-                                             !is_vector< typename T::storage_t >::value,
+            typename boost::enable_if_c< !is_tmp_arg< T >::value && !is_vector< typename T::data_store_t >::value,
                 void >::type
             operator()(T const &t) const {
-                t.ptr->sync();
+                t.m_value.sync();
             }
 
             // temporary storages don't have to be synced.
             template < typename T >
-            typename boost::enable_if_c< is_arg_storage_pair_to_tmp< T >::value, void >::type operator()(
-                T const &t) const {}
+            typename boost::enable_if_c< is_tmp_arg< T >::value, void >::type operator()(T const &t) const {}
         };
 
         /** @brief Metafunction class used to get the view type */
@@ -350,7 +335,7 @@ namespace gridtools {
                 typedef typename boost::mpl::second< MapElem >::type extent_t;
                 typedef typename boost::mpl::first< MapElem >::type temporary;
                 typedef storage_wrapper< temporary,
-                    typename get_view_t::apply< typename temporary::storage_t >::type,
+                    typename get_view_t::apply< typename temporary::data_store_t >::type,
                     tile< BI, -extent_t::iminus::value, extent_t::iplus::value >,
                     tile< BJ, -extent_t::jminus::value, extent_t::jplus::value > > type;
             };
@@ -368,9 +353,9 @@ namespace gridtools {
                 typename boost::disable_if< is_tmp_arg< typename boost::fusion::result_of::first< T >::type >,
                     int >::type = 0 >
             void operator()(T const &v) const {
-                auto ds =
+                const auto &ds =
                     m_aggregator.template get_arg_storage_pair< typename boost::fusion::result_of::first< T >::type >();
-                m_valid &= check_consistency(*(ds.ptr), v.second);
+                m_valid &= check_consistency(ds.m_value, v.second);
             }
 
             template < typename T,

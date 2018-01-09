@@ -42,7 +42,6 @@
 #include <boost/mpl/for_each.hpp>
 #include <boost/type_traits/integral_constant.hpp>
 
-#include "../common/is_temporary_storage.hpp"
 #include "../gridtools.hpp"
 
 #include "../storage/storage-facility.hpp"
@@ -113,6 +112,10 @@ namespace gridtools {
       private:
         offset_tuple_t m_offsets;
 
+        // friend of itself with different indices
+        template < uint_t, enumtype::intend, typename, ushort_t >
+        friend struct accessor_base;
+
       public:
         /**@brief Default constructor
            NOTE: the following constructor when used with the brace initializer produces with nvcc a considerable amount
@@ -127,16 +130,15 @@ namespace gridtools {
         GT_FUNCTION constexpr explicit accessor_base(array< int_t, ArrayDim > const &offsets, Dimensions... d)
             : m_offsets(0, offsets, d...) {}
 
-#if !defined(__CUDACC__)
         // move ctor
         GT_FUNCTION
-        constexpr accessor_base(const type &&other) : m_offsets(other.m_offsets) {}
+        constexpr accessor_base(const type &&other) : m_offsets(std::move(other.m_offsets)) {}
 
         // move ctor from another accessor_base with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(accessor_base< OtherIndex, Intend, Extend, Dim > &&other)
-            : m_offsets(other.offsets()) {}
-#endif
+            : m_offsets(std::move(other.m_offsets)) {}
+
         // copy ctor
         GT_FUNCTION
         constexpr accessor_base(type const &other) : m_offsets(other.m_offsets) {}
@@ -144,7 +146,7 @@ namespace gridtools {
         // copy ctor from another accessor_base with different index
         template < uint_t OtherIndex >
         GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
-            : m_offsets(other.offsets()) {}
+            : m_offsets(other.m_offsets) {}
 
         /**@brief constructor taking the dimension class as argument.
            This allows to specify the extra arguments out of order. Note that 'dimension' is a

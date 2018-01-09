@@ -1,7 +1,7 @@
 /*
   GridTools Libraries
 
-  Copyright (c) 2016, GridTools Consortium
+  Copyright (c) 2017, ETH Zurich and MeteoSwiss
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ namespace gridtools {
         using seq = gridtools::apply_gt_integer_sequence<
             typename gridtools::make_gt_integer_sequence< int, sizeof...(Vals1) >::type >;
 
-        using type = typename seq::
-            template apply_t< int_t, extent, impl::get_component, ipair_type< int_t, Vals1, Vals2 >... >::type;
+        using type =
+            typename seq::template apply_t< extent, impl::get_component, ipair_type< int_t, Vals1, Vals2 >... >::type;
     };
 }

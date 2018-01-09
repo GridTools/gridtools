@@ -7,7 +7,7 @@ else()
   file(GLOB_RECURSE INC_ALL_ "../include/[a-z|A-Z|0-9]*.hpp")
   list ( APPEND INC_ALL ${INC_ALL_} )
 
-  list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment advection_pdbott_prepare_tracers)
+  list( APPEND SRCFILES interface1 simple_hori_diff boundary-condition laplacian copy_stencil positional_copy_stencil tridiagonal vertical_advection_dycore alignment advection_pdbott_prepare_tracers )
   list( APPEND X86_SRCFILES reduction)
 
   list(APPEND SRCFILES  extended_4D  copy_stencil_single_storage  expandable_parameters expandable_parameters_single_kernel data_store_field_test)
@@ -33,7 +33,6 @@ else()
   set_target_properties(vanilla_laplacian PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
   target_link_libraries(vanilla_laplacian ${exe_LIBS} )
 
-
   foreach( variation CALL MONOLITHIC OFFSETS PROCEDURES PROCEDURES_OFFSETS )
       string(TOLOWER ${variation} var_suffix)
       add_executable(interface1_functions_naive_${var_suffix}   interface1_functions.cpp ${GTEST_FILES})
@@ -49,17 +48,22 @@ else()
   endforeach(variation)
 
   if( GCL_MPI )
+      set(ccflags " ${HOST_SPECIFIC_OPTIONS}" )
+      set(ldflags " ")
+
+      add_custom_mpi_host_test(copy_stencil_parallel ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cpp  ${ccflags} ${ldflags})
+
+      ## The next executable is not made into a test since it does not validate.
+      ## The numerics need to be fixed (this is a task to be undertaken in the future)
       add_executable(shallow_water_enhanced  shallow_water_enhanced.cpp)
       target_link_libraries(shallow_water_enhanced ${exe_LIBS} gtest_main)
       set_target_properties(shallow_water_enhanced PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
 
-      add_executable(copy_stencil_parallel  copy_stencil_parallel.cpp)
-      target_link_libraries(copy_stencil_parallel ${exe_LIBS} gtest_main)
-      set_target_properties(copy_stencil_parallel PROPERTIES COMPILE_FLAGS ${CMAKE_CXX_FLAGS})
   endif()
 
   if(CUDA_FOUND)
-    if(COMPILE_TO_PTX)
+
+      if(COMPILE_TO_PTX)
         CUDA_COMPILE_PTX(generated_files interface1.cu simple_hori_diff.cu copy_stencil.cu tridiagonal.cu boundary-condition.cu)
     else()
 
@@ -81,11 +85,15 @@ else()
         gridtools_add_test( tests.interface1_functions_cuda_${var_suffix} ${TEST_SCRIPT} "${CMAKE_BINARY_DIR}/examples/interface1_functions_cuda_${var_suffix}" "23 11 23")
     endforeach(variation)
     if( GCL_MPI )
+        set(ccflags " ")
+        set(ldflags " ")
+        add_custom_mpi_gpu_test(copy_stencil_parallel_cuda ${CMAKE_CURRENT_SOURCE_DIR}/./copy_stencil_parallel.cu  ${ccflags} ${ldflags})
+
+        ## The next executable is not made into a test since it does not validate.
+        ## The numerics need to be fixed (this is a task to be undertaken in the future)
         cuda_add_executable(shallow_water_enhanced_cuda  shallow_water_enhanced.cu OPTIONS "${GPU_SPECIFIC_FLAGS} -D_GCL_MPI_" )
         target_link_libraries(shallow_water_enhanced_cuda ${exe_LIBS} gtest_main)
 
-        cuda_add_executable(copy_stencil_parallel_cuda  copy_stencil_parallel.cu OPTIONS "${GPU_SPECIFIC_FLAGS} -D_GCL_MPI_" )
-        target_link_libraries(copy_stencil_parallel_cuda ${exe_LIBS} gtest_main)
      endif()
 
     add_subdirectory( communication )

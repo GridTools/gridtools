@@ -1,0 +1,102 @@
+.. Distribvuted Boundary Conditions
+
+Distributed Boundary Conditions
+===============================
+
+-------------------
+Design principles:
+-------------------
+
+* When doing expandable parameters or data fields, the user may want to apply BCs and perform communications on a sub-set of the data stores collected in these data representations. For this reason an interface for applying distributed boundary conditions takes data-stores instead of data store fields or other data structures.
+* The user may want to apply different BCs to the same data-store at different times during an executions, so the binding between BCs and data-stores should be done at member-function level, not at class level, in order to remove the need for instantiation of heavy objects like halo-updates.
+* The same holds for the data stores to be exchanged: we need to plug the data stores at the last minute before doing the packing/unpacking and boundary apply. The requirement given by the underlying communication layer is that the number of data fields to be exchanged must be less than or equal to the maximum number of data fields specified at construction time.
+* The halo exchange patterns are quite heavy objects so they have to be constructed and passed around as references. The ``setup`` needs to be executed only once to prevent memory leaks.
+* The halo information for communication could be derived by a ``storage_info`` class, but there may be cases in which a separate halo information can be provided, and different ``storage_info`` s (with different incides, for instance) may have the same communication requirements (for instance in cases of implicit staggering). For this reason the `halo_descriptor` is passed explicitly to the distributed boundary construction interface.
+* The ``value_type`` should be passed as an additional template parameter to the distributed boundaries interfaces. The ``value_type`` is used to compute the sizes of the buffers and the data movement operations needed by communication.
+
+
+------------------------
+Communication Traits
+------------------------
+
+Communication traits helps the distributed boundary condition interface to customize itself to the need of the user. A general communication traits class is available in ``distributed-boundaries/comm_traits.hpp``. The traits required by the distributed boundaries interface, as provided by |GT|, are listed below here.
+
+.. code-block:: gridtools
+
+  template < typename StorageType, typename Arch >
+  struct comm_traits {
+    using proc_layout = ... // Lauyout of the processing grid to relate the data layout to the distribution of data
+    using proc_grid_type = ... // Type of the computing grid
+    using comm_arch_type = Arch; // Architecture for the communication pattern
+    static constexpr gridtools::enumtype::platform compute_arch = ... // Architecture of the stencil/boundary condition backend
+    static constexpr int version = ... // Packing/Unpacking version
+    using data_layout = typename StorageType::storage_info_t::layout_t; // Layout of data
+    using value_type = typename StorageType::data_t; // Value Type
+  };
+
+
+-------------------------------------
+Bindind Boundaries and Communication
+-------------------------------------
+
+|GT| provides a facility for applying boundary conditions. The distributed boudaries interfaces uses this facility underneath. The boundary application in |GT| accept specific boundary classes that specify how to deal with boundaries in different directions and predicated to deal with periodicity and domain decomposition. The latter will be dealt by the distributed boundary interfaces (refer to the boundary condition interfaces for more details).
+
+The distributed boundaries interface require a user to specify which data stores required communication and which require also boundary conditions, and in the latter case what boundary functions to use.
+
+The way of specifying this is through the function ``bind_bc`` which has the following signature:
+
+.. code-block:: gridtools
+
+   unspecified_type x = bind_bc(boundary_class, data_stores,...);
+
+The number of data stores is dictated by the ``boundary_class::operator()``, that is user defined (or provided by |GT|).
+
+The data stores specified in the function call will be passed to the ``boundary_class`` and also used in halo-update operations.
+
+However, some data fields used in boundary conditions may be read-only and should not be passed to the halo-update operation, both for avoiding unnecessary operations and to limit the amount of memory used by the halo-update layer. For this reason the ``data_store``s passed the the ``bind_bc`` can actually be ``std::placeholders``. Only the actual ``data_store``s specified in the ``binc_bc`` call will be passed to the communication layer. To bind the ``placeholders`` to actual ``data_store``s the user must bind then using ``.associate(data_stores...)`` with the same mechanism used in ``std::bind`` as in the following example, in which ``data_store`` ``c`` is associated to placeholder ``_1``.
+
+.. code-block:: gridtools
+
+  bind_bc(copy_boundary{}, b, _1).associate(c)
+
+
+-----------------------
+Distributed Boundaries
+-----------------------
+The distributed boundaries class takes as template argument the communication traits. In the next example we use the communication traits class provided by gridtools.
+
+.. code-block:: gridtools
+
+   using db_t = distributed_boundaries< comm_traits< storage_type, gcl_cpu > >;
+
+During construction more information is required.
+
+.. code-block:: gridtools
+
+   halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+   halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+   halo_descriptor dk{0, 0, 0, d3 - 1, d3};
+   array< halo_descriptor, 3 > halos{di, dj, dk};
+
+   boollist<3> periodicity{b0, b1, b2}; // b0, b1, b2 are booleans. If true it will indicate that the corresponding dimension is periodic across the grid of processors.
+
+   int max_ds = 4; // maximum number of data stores to be used in a halo_update operation
+
+   // MPI_COMMUNICATOR is the MPI communicator to use in the halo-update operation (usually ``GCL_WORLD``)
+
+   db_t db{halos, periodicity, max_ds, MPI_COMMUNICATOR};
+
+The ``distributed_boundary`` object allows the user to query the properties of the grid of processes, for instance the coordinates of the current process and the size of the computing grid.
+
+.. code-block:: gridtools
+
+   int pi, pj, pk;
+   cabc.proc_grid().coords(pi, pj, pk); // Coordinates of current process
+   int PI, PJ, PK;
+   cabc.proc_grid().dims(PI, PJ, PK); // Sizes of the current grid of processes
+
+When invoking the boundary application and halo-update operations the user calls the ``exchange`` member of ``distributed_boundaries``, as in the next example, there are two boundary applications using a fixed value on data store ``a`` and a ``copy_boundary`` to copy the value of data store ``c`` into data store ``b``. Data store ``c`` will not be used in halo update operation, but only as source of data for the ``copy_boundary``:
+
+.. code-block:: gridtools
+
+   cabc.exchange(bind_bc(value_boundary< double >{3.14, a), bind_bc(copy_boundary{}, b, _1).associate(c),

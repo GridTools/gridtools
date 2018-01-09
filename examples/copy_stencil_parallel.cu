@@ -33,5 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define CUDA_EXAMPLE
+
 #include "copy_stencil_parallel.cpp"

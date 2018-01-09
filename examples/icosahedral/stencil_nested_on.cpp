@@ -104,8 +104,8 @@ using namespace nested_test;
 
 TEST(test_stencil_nested_on, run) {
 
-    using cell_storage_type = typename backend_t::storage_t< icosahedral_topology_t::cells, double >;
-    using edge_storage_type = typename backend_t::storage_t< icosahedral_topology_t::edges, double >;
+    using cell_storage_type = typename backend_t::data_store_t< icosahedral_topology_t::cells, double >;
+    using edge_storage_type = typename backend_t::data_store_t< icosahedral_topology_t::edges, double >;
 
     const uint_t halo_nc = 1;
     const uint_t halo_mc = 1;

@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #define PEDANTIC_DISABLED // too stringent for this test
-#define protected public
+
 #include "common/defs.hpp"
 #include "stencil-composition/stencil-composition.hpp"
 #include "stencil-composition/structured_grids/accessor.hpp"
@@ -45,10 +45,6 @@ namespace test_iterate_domain {
     using namespace gridtools;
     using namespace enumtype;
 
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
-    typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
         typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0 >, 6 > in;
@@ -57,7 +53,7 @@ namespace test_iterate_domain {
         typedef boost::mpl::vector< in, buff, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval) {}
     };
 
     std::ostream &operator<<(std::ostream &s, dummy_functor const) { return s << "dummy_function"; }
@@ -98,12 +94,7 @@ namespace test_iterate_domain {
 
         gridtools::aggregator_type< accessor_list > domain(in, buff, out);
 
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(d1, d2, d3);
 
         auto mss_ = gridtools::make_multistage // mss_descriptor
             (enumtype::execute< enumtype::forward >(),
@@ -131,7 +122,7 @@ namespace test_iterate_domain {
                 boost::mpl::vector0<>,
                 block_size< 32, 4 >,
                 block_size< 32, 4 >,
-                gridtools::grid< axis >,
+                gridtools::grid< gridtools::axis< 1 >::axis_interval_t >,
                 boost::mpl::false_,
                 notype > > it_domain_t;
 
@@ -157,54 +148,54 @@ namespace test_iterate_domain {
         it_domain.template assign_stride_pointers< backend_traits_t, strides_t >();
 
         // check data pointers initialization
-        assert(((float_type *)it_domain.data_pointer().template get< 0 >()[0] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 0 >()[0] ==
                 in.get< 0, 0 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 0 >()[1] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 0 >()[1] ==
                 in.get< 0, 1 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 0 >()[2] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 0 >()[2] ==
                 in.get< 0, 2 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 0 >()[3] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 0 >()[3] ==
                 in.get< 1, 0 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 0 >()[4] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 0 >()[4] ==
                 in.get< 1, 1 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 0 >()[5] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 0 >()[5] ==
                 in.get< 2, 0 >().get_storage_ptr()->get_cpu_ptr()));
 
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[0] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[0] ==
                 buff.get< 0, 0 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[1] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[1] ==
                 buff.get< 0, 1 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[2] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[2] ==
                 buff.get< 0, 2 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[3] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[3] ==
                 buff.get< 0, 3 >().get_storage_ptr()->get_cpu_ptr()));
 
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[4] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[4] ==
                 buff.get< 1, 0 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[5] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[5] ==
                 buff.get< 1, 1 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[6] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[6] ==
                 buff.get< 1, 2 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[7] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[7] ==
                 buff.get< 1, 3 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[8] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[8] ==
                 buff.get< 1, 4 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[9] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[9] ==
                 buff.get< 1, 5 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 1 >()[10] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 1 >()[10] ==
                 buff.get< 1, 6 >().get_storage_ptr()->get_cpu_ptr()));
 
-        assert(((float_type *)it_domain.data_pointer().template get< 2 >()[0] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 2 >()[0] ==
                 out.get< 0, 0 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 2 >()[1] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 2 >()[1] ==
                 out.get< 0, 1 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 2 >()[2] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 2 >()[2] ==
                 out.get< 1, 0 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 2 >()[3] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 2 >()[3] ==
                 out.get< 1, 1 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 2 >()[4] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 2 >()[4] ==
                 out.get< 2, 0 >().get_storage_ptr()->get_cpu_ptr()));
-        assert(((float_type *)it_domain.data_pointer().template get< 2 >()[5] ==
+        assert(((float_type *)advanced::get_iterate_domain_data_pointer(it_domain).template get< 2 >()[5] ==
                 out.get< 2, 1 >().get_storage_ptr()->get_cpu_ptr()));
         // check field storage access
 

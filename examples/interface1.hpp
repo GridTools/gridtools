@@ -36,10 +36,9 @@
 #pragma once
 
 #include <stencil-composition/stencil-composition.hpp>
-#include "horizontal_diffusion_repository.hpp"
-#include "./defs.hpp"
-#include <tools/verifier.hpp>
 #include "benchmarker.hpp"
+#include "horizontal_diffusion_repository.hpp"
+#include <tools/verifier.hpp>
 
 /**
   @file
@@ -57,13 +56,6 @@ using namespace enumtype;
 using namespace expressions;
 
 namespace horizontal_diffusion {
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_lap;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_flx;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_out;
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
         typedef accessor< 0, enumtype::inout > out;
@@ -72,7 +64,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation eval, x_lap) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = (gridtools::float_type)4 * eval(in()) -
                           (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
         }
@@ -87,7 +79,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = eval(lap(1, 0, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0) {
                 eval(out()) = 0.;
@@ -104,7 +96,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, lap > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation eval, x_flx) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) = eval(lap(0, 1, 0)) - eval(lap(0, 0, 0));
             if (eval(out()) * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0) {
                 eval(out()) = 0.;
@@ -123,7 +115,7 @@ namespace horizontal_diffusion {
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_out) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
 #if !defined(CUDA_EXAMPLE)
             eval(out()) = eval(in()) - eval(coeff()) * (eval(flx() - flx(-1, 0, 0) + fly() - fly(0, -1, 0)));
 #else
@@ -187,16 +179,10 @@ namespace horizontal_diffusion {
 
         gridtools::aggregator_type< accessor_list > domain((p_in() = in), (p_out() = out), (p_coeff() = coeff));
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(di, dj, d3);
 
         /*
           Here we do lot of stuff

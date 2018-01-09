@@ -17,14 +17,13 @@ module load CMake/3.3.2
 module load cudatoolkit
 module load /users/vogtha/modules/tools/clang-format/3.7.1
 
-echo $LD_LIBRARY_PATH
 export Boost_NO_SYSTEM_PATHS=true
 export Boost_NO_BOOST_CMAKE=true
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
-export BOOST_ROOT=/scratch/stefanm/boost_1_62_0/
-export BOOST_INCLUDE=/scratch/stefanm/boost_1_62_0/include/
+export BOOST_ROOT=/users/vogtha/boost_1_65_1
+export BOOST_INCLUDE=/users/vogtha/boost_1_65_1/include/
 export CUDA_ARCH=sm_37
 export DEFAULT_QUEUE=debug
 export LAUNCH_MPI_TEST="srun"
