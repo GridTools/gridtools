@@ -34,53 +34,31 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/array.hpp>
-#include <gtest/gtest.h>
-#include "interface/layout_transformation/multi_iterator.hpp"
+#include "test_multi_iterator.cpp"
 
-#include "../../tools/triplet.hpp"
-using namespace gridtools;
+using dim2_ = gridtools::array< size_t, 4 >;
+__device__ int get_val(size_t a, size_t b) { return a * 2 + b; }
 
-TEST(multi_iterator, 3D) {
-    gridtools::array< uint_t, 3 > dims{2, 4, 3};
-    using dim3_ = gridtools::array< size_t, 3 >;
+__global__ void test_exec(dim2_ *out_ptr) {
+    gridtools::array< uint_t, 2 > dims{2, 2};
+    dim2_ &out = *out_ptr;
 
-    std::vector< dim3_ > out;
-    iterate(dims, [&](size_t a, size_t b, size_t c) { out.push_back(dim3_{a, b, c}); });
+    for (size_t i = 0; i < 4; ++i)
+        out[i] = 0;
 
-    for (size_t i = 0; i < dims[0]; ++i)
-        for (size_t j = 0; j < dims[1]; ++j)
-            for (size_t k = 0; k < dims[2]; ++k) {
-                ASSERT_EQ(1, std::count(out.begin(), out.end(), dim3_{i, j, k}));
-            }
-}
+    iterate(dims, [&](size_t a, size_t b) { out[get_val(a, b)] = 1; });
+};
 
-TEST(multi_iterator, 2D) {
-    gridtools::array< uint_t, 2 > dims{2, 43};
-    using dim2_ = gridtools::array< size_t, 2 >;
+TEST(multi_iterator, trying_to_execute_on_device) {
 
-    std::vector< dim2_ > out;
-    iterate(dims, [&](size_t a, size_t b) { out.push_back(dim2_{a, b}); });
+    dim2_ *out;
+    cudaMalloc(&out, sizeof(dim2_));
 
-    for (size_t i = 0; i < dims[0]; ++i)
-        for (size_t j = 0; j < dims[1]; ++j)
-            ASSERT_EQ(1, std::count(out.begin(), out.end(), dim2_{i, j}));
-}
+    test_exec<<< 1, 1 >>>(out);
 
-TEST(multi_iterator, 0D) {
-    gridtools::array< uint_t, 0 > dims;
-    std::vector< int > out;
-    iterate(dims, [&]() { out.push_back(0); });
+    dim2_ host_out;
+    cudaMemcpy(&host_out, out, sizeof(dim2_), cudaMemcpyDeviceToHost);
 
-    ASSERT_EQ(0, out.size());
-}
-
-TEST(multi_iterator, 2D_with_size_zero) {
-    gridtools::array< uint_t, 2 > dims{0, 0};
-    using dim2_ = gridtools::array< size_t, 2 >;
-
-    std::vector< dim2_ > out;
-    iterate(dims, [&](size_t a, size_t b) { out.push_back(dim2_{a, b}); });
-
-    ASSERT_EQ(0, out.size());
+    for (size_t i = 0; i < 4; ++i)
+        ASSERT_EQ(1, host_out[i]);
 }

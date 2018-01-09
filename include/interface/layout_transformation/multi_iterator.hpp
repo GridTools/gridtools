@@ -43,6 +43,7 @@
 
 namespace gridtools {
     namespace impl_ {
+#pragma nv_exec_check_disable
         template < typename F, typename Array, std::size_t... I >
         GT_FUNCTION void apply_array_to_variadic_impl(F f, const Array &a, gt_integer_sequence< std::size_t, I... >) {
             f(a[I]...);
@@ -61,6 +62,20 @@ namespace gridtools {
                 size *= sizes[i];
             return size == 0 || Size == 0;
         }
+        template <>
+        GT_FUNCTION bool is_empty_set(const gridtools::array< uint_t, 0 > &sizes) {
+            return true;
+        }
+
+        // to suppress a warning "pointless comparison of unsigned integer with zero"
+        template < size_t Left >
+        struct compare {
+            static constexpr GT_FUNCTION bool greater_than(size_t right) { return Left > right; }
+        };
+        template <>
+        struct compare< 0 > {
+            static constexpr GT_FUNCTION bool greater_than(size_t) { return false; }
+        };
     }
 
     /**
@@ -82,7 +97,7 @@ namespace gridtools {
                     }
                     impl_::apply_array_to_variadic(f, index);
                 } else {
-                    if (index_index + 1 < Size) {
+                    if (impl_::compare< Size >::greater_than(index_index + 1)) {
                         index_index++;
                     } else {
                         break;
