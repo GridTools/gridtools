@@ -56,7 +56,8 @@ namespace gridtools {
                 : dst(dst), src(src), si_dst(si_dst), si_src(si_src), i(i), j(j), k(k) {}
 
             template < typename... OuterIndices >
-            GT_FUNCTION void operator()(OuterIndices... outer_indices) {
+            GT_FUNCTION typename std::enable_if< is_all_integral< OuterIndices... >::value >::type operator()(
+                OuterIndices... outer_indices) {
                 dst[si_dst.index(i, j, k, outer_indices...)] = src[si_src.index(i, j, k, outer_indices...)];
             }
 
@@ -99,7 +100,6 @@ namespace gridtools {
 
             iterate(outer_dims,
                 transform_cuda_loop_kernel_functor< DataType, storage_info >(dst, src, si_dst, si_src, i, j, k));
-            //            dst[si_dst.index(i, j, k, 0, 0)] = src[si_src.index(i, j, k, 0, 0)];
         }
 #endif
 
@@ -121,16 +121,6 @@ namespace gridtools {
                 (a_dims[2] + block_size_1d - 1) / block_size_1d);
             dim3 block_size(block_size_1d, block_size_1d, block_size_1d);
 
-#ifndef NDEBUG
-            {
-                cudaDeviceSynchronize();
-                cudaError_t error = cudaGetLastError();
-                if (error != cudaSuccess) {
-                    fprintf(stderr, "CUDA ERROR: %s in %s at line %d\n", cudaGetErrorString(error), __FILE__, __LINE__);
-                    exit(-1);
-                }
-            }
-#endif
             CALL_CUDA_KERNEL(transform_cuda_loop_kernel,
                 grid_size,
                 block_size,

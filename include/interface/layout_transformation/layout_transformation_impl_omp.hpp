@@ -47,14 +47,14 @@
 
 namespace gridtools {
     namespace impl {
-        template < typename DataType, typename StorageInfo, typename... HigherIndices >
-        GT_FUNCTION_HOST void transform_openmp_loop_impl(DataType *dst,
+        template < typename DataType, typename StorageInfo, typename... OuterIndices >
+        GT_FUNCTION_HOST typename std::enable_if< is_all_integral< OuterIndices... >::value >::type
+        transform_openmp_loop_impl(DataType *dst,
             DataType *src,
             const StorageInfo &si_dst,
             const StorageInfo &si_src,
             const gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > &a_dims,
-            HigherIndices... higher_indices) // TODO protect ints
-        {
+            OuterIndices... outer_indices) {
             const uint_t n_i = a_dims[0];
             const uint_t n_j = a_dims[1];
             const uint_t n_k = a_dims[2];
@@ -62,7 +62,7 @@ namespace gridtools {
             for (int i = 0; i < n_i; ++i)
                 for (int j = 0; j < n_j; ++j)
                     for (int k = 0; k < n_k; ++k) {
-                        dst[si_dst.index(i, j, k, higher_indices...)] = src[si_src.index(i, j, k, higher_indices...)];
+                        dst[si_dst.index(i, j, k, outer_indices...)] = src[si_src.index(i, j, k, outer_indices...)];
                     }
         }
 
