@@ -83,6 +83,7 @@ namespace gridtools {
             std::cerr << "CUDA ERROR in cuPointerGetAttribute(): " << error_string << std::endl;
         }
 #endif
+        return false;
 #endif
     }
 }

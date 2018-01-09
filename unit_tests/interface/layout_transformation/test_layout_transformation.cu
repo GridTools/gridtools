@@ -152,6 +152,6 @@ TEST(layout_transformation, mixing_host_and_device_ptr) {
     ASSERT_ANY_THROW(gridtools::interface::transform(
         dst, d_src, std::vector< uint_t >(), std::vector< uint_t >(), std::vector< uint_t >()));
 
-    delete[] dst;
+    delete dst;
     cudaFree(d_src);
 }
