@@ -43,7 +43,7 @@
 
 namespace gridtools {
     namespace impl_ {
-#pragma nv_exec_check_disable
+        GT_NV_EXEC_CHECK_DISABLE
         template < typename F, typename Array, std::size_t... I >
         GT_FUNCTION void apply_array_to_variadic_impl(F f, const Array &a, gt_integer_sequence< std::size_t, I... >) {
             f(a[I]...);
