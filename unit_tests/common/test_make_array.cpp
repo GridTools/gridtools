@@ -53,7 +53,7 @@ TEST(make_array_test, only_int) {
 TEST(make_array_test, constexpr_only_int) {
     constexpr auto a = make_array(1, 2, 3);
 
-    const auto expected = array< int, 3 >{1, 2, 3};
+    constexpr auto expected = array< int, 3 >{1, 2, 3};
 
     ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
 
