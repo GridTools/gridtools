@@ -207,8 +207,8 @@ TEST(layout_transformation, 2D_reverse_layout) {
 TEST(layout_transformation, 1D_layout_with_stride2) {
     uint_t Nx = 4;
 
-    uint_t stride2 = 1;
     uint_t stride1 = 1;
+    uint_t stride2 = 2;
 
     std::vector< uint_t > dims{Nx};
     std::vector< uint_t > src_strides{stride1};

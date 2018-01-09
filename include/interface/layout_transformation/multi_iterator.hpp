@@ -39,6 +39,7 @@
 #include "../../common/array.hpp"
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
 #include <vector>
 
 namespace gridtools {

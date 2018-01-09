@@ -55,10 +55,13 @@ namespace gridtools {
             const gridtools::array< gridtools::uint_t, GT_TRANSFORM_MAX_DIM > &a_dims,
             HigherIndices... higher_indices) // TODO protect ints
         {
+            const uint_t n_i = a_dims[0];
+            const uint_t n_j = a_dims[1];
+            const uint_t n_k = a_dims[2];
 #pragma omp parallel for collapse(3)
-            for (int i = 0; i < a_dims[0]; ++i)
-                for (int j = 0; j < a_dims[1]; ++j)
-                    for (int k = 0; k < a_dims[2]; ++k) {
+            for (int i = 0; i < n_i; ++i)
+                for (int j = 0; j < n_j; ++j)
+                    for (int k = 0; k < n_k; ++k) {
                         dst[si_dst.index(i, j, k, higher_indices...)] = src[si_src.index(i, j, k, higher_indices...)];
                     }
         }
