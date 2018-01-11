@@ -144,8 +144,5 @@ TEST(DistributedBoundaries, BoundBC) {
 
     EXPECT_EQ(std::tuple_size< decltype(y) >::value, 1);
 
-    std::cout << "b              " << b.name() << "\n";
-    std::cout << "std::get<0>(y) " << std::get< 0 >(y).name() << "\n";
-
     EXPECT_EQ(b, std::get< 0 >(y));
 }

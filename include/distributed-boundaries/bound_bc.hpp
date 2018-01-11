@@ -226,7 +226,8 @@ namespace gridtools {
     struct bound_bc< BCApply, std::tuple< DataStores... >, gt_integer_sequence< std::size_t, ExcStoresIndices... > > {
         using boundary_class = BCApply;
         using stores_type = std::tuple< DataStores... >;
-        using exc_stores_type = std::tuple< typename std::tuple_element< ExcStoresIndices, stores_type >::type... >;
+        using exc_stores_type =
+            std::tuple< typename std::tuple_element< ExcStoresIndices, stores_type >::type const &... >;
 
       private:
         boundary_class m_bcapply;
@@ -256,7 +257,10 @@ namespace gridtools {
          * @brief Function to retrieve the tuple of data stores to pass to the the halo-update
          * communication pattern
          */
-        exc_stores_type exc_stores() const { return std::make_tuple(std::get< ExcStoresIndices >(m_stores)...); }
+        exc_stores_type exc_stores() const {
+            return std::tuple< typename std::tuple_element< ExcStoresIndices, stores_type >::type const &... >(
+                std::get< ExcStoresIndices >(m_stores)...);
+        }
 
         /**
          * @brief Function to retrieve the boundary condition application class

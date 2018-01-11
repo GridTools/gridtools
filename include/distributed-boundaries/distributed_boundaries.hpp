@@ -190,7 +190,8 @@ namespace gridtools {
 
       private:
         template < typename BoundaryApply, typename ArgsTuple, uint_t... Ids >
-        void call_apply(BoundaryApply boundary_apply, ArgsTuple const &args, gt_integer_sequence< uint_t, Ids... >) {
+        static void call_apply(
+            BoundaryApply boundary_apply, ArgsTuple const &args, gt_integer_sequence< uint_t, Ids... >) {
             boundary_apply.apply(std::get< Ids >(args)...);
         }
 
@@ -213,17 +214,17 @@ namespace gridtools {
         }
 
         template < typename FirstJob >
-        auto collect_stores(
+        static auto collect_stores(
             FirstJob const &firstjob, typename std::enable_if< is_bound_bc< FirstJob >::value, void * >::type = nullptr)
             -> decltype(firstjob.exc_stores()) {
             return firstjob.exc_stores();
         }
 
         template < typename FirstJob >
-        auto collect_stores(FirstJob const &first_job,
+        static auto collect_stores(FirstJob const &first_job,
             typename std::enable_if< not is_bound_bc< FirstJob >::value, void * >::type = nullptr)
             -> decltype(std::make_tuple(first_job)) {
-            return std::make_tuple(std::cref(first_job));
+            return std::make_tuple(first_job);
         }
 
         template < typename Stores, uint_t... Ids >
@@ -244,6 +245,9 @@ namespace gridtools {
                 typename std::decay< typename std::tuple_element< Ids, Stores >::type >::type >::
                     make(std::get< Ids >(stores)))...);
         }
+
+        template < typename Stores, uint_t... Ids >
+        static void call_unpack(Stores const &stores, gt_integer_sequence< uint_t >) {}
     };
 
 } // namespace gridtools

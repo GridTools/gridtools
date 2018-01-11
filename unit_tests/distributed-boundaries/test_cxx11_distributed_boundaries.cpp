@@ -177,17 +177,6 @@ TEST(DistributedBoundaries, Test) {
         },
         "d");
 
-    std::cout << "unaligned  " << storage_info.unaligned_dim< 0 >() << ", " << storage_info.unaligned_dim< 1 >() << ", "
-              << storage_info.unaligned_dim< 2 >() << ". "
-              << "aligned " << storage_info.dim< 0 >() << ", " << storage_info.dim< 1 >() << ", "
-              << storage_info.dim< 2 >() << ". "
-              << "strides " << storage_info.stride< 0 >() << ", " << storage_info.stride< 1 >() << ", "
-              << storage_info.stride< 2 >() << ". "
-              << "length " << storage_info.length() << ", "
-              << "total length " << storage_info.total_length() << ", "
-              << "padded total length " << storage_info.padded_total_length() << ", "
-              << "\n";
-
     using namespace std::placeholders;
 
     cabc.exchange(
