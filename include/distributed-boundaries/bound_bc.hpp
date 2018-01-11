@@ -226,8 +226,7 @@ namespace gridtools {
     struct bound_bc< BCApply, std::tuple< DataStores... >, gt_integer_sequence< std::size_t, ExcStoresIndices... > > {
         using boundary_class = BCApply;
         using stores_type = std::tuple< DataStores... >;
-        using exc_stores_type =
-            std::tuple< typename std::tuple_element< ExcStoresIndices, stores_type >::type const &... >;
+        using exc_stores_type = std::tuple< typename std::tuple_element< ExcStoresIndices, stores_type >::type... >;
 
       private:
         boundary_class m_bcapply;

@@ -39,6 +39,7 @@
 #include <storage/data_store.hpp>
 #include <storage/storage_host/host_storage.hpp>
 #include <storage/storage_host/host_storage_info.hpp>
+#include <boundary-conditions/zero.hpp>
 
 using namespace std::placeholders;
 namespace gt = gridtools;
@@ -120,4 +121,31 @@ TEST(DistributedBoundaries, ContainsPlaceholders) {
         auto x = std::make_tuple(3, _2, 5);
         EXPECT_TRUE(gt::_impl::contains_placeholders< decltype(x) >::value);
     }
+}
+
+TEST(DistributedBoundaries, BoundBC) {
+    typedef gt::host_storage_info< 0, gt::layout_map< 0, 1, 2 > > storage_info_t;
+    using ds = gt::data_store< gt::host_storage< double >, storage_info_t >;
+
+    ds a(storage_info_t{3, 3, 3}, "a");
+    ds b(storage_info_t{3, 3, 3}, "b");
+    ds c(storage_info_t{3, 3, 3}, "c");
+
+    gt::bound_bc< gt::zero_boundary, std::tuple< ds, ds, ds >, gt::gt_integer_sequence< std::size_t, 1 > > bbc{
+        gt::zero_boundary{}, std::make_tuple(a, b, c)};
+
+    auto x = bbc.stores();
+
+    EXPECT_EQ(a, std::get< 0 >(x));
+    EXPECT_EQ(b, std::get< 1 >(x));
+    EXPECT_EQ(c, std::get< 2 >(x));
+
+    auto y = bbc.exc_stores();
+
+    EXPECT_EQ(std::tuple_size< decltype(y) >::value, 1);
+
+    std::cout << "b              " << b.name() << "\n";
+    std::cout << "std::get<0>(y) " << std::get< 0 >(y).name() << "\n";
+
+    EXPECT_EQ(b, std::get< 0 >(y));
 }

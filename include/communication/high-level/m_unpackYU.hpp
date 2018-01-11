@@ -279,7 +279,7 @@ void m_unpackYU_variadic(value_type **d_msgbufTab_r,
         d_msgsize_r,
         halo_d,
         nx,
-        ny,
+        nz,
         (halo[0].begin() - halo[0].minus()) + (halo[1].end() + 1) * halo[0].total_length() +
             (halo[2].begin()) * halo[0].total_length() * halo[1].total_length(),
         Ids)...};

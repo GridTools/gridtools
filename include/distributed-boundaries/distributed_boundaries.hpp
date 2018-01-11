@@ -121,6 +121,7 @@ namespace gridtools {
       private:
         array< halo_descriptor, 3 > m_halos;
         array< int_t, 3 > m_sizes;
+        uint_t m_max_stores;
         pattern_type m_he;
 
       public:
@@ -137,7 +138,18 @@ namespace gridtools {
         */
         distributed_boundaries(
             array< halo_descriptor, 3 > halos, boollist< 3 > period, uint_t max_stores, MPI_Comm CartComm)
-            : m_halos{halos}, m_sizes{0, 0, 0}, m_he(period, CartComm, m_sizes) {}
+            : m_halos{halos}, m_sizes{0, 0, 0}, m_max_stores{max_stores}, m_he(period, CartComm, m_sizes) {
+            m_he.template add_halo< 0 >(
+                m_halos[0].minus(), m_halos[0].plus(), m_halos[0].begin(), m_halos[0].end(), m_halos[0].total_length());
+
+            m_he.template add_halo< 1 >(
+                m_halos[1].minus(), m_halos[1].plus(), m_halos[1].begin(), m_halos[1].end(), m_halos[1].total_length());
+
+            m_he.template add_halo< 2 >(
+                m_halos[2].minus(), m_halos[2].plus(), m_halos[2].begin(), m_halos[2].end(), m_halos[2].total_length());
+
+            m_he.setup(m_max_stores);
+        }
 
         /**
             @brief Member function to perform boundary condition and communication on a list of jobs.
@@ -156,12 +168,19 @@ namespace gridtools {
 #else
             auto all_stores_for_exc = std::tuple_cat(collect_stores(jobs)...);
 #endif
+            if (m_max_stores < std::tuple_size< decltype(all_stores_for_exc) >::value) {
+                std::string err{"Too many data stores to be exchanged" +
+                                std::to_string(std::tuple_size< decltype(all_stores_for_exc) >::value) +
+                                " instead of the maximum allowed, which is " + std::to_string(m_max_stores)};
+                throw std::runtime_error(err);
+            }
+
+            using execute_in_order = int[];
+            execute_in_order{(apply_boundary(jobs), 0)...};
             call_pack(all_stores_for_exc,
                 typename make_gt_integer_sequence< uint_t,
                           std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});
             m_he.exchange();
-            using execute_in_order = int[];
-            execute_in_order{(apply_boundary(jobs), 0)...};
             call_unpack(all_stores_for_exc,
                 typename make_gt_integer_sequence< uint_t,
                             std::tuple_size< decltype(all_stores_for_exc) >::value >::type{});

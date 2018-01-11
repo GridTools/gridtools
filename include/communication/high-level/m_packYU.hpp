@@ -287,7 +287,7 @@ void m_packYU_variadic(value_type **d_msgbufTab,
         d_msgsize,
         halo_d,
         nx,
-        ny,
+        nz,
         Ids)...};
 
 #ifdef CUDAMSG
