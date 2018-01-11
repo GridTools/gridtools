@@ -240,7 +240,7 @@ namespace gridtools {
          */
         template < typename ST >
         bound_bc(BCApply bca, ST &&stores_list)
-            : m_bcapply{bca}, m_stores{std::forward< stores_type >(stores_list)} {}
+            : m_bcapply(bca), m_stores{std::forward< stores_type >(stores_list)} {}
 
         /**
          * @brief Function to retrieve the tuple of data stores to pass to the the boundary
