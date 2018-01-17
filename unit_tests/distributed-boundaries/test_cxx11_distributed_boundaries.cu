@@ -34,30 +34,4 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#pragma once
-
-#include <common/host_device.hpp>
-#include <iosfwd>
-
-/**
-   @brief Small value type to use in tests where we want to check the
-   values in a fields, for instance to check if layouts works, on in
-   communication tests
-*/
-struct triplet {
-    int a = 0, b = 0, c = 0;
-
-    GT_FUNCTION
-    triplet() = default;
-
-    GT_FUNCTION
-    triplet(int a, int b, int c) : a(a), b(b), c(c) {}
-
-    GT_FUNCTION
-    bool operator==(triplet other) const { return (a == other.a) and (b == other.b) and (c == other.c); }
-
-    GT_FUNCTION
-    bool operator!=(triplet other) const { return not(*this == other); }
-};
-
-std::ostream &operator<<(std::ostream &s, triplet t) { return s << "[" << t.a << " " << t.b << " " << t.c << "]"; }
+#include "./test_cxx11_distributed_boundaries.cpp"
