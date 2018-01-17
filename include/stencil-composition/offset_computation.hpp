@@ -42,13 +42,14 @@
 namespace gridtools {
 
     namespace _impl {
-        // AccessorOrPositionOffset is an accessor
-        // TODO rename compute_offset_t to something that describes this computation
-        // or at least add a comment to explain
+        // TODO HV: I don't want to understand what is happening in this computation...
+        // Would be good if someone who understands this code could give it a proper name (and potentially refactor!)
+
+        // Case when AccessorOrPositionOffset is an accessor
         template < typename AccessorOrPositionOffset, unsigned N, typename Enable = void >
         struct compute_offset_t : boost::mpl::int_< ((AccessorOrPositionOffset::n_dimensions - 1) - N) > {};
 
-        // AccessorOrPositionOffset is a position_offset
+        // Case when AccessorOrPositionOffset is a position_offset
         template < typename AccessorOrPositionOffset, unsigned N >
         struct compute_offset_t< AccessorOrPositionOffset,
             N,

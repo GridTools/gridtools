@@ -40,10 +40,8 @@
 #include "../common/defs.hpp"
 
 namespace gridtools {
-    // TODO
-    // - add an explanation for this type
-    // - this type is only needed in icosahedral (if I understand correctly), however the offset_computation (which is
-    // common) is using it, seems like a refactoring is needed to decouple this strange dependency
+    // TODO HV:
+    // would be good if someone could explain the purpose of this type
 
     class position_offset_type : public array< int_t, 4 > {
       public:
