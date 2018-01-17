@@ -49,7 +49,7 @@ fi
 maxsleep=7200
 
 slurm_script="${JENKINSPATH}/submit.${myhost}.slurm.test.${RANDOM}"
-cp ${JENKINSPATH}/submit.${myhost}.slurm ${slurm_script}
+cp ${JENKINSPATH}/submit.${myhost}.perftest.slurm ${slurm_script}
 cmd="srun --exclusive --gres=gpu:1 --ntasks=1 -u bash ${JENKINSPATH}/jenkins_perftest_exec.sh --target $TARGET --prec $PREC --jplan $JPLAN --json ${JSON_FILE} --gtype ${GTYPE}"
 /bin/sed -i 's|<CMD>|'"${cmd}"'|g' ${slurm_script}
 /bin/sed -i 's|<QUEUE>|'"${QUEUE}"'|g' ${slurm_script}

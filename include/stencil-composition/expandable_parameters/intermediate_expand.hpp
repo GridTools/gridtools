@@ -62,6 +62,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/vector_traits.hpp"
 #include "../../common/functional.hpp"
+#include "../../common/fusion.hpp"
 #include "../../storage/data_store_field.hpp"
 #include "../arg.hpp"
 #include "../backend_metafunctions.hpp"
@@ -207,17 +208,6 @@ namespace gridtools {
 #endif
             };
 
-            template < typename Pred, typename Sec >
-            static boost::fusion::filter_view< typename std::remove_reference< Sec >::type, Pred > make_filter_view(
-                Sec &&sec) {
-                return {std::forward< Sec >(sec)};
-            };
-
-            template < typename Secs >
-            static boost::fusion::zip_view< typename std::remove_reference< Secs >::type > make_zip_view(Secs &&secs) {
-                return {std::forward< Secs >(secs)};
-            };
-
             template < typename Src, typename Dst >
             void assign(const Src &src_agg, Dst &dst_agg, size_t offset) {
                 namespace f = boost::fusion;
@@ -283,7 +273,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (std::is_same< ReductionType, notype >::value), "Reduction is not allowed with expandable parameters");
 
-        template < uint N >
+        template < uint_t N >
         using converted_intermediate = intermediate< Backend,
             MssDescriptorArray,
             _impl::expand_detail::converted_aggregator_type< N, Aggregator >,

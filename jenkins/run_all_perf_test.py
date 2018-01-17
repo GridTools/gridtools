@@ -124,7 +124,8 @@ if __name__ == "__main__":
     
     f.close()
     fw = open(json_file,'w')
-    fw.write(json.dumps(decode,  indent=4, separators=(',', ': ')) )
+    jdump = json.dumps(decode,  indent=4, separators=(',', ': '))
+    fw.write(jdump)
     fw.close()
     
     for target, prec in product(targets, precs):
