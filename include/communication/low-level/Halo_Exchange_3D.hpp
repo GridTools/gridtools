@@ -243,7 +243,7 @@ namespace gridtools {
         };
 
         struct TAG {
-            static const int value(int I, int J, int K) { return (K + 1) * 9 + (I + 1) * 3 + J + 1; }
+            static int value(int I, int J, int K) { return (K + 1) * 9 + (I + 1) * 3 + J + 1; }
         };
 
         struct request_t {
@@ -764,13 +764,11 @@ namespace gridtools {
             wait();
         }
 
-        /** When called this function initiate the data exchange. When the
-            function returns the data has to be considered already to be
-            transfered. Buffers should not be considered safe to access
-            until the wait() function returns.
+        /** When called this function informs the runtime that
+            messages are incoming . When the function returns the communication
+            layer is ready for accepting incoming data. .
          */
-        void start_exchange() {
-
+        void post_receives() {
             //      cout << GSL_pid() << " proc coords: " << r << " " << c << endl;
             /* NORTH/IMINUS
                      |---------| |---------| |---------| |---------| |---------| |---------| |---------| |---------|
@@ -827,9 +825,71 @@ namespace gridtools {
                     post_receive(i, j, k);
                 }
             }
+        }
 
-            // UNCOMMENT THIS IF A DEADLOCK APPEARS BECAUSE SENDS HAS TO FOLLOW RECEIVES (TRUE IN SOME PLATFORMS)
-            // MPI_Barrier(GSL_WORLD);
+        /** When called this function initiate the data exchange. When the
+            function returns the data has to be considered already to be
+            transfered. Buffers should not be considered safe to access
+            until the wait() function returns.
+         */
+        void start_exchange() {
+
+            post_receives();
+            do_sends();
+        }
+
+        /** When called this function initiate the data send.
+            Buffers should not be considered safe to access
+            until the wait() function returns.
+         */
+        void do_sends() {
+            //      cout << GSL_pid() << " proc coords: " << r << " " << c << endl;
+            /* NORTH/IMINUS
+                     |---------| |---------| |---------| |---------| |---------| |---------| |---------| |---------|
+                     |         | |         | |      |  | |  |      | |      |  | |  |      | |-------  | |  -------|
+                     |         | |---------| |      |  | |  |      | | r<R-1|  | |  | r<R-1| |      |  | |  |      |
+                     |  r<R-1  | |         | | c<C-1|  | |  |      | | c<C-1|  | |  | c>0  | | r>0  |  | |  | r>0  |
+                     WEST  |         | |   r>0   | |      |  | |  | c>0  | |      |  | |  |      | | c<C-1|  | |  | c>0
+               |
+                     EAST
+               JMINUS|---------| |         | |      |  | |  |      | |      |  | |  |      | |      |  | |  | |JPLUS
+                     |         | |         | |      |  | |  |      | |-------  | |  -------| |      |  | |  |      |
+                     |---------| |---------| |---------| |---------| |---------| |---------| |---------| |---------|
+               SOUTH/IPLUS
+            */
+
+            /* order of neighbors for sends and receives, all processes use the same order */
+            static int ord[26][3] = {/* faces */
+                {0, 0, -1},
+                {-1, 0, 0},
+                {1, 0, 0},
+                {0, -1, 0},
+                {0, 1, 0},
+                {0, 0, 1},
+                /* lines */
+                {1, 0, -1},
+                {-1, 0, -1},
+                {0, 1, -1},
+                {0, -1, -1},
+                {1, 1, 0},
+                {-1, -1, 0},
+                {1, -1, 0},
+                {-1, 1, 0},
+                {1, 0, 1},
+                {-1, 0, 1},
+                {0, 1, 1},
+                {0, -1, 1},
+                /* corner points */
+                {1, 1, -1},
+                {-1, -1, -1},
+                {1, -1, -1},
+                {-1, 1, -1},
+                {1, 1, 1},
+                {-1, -1, 1},
+                {1, -1, 1},
+                {-1, 1, 1}};
+
+            post_receives();
 
             /* Doing sends
             */

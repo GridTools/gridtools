@@ -243,7 +243,7 @@ namespace gridtools {
         };
 
         struct TAG {
-            static const int value(int I, int J, int K) { return (K + 1) * 9 + (I + 1) * 3 + J + 1; }
+            static int value(int I, int J, int K) { return (K + 1) * 9 + (I + 1) * 3 + J + 1; }
         };
 
         struct request_t {
