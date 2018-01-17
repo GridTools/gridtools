@@ -115,11 +115,11 @@ namespace gridtools {
                         std::placeholders::_1));
             };
 
-            template < class Fun >
-            std::ostream &write_declaration(std::ostream &strm, char const *name) {
+            template < class Signature >
+            std::ostream &write_c_declaration(std::ostream &strm, char const *name) {
                 namespace ft = boost::function_types;
-                strm << get_c_type_name< typename ft::result_type< Fun >::type >() << " " << name << "(";
-                for_each_param< Fun >(get_c_type_name_f{},
+                strm << get_c_type_name< typename ft::result_type< Signature >::type >() << " " << name << "(";
+                for_each_param< Signature >(get_c_type_name_f{},
                     [&](const std::string &type_name, int i) {
                         if (i)
                             strm << ", ";
@@ -231,18 +231,19 @@ namespace gridtools {
                 }
             };
 
-            template < class Fun >
+            template < class Signature >
             std::ostream &write_fortran_declaration(std::ostream &strm, char const *name) {
                 namespace ft = boost::function_types;
-                strm << "    " << fortran_return_type< typename ft::result_type< Fun >::type >() << " " << name << "(";
-                for_each_param< Fun >(ignore_type_f{},
+                strm << "    " << fortran_return_type< typename ft::result_type< Signature >::type >() << " " << name
+                     << "(";
+                for_each_param< Signature >(ignore_type_f{},
                     [&](const std::string &type_name, int i) {
                         if (i)
                             strm << ", ";
                         strm << "arg" << i;
                     });
                 strm << ") bind(c)\n      use iso_c_binding\n";
-                for_each_param< Fun >(fortran_param_type_f{},
+                for_each_param< Signature >(fortran_param_type_f{},
                     [&](const std::string &type_name, int i) {
                         strm << "      " << type_name << " :: arg" << i << "\n";
                     });
@@ -250,34 +251,34 @@ namespace gridtools {
             }
 
             struct c_traits {
-                template < class Fun >
+                template < class Signature >
                 static void generate_declaration(std::ostream &strm, char const *name) {
-                    write_declaration< Fun >(strm, name);
+                    write_c_declaration< Signature >(strm, name);
                 }
                 static char const m_prologue[];
                 static char const m_epilogue[];
             };
 
             struct fortran_traits {
-                template < class Fun >
+                template < class Signature >
                 static void generate_declaration(std::ostream &strm, char const *name) {
-                    write_fortran_declaration< Fun >(strm, name);
+                    write_fortran_declaration< Signature >(strm, name);
                 }
 
                 static const char m_prologue[];
                 static const char m_epilogue[];
             };
 
-            template < class Traits, class Fun >
+            template < class Traits, class Signature >
             void add_declaration(char const *name) {
-                get_declarations< Traits >().add(name, Traits::template generate_declaration< Fun >);
+                get_declarations< Traits >().add(name, Traits::template generate_declaration< Signature >);
             }
 
-            template < class Fun >
+            template < class Signature >
             struct registrar {
                 registrar(char const *name) {
-                    add_declaration< _impl::c_traits, Fun >(name);
-                    add_declaration< _impl::fortran_traits, Fun >(name);
+                    add_declaration< _impl::c_traits, Signature >(name);
+                    add_declaration< _impl::fortran_traits, Signature >(name);
                 }
             };
 

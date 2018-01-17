@@ -69,6 +69,7 @@ void gt_release(gt_handle*);
 #endif
 )?";
 
+            // TODO(anstaf): To figure out if it makes sense to export functions under the different module name.
             char const fortran_traits::m_prologue[] = R"?(
 module gt_import
 implicit none
