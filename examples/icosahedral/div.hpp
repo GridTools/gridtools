@@ -76,12 +76,10 @@ namespace ico_operators {
         using edges_4d_storage_type = repository::edges_4d_storage_type;
         using edges_of_cells_storage_type = repository::edges_of_cells_storage_type;
 
-        array< uint_t, 5 > di = {halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
-        array< uint_t, 5 > dj = {halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
+        halo_descriptor di{halo_nc, halo_nc, halo_nc, d1 - halo_nc - 1, d1};
+        halo_descriptor dj{halo_mc, halo_mc, halo_mc, d2 - halo_mc - 1, d2};
 
-        gridtools::grid< axis, icosahedral_topology_t > grid_(icosahedral_grid, di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(icosahedral_grid, di, dj, d3);
 
 #if FLOAT_PRECISION == 4
         verifier ver(1e-6);
