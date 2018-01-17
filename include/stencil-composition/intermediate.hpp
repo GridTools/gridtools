@@ -84,6 +84,7 @@
 
 #include "computation_grammar.hpp"
 #include "all_args_in_aggregator.hpp"
+#include "iterate_on_esfs.hpp"
 
 /**
  * @file
@@ -116,8 +117,8 @@ namespace gridtools {
 
     template < typename AggregatorType >
     struct create_view_fusion_map {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_aggregator_type< AggregatorType >::value), "Internal Error: Given type is not an aggregator_type.");
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value),
+            GT_INTERNAL_ERROR_MSG("Given type is not an aggregator_type."));
 
         using arg_and_view_seq = typename boost::mpl::transform_view< typename AggregatorType::placeholders_t,
             boost::fusion::pair< boost::mpl::_, create_view< boost::mpl::_ > > >::type;
@@ -146,6 +147,30 @@ namespace gridtools {
         typedef typename boost::mpl::fold< filtered_list,
             boost::mpl::vector0<>,
             boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 > >::type type;
+    };
+
+    template < typename MssDescs >
+    struct need_to_compute_extents {
+
+        /* helper since boost::mpl::and_ fails in this case with nvcc
+        */
+        template < typename BoolA, typename BoolB >
+        struct gt_and : std::integral_constant< bool, BoolA::value and BoolB::value > {};
+
+        /* helper since boost::mpl::or_ fails in this case with nvcc
+        */
+        template < typename BoolA, typename BoolB >
+        struct gt_or : std::integral_constant< bool, BoolA::value or BoolB::value > {};
+
+        using has_all_extents = typename with_operators< is_esf_with_extent,
+            gt_and >::template iterate_on_esfs< std::true_type, MssDescs >::type;
+        using has_extent = typename with_operators< is_esf_with_extent,
+            gt_or >::template iterate_on_esfs< std::false_type, MssDescs >::type;
+
+        GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
+            "The computation appears to have stages with and without extents being specified at the same time. A "
+            "computation should have all stages with extents or none.");
+        using type = typename boost::mpl::not_< has_all_extents >::type;
     };
 
     // function that checks if the given extents (I+- and J+-)
@@ -314,7 +339,9 @@ namespace gridtools {
         // This information is needed to allocate temporaries, and to provide the
         // extent information to the user.
         using extent_map_t =
-            typename placeholder_to_extent_map< all_mss_descriptors_t, grid_traits_t, placeholders_t >::type;
+            typename boost::mpl::eval_if< typename need_to_compute_extents< all_mss_descriptors_t >::type,
+                placeholder_to_extent_map< all_mss_descriptors_t, grid_traits_t, placeholders_t >,
+                boost::mpl::void_ >::type;
 
         template < typename MssDescs >
         using convert_to_mss_components_array_t =

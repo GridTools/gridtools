@@ -41,14 +41,15 @@
 #include <boost/mpl/reverse.hpp>
 
 #include "../common/gt_assert.hpp"
-#include "./amss_descriptor.hpp"
-#include "./esf_metafunctions.hpp"
-#include "./grid_traits_metafunctions.hpp"
-#include "./linearize_mss_functions.hpp"
-#include "./mss.hpp"
-#include "./mss_metafunctions.hpp"
-#include "./reductions/reduction_descriptor.hpp"
-#include "./wrap_type.hpp"
+#include "amss_descriptor.hpp"
+#include "esf_metafunctions.hpp"
+#include "grid_traits_metafunctions.hpp"
+#include "linearize_mss_functions.hpp"
+#include "mss.hpp"
+#include "mss_metafunctions.hpp"
+#include "reductions/reduction_descriptor.hpp"
+#include "wrap_type.hpp"
+#include "computation_grammar.hpp"
 
 /** @file This file implements the metafunctions to perform data dependency analysis on a
     multi-stage computation (MSS). The idea is to assign to each placeholder used in the
@@ -407,6 +408,7 @@ namespace gridtools {
     struct get_extent_for {
 
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((_impl::is_extent_map< ExtentMap >::value), GT_INTERNAL_ERROR);
 
         typedef typename esf_get_w_per_functor< Esf >::type w_plcs;
         typedef typename boost::mpl::at_c< w_plcs, 0 >::type first_out;
@@ -419,6 +421,11 @@ namespace gridtools {
         //                    "extent for the whole ESF.");
 
         typedef extent type;
+    };
+
+    template < typename ESF, typename Extent, typename ArgArray, typename Staggering, typename ExtentMap >
+    struct get_extent_for< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering >, ExtentMap > {
+        using type = Extent;
     };
 
     template < typename Esf, typename ExtentMap >
@@ -443,7 +450,6 @@ namespace gridtools {
     template < typename Mss, typename ExtentMap >
     struct get_extent_sizes {
         GRIDTOOLS_STATIC_ASSERT((is_mss_descriptor< Mss >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((_impl::is_extent_map< ExtentMap >::value), GT_INTERNAL_ERROR);
 
         // Iterate over each ESF of the MSS to generate a vector of extens whose elements correspond to the elements of
         // the esfs vector (this is to comply with the API for the backend)
@@ -457,7 +463,6 @@ namespace gridtools {
      */
     template < typename ReductionType, typename BinOp, typename EsfDescrSequence, typename ExtentMap >
     struct get_extent_sizes< reduction_descriptor< ReductionType, BinOp, EsfDescrSequence >, ExtentMap > {
-        GRIDTOOLS_STATIC_ASSERT((_impl::is_extent_map< ExtentMap >::value), GT_INTERNAL_ERROR);
         // Iterate over each ESF of the REDUCTION
         using type = typename boost::mpl::transform< EsfDescrSequence,
             reduction_get_extent_for< boost::mpl::_, ExtentMap > >::type;
