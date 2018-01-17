@@ -24,4 +24,5 @@ set( WERROR "OFF" CACHE BOOL "Treat warnings as errors" )
 set( CXX_STANDARD "c++11" CACHE STRING "C++ standard to be used for compilation" )
 set_property(CACHE CXX_STANDARD PROPERTY STRINGS "c++11;c++14")
 set( DISABLE_TESTING "OFF" CACHE BOOL "Disables all unit tests/examples")
-
+set( DISABLE_MPI_TESTS_ON_TARGET "OFF" CACHE STRING "Disables all the cpu communication tests")
+set_property(CACHE DISABLE_MPI_TESTS_ON_TARGET PROPERTY STRINGS OFF CPU GPU)
