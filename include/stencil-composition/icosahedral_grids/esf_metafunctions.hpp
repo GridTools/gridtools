@@ -118,4 +118,21 @@ namespace gridtools {
         typedef typename Esf::template esf_function< 0 >::arg_list type;
     };
 
+    /** Retrieve the extent in esf_descriptor_with_extents
+
+       \tparam Esf The esf_descriptor that must be the one speficying the extent
+    */
+    template < typename Esf >
+    struct esf_extent;
+
+    template < template < uint_t > class Functor,
+        typename Grid,
+        typename LocationType,
+        typename Extent,
+        typename Color,
+        typename ArgSequence >
+    struct esf_extent< esf_descriptor_with_extent< Functor, Grid, LocationType, Extent, Color, ArgSequence > > {
+        using type = Extent;
+    };
+
 } // namespace gridtools
