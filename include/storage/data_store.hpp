@@ -197,6 +197,10 @@ namespace gridtools {
             clone_to_device();
         }
 
+        void re_initialize(typename appropriate_function_t< data_t, StorageInfo >::type const &initializer) {
+            lambda_initializer(initializer, *m_shared_storage_info, m_shared_storage->get_cpu_ptr());
+        }
+
         /**
          * @brief data_store constructor. This constructor triggers an allocation of the required space.
          * Either the host or the device pointer is external. This means the storage does not own
