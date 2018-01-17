@@ -58,8 +58,6 @@ TEST(make_array_test, constexpr_only_int) {
     ASSERT_TYPE_EQ< decltype(expected), decltype(a) >();
 
     ASSERT_EQ(expected, a);
-    constexpr bool force_constexpr = (expected == a);
-    ASSERT_TRUE(force_constexpr);
 }
 
 TEST(make_array_test, int_and_long) {

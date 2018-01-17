@@ -135,34 +135,15 @@ namespace gridtools {
         static constexpr size_t size() { return D; }
     };
 
-#if __cplusplus >= 201402L
+    // in case we need a constexpr version we need to implement a recursive one for c++11
     template < typename T, typename U, size_t D >
-    constexpr GT_FUNCTION bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
+    CXX14CONSTEXPR GT_FUNCTION bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
         for (size_t i = 0; i < D; ++i) {
             if (a[i] != b[i])
                 return false;
         }
         return true;
     }
-#else
-    namespace impl_ {
-        template < size_t It, typename T, typename U, size_t D >
-        constexpr GT_FUNCTION typename std::enable_if< It == 0, bool >::type equal(
-            gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-            return a[0] == b[0];
-        }
-        template < size_t It, typename T, typename U, size_t D >
-        constexpr GT_FUNCTION typename std::enable_if< (It > 0), bool >::type equal(
-            gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-            return (a[It] == b[It]) && equal< It - 1 >(a, b);
-        }
-    }
-    // recursive cxx11 constexpr
-    template < typename T, typename U, size_t D >
-    constexpr GT_FUNCTION bool operator==(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
-        return impl_::equal< D - 1 >(a, b);
-    }
-#endif
 
     template < typename T, typename U, size_t D >
     constexpr GT_FUNCTION bool operator!=(gridtools::array< T, D > const &a, gridtools::array< U, D > const &b) {
