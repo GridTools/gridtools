@@ -37,45 +37,54 @@
 #include <boost/mpl/at.hpp>
 #include "../defs.hpp"
 #include "binary_ops.hpp"
+#include <algorithm>
 
-/**@file @brief implementation of a compile-time accumulator and max
+/**@file @brief implementation of a compile-time accumulator and constexpr max and min functions
 
    The accumulator allows to perform operations on static const value to
-   be passed as template argument. E.g. to pass the sum of all the
-   storage dimensions as template argument of \ref
-   gridtools::base_storage This files also contains the implementation of
-   some constexpr operations which can be used in the accumulator, and of
-   a vec_max operator computing the maximum of a compile time sequence of
-   integers.
+   be passed as template argument.
 */
 namespace gridtools {
 
-    /**@brief computes the maximum between two numbers*/
-    template < typename T1, typename T2 >
-    struct max {
-        static const int_t value = (T1::value > T2::value) ? T1::value : T2::value;
-        typedef static_int< value > type;
-    };
+/*
+ * find/replace constexpr_max(...) -> max({...}) once we are c++14
+ */
+#if __cplusplus >= 201402L
+    template < typename... Ts >
+    constexpr typename std::common_type< Ts... >::type constexpr_max(Ts... vals) {
+        return std::max({vals...});
+    }
+    template < typename... Ts >
+    constexpr typename std::common_type< Ts... >::type constexpr_min(Ts... vals) {
+        return std::min({vals...});
+    }
+#else
+    template < typename T >
+    constexpr T constexpr_max(T v) {
+        return v;
+    }
 
-    /**@brief computes the maximum in a sequence of numbers*/
-    template < typename Vector, uint_t ID >
-    struct find_max {
-        typedef typename max< typename boost::mpl::at_c< Vector, ID >::type,
-            typename find_max< Vector, ID - 1 >::type >::type type;
-    };
+    /**
+     * @brief constexpr max of a sequence of values
+     */
+    template < typename T0, typename T1, typename... Ts >
+    constexpr typename std::common_type< T0, T1, Ts... >::type constexpr_max(T0 v0, T1 v1, Ts... vals) {
+        return (v0 > v1) ? constexpr_max(v0, vals...) : constexpr_max(v1, vals...);
+    }
 
-    /**@brief specialization to stop the recursion*/
-    template < typename Vector >
-    struct find_max< Vector, 0 > {
-        typedef typename boost::mpl::at_c< Vector, 0 >::type type;
-    };
+    template < typename T >
+    constexpr T constexpr_min(T v) {
+        return v;
+    }
 
-    /**@brief defines the maximum (as a static const value and a type) of a sequence of numbers.*/
-    template < typename Vector >
-    struct vec_max {
-        typedef typename find_max< Vector, boost::mpl::size< Vector >::type::value - 1 >::type type;
-        static const int_t value = type::value;
-    };
+    /**
+     * @brief constexpr min of a sequence of values
+     */
+    template < typename T0, typename T1, typename... Ts >
+    constexpr typename std::common_type< T0, T1, Ts... >::type constexpr_min(T0 v0, T1 v1, Ts... vals) {
+        return (v0 < v1) ? constexpr_min(v0, vals...) : constexpr_min(v1, vals...);
+    }
+#endif
 
     /**@brief operation to be used inside the accumulator*/
     struct multiplies {

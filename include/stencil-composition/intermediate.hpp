@@ -55,7 +55,6 @@
 #include <boost/mpl/list.hpp>
 #include <boost/mpl/pair.hpp>
 #include <boost/mpl/push_back.hpp>
-#include <boost/mpl/range_c.hpp>
 #include <boost/mpl/transform.hpp>
 #include <boost/mpl/vector.hpp>
 #include <boost/type_traits/remove_const.hpp>
@@ -86,6 +85,7 @@
 #include "./reductions/reduction_data.hpp"
 #include "./storage_wrapper.hpp"
 #include "./wrap_type.hpp"
+#include "iterate_on_esfs.hpp"
 
 /**
  * @file
@@ -109,7 +109,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
                                         is_arg_storage_pair >::type::value),
-                "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
+                GT_INTERNAL_ERROR_MSG("wrong type: the aggregator_type contains non arg_storage_pairs in "
+                                      "arg_storage_pair_fusion_list_t"));
             grid.clone_to_device();
             return GT_NO_ERRORS;
         }
@@ -124,7 +125,8 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< typename AggregatorType::arg_storage_pair_fusion_list_t,
                                         is_arg_storage_pair >::type::value),
-                "wrong type: the aggregator_type contains non arg_storage_pairs in arg_storage_pair_fusion_list_t");
+                GT_INTERNAL_ERROR_MSG("wrong type: the aggregator_type contains non arg_storage_pairs in "
+                                      "arg_storage_pair_fusion_list_t"));
 
             return GT_NO_ERRORS;
         }
@@ -164,29 +166,22 @@ namespace gridtools {
         typedef condition< type1, type2, Cond > type;
     };
 
-    template < typename AggregatorType >
-    struct create_view_fusion_map {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_aggregator_type< AggregatorType >::value), "Internal Error: Given type is not an aggregator_type.");
-
-        // get all the storages from the placeholders
-        typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1, get_storage_from_arg< boost::mpl::_2 > > >::type storage_list_t;
-        // convert the storages into views
-        typedef typename boost::mpl::transform< storage_list_t, _impl::get_view_t >::type data_views_t;
-        // equip with args
-        typedef typename boost::mpl::fold<
-            boost::mpl::range_c< unsigned, 0, AggregatorType::len >,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back< boost::mpl::_1,
-                boost::fusion::pair< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
-                                       boost::mpl::at< data_views_t, boost::mpl::_2 > > > >::type arg_to_view_vec;
-        // fusion map from args to views
-        typedef typename boost::fusion::result_of::as_map< arg_to_view_vec >::type type;
+    template < typename Placeholder >
+    struct create_view {
+        using type = typename _impl::get_view_t::apply< typename get_storage_from_arg< Placeholder >::type >::type;
     };
 
-    template < typename Backend, typename AggregatorType, typename ViewList, typename MssComponentsArray >
+    template < typename AggregatorType >
+    struct create_view_fusion_map {
+        GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value),
+            GT_INTERNAL_ERROR_MSG("Given type is not an aggregator_type."));
+
+        using arg_and_view_seq = typename boost::mpl::transform_view< typename AggregatorType::placeholders_t,
+            boost::fusion::pair< boost::mpl::_, create_view< boost::mpl::_ > > >::type;
+        using type = typename boost::fusion::result_of::as_map< arg_and_view_seq >::type;
+    };
+
+    template < typename Backend, typename AggregatorType, typename MssComponentsArray >
     struct create_storage_wrapper_list {
         // handle all tmps, obtain the storage_wrapper_list for written tmps
         typedef typename Backend::template obtain_storage_wrapper_list_t< AggregatorType, MssComponentsArray >::type
@@ -196,20 +191,12 @@ namespace gridtools {
         // for a normal data_store(_field), or in case it is a tmp we get the element out of the all_tmps list.
         // if we find a read-only tmp void will be pushed back, but this will be filtered out in the
         // last step.
-        typedef boost::mpl::range_c< int, 0, AggregatorType::len > iter_range;
-        typedef typename boost::mpl::fold<
-            iter_range,
-            boost::mpl::vector0<>,
-            boost::mpl::push_back<
-                boost::mpl::_1,
-                boost::mpl::if_<
-                    is_tmp_arg< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 > >,
-                    storage_wrapper_elem< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
-                        all_tmps >,
-                    storage_wrapper< boost::mpl::at< typename AggregatorType::placeholders_t, boost::mpl::_2 >,
-                        boost::mpl::at< ViewList, boost::mpl::_2 >,
-                        tile< 0, 0, 0 >,
-                        tile< 0, 0, 0 > > > > >::type complete_list;
+        typedef typename boost::mpl::transform_view<
+            typename AggregatorType::placeholders_t,
+            boost::mpl::if_< is_tmp_arg< boost::mpl::_ >,
+                storage_wrapper_elem< boost::mpl::_, all_tmps >,
+                storage_wrapper< boost::mpl::_, create_view< boost::mpl::_ >, tile< 0, 0, 0 >, tile< 0, 0, 0 > > > >::
+            type complete_list;
         // filter the list
         typedef
             typename boost::mpl::filter_view< complete_list, is_storage_wrapper< boost::mpl::_1 > >::type filtered_list;
@@ -291,6 +278,84 @@ namespace gridtools {
         // between MSS for which the type (or the order) of the placeholders is not the same");
         // consider the first one
         typedef typename extract_mss_domains< Vec1 >::type type;
+    };
+
+    template < typename MssDescriptorSequence >
+    struct need_to_compute_extents {
+
+        /* helper since boost::mpl::and_ fails in this case with nvcc
+        */
+        template < typename BoolA, typename BoolB >
+        struct gt_and {
+            using type = typename boost::mpl::bool_< BoolA::value and BoolB::value >;
+        };
+
+        /* helper since boost::mpl::or_ fails in this case with nvcc
+        */
+        template < typename BoolA, typename BoolB >
+        struct gt_or {
+            using type = typename boost::mpl::bool_< BoolA::value or BoolB::value >;
+        };
+
+        using has_all_extents = typename with_operators< is_esf_with_extent,
+            gt_and >::template iterate_on_esfs< boost::mpl::bool_< true >, MssDescriptorSequence >::type;
+        using has_extent = typename with_operators< is_esf_with_extent,
+            gt_or >::template iterate_on_esfs< boost::mpl::bool_< false >, MssDescriptorSequence >::type;
+
+        GRIDTOOLS_STATIC_ASSERT((has_extent::value == has_all_extents::value),
+            "The computation appears to have stages with and without extents being specified at the same time. A "
+            "computation should have all stages with extents or none.");
+        using type = typename boost::mpl::not_< has_all_extents >::type;
+    };
+
+    template < bool do_compute_extents,
+        typename MssElements,
+        typename GridTraits,
+        typename Placeholders,
+        uint_t RepeatFunctor >
+    struct obtain_extents_to_esfs_map {
+        // First we need to compute the association between placeholders and extents.
+        // This information is needed to allocate temporaries, and to provide the
+        // extent information to the user.
+        typedef typename placeholder_to_extent_map< MssElements, GridTraits, Placeholders, RepeatFunctor >::type
+            extent_map_t;
+
+        // Second we need to associate an extent to each esf, so that
+        // we can associate loop bounds to the functors.
+        typedef typename associate_extents_to_esfs< MssElements, extent_map_t, RepeatFunctor >::type type;
+    };
+
+    template < typename MssElements, typename GridTraits, typename Placeholders, uint_t RepeatFunctor >
+    struct obtain_extents_to_esfs_map< false, MssElements, GridTraits, Placeholders, RepeatFunctor > {
+
+        /** helper function _ there is a specialization for
+            independent stages.
+        */
+        template < typename CurrentList, typename EsfElem >
+        struct enqueue_extents {
+            using type = typename boost::mpl::push_back< CurrentList, typename esf_extent< EsfElem >::type >::type;
+        };
+
+        /** Specialization for independent stages
+         */
+        template < typename CurrentList, typename... EsfElems >
+        struct enqueue_extents< CurrentList, independent_esf< EsfElems... > > {
+            using list = typename independent_esf< EsfElems... >::esf_list;
+            using type = typename boost::mpl::fold< list,
+                CurrentList,
+                boost::mpl::push_back< boost::mpl::_1, esf_extent< boost::mpl::_2 > > >::type;
+        };
+
+        template < typename MssDescriptor >
+        struct get_esf_extents {
+            using type = typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
+                boost::mpl::vector0<>,
+                enqueue_extents< boost::mpl::_1, boost::mpl::_2 > >::type;
+        };
+
+        using type = typename boost::mpl::fold< MssElements,
+            boost::mpl::vector0<>,
+            boost::mpl::push_back< boost::mpl::_1, get_esf_extents< boost::mpl::_2 > > >::type;
     };
 
     // function that checks if the given extents (I+- and J+-)
@@ -453,17 +518,11 @@ namespace gridtools {
         typedef typename substitute_expandable_params< typename DomainType::placeholders_t, RepeatFunctor >::type
             placeholders_t;
 
-        // First we need to compute the association between placeholders and extents.
-        // This information is needed to allocate temporaries, and to provide the
-        // extent information to the user.
-        typedef typename placeholder_to_extent_map< typename MssDescriptorArray::elements,
+        typedef typename obtain_extents_to_esfs_map<
+            need_to_compute_extents< typename MssDescriptorArray::elements >::type::value,
+            typename MssDescriptorArray::elements,
             grid_traits_t,
             placeholders_t,
-            RepeatFunctor >::type extent_map_t;
-        // Second we need to associate an extent to each esf, so that
-        // we can associate loop bounds to the functors.
-        typedef typename associate_extents_to_esfs< typename MssDescriptorArray::elements,
-            extent_map_t,
             RepeatFunctor >::type extent_sizes_t;
 
         typedef typename boost::mpl::if_<
@@ -488,10 +547,8 @@ namespace gridtools {
         typedef typename create_view_fusion_map< DomainType >::type view_list_fusion_t;
 
         // create storage_wrapper_list
-        typedef typename create_storage_wrapper_list< Backend,
-            DomainType,
-            typename create_view_fusion_map< DomainType >::data_views_t,
-            mss_components_array_t >::type storage_wrapper_list_t;
+        typedef typename create_storage_wrapper_list< Backend, DomainType, mss_components_array_t >::type
+            storage_wrapper_list_t;
 
         // create storage_wrapper_fusion_list
         typedef
@@ -526,12 +583,13 @@ namespace gridtools {
         using base_t::m_domain;
 
       public:
-        intermediate(DomainType const &domain,
+        template < typename Domain >
+        intermediate(Domain &&domain,
             Grid const &grid,
             ConditionalsSet conditionals_,
             typename reduction_data_t::reduction_type_t reduction_initial_value = 0)
-            : base_t(domain), m_grid(grid), m_meter("NoName"), m_conditionals_set(conditionals_),
-              m_reduction_data(reduction_initial_value) {
+            : base_t(std::forward< Domain >(domain)), m_grid(grid), m_meter("NoName"),
+              m_conditionals_set(conditionals_), m_reduction_data(reduction_initial_value) {
             // check_grid_against_extents< all_extents_vecs_t >(grid);
             // check_fields_sizes< grid_traits_t >(grid, domain);
         }
@@ -567,11 +625,6 @@ namespace gridtools {
         virtual void finalize() {
             // sync the data stores that should be synced
             boost::fusion::for_each(m_domain.get_arg_storage_pairs(), _impl::sync_data_stores());
-
-            auto &all_arg_storage_pairs = m_domain.get_arg_storage_pairs();
-            boost::fusion::filter_view< typename DomainType::arg_storage_pair_fusion_list_t,
-                is_arg_storage_pair_to_tmp< boost::mpl::_ > > filter(all_arg_storage_pairs);
-            boost::fusion::for_each(filter, _impl::delete_tmp_data_store());
         }
 
         virtual reduction_type_t run() {
@@ -602,7 +655,10 @@ namespace gridtools {
 
         mss_local_domain_list_t const &mss_local_domain_list() const { return m_mss_local_domain_list; }
 
-        void reassign_aggregator(DomainType &new_domain) { m_domain = new_domain; }
+        // TODO(anstaf): This accessor breaks encapsulation and needed only for intermedite_expand implementation.
+        //               Refactor ASAP.
+        DomainType &domain() { return m_domain; }
+        const DomainType &domain() const { return m_domain; }
     };
 
 } // namespace gridtools

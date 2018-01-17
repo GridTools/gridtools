@@ -43,8 +43,6 @@
 using namespace gridtools;
 using namespace enumtype;
 
-typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
 #ifdef __CUDACC__
 typedef backend< Cuda, structured, Block > backend_t;
 typedef storage_traits< Cuda > storage_traits_t;
@@ -73,7 +71,7 @@ struct functor1 {
     typedef boost::mpl::vector< sol, bd > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
         eval(sol()) += eval(bd()).value() + eval(bd()).int_value;
     }
 };
@@ -86,7 +84,7 @@ struct functor2 {
     typedef boost::mpl::vector< sol, in, bd > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
         eval(sol()) += eval(in()) + eval(bd()).int_value;
     }
 };
@@ -98,8 +96,8 @@ struct functor_with_procedure_call {
     typedef boost::mpl::vector< sol, bd > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-        call_proc< functor1, x_interval >::with(eval, sol(), bd());
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        call_proc< functor1 >::with(eval, sol(), bd());
     }
 };
 
@@ -110,7 +108,7 @@ struct functor1_with_assignment {
     typedef boost::mpl::vector< sol, bd > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+    GT_FUNCTION static void Do(Evaluation &eval) {
         eval(sol()) = eval(bd()).value() + eval(bd()).int_value;
     }
 };
@@ -122,8 +120,8 @@ struct functor_with_function_call {
     typedef boost::mpl::vector< sol, bd > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-        eval(sol()) = call< functor1_with_assignment, x_interval >::with(eval, bd());
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        eval(sol()) = call< functor1_with_assignment >::with(eval, bd());
     }
 };
 
@@ -131,10 +129,7 @@ class global_accessor_single_stage : public ::testing::Test {
   public:
     global_accessor_single_stage()
         : sinfo(10, 10, 10), sol_(sinfo, 2.), bd(20), bd_(backend_t::make_global_parameter(bd)), di(1, 0, 1, 9, 10),
-          dj(1, 0, 1, 1, 2), coords_bc(di, dj), domain(sol_, bd_) {
-        coords_bc.value_list[0] = 0;
-        coords_bc.value_list[1] = 1;
-    }
+          dj(1, 0, 1, 1, 2), coords_bc(make_grid(di, dj, 2)), domain(sol_, bd_) {}
 
     void check(data_store_t field, float_type value) {}
 
@@ -150,7 +145,7 @@ class global_accessor_single_stage : public ::testing::Test {
     halo_descriptor di;
     halo_descriptor dj;
 
-    grid< axis > coords_bc;
+    grid< axis< 1 >::axis_interval_t > coords_bc;
 
     aggregator_type< boost::mpl::vector< p_sol, p_bd > > domain;
 };
@@ -286,9 +281,7 @@ TEST(test_global_accessor, multiple_stages) {
 
     halo_descriptor di = halo_descriptor(1, 0, 1, 9, 10);
     halo_descriptor dj = halo_descriptor(1, 0, 1, 1, 2);
-    grid< axis > coords_bc(di, dj);
-    coords_bc.value_list[0] = 0;
-    coords_bc.value_list[1] = 1;
+    auto coords_bc = make_grid(di, dj, 2);
 
     typedef arg< 0, data_store_t > p_sol;
     typedef arg< 1, data_store_t > p_tmp;
