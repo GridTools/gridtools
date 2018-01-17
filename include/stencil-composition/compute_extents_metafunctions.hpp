@@ -404,7 +404,7 @@ namespace gridtools {
 
     } // namespace _impl
 
-    template < typename Esf, typename ExtentMap >
+    template < typename Esf, typename ExtentMap, class = void >
     struct get_extent_for {
 
         GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
@@ -423,9 +423,9 @@ namespace gridtools {
         typedef extent type;
     };
 
-    template < typename ESF, typename Extent, typename ArgArray, typename Staggering, typename ExtentMap >
-    struct get_extent_for< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering >, ExtentMap > {
-        using type = Extent;
+    template < typename Esf, typename ExtentMap >
+    struct get_extent_for< Esf, ExtentMap, typename std::enable_if< is_esf_with_extent< Esf >::value >::type > {
+        using type = typename esf_extent< Esf >::type;
     };
 
     template < typename Esf, typename ExtentMap >
@@ -466,13 +466,6 @@ namespace gridtools {
         // Iterate over each ESF of the REDUCTION
         using type = typename boost::mpl::transform< EsfDescrSequence,
             reduction_get_extent_for< boost::mpl::_, ExtentMap > >::type;
-    };
-
-    // extract the extent vector of a given extent type
-    template < typename T >
-    struct get_extent_vec_t {
-        GRIDTOOLS_STATIC_ASSERT(is_extent< T >::value, GT_INTERNAL_ERROR_MSG("Given type is not an extent"));
-        typedef typename T::extent_vec_t type;
     };
 
 } // namespace gridtools

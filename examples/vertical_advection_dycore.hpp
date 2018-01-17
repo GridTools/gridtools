@@ -282,29 +282,6 @@ namespace vertical_advection_dycore {
             auto vertical_advection =
                 gridtools::make_computation< vertical_advection::va_backend >(domain, grid, up_stencil, down_stencil);
 
-            typedef typename vertical_advection::va_backend::backend_ids_t backend_ids_t;
-            typedef grid_traits_from_id< backend_ids_t::s_grid_type_id > grid_traits_t;
-
-            using mappetta = obtain_extents_to_esfs_map< true,
-                meta_array< typename meta_array_generator< boost::mpl::vector0<>,
-                                decltype(up_stencil),
-                                decltype(down_stencil) >::type,
-                                                             boost::mpl::quote1< is_computation_token > >::elements,
-                grid_traits_t,
-                placeholders_list,
-                1 >::type;
-
-            GRIDTOOLS_STATIC_ASSERT(
-                (std::is_same< boost::mpl::at< boost::mpl::at< mappetta, boost::mpl::int_< 0 > >::type,
-                                   boost::mpl::int_< 0 > >::type,
-                    extent<> >::value),
-                " ");
-            GRIDTOOLS_STATIC_ASSERT(
-                (std::is_same< boost::mpl::at< boost::mpl::at< mappetta, boost::mpl::int_< 1 > >::type,
-                                   boost::mpl::int_< 0 > >::type,
-                    extent<> >::value),
-                " ");
-
             vertical_advection->ready();
 
             vertical_advection->steady();
