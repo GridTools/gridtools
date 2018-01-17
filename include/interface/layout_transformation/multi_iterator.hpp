@@ -56,55 +56,49 @@ namespace gridtools {
             apply_array_to_variadic_impl(f, a, Indices{});
         }
 
-        template < size_t Size >
-        GT_FUNCTION bool is_empty_set(const gridtools::array< uint_t, Size > &sizes) {
-            uint_t size = 1;
-            for (size_t i = 0; i < Size; ++i)
-                size *= sizes[i];
-            return size == 0 || Size == 0;
-        }
-        template <>
-        GT_FUNCTION bool is_empty_set(const gridtools::array< uint_t, 0 > &sizes) {
-            return true;
-        }
+        /*
+         * Recursively building a position starting from an 0-dim array
+         */
+        template < size_t CurDim, size_t NCoord = 0 >
+        struct recursive_iterate {
+            template < typename Functor, size_t NTotal >
+            static GT_FUNCTION void apply(Functor f,
+                const gridtools::array< uint_t, NTotal > &sizes,
+                const gridtools::array< uint_t, NCoord > &pos = gridtools::array< uint_t, 0 >{}) {
 
-        // to suppress a warning "pointless comparison of unsigned integer with zero"
-        template < size_t Left >
-        struct compare {
-            static constexpr GT_FUNCTION bool greater_than(size_t right) { return Left > right; }
+                for (uint_t i = 0; i < sizes[CurDim - 1]; ++i) {
+                    auto new_pos = pos.prepend_dim(i);
+                    recursive_iterate< CurDim - 1, NCoord + 1 >::apply(f, sizes, new_pos);
+                }
+            }
         };
+
+        // recursion termination
+        template < size_t NCoord >
+        struct recursive_iterate< 0, NCoord > {
+            template < typename Functor, size_t NTotal >
+            static GT_FUNCTION void apply(Functor f,
+                const gridtools::array< uint_t, NTotal > &sizes,
+                const gridtools::array< uint_t, NCoord > &pos) {
+                // position is fully build -> apply
+                impl_::apply_array_to_variadic(f, pos);
+            }
+        };
+
+        // empty iteration space
         template <>
-        struct compare< 0 > {
-            static constexpr GT_FUNCTION bool greater_than(size_t) { return false; }
+        struct recursive_iterate< 0, 0 > {
+            template < typename Functor >
+            static GT_FUNCTION void apply(Functor f,
+                const gridtools::array< uint_t, 0 > &sizes,
+                const gridtools::array< uint_t, 0 > &pos = gridtools::array< uint_t, 0 >{}) {
+                // noop
+            }
         };
     }
 
-    /**
-     * @brief Iterate Functor over the range {0...sizes[0]-1, 0...sizes[1]-1,...}
-     */
     template < typename Functor, size_t Size >
     GT_FUNCTION void iterate(const gridtools::array< uint_t, Size > &sizes, Functor f) {
-        gridtools::array< uint_t, Size > index = {};
-        size_t index_index = 0;
-
-        if (!impl_::is_empty_set(sizes)) {
-            impl_::apply_array_to_variadic(f, index);
-            while (true) {
-                if (index[index_index] + 1 < sizes[index_index]) {
-                    index[index_index]++;
-                    while (index_index > 0) {
-                        index_index--;
-                        index[index_index] = 0;
-                    }
-                    impl_::apply_array_to_variadic(f, index);
-                } else {
-                    if (impl_::compare< Size >::greater_than(index_index + 1)) {
-                        index_index++;
-                    } else {
-                        break;
-                    }
-                }
-            }
-        }
+        impl_::recursive_iterate< Size >::apply(f, sizes);
     }
 }

@@ -74,7 +74,7 @@ namespace gridtools {
 
         typedef T value_type;
 
-        array< T, D + 1 > append_dim(T const &val) const {
+        GT_FUNCTION array< T, D + 1 > append_dim(T const &val) const {
             array< T, D + 1 > ret;
             for (size_t c = 0; c < D; ++c) {
                 ret[c] = this->operator[](c);
@@ -83,7 +83,7 @@ namespace gridtools {
             return ret;
         }
 
-        array< T, D + 1 > prepend_dim(T const &val) const {
+        GT_FUNCTION array< T, D + 1 > prepend_dim(T const &val) const {
             array< T, D + 1 > ret;
             for (size_t c = 1; c <= D; ++c) {
                 ret[c] = this->operator[](c - 1);

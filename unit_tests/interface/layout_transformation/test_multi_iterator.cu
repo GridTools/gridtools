@@ -36,29 +36,31 @@
 
 #include "test_multi_iterator.cpp"
 
-using dim2_ = gridtools::array< size_t, 4 >;
-__device__ int get_val(size_t a, size_t b) { return a * 2 + b; }
+static const uint_t Size = 2;
+using result_t = gridtools::array< size_t, Size * Size >;
 
-__global__ void test_exec(dim2_ *out_ptr) {
-    gridtools::array< uint_t, 2 > dims{2, 2};
-    dim2_ &out = *out_ptr;
+GT_FUNCTION int linear_index(size_t a, size_t b) { return a * Size + b; }
 
-    for (size_t i = 0; i < 4; ++i)
+__global__ void exec(result_t *out_ptr) {
+    gridtools::array< uint_t, 2 > dims{Size, Size};
+    result_t &out = *out_ptr;
+
+    for (size_t i = 0; i < Size * Size; ++i)
         out[i] = 0;
 
-    iterate(dims, [&](size_t a, size_t b) { out[get_val(a, b)] = 1; });
+    // fill the array with its linearized index
+    iterate(dims, [&](size_t a, size_t b) { out[linear_index(a, b)] = linear_index(a, b); });
 };
 
-TEST(multi_iterator, trying_to_execute_on_device) {
+TEST(multi_iterator, iterate_on_device) {
+    result_t *out;
+    cudaMalloc(&out, sizeof(result_t));
 
-    dim2_ *out;
-    cudaMalloc(&out, sizeof(dim2_));
+    exec<<< 1, 1 >>>(out);
 
-    test_exec<<< 1, 1 >>>(out);
+    result_t host_out;
+    cudaMemcpy(&host_out, out, sizeof(result_t), cudaMemcpyDeviceToHost);
 
-    dim2_ host_out;
-    cudaMemcpy(&host_out, out, sizeof(dim2_), cudaMemcpyDeviceToHost);
-
-    for (size_t i = 0; i < 4; ++i)
-        ASSERT_EQ(1, host_out[i]);
+    for (size_t i = 0; i < Size * Size; ++i)
+        ASSERT_EQ(i, host_out[i]);
 }
