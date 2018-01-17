@@ -40,8 +40,6 @@
  *      Author: carlosos
  */
 
-//#define BOOST_NO_CXX11_RVALUE_REFERENCES
-
 #include <gridtools.hpp>
 #include <boost/mpl/equal.hpp>
 #include <boost/fusion/include/make_vector.hpp>
@@ -60,10 +58,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace local_domain_stencil {
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
         typedef accessor< 0, gridtools::enumtype::inout > in;
@@ -71,7 +65,7 @@ namespace local_domain_stencil {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval) {}
     };
 
     std::ostream &operator<<(std::ostream &s, dummy_functor const) { return s << "dummy_function"; }
@@ -105,12 +99,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
 
     gridtools::aggregator_type< accessor_list > domain(in, buff, out);
 
-    uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-    uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-    gridtools::grid< local_domain_stencil::axis > grid(di, dj);
-    grid.value_list[0] = 0;
-    grid.value_list[1] = d3 - 1;
+    auto grid = gridtools::make_grid(d1, d2, d3);
 
     typedef intermediate< gridtools::backend< Host, GRIDBACKEND, Naive >,
         meta_array< boost::mpl::vector< decltype(gridtools::make_multistage // mss_descriptor
@@ -119,7 +108,7 @@ TEST(test_local_domain, merge_mss_local_domains) {
                             gridtools::make_stage< local_domain_stencil::dummy_functor >(p_buff(), p_out()))) >,
                               boost::mpl::quote1< gridtools::is_computation_token > >,
         gridtools::aggregator_type< accessor_list >,
-        gridtools::grid< local_domain_stencil::axis >,
+        gridtools::grid< gridtools::axis< 1 >::axis_interval_t >,
         boost::fusion::set<>,
         gridtools::notype,
         false > intermediate_t;

@@ -11,19 +11,20 @@ function exit_if_error {
 function help {
    echo "$0 [OPTIONS]"
    echo "-h      help"
-   echo "-b      build type               [release|debug]"
-   echo "-t      target                   [gpu|cpu]"
-   echo "-f      floating point precision [float|double]"
-   echo "-l      compiler                 [gcc|clang]  "
-   echo "-m      activate mpi                          "
-   echo "-s      activate a silent build               "
-   echo "-z      force build                           "
-   echo "-i      build for icosahedral grids           "
-   echo "-d      do not clean build                    "
-   echo "-v      compile in VERBOSE mode               "
-   echo "-q      queue for testing                     "
-   echo "-x      compiler version                      "
-   echo "-n      execute the build on a compute node   "
+   echo "-b      build type               [release|debug] "
+   echo "-t      target                   [gpu|cpu]       "
+   echo "-f      floating point precision [float|double]  "
+   echo "-l      compiler                 [gcc|clang|icc] "
+   echo "-m      activate mpi                             "
+   echo "-s      activate a silent build                  "
+   echo "-z      force build                              "
+   echo "-i      build for icosahedral grids              "
+   echo "-d      do not clean build                       "
+   echo "-v      compile in VERBOSE mode                  "
+   echo "-q      queue for testing                        "
+   echo "-x      compiler version                         "
+   echo "-n      execute the build on a compute node      "
+   echo "-c      disable CPU communication tests          "
    exit 1
 }
 
@@ -34,7 +35,7 @@ FORCE_BUILD=OFF
 VERBOSE_RUN="OFF"
 VERSION_="5.3"
 
-while getopts "h:b:t:f:c:l:zmsidvq:x:in" opt; do
+while getopts "hb:t:f:l:zmsidvq:x:inc" opt; do
     case "$opt" in
     h|\?)
         help
@@ -65,6 +66,8 @@ while getopts "h:b:t:f:c:l:zmsidvq:x:in" opt; do
     x) VERSION_=$OPTARG
         ;;
     n) BUILD_ON_CN="ON"
+        ;;
+    c) DISABLE_CPU_MPI_TESTS="ON"
         ;;
     esac
 done
@@ -124,6 +127,13 @@ else
 fi
 echo "MPI = $USE_MPI"
 
+if [[ "${DISABLE_CPU_MPI_TESTS}" == "ON" ]]; then
+  DISABLE_MPI_TESTS_ON_TARGET="CPU"
+else
+  DISABLE_MPI_TESTS_ON_TARGET="OFF"
+fi
+echo "DISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET=}"
+
 RUN_MPI_TESTS=$USE_MPI ##$SINGLE_PRECISION
 
 pwd
@@ -171,7 +181,31 @@ cmake \
 -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
 -DVERBOSE=$VERBOSE_RUN \
 -DBOOST_ROOT=$BOOST_ROOT \
+-DDISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
 ../
+
+echo "cmake \
+-DBoost_NO_BOOST_CMAKE=true \
+-DCUDA_ARCH:STRING=$CUDA_ARCH \
+-DCMAKE_BUILD_TYPE:STRING=$BUILD_TYPE \
+-DBUILD_SHARED_LIBS:BOOL=ON \
+-DUSE_GPU:BOOL=$USE_GPU \
+-DGNU_COVERAGE:BOOL=OFF \
+-DGCL_ONLY:BOOL=OFF \
+-DCMAKE_CXX_COMPILER=${HOST_COMPILER} \
+-DCMAKE_CXX_FLAGS:STRING=-I${MPI_HOME}/include ${ADDITIONAL_FLAGS} \
+-DCUDA_HOST_COMPILER:STRING=${HOST_COMPILER} \
+-DUSE_MPI:BOOL=$USE_MPI \
+-DUSE_MPI_COMPILER:BOOL=$USE_MPI_COMPILER  \
+-DSINGLE_PRECISION:BOOL=$SINGLE_PRECISION \
+-DENABLE_PERFORMANCE_METERS:BOOL=ON \
+-DSTRUCTURED_GRIDS:BOOL=${STRUCTURED_GRIDS} \
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+-DVERBOSE=$VERBOSE_RUN \
+-DBOOST_ROOT=$BOOST_ROOT \
+-DDISABLE_MPI_TESTS_ON_TARGET=${DISABLE_MPI_TESTS_ON_TARGET} \
+../
+"
 
 exit_if_error $?
 
@@ -191,7 +225,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
     for i in `seq 1 $num_make_rep`;
     do
       echo "COMPILATION # ${i}"
-      ${SRUN_BUILD_COMMAND} make -j${MAKE_THREADS}  >& ${log_file};
+      ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}  >& ${log_file};
       
       error_code=$?
       if [ ${error_code} -eq 0 ]; then
@@ -209,7 +243,7 @@ if [[ "$SILENT_BUILD" == "ON" ]]; then
         cat ${log_file};
     fi
 else
-    ${SRUN_BUILD_COMMAND} make -j${MAKE_THREADS}
+    ${SRUN_BUILD_COMMAND} nice make -j${MAKE_THREADS}
     error_code=$?
 fi
 

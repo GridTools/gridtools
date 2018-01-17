@@ -45,7 +45,6 @@
 #include <stencil-composition/backend_host/backend_host.hpp>
 #endif
 
-#include <boost/timer/timer.hpp>
 #include <boost/fusion/include/make_vector.hpp>
 
 #ifdef USE_PAPI_WRAP
@@ -66,11 +65,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace copy_stencils_3D_2D_1D_0D {
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
-    // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
         static const int n_args = 2;
         typedef accessor< 0 > in;
@@ -78,7 +72,7 @@ namespace copy_stencils_3D_2D_1D_0D {
         typedef boost::mpl::vector< in, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -116,39 +110,19 @@ namespace copy_stencils_3D_2D_1D_0D {
 
         meta_dst_t meta_dst_(d1, d2, d3);
         meta_src_t meta_src_(d1, d2, d3);
-        // Definition of the actual data fields that are used for input/output
+
         std::function< T(int, int, int)> init_lambda = [](int i, int j, int k) { return (T)(i + j + k); };
         src_storage_t in(meta_src_, init_lambda);
         storage_t out(meta_dst_, (T)1.5);
 
-        // in.print();
-
-        // Definition of placeholders. The order of them reflect the order the user will deal with them
-        // especially the non-temporary ones, in the construction of the domain
         typedef arg< 0, src_storage_t > p_in;
         typedef arg< 1, storage_t > p_out;
 
-        // An array of placeholders to be passed to the domain
-        // I'm using mpl::vector, but the final API should look slightly simpler
         typedef boost::mpl::vector< p_in, p_out > accessor_list;
 
-        // construction of the domain. The domain is the physical domain of the problem, with all the physical fields
-        // that are used, temporary and not
-        // It must be noted that the only fields to be passed to the constructor are the non-temporary.
-        // The order in which they have to be passed is the order in which they appear scanning the placeholders in
-        // order. (I don't particularly like this)
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid_(??2,d1-2,2,d2-2??);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-        gridtools::grid< axis > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(d1, d2, d3);
 
         auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
             grid_,
@@ -170,10 +144,6 @@ namespace copy_stencils_3D_2D_1D_0D {
             for (int j = 0; j < d2; ++j)
                 for (int k = 0; k < d3; ++k) {
                     if (inv(i, j, k) != outv(i, j, k)) {
-                        // std::cout << "i = " << i
-                        //           << "j = " << j
-                        //           << "k = " << k
-                        //           << ": " << in(i,j,k) << ", " << out(i,j,k) << std::endl;
                         ok = false;
                     }
                 }
