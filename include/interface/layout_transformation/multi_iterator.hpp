@@ -40,58 +40,38 @@
 #include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../../common/defs.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 #include <vector>
 
 namespace gridtools {
     namespace impl_ {
-        GT_NV_EXEC_CHECK_DISABLE
-        template < typename F, typename Array, std::size_t... I >
-        GT_FUNCTION void apply_array_to_variadic_impl(F f, const Array &a, gt_integer_sequence< std::size_t, I... >) {
-            f(a[I]...);
-        }
-        template < typename F,
-            typename Array,
-            typename Indices = typename make_gt_integer_sequence< std::size_t, Array::size() >::type >
-        GT_FUNCTION void apply_array_to_variadic(F f, const Array &a) {
-            apply_array_to_variadic_impl(f, a, Indices{});
-        }
-
         /*
-         * Recursively building a position starting from an 0-dim array
+         * Recursively building a position within the iteration space
          */
-        template < size_t CurDim, size_t NCoord = 0 >
+        template < size_t CurDim >
         struct recursive_iterate {
-            template < typename Functor, size_t NTotal >
-            static GT_FUNCTION void apply(Functor f,
-                const gridtools::array< uint_t, NTotal > &sizes,
-                const gridtools::array< uint_t, NCoord > &pos = gridtools::array< uint_t, 0 >{}) {
-
+            template < typename Functor, size_t NTotal, typename... Position >
+            static GT_FUNCTION void apply(Functor f, const gridtools::array< uint_t, NTotal > &sizes, Position... pos) {
+                GRIDTOOLS_STATIC_ASSERT((is_all_integral< Position... >::value), GT_INTERNAL_ERROR);
                 for (uint_t i = 0; i < sizes[CurDim - 1]; ++i) {
-                    auto new_pos = pos.prepend_dim(i);
-                    recursive_iterate< CurDim - 1, NCoord + 1 >::apply(f, sizes, new_pos);
+                    recursive_iterate< CurDim - 1 >::apply(f, sizes, i, pos...);
                 }
             }
         };
 
         // recursion termination
-        template < size_t NCoord >
-        struct recursive_iterate< 0, NCoord > {
-            template < typename Functor, size_t NTotal >
-            static GT_FUNCTION void apply(Functor f,
-                const gridtools::array< uint_t, NTotal > &sizes,
-                const gridtools::array< uint_t, NCoord > &pos) {
-                // position is fully build -> apply
-                impl_::apply_array_to_variadic(f, pos);
-            }
-        };
-
-        // empty iteration space
         template <>
-        struct recursive_iterate< 0, 0 > {
-            template < typename Functor >
-            static GT_FUNCTION void apply(Functor f,
-                const gridtools::array< uint_t, 0 > &sizes,
-                const gridtools::array< uint_t, 0 > &pos = gridtools::array< uint_t, 0 >{}) {
+        struct recursive_iterate< 0 > {
+            GT_NV_EXEC_CHECK_DISABLE
+            template < typename Functor, size_t NTotal, typename... Position >
+            static GT_FUNCTION void apply(Functor f, const gridtools::array< uint_t, NTotal > &sizes, Position... pos) {
+                // position is fully build -> call functor
+                f(pos...);
+            }
+
+            // case where iteration space is empty (0-dimensional array is passed)
+            template < typename Functor, size_t NTotal, typename... Position >
+            static GT_FUNCTION void apply(Functor f, const gridtools::array< uint_t, NTotal > &sizes) {
                 // noop
             }
         };
