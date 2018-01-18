@@ -63,6 +63,7 @@ namespace gridtools {
         typedef state_machine state_machine_t;
 
       private:
+        data_t *m_allocated_ptr;
         data_t *m_cpu_ptr;
         ownership m_ownership = ownership::Full;
 
@@ -71,7 +72,7 @@ namespace gridtools {
          * @brief host_storage constructor. Just allocates enough memory on the Host.
          * @param size defines the size of the storage and the allocated space.
          */
-        constexpr host_storage(uint_t size) : m_cpu_ptr(new data_t[size]) {}
+        constexpr host_storage(uint_t size, uint_t offset_to_align=0, uint_t align=0) : m_allocated_ptr(new data_t[size]), m_cpu_ptr(m_allocated_ptr) {}
 
         /*
          * @brief host_storage constructor. Does not allocate memory but uses an external pointer.
