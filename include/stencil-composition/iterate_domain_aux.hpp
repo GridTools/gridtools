@@ -54,7 +54,6 @@
 #include <boost/utility/enable_if.hpp>
 #include "expressions/expressions.hpp"
 #include "../common/array.hpp"
-#include "../common/meta_array.hpp"
 #include "../common/generic_metafunctions/reversed_range.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "total_storages.hpp"
