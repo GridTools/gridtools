@@ -12,6 +12,6 @@ macro(add_bindings_library)
     add_custom_command(OUTPUT ${ARGV0}.h ${ARGV0}.f90
             COMMAND ${ARGV0}_decl_generator ${ARGV0}.h ${ARGV0}.f90
             DEPENDS $<TARGET_FILE:${ARGV0}_decl_generator>)
-    add_custom_target(${ARGV0}_decl
+    add_custom_target(${ARGV0}_declarations
             DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}.h ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}.f90)
 endmacro()
