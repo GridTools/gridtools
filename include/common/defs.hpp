@@ -271,6 +271,10 @@ namespace gridtools {
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
     "GridTools Development Team. \nMessage\n\n" x
 
+#define GT_AUTO_RETURN(expr)          \
+    ->decltype(expr) { return expr; } \
+    static_assert(1, "")
+
 //################ Type aliases for GridTools ################
 
 /**
