@@ -70,7 +70,7 @@ namespace gridtools {
         struct proper_view< enumtype::Host, AM, DataF > {
             using proper_view_t = decltype(make_host_view< AM, DataF >(std::declval< DataF >()));
 
-            static proper_view_t make(DataF &df) { return make_host_view< AM >(df); }
+            static proper_view_t make(DataF const &df) { return make_host_view< AM >(df); }
         };
 
 #ifdef __CUDACC__
@@ -78,7 +78,7 @@ namespace gridtools {
         struct proper_view< enumtype::Cuda, AM, DataF > {
             using proper_view_t = decltype(make_device_view< AM, DataF >(std::declval< DataF >()));
 
-            static proper_view_t make(DataF &df) { return make_device_view< AM >(df); }
+            static proper_view_t make(DataF const &df) { return make_device_view< AM >(df); }
         };
 #endif
     } // namespace _impl
@@ -104,7 +104,9 @@ namespace gridtools {
 
         template < typename... DataFields >
         void apply(DataFields &... data_fields) const {
-            bc_apply.apply(_impl::proper_view< Arch, access_mode::ReadWrite, DataFields >::make(data_fields)...);
+            bc_apply.apply(
+                _impl::proper_view< Arch, access_mode::ReadWrite, typename std::decay< DataFields >::type >::make(
+                    data_fields)...);
         }
     };
 

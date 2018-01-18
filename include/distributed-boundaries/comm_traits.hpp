@@ -33,44 +33,34 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
-#include <boost/mpl/equal.hpp>
-#include "esf.hpp"
+
+#include "../gridtools.hpp"
+#include "../stencil-composition/stencil-composition.hpp"
+#include "../communication/low-level/proc_grids_3D.hpp"
 
 namespace gridtools {
 
-    template < typename Esf1, typename Esf2 >
-    struct esf_equal {
-        GRIDTOOLS_STATIC_ASSERT(
-            (is_esf_descriptor< Esf1 >::value && is_esf_descriptor< Esf2 >::value), GT_INTERNAL_ERROR);
-        typedef static_bool< boost::is_same< typename Esf1::esf_function, typename Esf2::esf_function >::value &&
-                             boost::mpl::equal< typename Esf1::args_t, typename Esf2::args_t >::value > type;
-    };
-
-    struct extract_esf_functor {
-        template < typename Esf >
-        struct apply {
-            GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
-
-            typedef typename Esf::esf_function type;
+    template < typename StorageType, typename Arch >
+    struct comm_traits {
+        template < typename GCLArch, typename = void >
+        struct compute_arch_of {
+            static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Host;
         };
+
+        template < typename T >
+        struct compute_arch_of< gcl_gpu, T > {
+            static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Cuda;
+        };
+
+        using proc_layout = gridtools::layout_map< 0, 1, 2 >;
+        using proc_grid_type = gridtools::MPI_3D_process_grid_t< 3 >;
+        using comm_arch_type = Arch;
+        static constexpr gridtools::enumtype::platform compute_arch = compute_arch_of< comm_arch_type >::value;
+        static constexpr int version = gridtools::version_manual;
+        using data_layout = typename StorageType::storage_info_t::layout_t;
+        using value_type = typename StorageType::data_t;
     };
 
-    template < typename Esf >
-    struct esf_arg_list {
-        GRIDTOOLS_STATIC_ASSERT((is_esf_descriptor< Esf >::value), GT_INTERNAL_ERROR);
-        typedef typename Esf::esf_function::arg_list type;
-    };
-
-    /** Retrieve the extent in esf_descriptor_with_extents
-
-       \tparam Esf The esf_descriptor that must be the one speficying the extent
-    */
-    template < typename Esf >
-    struct esf_extent;
-
-    template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
-    struct esf_extent< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > {
-        using type = Extent;
-    };
-}
+} // namespace gridtools

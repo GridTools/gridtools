@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include "backend_select.hpp"
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
@@ -47,8 +48,6 @@ struct functor {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval) {}
 };
-
-#define backend_t backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 
 bool predicate() { return false; }
 
