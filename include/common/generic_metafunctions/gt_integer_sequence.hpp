@@ -55,6 +55,24 @@ namespace gridtools {
         static constexpr std::size_t size() noexcept { return sizeof...(Indices); }
     };
 
+    /**
+       @brief Given two integer sequences returns the sequence with
+       the two sequences it returns a sequence in which the second
+       sequence is attached to the first one (without any
+       transformation, as it the case of gridtools::concat)
+
+       \tparam S1 Frist sequence
+       \tparam S2 Second sequence
+
+     */
+    template < typename S1, typename S2 >
+    struct append;
+
+    template < typename Uint, Uint... S1, Uint... S2 >
+    struct append< gt_integer_sequence< Uint, S1... >, gt_integer_sequence< Uint, S2... > > {
+        using type = gt_integer_sequence< Uint, S1..., S2... >;
+    };
+
     /** @bief concatenates two integer sequences*/
     namespace _impl {
         template < typename Seq, size_t Size, size_t Rem >

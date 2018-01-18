@@ -34,25 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/mpl/map.hpp>
-#include <boost/fusion/mpl/insert.hpp>
-#include <boost/mpl/fold.hpp>
-#include <boost/fusion/algorithm/transformation/insert.hpp>
-#include <boost/fusion/include/insert.hpp>
-#include <boost/fusion/algorithm/transformation/push_back.hpp>
-#include <boost/fusion/include/push_back.hpp>
+
+#include "dimension_fwd.hpp"
 
 namespace gridtools {
-
-    /**
-     * @struct vector_to_map
-     * convert a vector of pairs into a make_pair
-     */
-    template < typename Vec >
-    struct vector_to_map {
-        typedef typename boost::mpl::fold< Vec,
-            boost::mpl::map0<>,
-            boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type type;
+    // metafunction that determines if a type is a valid accessor ctr argument
+    template < typename T >
+    struct is_accessor_ctr_args {
+        typedef typename boost::mpl::or_< typename boost::is_integral< T >::type,
+            typename is_dimension< T >::type >::type type;
     };
 
+    // metafunction that determines if a variadic pack are valid accessor ctr arguments
+    template < typename... Types >
+    using all_accessor_ctr_args =
+        typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
+            bool >::type;
 } // namespace gridtools

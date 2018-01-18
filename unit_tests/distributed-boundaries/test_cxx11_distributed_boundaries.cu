@@ -33,6 +33,5 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-#define new_cond conditional< __COUNTER__ >
-#define new_switch_variable switch_variable< __COUNTER__, int >
+
+#include "./test_cxx11_distributed_boundaries.cpp"

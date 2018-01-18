@@ -44,7 +44,7 @@ namespace gridtools {
 
     struct benchmarker {
 
-        static void run(std::shared_ptr< gridtools::stencil > stencil, uint_t tsteps) {
+        static void run(std::shared_ptr< gridtools::stencil< notype > > stencil, uint_t tsteps) {
             cache_flusher flusher(cache_flusher_size);
             // we run a first time the stencil, since if there is data allocation before by other codes, the first run
             // of the stencil
