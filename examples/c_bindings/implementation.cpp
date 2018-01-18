@@ -82,7 +82,10 @@ namespace {
 
     GT_EXPORT_BINDING_WITH_SIGNATURE_1(sync_data_store, void(data_store_t), std::mem_fn(&data_store_t::sync));
 
-    std::shared_ptr< stencil > make_copy_stencil(data_store_t in, data_store_t out) {
+    using stencil_t = stencil< notype >;
+    using stencil_ptr_t = std::shared_ptr< stencil_t >;
+
+    stencil_ptr_t make_copy_stencil(data_store_t in, data_store_t out) {
         using p_in = arg< 0, data_store_t >;
         using p_out = arg< 1, data_store_t >;
 
@@ -96,6 +99,6 @@ namespace {
     }
     GT_EXPORT_BINDING_2(create_copy_stencil, make_copy_stencil);
 
-    GT_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(std::shared_ptr< stencil >), std::mem_fn(&stencil::run));
-    GT_EXPORT_BINDING_WITH_SIGNATURE_1(steady_stencil, void(std::shared_ptr< stencil >), std::mem_fn(&stencil::steady));
+    GT_EXPORT_BINDING_WITH_SIGNATURE_1(run_stencil, void(stencil_ptr_t), std::mem_fn(&stencil_t::run));
+    GT_EXPORT_BINDING_WITH_SIGNATURE_1(steady_stencil, void(stencil_ptr_t), std::mem_fn(&stencil_t::steady));
 }
