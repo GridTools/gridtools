@@ -36,6 +36,9 @@
 
 #pragma once
 
+#include <boost/mpl/fold.hpp>
+#include "independent_esf.hpp"
+
 namespace gridtools {
 
     /** This class prepare for the iteration over the esf+descriptors
@@ -54,7 +57,7 @@ namespace gridtools {
         \tparam UnaryOp The unary operator to apply to the esf_descriptors
         \tparam BinaryOp The binary operator for the reduction
      */
-    template < template < typename > class UnaryOp, template < typename, typename, typename... > class BinaryOp >
+    template < template < class... > class UnaryOp, template < class... > class BinaryOp >
     struct with_operators {
 
       private:
@@ -65,26 +68,23 @@ namespace gridtools {
             over the esf_sequence, so that we can just pass the
             placeholders.
          */
-        struct compose {
-            template < typename A, typename B >
-            struct apply {
-                using type = typename BinaryOp< A, typename UnaryOp< B >::type >::type;
-            };
-
-            template < typename A, typename... EsfList >
-            struct apply< A, independent_esf< EsfList... > > {
-                using list = typename independent_esf< EsfList... >::esf_list;
-                using type = typename boost::mpl::fold< list,
-                    A,
-                    typename compose::template apply< boost::mpl::_1, boost::mpl::_2 > >::type;
-            };
+        template < class Acc, class El >
+        struct apply_to_esf_sequence_elem {
+            using type = typename BinaryOp< Acc, typename UnaryOp< El >::type >::type;
         };
 
-        template < typename Current, typename MssDescriptor >
+        template < class Acc, class EsfSeq >
+        struct apply_to_esf_sequence_elem< Acc, independent_esf< EsfSeq > > {
+            using type = typename boost::mpl::fold< EsfSeq,
+                Acc,
+                apply_to_esf_sequence_elem< boost::mpl::_1, boost::mpl::_2 > >::type;
+        };
+
+        template < class Current, class MssDescriptor >
         struct apply_to_esfs {
             using type = typename boost::mpl::fold< typename MssDescriptor::esf_sequence_t,
                 Current,
-                typename compose::template apply< boost::mpl::_1, boost::mpl::_2 > >::type;
+                apply_to_esf_sequence_elem< boost::mpl::_1, boost::mpl::_2 > >::type;
         };
 
       public:
@@ -97,19 +97,10 @@ namespace gridtools {
             \tparam Initial The initial value of the reduction
             \tparam The sequence of mss_descriptors
          */
-        template < typename Initial, typename MssDescriptorSeq >
-        struct iterate_on_esfs {
-            typedef typename boost::mpl::fold< MssDescriptorSeq,
-                Initial,
-                apply_to_esfs< boost::mpl::_1, boost::mpl::_2 > >::type type;
-        };
+        template < class Initial, class MssDescriptorSeq >
+        using iterate_on_esfs = typename boost::mpl::fold< MssDescriptorSeq,
+            Initial,
+            apply_to_esfs< boost::mpl::_1, boost::mpl::_2 > >::type;
 
-        /** Specialization for when conditionals are used.
-         */
-        template < typename Initial, typename MssArray1, typename MssArray2, typename Tag >
-        struct iterate_on_esfs< Initial, condition< MssArray1, MssArray2, Tag > > {
-            using temp = typename iterate_on_esfs< Initial, MssArray1 >::type;
-            using type = typename iterate_on_esfs< temp, MssArray2 >::type;
-        };
     }; // struct with_operators
 } // namespace gridtools

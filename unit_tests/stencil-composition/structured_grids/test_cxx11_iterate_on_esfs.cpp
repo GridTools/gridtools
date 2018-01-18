@@ -34,213 +34,93 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include "gtest/gtest.h"
-#include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/conditionals/condition_pool.hpp>
 #include <stencil-composition/iterate_on_esfs.hpp>
 
-using namespace gridtools;
-using namespace gridtools::enumtype;
-using namespace gridtools::expressions;
+#include <type_traits>
+#include <boost/mpl/vector.hpp>
+
+#include <stencil-composition/accessor.hpp>
+#include <stencil-composition/arg.hpp>
+#include <stencil-composition/backend.hpp>
+#include <stencil-composition/independent_esf.hpp>
+#include <stencil-composition/make_stage.hpp>
+#include <stencil-composition/make_stencils_cxx11.hpp>
+#include <storage/storage-facility.hpp>
+
+#include "gtest/gtest.h"
 
 #ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
+#define BACKEND \
+    ::gridtools::backend<::gridtools::enumtype::Cuda, ::gridtools::enumtype::GRIDBACKEND, ::gridtools::enumtype::Block >
 #else
 #ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
+#define BACKEND \
+    ::gridtools::backend<::gridtools::enumtype::Host, ::gridtools::enumtype::GRIDBACKEND, ::gridtools::enumtype::Block >
 #else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
+#define BACKEND \
+    ::gridtools::backend<::gridtools::enumtype::Host, ::gridtools::enumtype::GRIDBACKEND, ::gridtools::enumtype::Naive >
 #endif
 #endif
 
-namespace iterate_on_esfs_detail {
-    template < int I >
-    struct functor {
-        static const int thevalue = I;
+namespace gridtools {
+    namespace {
+        using boost::mpl::vector;
 
-        typedef in_accessor< 0, extent<>, 3 > in;
-        typedef inout_accessor< 1, extent<>, 3 > out;
-        typedef boost::mpl::vector< in, out > arg_list;
-        template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval) {
-            eval(out()) = eval(in());
-        }
-    };
+        template < int I >
+        struct functor {
+            static const int thevalue = I;
+            using arg_list = vector< in_accessor< 0 >, inout_accessor< 1 > >;
+        };
 
-} // namespace iterate_on_esfs_detail
+        typedef storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
 
-class iterate_on_esfs_class : public testing::Test {
-  public:
-    typedef interval< level< 0, -1 >, level< 1, 1 > > axis_t;
+        typedef arg< 0, data_store_t > p_in;
+        typedef arg< 1, data_store_t > p_out;
 
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
+        template < int I >
+        using an_esf = decltype(make_stage< functor< I > >(p_in{}, p_out{}));
 
-    typedef arg< 0, data_store_t > p_in;
-    typedef arg< 1, data_store_t > p_out;
-    typedef boost::mpl::vector< p_in, p_out > accessor_list;
+        template < class... Esfs >
+        using an_independent = independent_esf< boost::mpl::vector< Esfs... > >;
 
-    const uint_t d1 = 13;
-    const uint_t d2 = 9;
-    const uint_t d3 = 7;
-    const uint_t halo_size = 1;
+        template < class... Esfs >
+        using an_mss = decltype(make_multistage(enumtype::execute< enumtype::forward >(), std::declval< Esfs >()...));
 
-    storage_info_t meta_;
+        template < typename StencilOp >
+        struct is_even : std::integral_constant< int, !(StencilOp::esf_function::thevalue % 2) > {};
 
-    halo_descriptor di;
-    halo_descriptor dj;
-    gridtools::grid< axis_t > grid;
+        template < typename StencilOp >
+        struct is_odd : std::integral_constant< int, !!(StencilOp::esf_function::thevalue % 2) > {};
 
-    data_store_t in;
-    data_store_t out;
+        template < typename A, typename B >
+        struct sum : std::integral_constant< int, A::value + B::value > {};
 
-    aggregator_type< accessor_list > domain;
+        template < typename Msses >
+        using get_even = typename with_operators< is_even, sum >::iterate_on_esfs< boost::mpl::int_< 0 >, Msses >::type;
 
-    iterate_on_esfs_class()
-        : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(make_grid(di, dj, d3)),
-          in(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }), out(meta_, -5), domain(in, out) {}
-};
+        template < typename Msses >
+        using get_odd = typename with_operators< is_odd, sum >::iterate_on_esfs< boost::mpl::int_< 0 >, Msses >::type;
 
-template < typename StencilOp >
-struct is_even {
-    using type = boost::mpl::int_< (StencilOp::esf_function::thevalue % 2 == 0) ? 1 : 0 >;
-};
+        using basic_t = vector< an_mss< an_esf< 0 >, an_esf< 1 >, an_esf< 2 >, an_esf< 3 >, an_esf< 4 > > >;
+        static_assert(get_even< basic_t >::value == 3, "");
+        static_assert(get_odd< basic_t >::value == 2, "");
 
-template < typename StencilOp >
-struct is_odd {
-    using type = boost::mpl::int_< (StencilOp::esf_function::thevalue % 2 == 0) ? 0 : 1 >;
-};
+        using two_multistages_t =
+            vector< an_mss< an_esf< 0 >, an_esf< 1 >, an_esf< 2 > >, an_mss< an_esf< 3 >, an_esf< 4 > > >;
+        static_assert(get_even< two_multistages_t >::value == 3, "");
+        static_assert(get_odd< two_multistages_t >::value == 2, "");
 
-template < typename A, typename B >
-struct sum {
-    using type = boost::mpl::int_< A::value + B::value >;
-};
+        using two_multistages_independent_t = vector< an_mss< an_esf< 0 >, an_independent< an_esf< 1 >, an_esf< 2 > > >,
+            an_mss< an_esf< 3 >, an_esf< 4 > > >;
+        static_assert(get_even< two_multistages_independent_t >::value == 3, "");
+        static_assert(get_odd< two_multistages_independent_t >::value == 2, "");
 
-TEST_F(iterate_on_esfs_class, basic) {
-    auto x = make_computation< gridtools::BACKEND >(
-        domain,
-        grid,
-        gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 0 > >(p_in(), p_out()),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 1 > >(p_in(), p_out()),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 2 > >(p_in(), p_out()),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 3 > >(p_in(), p_out()),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 4 > >(p_in(), p_out())));
+        using just_independent_t =
+            vector< an_mss< an_independent< an_esf< 1 >, an_esf< 2 > > >, an_mss< an_esf< 4 > > >;
+        static_assert(get_even< just_independent_t >::value == 2, "");
+        static_assert(get_odd< just_independent_t >::value == 1, "");
 
-    auto e = with_operators< is_even, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    ASSERT_TRUE(e == 3);
-    auto o = with_operators< is_odd, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    ASSERT_TRUE(o == 2);
-}
-
-TEST_F(iterate_on_esfs_class, two_multistages) {
-    auto x = make_computation< gridtools::BACKEND >(
-        domain,
-        grid,
-        gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 0 > >(p_in(), p_out()),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 1 > >(p_in(), p_out()),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 2 > >(p_in(), p_out())),
-        gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 3 > >(p_in(), p_out()),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 4 > >(p_in(), p_out())));
-
-    auto e = with_operators< is_even, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    ASSERT_TRUE(e == 3);
-    auto o = with_operators< is_odd, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    ASSERT_TRUE(o == 2);
-}
-
-TEST_F(iterate_on_esfs_class, two_multistages_independent) {
-    auto x = make_computation< gridtools::BACKEND >(
-        domain,
-        grid,
-        gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 0 > >(p_in(), p_out()),
-            make_independent(gridtools::make_stage< iterate_on_esfs_detail::functor< 1 > >(p_in(), p_out()),
-                                       gridtools::make_stage< iterate_on_esfs_detail::functor< 2 > >(p_in(), p_out()))),
-        gridtools::make_multistage(execute< forward >(),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 3 > >(p_in(), p_out()),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 4 > >(p_in(), p_out())));
-
-    auto e = with_operators< is_even, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    ASSERT_TRUE(e == 3);
-    auto o = with_operators< is_odd, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    ASSERT_TRUE(o == 2);
-}
-
-TEST_F(iterate_on_esfs_class, just_independent) {
-    auto x = make_computation< gridtools::BACKEND >(
-        domain,
-        grid,
-        gridtools::make_multistage(execute< forward >(),
-            make_independent(gridtools::make_stage< iterate_on_esfs_detail::functor< 1 > >(p_in(), p_out()),
-                                       gridtools::make_stage< iterate_on_esfs_detail::functor< 2 > >(p_in(), p_out())),
-            gridtools::make_stage< iterate_on_esfs_detail::functor< 4 > >(p_in(), p_out())));
-
-    auto e = with_operators< is_even, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    ASSERT_TRUE(e == 2);
-    auto o = with_operators< is_odd, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    ASSERT_TRUE(o == 1);
-}
-
-TEST_F(iterate_on_esfs_class, conditionals) {
-    auto cond = new_cond([]() { return false; });
-
-    auto x = make_computation< gridtools::BACKEND >(
-        domain,
-        grid,
-        if_(cond,
-            gridtools::make_multistage(
-                execute< forward >(),
-                gridtools::make_stage< iterate_on_esfs_detail::functor< 0 > >(p_in(), p_out()),
-                make_independent(gridtools::make_stage< iterate_on_esfs_detail::functor< 1 > >(p_in(), p_out()),
-                    gridtools::make_stage< iterate_on_esfs_detail::functor< 2 > >(p_in(), p_out()))),
-            gridtools::make_multistage(execute< forward >(),
-                gridtools::make_stage< iterate_on_esfs_detail::functor< 3 > >(p_in(), p_out()),
-                gridtools::make_stage< iterate_on_esfs_detail::functor< 4 > >(p_in(), p_out()))));
-
-    auto e = with_operators< is_even, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    std::cout << "************** " << e << "\n";
-    auto o = with_operators< is_odd, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    std::cout << "************** " << o << "\n";
-    ASSERT_TRUE(e == 3);
-    ASSERT_TRUE(o == 2);
-}
-
-TEST_F(iterate_on_esfs_class, nested_conditionals) {
-    auto cond = new_cond([]() { return false; });
-    auto cond2 = new_cond([]() { return true; });
-
-    auto x =
-        make_computation< BACKEND >(domain,
-            grid,
-            if_(cond,
-                                        make_multistage(enumtype::execute< enumtype::forward >(),
-                                            make_stage< iterate_on_esfs_detail::functor< 0 > >(p_in(), p_out())),
-                                        if_(cond2,
-                                            make_multistage(enumtype::execute< enumtype::forward >(),
-                                                make_stage< iterate_on_esfs_detail::functor< 1 > >(p_in(), p_out())),
-                                            make_multistage(enumtype::execute< enumtype::forward >(),
-                                                make_stage< iterate_on_esfs_detail::functor< 2 > >(p_in(), p_out())))));
-
-    auto e = with_operators< is_even, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    std::cout << "************** " << e << "\n";
-    auto o = with_operators< is_odd, sum >::iterate_on_esfs< boost::mpl::int_< 0 >,
-        typename decltype(x)::element_type::MssDescriptorArray::elements >::type::value;
-    std::cout << "************** " << o << "\n";
-    ASSERT_TRUE(e == 2);
-    ASSERT_TRUE(o == 1);
+        TEST(dummy, dummy) {}
+    }
 }

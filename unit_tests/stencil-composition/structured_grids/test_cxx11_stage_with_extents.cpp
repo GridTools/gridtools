@@ -92,23 +92,21 @@ TEST(testdomain, iterate_domain_with_extents) {
     {
         auto mss_ = make_multistage(enumtype::execute< enumtype::forward >(),
             make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()));
-        auto computation_ = make_computation_impl< false, backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
+        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 0 >::type,
-                                    boost::mpl::vector1< extent< 0, 1, 0, 0 > > >::value),
-            GT_INTERNAL_ERROR_MSG("extent did not match"));
+        static_assert(
+            std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
     }
     {
         auto mss_ = make_multistage(enumtype::execute< enumtype::forward >(),
             make_stage_with_extent< stage1, extent< 0, 1, 0, 0 > >(p_in(), p_out()),
             make_stage_with_extent< stage2, extent< 0, 1, -1, 2 > >(p_out(), p_in()));
-        auto computation_ = make_computation_impl< false, backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
+        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 0 >::type,
-                                    boost::mpl::vector2< extent< 0, 1, 0, 0 >, extent< 0, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("extent did not match"));
+        static_assert(
+            std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
     }
     {
         auto mss1_ = make_multistage(enumtype::execute< enumtype::forward >(),
@@ -119,16 +117,11 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent< stage1, extent< -2, 1, 0, 0 > >(p_in(), p_out()),
             make_stage_with_extent< stage2, extent< -2, 1, -1, 2 > >(p_out(), p_in()));
 
-        auto computation_ =
-            make_computation_impl< false, backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss1_, mss2_);
+        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss1_, mss2_);
 
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 0 >::type,
-                                    boost::mpl::vector2< extent< 0, 1, 0, 0 >, extent< 0, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("extent did not match"));
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 1 >::type,
-                                    boost::mpl::vector2< extent< -2, 1, 0, 0 >, extent< -2, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("extent did not match"));
+        static_assert(
+            std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
     }
     {
         auto mss1_ = make_multistage(enumtype::execute< enumtype::forward >(),
@@ -139,15 +132,10 @@ TEST(testdomain, iterate_domain_with_extents) {
             make_stage_with_extent< stage1, extent< -2, 1, 0, 0 > >(p_in(), p_out()),
             make_stage_with_extent< stage2, extent< -2, 1, -1, 2 > >(p_out(), p_in()));
 
-        auto computation_ =
-            make_computation_impl< false, backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss1_, mss2_);
+        auto computation_ = make_computation< backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss1_, mss2_);
 
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 0 >::type,
-                                    boost::mpl::vector2< extent< 0, 1, 0, 0 >, extent< 0, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("extent did not match"));
-        GRIDTOOLS_STATIC_ASSERT((boost::mpl::equal< boost::mpl::at_c< intermediate_t::extent_sizes_t, 1 >::type,
-                                    boost::mpl::vector2< extent< -2, 1, 0, 0 >, extent< -2, 1, -1, 2 > > >::value),
-            GT_INTERNAL_ERROR_MSG("extent did not match"));
+        static_assert(
+            std::is_same< intermediate_t::extent_map_t, boost::mpl::void_ >::value, "extent computation happened");
     }
 }
