@@ -39,9 +39,6 @@
 using namespace gridtools;
 using namespace enumtype;
 
-typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
 struct TensionShearFunction {
     using T_sqr_s = inout_accessor< 0 >;
     using S_sqr_uv = inout_accessor< 1 >;
@@ -52,7 +49,7 @@ struct TensionShearFunction {
     using arg_list = boost::mpl::vector< T_sqr_s, S_sqr_uv, u_in, v_in >;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
 struct SmagCoeffFunction {
@@ -65,7 +62,7 @@ struct SmagCoeffFunction {
     using arg_list = boost::mpl::vector< smag_u, smag_v, T_sqr_s, S_sqr_uv >;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
 struct SmagUpdateFunction {
@@ -80,7 +77,7 @@ struct SmagUpdateFunction {
     using arg_list = boost::mpl::vector< u_out, v_out, u_in, v_in, smag_u, smag_v >;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
 #ifdef __CUDACC__
@@ -133,10 +130,7 @@ TEST(multiple_outputs, compute_extents) {
 
     halo_descriptor di{2, 2, 2, 7, 10};
     halo_descriptor dj{2, 2, 2, 7, 10};
-    grid< axis > grid_(di, dj);
-
-    grid_.value_list[0] = 0;
-    grid_.value_list[1] = 9;
+    auto grid_ = make_grid(di, dj, 10);
 
     auto computation = make_computation< BACKEND >(
         domain,

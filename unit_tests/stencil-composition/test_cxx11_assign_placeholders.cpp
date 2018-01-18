@@ -119,7 +119,7 @@ TEST(assign_placeholders, test) {
 
     // Check data store type correctness
     typedef typename boost::is_same< decltype(domain.m_arg_storage_pair_list),
-        boost::fusion::vector6< gridtools::arg_storage_pair< gridtools::tmp_arg< 0u, dst1_tmp >, dst1_tmp >,
+        boost::fusion::set< gridtools::arg_storage_pair< gridtools::tmp_arg< 0u, dst1_tmp >, dst1_tmp >,
                                          gridtools::arg_storage_pair< gridtools::tmp_arg< 1u, dst1_tmp >, dst1_tmp >,
                                          gridtools::arg_storage_pair< gridtools::tmp_arg< 2u, dst2_tmp >, dst2_tmp >,
                                          gridtools::arg_storage_pair< gridtools::arg< 3u, dst2 >, dst2 >,
@@ -128,83 +128,13 @@ TEST(assign_placeholders, test) {
         check_storages_t;
     GRIDTOOLS_STATIC_ASSERT(check_storages_t::value, "Type check failed.");
 
-    // Check metadata_set correctness
-    typedef typename boost::is_same< gridtools::metadata_set< boost::mpl::v_item<
-                                         // temporary with halo size 1
-                                         gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
-                                             gridtools::layout_map< 0, 1, 2 >,
-                                             gridtools::halo< 1u, 1u, 1u >,
-                                             gridtools::alignment< 1u > > >,
-                                         boost::mpl::v_item<
-                                             // temporary with halo size 2
-                                             gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
-                                                 gridtools::layout_map< 0, 1, 2 >,
-                                                 gridtools::halo< 2u, 2u, 2u >,
-                                                 gridtools::alignment< 1u > > >,
-                                             boost::mpl::v_item<
-                                                 // non-temporary with halo size 1
-                                                 gridtools::pointer< const gridtools::host_storage_info< 0u,
-                                                     gridtools::layout_map< 0, 1, 2 >,
-                                                     gridtools::halo< 2u, 2u, 2u >,
-                                                     gridtools::alignment< 1u > > >,
-                                                 boost::mpl::v_item<
-                                                     // non-temporary with halo size 2
-                                                     gridtools::pointer< const gridtools::host_storage_info< 0u,
-                                                         gridtools::layout_map< 0, 1, 2 >,
-                                                         gridtools::halo< 1u, 1u, 1u >,
-                                                         gridtools::alignment< 1u > > >,
-                                                     boost::mpl::vector0< boost::mpl::na >,
-                                                     0 >,
-                                                 0 >,
-                                             0 >,
-                                         0 > >,
-        typename decltype(domain)::metadata_set_t >::type check_storage_infos_t;
-
-    GRIDTOOLS_STATIC_ASSERT(check_storage_infos_t::value, "Type check failed.");
-
     // Check pointers
-    assert(domain.template get_arg_storage_pair< p_flx >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_fly >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_lap >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_coeff >().ptr.get() == &coeff);
-    assert(domain.template get_arg_storage_pair< p_in >().ptr.get() == &in);
-    assert(domain.template get_arg_storage_pair< p_out >().ptr.get() == &out);
-
-    // Temporary storage info ptrs are not present yet
-    assert(!(domain.metadata_set_view()
-                 .template present< gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
-                     gridtools::layout_map< 0, 1, 2 >,
-                     gridtools::halo< 1u, 1u, 1u >,
-                     gridtools::alignment< 1u > > > >()));
-    assert(!(domain.metadata_set_view()
-                 .template present< gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
-                     gridtools::layout_map< 0, 1, 2 >,
-                     gridtools::halo< 2u, 2u, 2u >,
-                     gridtools::alignment< 1u > > > >()));
-
-    // Non-temporary storage info ptrs are present
-    assert((domain.metadata_set_view()
-                .template present< gridtools::pointer< const gridtools::host_storage_info< 0u,
-                    gridtools::layout_map< 0, 1, 2 >,
-                    gridtools::halo< 1u, 1u, 1u >,
-                    gridtools::alignment< 1u > > > >()));
-    assert((domain.metadata_set_view()
-                .template present< gridtools::pointer< const gridtools::host_storage_info< 0u,
-                    gridtools::layout_map< 0, 1, 2 >,
-                    gridtools::halo< 2u, 2u, 2u >,
-                    gridtools::alignment< 1u > > > >()));
-    assert((domain.metadata_set_view()
-                .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
-                    gridtools::layout_map< 0, 1, 2 >,
-                    gridtools::halo< 1u, 1u, 1u >,
-                    gridtools::alignment< 1u > > > >()
-                .get() == in.get_storage_info_ptr().get()));
-    assert((domain.metadata_set_view()
-                .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
-                    gridtools::layout_map< 0, 1, 2 >,
-                    gridtools::halo< 2u, 2u, 2u >,
-                    gridtools::alignment< 1u > > > >()
-                .get() == out.get_storage_info_ptr().get()));
+    assert(!domain.template get_arg_storage_pair< p_flx >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_fly >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_lap >().m_value);
+    assert(domain.template get_arg_storage_pair< p_coeff >().m_value == coeff);
+    assert(domain.template get_arg_storage_pair< p_in >().m_value == in);
+    assert(domain.template get_arg_storage_pair< p_out >().m_value == out);
 
     // lets do a reassign
     storage_info1_t meta_1_new(d1, d2, d3);
@@ -217,49 +147,12 @@ TEST(assign_placeholders, test) {
     domain.reassign_storages_impl(out_new, in_new, coeff_new);
 
     // check pointers again
-    assert(domain.template get_arg_storage_pair< p_flx >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_fly >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_lap >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_coeff >().ptr.get() == &out_new);
-    assert(domain.template get_arg_storage_pair< p_in >().ptr.get() == &in_new);
-    assert(domain.template get_arg_storage_pair< p_out >().ptr.get() == &coeff_new);
-
-    // Temporary storage info ptrs are not present yet
-    assert(!(domain.metadata_set_view()
-                 .template present< gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
-                     gridtools::layout_map< 0, 1, 2 >,
-                     gridtools::halo< 1u, 1u, 1u >,
-                     gridtools::alignment< 1u > > > >()));
-    assert(!(domain.metadata_set_view()
-                 .template present< gridtools::pointer< const gridtools::host_storage_info< unsigned(-1),
-                     gridtools::layout_map< 0, 1, 2 >,
-                     gridtools::halo< 2u, 2u, 2u >,
-                     gridtools::alignment< 1u > > > >()));
-
-    // Non-temporary storage info ptrs are present
-    assert((domain.metadata_set_view()
-                .template present< gridtools::pointer< const gridtools::host_storage_info< 0u,
-                    gridtools::layout_map< 0, 1, 2 >,
-                    gridtools::halo< 1u, 1u, 1u >,
-                    gridtools::alignment< 1u > > > >()));
-    assert((domain.metadata_set_view()
-                .template present< gridtools::pointer< const gridtools::host_storage_info< 0u,
-                    gridtools::layout_map< 0, 1, 2 >,
-                    gridtools::halo< 2u, 2u, 2u >,
-                    gridtools::alignment< 1u > > > >()));
-
-    assert((domain.metadata_set_view()
-                .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
-                    gridtools::layout_map< 0, 1, 2 >,
-                    gridtools::halo< 1u, 1u, 1u >,
-                    gridtools::alignment< 1u > > > >()
-                .get() == in_new.get_storage_info_ptr().get()));
-    assert((domain.metadata_set_view()
-                .template get< gridtools::pointer< const gridtools::host_storage_info< 0u,
-                    gridtools::layout_map< 0, 1, 2 >,
-                    gridtools::halo< 2u, 2u, 2u >,
-                    gridtools::alignment< 1u > > > >()
-                .get() == coeff_new.get_storage_info_ptr().get()));
+    assert(!domain.template get_arg_storage_pair< p_flx >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_fly >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_lap >().m_value);
+    assert(domain.template get_arg_storage_pair< p_coeff >().m_value == out_new);
+    assert(domain.template get_arg_storage_pair< p_in >().m_value == in_new);
+    assert(domain.template get_arg_storage_pair< p_out >().m_value == coeff_new);
 
     // test the reassign using arg_storage_pairs
     data_store1_t in_new_2(meta_1_new);
@@ -269,10 +162,10 @@ TEST(assign_placeholders, test) {
     domain.reassign_arg_storage_pairs_impl((p_coeff() = out_new_2), (p_out() = coeff_new_2), (p_in() = in_new_2));
 
     // check pointers again
-    assert(domain.template get_arg_storage_pair< p_flx >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_fly >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_lap >().ptr.get() == 0x0);
-    assert(domain.template get_arg_storage_pair< p_coeff >().ptr.get() == &out_new_2);
-    assert(domain.template get_arg_storage_pair< p_in >().ptr.get() == &in_new_2);
-    assert(domain.template get_arg_storage_pair< p_out >().ptr.get() == &coeff_new_2);
+    assert(!domain.template get_arg_storage_pair< p_flx >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_fly >().m_value);
+    assert(!domain.template get_arg_storage_pair< p_lap >().m_value);
+    assert(domain.template get_arg_storage_pair< p_coeff >().m_value == out_new_2);
+    assert(domain.template get_arg_storage_pair< p_in >().m_value == in_new_2);
+    assert(domain.template get_arg_storage_pair< p_out >().m_value == coeff_new_2);
 }

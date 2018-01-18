@@ -54,9 +54,6 @@ typedef backend< BACKEND_ARCH, GRIDBACKEND, Naive > be;
 #endif
 #endif
 
-typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-
 namespace data_store_field_test {
 
     struct A {
@@ -67,7 +64,7 @@ namespace data_store_field_test {
         typedef boost::mpl::vector< pin, pout > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             // copy first component elements
             eval(pout(comp(0), snap(0))) = eval(pin(comp(0), snap(0)));
             // copy second component elements
@@ -127,15 +124,13 @@ namespace data_store_field_test {
 
         uint_t halo_size = 0;
 
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - 1 - halo_size, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - 1 - halo_size, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - 1 - halo_size, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - 1 - halo_size, d2};
 
-        grid< axis > gr(di, dj);
-        gr.value_list[0] = 0;
-        gr.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(di, dj, d3);
 
         auto comp = make_computation< be >(domain,
-            gr,
+            grid_,
             make_multistage(execute< forward >(),
                                                define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
                                                make_stage< A >(p_in(), p_tmp()),

@@ -60,9 +60,6 @@ namespace gridtools {
         };
     }
 
-    template < typename T, typename U >
-    struct get_storage_accessor;
-
     /**
      * @struct cache_storage
      * simple storage class for storing caches. Current version is multidimensional, but allows the user only to cache
@@ -148,7 +145,7 @@ namespace gridtools {
                 (thread_pos[0] - iminus_t::value) * meta_t::template stride< 0 >() +
                 (thread_pos[1] - jminus_t::value) * meta_t::template stride< 1 + (extra_dims) >() +
                 (extra_dims)*Color * meta_t::template stride< 1 >() +
-                padded_total_length() * get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
+                padded_total_length() * get_datafield_offset< typename StorageWrapper::data_store_t >::get(accessor_) +
                 _impl::get_cache_offset< meta_t >(accessor_);
             _impl::check_bounds_cache_offset< meta_t >(accessor_);
             assert((extra_) < (padded_total_length() * StorageWrapper::num_of_storages));
@@ -180,9 +177,10 @@ namespace gridtools {
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) {
             check_kcache_access(accessor_);
 
-            const int_t index_ = (int_t)padded_total_length() *
-                                     (int_t)get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                 _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
+            const int_t index_ =
+                (int_t)padded_total_length() *
+                    (int_t)get_datafield_offset< typename StorageWrapper::data_store_t >::get(accessor_) +
+                _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
             assert(index_ >= 0);
             assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));
 
@@ -198,9 +196,10 @@ namespace gridtools {
             typename boost::enable_if_c< is_acc_k_cache< Accessor >::value, int >::type = 0) const {
             check_kcache_access(accessor_);
 
-            const int_t index_ = (int_t)padded_total_length() *
-                                     (int_t)get_datafield_offset< typename StorageWrapper::storage_t >::get(accessor_) +
-                                 _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
+            const int_t index_ =
+                (int_t)padded_total_length() *
+                    (int_t)get_datafield_offset< typename StorageWrapper::data_store_t >::get(accessor_) +
+                _impl::get_cache_offset< meta_t >(accessor_) - kminus_t::value;
 
             assert(index_ >= 0);
             assert(index_ < (padded_total_length() * StorageWrapper::num_of_storages));

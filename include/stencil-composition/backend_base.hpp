@@ -49,11 +49,9 @@
 #include "./backend_host/backend_host.hpp"
 #endif
 
-#include "../common/meta_array.hpp"
 #include "../common/pair.hpp"
 #include "./accessor.hpp"
 #include "./aggregator_type.hpp"
-#include "./conditionals/condition.hpp"
 #include "./intermediate_impl.hpp"
 #include "./mss.hpp"
 #include "./mss_local_domain.hpp"
@@ -70,7 +68,6 @@
 */
 
 namespace gridtools {
-
     /**
         this struct contains the 'run' method for all backends, with a
         policy determining the specific type. Each backend contains a
@@ -169,27 +166,10 @@ namespace gridtools {
             gp.sync();
         }
 
-        /**
-            Method to instantiate the views (according to the given backend)
-         */
-        template < typename AggregatorType, typename ViewFusionMap >
-        static void instantiate_views(AggregatorType &aggregator, ViewFusionMap &viewmap) {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-            boost::fusion::for_each(
-                viewmap, typename backend_traits_t::template instantiate_view< AggregatorType >(aggregator));
-        }
+        using make_view_f = typename backend_traits_t::make_view_f;
 
-        /**
-            Method to extract a storage_info pointer from a metadata_set
-         */
-        template < typename StorageInfoPtr, typename AggregatorType >
-        static typename StorageInfoPtr::value_type *extract_storage_info_ptrs(AggregatorType const &aggregator) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_storage_info< typename boost::decay< typename StorageInfoPtr::value_type >::type >::value),
-                GT_INTERNAL_ERROR);
-            return backend_traits_t::template extract_storage_info_ptr(
-                aggregator.metadata_set_view().template get< StorageInfoPtr >().get());
-        }
+        /// Method to extract a storage_info pointer.
+        using extract_storage_info_ptr_f = typename backend_traits_t::extract_storage_info_ptr_f;
 
         /**
             Method to extract get a storage_info for a temporary storage (could either be a icosahedral or a standard
@@ -203,171 +183,48 @@ namespace gridtools {
             return grid_traits_t::template instantiate_storage_info< MaxExtent, this_type, StorageWrapper >(grid);
         }
 
-        /**
-         * @brief metafunction that computes the map of all the temporaries and their associated ij extents
-         * @tparam AggregatorType domain type containing the placeholders for all storages (including temporaries)
-         * @tparam MssComponents the mss components of the MSS
-         * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
-         *      defined for the different functors of a MSS.
-         */
-        template < typename AggregatorType, typename MssComponents >
-        struct obtain_map_extents_temporaries_mss {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
-            typedef typename MssComponents::extent_sizes_t ExtendSizes;
+        using block_size_t = typename backend_traits_t::template get_block_size< StrategyId >::type;
 
-            // filter all the temporary args
-            typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
-                boost::mpl::vector0<>,
-                boost::mpl::if_< is_tmp_arg< boost::mpl::_2 >,
-                                                   boost::mpl::push_back< boost::mpl::_1, boost::mpl::_2 >,
-                                                   boost::mpl::_1 > >::type list_of_temporaries;
-
-            // vector of written temporaries per functor (vector of vectors)
-            typedef typename MssComponents::written_temps_per_functor_t written_temps_per_functor_t;
-
-            typedef typename boost::mpl::fold< list_of_temporaries,
-                boost::mpl::map0<>,
-                _impl::associate_extents_map< boost::mpl::_1,
-                                                   boost::mpl::_2,
-                                                   written_temps_per_functor_t,
-                                                   ExtendSizes > >::type type;
-        };
-
-        /**
-         * @brief metafunction that merges two maps of <temporary, ij extent>
-         * The merge is performed by computing the union of all the extents found associated
-         * to the same temporary, i.e. the enclosing extent.
-         * @tparam extent_map1 first map to merge
-         * @tparam extent_map2 second map to merge
-          */
-        template < typename extent_map1, typename extent_map2 >
-        struct merge_extent_temporary_maps {
-            typedef typename boost::mpl::fold<
-                extent_map1,
-                extent_map2,
-                boost::mpl::if_< boost::mpl::has_key< extent_map2, boost::mpl::first< boost::mpl::_2 > >,
-                    boost::mpl::insert< boost::mpl::_1,
-                                     boost::mpl::pair< boost::mpl::first< boost::mpl::_2 >,
-                                            enclosing_extent< boost::mpl::second< boost::mpl::_2 >,
-                                                           boost::mpl::at< extent_map2,
-                                                                  boost::mpl::first< boost::mpl::_2 > > > > >,
-                    boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > > >::type type;
-        };
-
-        /**
-         * @brief metafunction that computes the map of all the temporaries and their associated ij extents
-         * for all the Mss components in an array (corresponding to a Computation)
-         * @tparam AggregatorType domain type containing the placeholders for all storages (including temporaries)
-         * @tparam MssComponentsArray meta array of the mss components of all MSSs
-         * @output map of <temporary placeholder, extent> where the extent is the enclosing extent of all the extents
-         *      defined for the temporary in all MSSs.
-         */
-        template < typename AggregatorType, typename MssComponentsArray >
-        struct obtain_map_extents_temporaries_mss_array {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-
-            typedef typename boost::mpl::fold<
-                typename MssComponentsArray::elements,
-                boost::mpl::map0<>,
-                merge_extent_temporary_maps< boost::mpl::_1,
-                    obtain_map_extents_temporaries_mss< AggregatorType, boost::mpl::_2 > > >::type type;
-        };
-
-        template < typename AggregatorType, typename MssArray1, typename MssArray2, typename Cond >
-        struct obtain_map_extents_temporaries_mss_array< AggregatorType, condition< MssArray1, MssArray2, Cond > > {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-
-            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray1 >::type type1;
-            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssArray2 >::type type2;
-            typedef
-                typename boost::mpl::fold< type2, type1, boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type
-                    type;
-        };
-
-        /**
-         * @brief compute a list with all the storage_wrappers
-         * @tparam AggregatorType domain
-         * @tparam MssComponentsArray meta array of mss components
-         */
-        template < typename AggregatorType, typename MssComponentsArray >
-        struct obtain_storage_wrapper_list_t {
-
-            GRIDTOOLS_STATIC_ASSERT((is_condition< MssComponentsArray >::value ||
-                                        is_meta_array_of< MssComponentsArray, is_mss_components >::value),
-                GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-
-            typedef typename backend_traits_t::template get_block_size< StrategyId >::type block_size_t;
-
-            static const uint_t tileI = block_size_t::i_size_t::value;
-            static const uint_t tileJ = block_size_t::j_size_t::value;
-
-            typedef typename obtain_map_extents_temporaries_mss_array< AggregatorType, MssComponentsArray >::type
-                map_of_extents;
-
-            typedef typename boost::mpl::fold<
-                map_of_extents,
-                boost::mpl::vector0<>,
-                boost::mpl::push_back< boost::mpl::_1,
-                    typename _impl::get_storage_wrapper< tileI, tileJ >::template apply< boost::mpl::_2 > > >::type
-                type;
-        };
+        using mss_fuse_esfs_strategy = typename backend_traits_t::mss_fuse_esfs_strategy;
 
         /**
          * \brief calls the \ref gridtools::run_functor for each functor in the FunctorList.
          * the loop over the functors list is unrolled at compile-time using the for_each construct.
          * @tparam MssArray  meta array of mss
-         * \tparam Domain Domain class (not really useful maybe)
          * \tparam Grid Coordinate class with domain sizes and splitter grid
          * \tparam MssLocalDomainArray sequence of mss local domain (containing each the sequence of local domain list)
          */
-        template < typename MssComponentsArray,
+        template < typename MssComponents,
             typename Grid,
-            typename MssLocalDomainArray,
+            typename MssLocalDomains,
             typename ReductionData > // List of local domain to be pbassed to functor at<i>
         static void
-        run(/*Domain const& domain, */ Grid const &grid,
-            MssLocalDomainArray &mss_local_domain_list,
-            ReductionData &reduction_data) {
+        run(Grid const &grid, MssLocalDomains &mss_local_domain_list, ReductionData &reduction_data) {
             // TODO: I would swap the arguments coords and local_domain_list here, for consistency
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomains, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
 
-            strategy_traits_t::template fused_mss_loop< MssComponentsArray, backend_ids_t, ReductionData >::run(
+            strategy_traits_t::template fused_mss_loop< MssComponents, backend_ids_t, ReductionData >::run(
                 mss_local_domain_list, grid, reduction_data);
         }
 
         /** Initial interface
 
             Threads are oganized in a 2D grid. These two functions
-            n_i_pes() and n_j_pes() retrieve the
+            n_i_pes and n_j_pes retrieve the
             information about how to compute those sizes.
 
             The information needed by those functions are the sizes of the
             domains (especially if the GPU is used)
 
             n_i_pes()(size): number of threads on the first dimension of the thread grid
-        */
-        static query_i_threads_f n_i_pes() { return &backend_traits_t::n_i_pes; }
-
-        /** Initial interface
-
-            Threads are oganized in a 2D grid. These two functions
-            n_i_pes() and n_j_pes() retrieve the
-            information about how to compute those sizes.
-
-            The information needed by those functions are the sizes of the
-            domains (especially if the GPU is used)
-
             n_j_pes()(size): number of threads on the second dimension of the thread grid
         */
-        static query_j_threads_f n_j_pes() { return &backend_traits_t::n_j_pes; }
+        static constexpr query_i_threads_f n_i_pes = &backend_traits_t::n_i_pes;
+        static constexpr query_j_threads_f n_j_pes = &backend_traits_t::n_j_pes;
+
+        using setup_grid_f = typename backend_traits_t::setup_grid_f;
     };
 
 } // namespace gridtools

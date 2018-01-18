@@ -54,7 +54,6 @@
 #include <boost/utility/enable_if.hpp>
 #include "expressions/expressions.hpp"
 #include "../common/array.hpp"
-#include "../common/meta_array.hpp"
 #include "../common/generic_metafunctions/reversed_range.hpp"
 #include "../common/generic_metafunctions/static_if.hpp"
 #include "total_storages.hpp"
@@ -575,21 +574,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(
             (boost::mpl::size< typename LocalDomain::data_ptr_fusion_map >::value > Accessor::index_t::value),
             GT_INTERNAL_ERROR);
-        typedef typename LocalDomain::template get_storage< typename Accessor::index_t >::type storage_t;
-        typedef storage_t type;
-    };
-
-    template < typename LocalDomain, typename Accessor >
-    struct get_storage_pointer_accessor {
-        GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocalDomain >::value, GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT(is_accessor< Accessor >::value, GT_INTERNAL_ERROR);
-
-        GRIDTOOLS_STATIC_ASSERT(
-            (boost::mpl::size< typename LocalDomain::data_ptr_fusion_map >::value > Accessor::index_t::value),
-            GT_INTERNAL_ERROR);
-
-        typedef typename boost::add_pointer<
-            typename get_storage_accessor< LocalDomain, Accessor >::type::value_type::value_type >::type type;
+        typedef typename LocalDomain::template get_data_store< typename Accessor::index_t >::type type;
     };
 
     template < typename T >
@@ -634,7 +619,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 
         typedef typename get_storage_type<
-            typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::storage_t >::type::data_t type;
+            typename get_arg_from_accessor< Accessor, IterateDomainArguments >::type::data_store_t >::type::data_t type;
     };
 
     /**

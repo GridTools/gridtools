@@ -197,7 +197,7 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint Dim >
+        template < uint_t Dim >
         GT_FUNCTION constexpr int length() const {
             return m_storage_info->template length< Dim >();
         }
@@ -207,7 +207,7 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint Dim >
+        template < uint_t Dim >
         GT_FUNCTION constexpr int total_length() const {
             return m_storage_info->template total_length< Dim >();
         }
@@ -218,7 +218,7 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint Dim >
+        template < uint_t Dim >
         GT_FUNCTION constexpr int total_begin() const {
             return m_storage_info->template total_begin< Dim >();
         }
@@ -228,7 +228,7 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint Dim >
+        template < uint_t Dim >
         GT_FUNCTION constexpr int begin() const {
             return m_storage_info->template begin< Dim >();
         }
@@ -239,7 +239,7 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint Dim >
+        template < uint_t Dim >
         GT_FUNCTION constexpr int total_end() const {
             return m_storage_info->template total_end< Dim >();
         }
@@ -249,7 +249,7 @@ namespace gridtools {
          *
          * \tparam Dim The index of the dimension
          */
-        template < uint Dim >
+        template < uint_t Dim >
         GT_FUNCTION constexpr int end() const {
             return m_storage_info->template end< Dim >();
         }

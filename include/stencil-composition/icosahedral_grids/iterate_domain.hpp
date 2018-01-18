@@ -42,7 +42,6 @@
 #include "../../common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
-#include "../../common/generic_metafunctions/vector_to_set.hpp"
 #include "../../common/array.hpp"
 #include "../../common/explode_array.hpp"
 #include "../iterate_domain_fwd.hpp"
@@ -335,7 +334,6 @@ namespace gridtools {
             typedef typename local_domain_t::template get_arg< index_t >::type arg_t;
             typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
             typedef typename storage_wrapper_t::data_t data_t;
 
@@ -360,7 +358,7 @@ namespace gridtools {
 
             typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_t storage_t;
+            typedef typename storage_wrapper_t::data_store_t data_store_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
             typedef typename storage_wrapper_t::data_t data_t;
 
@@ -373,8 +371,9 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(Accessor::n_dimensions > storage_info_t::layout_t::masked_length,
                 "You specified a too small dimension for the data_store_field");
 
-            const uint_t idx = get_datafield_offset< storage_t >::get(accessor);
-            assert(idx < storage_t::num_of_storages && "Out of bounds access when accessing data store field element.");
+            const uint_t idx = get_datafield_offset< data_store_t >::get(accessor);
+            assert(
+                idx < data_store_t::num_of_storages && "Out of bounds access when accessing data store field element.");
             return data_pointer().template get< index_t::value >()[idx];
         }
 
@@ -430,7 +429,6 @@ namespace gridtools {
 
             typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
             typedef typename storage_wrapper_t::data_t data_t;
 
@@ -482,7 +480,6 @@ namespace gridtools {
 
             typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
             typedef typename storage_wrapper_t::data_t data_t;
 
@@ -530,7 +527,6 @@ namespace gridtools {
 
             typedef typename storage_wrapper_elem< arg_t, typename local_domain_t::storage_wrapper_list_t >::type
                 storage_wrapper_t;
-            typedef typename storage_wrapper_t::storage_t storage_t;
             typedef typename storage_wrapper_t::storage_info_t storage_info_t;
             typedef typename storage_wrapper_t::data_t data_t;
 
