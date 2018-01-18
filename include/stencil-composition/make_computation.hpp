@@ -56,7 +56,6 @@
 #include <boost/make_shared.hpp>
 #endif
 #include "intermediate.hpp"
-#include "../common/meta_array.hpp"
 #include "caches/define_caches.hpp"
 
 #ifndef NDEBUG

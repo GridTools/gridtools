@@ -87,12 +87,6 @@ namespace gridtools {
         return map_function< MapF, typename get_location_type_of< Args... >::type, Args... >(f, args...);
     }
 
-    template < typename T >
-    struct identity {
-        GT_FUNCTION
-        T operator()(T v) const { return v; }
-    };
-
     /**
        This struct is the one holding the function to apply when iterating
        on neighbors

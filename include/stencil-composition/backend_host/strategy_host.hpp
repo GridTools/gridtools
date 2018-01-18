@@ -57,26 +57,23 @@ namespace gridtools {
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam MssComponentsArray a meta array with the mss components of all MSS
+         * @tparam MssComponents a meta array with the mss components of all MSS
          * @tparam BackendIds ids of backend
          */
-        template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
+        template < typename MssComponents, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-            typedef boost::mpl::range_c< uint_t,
-                0,
-                boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
+            typedef boost::mpl::range_c< uint_t, 0, boost::mpl::size< MssComponents >::type::value > iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 boost::mpl::for_each< iter_range >(
-                    mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(
+                    mss_functor< MssComponents, Grid, LocalDomainListArray, BackendIds, ReductionData >(
                         local_domain_lists, grid, reduction_data, 0, 0));
             }
         };
@@ -131,19 +128,16 @@ namespace gridtools {
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam MssComponentsArray a meta array with the mss components of all MSS
+         * @tparam MssComponents a meta array with the mss components of all MSS
          * @tparam BackendIds ids of backend
          */
-        template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
+        template < typename MssComponents, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
-            typedef boost::mpl::range_c< uint_t,
-                0,
-                boost::mpl::size< typename MssComponentsArray::elements >::type::value > iter_range;
+            typedef boost::mpl::range_c< uint_t, 0, boost::mpl::size< MssComponents >::type::value > iter_range;
 
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
@@ -160,11 +154,9 @@ namespace gridtools {
 #pragma omp for nowait
                     for (uint_t bi = 0; bi <= NBI; ++bi) {
                         for (uint_t bj = 0; bj <= NBJ; ++bj) {
-                            boost::mpl::for_each< iter_range >(mss_functor< MssComponentsArray,
-                                Grid,
-                                LocalDomainListArray,
-                                BackendIds,
-                                ReductionData >(local_domain_lists, grid, reduction_data, bi, bj));
+                            boost::mpl::for_each< iter_range >(
+                                mss_functor< MssComponents, Grid, LocalDomainListArray, BackendIds, ReductionData >(
+                                    local_domain_lists, grid, reduction_data, bi, bj));
                         }
                     }
                 }
