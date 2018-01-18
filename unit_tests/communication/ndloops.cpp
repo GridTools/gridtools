@@ -210,5 +210,7 @@ TEST(Communication, ndloops) {
 
     std::cout << "result " << summ2.res << " time " << time << "\n";
 
+    delete[] storage;
+
     EXPECT_TRUE(true);
 }

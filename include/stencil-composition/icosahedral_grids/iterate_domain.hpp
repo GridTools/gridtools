@@ -42,7 +42,6 @@
 #include "../../common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"
-#include "../../common/generic_metafunctions/vector_to_set.hpp"
 #include "../../common/array.hpp"
 #include "../../common/explode_array.hpp"
 #include "../iterate_domain_fwd.hpp"
