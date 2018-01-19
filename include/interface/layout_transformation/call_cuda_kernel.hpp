@@ -33,28 +33,14 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "array.hpp"
-
-namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
-
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
-    }
-
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
-    }
-}
+// I am just annoyed by my IDE which uses clang-format and destroys the triple chevron all the time
+#ifdef __CUDACC__
+#define CALL_CUDA_KERNEL(name, grid, block, ...) name<<< grid, block >>>(__VA_ARGS__)
+#else
+// and this will prevent the IDE to complain about the syntax of the kernel call...
+#define CALL_CUDA_KERNEL(name, grid, block, ...) \
+    throw std::runtime_error("Something went wrong: a CUDA kernel was called when compiled for host")
+#endif

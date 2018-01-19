@@ -33,28 +33,34 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "array.hpp"
+#include "test_multi_iterator.cpp"
 
-namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
+static const uint_t Size = 2;
+using result_t = gridtools::array< size_t, Size * Size >;
 
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
-    }
+GT_FUNCTION int linear_index(size_t a, size_t b) { return a * Size + b; }
 
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
-    }
+__global__ void exec(result_t *out_ptr) {
+    gridtools::array< uint_t, 2 > dims{Size, Size};
+    result_t &out = *out_ptr;
+
+    for (size_t i = 0; i < Size * Size; ++i)
+        out[i] = 0;
+
+    // fill the array with its linearized index
+    iterate(dims, [&](size_t a, size_t b) { out[linear_index(a, b)] = linear_index(a, b); });
+};
+
+TEST(multi_iterator, iterate_on_device) {
+    result_t *out;
+    cudaMalloc(&out, sizeof(result_t));
+
+    exec<<< 1, 1 >>>(out);
+
+    result_t host_out;
+    cudaMemcpy(&host_out, out, sizeof(result_t), cudaMemcpyDeviceToHost);
+
+    for (size_t i = 0; i < Size * Size; ++i)
+        ASSERT_EQ(i, host_out[i]);
 }

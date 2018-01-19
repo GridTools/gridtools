@@ -33,28 +33,19 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "array.hpp"
+#include <gtest/gtest.h>
+#include "common/cuda_is_ptr.hpp"
 
-namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
+TEST(test_is_gpu_ptr, host_ptr_is_no_cuda_ptr) {
+    double *ptr = new double;
 
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
-    }
+    ASSERT_FALSE(gridtools::is_gpu_ptr(ptr));
 
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
-    }
+#ifdef __CUDACC__
+    // check that the error code is clean, see implementation of is_gpu_ptr()
+    ASSERT_TRUE(cudaGetLastError() == cudaSuccess);
+#endif
+
+    delete ptr;
 }

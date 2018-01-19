@@ -33,28 +33,39 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "array.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/cuda_is_ptr.hpp"
+#include "layout_transformation_config.hpp"
+#include "layout_transformation_helper.hpp"
+#include "layout_transformation_impl_cuda.hpp"
+#include "layout_transformation_impl_omp.hpp"
+
+#include <vector>
 
 namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
-
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
+    namespace impl {
+        bool both_gpu_ptrs(void *ptr1, void *ptr2) { return is_gpu_ptr(ptr1) && is_gpu_ptr(ptr2); }
+        bool both_not_gpu_ptrs(void *ptr1, void *ptr2) { return !is_gpu_ptr(ptr1) && !is_gpu_ptr(ptr2); }
     }
 
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
+    namespace interface {
+        template < typename DataType >
+        void transform(DataType *dst,
+            DataType *src,
+            const std::vector< uint_t > &dims,
+            const std::vector< uint_t > &dst_strides,
+            const std::vector< uint_t > &src_strides) {
+            if (impl::both_gpu_ptrs(dst, src))
+                impl::transform_cuda_loop(dst, src, dims, dst_strides, src_strides);
+            else if (impl::both_not_gpu_ptrs(dst, src))
+                impl::transform_openmp_loop(dst, src, dims, dst_strides, src_strides);
+            else
+                // TODO should we support this mixed mode?
+                throw std::runtime_error("transform(): source and destination pointers need to be from the same memory "
+                                         "space (both host or both gpu pointers)");
+        }
     }
 }

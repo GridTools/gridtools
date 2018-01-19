@@ -33,28 +33,54 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "array.hpp"
+#include <common/array.hpp>
+#include <gtest/gtest.h>
+#include "interface/layout_transformation/multi_iterator.hpp"
 
-namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
+#include "../../tools/triplet.hpp"
+using namespace gridtools;
 
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
-    }
+TEST(multi_iterator, 3D) {
+    gridtools::array< uint_t, 3 > dims{2, 4, 3};
+    using dim3_ = gridtools::array< size_t, 3 >;
 
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
-    }
+    std::vector< dim3_ > out;
+    iterate(dims, [&](size_t a, size_t b, size_t c) { out.push_back(dim3_{a, b, c}); });
+
+    for (size_t i = 0; i < dims[0]; ++i)
+        for (size_t j = 0; j < dims[1]; ++j)
+            for (size_t k = 0; k < dims[2]; ++k) {
+                ASSERT_EQ(1, std::count(out.begin(), out.end(), dim3_{i, j, k}));
+            }
+}
+
+TEST(multi_iterator, 2D) {
+    gridtools::array< uint_t, 2 > dims{2, 43};
+    using dim2_ = gridtools::array< size_t, 2 >;
+
+    std::vector< dim2_ > out;
+    iterate(dims, [&](size_t a, size_t b) { out.push_back(dim2_{a, b}); });
+
+    for (size_t i = 0; i < dims[0]; ++i)
+        for (size_t j = 0; j < dims[1]; ++j)
+            ASSERT_EQ(1, std::count(out.begin(), out.end(), dim2_{i, j}));
+}
+
+TEST(multi_iterator, 0D) {
+    gridtools::array< uint_t, 0 > dims;
+    std::vector< int > out;
+    iterate(dims, [&]() { out.push_back(0); });
+
+    ASSERT_EQ(0, out.size());
+}
+
+TEST(multi_iterator, 2D_with_size_zero) {
+    gridtools::array< uint_t, 2 > dims{0, 0};
+    using dim2_ = gridtools::array< size_t, 2 >;
+
+    std::vector< dim2_ > out;
+    iterate(dims, [&](size_t a, size_t b) { out.push_back(dim2_{a, b}); });
+
+    ASSERT_EQ(0, out.size());
 }

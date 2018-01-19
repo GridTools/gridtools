@@ -54,13 +54,13 @@ namespace gridtools {
     }
 
     template < typename Array, typename StorageInfo, typename... T >
-    typename boost::enable_if_c< (Array::n_dimensions == sizeof...(T)), const int >::type get_index(
+    typename boost::enable_if_c< (Array::size() == sizeof...(T)), const int >::type get_index(
         Array const &pos, StorageInfo storage_info, T... t) {
         return storage_info.index(t...);
     }
 
     template < typename Array, typename StorageInfo, typename... T >
-    typename boost::enable_if_c< (Array::n_dimensions > sizeof...(T)), const int >::type get_index(
+    typename boost::enable_if_c< (Array::size() > sizeof...(T)), const int >::type get_index(
         Array const &pos, StorageInfo storage_info, T... t) {
         return get_index(pos, storage_info, t..., pos[sizeof...(T)]);
     }

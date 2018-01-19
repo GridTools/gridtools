@@ -40,6 +40,7 @@
 #include <common/layout_map_metafunctions.hpp>
 #include <common/gt_assert.hpp>
 
+#include "../test_helper.hpp"
 using namespace gridtools;
 
 template < typename T >
@@ -123,6 +124,15 @@ TEST(LayoutMap, MaskedLayout) {
     GRIDTOOLS_STATIC_ASSERT(layout3::at(1) == -1, "wrong result in layout_map at method");
     GRIDTOOLS_STATIC_ASSERT(layout3::at(2) == 1, "wrong result in layout_map at method");
     GRIDTOOLS_STATIC_ASSERT(layout3::at(3) == 0, "wrong result in layout_map at method");
+}
+
+TEST(LayoutMap, DefaultLayout) {
+    ASSERT_TYPE_EQ< layout_map< 0 >, default_layout_map< 1 >::type >();
+    ASSERT_TYPE_EQ< layout_map< 0, 1 >, default_layout_map< 2 >::type >();
+    ASSERT_TYPE_EQ< layout_map< 0, 1, 2 >, default_layout_map< 3 >::type >();
+    ASSERT_TYPE_EQ< layout_map< 0, 1, 2, 3 >, default_layout_map< 4 >::type >();
+
+    ASSERT_TYPE_EQ< layout_map< 0, 1, 2, 3 >, default_layout_map_t< 4 > >();
 }
 
 TEST(LayoutMap, Extender) {
