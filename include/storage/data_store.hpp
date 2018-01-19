@@ -166,7 +166,7 @@ namespace gridtools {
          * @param info storage info instance
          */
         constexpr data_store(StorageInfo const &info, std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length())),
+            : m_shared_storage(new storage_t(info.padded_total_length(), info.get_initial_offset(), StorageInfo::alignment_t::value)),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
@@ -189,7 +189,7 @@ namespace gridtools {
         data_store(StorageInfo const &info,
             typename appropriate_function_t< data_t, StorageInfo >::type const &initializer,
             std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length())),
+            : m_shared_storage(new storage_t(info.padded_total_length(),info.get_initial_offset(),StorageInfo::alignment_t::value)),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {
             // initialize the storage with the given lambda
             lambda_initializer(initializer, info, m_shared_storage->get_cpu_ptr());
@@ -233,7 +233,7 @@ namespace gridtools {
             ASSERT_OR_THROW((!m_shared_storage_info.get() && !m_shared_storage.get()),
                 "This data store has already been allocated.");
             m_shared_storage_info = std::make_shared< storage_info_t >(info);
-            m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->padded_total_length());
+            m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->padded_total_length(), m_shared_storage_info->get_initial_offset(), StorageInfo::alignment_t::value);
         }
 
         /**

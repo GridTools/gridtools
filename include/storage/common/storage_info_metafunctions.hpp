@@ -120,11 +120,12 @@ namespace gridtools {
         // gt_ceil(2/32) * 32 - 2 = 1 * 32 - 2 = 30. This means the initial offset
         // is 30, followed by 2 halo points, followed by an aligned non-halo point.
         GT_FUNCTION constexpr static uint_t compute() {
-            return ((Alignment::value > 1u) && (get_first_stride_dim_halo() > 0))
-                       ? static_cast< uint_t >(
-                             gt_ceil((float)get_first_stride_dim_halo() / (float)Alignment::value) * Alignment::value -
-                             get_first_stride_dim_halo())
-                       : 0;
+            return 0;
+            // return ((Alignment::value > 1u) && (get_first_stride_dim_halo() > 0))
+            //            ? static_cast< uint_t >(
+            //                  gt_ceil((float)get_first_stride_dim_halo() / (float)Alignment::value) * Alignment::value -
+            //                  get_first_stride_dim_halo())
+            //            : 0;
         }
     };
 

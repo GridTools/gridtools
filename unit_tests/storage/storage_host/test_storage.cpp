@@ -41,8 +41,8 @@
 
 TEST(StorageHostTest, Simple) {
     // create two storages
-    gridtools::host_storage< int > s1(2);
-    gridtools::host_storage< int > s2(2);
+    gridtools::host_storage< int > s1(2, 0, 0);
+    gridtools::host_storage< int > s2(2, 0, 0);
     // test the is_storage check
     GRIDTOOLS_STATIC_ASSERT(
         gridtools::is_storage< decltype(s1) >::type::value, "is_storage check is not working anymore");

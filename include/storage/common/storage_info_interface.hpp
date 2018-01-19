@@ -295,7 +295,7 @@ namespace gridtools {
          * @return total size including dimensions, halos, initial_offset, padding, and initial_offset
          */
         GT_FUNCTION constexpr uint_t padded_total_length() const {
-            return size_part< true, true >() + get_initial_offset();
+            return size_part< true, true >() /*+ get_initial_offset()*/;
         }
 
         /*
@@ -492,10 +492,10 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Ints) == ndims,
                 GT_INTERNAL_ERROR_MSG("Index function called with wrong number of arguments."));
 #ifdef NDEBUG
-            return index_part< 0 >(idx...) + get_initial_offset();
+            return index_part< 0 >(idx...) /*+ get_initial_offset()*/;
 #else
             return error_or_return(check_bounds< 0 >(idx...),
-                index_part< 0 >(idx...) + get_initial_offset(),
+                                   index_part< 0 >(idx...) /*+ get_initial_offset()*/,
                 "Storage out of bounds access");
 #endif
         }
@@ -517,8 +517,9 @@ namespace gridtools {
          * aligned. Therefore we have to introduce an initial offset.
          * @return initial offset
          */
-        GT_FUNCTION static constexpr uint_t get_initial_offset() {
-            return alignment_impl< alignment_t, layout_t, halo_t >::InitialOffset;
+        GT_FUNCTION uint_t get_initial_offset() const {
+            return index(halo_t::template at<0>(), halo_t::template at<1>(), halo_t::template at<2>());
+            // return alignment_impl< alignment_t, layout_t, halo_t >::InitialOffset;
         }
 
         /*

@@ -38,6 +38,7 @@
 
 #include <assert.h>
 
+#include <cstddef>
 #include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
@@ -63,7 +64,7 @@ namespace gridtools {
         typedef state_machine state_machine_t;
 
       private:
-        data_t *m_allocated_ptr;
+        data_t *m_allocated_ptr = nullptr;
         data_t *m_cpu_ptr;
         ownership m_ownership = ownership::Full;
 
@@ -72,7 +73,23 @@ namespace gridtools {
          * @brief host_storage constructor. Just allocates enough memory on the Host.
          * @param size defines the size of the storage and the allocated space.
          */
-        constexpr host_storage(uint_t size, uint_t offset_to_align=0, uint_t align=0) : m_allocated_ptr(new data_t[size]), m_cpu_ptr(m_allocated_ptr) {}
+        /*constexpr*/ host_storage(uint_t size, uint_t offset_to_align, uint_t align)
+            : m_allocated_ptr(new data_t[size+align/sizeof(data_t)])
+        {
+            uint_t align_v = align /*/ sizeof(data_t)*/;
+            uint_t delta = reinterpret_cast<std::uintptr_t>(m_allocated_ptr) % align_v;
+            uint_t sigma = ((align_v-1)*offset_to_align)%align_v;
+            std::cout << "delta = " << delta << ", "
+                      << "sigma = " << sigma << ", "
+                      << "initial offset = " << offset_to_align << ", "
+                      << "alignment = " << align << "\n";
+
+            if (delta <= sigma) {
+                m_cpu_ptr = m_allocated_ptr + sigma - delta;
+            } else {
+                m_cpu_ptr = m_allocated_ptr + align_v + sigma - delta;
+            }
+        }
 
         /*
          * @brief host_storage constructor. Does not allocate memory but uses an external pointer.
@@ -104,7 +121,7 @@ namespace gridtools {
          */
         ~host_storage() {
             if (m_ownership == ownership::Full && m_cpu_ptr)
-                delete[] m_cpu_ptr;
+                delete[] m_allocated_ptr;
         }
 
         /*
