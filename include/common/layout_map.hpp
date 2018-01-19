@@ -56,6 +56,7 @@ namespace gridtools {
         GRIDTOOLS_STATIC_ASSERT(sizeof...(Args) > 0, GT_INTERNAL_ERROR_MSG("Zero-dimensional layout makes no sense."));
 
         static constexpr int masked_length = sizeof...(Args);
+
         typedef typename variadic_to_vector< boost::mpl::int_< Args >... >::type static_layout_vector;
         static constexpr uint_t unmasked_length = boost::mpl::count_if< static_layout_vector,
             boost::mpl::greater< boost::mpl::_, boost::mpl::int_< -1 > > >::value;
@@ -65,6 +66,7 @@ namespace gridtools {
             boost::mpl::if_< boost::mpl::greater< boost::mpl::_2, boost::mpl::int_< -1 > >,
                                                boost::mpl::plus< boost::mpl::_1, boost::mpl::_2 >,
                                                boost::mpl::_1 > >::type accumulated_arg_sum_t;
+
         GRIDTOOLS_STATIC_ASSERT((accumulated_arg_sum_t::value ==
                                     ((unmasked_length - 1) * (unmasked_length - 1) + (unmasked_length - 1)) / 2),
             GT_INTERNAL_ERROR_MSG("Layout map args must not contain any holes (e.g., layout_map<3,1,0>)."));

@@ -48,6 +48,23 @@
 namespace gridtools {
 
     template < typename LayoutMap >
+    struct max_value;
+
+    template < short_t... Is >
+    struct max_value< layout_map< Is... > > {
+        template < typename Current, typename Next >
+        struct get_max {
+            using type = boost::mpl::int_< (Current::value > Next::value) ? Current::value : Next::value >;
+        };
+
+        using type = typename boost::mpl::fold< typename layout_map< Is... >::static_layout_vector,
+            boost::mpl::int_< -1 >,
+            get_max< boost::mpl::_1, boost::mpl::_2 > >::type;
+
+        static constexpr short_t value = type::value;
+    };
+
+    template < typename LayoutMap >
     struct reverse_map;
 
     template < short_t... Is >
@@ -57,16 +74,10 @@ namespace gridtools {
             static const short_t value = (Max - I) > Max ? I : Max - I;
         };
 
-        template < typename Current, typename Next >
-        struct get_max {
-            using type = boost::mpl::int_< (Current::value > Next::value) ? Current::value : Next::value >;
-        };
+        static const short_t max = max_value<layout_map< Is... > >::value;
+        typedef layout_map< new_value< Is, max>::value... > type;
 
-        using max = typename boost::mpl::fold< typename layout_map< Is... >::static_layout_vector,
-            boost::mpl::int_< -1 >,
-            get_max< boost::mpl::_1, boost::mpl::_2 > >::type;
-
-        typedef layout_map< new_value< Is, max::value >::value... > type;
+        static const short_t value = type::value;
     };
 
     template < typename DATALO, typename PROCLO >
