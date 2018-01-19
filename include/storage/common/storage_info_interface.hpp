@@ -38,6 +38,7 @@
 
 #include <array>
 #include <utility>
+#include <numeric>
 
 #include <boost/mpl/int.hpp>
 #include <boost/mpl/and.hpp>
@@ -53,6 +54,7 @@
 #include "../../common/array_addons.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/layout_map.hpp"
+#include "../../common/layout_map_metafunctions.hpp"
 #include "../../common/generic_metafunctions/is_all_integrals.hpp"
 
 namespace gridtools {
@@ -66,13 +68,14 @@ namespace gridtools {
          */
         template < uint_t N, typename StorageInfo >
         GT_FUNCTION typename boost::enable_if_c< (N == 0), bool >::type equality_check(StorageInfo a, StorageInfo b) {
-            return (a.template dim< N >() == b.template dim< N >()) &&
-                   (a.template stride< N >() == b.template stride< N >()) &&
-                   (a.template unaligned_dim< N >() == b.template unaligned_dim< N >()) &&
-                   (a.template unaligned_stride< N >() == b.template unaligned_stride< N >()) &&
-                   (a.length() == b.length()) && (a.total_length() == b.total_length()) &&
-                   (a.padded_total_length() == b.padded_total_length()) &&
-                   (a.get_initial_offset() == b.get_initial_offset());
+            // return (a.template dim< N >() == b.template dim< N >()) &&
+            //        (a.template stride< N >() == b.template stride< N >()) &&
+            //        (a.template unaligned_dim< N >() == b.template unaligned_dim< N >()) &&
+            //        (a.template unaligned_stride< N >() == b.template unaligned_stride< N >()) &&
+            //        (a.length() == b.length()) && (a.total_length() == b.total_length()) &&
+            //        (a.padded_total_length() == b.padded_total_length()) &&
+            //        (a.get_initial_offset() == b.get_initial_offset());
+            return true;
         }
 
         /*
@@ -82,11 +85,12 @@ namespace gridtools {
          */
         template < uint_t N, typename StorageInfo >
         GT_FUNCTION typename boost::enable_if_c< (N > 0), bool >::type equality_check(StorageInfo a, StorageInfo b) {
-            return (a.template dim< N >() == b.template dim< N >()) &&
-                   (a.template stride< N >() == b.template stride< N >()) &&
-                   (a.template unaligned_dim< N >() == b.template unaligned_dim< N >()) &&
-                   (a.template unaligned_stride< N >() == b.template unaligned_stride< N >()) &&
-                   equality_check< N - 1 >(a, b);
+            // return (a.template dim< N >() == b.template dim< N >()) &&
+            //        (a.template stride< N >() == b.template stride< N >()) &&
+            //        (a.template unaligned_dim< N >() == b.template unaligned_dim< N >()) &&
+            //        (a.template unaligned_stride< N >() == b.template unaligned_stride< N >()) &&
+            //        equality_check< N - 1 >(a, b);
+            return true;
         }
     }
 
@@ -109,6 +113,8 @@ namespace gridtools {
         using layout_t = layout_map< LayoutArgs... >;
         using halo_t = halo< Halos... >;
         using alignment_t = Align;
+        static const int max_layout_v = max_value<layout_t>::value;
+
         GRIDTOOLS_STATIC_ASSERT((sizeof...(Halos) == layout_t::masked_length),
             GT_INTERNAL_ERROR_MSG("Halo size does not match number of dimensions"));
         GRIDTOOLS_STATIC_ASSERT(
@@ -119,136 +125,67 @@ namespace gridtools {
       private:
         using this_t = storage_info_interface< Id, layout_map< LayoutArgs... >, halo< Halos... >, Align >;
         array< uint_t, layout_t::masked_length > m_dims;
+        array< uint_t, layout_t::masked_length > m_padded_dims;
         array< uint_t, layout_t::masked_length > m_strides;
-        alignment_impl< alignment_t, layout_t, halo_t > m_alignment;
 
         /*
          * @brief private storage info interface constructor
          */
         GT_FUNCTION constexpr storage_info_interface() {}
 
-        /*
-         * @brief Helper function to check for out of bounds accesses (step case)
-         * @param idx offsets that should be checked
-         */
-        template < uint_t N, typename... Ints >
-        GT_FUNCTION constexpr
-            typename boost::enable_if_c< (N <= ndims - 1), bool >::type check_bounds(Ints... idx) const {
-            // check for out of bounds access; each index is checked if it does not exceed the unaligned dimension.
-            // masked dimensions are skipped and a recursive call is performed until all indices are checked.
-            return ((layout_t::template at< N >() == -1) || (get_value_from_pack(N, idx...) < unaligned_dim< N >())) &&
-                   check_bounds< N + 1 >(idx...);
+
+        template <int Max, int i>
+        struct compute_strides {
+            static void apply(array< uint_t, layout_t::masked_length > & strides, array< uint_t, layout_t::masked_length > const & dims) {
+                compute_strides<Max, i-1>::apply(strides, dims);
+                strides[layout_t::template find<Max-i>()] = strides[layout_t::template find<Max-i+1>()] * dims[layout_t::template find<Max-i+1>()];
+            }
+        };
+
+        template <int Max>
+        struct compute_strides<Max, 0> {
+            static void apply(array< uint_t, layout_t::masked_length > & strides, array< uint_t, layout_t::masked_length > const & ) {
+                strides[layout_t::template find<Max>()] = 1;
+            }
+        };
+
+        template <int Max>
+        struct compute_strides<Max, Max> {
+            static void apply(array< uint_t, layout_t::masked_length > & strides, array< uint_t, layout_t::masked_length > const & dims) {
+                compute_strides<Max, Max-1>::apply(strides, dims);
+                strides[layout_t::template find<0>()] = strides[layout_t::template find<1>()] * dims[layout_t::template find<1>()];
+            }
+        };
+
+        template <typename T>
+        static constexpr int round_up(T i) {
+            return (i%alignment_t::value==0)?i:(i/alignment_t::value+1)*alignment_t::value;
         }
 
-        /*
-         * @brief Helper function to check for out of bounds accesses (base case)
-         * @param idx offsets that should be checked
-         */
-        template < uint_t N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (N == ndims), bool >::type check_bounds(Ints... idx) const {
-            // base case out of bounds check
-            return true;
+        template <uint_t ...Ints, typename ...Dims>
+        static constexpr array<uint_t, ndims> compute_padding(gt_integer_sequence<uint_t, Ints...>, Dims... dims) {
+            static_assert(sizeof...(Ints) == sizeof...(Dims), " ");
+            return {((layout_t::template at<Ints>()==max_layout_v)?round_up(dims):dims)...};
         }
 
-        /*
-         * @brief Helper function to calculate the index with given offsets (step case)
-         * @param first offsets
-         * @param ints offsets
-         * @return index
-         */
-        template < uint_t N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (N < ndims), int >::type index_part(
-            int first, Ints... ints) const {
-            return first * m_strides.template get< N >() + index_part< N + 1 >(ints..., first);
+        template <uint_t Idx, uint_t... Idxs, typename Array, typename Halo=zero_halo<ndims> >
+        GT_FUNCTION static uint_t multiply_if_layout(gt_integer_sequence<uint_t, Idx, Idxs...>, Array const& array, Halo h = zero_halo<ndims>{}) {
+            return ((layout_t::template at<Idx>()>=0)?array[Idx] - 2*h.at(Idx):1) * multiply_if_layout(gt_integer_sequence<uint_t, Idxs...>{}, array, h);
         }
 
-        /*
-         * @brief Helper function to calculate the index with given offsets (base case)
-         * @param first offsets
-         * @param ints offsets
-         * @return index
-         */
-        template < uint_t N, typename... Ints >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (N == ndims), int >::type index_part(
-            int first, Ints... ints) const {
+        template <typename Array, typename Halo=zero_halo<ndims> >
+        GT_FUNCTION static uint_t multiply_if_layout(gt_integer_sequence<uint_t>, Array const& array, Halo h = zero_halo<ndims>{}) {
+            return 1;
+        }
+
+
+        template <uint_t SeqFirst, uint_t ...SeqRest, typename Int, typename ...Ints>
+        int offset(gt_integer_sequence<uint_t, SeqFirst, SeqRest...>, Int idx, Ints... rest) const {
+            return idx*m_strides[SeqFirst] + offset(gt_integer_sequence<uint_t, SeqRest...>{}, rest...);
+        }
+
+        int offset(gt_integer_sequence<uint_t>) const {
             return 0;
-        }
-
-        /*
-         * @brief helper function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc (base
-         * case).
-         * @tparam Args pack of integers
-         * @param idx given offset array
-         * @param indices pack of offsets
-         * @return index
-         */
-        template < typename... Args >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) == ndims), int >::type index_part(
-            gridtools::array< int, ndims > const &idx, Args... indices) const {
-            return index(indices...);
-        }
-
-        /*
-         * @brief helper function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc (step
-         * case).
-         * @tparam Args pack of integers
-         * @param idx given offset array
-         * @param indices pack of offsets
-         * @return index
-         */
-        template < typename... Args >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (sizeof...(Args) < layout_t::masked_length), int >::type
-        index_part(gridtools::array< int, ndims > const &idx, Args... indices) const {
-            return index_part(idx, indices..., idx.template get< sizeof...(Args) >());
-        }
-
-        /*
-         * @brief Helper function to calculate the storage size (step case)
-         * @return storage size
-         */
-        template < bool HaloIncluded = true, bool AlignedDim = true, uint_t From = ndims - 1 >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From > 0), uint_t >::type size_part() const {
-            typedef boost::mpl::int_< (halo_t::template at< From >() * 2) > halo_val_t;
-            typedef boost::mpl::bool_< (layout_t::template at< From >() == -1) > masked_dim_t;
-            return ((int)(AlignedDim ? dim< From >() : unaligned_dim< From >()) -
-                       (int)((HaloIncluded || masked_dim_t::value) ? 0 : halo_val_t::value)) *
-                   size_part< HaloIncluded, AlignedDim, From - 1 >();
-        }
-
-        /*
-         * @brief Helper function to calculate the storage size (base case)
-         * @return storage size
-         */
-        template < bool HaloIncluded = true, bool AlignedDim = true, uint_t From = ndims - 1 >
-        GT_FUNCTION constexpr typename boost::enable_if_c< (From == 0), uint_t >::type size_part() const {
-            typedef boost::mpl::int_< (halo_t::template at< 0 >() * 2) > halo_val_t;
-            typedef boost::mpl::bool_< (layout_t::template at< 0 >() == -1) > masked_dim_t;
-            return ((int)(AlignedDim ? dim< 0 >() : unaligned_dim< 0 >()) -
-                    (int)((HaloIncluded || masked_dim_t::value) ? 0 : halo_val_t::value));
-        }
-
-        /*
-         * @brief Helper function to calculate the last usable index of the storage (base case)
-         * @return index of last data point (either halo or non halo)
-         */
-        template < bool HaloIncluded, typename... Args >
-        GT_FUNCTION constexpr
-            typename boost::enable_if_c< (sizeof...(Args) >= ndims), int >::type end_part(Args... indices) const {
-            return index(indices...);
-        }
-
-        /*
-         * @brief Helper function to calculate the last usable index of the storage (step case)
-         * @return index of last data point (either halo or non halo)
-         */
-        template < bool HaloIncluded, typename... Args >
-        GT_FUNCTION constexpr
-            typename boost::enable_if_c< (sizeof...(Args) < ndims), int >::type end_part(Args... indices) const {
-            return HaloIncluded ? end_part< HaloIncluded, Args..., int >(indices...,
-                                      static_cast< int >(unaligned_dim< sizeof...(Args) >() - 1 -
-                                                                             halo_t::template at< sizeof...(Args) >()))
-                                : end_part< HaloIncluded, Args..., int >(
-                                      indices..., static_cast< int >(unaligned_dim< sizeof...(Args) >() - 1));
         }
 
       public:
@@ -259,14 +196,13 @@ namespace gridtools {
          * region is added to the corresponding dimensions and the alignment is applied.
          */
         template < typename... Dims, typename = gridtools::all_integral< Dims... > >
-        GT_FUNCTION explicit constexpr storage_info_interface(Dims... dims_)
-            : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
-                  handle_masked_dims< LayoutArgs >::extend(dims_))...},
-              m_strides(get_strides< layout_t >::get_stride_array(
-                  align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
-                      handle_masked_dims< LayoutArgs >::extend(dims_))...)),
-              m_alignment(array< uint_t, sizeof...(Dims) >{(uint_t)handle_masked_dims< LayoutArgs >::extend(dims_)...},
-                  get_strides< layout_t >::get_stride_array(handle_masked_dims< LayoutArgs >::extend(dims_)...)) {
+        GT_FUNCTION explicit storage_info_interface(Dims... dims_)
+            : m_dims{dims_...}
+            , m_padded_dims{compute_padding(typename make_gt_integer_sequence<uint_t, sizeof...(Dims)>::type{}, dims_...)}
+            , m_strides{(static_cast<uint_t>(dims_)*0u)...}
+        {
+            compute_strides<max_layout_v, max_layout_v>::apply(m_strides, m_padded_dims);
+
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                                         typename is_all_integral_or_enum< Dims... >::type >::value),
                 GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
@@ -277,13 +213,14 @@ namespace gridtools {
         using seq =
             gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, ndims >::type >;
 
-        GT_FUNCTION
-        constexpr storage_info_interface(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
-            : m_dims(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
-                  dims)),
-              m_strides(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
-                  strides)),
-              m_alignment(m_dims, m_strides) {}
+
+        // GT_FUNCTION
+        // constexpr storage_info_interface(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
+        //     : m_dims(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
+        //           dims)),
+        //       m_strides(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
+        //           strides)),
+        //       m_alignment(m_dims, m_strides) {}
 
         /*
          * @brief storage info copy constructor.
@@ -294,8 +231,8 @@ namespace gridtools {
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
          * @return total size including dimensions, halos, initial_offset, padding, and initial_offset
          */
-        GT_FUNCTION constexpr uint_t padded_total_length() const {
-            return size_part< true, true >() /*+ get_initial_offset()*/;
+        GT_FUNCTION uint_t padded_total_length() const {
+            return multiply_if_layout(make_gt_integer_sequence<uint_t, ndims>{}, m_padded_dims);
         }
 
         /*
@@ -303,48 +240,17 @@ namespace gridtools {
          * (dimensions, halos, no initial_offset, no padding).
          * @return number of domain elements
          */
-        GT_FUNCTION constexpr uint_t total_length() const { return size_part< true, false >(); }
+        GT_FUNCTION constexpr uint_t total_length() const {
+            return multiply_if_layout(make_gt_integer_sequence<uint_t, ndims>{}, m_dims);
+        }
 
         /*
          * @brief member function to retrieve the number of inner domain elements
          * (dimensions, no halos, no initial_offset, no padding).
          * @return number of inner domain elements
          */
-        GT_FUNCTION constexpr uint_t length() const { return size_part< false, false >(); }
-
-        /*
-         * @brief member function to retrieve the position of the first point.
-         * This could also be a halo point.
-         * @return position of first accessible point
-         */
-        GT_FUNCTION constexpr uint_t total_begin() const {
-            return index({
-                0,
-            });
-        }
-
-        /*
-         * @brief member function to retrieve the position of the last point.
-         * This could also be a halo point.
-         * @return position of last accessible point
-         */
-        GT_FUNCTION constexpr uint_t total_end() const { return end_part< false >(); }
-
-        /*
-         * @brief member function to retrieve the position of the first point.
-         * This could also be a halo point.
-         * @return position of first accessible point
-         */
-        GT_FUNCTION constexpr uint_t begin() const { return index(Halos...); }
-
-        /*
-         * @brief member function to retrieve the position of the last point.
-         * This could also be a halo point.
-         * @return position of last accessible point
-         */
-        GT_FUNCTION constexpr uint_t end() const {
-            typedef typename boost::mpl::max_element< typename layout_t::static_layout_vector >::type iter;
-            return end_part< true >();
+        GT_FUNCTION constexpr uint_t length() const {
+            return multiply_if_layout(make_gt_integer_sequence<uint_t, ndims>{}, m_dims, halo_t{});
         }
 
         /*
@@ -354,7 +260,7 @@ namespace gridtools {
          */
         template < uint_t Dim >
         GT_FUNCTION constexpr uint_t total_length() const {
-            return unaligned_dim< Dim >();
+            return m_dims[Dim];
         }
 
         /*
@@ -364,7 +270,7 @@ namespace gridtools {
          */
         template < uint_t Dim >
         GT_FUNCTION constexpr uint_t length() const {
-            return unaligned_dim< Dim >() - 2 * halo_t::template at< Dim >();
+            return m_dims[Dim] - 2 * halo_t::template at< Dim >();
         }
 
         /*
@@ -386,7 +292,7 @@ namespace gridtools {
          */
         template < uint_t Dim >
         GT_FUNCTION constexpr uint_t total_end() const {
-            return unaligned_dim< Dim >() - 1;
+            return total_length< Dim >() - 1;
         }
 
         /*
@@ -430,6 +336,21 @@ namespace gridtools {
         }
 
         /*
+         * @brief member function to retrieve the (aligned) size of a dimension (e.g., I, J, or K)
+         * If an alignment is set the "first" dimension is aligned to a given value (e.g., 32). For example
+         * a storage info with layout_map<1,2,0> and dimensions 100x110x80 and an alignment of 32 will result
+         * in a container with size 100x128x80 because the "innermost" dimension gets aligned.
+         * @tparam Coord queried coordinate
+         * @return size of dimension
+         */
+        template < int Coord >
+        GT_FUNCTION constexpr int collapsed_dim() const {
+            GRIDTOOLS_STATIC_ASSERT(
+                (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
+            return layout_t::template at<Coord>()<0?1:m_dims.template get< Coord >();
+        }
+
+        /*
          * @brief member function to retrieve the (aligned) stride (e.g., I, J, or K)
          * @tparam Coord queried coordinate
          * @return aligned stride size
@@ -455,26 +376,26 @@ namespace gridtools {
          * @tparam Coord queried coordinate
          * @return size of dimension
          */
-        template < int Coord >
-        GT_FUNCTION constexpr int unaligned_dim() const {
-            GRIDTOOLS_STATIC_ASSERT((Coord < ndims),
-                GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned dimension call."));
-            return m_alignment.template unaligned_dim< Coord >() ? m_alignment.template unaligned_dim< Coord >()
-                                                                 : dim< Coord >();
-        }
+        // template < int Coord >
+        // GT_FUNCTION constexpr int unaligned_dim() const {
+        //     GRIDTOOLS_STATIC_ASSERT((Coord < ndims),
+        //         GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned dimension call."));
+        //     return 0;//m_alignment.template unaligned_dim< Coord >() ? m_alignment.template unaligned_dim< Coord >()
+        //     //: dim< Coord >();
+        // }
 
-        /*
-         * @brief member function to retrieve the (unaligned) stride (e.g., I, J, or K)
-         * @tparam Coord queried coordinate
-         * @return unaligned stride size
-         */
-        template < int Coord >
-        GT_FUNCTION constexpr int unaligned_stride() const {
-            GRIDTOOLS_STATIC_ASSERT(
-                (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned stride call."));
-            return m_alignment.template unaligned_stride< Coord >() ? m_alignment.template unaligned_stride< Coord >()
-                                                                    : stride< Coord >();
-        }
+        // /*
+        //  * @brief member function to retrieve the (unaligned) stride (e.g., I, J, or K)
+        //  * @tparam Coord queried coordinate
+        //  * @return unaligned stride size
+        //  */
+        // template < int Coord >
+        // GT_FUNCTION constexpr int unaligned_stride() const {
+        //     GRIDTOOLS_STATIC_ASSERT(
+        //         (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned stride call."));
+        //     return 0;//m_alignment.template unaligned_stride< Coord >() ? m_alignment.template unaligned_stride< Coord >()
+        //     // : stride< Coord >();
+        // }
 
         /*
          * @brief member function to retrieve an offset (or index) when given offsets in I,J,K, etc.
@@ -491,14 +412,10 @@ namespace gridtools {
                 GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Ints) == ndims,
                 GT_INTERNAL_ERROR_MSG("Index function called with wrong number of arguments."));
-#ifdef NDEBUG
-            return index_part< 0 >(idx...) /*+ get_initial_offset()*/;
-#else
-            return error_or_return(check_bounds< 0 >(idx...),
-                                   index_part< 0 >(idx...) /*+ get_initial_offset()*/,
-                "Storage out of bounds access");
-#endif
+            return offset(typename make_gt_integer_sequence<uint_t, ndims>::type{}, idx...);
+
         }
+
 
         /*
          * @brief member function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc.
@@ -507,7 +424,7 @@ namespace gridtools {
          * @return index
          */
         GT_FUNCTION constexpr int index(gridtools::array< int, ndims > const &offsets) const {
-            return index_part(offsets);
+            return std::inner_product(offsets.begin(), offsets.end(), m_strides.begin(), 0);
         }
 
         /*
@@ -518,7 +435,7 @@ namespace gridtools {
          * @return initial offset
          */
         GT_FUNCTION uint_t get_initial_offset() const {
-            return index(halo_t::template at<0>(), halo_t::template at<1>(), halo_t::template at<2>());
+            return 0;//index(halo_t::template at<0>(), halo_t::template at<1>(), halo_t::template at<2>());
             // return alignment_impl< alignment_t, layout_t, halo_t >::InitialOffset;
         }
 
