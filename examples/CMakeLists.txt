@@ -68,6 +68,8 @@ else()
     endif()
   endif(ENABLE_HOST)
 
+  add_subdirectory( c_bindings )
+
   if(ENABLE_CUDA)
 
       if(COMPILE_TO_PTX)
