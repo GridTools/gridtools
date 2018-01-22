@@ -61,11 +61,22 @@ namespace gridtools {
      */
     template < typename T1, typename T2 >
     struct pair {
-        constexpr pair(T1 t1_, T2 t2_) : first(t1_), second(t2_) {}
+        constexpr GT_FUNCTION pair(T1 t1_, T2 t2_) : first(t1_), second(t2_) {}
+        constexpr GT_FUNCTION pair() : first(), second() {}
 
         T1 first;
         T2 second;
     };
+
+    template < typename T1, typename T2 >
+    constexpr GT_FUNCTION bool operator==(const pair< T1, T2 > &lhs, const pair< T1, T2 > &rhs) {
+        return lhs.first == rhs.first && lhs.second == rhs.second;
+    }
+
+    template < typename T1, typename T2 >
+    constexpr GT_FUNCTION bool operator!=(const pair< T1, T2 > &lhs, const pair< T1, T2 > &rhs) {
+        return !(lhs == rhs);
+    }
 
     template < typename T1, typename T2 >
     constexpr pair< T1, T2 > make_pair(T1 t1_, T2 t2_) {

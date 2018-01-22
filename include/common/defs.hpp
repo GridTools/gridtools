@@ -89,6 +89,15 @@
 #endif
 #endif
 
+/**
+ * Macro to allow make functions constexpr in c++14 (in case they are not only a return statement)
+ */
+#if __cplusplus >= 201402L
+#define CXX14CONSTEXPR constexpr
+#else
+#define CXX14CONSTEXPR
+#endif
+
 /** Macro to enable additional checks that may catch some errors in user code
  */
 #ifndef PEDANTIC_DISABLED
@@ -319,6 +328,8 @@ namespace gridtools {
     using static_short = boost::mpl::integral_c< short_t, N >;
     template < ushort_t N >
     using static_ushort = boost::mpl::integral_c< ushort_t, N >;
+    template < size_t N >
+    using static_size_t = boost::mpl::integral_c< size_t, N >;
     template < bool B >
     using static_bool = boost::mpl::integral_c< bool, B >;
 

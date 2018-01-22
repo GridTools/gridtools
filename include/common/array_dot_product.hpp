@@ -34,27 +34,18 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-
 #include "array.hpp"
 
 namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
-
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
+    /**
+     * @brief dot product for gridtools::array (enabled for all arithmetic types)
+     */
+    template < typename T, size_t D, typename std::enable_if< std::is_arithmetic< T >::value, T >::type = 0 >
+    T operator*(const array< T, D > a, const array< T, D > &b) {
+        T result = 0;
+        for (int i = 0; i < D; ++i) {
+            result += a[i] * b[i];
+        }
+        return result;
     }
-
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
-    }
-}
+} // namespace gridtools

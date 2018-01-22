@@ -33,28 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "array.hpp"
+#include "common/array.hpp"
+#include "common/generic_metafunctions/is_all_integrals.hpp"
 
-namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
-
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
-    }
-
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
-    }
-}
+// Just a wrapper around an array to make clear that the intention is to test field elements
+template < size_t N >
+class multiplet : public gridtools::array< long int, N > {
+  public:
+    template < typename... T, typename = gridtools::all_integral< T... > >
+    multiplet(T... values)
+        : gridtools::array< long int, N >{{(long int)values...}} {}
+};

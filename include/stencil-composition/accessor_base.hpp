@@ -156,7 +156,7 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(First f, Rest... x)
             : m_offsets(f, x...) {
             GRIDTOOLS_STATIC_ASSERT(
-                accumulate(logical_and(), (First::direction <= n_dimensions), (Rest::direction <= n_dimensions)...),
+                accumulate(logical_and(), (First::index <= n_dimensions), (Rest::index <= n_dimensions)...),
                 "trying to access a too high dimension for accessor");
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dimensions - 1,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "
