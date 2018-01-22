@@ -33,49 +33,33 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
-/**
-@file
-@brief definition of macros for host/GPU
-*/
-#ifdef _USE_GPU_
-#include <cuda_runtime.h>
-#endif
 
-#ifdef __GNUC__
-#define GT_FORCE_INLINE inline __attribute__((always_inline))
-#elif defined(_MSC_VER)
-#define GT_FORCE_INLINE inline __forceinline
-#else
-#define GT_FORCE_INLINE inline
-#endif
+#include "test_multi_iterator.cpp"
 
-#ifndef GT_FUNCTION
-#ifdef __CUDACC__
-#define GT_FUNCTION __host__ __device__ __forceinline__
-#define GT_FUNCTION_HOST __host__ __forceinline__
-#define GT_FUNCTION_DEVICE __device__ __forceinline__
-#define GT_FUNCTION_WARNING __host__ __device__
-#else
-#define GT_FUNCTION GT_FORCE_INLINE
-#define GT_FUNCTION_HOST GT_FORCE_INLINE
-#define GT_FUNCTION_DEVICE GT_FORCE_INLINE
-#define GT_FUNCTION_WARNING
-#endif
-#endif
+static const uint_t Size = 2;
+using result_t = gridtools::array< size_t, Size * Size >;
 
-#ifndef GT_KERNEL
-#ifdef __CUDACC__
-#define GT_KERNEL __global__
-#else
-#define GT_KERNEL
-#endif
-#endif
+GT_FUNCTION int linear_index(size_t a, size_t b) { return a * Size + b; }
 
-#ifndef GT_NV_EXEC_CHECK_DISABLE
-#if defined(__CUDACC__) && !(defined(__CUDA__) && defined(__clang__)) // from thrust
-#define GT_NV_EXEC_CHECK_DISABLE #pragma nv_exec_check_disable
-#else
-#define GT_NV_EXEC_CHECK_DISABLE
-#endif
-#endif
+__global__ void exec(result_t *out_ptr) {
+    result_t &out = *out_ptr;
+
+    for (size_t i = 0; i < Size * Size; ++i)
+        out[i] = 0;
+
+    // fill the array with its linearized index
+    make_multi_iterator(Size, Size).iterate([&](size_t a, size_t b) { out[linear_index(a, b)] = linear_index(a, b); });
+};
+
+TEST(multi_iterator, iterate_on_device) {
+    result_t *out;
+    cudaMalloc(&out, sizeof(result_t));
+
+    exec<<< 1, 1 >>>(out);
+
+    result_t host_out;
+    cudaMemcpy(&host_out, out, sizeof(result_t), cudaMemcpyDeviceToHost);
+
+    for (size_t i = 0; i < Size * Size; ++i)
+        ASSERT_EQ(i, host_out[i]);
+}

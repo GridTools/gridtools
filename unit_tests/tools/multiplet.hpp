@@ -33,49 +33,17 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
-/**
-@file
-@brief definition of macros for host/GPU
-*/
-#ifdef _USE_GPU_
-#include <cuda_runtime.h>
-#endif
 
-#ifdef __GNUC__
-#define GT_FORCE_INLINE inline __attribute__((always_inline))
-#elif defined(_MSC_VER)
-#define GT_FORCE_INLINE inline __forceinline
-#else
-#define GT_FORCE_INLINE inline
-#endif
+#include "common/array.hpp"
+#include "common/generic_metafunctions/is_all_integrals.hpp"
 
-#ifndef GT_FUNCTION
-#ifdef __CUDACC__
-#define GT_FUNCTION __host__ __device__ __forceinline__
-#define GT_FUNCTION_HOST __host__ __forceinline__
-#define GT_FUNCTION_DEVICE __device__ __forceinline__
-#define GT_FUNCTION_WARNING __host__ __device__
-#else
-#define GT_FUNCTION GT_FORCE_INLINE
-#define GT_FUNCTION_HOST GT_FORCE_INLINE
-#define GT_FUNCTION_DEVICE GT_FORCE_INLINE
-#define GT_FUNCTION_WARNING
-#endif
-#endif
-
-#ifndef GT_KERNEL
-#ifdef __CUDACC__
-#define GT_KERNEL __global__
-#else
-#define GT_KERNEL
-#endif
-#endif
-
-#ifndef GT_NV_EXEC_CHECK_DISABLE
-#if defined(__CUDACC__) && !(defined(__CUDA__) && defined(__clang__)) // from thrust
-#define GT_NV_EXEC_CHECK_DISABLE #pragma nv_exec_check_disable
-#else
-#define GT_NV_EXEC_CHECK_DISABLE
-#endif
-#endif
+// Just a wrapper around an array to make clear that the intention is to test field elements
+template < size_t N >
+class multiplet : public gridtools::array< long int, N > {
+  public:
+    template < typename... T, typename = gridtools::all_integral< T... > >
+    multiplet(T... values)
+        : gridtools::array< long int, N >{{(long int)values...}} {}
+};
