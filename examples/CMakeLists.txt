@@ -61,6 +61,8 @@ else()
 
   endif()
 
+  add_subdirectory( c_bindings )
+
   if(CUDA_FOUND)
 
       if(COMPILE_TO_PTX)
