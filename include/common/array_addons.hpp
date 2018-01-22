@@ -62,10 +62,14 @@ namespace gridtools {
         struct array_initializer {
             template < int Idx >
             struct type {
-                constexpr type() {}
+                constexpr GT_FUNCTION type() {}
 
                 template < long unsigned int ndims >
-                constexpr static Value apply(const std::array< Value, ndims > data) {
+                constexpr GT_FUNCTION static Value apply(const std::array< Value, ndims > data) {
+                    return data[Idx];
+                }
+                template < long unsigned int ndims >
+                constexpr GT_FUNCTION static Value apply(const gridtools::array< Value, ndims > data) {
                     return data[Idx];
                 }
             };
