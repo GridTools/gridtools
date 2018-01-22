@@ -71,9 +71,6 @@ namespace gridtools {
             typedef typename RunFunctorArguments::execution_type_t execution_type_t;
             typedef typename RunFunctorArguments::esf_sequence_t esf_sequence_t;
 
-            typedef array< int_t, IterateDomain::N_META_STORAGES > array_index_t;
-            typedef array< uint_t, 4 > array_position_t;
-
           private:
             IterateDomain &m_it_domain;
             Grid const &m_grid;
@@ -92,14 +89,14 @@ namespace gridtools {
                 typename boost::enable_if< typename esf_sequence_contains_color< esf_sequence_t,
                     color_type< Index::value > >::type >::type * = 0) const {
 
-                array_index_t memorized_index;
-                array_position_t memorized_position;
+                typename IterateDomain::array_index_t memorized_index;
+                typename IterateDomain::grid_position_t memorized_position;
 
                 for (uint_t j = m_first_pos[1] + Extent::jminus::value;
                      j <= m_first_pos[1] + m_loop_size[1] + Extent::jplus::value;
                      ++j) {
-                    m_it_domain.get_index(memorized_index);
-                    m_it_domain.get_position(memorized_position);
+                    memorized_index = m_it_domain.index();
+                    memorized_position = m_it_domain.position();
 
                     // we fill the run_functor_arguments with the current color being processed
                     typedef typename colorize_run_functor_arguments< RunFunctorArguments, Index >::type
@@ -213,8 +210,7 @@ namespace gridtools {
                     typename grid_traits_from_id< enumtype::icosahedral >::dim_k_t,
                     execution_type_t::type::iteration > iteration_policy_t;
 
-                // reset the index
-                it_domain.set_index(0);
+                it_domain.reset_index();
 
                 // TODO FUSING work on extending the loops using the extent
                 //                it_domain.template initialize<0>(m_first_pos[0] + extent_t::iminus::value,

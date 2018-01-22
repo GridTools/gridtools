@@ -35,10 +35,12 @@
 */
 #pragma once
 
+#include "common/multi_iterator.hpp"
 #include "common/array.hpp"
-#include "common/array_addons.hpp"
+#include "common/make_array.hpp"
 #include "common/gt_math.hpp"
 #include "stencil-composition/grid_traits_fwd.hpp"
+#include "storage/common/storage_info_rt.hpp"
 
 namespace gridtools {
 
@@ -53,142 +55,64 @@ namespace gridtools {
         return false;
     }
 
-    template < typename Array, typename StorageInfo, typename... T >
-    typename boost::enable_if_c< (Array::n_dimensions == sizeof...(T)), const int >::type get_index(
-        Array const &pos, StorageInfo storage_info, T... t) {
-        return storage_info.index(t...);
-    }
-
-    template < typename Array, typename StorageInfo, typename... T >
-    typename boost::enable_if_c< (Array::n_dimensions > sizeof...(T)), const int >::type get_index(
-        Array const &pos, StorageInfo storage_info, T... t) {
-        return get_index(pos, storage_info, t..., pos[sizeof...(T)]);
-    }
-
-    template < uint_t NDim, uint_t NCoord, typename StorageType >
-    struct verify_helper {
-        verify_helper(StorageType const &exp_field,
-            StorageType const &actual_field,
-            uint_t field_id,
-            array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > const &halos,
-            double precision)
-            : m_exp_field(exp_field), m_actual_field(actual_field), m_field_id(field_id), m_precision(precision),
-              m_halos(halos) {}
-
-        template < typename Grid >
-        bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
-            typename StorageType::storage_info_t const &meta = *(m_exp_field.get_storage_info_ptr());
-
-            const gridtools::uint_t size = meta.template unaligned_dim< NDim - 1 >();
-            bool verified = true;
-
-            verify_helper< NDim - 1, NCoord + 1, StorageType > next_loop(
-                m_exp_field, m_actual_field, m_field_id, m_halos, m_precision);
-
-            const uint_t halo_minus = m_halos[NDim - 1][0];
-            const uint_t halo_plus = m_halos[NDim - 1][1];
-
-            for (int c = halo_minus; c < size - halo_plus; ++c) {
-                array< uint_t, NCoord + 1 > new_pos = pos.prepend_dim(c);
-                verified = verified & next_loop(grid_, new_pos);
-            }
-            return verified;
-        }
-
-      private:
-        StorageType const &m_exp_field;
-        StorageType const &m_actual_field;
-        double m_precision;
-        uint_t m_field_id;
-        array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > const &m_halos;
-    };
-
-    template < uint_t NCoord, typename StorageType >
-    struct verify_helper< 0, NCoord, StorageType > {
-        verify_helper(StorageType const &exp_field,
-            StorageType const &actual_field,
-            uint_t field_id,
-            array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > const &halos,
-            double precision)
-            : m_exp_field(exp_field), m_actual_field(actual_field), m_field_id(field_id), m_precision(precision),
-              m_halos(halos) {}
-
-        template < typename Grid >
-        bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
-            bool verified = true;
-            if (pos[grid_traits_from_id< Grid::c_grid_type >::dim_k_t::value] <= grid_.k_max()) {
-                typename StorageType::storage_info_t const &meta = *(m_exp_field.get_storage_info_ptr());
-
-                typename StorageType::data_t expected =
-                    m_exp_field.get_storage_ptr()->get_cpu_ptr()[get_index(pos, meta)];
-                typename StorageType::data_t actual =
-                    m_actual_field.get_storage_ptr()->get_cpu_ptr()[get_index(pos, meta)];
-                if (!compare_below_threshold(expected, actual, m_precision)) {
-
-                    std::cout << "Error in field dimension " << m_field_id << " and position " << pos
-                              << " ; expected : " << expected << " ; actual : " << actual << "  "
-                              << std::fabs((expected - actual) / (expected)) << std::endl;
-                    verified = false;
-                }
-            }
-            return verified;
-        }
-
-      private:
-        StorageType const &m_exp_field;
-        StorageType const &m_actual_field;
-        uint_t m_field_id;
-        double m_precision;
-        array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > const &m_halos;
-    };
-
-    template < uint_t NDim, typename Grid, typename StorageType >
-    bool verify_functor(Grid const &grid_,
-        StorageType const &exp_field,
-        StorageType const &actual_field,
-        uint_t field_id,
-        array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > halos,
-        double precision) {
-        typename StorageType::storage_info_t const &meta = *(exp_field.get_storage_info_ptr());
-
-        const gridtools::uint_t size = meta.template unaligned_dim< NDim - 1 >();
-        bool verified = true;
-        verify_helper< NDim - 1, 1, StorageType > next_loop(exp_field, actual_field, field_id, halos, precision);
-
-        const uint_t halo_minus = halos[NDim - 1][0];
-        const uint_t halo_plus = halos[NDim - 1][1];
-
-        for (uint_t c = halo_minus; c < size - halo_plus; ++c) {
-            array< uint_t, 1 > new_pos{c};
-            verified = verified & next_loop(grid_, new_pos);
-        }
-        return verified;
-    }
-
     class verifier {
+      private:
+        // Can be replaced by a lambda with auto... in c++14
+        template < typename ExpectedView, typename ActualView >
+        struct verify_functor {
+            const ExpectedView &expected_view;
+            const ActualView &actual_view;
+            double precision_;
+
+            verify_functor(const ExpectedView &expected_view, const ActualView &actual_view, double precision)
+                : expected_view(expected_view), actual_view(actual_view), precision_(precision) {}
+
+            template < typename... Pos >
+            bool operator()(Pos... pos) {
+                auto expected = expected_view(pos...);
+                auto actual = actual_view(pos...);
+                if (!compare_below_threshold(expected, actual, precision_)) {
+                    std::cout << "Error in position " << make_array(pos...) << " ; expected : " << expected
+                              << " ; actual : " << actual << "  " << std::fabs((expected - actual) / (expected))
+                              << std::endl;
+                    return false;
+                } else
+                    return true;
+            }
+        };
+
+        double m_precision;
+
       public:
         verifier(const double precision) : m_precision(precision) {}
         ~verifier() {}
 
         template < typename Grid, typename StorageType >
-        bool verify(Grid const &grid_,
-            StorageType const &field1,
-            StorageType const &field2,
+        bool verify(Grid const &grid_ /*TODO: unused*/,
+            StorageType const &expected_field,
+            StorageType const &actual_field,
             const array< array< uint_t, 2 >, StorageType::storage_info_t::layout_t::masked_length > halos) {
-
-            bool verified = true;
-
             if (StorageType::num_of_storages > 1)
                 throw std::runtime_error("Verifier not supported for data fields with more than 1 components");
-            for (gridtools::uint_t f = 0; f < 1; ++f) {
-                verified = verify_functor< StorageType::storage_info_t::layout_t::masked_length >(
-                    grid_, field1, field2, f, halos, m_precision);
-            }
-            return verified;
-        }
 
-      private:
-        double m_precision;
+            auto expected_view = make_host_view(expected_field);
+            auto actual_view = make_host_view(actual_field);
+
+            // TODO This is following the original implementation. Shouldn't we deduce the range from the grid (as we
+            // already pass it)?
+            storage_info_rt meta_rt = make_storage_info_rt(*(expected_field.get_storage_info_ptr()));
+            array< pair< uint_t, uint_t >, StorageType::storage_info_t::layout_t::masked_length > bounds;
+            for (size_t i = 0; i < bounds.size(); ++i) {
+                bounds[i] = {halos[i][0], meta_rt.unaligned_dims()[i] - halos[i][1]};
+            }
+
+            auto reduction_op = [](bool a, bool b) { return a && b; };
+
+            return make_multi_iterator(bounds).reduce(verify_functor< decltype(expected_view), decltype(actual_view) >(
+                                                          expected_view, actual_view, m_precision),
+                reduction_op,
+                true);
+        }
     };
 
 } // namespace gridtools

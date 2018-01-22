@@ -33,28 +33,39 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 
-#include "array.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/array.hpp"
 
 namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
+    namespace impl {
 
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
-    }
+        /*
+         * @brief copy std::vector to (potentially bigger) gridtools::array and fill extra elements with 1
+         */
+        template < size_t MaxDim >
+        gridtools::array< gridtools::uint_t, MaxDim > vector_to_dims_array(const std::vector< uint_t > &v) {
+            assert(MaxDim >= v.size() && "array too small");
 
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
+            gridtools::array< gridtools::uint_t, MaxDim > a;
+            std::fill(a.begin(), a.end(), 1);
+            std::copy(v.begin(), v.end(), a.begin());
+            return a;
+        }
+
+        /*
+         * @brief copy std::vector to (potentially bigger) gridtools::array and fill extra elements with 0
+         */
+        template < size_t MaxDim >
+        gridtools::array< gridtools::uint_t, MaxDim > vector_to_strides_array(const std::vector< uint_t > &v) {
+            assert(MaxDim >= v.size() && "array too small");
+
+            gridtools::array< gridtools::uint_t, MaxDim > a;
+            std::fill(a.begin(), a.end(), 0);
+            std::copy(v.begin(), v.end(), a.begin());
+            return a;
+        }
     }
 }
