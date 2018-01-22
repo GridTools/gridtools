@@ -99,8 +99,7 @@ namespace test_iterate_domain {
         auto mss_ = gridtools::make_multistage // mss_descriptor
             (enumtype::execute< enumtype::forward >(),
                 gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()));
-        auto computation_ =
-            make_computation_impl< false, gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
+        auto computation_ = make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
         typedef decltype(gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out())) esf_t;
 
@@ -108,7 +107,7 @@ namespace test_iterate_domain {
         computation_->steady();
 
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
-        typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
+        typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;
 
         typedef boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
 

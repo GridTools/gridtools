@@ -33,26 +33,34 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "boost/mpl/equal.hpp"
-#include "boost/mpl/quote.hpp"
-#include "boost/mpl/vector.hpp"
-#include "boost/type_traits/is_integral.hpp"
-#include "common/defs.hpp"
-#include "common/meta_array.hpp"
-#include "gtest/gtest.h"
 
-using namespace gridtools;
-template < typename T >
-struct is_integer : boost::mpl::false_ {};
-template <>
-struct is_integer< int > : boost::mpl::true_ {};
+#pragma once
 
-TEST(meta_array, test_meta_array_element) {
+#include "../gridtools.hpp"
+#include "../stencil-composition/stencil-composition.hpp"
+#include "../communication/low-level/proc_grids_3D.hpp"
 
-    typedef meta_array< boost::mpl::vector4< int, int, int, int >, boost::mpl::quote1< boost::is_integral > >
-        meta_array_t;
+namespace gridtools {
 
-    ASSERT_TRUE((boost::mpl::equal< meta_array_t::elements, boost::mpl::vector4< int, int, int, int > >::value));
+    template < typename StorageType, typename Arch >
+    struct comm_traits {
+        template < typename GCLArch, typename = void >
+        struct compute_arch_of {
+            static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Host;
+        };
 
-    GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< meta_array_t, boost::is_integral >::value), "Error");
-}
+        template < typename T >
+        struct compute_arch_of< gcl_gpu, T > {
+            static constexpr gridtools::enumtype::platform value = gridtools::enumtype::Cuda;
+        };
+
+        using proc_layout = gridtools::layout_map< 0, 1, 2 >;
+        using proc_grid_type = gridtools::MPI_3D_process_grid_t< 3 >;
+        using comm_arch_type = Arch;
+        static constexpr gridtools::enumtype::platform compute_arch = compute_arch_of< comm_arch_type >::value;
+        static constexpr int version = gridtools::version_manual;
+        using data_layout = typename StorageType::storage_info_t::layout_t;
+        using value_type = typename StorageType::data_t;
+    };
+
+} // namespace gridtools
