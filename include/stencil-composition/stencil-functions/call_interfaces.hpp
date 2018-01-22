@@ -351,7 +351,7 @@ namespace gridtools {
             }
 
             /**
-             * @brief Accessor is a global_accessor and the passed Argument is an accessor (not a local ariable)
+             * @brief Accessor is a global_accessor and the passed Argument is an accessor (not a local variable)
              */
             template < typename Accessor >
             GT_FUNCTION constexpr typename boost::enable_if_c< is_global_accessor< Accessor >::value &&
@@ -407,8 +407,7 @@ namespace gridtools {
     struct call_proc {
 
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value or std::is_void< Region >::value),
-            "Region should be a valid interval tag or void (default interval) to select the Do specialization in "
-            "the "
+            "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
             "called stencil function");
 
         /** This alias is used to move the computation at a certain offset
