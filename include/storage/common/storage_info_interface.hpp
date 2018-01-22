@@ -59,6 +59,45 @@
 
 namespace gridtools {
 
+    namespace _impl {
+        template <typename Layout, int Max, int i>
+        struct compute_strides {
+            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & dims) {
+                compute_strides<Layout, Max, i-1>::apply(strides, dims);
+                strides[Layout::template find<Max-i>()] = strides[Layout::template find<Max-i+1>()] * dims[Layout::template find<Max-i+1>()];
+            }
+        };
+
+        template <typename Layout>
+        struct compute_strides<Layout, -1, -1> {
+            // Scalar storage - 0-dimensional storage
+            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & dims) { }
+        };
+
+        template <typename Layout, int Max>
+        struct compute_strides<Layout, Max, 0> {
+            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & ) {
+                strides[Layout::template find<Max>()] = 1;
+            }
+        };
+
+        template <typename Layout>
+        struct compute_strides<Layout, 0, 0> {
+            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & ) {
+                strides[Layout::template find<0>()] = 1;
+            }
+        };
+
+        template <typename Layout, int Max>
+        struct compute_strides<Layout, Max, Max> {
+            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & dims) {
+                compute_strides<Layout, Max, Max-1>::apply(strides, dims);
+                strides[Layout::template find<0>()] = strides[Layout::template find<1>()] * dims[Layout::template find<1>()];
+            }
+        };
+
+    } // namespace _impl
+
     namespace {
 
         /*
@@ -134,29 +173,6 @@ namespace gridtools {
         GT_FUNCTION constexpr storage_info_interface() {}
 
 
-        template <int Max, int i>
-        struct compute_strides {
-            static void apply(array< uint_t, layout_t::masked_length > & strides, array< uint_t, layout_t::masked_length > const & dims) {
-                compute_strides<Max, i-1>::apply(strides, dims);
-                strides[layout_t::template find<Max-i>()] = strides[layout_t::template find<Max-i+1>()] * dims[layout_t::template find<Max-i+1>()];
-            }
-        };
-
-        template <int Max>
-        struct compute_strides<Max, 0> {
-            static void apply(array< uint_t, layout_t::masked_length > & strides, array< uint_t, layout_t::masked_length > const & ) {
-                strides[layout_t::template find<Max>()] = 1;
-            }
-        };
-
-        template <int Max>
-        struct compute_strides<Max, Max> {
-            static void apply(array< uint_t, layout_t::masked_length > & strides, array< uint_t, layout_t::masked_length > const & dims) {
-                compute_strides<Max, Max-1>::apply(strides, dims);
-                strides[layout_t::template find<0>()] = strides[layout_t::template find<1>()] * dims[layout_t::template find<1>()];
-            }
-        };
-
         template <typename T>
         static constexpr int round_up(T i) {
             return (i%alignment_t::value==0)?i:(i/alignment_t::value+1)*alignment_t::value;
@@ -201,7 +217,7 @@ namespace gridtools {
             , m_padded_dims{compute_padding(typename make_gt_integer_sequence<uint_t, sizeof...(Dims)>::type{}, dims_...)}
             , m_strides{(static_cast<uint_t>(dims_)*0u)...}
         {
-            compute_strides<max_layout_v, max_layout_v>::apply(m_strides, m_padded_dims);
+            _impl::compute_strides<layout_t, max_layout_v, max_layout_v>::apply(m_strides, m_padded_dims);
 
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                                         typename is_all_integral_or_enum< Dims... >::type >::value),
