@@ -35,7 +35,6 @@
 */
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
-#include <stencil-composition/conditionals/condition_pool.hpp>
 
 namespace test_conditionals {
     using namespace gridtools;
@@ -50,8 +49,8 @@ namespace test_conditionals {
 #endif
 #endif
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using axis_t = axis< 1 >;
+    using x_interval = axis_t::full_interval;
 
     template < uint_t Id >
     struct functor {
@@ -65,17 +64,12 @@ namespace test_conditionals {
         }
     };
 
-    bool predicate1() { return false; }
-    bool predicate2() { return true; }
-
     bool test() {
 
-        auto cond = new_cond([]() { return false; });
-        auto cond2 = new_cond([]() { return true; });
+        auto cond = []() { return false; };
+        auto cond2 = []() { return true; };
 
-        grid< axis > grid_({0, 0, 0, 1, 2}, {0, 0, 0, 1, 2});
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = 2;
+        auto grid_ = make_grid((uint_t)2, (uint_t)2, axis_t((uint_t)3));
 
         typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
         typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >

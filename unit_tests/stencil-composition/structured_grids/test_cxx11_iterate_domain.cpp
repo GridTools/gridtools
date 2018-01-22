@@ -45,10 +45,6 @@ namespace test_iterate_domain {
     using namespace gridtools;
     using namespace enumtype;
 
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
-    typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct dummy_functor {
         typedef accessor< 0, enumtype::in, extent< 0, 0, 0, 0 >, 6 > in;
@@ -57,7 +53,7 @@ namespace test_iterate_domain {
         typedef boost::mpl::vector< in, buff, out > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+        GT_FUNCTION static void Do(Evaluation &eval) {}
     };
 
     std::ostream &operator<<(std::ostream &s, dummy_functor const) { return s << "dummy_function"; }
@@ -98,18 +94,12 @@ namespace test_iterate_domain {
 
         gridtools::aggregator_type< accessor_list > domain(in, buff, out);
 
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(d1, d2, d3);
 
         auto mss_ = gridtools::make_multistage // mss_descriptor
             (enumtype::execute< enumtype::forward >(),
                 gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out()));
-        auto computation_ =
-            make_computation_impl< false, gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
+        auto computation_ = make_computation< gridtools::backend< Host, GRIDBACKEND, Naive > >(domain, grid, mss_);
 
         typedef decltype(gridtools::make_stage< dummy_functor >(p_in(), p_buff(), p_out())) esf_t;
 
@@ -117,7 +107,7 @@ namespace test_iterate_domain {
         computation_->steady();
 
         typedef boost::remove_reference< decltype(*computation_) >::type intermediate_t;
-        typedef intermediate_mss_local_domains< intermediate_t >::type mss_local_domains_t;
+        typedef intermediate_mss_local_domains< intermediate_t > mss_local_domains_t;
 
         typedef boost::mpl::front< mss_local_domains_t >::type mss_local_domain1_t;
 
@@ -131,7 +121,7 @@ namespace test_iterate_domain {
                 boost::mpl::vector0<>,
                 block_size< 32, 4 >,
                 block_size< 32, 4 >,
-                gridtools::grid< axis >,
+                gridtools::grid< gridtools::axis< 1 >::axis_interval_t >,
                 boost::mpl::false_,
                 notype > > it_domain_t;
 

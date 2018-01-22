@@ -51,34 +51,77 @@ namespace gridtools {
     template < typename UInt, UInt... Indices >
     struct gt_integer_sequence {
         using type = gt_integer_sequence;
+        using value_type = UInt;
+        static constexpr std::size_t size() noexcept { return sizeof...(Indices); }
+    };
+
+    /**
+       @brief Given two integer sequences returns the sequence with
+       the two sequences it returns a sequence in which the second
+       sequence is attached to the first one (without any
+       transformation, as it the case of gridtools::concat)
+
+       \tparam S1 Frist sequence
+       \tparam S2 Second sequence
+
+     */
+    template < typename S1, typename S2 >
+    struct append;
+
+    template < typename Uint, Uint... S1, Uint... S2 >
+    struct append< gt_integer_sequence< Uint, S1... >, gt_integer_sequence< Uint, S2... > > {
+        using type = gt_integer_sequence< Uint, S1..., S2... >;
     };
 
     /** @bief concatenates two integer sequences*/
-    template < class S1, class S2 >
-    struct concat;
+    namespace _impl {
+        template < typename Seq, size_t Size, size_t Rem >
+        struct expand_integer_sequence;
 
-    template < typename UInt, UInt... I1, UInt... I2 >
-    struct concat< gt_integer_sequence< UInt, I1... >, gt_integer_sequence< UInt, I2... > >
-        : gt_integer_sequence< UInt, I1..., (sizeof...(I1) + I2)... > {};
+        template < typename UInt, UInt... Is, size_t Size >
+        struct expand_integer_sequence< gt_integer_sequence< UInt, Is... >, Size, 0 > {
+            using type = gt_integer_sequence< UInt, Is..., (Size + Is)... >;
+        };
+
+        template < typename UInt, UInt... Is, size_t Size >
+        struct expand_integer_sequence< gt_integer_sequence< UInt, Is... >, Size, 1 > {
+            using type = gt_integer_sequence< UInt, Is..., (Size + Is)..., 2 * Size >;
+        };
+
+        template < typename UInt, size_t N >
+        struct generate_integer_sequence {
+            using type = typename expand_integer_sequence< typename generate_integer_sequence< UInt, N / 2 >::type,
+                N / 2,
+                N % 2 >::type;
+        };
+
+        template < typename UInt >
+        struct generate_integer_sequence< UInt, 0 > {
+            using type = gt_integer_sequence< UInt >;
+        };
+    }
 
     /** @brief constructs an integer sequence
 
         @tparam N number larger than 2, size of the integer sequence
      */
-    template < typename UInt, uint_t N >
-    struct make_gt_integer_sequence : concat< typename make_gt_integer_sequence< UInt, N / 2 >::type,
-                                          typename make_gt_integer_sequence< UInt, N - N / 2 >::type >::type {};
+    template < typename UInt, UInt N >
+    using make_gt_integer_sequence = typename _impl::generate_integer_sequence< UInt, N >::type;
 
-    template < typename UInt >
-    struct make_gt_integer_sequence< UInt, 0 > : gt_integer_sequence< UInt > {};
-    template < typename UInt >
-    struct make_gt_integer_sequence< UInt, 1 > : gt_integer_sequence< UInt, 0 > {};
+    template < size_t... Ints >
+    using gt_index_sequence = gt_integer_sequence< size_t, Ints... >;
+
+    template < size_t N >
+    using make_gt_index_sequence = make_gt_integer_sequence< size_t, N >;
+
+    template < class... Ts >
+    using gt_index_sequence_for = make_gt_index_sequence< sizeof...(Ts) >;
 
     // with CXX14 the gt_integer_sequence from the standard can directly replace this one:
     // template <typename UInt, UInt ... Indices>
     // using gt_integer_sequence=std::integer_sequence<UInt, Indices ...>;
 
-    // template<typename UInt, uint_t N>
+    // template<typename UInt, UInt N>
     // using make_gt_integer_sequence=std::make_integer_sequence<UInt, N>;
 
     namespace impl {
