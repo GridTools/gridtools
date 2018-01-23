@@ -40,9 +40,9 @@
 #include "../common/defs.hpp"
 
 namespace gridtools {
-    // TODO HV:
-    // would be good if someone could explain the purpose of this type
-
+    /**
+     * @brief The position_offset is an array that keeps the iteration indices over a multidimensional domain.
+     */
     class position_offset_type : public array< int_t, 4 > {
       public:
         constexpr GT_FUNCTION position_offset_type(int_t i0, int_t i1, int_t i2, int_t i3)

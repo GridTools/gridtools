@@ -89,14 +89,11 @@ namespace gridtools {
                 typename boost::enable_if< typename esf_sequence_contains_color< esf_sequence_t,
                     color_type< Index::value > >::type >::type * = 0) const {
 
-                typename IterateDomain::array_index_t memorized_index;
-                typename IterateDomain::grid_position_t memorized_position;
-
                 for (uint_t j = m_first_pos[1] + Extent::jminus::value;
                      j <= m_first_pos[1] + m_loop_size[1] + Extent::jplus::value;
                      ++j) {
-                    memorized_index = m_it_domain.index();
-                    memorized_position = m_it_domain.position();
+                    typename IterateDomain::array_index_t memorized_index = m_it_domain.index();
+                    typename IterateDomain::grid_position_t memorized_position = m_it_domain.position();
 
                     // we fill the run_functor_arguments with the current color being processed
                     typedef typename colorize_run_functor_arguments< RunFunctorArguments, Index >::type
