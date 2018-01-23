@@ -141,8 +141,7 @@ namespace gridtools {
             constexpr int_t alignment = storage_info_t::alignment_t::value;
             int_t i_padded_size = ((i_block_size + 2 * halo_i + alignment - 1) / alignment) * alignment;
 
-            // return storage_info_t(i_padded_size, (j_block_size + 2 * halo_j) * threads, k_size);
-            return storage_info_t(i_padded_size, j_block_size + 2 * halo_j, k_size * threads);
+            return storage_info_t(i_padded_size, (j_block_size + 2 * halo_j) * threads, k_size);
         }
 
         // get a temporary storage for Cuda
