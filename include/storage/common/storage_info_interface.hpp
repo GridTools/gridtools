@@ -174,23 +174,23 @@ namespace gridtools {
 
 
         template <typename T>
-        static constexpr int round_up(T i) {
+        static constexpr T round_up(T i) {
             return (i%alignment_t::value==0)?i:(i/alignment_t::value+1)*alignment_t::value;
         }
 
         template <uint_t ...Ints, typename ...Dims>
         static constexpr array<uint_t, ndims> compute_padding(gt_integer_sequence<uint_t, Ints...>, Dims... dims) {
             static_assert(sizeof...(Ints) == sizeof...(Dims), " ");
-            return {((layout_t::template at<Ints>()==max_layout_v)?round_up(dims):dims)...};
+            return {static_cast<uint_t>((layout_t::template at<Ints>()==max_layout_v)?round_up(dims):dims)...};
         }
 
         template <uint_t Idx, uint_t... Idxs, typename Array, typename Halo=zero_halo<ndims> >
-        GT_FUNCTION static uint_t multiply_if_layout(gt_integer_sequence<uint_t, Idx, Idxs...>, Array const& array, Halo h = zero_halo<ndims>{}) {
+        GT_FUNCTION static constexpr uint_t multiply_if_layout(gt_integer_sequence<uint_t, Idx, Idxs...>, Array const& array, Halo h = zero_halo<ndims>{}) {
             return ((layout_t::template at<Idx>()>=0)?array[Idx] - 2*h.at(Idx):1) * multiply_if_layout(gt_integer_sequence<uint_t, Idxs...>{}, array, h);
         }
 
         template <typename Array, typename Halo=zero_halo<ndims> >
-        GT_FUNCTION static uint_t multiply_if_layout(gt_integer_sequence<uint_t>, Array const& array, Halo h = zero_halo<ndims>{}) {
+        GT_FUNCTION static constexpr uint_t multiply_if_layout(gt_integer_sequence<uint_t>, Array const& array, Halo h = zero_halo<ndims>{}) {
             return 1;
         }
 
@@ -212,12 +212,13 @@ namespace gridtools {
          * region is added to the corresponding dimensions and the alignment is applied.
          */
         template < typename... Dims, typename = gridtools::all_integral< Dims... > >
-        GT_FUNCTION explicit storage_info_interface(Dims... dims_)
-            : m_dims{dims_...}
-            , m_padded_dims{compute_padding(typename make_gt_integer_sequence<uint_t, sizeof...(Dims)>::type{}, dims_...)}
-            , m_strides{(static_cast<uint_t>(dims_)*0u)...}
+        GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
+            : m_dims{static_cast<uint_t>(dims_)...}
+            , m_padded_dims{compute_padding(typename make_gt_integer_sequence<uint_t, sizeof...(Dims)>::type{}, static_cast<uint_t>(dims_)...)}
+            , m_strides(get_strides< layout_t >::get_stride_array(
+                                                                  align_dimensions< alignment_t, max_layout_v, LayoutArgs >(
+                                      handle_masked_dims< LayoutArgs >::extend(dims_))...))
         {
-            _impl::compute_strides<layout_t, max_layout_v, max_layout_v>::apply(m_strides, m_padded_dims);
 
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                                         typename is_all_integral_or_enum< Dims... >::type >::value),
@@ -247,7 +248,7 @@ namespace gridtools {
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
          * @return total size including dimensions, halos, initial_offset, padding, and initial_offset
          */
-        GT_FUNCTION uint_t padded_total_length() const {
+        GT_FUNCTION constexpr uint_t padded_total_length() const {
             return multiply_if_layout(make_gt_integer_sequence<uint_t, ndims>{}, m_padded_dims);
         }
 
@@ -277,6 +278,16 @@ namespace gridtools {
         template < uint_t Dim >
         GT_FUNCTION constexpr uint_t total_length() const {
             return m_dims[Dim];
+        }
+
+        /*
+         * @brief Returns the length of a dimension including the halo points (the outer region)
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t padded_length() const {
+            return m_padded_dims[Dim];
         }
 
         /*
@@ -450,7 +461,7 @@ namespace gridtools {
          * aligned. Therefore we have to introduce an initial offset.
          * @return initial offset
          */
-        GT_FUNCTION uint_t get_initial_offset() const {
+        GT_FUNCTION constexpr uint_t get_initial_offset() const {
             return 0;//index(halo_t::template at<0>(), halo_t::template at<1>(), halo_t::template at<2>());
             // return alignment_impl< alignment_t, layout_t, halo_t >::InitialOffset;
         }
