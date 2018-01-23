@@ -47,19 +47,17 @@ namespace gridtools {
     template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
     struct is_regular_accessor< accessor< ID, Intend, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
 
-    template < typename T, typename Enable >
-    struct is_accessor_impl : boost::mpl::false_ {};
+    template < typename T >
+    struct is_accessor : boost::mpl::false_ {};
+
+    template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
+    struct is_accessor< accessor< ID, Intend, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
 
     template < typename T >
-    struct is_accessor_impl< T, typename std::enable_if< is_regular_accessor< T >::value >::type > : boost::mpl::true_ {
-    };
+    struct is_grid_accessor : boost::mpl::false_ {};
 
-    template < typename T, typename Enable >
-    struct is_grid_accessor_impl : boost::mpl::false_ {};
-
-    template < typename T >
-    struct is_grid_accessor_impl< T, typename std::enable_if< is_regular_accessor< T >::value >::type >
-        : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
+    struct is_grid_accessor< accessor< ID, Intend, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
 
     /**
      * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according

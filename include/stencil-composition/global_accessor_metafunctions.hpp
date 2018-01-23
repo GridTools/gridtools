@@ -55,9 +55,8 @@ namespace gridtools {
     template < typename Global, typename... Args >
     struct is_global_accessor_with_arguments< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
 
-    template < typename T >
-    struct is_accessor_impl< T, typename std::enable_if< is_global_accessor< T >::value >::type > : boost::mpl::true_ {
-    };
+    template < uint_t I, enumtype::intend Intend >
+    struct is_accessor< global_accessor< I, Intend > > : boost::true_type {};
 
     template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
     struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {

@@ -140,12 +140,11 @@ the dimension is chosen
     template < typename... Types >
     struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
 
-    template < typename T >
-    struct is_grid_accessor_impl< T, typename std::enable_if< is_accessor_mixed< T >::value >::type >
-        : boost::mpl::true_ {};
+    template < typename... Types >
+    struct is_accessor< accessor_mixed< Types... > > : boost::mpl::true_ {};
 
-    template < typename T >
-    struct is_accessor_impl< T, typename std::enable_if< is_accessor_mixed< T >::value >::type > : boost::mpl::true_ {};
+    template < typename... Types >
+    struct is_grid_accessor< accessor_mixed< Types... > > : boost::mpl::true_ {};
 
     template < typename Accessor, typename ArgsMap, typename... Pairs >
     struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
