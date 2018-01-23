@@ -43,17 +43,7 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#define BACKEND_ARCH Host
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
+#include "backend_select.hpp"
 
 namespace {
 
@@ -72,8 +62,8 @@ namespace {
         }
     };
 
-    using storage_info_t = storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 >;
-    using data_store_t = storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t >;
+    using storage_info_t = storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 >;
+    using data_store_t = storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >;
 
     data_store_t make_data_store(uint_t x, uint_t y, uint_t z, float_type *ptr) {
         return data_store_t(storage_info_t(x, y, z), ptr);
@@ -93,7 +83,7 @@ namespace {
         auto grid = make_grid(dims[0], dims[1], dims[2]);
         auto domain = aggregator_type< m::vector< p_in, p_out > >{p_in{} = in, p_out{} = out};
         auto mss = make_multistage(execute< forward >(), make_stage< copy_functor >(p_in{}, p_out{}));
-        auto res = make_computation< BACKEND >(domain, grid, mss);
+        auto res = make_computation< backend_t >(domain, grid, mss);
         res->ready();
         return res;
     }
