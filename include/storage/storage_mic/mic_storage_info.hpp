@@ -54,7 +54,7 @@ namespace gridtools {
     template < uint_t Id,
         typename Layout,
         typename Halo = zero_halo< Layout::masked_length >,
-        typename Alignment = alignment< 1 > >
+        typename Alignment = alignment< 8 > >
     struct mic_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
         GRIDTOOLS_STATIC_ASSERT((is_halo< Halo >::value), "Given type is not a halo type.");
         GRIDTOOLS_STATIC_ASSERT((is_alignment< Alignment >::value), "Given type is not an alignment type.");
