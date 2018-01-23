@@ -38,21 +38,12 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
 #include "unstructured_grid.hpp"
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
 namespace nested_test {
-
-#ifdef __CUDACC__
-    using backend_t = ::gridtools::backend< Cuda, GRIDBACKEND, Block >;
-#else
-#ifdef BACKEND_BLOCK
-    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Block >;
-#else
-    using backend_t = ::gridtools::backend< Host, GRIDBACKEND, Naive >;
-#endif
-#endif
 
     using icosahedral_topology_t = ::gridtools::icosahedral_topology< backend_t >;
 

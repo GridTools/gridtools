@@ -45,6 +45,8 @@
 #include <boundary-conditions/value.hpp>
 #include <boundary-conditions/copy.hpp>
 
+#include "backend_select.hpp"
+
 #include "../tools/triplet.hpp"
 
 template < typename View >
@@ -98,23 +100,10 @@ TEST(DistributedBoundaries, Test) {
 
 #ifdef __CUDACC__
     using comm_arch = gridtools::gcl_gpu;
-    typedef gridtools::backend< gridtools::enumtype::Cuda,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > hd_backend;
-    typedef gridtools::storage_traits< gridtools::enumtype::Cuda > storage_tr;
 #else
     using comm_arch = gridtools::gcl_cpu;
-#ifdef BACKEND_BLOCK
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Block > hd_backend;
-#else
-    typedef gridtools::backend< gridtools::enumtype::Host,
-        gridtools::enumtype::GRIDBACKEND,
-        gridtools::enumtype::Naive > hd_backend;
 #endif
-    typedef gridtools::storage_traits< gridtools::enumtype::Host > storage_tr;
-#endif
+    using storage_tr = gridtools::storage_traits< backend_t::s_backend_id >;
 
     using namespace gridtools;
 
