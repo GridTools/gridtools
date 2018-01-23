@@ -55,7 +55,7 @@ namespace gridtools {
     }
 
     TEST(permute_to, cref) {
-        vector<> const src;
+        vector<> const src = {};
         EXPECT_TRUE(permute_to< vector<> >(src) == make_vector());
     }
 
