@@ -40,4 +40,76 @@
 #include "../../common/dimension.hpp"
 #include "../../common/generic_metafunctions/static_if.hpp"
 
-#include "accessor_cxx11.hpp"
+/**
+   @file
+
+   @brief File containing the definition of the placeholders used to
+   address the storage from whithin the functors.  A placeholder is an
+   implementation of the proxy design pattern for the storage class,
+   i.e. it is a light object used in place of the storage when
+   defining the high level computations, and it will be bound later on
+   with a specific instantiation of a storage class.
+
+   Two different types of placeholders are considered:
+
+   - arg represents the storage in the body of the main function, and
+     it gets lazily assigned to a real storage.
+
+   - accessor represents the storage inside the functor struct
+     containing a Do method. It can be instantiated directly in the Do
+     method, or it might be a constant expression instantiated outside
+     the functor scope and with static duration.
+*/
+
+namespace gridtools {
+
+    /**
+       @brief the definition of accessor visible to the user
+
+       \tparam ID the integer unic ID of the field placeholder
+
+       \tparam Extent the extent of i/j indices spanned by the
+               placeholder, in the form of <i_minus, i_plus, j_minus,
+               j_plus>.  The values are relative to the current
+               position. See e.g. horizontal_diffusion::out_function
+               as a usage example.
+
+       \tparam Number the number of dimensions accessed by the
+               field. Notice that we don't distinguish at this level what we
+               call "space dimensions" from the "field dimensions". Both of
+               them are accessed using the same interface. whether they are
+               field dimensions or space dimension will be decided at the
+               moment of the storage instantiation (in the main function)
+     */
+    template < uint_t ID,
+        enumtype::intend Intend = enumtype::in,
+        typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
+        ushort_t Number = 3 >
+    struct accessor : public accessor_base< ID, Intend, Extent, Number > {
+        typedef accessor_base< ID, Intend, Extent, Number > super;
+        typedef typename super::index_t index_t;
+        typedef typename super::offset_tuple_t offset_tuple_t;
+
+        /**inheriting all constructors from accessor_base*/
+        using super::accessor_base;
+
+        // workaround in order to support using the "normal" accessor even for non rectangular data fields
+        // see the implementation of get_data_field_index (specialization of non rectangular data field):
+        // for a non rectangular data field, the components need to be accessed with the constexpr (in order
+        // to avoid having to loop over all components in order to compute the offset of certain snapshot).
+        // That forces to use an accessor_mixed, unless we are only accessing the first component.
+        // In order to allow accessing the first component with a "normal" accessor we need to provide this
+        // dummy get_constexpr that returns always 0
+        template < short_t Idx >
+        GT_FUNCTION static constexpr int_t get_constexpr() {
+            return 0;
+        }
+    };
+
+    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
+    using in_accessor = accessor< ID, enumtype::in, Extent, Number >;
+
+    template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >
+    using inout_accessor = accessor< ID, enumtype::inout, Extent, Number >;
+
+} // namespace gridtools

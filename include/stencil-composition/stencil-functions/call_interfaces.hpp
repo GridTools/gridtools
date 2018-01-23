@@ -407,7 +407,8 @@ namespace gridtools {
     struct call_proc {
 
         GRIDTOOLS_STATIC_ASSERT((is_interval< Region >::value or std::is_void< Region >::value),
-            "Region should be a valid interval tag or void (default interval) to select the Do specialization in the "
+            "Region should be a valid interval tag or void (default interval) to select the Do specialization in "
+            "the "
             "called stencil function");
 
         /** This alias is used to move the computation at a certain offset

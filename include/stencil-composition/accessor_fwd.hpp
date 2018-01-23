@@ -42,11 +42,17 @@
 #endif
 
 namespace gridtools {
-    template < typename T >
-    struct is_accessor;
+    template < typename T, typename Enable = void >
+    struct is_accessor_impl;
 
     template < typename T >
-    struct is_any_accessor;
+    using is_accessor = is_accessor_impl< T >;
+
+    template < typename T, typename Enable = void >
+    struct is_grid_accessor_impl;
+
+    template < typename T >
+    using is_grid_accessor = is_grid_accessor_impl< T >;
 
     /**
      * Struct to test if an argument is a temporary

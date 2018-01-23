@@ -33,9 +33,11 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
 #pragma once
 #include "../accessor_fwd.hpp"
 #include "../extent.hpp"
+
 /** @file vector accessor */
 
 namespace gridtools {
@@ -50,18 +52,13 @@ namespace gridtools {
        \tparam ID integer identifier, to univocally specify the accessor
        \tparam Intent flag stating wether or not this accessor is read only
        \tparam Extent specification of the minimum box containing the stencil access pattern
-       \tparam NDim dimensionality of the vector accessor: should be the storage space dimensions plus two (the vector
-       field/snapshot dimensions). In case of icosahedral grids for a 3D field this dimension is 6 (3 space dimensions +
-       1 color + 2 field/snapshot dimensions)
+       \tparam NDim dimensionality of the vector accessor: should be the storage space dimensions plus one (the vector
+       field dimension)
     */
-    template < uint_t ID,
-        enumtype::intend Intent,
-        typename LocationType,
-        typename Extent = extent< 0 >,
-        ushort_t NDim = 6 >
-    struct vector_accessor : accessor< ID, Intent, LocationType, Extent, NDim > {
+    template < uint_t ID, enumtype::intend Intent = enumtype::in, typename Extent = extent< 0 >, ushort_t NDim = 5 >
+    struct vector_accessor : accessor< ID, Intent, Extent, NDim > {
 
-        using super = accessor< ID, Intent, LocationType, Extent, NDim >;
+        using super = accessor< ID, Intent, Extent, NDim >;
         using super::accessor;
         static const ushort_t n_dimensions = NDim;
     };
@@ -69,8 +66,8 @@ namespace gridtools {
     template < typename T >
     struct is_vector_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intend Intent, typename LocationType, typename Extent, uint_t Size >
-    struct is_vector_accessor< vector_accessor< ID, Intent, LocationType, Extent, Size > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intend Intent, typename Extent, uint_t Size >
+    struct is_vector_accessor< vector_accessor< ID, Intent, Extent, Size > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_accessor_impl< T, typename std::enable_if< is_vector_accessor< T >::value >::type > : boost::mpl::true_ {
@@ -79,4 +76,10 @@ namespace gridtools {
     template < typename T >
     struct is_grid_accessor_impl< T, typename std::enable_if< is_vector_accessor< T >::value >::type >
         : boost::mpl::true_ {};
+
+    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
+    struct remap_accessor_type< vector_accessor< ID, Intend, Extend, Number >, ArgsMap > {
+        typedef vector_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend, Extend, Number > type;
+    };
+
 } // namespace gridtools

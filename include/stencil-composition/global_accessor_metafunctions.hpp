@@ -35,14 +35,40 @@
 */
 #pragma once
 
-#ifdef STRUCTURED_GRIDS
-#include "stencil-composition/structured_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/structured_grids/accessor.hpp"
-#include "stencil-composition/structured_grids/accessor_mixed.hpp"
-#else
-#include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/icosahedral_grids/accessor.hpp"
-#endif
+#include "global_accessor_fwd.hpp"
+#include "accessor_metafunctions.hpp"
+#include "global_accessor.hpp"
 
-#include "stencil-composition/global_accessor_metafunctions.hpp"
-#include "stencil-composition/global_accessor.hpp"
+namespace gridtools {
+    template < typename Type >
+    struct is_global_accessor : boost::false_type {};
+
+    template < uint_t I, enumtype::intend Intend >
+    struct is_global_accessor< global_accessor< I, Intend > > : boost::true_type {};
+
+    template < typename Global, typename... Args >
+    struct is_global_accessor< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
+
+    template < typename T >
+    struct is_global_accessor_with_arguments : boost::false_type {};
+
+    template < typename Global, typename... Args >
+    struct is_global_accessor_with_arguments< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
+
+    template < typename T >
+    struct is_accessor_impl< T, typename std::enable_if< is_global_accessor< T >::value >::type > : boost::mpl::true_ {
+    };
+
+    template < ushort_t ID, enumtype::intend Intend, typename ArgsMap >
+    struct remap_accessor_type< global_accessor< ID, Intend >, ArgsMap > {
+        typedef global_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend > type;
+    };
+
+    template < typename GlobalAcc, typename ArgsMap, typename... Args >
+    struct remap_accessor_type< global_accessor_with_arguments< GlobalAcc, Args... >, ArgsMap > {
+        typedef global_accessor_with_arguments<
+            global_accessor< _impl::get_remap_accessor_id< GlobalAcc::index_t::value, ArgsMap >(), GlobalAcc::intent >,
+            Args... > type;
+    };
+
+} // namespace gridtools

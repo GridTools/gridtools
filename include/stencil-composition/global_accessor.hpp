@@ -37,6 +37,7 @@
 
 #include "../common/defs.hpp"
 #include "./empty_extent.hpp"
+#include "accessor.hpp"
 
 namespace gridtools {
 
@@ -77,10 +78,11 @@ namespace gridtools {
        Calling the parenthesis operator on the global_accessor generates an instance of
        ```global_accessor_with_arguments```.
      */
-    template < uint_t I, enumtype::intend Intend = enumtype::in >
+    template < uint_t I, enumtype::intend Intend = enumtype::in > // TODO cleanup
     struct global_accessor {
 
-        static const constexpr enumtype::intend intent = Intend;
+        static const constexpr enumtype::intend intent = enumtype::in;          // TODO cleanup
+        typedef enumtype::enum_type< enumtype::intend, enumtype::in > intend_t; // TODO cleanup
 
         typedef global_accessor< I, Intend > type;
 
@@ -100,20 +102,4 @@ namespace gridtools {
             return global_accessor_with_arguments< global_accessor, Args... >(std::forward< Args >(args_)...);
         }
     };
-
-    template < typename Type >
-    struct is_global_accessor : boost::false_type {};
-
-    template < uint_t I, enumtype::intend Intend >
-    struct is_global_accessor< global_accessor< I, Intend > > : boost::true_type {};
-
-    template < typename Global, typename... Args >
-    struct is_global_accessor< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
-
-    template < typename T >
-    struct is_global_accessor_with_arguments : boost::false_type {};
-
-    template < typename Global, typename... Args >
-    struct is_global_accessor_with_arguments< global_accessor_with_arguments< Global, Args... > > : boost::true_type {};
-
 } // namespace gridtools

@@ -39,9 +39,6 @@
 
 namespace gridtools {
 
-    template < typename T >
-    struct is_any_accessor;
-
     namespace impl {
         /** metafunction that associates (in a mpl::map) placeholders to extents.
         * It returns a mpl::map between placeholders and extents of the local arguments.
@@ -52,7 +49,7 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Placeholders, is_arg >::value),
                 "The list of Placeholders seems to contain elements that are not placeholers (i.e., they are not of "
                 "type arg)");
-            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Accessors, is_any_accessor >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< Accessors, is_accessor >::value), GT_INTERNAL_ERROR);
 #ifdef PEDANTIC // with global accessors this assertion fails (since they are not in the Accessors)
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< Placeholders >::value == boost::mpl::size< Accessors >::value),
                 "Size of placeholder arguments passed to esf \n"
