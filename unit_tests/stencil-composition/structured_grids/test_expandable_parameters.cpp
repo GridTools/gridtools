@@ -103,7 +103,6 @@ class expandable_parameters : public testing::Test {
 #define BACKEND backend< Host, GRIDBACKEND, Naive >
 #endif
 #endif
-    using axis = interval< level< 0, -1 >, level< 1, 1 > >;
 
     const uint_t d1 = 13;
     const uint_t d2 = 9;
@@ -117,7 +116,7 @@ class expandable_parameters : public testing::Test {
 
     halo_descriptor di;
     halo_descriptor dj;
-    gridtools::grid< axis > grid;
+    gridtools::grid< gridtools::axis< 1 >::axis_interval_t > grid;
 
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
@@ -145,7 +144,7 @@ class expandable_parameters : public testing::Test {
 
     expandable_parameters()
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
+          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(make_grid(di, dj, d3)),
 #if FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
@@ -165,8 +164,6 @@ class expandable_parameters : public testing::Test {
           in{in_1, in_2, in_3, in_4, in_5},       //
           out{out_1, out_2, out_3, out_4, out_5}, //
           domain(in, out) {
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
     }
 
     template < typename Computation >

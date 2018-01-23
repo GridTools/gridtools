@@ -36,6 +36,8 @@
 #pragma once
 
 #include "accessor_fwd.hpp"
+#include "../global_accessor.hpp"
+#include "../expandable_parameters/vector_accessor.hpp"
 #include "./accessor.hpp"
 #include "../expressions/expressions.hpp"
 
@@ -83,9 +85,28 @@ namespace gridtools {
     template < typename Accessor, typename ArgsMap, typename Enable = void >
     struct remap_accessor_type {};
 
+    // TODO(havogt): cleanup code duplication
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
     struct remap_accessor_type< accessor< ID, Intend, Extend, Number >, ArgsMap > {
         using type = accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend, Extend, Number >;
+    };
+
+    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
+    struct remap_accessor_type< vector_accessor< ID, Intend, Extend, Number >, ArgsMap > {
+        typedef vector_accessor< ID, Intend, Extend, Number > accessor_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), GT_INTERNAL_ERROR);
+        // check that the key type is an int (otherwise the later has_key would never find the key)
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::is_same<
+                typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
+                int >::value),
+            GT_INTERNAL_ERROR);
+
+        typedef typename boost::mpl::integral_c< int, (int)ID > index_t;
+
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), GT_INTERNAL_ERROR);
+
+        typedef vector_accessor< boost::mpl::at< ArgsMap, index_t >::type::value, Intend, Extend, Number > type;
     };
 
     template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
@@ -116,4 +137,39 @@ namespace gridtools {
         // integer (the exponent)
         typedef Expression< typename remap_accessor_type< Accessor, ArgsMap >::type, Number > type;
     };
+
+    template < typename Accessor >
+    struct is_accessor_readonly : boost::mpl::false_ {};
+
+#ifdef CUDA8
+    template < typename Accessor, typename... Pair >
+    struct is_accessor_readonly< accessor_mixed< Accessor, Pair... > > : is_accessor_readonly< Accessor > {};
+#endif
+
+    template < ushort_t ID, typename Extend, ushort_t Number >
+    struct is_accessor_readonly< accessor< ID, enumtype::in, Extend, Number > > : boost::mpl::true_ {};
+
+    template < ushort_t ID, typename Extend, ushort_t Number >
+    struct is_accessor_readonly< accessor< ID, enumtype::inout, Extend, Number > > : boost::mpl::false_ {};
+
+    template < ushort_t ID >
+    struct is_accessor_readonly< global_accessor< ID, enumtype::in > > : boost::mpl::true_ {};
+
+    template < ushort_t ID >
+    struct is_accessor_readonly< global_accessor< ID, enumtype::inout > > : boost::mpl::true_ {};
+
+    template < ushort_t ID, typename Extend, ushort_t Number >
+    struct is_accessor_readonly< vector_accessor< ID, enumtype::in, Extend, Number > > : boost::mpl::true_ {};
+
+    template < ushort_t ID, typename Extend, ushort_t Number >
+    struct is_accessor_readonly< vector_accessor< ID, enumtype::inout, Extend, Number > > : boost::mpl::false_ {};
+
+    /* Is written is actually "can be written", since it checks if not read only.
+       TODO: metafunction convention not completely respected */
+    template < typename Accessor >
+    struct is_accessor_written {
+        static const bool value = !is_accessor_readonly< Accessor >::value;
+        typedef typename boost::mpl::not_< typename is_accessor_readonly< Accessor >::type >::type type;
+    };
+
 } // namespace gridtools

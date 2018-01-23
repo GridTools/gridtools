@@ -56,7 +56,7 @@ else
   exit_if_error 444
 fi
 
-export BOOST_ROOT=/users/vogtha/boost_1_63_0
+export BOOST_ROOT=/users/vogtha/boost_1_65_1
 export GRIDTOOLS_ROOT_BUILD=$PWD/build
 export GRIDTOOLS_ROOT=$PWD
 export CUDATOOLKIT_HOME=${CUDA_PATH}
