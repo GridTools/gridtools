@@ -51,16 +51,10 @@ using gridtools::plus_;
 #include <boost/preprocessor/repetition/enum_params.hpp>
 #include <boost/preprocessor/arithmetic/inc.hpp>
 
+#include "backend_select.hpp"
+
 using namespace gridtools;
 using namespace enumtype;
-
-#ifdef __CUDACC__
-#define GT_ARCH Cuda
-#else
-#define GT_ARCH Host
-#endif
-
-#define BACKEND backend< GT_ARCH, GRIDBACKEND, Block >
 
 template < typename T >
 struct direction_bc_input {
@@ -124,8 +118,8 @@ int main(int argc, char **argv) {
     uint_t d2 = atoi(argv[2]);
     uint_t d3 = atoi(argv[3]);
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo< 1, 1, 1 > > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3, halo< 1, 1, 1 > > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< int_t, meta_data_t > storage_t;
 
     // Definition of the actual data fields that are used for input/output
     meta_data_t meta_(d1, d2, d3);
@@ -141,7 +135,7 @@ int main(int argc, char **argv) {
     in_s.sync();
     out_s.sync();
 
-    gridtools::template boundary< direction_bc_input< uint_t >, GT_ARCH >(halos, direction_bc_input< uint_t >(2))
+    gridtools::template boundary< direction_bc_input< uint_t >, backend_t::s_backend_id >(halos, direction_bc_input< uint_t >(2))
         .apply(in_s, out_s);
 
     // sync the data stores if needed

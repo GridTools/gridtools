@@ -36,6 +36,7 @@
 #pragma once
 
 #include "../global_accessor.hpp"
+#include "../expandable_parameters/vector_accessor.hpp"
 #include "./accessor.hpp"
 #include "./accessor_mixed.hpp"
 #include "../expressions/expressions.hpp"
@@ -93,12 +94,7 @@ namespace gridtools {
     template < typename Accessor, typename ArgsMap, typename Enable = void >
     struct remap_accessor_type {};
 
-    // TODO(havogt) I have no idea why I end up here...
-    template < typename ArgsMap >
-    struct remap_accessor_type< boost::mpl::void_, ArgsMap > {
-        using type = boost::mpl::void_;
-    };
-
+    // TODO(havogt): cleanup code duplication
     template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
     struct remap_accessor_type< accessor< ID, Intend, Extend, Number >, ArgsMap > {
         typedef accessor< ID, Intend, Extend, Number > accessor_t;
@@ -164,6 +160,24 @@ namespace gridtools {
             Args... > type;
     };
 
+    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
+    struct remap_accessor_type< vector_accessor< ID, Intend, Extend, Number >, ArgsMap > {
+        typedef vector_accessor< ID, Intend, Extend, Number > accessor_t;
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< ArgsMap >::value > 0), GT_INTERNAL_ERROR);
+        // check that the key type is an int (otherwise the later has_key would never find the key)
+        GRIDTOOLS_STATIC_ASSERT(
+            (boost::is_same<
+                typename boost::mpl::first< typename boost::mpl::front< ArgsMap >::type >::type::value_type,
+                int >::value),
+            GT_INTERNAL_ERROR);
+
+        typedef typename boost::mpl::integral_c< int, (int)ID > index_t;
+
+        GRIDTOOLS_STATIC_ASSERT((boost::mpl::has_key< ArgsMap, index_t >::value), GT_INTERNAL_ERROR);
+
+        typedef vector_accessor< boost::mpl::at< ArgsMap, index_t >::type::value, Intend, Extend, Number > type;
+    };
+
     template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >
     struct remap_accessor_type< Expression< Arguments... >,
         ArgsMap,
@@ -212,6 +226,12 @@ namespace gridtools {
 
     template < ushort_t ID >
     struct is_accessor_readonly< global_accessor< ID, enumtype::inout > > : boost::mpl::true_ {};
+
+    template < ushort_t ID, typename Extend, ushort_t Number >
+    struct is_accessor_readonly< vector_accessor< ID, enumtype::in, Extend, Number > > : boost::mpl::true_ {};
+
+    template < ushort_t ID, typename Extend, ushort_t Number >
+    struct is_accessor_readonly< vector_accessor< ID, enumtype::inout, Extend, Number > > : boost::mpl::false_ {};
 
     /* Is written is actually "can be written", since it checks if not read olnly.
        TODO: metafunction convention not completely respected */
