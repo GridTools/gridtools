@@ -49,35 +49,47 @@ namespace gridtools {
     template < enumtype::platform T >
     struct storage_traits_from_id;
 
+    namespace impl {
+        template < class LayoutMap >
+        struct layout_swap_mic {
+            using type = LayoutMap;
+        };
+
+        template < int Dim0, int Dim1, int Dim2, int... Dims >
+        struct layout_swap_mic< layout_map< Dim0, Dim1, Dim2, Dims... > > {
+            using type = layout_map< Dim0, Dim2, Dim1, Dims... >;
+        };
+    } // namespace impl
+
     /** @brief storage traits for the Mic backend*/
     template <>
     struct storage_traits_from_id< enumtype::Mic > {
 
         template < typename ValueType >
         struct select_storage {
-            typedef mic_storage< ValueType > type;
+            using type = mic_storage< ValueType >;
         };
 
         template < uint_t Id, uint_t Dims, typename Halo >
         struct select_storage_info {
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
-            typedef typename get_layout< Dims, false >::type layout;
-            typedef mic_storage_info< Id, layout, Halo > type;
+            using layout = typename impl::layout_swap_mic< typename get_layout< Dims, false >::type >::type;
+            using type = mic_storage_info< Id, layout, Halo >;
         };
 
         template < uint_t Id, typename Layout, typename Halo >
         struct select_custom_layout_storage_info {
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
             GRIDTOOLS_STATIC_ASSERT(is_layout_map< Layout >::value, "Given type is not a layout map type.");
-            typedef mic_storage_info< Id, Layout, Halo > type;
+            using type = mic_storage_info< Id, Layout, Halo >;
         };
 
         template < uint_t Id, typename Selector, typename Halo >
         struct select_special_storage_info {
             GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, "Given type is not a halo type.");
             GRIDTOOLS_STATIC_ASSERT(is_selector< Selector >::value, "Given type is not a selector type.");
-            typedef typename get_layout< Selector::size, false >::type layout;
-            typedef mic_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo > type;
+            using layout = typename impl::layout_swap_mic< typename get_layout< Selector::size, false >::type >::type;
+            using type = mic_storage_info< Id, typename get_special_layout< layout, Selector >::type, Halo >;
         };
     };
 }
