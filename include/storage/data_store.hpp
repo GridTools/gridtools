@@ -100,7 +100,7 @@ namespace gridtools {
         template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
         typename boost::enable_if_c< (sizeof...(Args) == StorageInfo::layout_t::masked_length - 1), void >::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (uint_t i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
+            for (uint_t i = 0; i < si.template total_length< sizeof...(Args) >(); ++i) {
                 ptr[si.index(args..., i)] = init(args..., i);
             }
         }
@@ -122,7 +122,7 @@ namespace gridtools {
         template < typename Lambda, typename StorageInfo, typename DataType, typename... Args >
         typename boost::enable_if_c< (sizeof...(Args) < StorageInfo::layout_t::masked_length - 1), void >::type
         lambda_initializer(Lambda init, StorageInfo si, DataType *ptr, Args... args) {
-            for (uint_t i = 0; i < si.template unaligned_dim< sizeof...(Args) >(); ++i) {
+            for (uint_t i = 0; i < si.template total_length< sizeof...(Args) >(); ++i) {
                 lambda_initializer(init, si, ptr, args..., i);
             }
         }
@@ -261,9 +261,9 @@ namespace gridtools {
          * @return size of dimension (unaligned, e.g. 10x10x10 storage with alignment<32> on I returns 10x10x10)
          */
         template < int Coord >
-        int unaligned_dim() const {
+        int total_length() const {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
-            return m_shared_storage_info->template unaligned_dim< Coord >();
+            return m_shared_storage_info->template total_length< Coord >();
         }
         /*
          * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).

@@ -79,7 +79,7 @@ namespace gridtools {
         bool operator()(Grid const &grid_, array< uint_t, NCoord > const &pos) {
             typename StorageType::storage_info_t const &meta = *(m_exp_field.get_storage_info_ptr());
 
-            const gridtools::uint_t size = meta.template unaligned_dim< NDim - 1 >();
+            const gridtools::uint_t size = meta.template total_length< NDim - 1 >();
             bool verified = true;
 
             verify_helper< NDim - 1, NCoord + 1, StorageType > next_loop(
@@ -151,7 +151,7 @@ namespace gridtools {
         double precision) {
         typename StorageType::storage_info_t const &meta = *(exp_field.get_storage_info_ptr());
 
-        const gridtools::uint_t size = meta.template unaligned_dim< NDim - 1 >();
+        const gridtools::uint_t size = meta.template total_length< NDim - 1 >();
         bool verified = true;
         verify_helper< NDim - 1, 1, StorageType > next_loop(exp_field, actual_field, field_id, halos, precision);
 
