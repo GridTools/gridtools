@@ -44,6 +44,8 @@
 namespace gridtools {
 
     namespace _impl {
+        static int prefetch_distance = 0;
+
         template < typename ExecutionEngine, typename RunFunctorArguments >
         class run_on_block_mic {
           public:
@@ -111,11 +113,32 @@ namespace gridtools {
                 const int_t k_first = this->m_grid.template value_at< typename iteration_policy_t::from >();
                 const int_t k_last = this->m_grid.template value_at< typename iteration_policy_t::to >();
 
+                if (k_first <= k_last)
+                    this->m_it_domain.set_prefetch_distance(prefetch_distance);
+
                 run_esf_functor_t run_esf(this->m_it_domain);
-                for (int_t k = k_first; iteration_policy_t::condition(k, k_last); iteration_policy_t::increment(k)) {
+                /*for (int_t k = k_first; iteration_policy_t::condition(k, k_last); iteration_policy_t::increment(k)) {
                     for (int_t j = j_first; j < j_last; ++j) {
                         this->m_it_domain.set_index(0, j, k, this->m_i_first, this->m_j_first);
 
+#pragma ivdep
+#pragma omp simd
+                        for (int_t i = i_first; i < i_last; ++i) {
+                            this->m_it_domain.template set_block_index< 0 >(i);
+                            run_esf(index);
+
+#if defined(__INTEL_COMPILER) && !defined(GT_NO_CONSTEXPR_ACCESSES)
+#warning \
+    "The usage of the constexpr constructors of accessor_base, tuple_offset and dimension together with the Intel
+compiler can lead to incorrect code generation in this loop."
+#endif
+                        }
+                    }
+                }*/
+                for (int_t j = j_first; j < j_last; ++j) {
+                    for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
+                         iteration_policy_t::increment(k)) {
+                        this->m_it_domain.set_index(0, j, k, this->m_i_first, this->m_j_first);
 #pragma ivdep
 #pragma omp simd
                         for (int_t i = i_first; i < i_last; ++i) {
@@ -129,6 +152,27 @@ namespace gridtools {
                         }
                     }
                 }
+                /*for (int_t j = j_first; j < j_last; ++j) {
+                    this->m_it_domain.set_index(0, j, 0, this->m_i_first, this->m_j_first);
+#pragma ivdep
+#pragma omp simd
+                    for (int_t i = i_first; i < i_last; ++i) {
+                        auto it_domain = this->m_it_domain;
+                        run_esf_functor_t run_esf(it_domain);
+                        it_domain.template set_block_index< 0 >(i);
+                        for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
+iteration_policy_t::increment(k)) {
+                            it_domain.template set_block_index< 2 >(k);
+                            run_esf(index);
+
+#if defined(__INTEL_COMPILER) && !defined(GT_NO_CONSTEXPR_ACCESSES)
+#warning \
+    "The usage of the constexpr constructors of accessor_base, tuple_offset and dimension together with the Intel
+compiler can lead to incorrect code generation in this loop."
+#endif
+                        }
+                    }
+                }*/
             }
         };
 
@@ -311,7 +355,13 @@ namespace gridtools {
           public:
             execute_kernel_functor_mic(
                 const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
-                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data) {}
+                : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data) {
+                char *pd = std::getenv("GT_PREFETCH_DIST");
+                if (pd)
+                    ::gridtools::_impl::prefetch_distance = std::atoi(pd);
+                else
+                    ::gridtools::_impl::prefetch_distance = 0;
+            }
 
             template < class Execution = execution_type_t >
             typename std::enable_if< Execution::type::execution != enumtype::parallel_impl >::type operator()() {

@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <xmmintrin.h>
+
 #include "common/gt_assert.hpp"
 #include "stencil-composition/iterate_domain_fwd.hpp"
 #include "stencil-composition/iterate_domain_impl_metafunctions.hpp"
@@ -58,7 +60,6 @@ namespace gridtools {
 
     template < typename IterateDomainArguments >
     class iterate_domain_mic : public iterate_domain_reduction< IterateDomainArguments > {
-        DISALLOW_COPY_AND_ASSIGN(iterate_domain_mic);
         GRIDTOOLS_STATIC_ASSERT((is_iterate_domain_arguments< IterateDomainArguments >::value), GT_INTERNAL_ERROR);
 
         using iterate_domain_arguments_t = IterateDomainArguments;
@@ -131,6 +132,7 @@ namespace gridtools {
         data_ptr_cached_t *RESTRICT m_data_pointer;
         strides_cached_t *RESTRICT m_strides;
         int_t m_index_i, m_index_j, m_index_k, m_block_base_i, m_block_base_j;
+        int_t m_prefetch_distance;
         // ******************* end of members *******************
 
         // helper class for index array generation
@@ -160,7 +162,7 @@ namespace gridtools {
         GT_FUNCTION
         iterate_domain_mic(local_domain_t const &local_domain, reduction_type_t const &reduction_initial_value)
             : iterate_domain_reduction_t(reduction_initial_value), local_domain(local_domain), m_data_pointer(nullptr),
-              m_strides(nullptr), m_index_i(0), m_index_j(0), m_index_k(0) {}
+              m_strides(nullptr), m_index_i(0), m_index_j(0), m_index_k(0), m_prefetch_distance(0) {}
 
         GT_FUNCTION
         data_ptr_cached_t const &RESTRICT data_pointer() const { return *m_data_pointer; }
@@ -231,6 +233,8 @@ namespace gridtools {
             index_getter ig(*this, index);
             boost::mpl::for_each< index_range >(ig);
         }
+
+        GT_FUNCTION void set_prefetch_distance(int_t prefetch_distance) { m_prefetch_distance = prefetch_distance; }
 
         template < typename T >
         GT_FUNCTION void info(T const &x) const {
@@ -473,6 +477,11 @@ namespace gridtools {
             grid_traits_t >(storage_info, real_storage_pointer, pointer_offset)));
 #endif
 
+        if (m_prefetch_distance != 0) {
+            const int_t prefetch_offset = m_prefetch_distance * stride< storage_info_t, 2 >();
+            _mm_prefetch(reinterpret_cast< const char * >(&real_storage_pointer[pointer_offset + prefetch_offset]),
+                _MM_HINT_NTA);
+        }
         return real_storage_pointer[pointer_offset];
     }
 
