@@ -60,39 +60,46 @@
 namespace gridtools {
 
     namespace _impl {
-        template <typename Layout, int Max, int i>
+        template < typename Layout, int Max, int i >
         struct compute_strides {
-            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & dims) {
-                compute_strides<Layout, Max, i-1>::apply(strides, dims);
-                strides[Layout::template find<Max-i>()] = strides[Layout::template find<Max-i+1>()] * dims[Layout::template find<Max-i+1>()];
+            static void apply(
+                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &dims) {
+                compute_strides< Layout, Max, i - 1 >::apply(strides, dims);
+                strides[Layout::template find< Max - i >()] =
+                    strides[Layout::template find< Max - i + 1 >()] * dims[Layout::template find< Max - i + 1 >()];
             }
         };
 
-        template <typename Layout>
-        struct compute_strides<Layout, -1, -1> {
+        template < typename Layout >
+        struct compute_strides< Layout, -1, -1 > {
             // Scalar storage - 0-dimensional storage
-            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & dims) { }
+            static void apply(
+                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &dims) {}
         };
 
-        template <typename Layout, int Max>
-        struct compute_strides<Layout, Max, 0> {
-            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & ) {
-                strides[Layout::template find<Max>()] = 1;
+        template < typename Layout, int Max >
+        struct compute_strides< Layout, Max, 0 > {
+            static void apply(
+                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &) {
+                strides[Layout::template find< Max >()] = 1;
             }
         };
 
-        template <typename Layout>
-        struct compute_strides<Layout, 0, 0> {
-            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & ) {
-                strides[Layout::template find<0>()] = 1;
+        template < typename Layout >
+        struct compute_strides< Layout, 0, 0 > {
+            static void apply(
+                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &) {
+                strides[Layout::template find< 0 >()] = 1;
             }
         };
 
-        template <typename Layout, int Max>
-        struct compute_strides<Layout, Max, Max> {
-            static void apply(array< uint_t, Layout::masked_length > & strides, array< uint_t, Layout::masked_length > const & dims) {
-                compute_strides<Layout, Max, Max-1>::apply(strides, dims);
-                strides[Layout::template find<0>()] = strides[Layout::template find<1>()] * dims[Layout::template find<1>()];
+        template < typename Layout, int Max >
+        struct compute_strides< Layout, Max, Max > {
+            static void apply(
+                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &dims) {
+                compute_strides< Layout, Max, Max - 1 >::apply(strides, dims);
+                strides[Layout::template find< 0 >()] =
+                    strides[Layout::template find< 1 >()] * dims[Layout::template find< 1 >()];
             }
         };
 
@@ -152,7 +159,7 @@ namespace gridtools {
         using layout_t = layout_map< LayoutArgs... >;
         using halo_t = halo< Halos... >;
         using alignment_t = Align;
-        static const int max_layout_v = max_value<layout_t>::value;
+        static const int max_layout_v = max_value< layout_t >::value;
 
         GRIDTOOLS_STATIC_ASSERT((sizeof...(Halos) == layout_t::masked_length),
             GT_INTERNAL_ERROR_MSG("Halo size does not match number of dimensions"));
@@ -172,37 +179,37 @@ namespace gridtools {
          */
         GT_FUNCTION constexpr storage_info_interface() {}
 
-
-        template <typename T>
+        template < typename T >
         static constexpr T round_up(T i) {
-            return (i%alignment_t::value==0)?i:(i/alignment_t::value+1)*alignment_t::value;
+            return (i % alignment_t::value == 0) ? i : (i / alignment_t::value + 1) * alignment_t::value;
         }
 
-        template <uint_t ...Ints, typename ...Dims>
-        static constexpr array<uint_t, ndims> compute_padding(gt_integer_sequence<uint_t, Ints...>, Dims... dims) {
+        template < uint_t... Ints, typename... Dims >
+        static constexpr array< uint_t, ndims > compute_padding(gt_integer_sequence< uint_t, Ints... >, Dims... dims) {
             static_assert(sizeof...(Ints) == sizeof...(Dims), " ");
-            return {static_cast<uint_t>((layout_t::template at<Ints>()==max_layout_v)?round_up(dims):dims)...};
+            return {
+                static_cast< uint_t >((layout_t::template at< Ints >() == max_layout_v) ? round_up(dims) : dims)...};
         }
 
-        template <uint_t Idx, uint_t... Idxs, typename Array, typename Halo=zero_halo<ndims> >
-        GT_FUNCTION static constexpr uint_t multiply_if_layout(gt_integer_sequence<uint_t, Idx, Idxs...>, Array const& array, Halo h = zero_halo<ndims>{}) {
-            return ((layout_t::template at<Idx>()>=0)?array[Idx] - 2*h.at(Idx):1) * multiply_if_layout(gt_integer_sequence<uint_t, Idxs...>{}, array, h);
+        template < uint_t Idx, uint_t... Idxs, typename Array, typename Halo = zero_halo< ndims > >
+        GT_FUNCTION static constexpr uint_t multiply_if_layout(
+            gt_integer_sequence< uint_t, Idx, Idxs... >, Array const &array, Halo h = zero_halo< ndims >{}) {
+            return ((layout_t::template at< Idx >() >= 0) ? array[Idx] - 2 * h.at(Idx) : 1) *
+                   multiply_if_layout(gt_integer_sequence< uint_t, Idxs... >{}, array, h);
         }
 
-        template <typename Array, typename Halo=zero_halo<ndims> >
-        GT_FUNCTION static constexpr uint_t multiply_if_layout(gt_integer_sequence<uint_t>, Array const& array, Halo h = zero_halo<ndims>{}) {
+        template < typename Array, typename Halo = zero_halo< ndims > >
+        GT_FUNCTION static constexpr uint_t multiply_if_layout(
+            gt_integer_sequence< uint_t >, Array const &array, Halo h = zero_halo< ndims >{}) {
             return 1;
         }
 
-
-        template <uint_t SeqFirst, uint_t ...SeqRest, typename Int, typename ...Ints>
-        int offset(gt_integer_sequence<uint_t, SeqFirst, SeqRest...>, Int idx, Ints... rest) const {
-            return idx*m_strides[SeqFirst] + offset(gt_integer_sequence<uint_t, SeqRest...>{}, rest...);
+        template < uint_t SeqFirst, uint_t... SeqRest, typename Int, typename... Ints >
+        int offset(gt_integer_sequence< uint_t, SeqFirst, SeqRest... >, Int idx, Ints... rest) const {
+            return idx * m_strides[SeqFirst] + offset(gt_integer_sequence< uint_t, SeqRest... >{}, rest...);
         }
 
-        int offset(gt_integer_sequence<uint_t>) const {
-            return 0;
-        }
+        int offset(gt_integer_sequence< uint_t >) const { return 0; }
 
       public:
         constexpr static uint_t id = Id;
@@ -213,12 +220,12 @@ namespace gridtools {
          */
         template < typename... Dims, typename = gridtools::all_integral< Dims... > >
         GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
-            : m_dims{static_cast<uint_t>(dims_)...}
-            , m_padded_dims{compute_padding(typename make_gt_integer_sequence<uint_t, sizeof...(Dims)>::type{}, static_cast<uint_t>(dims_)...)}
-            , m_strides(get_strides< layout_t >::get_stride_array(
-                                                                  align_dimensions< alignment_t, max_layout_v, LayoutArgs >(
-                                      handle_masked_dims< LayoutArgs >::extend(dims_))...))
-        {
+            : m_dims{static_cast< uint_t >(dims_)...},
+              m_padded_dims{compute_padding(typename make_gt_integer_sequence< uint_t, sizeof...(Dims) >::type{},
+                  static_cast< uint_t >(dims_)...)},
+              m_strides(
+                  get_strides< layout_t >::get_stride_array(align_dimensions< alignment_t, max_layout_v, LayoutArgs >(
+                      handle_masked_dims< LayoutArgs >::extend(dims_))...)) {
 
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
                                         typename is_all_integral_or_enum< Dims... >::type >::value),
@@ -230,12 +237,12 @@ namespace gridtools {
         using seq =
             gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, ndims >::type >;
 
-
         // GT_FUNCTION
         // constexpr storage_info_interface(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
         //     : m_dims(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
         //           dims)),
-        //       m_strides(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type >(
+        //       m_strides(seq::template apply< array< uint_t, ndims >, impl::array_initializer< uint_t >::template type
+        //       >(
         //           strides)),
         //       m_alignment(m_dims, m_strides) {}
 
@@ -249,7 +256,7 @@ namespace gridtools {
          * @return total size including dimensions, halos, initial_offset, padding, and initial_offset
          */
         GT_FUNCTION constexpr uint_t padded_total_length() const {
-            return multiply_if_layout(make_gt_integer_sequence<uint_t, ndims>{}, m_padded_dims);
+            return multiply_if_layout(make_gt_integer_sequence< uint_t, ndims >{}, m_padded_dims);
         }
 
         /*
@@ -258,7 +265,7 @@ namespace gridtools {
          * @return number of domain elements
          */
         GT_FUNCTION constexpr uint_t total_length() const {
-            return multiply_if_layout(make_gt_integer_sequence<uint_t, ndims>{}, m_dims);
+            return multiply_if_layout(make_gt_integer_sequence< uint_t, ndims >{}, m_dims);
         }
 
         /*
@@ -267,7 +274,7 @@ namespace gridtools {
          * @return number of inner domain elements
          */
         GT_FUNCTION constexpr uint_t length() const {
-            return multiply_if_layout(make_gt_integer_sequence<uint_t, ndims>{}, m_dims, halo_t{});
+            return multiply_if_layout(make_gt_integer_sequence< uint_t, ndims >{}, m_dims, halo_t{});
         }
 
         /*
@@ -374,7 +381,7 @@ namespace gridtools {
         GT_FUNCTION constexpr int collapsed_dim() const {
             GRIDTOOLS_STATIC_ASSERT(
                 (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info dimension call."));
-            return layout_t::template at<Coord>()<0?1:m_dims.template get< Coord >();
+            return layout_t::template at< Coord >() < 0 ? 1 : m_dims.template get< Coord >();
         }
 
         /*
@@ -419,8 +426,10 @@ namespace gridtools {
         // template < int Coord >
         // GT_FUNCTION constexpr int unaligned_stride() const {
         //     GRIDTOOLS_STATIC_ASSERT(
-        //         (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned stride call."));
-        //     return 0;//m_alignment.template unaligned_stride< Coord >() ? m_alignment.template unaligned_stride< Coord >()
+        //         (Coord < ndims), GT_INTERNAL_ERROR_MSG("Out of bounds access in storage info unaligned stride
+        //         call."));
+        //     return 0;//m_alignment.template unaligned_stride< Coord >() ? m_alignment.template unaligned_stride<
+        //     Coord >()
         //     // : stride< Coord >();
         // }
 
@@ -439,10 +448,8 @@ namespace gridtools {
                 GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Ints) == ndims,
                 GT_INTERNAL_ERROR_MSG("Index function called with wrong number of arguments."));
-            return offset(typename make_gt_integer_sequence<uint_t, ndims>::type{}, idx...);
-
+            return offset(typename make_gt_integer_sequence< uint_t, ndims >::type{}, idx...);
         }
-
 
         /*
          * @brief member function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc.
@@ -454,6 +461,10 @@ namespace gridtools {
             return std::inner_product(offsets.begin(), offsets.end(), m_strides.begin(), 0);
         }
 
+        GT_FUNCTION constexpr int first_index_of_inner_region() const {
+            return index(halo_t::template at< 0 >(), halo_t::template at< 1 >(), halo_t::template at< 2 >());
+        }
+
         /*
          * @brief function that returns the initial offset. The initial offset
          * has to be added if we use alignment in combination with a halo
@@ -461,10 +472,10 @@ namespace gridtools {
          * aligned. Therefore we have to introduce an initial offset.
          * @return initial offset
          */
-        GT_FUNCTION constexpr uint_t get_initial_offset() const {
-            return 0;//index(halo_t::template at<0>(), halo_t::template at<1>(), halo_t::template at<2>());
-            // return alignment_impl< alignment_t, layout_t, halo_t >::InitialOffset;
-        }
+        // GT_FUNCTION constexpr uint_t get_initial_offset() const {
+        //     return 0;//index(halo_t::template at<0>(), halo_t::template at<1>(), halo_t::template at<2>());
+        //     // return alignment_impl< alignment_t, layout_t, halo_t >::InitialOffset;
+        // }
 
         /*
          * @brief function to check for equality of two given storage_infos

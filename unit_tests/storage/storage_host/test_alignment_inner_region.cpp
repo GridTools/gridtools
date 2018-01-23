@@ -43,7 +43,7 @@ namespace gt = gridtools;
 
 template < typename Layout, gt::int_t I >
 constexpr gt::uint_t add_or_not(gt::uint_t x) {
-    return (Layout::find(2) == I) ? 0 : 1;
+    return (Layout::find(1) == I) ? x : 0;
 }
 
 template < typename ValueType, gt::uint_t a, typename Layout >
@@ -59,41 +59,41 @@ void run() {
 
     auto view = gt::make_host_view(s);
 
-    std::cout << view.padded_total_length() << " <---------------------\n";
+    std::cout << i.template padded_length< 0 >() << " <---------------------\n";
+    std::cout << i.template padded_length< 1 >() << " <---------------------\n";
+    std::cout << i.template padded_length< 2 >() << " <---------------------\n";
 
     EXPECT_EQ(reinterpret_cast< std::uintptr_t >(&view(h1, h2, h3)) % a, 0);
     EXPECT_EQ(reinterpret_cast< std::uintptr_t >(&view(
-                  h1 + add_or_not< Layout, 0 >(1), h2 + add_or_not< Layout, 0 >(1), h3 + add_or_not< Layout, 0 >(1))) %
+                  h1 + add_or_not< Layout, 0 >(1), h2 + add_or_not< Layout, 1 >(1), h3 + add_or_not< Layout, 2 >(1))) %
                   a,
         0);
     EXPECT_EQ(reinterpret_cast< std::uintptr_t >(&view(
-                  h1 + add_or_not< Layout, 0 >(2), h2 + add_or_not< Layout, 0 >(2), h3 + add_or_not< Layout, 0 >(2))) %
+                  h1 + add_or_not< Layout, 0 >(2), h2 + add_or_not< Layout, 1 >(2), h3 + add_or_not< Layout, 2 >(2))) %
                   a,
         0);
 }
 
-// TEST(Storage, InnerRegionAlignmentChar210) { run< char, 1024, gt::layout_map< 2, 1, 0 > >(); }
+TEST(Storage, InnerRegionAlignmentChar210) { run< char, 1024, gt::layout_map< 2, 1, 0 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentInt210) { run< int, 256, gt::layout_map< 2, 1, 0 > >(); }
+TEST(Storage, InnerRegionAlignmentInt210) { run< int, 256, gt::layout_map< 2, 1, 0 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentFloat210) { run< float, 32, gt::layout_map< 2, 1, 0 > >(); }
+TEST(Storage, InnerRegionAlignmentFloat210) { run< float, 32, gt::layout_map< 2, 1, 0 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentDouble210) { run< double, 512, gt::layout_map< 2, 1, 0 > >(); }
+TEST(Storage, InnerRegionAlignmentDouble210) { run< double, 512, gt::layout_map< 2, 1, 0 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentChar012) { run< char, 1024, gt::layout_map< 0, 1, 2 > >(); }
+TEST(Storage, InnerRegionAlignmentChar012) { run< char, 1024, gt::layout_map< 0, 1, 2 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentInt012) { run< int, 256, gt::layout_map< 0, 1, 2 > >(); }
+TEST(Storage, InnerRegionAlignmentInt012) { run< int, 256, gt::layout_map< 0, 1, 2 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentFloat012) { run< float, 32, gt::layout_map< 0, 1, 2 > >(); }
+TEST(Storage, InnerRegionAlignmentFloat012) { run< float, 32, gt::layout_map< 0, 1, 2 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentDouble012) { run< double, 512, gt::layout_map< 0, 1, 2 > >(); }
+TEST(Storage, InnerRegionAlignmentDouble012) { run< double, 512, gt::layout_map< 0, 1, 2 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentChar021) { run< char, 1024, gt::layout_map< 0, 2, 1 > >(); }
+TEST(Storage, InnerRegionAlignmentChar021) { run< char, 1024, gt::layout_map< 0, 2, 1 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentInt021) { run< int, 256, gt::layout_map< 0, 2, 1 > >(); }
+TEST(Storage, InnerRegionAlignmentInt021) { run< int, 256, gt::layout_map< 0, 2, 1 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentFloat021) { run< float, 32, gt::layout_map< 0, 2, 1 > >(); }
+TEST(Storage, InnerRegionAlignmentFloat021) { run< float, 32, gt::layout_map< 0, 2, 1 > >(); }
 
-// TEST(Storage, InnerRegionAlignmentDouble021) { run< double, 512, gt::layout_map< 0, 2, 1 > >(); }
-
-TEST(Storage, InnerRegionAlignmentDouble021) { run< double, 32, gt::layout_map< 0, 1, 2 > >(); }
+TEST(Storage, InnerRegionAlignmentDouble021) { run< double, 512, gt::layout_map< 0, 2, 1 > >(); }

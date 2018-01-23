@@ -60,13 +60,3 @@ TEST(array, test_copyctr) {
     ASSERT_TRUE((mod_a == array< uint_t, 4 >{4, 2, 3, 1}));
     ASSERT_TRUE((mod_a[0] == 4));
 }
-
-
-template <uint_t ...Vs>
-array<uint_t, 4> make_it(gt_integer_sequence<uint_t, Vs...>) {
-    return {Vs...};
-}
-
-TEST(array, integer_sequence) {
-    constexpr array<uint_t, 4> a(make_gt_integer_sequence<uint, 4>::type);
-}

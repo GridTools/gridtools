@@ -74,21 +74,12 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          */
         /*constexpr*/ host_storage(uint_t size, uint_t offset_to_align, uint_t align)
-            : m_allocated_ptr(new data_t[size+align/sizeof(data_t)])
-        {
-            uint_t align_v = align /*/ sizeof(data_t)*/;
-            uint_t delta = reinterpret_cast<std::uintptr_t>(m_allocated_ptr) % align_v;
-            uint_t sigma = ((align_v-1)*offset_to_align)%align_v;
-            std::cout << "delta = " << delta << ", "
-                      << "sigma = " << sigma << ", "
-                      << "initial offset = " << offset_to_align << ", "
-                      << "alignment = " << align << "\n";
-
-            if (delta <= sigma) {
-                m_cpu_ptr = m_allocated_ptr + sigma - delta;
-            } else {
-                m_cpu_ptr = m_allocated_ptr + align_v + sigma - delta;
-            }
+            : m_allocated_ptr(new data_t[size + align]) {
+            assert((reinterpret_cast< std::uintptr_t >(m_allocated_ptr) % sizeof(data_t)) == 0);
+            uint_t delta =
+                ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (align * sizeof(data_t))) /
+                sizeof(data_t);
+            m_cpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (align - delta);
         }
 
         /*
