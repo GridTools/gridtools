@@ -148,7 +148,6 @@ the dimension is chosen
 
     template < typename Accessor, typename ArgsMap, typename... Pairs >
     struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
-        typedef typename remap_accessor_type< Accessor, ArgsMap >::index_t index_t;
         typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
     };
 #endif // CUDA8
