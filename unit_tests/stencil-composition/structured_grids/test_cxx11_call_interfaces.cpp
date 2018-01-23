@@ -364,7 +364,7 @@ TEST_F(call_interface, call_to_copy_functor) {
 }
 
 TEST_F(call_interface, call_to_copy_functor_with_local_variable) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(),
