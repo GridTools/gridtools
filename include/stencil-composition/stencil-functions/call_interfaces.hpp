@@ -117,7 +117,7 @@ namespace gridtools {
             }
 
             template < typename Accessor >
-            using passed_argument_is_accessor_t = typename is_accessor< get_passed_argument_type< Accessor > >::type;
+            using passed_argument_is_accessor_t = typename is_accessor< get_passed_argument_t< Accessor > >::type;
 
             template < typename Accessor >
             using is_out_arg = boost::mpl::bool_< Accessor::index_t::value == OutArg >;
@@ -319,8 +319,7 @@ namespace gridtools {
             using get_passed_argument_t = typename boost::mpl::at_c< PassedArguments, Accessor::index_t::value >::type;
 
             template < typename Accessor >
-            using passed_argument_is_any_accessor_t =
-                typename is_accessor< get_passed_argument_type< Accessor > >::type;
+            using passed_argument_is_accessor_t = typename is_accessor< get_passed_argument_t< Accessor > >::type;
 
             template < typename Accessor >
             GT_FUNCTION constexpr auto get_passed_argument() const
