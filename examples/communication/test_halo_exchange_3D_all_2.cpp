@@ -33,7 +33,7 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "../../unit_tests/communication/check_flags.hpp"
+#include <tools/mpi_unit_test_driver/check_flags.hpp>
 #include <mpi.h>
 #include <iostream>
 #include <sstream>
@@ -49,7 +49,7 @@
 
 #include "triplet.hpp"
 
-#include "../../unit_tests/communication/device_binding.hpp"
+#include <tools/mpi_unit_test_driver/device_binding.hpp>
 
 namespace halo_exchange_3D_all_2 {
     int pid;
@@ -245,8 +245,11 @@ namespace halo_exchange_3D_all_2 {
         gettimeofday(&start_tv, NULL);
 
         he.post_receives();
+#ifdef VECTOR_INTERFACE
         he.pack(vect);
-
+#else
+        he.pack(vect[0], vect[1], vect[2]);
+#endif
         //  MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&stop1_tv, NULL);
 
@@ -257,7 +260,11 @@ namespace halo_exchange_3D_all_2 {
         // MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&stop2_tv, NULL);
 
+#ifdef VECTOR_INTERFACE
         he.unpack(vect);
+#else
+        he.unpack(vect[0], vect[1], vect[2]);
+#endif
 
         MPI_Barrier(MPI_COMM_WORLD);
         gettimeofday(&stop3_tv, NULL);
@@ -407,7 +414,7 @@ namespace halo_exchange_3D_all_2 {
         return passed;
     }
 
-    int test(int DIM1, int DIM2, int DIM3, int H1, int H2, int H3) {
+    int test(int DIM1, int DIM2, int DIM3, int H1, int H2, int H3, int P0 = 0, int P1 = 0) {
 
         /* Here we compute the computing gris as in many applications
          */
@@ -426,6 +433,9 @@ namespace halo_exchange_3D_all_2 {
 
         file << pid << "  " << nprocs << "\n";
 
+        dims[0] = P0;
+        dims[1] = P1;
+        dims[2] = 0;
         MPI_Dims_create(nprocs, 3, dims);
         int period[3] = {1, 1, 1};
 
@@ -447,6 +457,7 @@ namespace halo_exchange_3D_all_2 {
 #ifdef GCL_TRACE
         gridtools::stats_collector_3D.recording(true);
 #endif
+
 #ifdef BENCH
         for (int i = 0; i < BENCH; ++i) {
             file << "run<std::ostream, 0,1,2, true, true, true>(file, DIM1, DIM2, DIM3, H1, H2, H3, _a, _b, _c)\n";
@@ -706,7 +717,15 @@ int main(int argc, char **argv) {
 }
 #else
 TEST(Communication, test_halo_exchange_3D_all_2) {
-    bool passed = halo_exchange_3D_all_2::test(234, 124, 67, 2, 4, 3);
+    bool passed = halo_exchange_3D_all_2::test(23, 12, 7, 2, 4, 3);
+    EXPECT_TRUE(passed);
+}
+TEST(Communication, test_halo_exchange_3D_all_2_2x1xZ) {
+    bool passed = halo_exchange_3D_all_2::test(23, 12, 7, 2, 4, 3, 2, 1);
+    EXPECT_TRUE(passed);
+}
+TEST(Communication, test_halo_exchange_3D_all_2_1x2xZ) {
+    bool passed = halo_exchange_3D_all_2::test(23, 12, 7, 2, 4, 3, 1, 2);
     EXPECT_TRUE(passed);
 }
 #endif

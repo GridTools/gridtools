@@ -58,10 +58,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 namespace horizontal_diffusion_functions {
-    // This is the definition of the special regions in the "vertical" direction
-
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     struct lap_function {
         typedef accessor< 0, enumtype::inout > out;
@@ -70,7 +66,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             auto x = (gridtools::float_type)4.0 * eval(in()) -
                      (eval(in(-1, 0, 0)) + eval(in(0, -1, 0)) + eval(in(0, 1, 0)) + eval(in(1, 0, 0)));
             eval(out()) = x;
@@ -86,7 +82,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
 #ifdef FUNCTIONS_MONOLITHIC
             gridtools::float_type _x_ =
                 (gridtools::float_type)4.0 * eval(in()) -
@@ -103,13 +99,13 @@ namespace horizontal_diffusion_functions {
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function >::with_offsets(eval, _x_, in());
+            gridtools::call_proc< lap_function >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function >::with_offsets(eval, _y_, in(1, 0, 0));
+            gridtools::call_proc< lap_function >::with(eval, _y_, in(1, 0, 0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-            gridtools::float_type _x_ = gridtools::call< lap_function >::with_offsets(eval, in(0, 0, 0));
-            gridtools::float_type _y_ = gridtools::call< lap_function >::with_offsets(eval, in(1, 0, 0));
+            gridtools::float_type _x_ = gridtools::call< lap_function >::with(eval, in(0, 0, 0));
+            gridtools::float_type _y_ = gridtools::call< lap_function >::with(eval, in(1, 0, 0));
 #else
             gridtools::float_type _x_ = gridtools::call< lap_function >::at< 0, 0, 0 >::with(eval, in());
             gridtools::float_type _y_ = gridtools::call< lap_function >::at< 1, 0, 0 >::with(eval, in());
@@ -131,7 +127,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
 
 #ifdef FUNCTIONS_MONOLITHIC
             gridtools::float_type _x_ =
@@ -149,13 +145,13 @@ namespace horizontal_diffusion_functions {
 #else
 #ifdef FUNCTIONS_PROCEDURES_OFFSETS
             gridtools::float_type _x_;
-            gridtools::call_proc< lap_function >::with_offsets(eval, _x_, in());
+            gridtools::call_proc< lap_function >::with(eval, _x_, in());
             gridtools::float_type _y_;
-            gridtools::call_proc< lap_function >::with_offsets(eval, _y_, in(0, 1, 0));
+            gridtools::call_proc< lap_function >::with(eval, _y_, in(0, 1, 0));
 #else
 #ifdef FUNCTIONS_OFFSETS
-            gridtools::float_type _x_ = gridtools::call< lap_function >::with_offsets(eval, in(0, 0, 0));
-            gridtools::float_type _y_ = gridtools::call< lap_function >::with_offsets(eval, in(0, 1, 0));
+            gridtools::float_type _x_ = gridtools::call< lap_function >::with(eval, in(0, 0, 0));
+            gridtools::float_type _y_ = gridtools::call< lap_function >::with(eval, in(0, 1, 0));
 #else
             gridtools::float_type _x_ = gridtools::call< lap_function >::at< 0, 0, 0 >::with(eval, in());
             gridtools::float_type _y_ = gridtools::call< lap_function >::at< 0, 1, 0 >::with(eval, in());
@@ -179,7 +175,7 @@ namespace horizontal_diffusion_functions {
         typedef boost::mpl::vector< out, in, flx, fly, coeff > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval) {
+        GT_FUNCTION static void Do(Evaluation eval) {
             eval(out()) =
                 eval(in()) - eval(coeff()) * (eval(flx()) - eval(flx(-1, 0, 0)) + eval(fly()) - eval(fly(0, -1, 0)));
         }
@@ -242,12 +238,10 @@ namespace horizontal_diffusion_functions {
         // The constructor takes the horizontal plane dimensions,
         // while the vertical ones are set according the the axis property soon after
         // gridtools::grid<axis> grids(2,d1-2,2,d2-2);
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        gridtools::grid< axis > grid_(di, dj);
-        grid_.value_list[0] = 0;
-        grid_.value_list[1] = d3 - 1;
+        auto grid_ = make_grid(di, dj, d3);
 
         auto horizontal_diffusion = gridtools::make_computation< gridtools::BACKEND >(
             domain_,

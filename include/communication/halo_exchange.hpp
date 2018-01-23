@@ -45,18 +45,38 @@
 #error("Manual Packing is now turned on by setting versions to gridtools::version_manual (or, equivalently) 2")
 #endif
 
+#include "high-level/descriptors_fwd.hpp"
+#include "high-level/descriptor_generic_manual.hpp"
+#include "high-level/descriptors.hpp"
 #include "high-level/descriptors_dt.hpp"
 #include "high-level/descriptors_dt_whole.hpp"
-#include "high-level/descriptors.hpp"
 #include "high-level/descriptors_manual_gpu.hpp"
-#include "high-level/descriptor_generic_manual.hpp"
 
-#include "low-level/translate.hpp"
 #include "high-level/field_on_the_fly.hpp"
 
 namespace gridtools {
 
     namespace _impl {
+        /**
+           This functions returns an MPI_Communicator that is a
+           cartesian one starting from another communicator. The MPI
+           API specifies that the values of the Array of dimensions
+           that are different than zero will be unchanged, and only
+           the ones that are zero will be updated. In this way, we can
+           pass a Cartesian communicator and its sizes to get a
+           communicator that is identical to the one passed in.
+         */
+        template < typename ValueType, size_t Size >
+        MPI_Comm _make_comm(MPI_Comm comm, array< ValueType, Size > &dims) {
+            int nprocs;
+            MPI_Comm_size(comm, &nprocs);
+            MPI_Dims_create(nprocs, dims.size(), &dims[0]);
+            int period[3] = {1, 1, 1};
+            MPI_Comm CartComm;
+            MPI_Cart_create(MPI_COMM_WORLD, 3, &dims[0], period, false, &CartComm);
+            return CartComm;
+        }
+
         template < int D, typename GT, int version >
         struct get_pattern;
 
@@ -250,6 +270,17 @@ namespace gridtools {
         typedef typename _impl::get_pattern< DIMS, grid_type, version >::type pattern_type;
 
       private:
+        template < typename Array >
+        MPI_Comm _make_comm(MPI_Comm comm, Array dims) {
+            int nprocs;
+            MPI_Comm_size(comm, &nprocs);
+            MPI_Dims_create(nprocs, dims.size(), &dims[0]);
+            int period[3] = {1, 1, 1};
+            MPI_Comm CartComm;
+            MPI_Cart_create(MPI_COMM_WORLD, 3, &dims[0], period, false, &CartComm);
+            return CartComm;
+        }
+
         typedef hndlr_dynamic_ut< DataType, GridType, pattern_type, layout2proc_map, Gcl_Arch, version > hd_t;
 
         hd_t hd;
@@ -299,11 +330,57 @@ namespace gridtools {
             \param[in] c Periodicity specification as in \link boollist_concept \endlink
             \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
         */
-        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c,
-            MPI_Comm const &comm,
-            gridtools::array< int, grid_type::ndims > const *dimensions = NULL)
-            : hd(c.template permute< layout2proc_map_abs >(), comm, dimensions) //, periodicity(c)
-        {}
+        explicit halo_exchange_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
+            : hd(c.template permute< layout2proc_map_abs >(), comm) {}
+
+        /** constructor that takes the periodicity (mathich the \link
+            boollist_concept \endlink concept, and the MPI CART
+            communicator in DIMS (specified as template argument to the
+            pattern) dimensions of the processing grid. the periodicity is
+            specified in the order chosen by the programmer for the data,
+            as in the rest of the application. It is up tp the
+            construnctor implementation to translate it into the right
+            order depending on the gridtools::layout_map passed to the class.
+
+            Examples:
+            1) hd(period_type(true, true, false), MPI_COMM_WORLD, array<int, 3>{0,0,0});
+               Supposing this this is executed in 8 processors, the communicator used by the pattern is a 2x2x2;
+
+            2) hd(period_type(true, true, false), MPI_COMM_WORLD, array<int, 3>{4,0,0});
+               Supposing this this is executed in 8 processors, the communicator used by the pattern is a 4x2x1;
+
+            2) hd(period_type(true, true, false), MPI_COMM_WORLD, array<int, 3>{4,1,0});
+               Supposing this this is executed in 8 processors, the communicator used by the pattern is a 4x1x2;
+            End of examples.
+
+            \tparam ValueType Value type of the GridTools array of dimensions (deduced)
+            \tparam Size  Size of the GridTools array of dimensions (deduced)
+            \param[in] c Periodicity specification as in \link boollist_concept \endlink
+            \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
+            \param[in] dims Array of dimensions of the ocmputing grid. Array must provide operator[] up to 3 elements.
+           The behavior is like MPI_Dims_create.
+        */
+        template < typename ValueType, size_t Size >
+        explicit halo_exchange_dynamic_ut(
+            typename grid_type::period_type const &c, MPI_Comm const &comm, array< ValueType, Size > &&dims)
+            : hd(c.template permute< layout2proc_map_abs >(), _impl::_make_comm(comm, dims)) {}
+
+        /**
+           Same signature of \ref halo_exchange_dynamic_ut::halo_exchange_dynamic_ut::(typename grid_type::period_type
+           const &, MPI_Comm const &, array<ValueType, Size> &&) [this] but takes the dims array as reference, in case
+           the output of the MPI_Cart_create is needed.
+
+            \tparam ValueType Value type of the GridTools array of dimensions (deduced)
+            \tparam Size  Size of the GridTools array of dimensions (deduced)
+            \param[in] c Periodicity specification as in \link boollist_concept \endlink
+            \param[in] comm MPI CART communicator with dimension DIMS (specified as template argument to the pattern).
+            \param[in] dims Array of dimensions of the ocmputing grid. Array must provide operator[] up to 3 elements.
+           The behavior is like MPI_Dims_create.
+         */
+        template < typename ValueType, size_t Size >
+        explicit halo_exchange_dynamic_ut(
+            typename grid_type::period_type const &c, MPI_Comm const &comm, array< ValueType, Size > &dims)
+            : hd(c.template permute< layout2proc_map_abs >(), _impl::_make_comm(comm, dims)) {}
 
         /** Function to rerturn the L3 level pattern used inside the pattern itself.
 
@@ -365,7 +442,7 @@ namespace gridtools {
            \param[in] _fields data fields to be packed
         */
         template < typename... FIELDS >
-        void pack(const FIELDS &... _fields) const {
+        void pack(const FIELDS *... _fields) {
             hd.pack(_fields...);
         }
 
@@ -375,7 +452,7 @@ namespace gridtools {
            \param[in] _fields data fields where to unpack data
         */
         template < typename... FIELDS >
-        void unpack(const FIELDS &... _fields) const {
+        void unpack(FIELDS *... _fields) {
             hd.unpack(_fields...);
         }
 
@@ -562,7 +639,7 @@ namespace gridtools {
         hndlr_generic< DIMS, pattern_type, layout2proc_map, Gcl_Arch, version > hd;
 
       public:
-        /** constructor that takes the periodicity (mathich the \link
+        /** constructor that takes the periodicity (matching the \link
             boollist_concept \endlink concept, and the MPI CART
             communicator in DIMS (specified as template argument to the
             pattern) dimensions of the processing grid. the periodicity is

@@ -38,7 +38,6 @@
 #include "../accessor_base.hpp"
 #include "../arg.hpp"
 #include "../../common/dimension.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
 #include "../../common/generic_metafunctions/static_if.hpp"
 
 /**
@@ -90,9 +89,6 @@ namespace gridtools {
         typedef accessor_base< ID, Intend, Extent, Number > super;
         typedef typename super::index_t index_t;
         typedef typename super::offset_tuple_t offset_tuple_t;
-
-        GT_FUNCTION
-        constexpr accessor() : super() {}
 
         /**inheriting all constructors from accessor_base*/
         using super::accessor_base;

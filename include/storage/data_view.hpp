@@ -49,6 +49,38 @@
 
 namespace gridtools {
 
+    namespace advanced {
+        /** Function to access the protected data member of the views
+            containing the raw pointers.  This is an interface we want to avoid
+            using (and future fixed of the communication library will not need
+            this. We made the use of this function difficult on purpose.
+
+            \tparam DataView The data_view type (deduced)
+
+            \param dv The data_view object
+            \param i The index of the pointer in the arrays of raw pointers
+        */
+        template < typename DataView >
+        inline typename DataView::data_t *get_raw_pointer_of(DataView const &dv, int i = 0) {
+            return dv.m_raw_ptrs[i];
+        }
+
+        /** Function to obtain the address of the first element of the view,
+            that is &view(0,0,0). This fuction gives that address without
+            de-referencing the actual value. This is useful to interface
+            C or Fortran code that needs raw pointers to the data.
+
+            \tparam DataView The data_view type (deduced)
+
+            \param dv The data_view object
+            \param i The index of the pointer in the arrays of raw pointers
+        */
+        template < typename DataView >
+        inline typename DataView::data_t *get_initial_address_of(DataView const &dv, int i = 0) {
+            return dv.m_raw_ptrs[i] + dv.m_storage_info->get_initial_offset();
+        }
+    } // namespace advanced
+
     /**
      * @brief data_view implementation. This struct provides means to modify contents of
      * gridtools data_store containers on arbitrary locations (host, device, etc.).
@@ -59,21 +91,25 @@ namespace gridtools {
     struct data_view {
         GRIDTOOLS_STATIC_ASSERT(
             is_data_store< DataStore >::value, GT_INTERNAL_ERROR_MSG("Passed type is no data_store type"));
+        using data_store_t = DataStore;
         typedef typename DataStore::data_t data_t;
         typedef typename DataStore::state_machine_t state_machine_t;
         typedef typename DataStore::storage_info_t storage_info_t;
         const static access_mode mode = AccessMode;
         const static uint_t num_of_storages = 1;
 
+      protected:
         data_t *m_raw_ptrs[1];
+
+      public:
         state_machine_t *m_state_machine_ptr;
         storage_info_t const *m_storage_info;
         bool m_device_view;
-
         /**
          * @brief data_view constructor
          */
-        GT_FUNCTION data_view() {}
+        GT_FUNCTION data_view()
+            : m_raw_ptrs{NULL}, m_state_machine_ptr(NULL), m_storage_info(NULL), m_device_view(false) {}
 
         /**
          * @brief data_view constructor. This constructor is normally not called by the user because it is more
@@ -91,6 +127,20 @@ namespace gridtools {
             ASSERT_OR_THROW(info_ptr, "Cannot create data_view with invalid storage info pointer");
         }
 
+        GT_FUNCTION storage_info_t const &storage_info() const { return *m_storage_info; }
+
+        /**
+         * data getter
+         */
+        GT_FUNCTION
+        data_t *data() { return m_raw_ptrs[0]; }
+
+        /**
+         * data getter
+         */
+        GT_FUNCTION
+        data_t const *data() const { return m_raw_ptrs[0]; }
+
         /**
          * @brief operator() is used to access elements. E.g., view(0,0,2) will return the third element.
          * @param c given indices
@@ -100,7 +150,7 @@ namespace gridtools {
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
         operator()(Coords... c) const {
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Coords) > 0) >,
-                                        typename is_all_integral< Coords... >::type >::value),
+                                        typename is_all_integral_or_enum< Coords... >::type >::value),
                 GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
             return m_raw_ptrs[0][m_storage_info->index(c...)];
         }
@@ -110,12 +160,8 @@ namespace gridtools {
          * @param arr array of indices
          * @return reference to the queried value
          */
-        template < typename T, uint_t N >
         typename boost::mpl::if_c< (AccessMode == access_mode::ReadOnly), data_t const &, data_t & >::type GT_FUNCTION
-        operator()(std::array< T, N > const &arr) const {
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::and_< boost::mpl::bool_< (N > 0) >, typename is_all_integral< T >::type >::value),
-                GT_INTERNAL_ERROR_MSG("Index arguments have to be integral types."));
+        operator()(gridtools::array< int, storage_info_t::ndims > const &arr) const {
             return m_raw_ptrs[0][m_storage_info->index(arr)];
         }
 
@@ -141,42 +187,78 @@ namespace gridtools {
         }
 
         /*
-         * @brief function to retrieve the (aligned) size of a dimension (e.g., I, J, or K).
-         * @tparam Coord queried coordinate
-         * @return size of dimension
-         */
-        template < int Coord >
-        GT_FUNCTION constexpr int dim() const {
-            return m_storage_info->template dim< Coord >();
-        }
-
-        /*
-         * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
-         * @tparam Coord queried coordinate
-         * @return size of dimension
-         */
-        template < int Coord >
-        GT_FUNCTION constexpr int unaligned_dim() const {
-            return m_storage_info->template unaligned_dim< Coord >();
-        }
-
-        /*
          * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
          * @return total size
          */
         GT_FUNCTION constexpr int padded_total_length() const { return m_storage_info->padded_total_length(); }
 
         /*
-         * @brief member function to retrieve the inner domain size + halo (dimensions, halos, no initial_offset).
-         * @return inner domain size + halo
+         * @brief Returns the length of a dimension excluding the halo points (only the inner region
+         *
+         * \tparam Dim The index of the dimension
          */
-        GT_FUNCTION constexpr int total_length() const { return m_storage_info->total_length(); }
+        template < uint_t Dim >
+        GT_FUNCTION constexpr int length() const {
+            return m_storage_info->template length< Dim >();
+        }
 
         /*
-         * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
-         * @return inner domain size
+         * @brief Returns the length of a dimension including the halo points (the outer region)
+         *
+         * \tparam Dim The index of the dimension
          */
-        GT_FUNCTION constexpr int length() const { return m_storage_info->length(); }
+        template < uint_t Dim >
+        GT_FUNCTION constexpr int total_length() const {
+            return m_storage_info->template total_length< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr int total_begin() const {
+            return m_storage_info->template total_begin< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr int begin() const {
+            return m_storage_info->template begin< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr int total_end() const {
+            return m_storage_info->template total_end< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr int end() const {
+            return m_storage_info->template end< Dim >();
+        }
+
+        template < typename T >
+        friend typename T::data_t *advanced::get_raw_pointer_of(T const &, int);
+
+        template < typename T >
+        friend typename T::data_t *advanced::get_initial_address_of(T const &, int);
     };
 
     template < typename T >

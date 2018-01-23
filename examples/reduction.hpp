@@ -54,11 +54,9 @@ using gridtools::arg;
 using namespace gridtools;
 using namespace enumtype;
 
-namespace reduction {
-
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+namespace test_reduction {
+    using axis_t = axis< 1 >;
+    using x_interval = axis_t::full_interval; // TODO cannot use default interval because of issue #752
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct sum_red {
@@ -137,15 +135,7 @@ namespace reduction {
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
         // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(d1, d2, axis_t(d3));
 
         auto sum_red_ = make_computation< gridtools::BACKEND >(domain,
             grid,

@@ -37,9 +37,6 @@
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
-typedef gridtools::interval< gridtools::level< 0, -1 >, gridtools::level< 1, -1 > > x_interval;
-typedef gridtools::interval< gridtools::level< 0, -2 >, gridtools::level< 1, 1 > > axis;
-
 template < gridtools::uint_t Id >
 struct functor {
 
@@ -48,7 +45,7 @@ struct functor {
     typedef boost::mpl::vector2< a0, a1 > arg_list;
 
     template < typename Evaluation >
-    GT_FUNCTION static void Do(Evaluation &eval, x_interval) {}
+    GT_FUNCTION static void Do(Evaluation &eval) {}
 };
 
 #define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
@@ -59,11 +56,7 @@ TEST(unfold_all, test) {
 
     using namespace gridtools;
 
-    conditional< 0 > cond(predicate);
-
-    grid< axis > grid({0, 0, 0, 1, 2}, {0, 0, 0, 1, 2});
-    grid.value_list[0] = 0;
-    grid.value_list[1] = 2;
+    auto grid = make_grid(2, 2, 3);
 
     typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
     typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
@@ -95,5 +88,5 @@ TEST(unfold_all, test) {
             make_stage< functor< 11 > >(p0(), p1()),
             make_independent(make_stage< functor< 12 > >(p0(), p1()), make_stage< functor< 13 > >(p0(), p1()))));
 
-    auto comp = make_computation< BACKEND >(domain, grid, if_(cond, mss1, mss2));
+    auto comp = make_computation< BACKEND >(domain, grid, if_(predicate, mss1, mss2));
 }

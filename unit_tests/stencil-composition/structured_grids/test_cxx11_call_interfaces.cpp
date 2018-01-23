@@ -44,13 +44,37 @@ using namespace gridtools::expressions;
 
 namespace call_interface_functors {
 
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    using axis_t = axis< 1 >;
+    using x_interval = axis_t::full_interval;
+    using smaller_interval = x_interval::modify< 1, -1 >;
 
     struct copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
         typedef inout_accessor< 1, extent<>, 3 > out;
         typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in());
+        }
+    };
+
+    struct copy_functor_with_add {
+        typedef inout_accessor< 0, extent<>, 3 > out;
+        typedef in_accessor< 1, extent<>, 3 > in1;
+        typedef in_accessor< 2, extent<>, 3 > in2;
+        typedef boost::mpl::vector< out, in1, in2 > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in1()) + eval(in2());
+        }
+    };
+
+    // The implementation is different depending on the position of the out accessor in the callee, as the position of
+    // the input accessors in the call has to be shifted when it is not in the last position.
+    struct copy_functor_with_out_first {
+        typedef inout_accessor< 0, extent<>, 3 > out;
+        typedef in_accessor< 1, extent<>, 3 > in;
+        typedef boost::mpl::vector< out, in > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
@@ -63,7 +87,48 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< copy_functor, x_interval >::with(eval, in(), out());
+            eval(out()) = call< copy_functor, x_interval >::with(eval, in());
+        }
+    };
+
+    struct call_copy_functor_with_local_variable {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            float_type local = 1.;
+            eval(out()) = call< copy_functor_with_add, x_interval >::with(eval, in(), local);
+        }
+    };
+
+    struct call_copy_functor_with_out_first {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = call< copy_functor_with_out_first, x_interval >::with(eval, in());
+        }
+    };
+
+    struct copy_functor_with_expression {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in() + 0.);
+        }
+    };
+
+    struct call_copy_functor_with_expression {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = call< copy_functor_with_expression, x_interval >::with(eval, in());
         }
     };
 
@@ -73,7 +138,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< copy_functor, x_interval >::at< 1, 1, 0 >::with(eval, in(), out());
+            eval(out()) = call< copy_functor, x_interval >::at< 1, 1, 0 >::with(eval, in());
         }
     };
 
@@ -83,7 +148,47 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< copy_functor, x_interval >::with_offsets(eval, in(1, 1, 0), out());
+            eval(out()) = call< copy_functor, x_interval >::with(eval, in(1, 1, 0));
+        }
+    };
+
+    struct copy_functor_default_interval {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            eval(out()) = eval(in());
+        }
+    };
+
+    struct call_copy_functor_default_interval {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            eval(out()) = call< copy_functor_default_interval >::with(eval, in());
+        }
+    };
+
+    struct call_copy_functor_default_interval_from_smaller_interval {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, smaller_interval) {
+            eval(out()) = call< copy_functor_default_interval >::with(eval, in());
+        }
+    };
+
+    struct call_copy_functor_default_interval_with_offset_in_k {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            eval(out()) = call< copy_functor_default_interval >::at< 0, 0, -1 >::with(eval, in(0, 0, 1));
         }
     };
 
@@ -93,7 +198,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< copy_functor, x_interval >::at< -1, -1, 0 >::with_offsets(eval, in(1, 1, 0), out());
+            eval(out()) = call< copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in(1, 1, 0));
         }
     };
 
@@ -103,7 +208,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< call_copy_functor, x_interval >::with(eval, in(), out());
+            eval(out()) = call< call_copy_functor, x_interval >::with(eval, in());
         }
     };
 
@@ -113,7 +218,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< call_at_copy_functor, x_interval >::with(eval, in(), out());
+            eval(out()) = call< call_at_copy_functor, x_interval >::with(eval, in());
         }
     };
 
@@ -123,7 +228,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< call_with_offsets_copy_functor, x_interval >::with(eval, in(), out());
+            eval(out()) = call< call_with_offsets_copy_functor, x_interval >::with(eval, in());
         }
     };
 
@@ -133,7 +238,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< call_copy_functor, x_interval >::at< 1, 1, 0 >::with(eval, in(), out());
+            eval(out()) = call< call_copy_functor, x_interval >::at< 1, 1, 0 >::with(eval, in());
         }
     };
 
@@ -143,7 +248,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< call_at_copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in(), out());
+            eval(out()) = call< call_at_copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in());
         }
     };
 
@@ -153,7 +258,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< call_at_copy_functor, x_interval >::with_offsets(eval, in(-1, -1, 0), out());
+            eval(out()) = call< call_at_copy_functor, x_interval >::with(eval, in(-1, -1, 0));
         }
     };
 
@@ -163,7 +268,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< call_with_offsets_copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in(), out());
+            eval(out()) = call< call_with_offsets_copy_functor, x_interval >::at< -1, -1, 0 >::with(eval, in());
         }
     };
 
@@ -173,7 +278,7 @@ namespace call_interface_functors {
         typedef boost::mpl::vector< in, out > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            eval(out()) = call< call_with_offsets_copy_functor, x_interval >::with_offsets(eval, in(-1, -1, 0), out());
+            eval(out()) = call< call_with_offsets_copy_functor, x_interval >::with(eval, in(-1, -1, 0));
         }
     };
 }
@@ -201,15 +306,19 @@ class call_interface : public testing::Test {
 
     halo_descriptor di;
     halo_descriptor dj;
-    gridtools::grid< call_interface_functors::axis > grid;
+    gridtools::grid< call_interface_functors::axis_t::axis_interval_t > grid;
 
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
 
     data_store_t in;
     data_store_t out;
+
+    static constexpr float_type default_value = -1;
     data_store_t reference_unchanged;
     data_store_t reference_shifted;
+    data_store_t reference_smaller_interval;
+    data_store_t reference_plus1;
 
     typedef arg< 0, data_store_t > p_in;
     typedef arg< 1, data_store_t > p_out;
@@ -219,19 +328,25 @@ class call_interface : public testing::Test {
 
     call_interface()
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
+          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
+          grid(make_grid(di, dj, call_interface_functors::axis_t(d3))),
 #if FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
           verifier_(1e-12),
 #endif
           verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
-          in(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }), out(meta_, -5),
-          reference_unchanged(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }),
-          reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) + (j + 1) * 10 + k * 100; }),
-          domain(in, out) {
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+          in(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }), out(meta_, default_value),
+          reference_unchanged(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }),
+          reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) * 100 + (j + 1) * 10 + k; }),
+          reference_smaller_interval(meta_,
+              [this](int i, int j, int k) {
+                  if (k > 0 && k < this->d3 - 1)
+                      return (float_type)(i * 100 + j * 10 + k);
+                  else
+                      return default_value;
+              }),
+          reference_plus1(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k + 1; }), domain(in, out) {
     }
 
     template < typename Computation >
@@ -249,6 +364,42 @@ TEST_F(call_interface, call_to_copy_functor) {
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_copy_functor >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_with_local_variable) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_with_local_variable >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_plus1, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_with_out_first) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_with_out_first >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_with_expression) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_with_expression >(p_in(), p_out())));
 
     execute_computation(comp);
 
@@ -285,6 +436,44 @@ TEST_F(call_interface, call_at_with_offsets_to_copy_functor) {
         grid,
         gridtools::make_multistage(execute< forward >(),
             gridtools::make_stage< call_interface_functors::call_at_with_offsets_copy_functor >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_default_interval) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_default_interval >(p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_default_interval_from_smaller_interval) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_default_interval_from_smaller_interval >(
+                                       p_in(), p_out())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_smaller_interval, out, verifier_halos));
+}
+
+TEST_F(call_interface, call_to_copy_functor_default_interval_with_offset_in_k) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_interface_functors::call_copy_functor_default_interval_with_offset_in_k >(
+                                       p_in(), p_out())));
 
     execute_computation(comp);
 
@@ -411,7 +600,7 @@ class call_proc_interface : public testing::Test {
 
     halo_descriptor di;
     halo_descriptor dj;
-    gridtools::grid< call_interface_functors::axis > grid;
+    gridtools::grid< call_interface_functors::axis_t::axis_interval_t > grid;
 
     verifier verifier_;
     array< array< uint_t, 2 >, 3 > verifier_halos;
@@ -431,19 +620,18 @@ class call_proc_interface : public testing::Test {
 
     call_proc_interface()
         : meta_(d1, d2, d3), di(halo_size, halo_size, halo_size, d1 - halo_size - 1, d1),
-          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2), grid(di, dj),
+          dj(halo_size, halo_size, halo_size, d2 - halo_size - 1, d2),
+          grid(make_grid(di, dj, call_interface_functors::axis_t(d3))),
 #if FLOAT_PRECISION == 4
           verifier_(1e-6),
 #else
           verifier_(1e-12),
 #endif
           verifier_halos{{{halo_size, halo_size}, {halo_size, halo_size}, {halo_size, halo_size}}},
-          in(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }), out1(meta_, -5), out2(meta_, -5),
-          reference_unchanged(meta_, [](int i, int j, int k) { return i + j * 10 + k * 100; }),
-          reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) + (j + 1) * 10 + k * 100; }),
+          in(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }), out1(meta_, -5), out2(meta_, -5),
+          reference_unchanged(meta_, [](int i, int j, int k) { return i * 100 + j * 10 + k; }),
+          reference_shifted(meta_, [](int i, int j, int k) { return (i + 1) * 100 + (j + 1) * 10 + k; }),
           domain(in, out1, out2) {
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
     }
 
     template < typename Computation >
@@ -457,8 +645,8 @@ class call_proc_interface : public testing::Test {
 };
 
 namespace call_proc_interface_functors {
-    typedef interval< level< 0, -2 >, level< 1, 1 > > axis;
-    typedef interval< level< 0, -1 >, level< 1, -1 > > x_interval;
+    using axis = interval< level< 0, -1 >, level< 1, 1 > >;
+    using x_interval = interval< level< 0, -1 >, level< 1, -1 > >;
 
     struct copy_functor {
         typedef in_accessor< 0, extent<>, 3 > in;
@@ -467,6 +655,26 @@ namespace call_proc_interface_functors {
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
             eval(out()) = eval(in());
+        }
+    };
+
+    struct copy_functor_with_expression {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            eval(out()) = eval(in() + 0.);
+        }
+    };
+
+    struct call_copy_functor_with_expression {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            call_proc< copy_functor_with_expression, x_interval >::with(eval, in(), out());
         }
     };
 
@@ -500,7 +708,7 @@ namespace call_proc_interface_functors {
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            call_proc< copy_twice_functor, x_interval >::with_offsets(eval, in(1, 1, 0), out1(), out2());
+            call_proc< copy_twice_functor, x_interval >::with(eval, in(1, 1, 0), out1(), out2());
         }
     };
 
@@ -511,8 +719,38 @@ namespace call_proc_interface_functors {
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            call_proc< copy_twice_functor, x_interval >::at< 1, 1, 0 >::with_offsets(
+            call_proc< copy_twice_functor, x_interval >::at< 1, 1, 0 >::with(
                 eval, in(), out1(-1, -1, 0), out2(-1, -1, 0)); // outs are at the original position
+        }
+    };
+
+    struct copy_functor_default_interval {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            eval(out()) = eval(in());
+        }
+    };
+
+    struct call_copy_functor_default_interval {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval) {
+            call_proc< copy_functor_default_interval >::with(eval, in(), out());
+        }
+    };
+
+    struct call_copy_functor_default_interval_with_offset_in_k {
+        typedef in_accessor< 0, extent<>, 3 > in;
+        typedef inout_accessor< 1, extent<>, 3 > out;
+        typedef boost::mpl::vector< in, out > arg_list;
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+            call_proc< copy_functor_default_interval >::at< 0, 0, -1 >::with(eval, in(0, 0, 1), out(0, 0, 1));
         }
     };
 
@@ -534,7 +772,7 @@ namespace call_proc_interface_functors {
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            call_proc< call_copy_twice_functor, x_interval >::with_offsets(eval, in(1, 1, 0), out1(), out2());
+            call_proc< call_copy_twice_functor, x_interval >::with(eval, in(1, 1, 0), out1(), out2());
         }
     };
 
@@ -545,8 +783,7 @@ namespace call_proc_interface_functors {
         typedef boost::mpl::vector< in, out1, out2 > arg_list;
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
-            call_proc< call_with_offsets_copy_twice_functor, x_interval >::with_offsets(
-                eval, in(-1, -1, 0), out1(), out2());
+            call_proc< call_with_offsets_copy_twice_functor, x_interval >::with(eval, in(-1, -1, 0), out1(), out2());
         }
     };
 
@@ -567,6 +804,19 @@ namespace call_proc_interface_functors {
             }
         }
     };
+}
+
+TEST_F(call_proc_interface, call_to_copy_functor_with_expression) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_proc_interface_functors::call_copy_functor_with_expression >(
+                                       p_in(), p_out1())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
 }
 
 TEST_F(call_proc_interface, call_to_copy_twice_functor) {
@@ -609,6 +859,32 @@ TEST_F(call_proc_interface, call_at_with_offsets_to_copy_twice_functor) {
 
     ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out1, verifier_halos));
     ASSERT_TRUE(verifier_.verify(grid, reference_shifted, out2, verifier_halos));
+}
+
+TEST_F(call_proc_interface, call_to_copy_functor_default_interval) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_proc_interface_functors::call_copy_functor_default_interval >(
+                                       p_in(), p_out1())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
+}
+
+TEST_F(call_proc_interface, call_to_copy_functor_default_interval_with_offset_in_k) {
+    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+        domain,
+        grid,
+        gridtools::make_multistage(execute< forward >(),
+            gridtools::make_stage< call_proc_interface_functors::call_copy_functor_default_interval_with_offset_in_k >(
+                                       p_in(), p_out1())));
+
+    execute_computation(comp);
+
+    ASSERT_TRUE(verifier_.verify(grid, reference_unchanged, out1, verifier_halos));
 }
 
 TEST_F(call_proc_interface, call_to_call_to_copy_twice_functor) {

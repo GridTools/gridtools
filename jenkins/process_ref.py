@@ -68,9 +68,9 @@ def run_and_extract_times(path, executable, host, sizes, halos, filter_=None, st
         try:
             if verbosity:
                 print(cmd)
-            output=subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
+            output=(subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)).decode("utf-8")
             if verbosity:
-                print(output)
+              print(output)
             m = re.search('.*\[s\]\s*(\d+(\.\d*)?|\.\d+)',output)
             if m:
                 extracted_time =  m.group(1)
@@ -79,7 +79,7 @@ def run_and_extract_times(path, executable, host, sizes, halos, filter_=None, st
             else:
                 sys.exit('Problem found extracting timings')
 
-        except subprocess.CalledProcessError, e:
+        except subprocess.CalledProcessError as e:
             sys.exit('Command called raised error:\n'+e.output)
     # select the best 3 values and calculate the average
     best_times = np.sort(np.array(times))[0:3]
@@ -99,13 +99,13 @@ def run_and_extract_times(path, executable, host, sizes, halos, filter_=None, st
         path = "./"+ path + "/" + os.path.basename(executable) + "_" + sizes[0] + "_" + sizes[1] + "_" + sizes[2]
         if target == "cpu": 
             path = path + "_" + re.sub('thread','',thread)
-        path = path + ".svg"
+        path = path + ".png"
         ensure_dir(path)
         matplotlib.pyplot.plot(np.array(list(range(0,nrep))), np.array(times), 'ro')
         matplotlib.pyplot.axis([0, nrep, 0, np.array(times).max()*1.1])
         matplotlib.pyplot.savefig(path)
         matplotlib.pyplot.close()
-        print("wrote svg file: "+path)
+        print("wrote png file: "+path)
     return (med_val,rms)
 
 class Plotter:
@@ -137,6 +137,9 @@ class Plotter:
         opacity = 0.4
         error_config = {'ecolor': '0.3'}
 
+        fig = plt.figure()
+        fig.set_tight_layout(True)
+
         y1_bar = plt.bar(index , y1, yerr = y1_err, width=bar_width,
               alpha=opacity,
               color='r',
@@ -151,16 +154,15 @@ class Plotter:
         y2_errbar = plt.errorbar(index + bar_width*1.5, y2, yerr= y2_err, color='b', ls='none')
 
 
-        plt.xlabel('Stencil Name')
-        plt.ylabel('Stencil time (s)')
-        plt.title(title)
+        plt.xlabel('Stencil Name', fontsize='xx-small')
+        plt.ylabel('Stencil time (s)', fontsize='xx-small')
+        fig.suptitle(title, fontsize=12)
         plt.xticks(index + bar_width*1.5, xtick_labels, rotation=90, fontsize='xx-small')
         plt.tick_params(axis='both', which='major', labelsize=10)
         plt.tick_params(axis='both', which='minor', labelsize=6)
         plt.legend(prop={'size':6})
 
-        plt.tight_layout()
-        plt.savefig(filename, format="svg")
+        fig.savefig(filename, format="png")
       
     def plot_titlepage(self, filename):
        x,y = 0.1,0.4
@@ -177,7 +179,7 @@ class Plotter:
 #       ax = plt.axes()
        ax.xaxis.set_visible(False)
        ax.yaxis.set_visible(False)
-       plt.savefig(filename, format="svg")
+       plt.savefig(filename, format="png")
 
 
 
@@ -201,12 +203,12 @@ class Plotter:
                 gridtools_err = self.gridtools_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot(self.perf_vs_stella_dir_+"/plot_"+astencil+"_"+adomain+".svg", astencil, labels, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
+                self.plot(self.perf_vs_stella_dir_+"/plot_"+astencil+"_"+adomain+".png", astencil, labels, stella_times, stella_err, "stella", gridtools_times, gridtools_err, "gridtools")
 
         if not os.path.exists(self.perf_vs_reference_dir_):
             os.makedirs(self.perf_vs_reference_dir_)
 
-        self.plot_titlepage(self.config_.output_dir_+"/aaa_titlepage.svg")
+        self.plot_titlepage(self.config_.output_dir_+"/aaa_titlepage.png")
 
         for astencil in self.gridtools_avg_times_:
             for adomain in self.gridtools_avg_times_[astencil]:
@@ -218,10 +220,10 @@ class Plotter:
                 reference_err = self.reference_err_[astencil][adomain]
                 labels = self.labels_[astencil][adomain]
                 
-                self.plot(self.perf_vs_reference_dir_+"/plot_"+astencil+"_"+adomain+".svg", astencil + ' ' + adomain, labels, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
+                self.plot(self.perf_vs_reference_dir_+"/plot_"+astencil+"_"+adomain+".png", astencil + ' ' + adomain, labels, gridtools_times, gridtools_err, "gridtools", reference_times, reference_err, "reference")
 
     def stella_has_stencil(self, stencil_name):
-        return self.stella_timers_.has_key(stencil_name)
+        return (stencil_name in self.stella_timers_)
 
     def extract_metrics(self):
 
@@ -239,9 +241,9 @@ class Plotter:
 
             for athread_num in gridtools_this_stencil_data:
                 for adomain in gridtools_this_stencil_data[athread_num]:
-                    if not self.gridtools_avg_times_[astencil].has_key(adomain):
+                    if adomain not in self.gridtools_avg_times_[astencil]:
                         if self.stella_has_stencil(astencil):
-	                    self.stella_avg_times_[astencil][adomain] = []
+                            self.stella_avg_times_[astencil][adomain] = []
                             self.stella_err_[astencil][adomain] = []
                         self.gridtools_avg_times_[astencil][adomain] = []
                         self.labels_[astencil][adomain] = []
@@ -272,7 +274,7 @@ def create_dict(adict, props):
     if not props: return
 
     current_prop = props.pop()
-    if not adict.has_key(current_prop):
+    if current_prop not in adict:
         adict[current_prop]={}
 
     create_dict(adict[current_prop], props)
@@ -298,7 +300,6 @@ if __name__ == "__main__":
     parser.add_argument('--filter',nargs=1, type=str, help='filter only stencils that matches the pattern. Comma separated list of python regular expressions')
     parser.add_argument('-p',nargs=1, type=str, help='base path to build executables')
     parser.add_argument('--target', nargs=1, type=str, help='cpu || gpu')
-    parser.add_argument('--std', nargs=1, type=str, help='C++ standard')
     parser.add_argument('--prec', nargs=1, type=str, help='floating point precision')
     parser.add_argument('-c', action='store_true', help='check results and validate against a reference')
     parser.add_argument('-u', action='store_true', help='update reference performance results')
@@ -318,8 +319,6 @@ if __name__ == "__main__":
 
     if not args.target:
         parser.error('--target should be specified')
-    if not args.std:
-        parser.error('--std should be specified')
     if not args.prec:
         parser.error('--prec should be specified')
 
@@ -351,7 +350,8 @@ if __name__ == "__main__":
     else:
         parser.error('wrong value for --target')
 
-    std = args.std[0]
+    #only cxx11 is supported
+    std = "cxx11"
     if std != "cxx11" and std != "cxx03":
         parser.error('--std should be set to cxx11 or cxx03')
 
@@ -376,8 +376,7 @@ if __name__ == "__main__":
     if args.v:
         verbose=True
 
-    host = filter(lambda x: x.isalpha(), socket.gethostname())
-
+    host = ''.join(list(filter(lambda x: x.isalpha(), socket.gethostname())))
     if not re.match('greina', host) and not re.match('kesch', host):
         sys.exit('WARNING: host '+host+' not known. Not loading any environment')
     
@@ -415,10 +414,10 @@ if __name__ == "__main__":
         executable = gridtools_path+'/'+stencil_conf['exec']+'_'+target_suff
 
         stella_filter = None
-        if stencil_conf.has_key('stella_filter'):
+        if 'stella_filter' in stencil_conf:
             stella_filter = stencil_conf['stella_filter']
 
-        if not stencil_data[target][prec].has_key(std):
+        if std not in stencil_data[target][prec]:
             continue
         print(stencil_name, stencil_data)
         for thread in stencil_data[target][prec][std]: 
@@ -445,7 +444,7 @@ if __name__ == "__main__":
     if config.update_:
         outputfilename=args.json_file +'.out'
         fw = open(outputfilename,'w')
-        fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': ')) )
+        fw.write(json.dumps(copy_ref,  indent=4, separators=(',', ': '), sort_keys=True) )
         fw.close()
         print("Updated reference file",outputfilename)
         if not os.path.exists(config.output_dir_):

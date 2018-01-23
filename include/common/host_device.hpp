@@ -63,3 +63,11 @@
 #define GT_FUNCTION_WARNING
 #endif
 #endif
+
+#ifndef GT_KERNEL
+#ifdef __CUDACC__
+#define GT_KERNEL __global__
+#else
+#define GT_KERNEL
+#endif
+#endif

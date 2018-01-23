@@ -33,6 +33,9 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
+
+#include "../../common/generic_metafunctions/gt_integer_sequence.hpp"
+
 #ifdef __CUDACC__
 #include "m_packZL.hpp"
 #include "m_packZU.hpp"
@@ -158,10 +161,8 @@ namespace gridtools {
            \param[in] c The object of the class used to specify periodicity in each dimension
            \param[in] comm MPI communicator (typically MPI_Comm_world)
         */
-        template < typename Array >
-        explicit hndlr_dynamic_ut(
-            typename grid_type::period_type const &c, MPI_Comm const &comm, Array const *dimensions)
-            : base_type(c, comm, dimensions), halo() {}
+        explicit hndlr_dynamic_ut(typename grid_type::period_type const &c, MPI_Comm const &comm)
+            : base_type(c, comm), halo() {}
 
         /**
            Constructor
@@ -503,6 +504,81 @@ namespace gridtools {
                 halo_d_r, dangeroushalo_r /*halo.raw_array()*/, DIMS * sizeof(halo_descriptor), cudaMemcpyHostToDevice);
             if (err != cudaSuccess) {
                 printf("Error transferring buffer table to device\n");
+            }
+        }
+
+        /**
+           Function to pack data before sending
+
+           \param[in] fields vector with data fields pointers to be packed from
+        */
+        template < typename... Pointers >
+        void pack(const Pointers *... fields) {
+            typedef translate_t< 3, default_layout_map< 3 >::type > translate;
+            auto ints = typename make_gt_integer_sequence< unsigned int, sizeof...(Pointers) >::type{};
+            if (send_size[translate()(0, 0, -1)]) {
+                m_packZL_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+            }
+
+            if (send_size[translate()(0, 0, 1)]) {
+                m_packZU_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+            }
+
+            if (send_size[translate()(0, -1, 0)]) {
+                m_packYL_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+            }
+
+            if (send_size[translate()(0, 1, 0)]) {
+                m_packYU_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+            }
+
+            if (send_size[translate()(-1, 0, 0)]) {
+                m_packXL_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+            }
+
+            if (send_size[translate()(1, 0, 0)]) {
+                m_packXU_variadic(d_send_buffer, d_send_size, dangeroushalo, halo_d, std::make_tuple(fields...), ints);
+            }
+
+#ifdef GCL_MULTI_STREAMS
+            cudaStreamSynchronize(ZL_stream);
+            cudaStreamSynchronize(ZU_stream);
+            cudaStreamSynchronize(YL_stream);
+            cudaStreamSynchronize(YU_stream);
+            cudaStreamSynchronize(XL_stream);
+            cudaStreamSynchronize(XU_stream);
+#else
+            cudaDeviceSynchronize();
+#endif
+        }
+
+        template < typename... Pointers >
+        void unpack(Pointers *... fields) {
+            auto ints = typename make_gt_integer_sequence< unsigned int, sizeof...(Pointers) >::type{};
+            typedef translate_t< 3, default_layout_map< 3 >::type > translate;
+            if (recv_size[translate()(0, 0, -1)]) {
+                m_unpackZL_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
+            if (recv_size[translate()(0, 0, 1)]) {
+                m_unpackZU_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
+            if (recv_size[translate()(0, -1, 0)]) {
+                m_unpackYL_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
+            if (recv_size[translate()(0, 1, 0)]) {
+                m_unpackYU_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
+            if (recv_size[translate()(-1, 0, 0)]) {
+                m_unpackXL_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
+            }
+            if (recv_size[translate()(1, 0, 0)]) {
+                m_unpackXU_variadic(
+                    d_recv_buffer, d_recv_size, dangeroushalo_r, halo_d_r, std::make_tuple(fields...), ints);
             }
         }
 

@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 #include <gridtools.hpp>
 
 /**
@@ -44,6 +45,7 @@
 
 */
 using namespace gridtools;
+using namespace enumtype;
 
 namespace {
     template < int exponent >
@@ -52,30 +54,19 @@ namespace {
     }
 }
 
-template < typename StorageType, uint_t DimI, uint_t DimJ >
+template < typename RefBackend >
 struct shallow_water_reference {
 
-    typedef StorageType storage_type;
-    static constexpr uint_t strides[2] = {DimI, 1};
-    static constexpr uint_t size = DimI * DimJ;
-    static constexpr uint_t ip1 = strides[0];
-    static constexpr uint_t jp1 = strides[1];
-    static constexpr uint_t im1 = -strides[0];
-    static constexpr uint_t jm1 = -strides[1];
+    using solution_meta_t = typename RefBackend::storage_traits_t::template storage_info_t< 0, 3 >;
+    using data_store_t = typename RefBackend::storage_traits_t::template data_store_t< float_type, solution_meta_t >;
+    using sol_type =
+        typename RefBackend::storage_traits_t::template data_store_field_t< float_type, solution_meta_t, 1, 1, 1 >;
 
-    typename storage_type::storage_info_t solution_meta;
-    typedef typename storage_type::data_store_t data_store_t;
-    storage_type solution;
-    float_type u_array[size];
-    float_type v_array[size];
-    float_type h_array[size];
-    float_type ux_array[size];
-    float_type vx_array[size];
-    float_type hx_array[size];
-    float_type uy_array[size];
-    float_type vy_array[size];
-    float_type hy_array[size];
+    uint_t DimI;
+    uint_t DimJ;
 
+    solution_meta_t solution_meta;
+    sol_type solution;
     data_store_t u;
     data_store_t v;
     data_store_t h;
@@ -93,131 +84,88 @@ struct shallow_water_reference {
 
     static constexpr float_type height = 2.;
 
-    static float_type droplet(uint_t const &i, uint_t const &j) {
-#ifndef __CUDACC__
-        return 1. +
-               height * std::exp(-5 * (((i - 3) * dx()) * (((i - 3) * dx())) + ((j - 7) * dy()) * ((j - 7) * dy())));
-#else // if CUDA we test the serial case
-        return 1. +
-               height * std::exp(-5 * (((i - 3) * dx()) * (((i - 3) * dx())) + ((j - 3) * dy()) * ((j - 3) * dy())));
-#endif
-    }
-
-    shallow_water_reference()
-        : solution_meta(DimI, DimJ, static_cast< uint_t >(1)), solution(solution_meta),
-          u(solution_meta, u_array, ownership::ExternalCPU, "u"),
-          v(solution_meta, v_array, ownership::ExternalCPU, "v"),
-          h(solution_meta, h_array, ownership::ExternalCPU, "h"),
-          ux(solution_meta, ux_array, ownership::ExternalCPU, "ux"),
-          vx(solution_meta, vx_array, ownership::ExternalCPU, "vx"),
-          hx(solution_meta, hx_array, ownership::ExternalCPU, "hx"),
-          uy(solution_meta, uy_array, ownership::ExternalCPU, "uy"),
-          vy(solution_meta, vy_array, ownership::ExternalCPU, "vy"),
-          hy(solution_meta, hy_array, ownership::ExternalCPU, "hy") {}
-
-    void setup() {
-        for (uint_t i = 0; i < DimI; ++i)
-            for (uint_t j = 0; j < DimJ; ++j) {
-                uint_t id = i * strides[0] + j * strides[1];
-                u.get_storage_ptr()->get_cpu_ptr()[id] = 0;
-                v.get_storage_ptr()->get_cpu_ptr()[id] = 0;
-                h.get_storage_ptr()->get_cpu_ptr()[id] = droplet(i, j);
-                ux.get_storage_ptr()->get_cpu_ptr()[id] = 0;
-                vx.get_storage_ptr()->get_cpu_ptr()[id] = 0;
-                hx.get_storage_ptr()->get_cpu_ptr()[id] = 0;
-                uy.get_storage_ptr()->get_cpu_ptr()[id] = 0;
-                vy.get_storage_ptr()->get_cpu_ptr()[id] = 0;
-                hy.get_storage_ptr()->get_cpu_ptr()[id] = 0;
-            }
+    shallow_water_reference(uint_t DimI, uint_t DimJ)
+        : DimI{DimI}, DimJ{DimJ}, solution_meta(DimI, DimJ, 1u), solution(solution_meta), u(solution_meta, 0.0, "u"),
+          v(solution_meta, 0.0, "v"),
+          h(solution_meta, [](int i, int j, int k) { return droplet_(i, j, dx(), dy(), height); }, "h"),
+          ux(solution_meta, 0.0, "ux"), vx(solution_meta, 0.0, "vx"), hx(solution_meta, 0.0, "hx"),
+          uy(solution_meta, 0.0, "uy"), vy(solution_meta, 0.0, "vy"), hy(solution_meta, 0.0, "hy") {
         solution.template set< 0, 0 >(h);
         solution.template set< 1, 0 >(u);
         solution.template set< 2, 0 >(v);
     }
 
     void iterate() {
-        // get ptrs directly
-        auto up = u.get_storage_ptr()->get_cpu_ptr();
-        auto vp = v.get_storage_ptr()->get_cpu_ptr();
-        auto hp = h.get_storage_ptr()->get_cpu_ptr();
-        auto uxp = ux.get_storage_ptr()->get_cpu_ptr();
-        auto hxp = hx.get_storage_ptr()->get_cpu_ptr();
-        auto vxp = vx.get_storage_ptr()->get_cpu_ptr();
-        auto uyp = uy.get_storage_ptr()->get_cpu_ptr();
-        auto hyp = hy.get_storage_ptr()->get_cpu_ptr();
-        auto vyp = vy.get_storage_ptr()->get_cpu_ptr();
+        auto hxv = make_host_view(hx);
+        auto uxv = make_host_view(ux);
+        auto vxv = make_host_view(vx);
+        auto uv = make_host_view(u);
+        auto vv = make_host_view(v);
+        auto hv = make_host_view(h);
+        auto uyv = make_host_view(uy);
+        auto vyv = make_host_view(vy);
+        auto hyv = make_host_view(hy);
+
         // check if we are currently working on device or on host
         for (uint_t i = 0; i < DimI - 1; ++i)
             for (uint_t j = 0; j < DimJ - 2; ++j) {
-                uint_t id = i * strides[0] + j * strides[1];
-                hxp[id] = (hp[id + ip1 + jp1] + hp[id + jp1]) / 2. -
-                          (up[id + ip1 + jp1] - up[id + jp1]) * (dt() / (2 * dx()));
+                hxv(i, j, 0) = (hv(i + 1, j + 1, 0) + hv(i, j + 1, 0)) / 2. -
+                               (uv(i + 1, j + 1, 0) - uv(i, j + 1, 0)) * (dt() / (2 * dx()));
 
-                uxp[id] =
-                    (up[id + ip1 + jp1] + up[id + jp1]) / 2. -
-                    (((pow< 2 >(up[id + ip1 + jp1])) / hp[id + ip1 + jp1] + pow< 2 >(hp[id + ip1 + jp1]) * g() / 2.) -
-                        (pow< 2 >(up[id + jp1]) / hp[id + jp1] + pow< 2 >(hp[id + jp1]) * (g() / 2.))) *
+                uxv(i, j, 0) =
+                    (uv(i + 1, j + 1, 0) + uv(i, j + 1, 0)) / 2. -
+                    (((pow< 2 >(uv(i + 1, j + 1, 0))) / hv(i + 1, j + 1, 0) +
+                         pow< 2 >(hv(i + 1, j + 1, 0)) * g() / 2.) -
+                        (pow< 2 >(uv(i, j + 1, 0)) / hv(i, j + 1, 0) + pow< 2 >(hv(i, j + 1, 0)) * (g() / 2.))) *
                         (dt() / (2. * dx()));
 
-                vxp[id] = (vp[id + ip1 + jp1] + vp[id + jp1]) / 2. -
-                          (up[id + ip1 + jp1] * vp[id + ip1 + jp1] / hp[id + ip1 + jp1] -
-                              up[id + jp1] * vp[id + jp1] / hp[id + jp1]) *
-                              (dt() / (2 * dx()));
+                vxv(i, j, 0) = (vv(i + 1, j + 1, 0) + vv(i, j + 1, 0)) / 2. -
+                               (uv(i + 1, j + 1, 0) * vv(i + 1, j + 1, 0) / hv(i + 1, j + 1, 0) -
+                                   uv(i, j + 1, 0) * vv(i, j + 1, 0) / hv(i, j + 1, 0)) *
+                                   (dt() / (2 * dx()));
             }
 
         for (uint_t i = 0; i < DimI - 2; ++i)
             for (uint_t j = 0; j < DimJ - 1; ++j) {
-                uint_t id = i * strides[0] + j * strides[1];
-                hyp[id] = (hp[id + ip1 + jp1] + hp[id + ip1]) / 2. -
-                          (vp[id + ip1 + jp1] - vp[id + ip1]) * (dt() / (2 * dy()));
+                hyv(i, j, 0) = (hv(i + 1, j + 1, 0) + hv(i + 1, j, 0)) / 2. -
+                               (vv(i + 1, j + 1, 0) - vv(i + 1, j, 0)) * (dt() / (2 * dy()));
 
-                uyp[id] = (up[id + ip1 + jp1] + up[id + ip1]) / 2. -
-                          (vp[id + ip1 + jp1] * up[id + ip1 + jp1] / hp[id + ip1 + jp1] -
-                              vp[id + ip1] * up[id + ip1] / hp[id + ip1]) *
-                              (dt() / (2 * dy()));
+                uyv(i, j, 0) = (uv(i + 1, j + 1, 0) + uv(i + 1, j, 0)) / 2. -
+                               (vv(i + 1, j + 1, 0) * uv(i + 1, j + 1, 0) / hv(i + 1, j + 1, 0) -
+                                   vv(i + 1, j, 0) * uv(i + 1, j, 0) / hv(i + 1, j, 0)) *
+                                   (dt() / (2 * dy()));
 
-                vyp[id] =
-                    (vp[id + ip1 + jp1] + vp[id + ip1]) / 2. -
-                    ((pow< 2 >(vp[id + ip1 + jp1]) / hp[id + ip1 + jp1] + pow< 2 >(hp[id + ip1 + jp1]) * g() / 2.) -
-                        (pow< 2 >(vp[id + ip1]) / hp[id + ip1] + pow< 2 >(hp[id + ip1]) * (g() / 2.))) *
+                vyv(i, j, 0) =
+                    (vv(i + 1, j + 1, 0) + vv(i + 1, j, 0)) / 2. -
+                    ((pow< 2 >(vv(i + 1, j + 1, 0)) / hv(i + 1, j + 1, 0) + pow< 2 >(hv(i + 1, j + 1, 0)) * g() / 2.) -
+                        (pow< 2 >(vv(i + 1, j, 0)) / hv(i + 1, j, 0) + pow< 2 >(hv(i + 1, j, 0)) * (g() / 2.))) *
                         (dt() / (2. * dy()));
             }
 
         for (uint_t i = 1; i < DimI - 2; ++i)
             for (uint_t j = 1; j < DimJ - 2; ++j) {
-                uint_t id = i * strides[0] + j * strides[1];
-                hp[id] = hp[id] - (uxp[id + jm1] - uxp[id + im1 + jm1]) * (dt() / dx()) -
-                         (vyp[id + im1] - vyp[id + im1 + jm1]) * (dt() / dy());
+                hv(i, j, 0) = hv(i, j, 0) - (uxv(i, j - 1, 0) - uxv(i - 1, j - 1, 0)) * (dt() / dx()) -
+                              (vyv(i - 1, j, 0) - vyv(i - 1, j - 1, 0)) * (dt() / dy());
 
-                up[id] = up[id] -
-                         (pow< 2 >(uxp[id + jm1]) / hxp[id + jm1] + hxp[id + jm1] * hxp[id + jm1] * ((g() / 2.)) -
-                             (pow< 2 >(uxp[id + im1 + jm1]) / hxp[id + im1 + jm1] +
-                                 pow< 2 >(hxp[id + im1 + jm1]) * ((g() / 2.)))) *
-                             ((dt() / dx())) -
-                         (vyp[id + im1] * uyp[id + im1] / hyp[id + im1] -
-                             vyp[id + im1 + jm1] * uyp[id + im1 + jm1] / hyp[id + im1 + jm1]) *
-                             (dt() / dy());
+                uv(i, j, 0) = uv(i, j, 0) -
+                              (pow< 2 >(uxv(i, j - 1, 0)) / hxv(i, j - 1, 0) +
+                                  hxv(i, j - 1, 0) * hxv(i, j - 1, 0) * ((g() / 2.)) -
+                                  (pow< 2 >(uxv(i - 1, j - 1, 0)) / hxv(i - 1, j - 1, 0) +
+                                      pow< 2 >(hxv(i - 1, j - 1, 0)) * ((g() / 2.)))) *
+                                  ((dt() / dx())) -
+                              (vyv(i - 1, j, 0) * uyv(i - 1, j, 0) / hyv(i - 1, j, 0) -
+                                  vyv(i - 1, j - 1, 0) * uyv(i - 1, j - 1, 0) / hyv(i - 1, j - 1, 0)) *
+                                  (dt() / dy());
 
-                vp[id] = vp[id] -
-                         (uxp[id + jm1] * vxp[id + jm1] / hxp[id + jm1] -
-                             (uxp[id + im1 + jm1] * vxp[id + im1 + jm1]) / hxp[id + im1 + jm1]) *
-                             ((dt() / dx())) -
-                         (pow< 2 >(vyp[id + im1]) / hyp[id + im1] + pow< 2 >(hyp[id + im1]) * ((g() / 2.)) -
-                             (pow< 2 >(vyp[id + im1 + jm1]) / hyp[id + im1 + jm1] +
-                                 pow< 2 >(hyp[id + im1 + jm1]) * ((g() / 2.)))) *
-                             ((dt() / dy()));
+                vv(i, j, 0) =
+                    vv(i, j, 0) -
+                    (uxv(i, j - 1, 0) * vxv(i, j - 1, 0) / hxv(i, j - 1, 0) -
+                        (uxv(i - 1, j - 1, 0) * vxv(i - 1, j - 1, 0)) / hxv(i - 1, j - 1, 0)) *
+                        ((dt() / dx())) -
+                    (pow< 2 >(vyv(i - 1, j, 0)) / hyv(i - 1, j, 0) + pow< 2 >(hyv(i - 1, j, 0)) * ((g() / 2.)) -
+                        (pow< 2 >(vyv(i - 1, j - 1, 0)) / hyv(i - 1, j - 1, 0) +
+                            pow< 2 >(hyv(i - 1, j - 1, 0)) * ((g() / 2.)))) *
+                        ((dt() / dy()));
             }
     }
 };
-
-template < typename StorageType, uint_t DimI, uint_t DimJ >
-constexpr uint_t shallow_water_reference< StorageType, DimI, DimJ >::strides[2];
-template < typename StorageType, uint_t DimI, uint_t DimJ >
-constexpr uint_t shallow_water_reference< StorageType, DimI, DimJ >::size;
-template < typename StorageType, uint_t DimI, uint_t DimJ >
-constexpr uint_t shallow_water_reference< StorageType, DimI, DimJ >::ip1;
-template < typename StorageType, uint_t DimI, uint_t DimJ >
-constexpr uint_t shallow_water_reference< StorageType, DimI, DimJ >::jp1;
-template < typename StorageType, uint_t DimI, uint_t DimJ >
-constexpr uint_t shallow_water_reference< StorageType, DimI, DimJ >::im1;
-template < typename StorageType, uint_t DimI, uint_t DimJ >
-constexpr uint_t shallow_water_reference< StorageType, DimI, DimJ >::jm1;

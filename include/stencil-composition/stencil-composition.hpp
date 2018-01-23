@@ -108,10 +108,9 @@
 #include "make_stage.hpp"
 #include "make_stencils.hpp"
 #include "../storage/storage-facility.hpp"
-#include "expandable_parameters/make_computation_expandable.hpp"
 #include "grid.hpp"
 #include "grid_traits.hpp"
-#include "stencil.hpp"
+#include "computation.hpp"
 #include "storage_info_extender.hpp"
 
 #ifndef STRUCTURED_GRIDS

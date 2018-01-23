@@ -102,6 +102,7 @@ TEST(StorageInfo, Simple) {
     GRIDTOOLS_STATIC_ASSERT(si.padded_total_length() == 27, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.total_length() == 27, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.length() == 27, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.total_length< 0 >() == 3, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.stride< 0 >() == 3, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.stride< 1 >() == 9, "storage info is not constexpr anymore");
     GRIDTOOLS_STATIC_ASSERT(si.stride< 2 >() == 1, "storage info is not constexpr anymore");
@@ -115,6 +116,11 @@ TEST(StorageInfo, Simple) {
     EXPECT_EQ((x.dim< 1 >()), 7);
     EXPECT_EQ((x.dim< 2 >()), 8);
     EXPECT_EQ((x.dim< 3 >()), 2);
+
+    EXPECT_EQ((x.unaligned_dim< 0 >()), 5);
+    EXPECT_EQ((x.unaligned_dim< 1 >()), 7);
+    EXPECT_EQ((x.unaligned_dim< 2 >()), 8);
+    EXPECT_EQ((x.unaligned_dim< 3 >()), 2);
 
     EXPECT_EQ((x.stride< 0 >()), 56);
     EXPECT_EQ((x.stride< 1 >()), 8);
@@ -186,6 +192,10 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((x.dim< 1 >()), 7);
     EXPECT_EQ((x.dim< 2 >()), 7);
 
+    EXPECT_EQ((x.unaligned_dim< 0 >()), 7);
+    EXPECT_EQ((x.unaligned_dim< 1 >()), 7);
+    EXPECT_EQ((x.unaligned_dim< 2 >()), 7);
+
     EXPECT_EQ((x.stride< 0 >()), 1);
     EXPECT_EQ((x.stride< 1 >()), 7);
     EXPECT_EQ((x.stride< 2 >()), 49);
@@ -196,6 +206,10 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((y.dim< 1 >()), 7);
     EXPECT_EQ((y.dim< 2 >()), 7);
 
+    EXPECT_EQ((y.unaligned_dim< 0 >()), 7);
+    EXPECT_EQ((y.unaligned_dim< 1 >()), 7);
+    EXPECT_EQ((y.unaligned_dim< 2 >()), 7);
+
     EXPECT_EQ((y.stride< 0 >()), 49);
     EXPECT_EQ((y.stride< 1 >()), 7);
     EXPECT_EQ((y.stride< 2 >()), 1);
@@ -205,6 +219,10 @@ TEST(StorageInfo, Halo) {
     EXPECT_EQ((z.dim< 0 >()), 7);
     EXPECT_EQ((z.dim< 1 >()), 11);
     EXPECT_EQ((z.dim< 2 >()), 3);
+
+    EXPECT_EQ((z.unaligned_dim< 0 >()), 7);
+    EXPECT_EQ((z.unaligned_dim< 1 >()), 11);
+    EXPECT_EQ((z.unaligned_dim< 2 >()), 3);
 
     EXPECT_EQ((z.stride< 0 >()), 1);
     EXPECT_EQ((z.stride< 1 >()), 7);
@@ -220,6 +238,11 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.dim< 2 >()), 32);
         EXPECT_EQ((x.dim< 3 >()), 2);
 
+        EXPECT_EQ((x.unaligned_dim< 0 >()), 5);
+        EXPECT_EQ((x.unaligned_dim< 1 >()), 7);
+        EXPECT_EQ((x.unaligned_dim< 2 >()), 32);
+        EXPECT_EQ((x.unaligned_dim< 3 >()), 2);
+
         EXPECT_EQ((x.stride< 0 >()), 32 * 7);
         EXPECT_EQ((x.stride< 1 >()), 32);
         EXPECT_EQ((x.stride< 2 >()), 1);
@@ -232,6 +255,11 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.dim< 1 >()), 11);
         EXPECT_EQ((x.dim< 2 >()), 32);
         EXPECT_EQ((x.dim< 3 >()), 10);
+
+        EXPECT_EQ((x.unaligned_dim< 0 >()), 7);
+        EXPECT_EQ((x.unaligned_dim< 1 >()), 11);
+        EXPECT_EQ((x.unaligned_dim< 2 >()), 32);
+        EXPECT_EQ((x.unaligned_dim< 3 >()), 10);
 
         EXPECT_EQ((x.stride< 0 >()), 32 * 11);
         EXPECT_EQ((x.stride< 1 >()), 32);
@@ -251,6 +279,11 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.dim< 2 >()), 14);
         EXPECT_EQ((x.dim< 3 >()), 10);
 
+        EXPECT_EQ((x.unaligned_dim< 0 >()), 32);
+        EXPECT_EQ((x.unaligned_dim< 1 >()), 11);
+        EXPECT_EQ((x.unaligned_dim< 2 >()), 14);
+        EXPECT_EQ((x.unaligned_dim< 3 >()), 10);
+
         EXPECT_EQ((x.stride< 0 >()), 1);
         EXPECT_EQ((x.stride< 1 >()), 32);
         EXPECT_EQ((x.stride< 2 >()), 32 * 11);
@@ -268,6 +301,11 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.dim< 1 >()), 1);
         EXPECT_EQ((x.dim< 2 >()), 1);
         EXPECT_EQ((x.dim< 3 >()), 10);
+
+        EXPECT_EQ((x.unaligned_dim< 0 >()), 7);
+        EXPECT_EQ((x.unaligned_dim< 1 >()), 1);
+        EXPECT_EQ((x.unaligned_dim< 2 >()), 1);
+        EXPECT_EQ((x.unaligned_dim< 3 >()), 10);
 
         EXPECT_EQ((x.stride< 0 >()), 1);
         EXPECT_EQ((x.stride< 1 >()), 0);
@@ -287,14 +325,29 @@ TEST(StorageInfo, Alignment) {
 
 TEST(StorageInfo, BeginEnd) {
     // no halo, no alignment
-    storage_info_interface< 0, layout_map< 1, 2, 0 > > x(7, 7, 7);
-    EXPECT_EQ(x.length(), 7 * 7 * 7);
-    EXPECT_EQ(x.total_length(), 7 * 7 * 7);
-    EXPECT_EQ(x.padded_total_length(), 7 * 7 * 7);
-    EXPECT_EQ(x.begin(), 0);
-    EXPECT_EQ(x.end(), 7 * 7 * 7 - 1);
-    EXPECT_EQ(x.total_begin(), 0);
-    EXPECT_EQ(x.total_end(), 7 * 7 * 7 - 1);
+    storage_info_interface< 0, layout_map< 1, 2, 0 > > x(7, 8, 9);
+    EXPECT_EQ(x.length(), 7 * 8 * 9);
+    EXPECT_EQ(x.total_length(), 7 * 8 * 9);
+    EXPECT_EQ(x.padded_total_length(), 7 * 8 * 9);
+    EXPECT_EQ((x.begin< 0 >()), 0);
+    EXPECT_EQ((x.end< 0 >()), 6);
+    EXPECT_EQ((x.total_begin< 0 >()), 0);
+    EXPECT_EQ((x.total_end< 0 >()), 6);
+    EXPECT_EQ((x.begin< 1 >()), 0);
+    EXPECT_EQ((x.end< 1 >()), 7);
+    EXPECT_EQ((x.total_begin< 1 >()), 0);
+    EXPECT_EQ((x.total_end< 1 >()), 7);
+    EXPECT_EQ((x.begin< 2 >()), 0);
+    EXPECT_EQ((x.end< 2 >()), 8);
+    EXPECT_EQ((x.total_begin< 2 >()), 0);
+    EXPECT_EQ((x.total_end< 2 >()), 8);
+
+    EXPECT_EQ((x.length< 0 >()), 7);
+    EXPECT_EQ((x.total_length< 0 >()), 7);
+    EXPECT_EQ((x.length< 1 >()), 8);
+    EXPECT_EQ((x.total_length< 1 >()), 8);
+    EXPECT_EQ((x.length< 2 >()), 9);
+    EXPECT_EQ((x.total_length< 2 >()), 9);
 
     // halo, no alignment
     storage_info_interface< 0, layout_map< 1, 2, 0 >, halo< 1, 2, 3 > > y(9, 11, 13);
@@ -306,6 +359,28 @@ TEST(StorageInfo, BeginEnd) {
     EXPECT_EQ(y.total_begin(), y.index(0, 0, 0));
     EXPECT_EQ(y.total_end(), y.index(8, 10, 12));
 
+    EXPECT_EQ((y.begin< 0 >()), 1);
+    EXPECT_EQ((y.end< 0 >()), 7);
+    EXPECT_EQ((y.total_begin< 0 >()), 0);
+    EXPECT_EQ((y.total_end< 0 >()), 8);
+
+    EXPECT_EQ((y.begin< 1 >()), 2);
+    EXPECT_EQ((y.end< 1 >()), 8);
+    EXPECT_EQ((y.total_begin< 1 >()), 0);
+    EXPECT_EQ((y.total_end< 1 >()), 10);
+
+    EXPECT_EQ((y.begin< 2 >()), 3);
+    EXPECT_EQ((y.end< 2 >()), 9);
+    EXPECT_EQ((y.total_begin< 2 >()), 0);
+    EXPECT_EQ((y.total_end< 2 >()), 12);
+
+    EXPECT_EQ((y.length< 0 >()), 7);
+    EXPECT_EQ((y.total_length< 0 >()), 9);
+    EXPECT_EQ((y.length< 1 >()), 7);
+    EXPECT_EQ((y.total_length< 1 >()), 11);
+    EXPECT_EQ((y.length< 2 >()), 7);
+    EXPECT_EQ((y.total_length< 2 >()), 13);
+
     // halo, alignment
     storage_info_interface< 0, layout_map< 1, 2, 0 >, halo< 1, 2, 3 >, alignment< 16 > > z(9, 11, 13);
     EXPECT_EQ(z.length(), 7 * 7 * 7);
@@ -315,4 +390,25 @@ TEST(StorageInfo, BeginEnd) {
     EXPECT_EQ(z.end(), z.index(7, 8, 9));
     EXPECT_EQ(z.total_begin(), z.index(0, 0, 0));
     EXPECT_EQ(z.total_end(), z.index(8, 10, 12));
+    EXPECT_EQ((z.begin< 0 >()), 1);
+    EXPECT_EQ((z.end< 0 >()), 7);
+    EXPECT_EQ((z.total_begin< 0 >()), 0);
+    EXPECT_EQ((z.total_end< 0 >()), 8);
+
+    EXPECT_EQ((y.begin< 1 >()), 2);
+    EXPECT_EQ((y.end< 1 >()), 8);
+    EXPECT_EQ((y.total_begin< 1 >()), 0);
+    EXPECT_EQ((y.total_end< 1 >()), 10);
+
+    EXPECT_EQ((y.begin< 2 >()), 3);
+    EXPECT_EQ((y.end< 2 >()), 9);
+    EXPECT_EQ((y.total_begin< 2 >()), 0);
+    EXPECT_EQ((y.total_end< 2 >()), 12);
+
+    EXPECT_EQ((y.length< 0 >()), 7);
+    EXPECT_EQ((y.total_length< 0 >()), 9);
+    EXPECT_EQ((y.length< 1 >()), 7);
+    EXPECT_EQ((y.total_length< 1 >()), 11);
+    EXPECT_EQ((y.length< 2 >()), 7);
+    EXPECT_EQ((y.total_length< 2 >()), 13);
 }

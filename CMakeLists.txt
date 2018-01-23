@@ -32,24 +32,25 @@ set_target_properties(gcl PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPE
 
 set(exe_LIBS ${exe_LIBS} gcl)
 
+# ===============
+# compile c_bindings_generator:
+# ===============
+add_library(c_bindings_generator src/c_bindings/generator.cpp src/c_bindings/handle.cpp)
+set_target_properties(c_bindings_generator PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} ${GPU_SPECIFIC_FLAGS}")
 
-# ===============
-# add all cpp files in src:
-# ===============
-file(GLOB_RECURSE sources "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
-list(REMOVE_ITEM sources "${CMAKE_CURRENT_SOURCE_DIR}/src/GCL.cpp")
-foreach( src_file ${sources} )
-    get_filename_component (exec ${src_file} NAME_WE )
-    add_executable (${exec} ${src_file})
-    target_link_libraries(${exec} ${exe_LIBS})
-endforeach(src_file)
+set(exe_LIBS ${exe_LIBS} c_bindings_generator)
+
+add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
+target_link_libraries(c_bindings_generator_main c_bindings_generator)
 
 # ===============
 # examples and tests
 # ===============
 include (fix_test_case_name)
-add_subdirectory(examples)
-add_subdirectory(unit_tests)
+if(NOT DISABLE_TESTING)
+  add_subdirectory(examples)
+  add_subdirectory(unit_tests)
+endif()
 
 # Add all targets to the build-tree export set
 export(TARGETS gcl

@@ -44,32 +44,16 @@
 #define FTESTNAME(x) CALL_GPU
 #endif
 
-#ifdef FUNCTIONS_OFFSETS
-#define FTESTNAME(x) OFFSETS_GPU
-#endif
-
 #ifdef FUNCTIONS_PROCEDURES
 #define FTESTNAME(x) PROCEDURES_GPU
-#endif
-
-#ifdef FUNCTIONS_PROCEDURES_OFFSETS
-#define FTESTNAME(x) PROCEDURESOFFSETS_GPU
 #endif
 #else
 #ifdef FUNCTIONS_CALL
 #define FTESTNAME(x) CALL
 #endif
 
-#ifdef FUNCTIONS_OFFSETS
-#define FTESTNAME(x) OFFSETS
-#endif
-
 #ifdef FUNCTIONS_PROCEDURES
 #define FTESTNAME(x) PROCEDURES
-#endif
-
-#ifdef FUNCTIONS_PROCEDURES_OFFSETS
-#define FTESTNAME(x) PROCEDURESOFFSETS
 #endif
 #endif
 
@@ -93,9 +77,8 @@ namespace multi_types_test {
 #endif
 #endif
 
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > region;
-
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
+    using axis_t = axis< 1 >;
+    using region = axis< 1 >::full_interval;
 
     struct type4;
 
@@ -205,17 +188,9 @@ namespace multi_types_test {
 #ifdef FUNCTIONS_PROCEDURES
             type1 result;
             call_proc< function0, region >::with(eval, in(), result);
-#else
-#ifdef FUNCTIONS_PROCEDURES_OFFSETS
-            type1 result;
-            call_proc< function0, region >::with_offsets(eval, in(), result);
-#else
-#ifdef FUNCTIONS_OFFSETS
-            auto result = call< function0, region >::with_offsets(eval, in());
+            call_proc< function0, region >::with(eval, in(), result);
 #else
             auto result = call< function0, region >::with(eval, in());
-#endif
-#endif
 #endif
             eval(out()) = result;
         }
@@ -291,12 +266,10 @@ namespace multi_types_test {
 
         gridtools::aggregator_type< accessor_list > domain(field1, field2, field3);
 
-        uint_t di[5] = {halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
-        uint_t dj[5] = {halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
+        halo_descriptor di{halo_size, halo_size, halo_size, d1 - halo_size - 1, d1};
+        halo_descriptor dj{halo_size, halo_size, halo_size, d2 - halo_size - 1, d2};
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(di, dj, axis_t(d3));
 
         auto test_computation = gridtools::make_computation< BACKEND >(
             domain,

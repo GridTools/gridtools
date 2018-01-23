@@ -57,22 +57,30 @@ namespace gridtools {
     struct cuda_storage_info : storage_info_interface< Id, Layout, Halo, Alignment > {
       private:
         mutable cuda_storage_info< Id, Layout, Halo, Alignment > *m_gpu_ptr;
+        GRIDTOOLS_STATIC_ASSERT((is_halo< Halo >::value), "Given type is not a halo type.");
+        GRIDTOOLS_STATIC_ASSERT((is_alignment< Alignment >::value), "Given type is not an alignment type.");
 
       public:
+        static constexpr uint_t ndims = storage_info_interface< Id, Layout, Halo, Alignment >::ndims;
         /*
          * @brief cuda_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        template < typename... Dims >
+        template < typename... Dims, typename = gridtools::all_integral< Dims... > >
         explicit constexpr cuda_storage_info(Dims... dims_)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...), m_gpu_ptr(nullptr) {
-            GRIDTOOLS_STATIC_ASSERT(is_halo< Halo >::value, GT_INTERNAL_ERROR_MSG("Given type is not a halo type."));
-            GRIDTOOLS_STATIC_ASSERT(
-                is_alignment< Alignment >::value, GT_INTERNAL_ERROR_MSG("Given type is not an alignment type."));
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                                        typename is_all_integral< Dims... >::type >::value),
+                                        typename is_all_integral_or_enum< Dims... >::type >::value),
                 GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
         }
+
+        /*
+         * @brief cuda_storage_info constructor.
+         * @param dims the dimensionality (e.g., 128x128x80)
+         * @param strides the strides used to describe a layout the data in memory
+         */
+        constexpr cuda_storage_info(std::array< uint_t, ndims > dims, std::array< uint_t, ndims > strides)
+            : storage_info_interface< Id, Layout, Halo, Alignment >(dims, strides), m_gpu_ptr(nullptr) {}
 
         /*
          * @brief cuda_storage_info destructor.
