@@ -35,14 +35,16 @@
 */
 #pragma once
 
-#ifdef STRUCTURED_GRIDS
-#include "stencil-composition/structured_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/structured_grids/accessor.hpp"
-#include "stencil-composition/structured_grids/accessor_mixed.hpp"
-#else
-#include "stencil-composition/icosahedral_grids/accessor_metafunctions.hpp"
-#include "stencil-composition/icosahedral_grids/accessor.hpp"
-#endif
+namespace gridtools {
+    template < typename GlobalAccessor, typename... Args >
+    struct global_accessor_with_arguments;
 
-#include "stencil-composition/global_accessor_metafunctions.hpp"
-#include "stencil-composition/global_accessor.hpp"
+    template < uint_t I, enumtype::intend Intend >
+    struct global_accessor;
+
+    template < typename T >
+    struct is_global_accessor;
+
+    template < typename T >
+    struct is_global_accessor_with_arguments;
+} // namespace gridtools

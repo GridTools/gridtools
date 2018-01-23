@@ -36,6 +36,7 @@
 
 #pragma once
 #include "accessor_fwd.hpp"
+#include "accessor.hpp"
 
 namespace gridtools {
 #ifdef CUDA8
@@ -131,6 +132,24 @@ the dimension is chosen
       private:
         // store the list of offsets which are already known on an array
         int_t m_knowns[sizeof...(Known)];
+    };
+
+    template < typename ArgType >
+    struct is_accessor_mixed;
+
+    template < typename... Types >
+    struct is_accessor_mixed< accessor_mixed< Types... > > : boost::mpl::true_ {};
+
+    template < typename... Types >
+    struct is_accessor< accessor_mixed< Types... > > : boost::mpl::true_ {};
+
+    template < typename... Types >
+    struct is_grid_accessor< accessor_mixed< Types... > > : boost::mpl::true_ {};
+
+    template < typename Accessor, typename ArgsMap, typename... Pairs >
+    struct remap_accessor_type< accessor_mixed< Accessor, Pairs... >, ArgsMap > {
+        typedef typename remap_accessor_type< Accessor, ArgsMap >::index_t index_t;
+        typedef accessor_mixed< typename remap_accessor_type< Accessor, ArgsMap >::type, Pairs... > type;
     };
 #endif // CUDA8
 } // namespace gridtools

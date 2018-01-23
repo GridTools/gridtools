@@ -39,6 +39,8 @@
 #include <common/defs.hpp>
 #include <stencil-composition/structured_grids/accessor.hpp>
 #include <stencil-composition/structured_grids/accessor_metafunctions.hpp>
+#include <stencil-composition/structured_grids/vector_accessor.hpp>
+#include <stencil-composition/global_accessor.hpp>
 // #include "stencil-composition/iterate_domain_remapper.hpp"
 
 TEST(accessor, is_accessor) {
@@ -48,6 +50,40 @@ TEST(accessor, is_accessor) {
     GRIDTOOLS_STATIC_ASSERT((is_accessor< int >::value) == false, "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor< double & >::value) == false, "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor< double const & >::value) == false, "");
+}
+
+TEST(accessor, is_accessor_readonly) {
+    using namespace gridtools;
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< in_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< vector_accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< global_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< global_accessor< 0, enumtype::inout > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< inout_accessor< 0 > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< accessor< 0, enumtype::inout > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< vector_accessor< 0, enumtype::inout > >::value), "");
+    // TODO test accessor_mixed
+}
+
+TEST(accessor, is_grid_accessor) {
+    using namespace gridtools;
+    GRIDTOOLS_STATIC_ASSERT((is_grid_accessor< accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((is_grid_accessor< vector_accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_grid_accessor< global_accessor< 0 > >::value), "");
+}
+
+TEST(accessor, is_regular_accessor) {
+    using namespace gridtools;
+    GRIDTOOLS_STATIC_ASSERT((is_regular_accessor< accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor< vector_accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_regular_accessor< global_accessor< 0 > >::value), "");
+}
+
+TEST(accessor, is_vector_accessor) {
+    using namespace gridtools;
+    GRIDTOOLS_STATIC_ASSERT((is_vector_accessor< vector_accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_vector_accessor< accessor< 0, enumtype::in > >::value), "");
+    GRIDTOOLS_STATIC_ASSERT((!is_vector_accessor< global_accessor< 0 > >::value), "");
 }
 
 TEST(accessor, copy_const) {
