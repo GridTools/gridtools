@@ -43,22 +43,16 @@
 /**
    @file
 
-   @brief File containing the definition of the placeholders used to
-   address the storage from whithin the functors.  A placeholder is an
-   implementation of the proxy design pattern for the storage class,
-   i.e. it is a light object used in place of the storage when
-   defining the high level computations, and it will be bound later on
-   with a specific instantiation of a storage class.
+   @brief File containing the definition of the regular accessor used 
+   to address the storage (at offsets) from whithin the functors.  
+   This accessor is a proxy for a storage class, i.e. it is a light 
+   object used in place of the storage when defining the high level 
+   computations, and it will be bound later on with a specific 
+   instantiation of a storage class.
 
-   Two different types of placeholders are considered:
-
-   - arg represents the storage in the body of the main function, and
-     it gets lazily assigned to a real storage.
-
-   - accessor represents the storage inside the functor struct
-     containing a Do method. It can be instantiated directly in the Do
-     method, or it might be a constant expression instantiated outside
-     the functor scope and with static duration.
+   An accessor can be instantiated directly in the Do
+   method, or it might be a constant expression instantiated outside
+   the functor scope and with static duration.
 */
 
 namespace gridtools {
