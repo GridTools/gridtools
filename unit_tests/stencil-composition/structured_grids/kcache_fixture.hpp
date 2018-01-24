@@ -36,6 +36,7 @@
 #pragma once
 
 #include "stencil-composition/stencil-composition.hpp"
+#include "backend_select.hpp"
 
 using axis_t = gridtools::axis< 1 >;
 using axis = axis_t::axis_interval_t;
@@ -62,22 +63,10 @@ using kmaximumm1_b = axis_b_t::get_interval< 1 >::modify< 1, -1 >; // TODO name 
 using kbody_low_b = axis_b_t::get_interval< 0 >;
 using kbody_lowp1_b = kbody_low_b::modify< 1, 0 >;
 
-#ifdef __CUDACC__
-#define BACKEND_ARCH gridtools::enumtype::Cuda
-#define BACKEND backend< BACKEND_ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#define BACKEND_ARCH gridtools::enumtype::Host
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< BACKEND_ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >
-#else
-#define BACKEND backend< BACKEND_ARCH, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >
-#endif
-#endif
-
 class kcachef : public ::testing::Test {
   protected:
-    typedef gridtools::storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< BACKEND_ARCH >::data_store_t< gridtools::float_type, storage_info_t > storage_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< gridtools::float_type, storage_info_t > storage_t;
 
     const gridtools::uint_t m_d1, m_d2, m_d3;
 

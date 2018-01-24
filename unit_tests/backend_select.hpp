@@ -33,30 +33,24 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/defs.hpp"
-#include "common/array.hpp"
-#include "common/array_addons.hpp"
+#pragma once
 
-using namespace gridtools;
+#include <stencil-composition/stencil-composition.hpp>
 
-TEST(array, test_append) {
-    array< uint_t, 4 > a{1, 2, 3, 4};
-    auto mod_a = a.append_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 5 >{1, 2, 3, 4, 5}));
-    ASSERT_TRUE((mod_a[4] == 5));
-}
-
-TEST(array, test_prepend) {
-    constexpr array< uint_t, 4 > a{1, 2, 3, 4};
-    auto mod_a = a.prepend_dim(5);
-    ASSERT_TRUE((mod_a == array< uint_t, 5 >{5, 1, 2, 3, 4}));
-    ASSERT_TRUE((mod_a[0] == 5));
-}
-
-TEST(array, test_copyctr) {
-    constexpr array< uint_t, 4 > a{4, 2, 3, 1};
-    constexpr auto mod_a(a);
-    ASSERT_TRUE((mod_a == array< uint_t, 4 >{4, 2, 3, 1}));
-    ASSERT_TRUE((mod_a[0] == 4));
-}
+#ifdef BACKEND_HOST
+#ifdef BACKEND_STRATEGY_NAIVE
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >;
+#else
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#endif
+#elif defined(BACKEND_MIC)
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Mic, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#elif defined(BACKEND_CUDA)
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#else
+#error "no backend selected"
+#endif

@@ -280,7 +280,7 @@ namespace vertical_advection_dycore {
                     p_utens_stage(), p_u_pos(), p_dtr_stage(), p_ccol(), p_dcol(), p_data_col()));
 
             auto vertical_advection =
-                gridtools::make_computation< vertical_advection::va_backend >(domain, grid, up_stencil, down_stencil);
+                gridtools::make_computation< backend_t >(domain, grid, up_stencil, down_stencil);
 
             vertical_advection->ready();
 
@@ -313,7 +313,7 @@ namespace vertical_advection_dycore {
 
         bool test_with_extents(uint_t t_steps, bool verify) {
 
-            auto vertical_advection = gridtools::make_computation< vertical_advection::va_backend >(
+            auto vertical_advection = gridtools::make_computation< backend_t >(
                 domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor

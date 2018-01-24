@@ -33,53 +33,19 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-
-#include <common/permute_to.hpp>
-
-#include <utility>
-
-#include <gtest/gtest.h>
-
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/include/comparison.hpp>
-#include <boost/fusion/include/make_vector.hpp>
+#pragma once
+#include "array.hpp"
 
 namespace gridtools {
-
-    using boost::fusion::vector;
-    using boost::fusion::make_vector;
-
-    TEST(permute_to, lref) {
-        vector<> src;
-        EXPECT_TRUE(permute_to< vector<> >(src) == make_vector());
+    /**
+     * @brief dot product for gridtools::array (enabled for all arithmetic types)
+     */
+    template < typename T, size_t D, typename std::enable_if< std::is_arithmetic< T >::value, T >::type = 0 >
+    T operator*(const array< T, D > a, const array< T, D > &b) {
+        T result = 0;
+        for (int i = 0; i < D; ++i) {
+            result += a[i] * b[i];
+        }
+        return result;
     }
-
-    TEST(permute_to, cref) {
-        vector<> const src;
-        EXPECT_TRUE(permute_to< vector<> >(src) == make_vector());
-    }
-
-    template < typename Res, typename... Args >
-    Res testee(Args &&... args) {
-        return permute_to< Res >(make_vector(std::forward< Args >(args)...));
-    }
-
-    TEST(permute_to, empty) { EXPECT_TRUE(testee< vector<> >() == make_vector()); }
-
-    TEST(permute_to, one) { EXPECT_TRUE(testee< vector< int > >(42) == make_vector(42)); }
-
-    TEST(permute_to, functional) {
-        using res_t = vector< int, char, double >;
-        res_t expected{42, 'a', .1};
-        EXPECT_TRUE(testee< res_t >(42, 'a', .1) == expected);
-        EXPECT_TRUE(testee< res_t >(42, .1, 'a') == expected);
-        EXPECT_TRUE(testee< res_t >('a', 42, .1) == expected);
-        EXPECT_TRUE(testee< res_t >('a', .1, 42) == expected);
-        EXPECT_TRUE(testee< res_t >(.1, 42, 'a') == expected);
-        EXPECT_TRUE(testee< res_t >(.1, 'a', 42) == expected);
-    }
-
-    TEST(permute_to, unused_extra_args) { EXPECT_TRUE((testee< vector< int > >('a', 42, .1, 12) == make_vector(42))); }
-
-    TEST(permute_to, duplicates_in_res) { EXPECT_TRUE((testee< vector< int, int > >(42) == make_vector(42, 42))); }
-}
+} // namespace gridtools

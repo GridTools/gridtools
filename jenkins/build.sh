@@ -107,11 +107,14 @@ mkdir -p build;
 cd build;
 
 if [ "x$TARGET" == "xgpu" ]; then
-    USE_GPU=ON
+    ENABLE_HOST=OFF
+    ENABLE_CUDA=ON
 else
-    USE_GPU=OFF
+    ENABLE_HOST=ON
+    ENABLE_CUDA=OFF
 fi
-echo "USE_GPU=$USE_GPU"
+echo "ENABLE_CUDA=$ENABLE_CUDA"
+echo "ENABLE_HOST=$ENABLE_HOST"
 
 if [[ "$FLOAT_TYPE" == "float" ]]; then
     SINGLE_PRECISION=ON
@@ -167,7 +170,8 @@ cmake \
 -DCUDA_ARCH:STRING="$CUDA_ARCH" \
 -DCMAKE_BUILD_TYPE:STRING="$BUILD_TYPE" \
 -DBUILD_SHARED_LIBS:BOOL=ON \
--DUSE_GPU:BOOL=$USE_GPU \
+-DENABLE_HOST:BOOL=$ENABLE_HOST \
+-DENABLE_CUDA:BOOL=$ENABLE_CUDA \
 -DGNU_COVERAGE:BOOL=OFF \
 -DGCL_ONLY:BOOL=OFF \
 -DCMAKE_CXX_COMPILER="${HOST_COMPILER}" \
@@ -263,7 +267,7 @@ fi
 
 
 if [[ "$RUN_MPI_TESTS" == "ON" ]]; then
-    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $USE_GPU
+    bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str} -m $RUN_MPI_TESTS -n $MPI_NODES -t $MPI_TASKS -g $ENABLE_CUDA
 else
     bash ${ABSOLUTEPATH_SCRIPT}/test.sh ${queue_str}
 fi
