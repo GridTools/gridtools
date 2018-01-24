@@ -108,8 +108,6 @@ TEST(StorageHostTest, Simple) {
     EXPECT_EQ(s2.get_cpu_ptr()[0], 30);
     EXPECT_EQ(s1.get_cpu_ptr()[1], 400);
     EXPECT_EQ(s1.get_cpu_ptr()[0], 300);
-    EXPECT_EQ(s2.get_gpu_ptr(), tmp[1]);
-    EXPECT_EQ(s2.get_cpu_ptr(), tmp[0]);
 }
 
 TEST(StorageHostTest, InitializedStorage) {
