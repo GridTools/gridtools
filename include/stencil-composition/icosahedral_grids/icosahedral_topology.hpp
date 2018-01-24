@@ -780,7 +780,7 @@ namespace gridtools {
             typename... IntTypes
 #if defined(CUDA8) || !defined(__CUDACC__)
             ,
-            typename Dummy = all_integral< IntTypes... >
+            typename Dummy = is_all_integral< IntTypes... >
 #endif
             >
         data_store_t< LocationType, ValueType, Halo, Selector > make_storage(

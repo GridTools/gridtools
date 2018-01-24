@@ -34,49 +34,20 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "is_all.hpp"
+
+#include <type_traits>
+#include "meta.hpp"
 
 namespace gridtools {
-    /**
-    * @brief SFINAE for the case in which all the components of a parameter pack are of integral type
-    */
-    template < typename... IntTypes >
-    using all_integral =
-#if defined(CUDA8) && !defined(_CRAYC)
-        all_< boost::is_integral, IntTypes... >;
-#else
-        typename boost::enable_if_c< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...),
-            bool >::type;
-#endif
-
-    /**
-    * @brief SFINAE for the case in which all the components of a parameter pack are of static integral type
-    */
-    template < typename... IntTypes >
-    using all_static_integral = all_< is_static_integral, IntTypes... >;
 
     /* check if all given types are integral types */
     template < typename... IntTypes >
-    using is_all_integral =
-#if defined(CUDA8) && !defined(_CRAYC)
-        is_all< boost::is_integral, IntTypes... >;
-#else
-        boost::mpl::bool_< accumulate(logical_and(), true, boost::is_integral< IntTypes >::type::value...) >;
-#endif
-
-    /* check if all given types are integral types */
-    template < typename... IntTypes >
-    using is_all_static_integral = is_all< is_static_integral, IntTypes... >;
+    using is_all_integral = meta::conjunction< std::is_integral< IntTypes >... >;
 
     /* check if all given types are integral types */
     template < typename T >
-    struct is_integral_or_enum : boost::mpl::or_< boost::is_integral< T >, boost::is_enum< T > > {};
+    using is_integral_or_enum = meta::disjunction< std::is_integral< T >, std::is_enum< T > >;
 
     template < typename... IntTypes >
-    using is_all_integral_or_enum =
-#if defined(CUDA8) && !defined(_CRAYC)
-        is_all< is_integral_or_enum, IntTypes... >;
-#else
-        boost::mpl::bool_< accumulate(logical_and(), true, is_integral_or_enum< IntTypes >::type::value...) >;
-#endif
+    using is_all_integral_or_enum = meta::conjunction< is_integral_or_enum< IntTypes >... >;
 }

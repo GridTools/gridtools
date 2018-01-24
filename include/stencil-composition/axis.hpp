@@ -69,7 +69,7 @@ namespace gridtools {
 
         using full_interval = interval< level< 0, -1 >, level< NIntervals, -1 > >;
 
-        template < typename... IntervalSizes, typename = gridtools::all_integral< IntervalSizes... > >
+        template < typename... IntervalSizes, typename = is_all_integral< IntervalSizes... > >
         axis(IntervalSizes... interval_sizes)
             : interval_sizes_{interval_sizes...} {
             GRIDTOOLS_STATIC_ASSERT(

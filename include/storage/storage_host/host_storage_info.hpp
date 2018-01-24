@@ -66,11 +66,11 @@ namespace gridtools {
          * @brief host_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        template < typename... Dims, typename = gridtools::all_integral< Dims... > >
+        template < typename... Dims, typename = is_all_integral< Dims... > >
         explicit constexpr host_storage_info(Dims... dims_)
             : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...) {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                                        typename is_all_integral< Dims... >::type >::value),
+            GRIDTOOLS_STATIC_ASSERT(
+                (boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >, is_all_integral< Dims... > >::value),
                 "Dimensions have to be integral types.");
         }
 

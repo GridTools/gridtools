@@ -697,5 +697,17 @@ namespace gridtools {
             template < class... Ts >
             struct apply< L< Ts... > > : std::true_type {};
         };
+
+        template < class Old, class New >
+        struct replace_one_impl {
+            template < class T >
+            using apply = typename std::conditional< std::is_same< T, Old >::value, New, T >::type;
+        };
+
+        /**
+         *   replace all Old elements to New within List
+         */
+        template < class List, class Old, class New >
+        using replace = apply< transform< replace_one_impl< Old, New >::template apply >, List >;
     }
 }

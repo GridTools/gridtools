@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../../common/generic_metafunctions/replace_template_arguments.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../execution_policy.hpp"
 #include "../../grid_traits_fwd.hpp"
@@ -55,9 +55,9 @@ namespace gridtools {
         template < typename RunFunctorArguments, typename Index >
         struct colorize_run_functor_arguments {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArguments >::value), GT_INTERNAL_ERROR);
-            typedef typename replace_template_arguments< RunFunctorArguments,
+            using type = meta::replace< RunFunctorArguments,
                 typename RunFunctorArguments::color_t,
-                color_type< (uint_t)Index::value > >::type type;
+                color_type< (uint_t)Index::value > >;
         };
 
         template < typename RunFunctorArguments, typename IterateDomain, typename Grid, typename Extent >

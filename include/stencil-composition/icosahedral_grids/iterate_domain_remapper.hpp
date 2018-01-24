@@ -41,8 +41,9 @@
 
 #pragma once
 #include "../iterate_domain_metafunctions.hpp"
-#include "stencil-composition/accessor.hpp"
+#include "../accessor.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
 
 namespace gridtools {
 
@@ -206,11 +207,8 @@ namespace gridtools {
              * the location type of the ESF.
              */
             template < typename NeighborsLocationType, typename EsfLocationType, typename... Accessors >
-            struct accessors_on_different_color_neighbors {
-                typedef typename boost::mpl::and_<
-                    typename is_sequence_of< typename variadic_to_vector< Accessors... >::type, is_accessor >::type,
-                    typename is_not_same< NeighborsLocationType, EsfLocationType >::type >::type type;
-            };
+            using accessors_on_different_color_neighbors = meta::conjunction< is_accessor< Accessors >...,
+                meta::negation< std::is_same< NeighborsLocationType, EsfLocationType > > >;
 
             /**
              * data structure that holds data needed by the reduce_tuple functor

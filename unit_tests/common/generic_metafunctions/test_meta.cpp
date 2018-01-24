@@ -176,6 +176,9 @@ namespace gridtools {
         static_assert(is_instantiation_of< f >::apply< f< int, void > >{}, "");
         static_assert(!is_instantiation_of< f >::apply< g<> >{}, "");
         static_assert(!is_instantiation_of< f >::apply< int >{}, "");
+
+        static_assert(
+            std::is_same< replace< f< int, double, int, double >, double, void >, f< int, void, int, void > >{}, "");
     }
 }
 

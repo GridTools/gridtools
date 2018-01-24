@@ -36,9 +36,6 @@
 #pragma once
 #include <type_traits>
 #include <boost/type_traits/remove_reference.hpp>
-#include "../../common/generic_metafunctions/is_not_same.hpp"
-#include "../../common/generic_metafunctions/apply_to_sequence.hpp"
-#include "../../common/generic_metafunctions/is_not_same.hpp"
 #include "../../common/generic_metafunctions/remove_restrict_reference.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_typedef.hpp"

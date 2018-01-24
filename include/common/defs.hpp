@@ -322,15 +322,4 @@ namespace gridtools {
     template < bool B >
     using static_bool = boost::mpl::integral_c< bool, B >;
 
-    template < typename T >
-    struct is_static_integral : boost::mpl::false_ {};
-
-    template < typename T, T N >
-    struct is_static_integral< boost::mpl::integral_c< T, N > > : boost::mpl::true_ {};
-    /**
-       @}
-     */
-
-    //######################################################
-
 } // namespace gridtools

@@ -171,8 +171,8 @@ namespace gridtools {
     struct get_strides< layout_map< LayoutArgs... > > {
         template < typename... Dims >
         GT_FUNCTION static constexpr array< uint_t, sizeof...(LayoutArgs) > get_stride_array(Dims... d) {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                                        typename is_all_integral< Dims... >::type >::value),
+            GRIDTOOLS_STATIC_ASSERT(
+                (boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >, is_all_integral< Dims... > >::value),
                 GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
             typedef layout_map< LayoutArgs... > Layout;
             return (array< uint_t, Layout::masked_length >){
