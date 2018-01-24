@@ -43,23 +43,14 @@
 #include <common/gt_assert.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/caches/define_caches.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
 
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
 TEST(define_caches, test_sequence_caches) {
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > storage_info_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, storage_info_t > storage_t;
 
     typedef gridtools::arg< 0, storage_t > arg0_t;
     typedef gridtools::arg< 1, storage_t > arg1_t;

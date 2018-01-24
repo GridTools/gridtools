@@ -36,18 +36,10 @@
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 
+#include "backend_select.hpp"
+
 namespace test_conditionals {
     using namespace gridtools;
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-#endif
 
     using axis_t = axis< 1 >;
     using x_interval = axis_t::full_interval;
@@ -71,8 +63,8 @@ namespace test_conditionals {
 
         auto grid_ = make_grid((uint_t)2, (uint_t)2, axis_t((uint_t)3));
 
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t >
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
             data_store_t;
         storage_info_t meta_data_(3, 3, 3);
         data_store_t dummy(meta_data_, 0.);
@@ -81,7 +73,7 @@ namespace test_conditionals {
         typedef boost::mpl::vector1< p_dummy > arg_list;
         aggregator_type< arg_list > domain_(dummy);
 
-        auto comp_ = make_computation< BACKEND >(
+        auto comp_ = make_computation< backend_t >(
             domain_,
             grid_,
             if_(cond,

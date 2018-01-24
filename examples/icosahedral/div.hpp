@@ -38,9 +38,10 @@
 #include <stencil-composition/stencil-composition.hpp>
 #include "tools/verifier.hpp"
 #include "operators_repository.hpp"
-#include "../benchmarker.hpp"
+#include "benchmarker.hpp"
 #include "operator_defs.hpp"
 #include "div_functors.hpp"
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;

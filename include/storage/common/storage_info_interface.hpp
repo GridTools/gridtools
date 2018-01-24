@@ -57,7 +57,7 @@
 
 namespace gridtools {
 
-    namespace {
+    namespace impl_ {
 
         /*
          * @brief Internal helper function to check if two given storage infos contain the same information.
@@ -527,7 +527,9 @@ namespace gridtools {
          * @return true if the storage infos are equal, false otherwise
          */
         GT_FUNCTION
-        bool operator==(this_t const &rhs) const { return equality_check< ndims - 1 >(*this, rhs); }
+        bool operator==(this_t const &rhs) const { return impl_::equality_check< ndims - 1 >(*this, rhs); }
+
+        GT_FUNCTION bool operator!=(this_t const &rhs) const { return !operator==(rhs); }
     };
 
     template < typename T >

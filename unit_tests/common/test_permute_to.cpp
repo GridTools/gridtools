@@ -33,28 +33,53 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#pragma once
 
-#include "array.hpp"
+#include <common/permute_to.hpp>
+
+#include <utility>
+
+#include <gtest/gtest.h>
+
+#include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/comparison.hpp>
+#include <boost/fusion/include/make_vector.hpp>
 
 namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
 
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
+    using boost::fusion::vector;
+    using boost::fusion::make_vector;
+
+    TEST(permute_to, lref) {
+        vector<> src;
+        EXPECT_TRUE(permute_to< vector<> >(src) == make_vector());
     }
 
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
+    TEST(permute_to, cref) {
+        vector<> const src = {};
+        EXPECT_TRUE(permute_to< vector<> >(src) == make_vector());
     }
+
+    template < typename Res, typename... Args >
+    Res testee(Args &&... args) {
+        return permute_to< Res >(make_vector(std::forward< Args >(args)...));
+    }
+
+    TEST(permute_to, empty) { EXPECT_TRUE(testee< vector<> >() == make_vector()); }
+
+    TEST(permute_to, one) { EXPECT_TRUE(testee< vector< int > >(42) == make_vector(42)); }
+
+    TEST(permute_to, functional) {
+        using res_t = vector< int, char, double >;
+        res_t expected{42, 'a', .1};
+        EXPECT_TRUE(testee< res_t >(42, 'a', .1) == expected);
+        EXPECT_TRUE(testee< res_t >(42, .1, 'a') == expected);
+        EXPECT_TRUE(testee< res_t >('a', 42, .1) == expected);
+        EXPECT_TRUE(testee< res_t >('a', .1, 42) == expected);
+        EXPECT_TRUE(testee< res_t >(.1, 42, 'a') == expected);
+        EXPECT_TRUE(testee< res_t >(.1, 'a', 42) == expected);
+    }
+
+    TEST(permute_to, unused_extra_args) { EXPECT_TRUE((testee< vector< int > >('a', 42, .1, 12) == make_vector(42))); }
+
+    TEST(permute_to, duplicates_in_res) { EXPECT_TRUE((testee< vector< int, int > >(42) == make_vector(42, 42))); }
 }

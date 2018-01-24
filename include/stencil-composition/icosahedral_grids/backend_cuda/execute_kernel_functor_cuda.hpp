@@ -172,7 +172,7 @@ namespace gridtools {
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
 
-            it_domain.set_index(0);
+            it_domain.reset_index();
 
             // initialize the i index
             it_domain.template initialize< grid_traits_from_id< enumtype::icosahedral >::dim_i_t::value >(
