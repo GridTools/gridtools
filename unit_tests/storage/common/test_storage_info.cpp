@@ -398,10 +398,12 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.stride< 2 >()), 1);
         EXPECT_EQ((x.stride< 3 >()), 32 * 11 * 7);
 
-        EXPECT_EQ(x.index(0, 0, 0, 0), 0);                     // halo point
-        EXPECT_EQ(x.index(0, 0, 1, 0), 1);                     // halo point
-        EXPECT_EQ(x.index(0, 0, 2, 0), 2);                     // halo point
+        EXPECT_EQ(x.index(0, 0, 0, 0), 0); // halo point
+        EXPECT_EQ(x.index(0, 0, 1, 0), 1); // halo point
+        EXPECT_EQ(x.index(0, 0, 2, 0), 2); // halo point
+#ifndef NDEBUG
         EXPECT_THROW(x.index(0, 0, 3, 0), std::runtime_error); // first data point, aligned
+#endif
     }
     {
         // test with different dims, halo and alignment
