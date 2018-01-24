@@ -161,3 +161,22 @@ TEST(test_multi_iterator_empty, 2D) {
 
     ASSERT_EQ(0, out.size());
 }
+
+void print(array< size_t, 3 > a) { std::cout << a << std::endl; }
+
+TEST(test_hypercube_iterator, 3D) {
+    hypercube_view< size_t, 3 > view{{0, 1, 0}, {2, 2, 2}};
+
+    auto it = view.begin();
+    array< size_t, 3 > tmp = it;
+
+    //    for( int i = 0; i < 3; ++i )
+    //    {
+    //    it++;
+    //    print(it);}
+
+    for (auto it : view) {
+        print(it);
+    }
+    //    std::cout << print(it) << std::endl;
+}

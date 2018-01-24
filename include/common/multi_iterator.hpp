@@ -40,6 +40,7 @@
 #include "generic_metafunctions/is_all_integrals.hpp"
 #include "pair.hpp"
 #include "array.hpp"
+#include "array_addons.hpp"
 #include "defs.hpp"
 #include "host_device.hpp"
 
@@ -245,4 +246,53 @@ namespace gridtools {
     */
     template < typename T = uint_t >
     GT_FUNCTION auto make_multi_iterator() GT_AUTO_RETURN((multi_iterator< T, 0 >{array< pair< T, T >, 0 >{}}));
+
+    // should end be included?
+    template < typename T, size_t D >
+    class hypercube_view {
+      public:
+        // TODO makers
+        hypercube_view(const array< T, D > &begin, const array< T, D > &end) : begin_{begin}, end_{end} {}
+
+        struct const_iterator {
+            array< T, D > pos_;
+            const array< T, D > begin_;
+            const array< T, D > end_;
+            const_iterator(const array< T, D > &pos, const array< T, D > &begin, const array< T, D > &end)
+                : pos_{pos}, begin_{begin}, end_{end} {}
+            operator array< T, D >() const { return pos_; }
+
+            const_iterator &operator++() {
+                for (size_t i = 0; i < D; ++i) {
+                    size_t index = D - i - 1;
+                    if (pos_[index] + 1 < end_[index]) {
+                        pos_[index]++;
+                        return *this;
+                    } else {
+                        pos_[index] = begin_[index];
+                    }
+                }
+                // we reached the end
+                pos_ = end_;
+                return *this;
+            }
+
+            array< T, D > &operator*() { return pos_; }
+
+            const_iterator operator++(int) {
+                const_iterator tmp(*this);
+                operator++();
+                return tmp;
+            }
+            bool operator==(const const_iterator &other) const { return pos_ == other.pos_; }
+
+            bool operator!=(const const_iterator &other) const { return !operator==(other); }
+        };
+
+        const_iterator end() const { return const_iterator{end_, end_, end_}; }
+        const_iterator begin() const { return const_iterator{begin_, begin_, end_}; }
+
+        array< T, D > begin_;
+        array< T, D > end_;
+    };
 }
