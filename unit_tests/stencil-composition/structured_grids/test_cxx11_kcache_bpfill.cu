@@ -160,10 +160,10 @@ TEST_F(kcachef, bpfilll_forward) {
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                        define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_in())),
-                                        make_stage< shift_acc_forward_bpfilll >(p_in() // esf_descriptor
-                                            ,
-                                            p_out())));
+                                          define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_in())),
+                                          make_stage< shift_acc_forward_bpfilll >(p_in() // esf_descriptor
+                                              ,
+                                              p_out())));
 
     kcache_stencil->ready();
 
@@ -210,10 +210,10 @@ TEST_F(kcachef, bpfilll_backward) {
             m_gridb,
             make_multistage // mss_descriptor
             (execute< backward >(),
-                                        define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_in())),
-                                        make_stage< shift_acc_backward_bpfilll >(p_in() // esf_descriptor
-                                            ,
-                                            p_out())));
+                                          define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_in())),
+                                          make_stage< shift_acc_backward_bpfilll >(p_in() // esf_descriptor
+                                              ,
+                                              p_out())));
 
     kcache_stencil->ready();
 
@@ -265,8 +265,8 @@ TEST_F(kcachef, bpfilll_selfupdate_forward) {
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                        define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_buff())),
-                                        make_stage< self_update_forward_bpfilll >(p_buff(), p_out())));
+                                          define_caches(cache< K, cache_io_policy::bpfill, kfull >(p_buff())),
+                                          make_stage< self_update_forward_bpfilll >(p_buff(), p_out())));
 
     kcache_stencil->ready();
 
@@ -318,8 +318,8 @@ TEST_F(kcachef, bpfilll_selfupdate_backward) {
             m_gridb,
             make_multistage // mss_descriptor
             (execute< backward >(),
-                                        define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_buff())),
-                                        make_stage< self_update_backward_bpfilll >(p_buff(), p_out())));
+                                          define_caches(cache< K, cache_io_policy::bpfill, kfull_b >(p_buff())),
+                                          make_stage< self_update_backward_bpfilll >(p_buff(), p_out())));
 
     kcache_stencil->ready();
 

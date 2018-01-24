@@ -120,9 +120,9 @@ namespace data_store_field_test {
         auto comp = make_computation< backend_t >(domain,
             grid_,
             make_multistage(execute< forward >(),
-                                               define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
-                                               make_stage< A >(p_in(), p_tmp()),
-                                               make_stage< A >(p_tmp(), p_out())));
+                                                      define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
+                                                      make_stage< A >(p_in(), p_tmp()),
+                                                      make_stage< A >(p_tmp(), p_out())));
 
         comp->ready();
         comp->steady();

@@ -141,14 +141,14 @@ namespace positional_copy_stencil {
         init->run();
         init->finalize();
 
-        auto copy = gridtools::make_computation< backend_t >(
-            domain,
-            grid,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
-                    ,
-                    p_out())));
+        auto copy =
+            gridtools::make_computation< backend_t >(domain,
+                grid,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                                                         gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
+                                                             ,
+                                                             p_out())));
         copy->ready();
         copy->steady();
         copy->run();
