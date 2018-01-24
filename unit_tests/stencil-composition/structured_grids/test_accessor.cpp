@@ -58,7 +58,6 @@ TEST(accessor, is_accessor_readonly) {
     GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< accessor< 0, enumtype::in > >::value), "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< vector_accessor< 0, enumtype::in > >::value), "");
     GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< global_accessor< 0 > >::value), "");
-    GRIDTOOLS_STATIC_ASSERT((is_accessor_readonly< global_accessor< 0, enumtype::inout > >::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< inout_accessor< 0 > >::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< accessor< 0, enumtype::inout > >::value), "");
     GRIDTOOLS_STATIC_ASSERT((!is_accessor_readonly< vector_accessor< 0, enumtype::inout > >::value), "");
