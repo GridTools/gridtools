@@ -51,8 +51,10 @@ using namespace enumtype;
 
 TEST(assign_placeholders, test) {
 
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 1, 1, 1 > > storage_info1_t;
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 2, 2, 2 > > storage_info2_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 1, 1, 1 > >
+        storage_info1_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 2, 2, 2 > >
+        storage_info2_t;
     typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info1_t >
         data_store1_t;
     typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info2_t >

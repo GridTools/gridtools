@@ -212,15 +212,15 @@ TEST_F(kcachef, fill_copy_forward) {
     typedef boost::mpl::vector< p_in, p_out > accessor_list;
     gridtools::aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
 
-    auto kcache_stencil = gridtools::make_computation< backend_t >(
-        domain,
-        m_grid,
-        gridtools::make_multistage // mss_descriptor
-        (execute< forward >(),
-            define_caches(cache< K, cache_io_policy::fill, kfull >(p_in())),
-            gridtools::make_stage< copy_fill >(p_in() // esf_descriptor
-                ,
-                p_out())));
+    auto kcache_stencil =
+        gridtools::make_computation< backend_t >(domain,
+            m_grid,
+            gridtools::make_multistage // mss_descriptor
+            (execute< forward >(),
+                                                     define_caches(cache< K, cache_io_policy::fill, kfull >(p_in())),
+                                                     gridtools::make_stage< copy_fill >(p_in() // esf_descriptor
+                                                         ,
+                                                         p_out())));
 
     kcache_stencil->ready();
 
