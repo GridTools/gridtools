@@ -165,12 +165,11 @@ namespace gridtools {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
-            template < typename LocalDomain, typename Grid, typename ReductionData >
+            template < typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo >
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const uint_t,
-                const uint_t) {
+                const ExecutionInfo &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
@@ -181,7 +180,7 @@ namespace gridtools {
                 using kernel_functor_executor_t =
                     typename arch_grid_traits_t::template kernel_functor_executor< RunFunctorArgs >::type;
 
-                kernel_functor_executor_t(local_domain, grid, reduction_data)();
+                kernel_functor_executor_t(local_domain, grid, reduction_data)(execution_info);
             }
         };
 

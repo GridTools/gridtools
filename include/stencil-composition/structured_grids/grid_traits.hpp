@@ -136,7 +136,7 @@ namespace gridtools {
             const int threads = omp_get_max_threads();
 
             int_t i_block_size, j_block_size;
-            std::tie(i_block_size, j_block_size) = strgrid::grid_traits_arch< enumtype::Mic >::block_size_mic(grid);
+            std::tie(i_block_size, j_block_size) = block_size_mic(grid);
 
             constexpr int_t alignment = storage_info_t::alignment_t::value;
             int_t i_padded_size = ((i_block_size + 2 * halo_i + alignment - 1) / alignment) * alignment;

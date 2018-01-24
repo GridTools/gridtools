@@ -118,36 +118,17 @@ namespace gridtools {
                 else
                     this->m_it_domain.set_prefetch_distance(-prefetch_distance);
 
-                /*run_esf_functor_t run_esf(this->m_it_domain);
-                for (int_t k = k_first; iteration_policy_t::condition(k, k_last); iteration_policy_t::increment(k)) {
-                    for (int_t j = j_first; j < j_last; ++j) {
-                        this->m_it_domain.set_index(0, j, k, this->m_i_first, this->m_j_first);
-
-#pragma ivdep
-#pragma omp simd
-                        for (int_t i = i_first; i < i_last; ++i) {
-                            this->m_it_domain.template set_block_index< 0 >(i);
-                            run_esf(index);
-
-#if defined(__INTEL_COMPILER) && !defined(GT_NO_CONSTEXPR_ACCESSES)
-#warning \
-    "The usage of the constexpr constructors of accessor_base, tuple_offset and dimension together with the Intel
-compiler can lead to incorrect code generation in this loop."
-#endif
-                        }
-                    }
-                }*/
                 for (int_t j = j_first; j < j_last; ++j) {
                     this->m_it_domain.set_index(0, j, 0, this->m_i_first, this->m_j_first);
+// TODO: vectorization for ICC (compatible with reductions)
 #pragma ivdep
 #pragma omp simd
                     for (int_t i = i_first; i < i_last; ++i) {
-                        auto it_domain = this->m_it_domain;
-                        run_esf_functor_t run_esf(it_domain);
-                        it_domain.template set_block_index< 0 >(i);
+                        run_esf_functor_t run_esf(this->m_it_domain);
+                        this->m_it_domain.template set_block_index< 0 >(i);
                         for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
                              iteration_policy_t::increment(k)) {
-                            it_domain.template set_block_index< 2 >(k);
+                            this->m_it_domain.template set_block_index< 2 >(k);
                             run_esf(index);
 
 #if defined(__INTEL_COMPILER) && !defined(GT_NO_CONSTEXPR_ACCESSES)
@@ -320,6 +301,32 @@ compiler can lead to incorrect code generation in this loop."
 
     } // namespace _impl
 
+    struct execution_info_serial_mic {
+        int_t bi, bj;
+    };
+
+    struct execution_info_parallel_mic {
+        int_t bi, bj, k;
+    };
+
+    template < typename Grid >
+    static std::pair< int_t, int_t > block_size_mic(Grid const &grid) {
+        const int_t i_grid_size = grid.i_high_bound() - grid.i_low_bound() + 1;
+        const int_t j_grid_size = grid.j_high_bound() - grid.j_low_bound() + 1;
+
+        const int_t threads = omp_get_max_threads();
+
+        const int_t j_block_size = (j_grid_size + threads - 1) / threads;
+        const int_t j_blocks = (j_grid_size + j_block_size - 1) / j_block_size;
+        const int_t i_blocks = threads / j_blocks;
+        const int_t i_block_size = (i_grid_size + i_blocks - 1) / i_blocks;
+
+        // currently required by the implementation
+        assert(i_blocks * j_blocks <= threads);
+
+        return std::make_pair(i_block_size, j_block_size);
+    }
+
     namespace strgrid {
 
         template < typename RunFunctorArguments >
@@ -347,103 +354,69 @@ compiler can lead to incorrect code generation in this loop."
                     ::gridtools::_impl::prefetch_distance = 0;
             }
 
-            template < class Execution = execution_type_t >
-            typename std::enable_if< Execution::type::execution != enumtype::parallel_impl >::type operator()() {
-                using namespace gridtools::_impl;
+            void operator()(const execution_info_serial_mic &execution_info) {
+                using namespace ::gridtools::_impl;
+                iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
-#pragma omp parallel
-                {
-                    iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
+                data_ptr_cached_t data_ptr;
+                strides_cached_t strides;
+                int_t i_grid_size, j_grid_size, i_block_size, j_block_size, i_blocks, j_blocks;
 
-                    data_ptr_cached_t data_ptr;
-                    strides_cached_t strides;
-                    int_t i_grid_size, j_grid_size, i_block_size, j_block_size, i_blocks, j_blocks;
+                init_iteration(it_domain,
+                    data_ptr,
+                    strides,
+                    i_grid_size,
+                    j_grid_size,
+                    i_block_size,
+                    j_block_size,
+                    i_blocks,
+                    j_blocks);
+                const int_t i_first = execution_info.bi * i_block_size + m_grid.i_low_bound();
+                const int_t j_first = execution_info.bj * j_block_size + m_grid.j_low_bound();
 
-                    init_iteration(it_domain,
-                        data_ptr,
-                        strides,
-                        i_grid_size,
-                        j_grid_size,
-                        i_block_size,
-                        j_block_size,
-                        i_blocks,
-                        j_blocks);
+                const int_t i_bs =
+                    (execution_info.bi == i_blocks - 1) ? i_grid_size - execution_info.bi * i_block_size : i_block_size;
+                const int_t j_bs =
+                    (execution_info.bj == j_blocks - 1) ? j_grid_size - execution_info.bj * j_block_size : j_block_size;
 
-#pragma omp for collapse(2)
-                    for (int_t bj = 0; bj < j_blocks; ++bj) {
-                        for (int_t bi = 0; bi < i_blocks; ++bi) {
-                            const int_t i_first = bi * i_block_size + m_grid.i_low_bound();
-                            const int_t j_first = bj * j_block_size + m_grid.j_low_bound();
+                run_f_on_interval_mic< execution_type_t, RunFunctorArguments > run(
+                    it_domain, m_grid, i_first, j_first, i_bs, j_bs);
+                boost::mpl::for_each< loop_intervals_t >(run);
 
-                            const int_t i_bs = (bi == i_blocks - 1) ? i_grid_size - bi * i_block_size : i_block_size;
-                            const int_t j_bs = (bj == j_blocks - 1) ? j_grid_size - bj * j_block_size : j_block_size;
-
-                            run_f_on_interval_mic< execution_type_t, RunFunctorArguments > run(
-                                it_domain, m_grid, i_first, j_first, i_bs, j_bs);
-                            boost::mpl::for_each< loop_intervals_t >(run);
-                        }
-                    }
-
-                    m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
-                }
-                m_reduction_data.reduce();
+                m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
             }
 
-            template < class Execution = execution_type_t >
-            typename std::enable_if< Execution::type::execution == enumtype::parallel_impl >::type operator()() {
-                namespace mpl = boost::mpl;
-                using namespace boost::mpl::placeholders;
-                using namespace gridtools::_impl;
+            void operator()(const execution_info_parallel_mic &execution_info) {
+                using namespace ::gridtools::_impl;
+                iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
-                using merged_interval_t = typename mpl::fold< loop_intervals_t,
-                    typename mpl::front< loop_intervals_t >::type,
-                    merge_intervals< _1, _2 > >::type;
-                using from_t = typename index_to_level< typename merged_interval_t::first >::type;
-                using to_t = typename index_to_level< typename merged_interval_t::second >::type;
+                data_ptr_cached_t data_ptr;
+                strides_cached_t strides;
+                int_t i_grid_size, j_grid_size, i_block_size, j_block_size, i_blocks, j_blocks;
 
-#pragma omp parallel
-                {
-                    iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
+                init_iteration(it_domain,
+                    data_ptr,
+                    strides,
+                    i_grid_size,
+                    j_grid_size,
+                    i_block_size,
+                    j_block_size,
+                    i_blocks,
+                    j_blocks);
 
-                    data_ptr_cached_t data_ptr;
-                    strides_cached_t strides;
-                    int_t i_grid_size, j_grid_size, i_block_size, j_block_size, i_blocks, j_blocks;
+                const int_t i_first = execution_info.bi * i_block_size + m_grid.i_low_bound();
+                const int_t j_first = execution_info.bj * j_block_size + m_grid.j_low_bound();
 
-                    init_iteration(it_domain,
-                        data_ptr,
-                        strides,
-                        i_grid_size,
-                        j_grid_size,
-                        i_block_size,
-                        j_block_size,
-                        i_blocks,
-                        j_blocks);
+                const int_t i_bs =
+                    (execution_info.bi == i_blocks - 1) ? i_grid_size - execution_info.bi * i_block_size : i_block_size;
+                const int_t j_bs =
+                    (execution_info.bj == j_blocks - 1) ? j_grid_size - execution_info.bj * j_block_size : j_block_size;
 
-                    const int_t k_first = m_grid.template value_at< from_t >();
-                    const int_t k_last = m_grid.template value_at< to_t >();
+                run_f_on_interval_kparallel_mic< execution_type_t, RunFunctorArguments > run(
+                    it_domain, m_grid, i_first, j_first, i_bs, j_bs, execution_info.k);
+                boost::mpl::for_each< loop_intervals_t >(run);
 
-#pragma omp for collapse(3)
-                    for (int_t k = k_first; k <= k_last; ++k) {
-                        for (int_t bj = 0; bj < j_blocks; ++bj) {
-                            for (int_t bi = 0; bi < i_blocks; ++bi) {
-                                const int_t i_first = bi * i_block_size + m_grid.i_low_bound();
-                                const int_t j_first = bj * j_block_size + m_grid.j_low_bound();
-
-                                const int_t i_bs =
-                                    (bi == i_blocks - 1) ? i_grid_size - bi * i_block_size : i_block_size;
-                                const int_t j_bs =
-                                    (bj == j_blocks - 1) ? j_grid_size - bj * j_block_size : j_block_size;
-
-                                run_f_on_interval_kparallel_mic< execution_type_t, RunFunctorArguments > run(
-                                    it_domain, m_grid, i_first, j_first, i_bs, j_bs, k);
-                                mpl::for_each< loop_intervals_t >(run);
-                            }
-                        }
-                    }
-
-                    m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
-                }
-                m_reduction_data.reduce();
+                m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
             }
 
           protected:
@@ -466,7 +439,7 @@ compiler can lead to incorrect code generation in this loop."
                 it_domain.template assign_storage_pointers< backend_traits_t >();
                 it_domain.template assign_stride_pointers< backend_traits_t, strides_cached_t >();
 
-                std::tie(i_block_size, j_block_size) = grid_traits_arch< enumtype::Mic >::block_size_mic(m_grid);
+                std::tie(i_block_size, j_block_size) = block_size_mic(m_grid);
 
                 i_grid_size = m_grid.i_high_bound() - m_grid.i_low_bound() + 1;
                 j_grid_size = m_grid.j_high_bound() - m_grid.j_low_bound() + 1;

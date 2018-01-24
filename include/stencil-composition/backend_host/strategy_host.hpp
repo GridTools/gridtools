@@ -44,6 +44,10 @@ namespace gridtools {
     template < enumtype::strategy >
     struct strategy_from_id_host;
 
+    struct execution_info_host {
+        uint_t bi, bj;
+    };
+
     /**
        @brief specialization for the \ref gridtools::_impl::Naive strategy
     */
@@ -75,9 +79,12 @@ namespace gridtools {
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
-                boost::mpl::for_each< iter_range >(
-                    mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(
-                        local_domain_lists, grid, reduction_data, 0, 0));
+                boost::mpl::for_each< iter_range >(mss_functor< MssComponentsArray,
+                    Grid,
+                    LocalDomainListArray,
+                    BackendIds,
+                    ReductionData,
+                    execution_info_host >(local_domain_lists, grid, reduction_data, {0, 0}));
             }
         };
 
@@ -90,12 +97,11 @@ namespace gridtools {
         struct mss_loop {
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
-            template < typename LocalDomain, typename Grid, typename ReductionData >
+            template < typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo >
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const uint_t bi,
-                const uint_t bj) {
+                ExecutionInfo &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
@@ -164,7 +170,8 @@ namespace gridtools {
                                 Grid,
                                 LocalDomainListArray,
                                 BackendIds,
-                                ReductionData >(local_domain_lists, grid, reduction_data, bi, bj));
+                                ReductionData,
+                                execution_info_host >(local_domain_lists, grid, reduction_data, {bi, bj}));
                         }
                     }
                 }
@@ -182,12 +189,11 @@ namespace gridtools {
 
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
-            template < typename LocalDomain, typename Grid, typename ReductionData >
+            template < typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo >
             static void run(const LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const uint_t bi,
-                const uint_t bj) {
+                ExecutionInfo &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
@@ -208,23 +214,30 @@ namespace gridtools {
                 uint_t NBI = n / BI;
                 uint_t NBJ = m / BJ;
 
-                uint_t first_i = bi * BI + grid.i_low_bound();
-                uint_t first_j = bj * BJ + grid.j_low_bound();
+                uint_t first_i = execution_info.bi * BI + grid.i_low_bound();
+                uint_t first_j = execution_info.bj * BJ + grid.j_low_bound();
 
                 uint_t last_i = BI - 1;
                 uint_t last_j = BJ - 1;
 
-                if (bi == NBI && bj == NBJ) {
+                if (execution_info.bi == NBI && execution_info.bj == NBJ) {
                     last_i = n - NBI * BI;
                     last_j = m - NBJ * BJ;
-                } else if (bi == NBI) {
+                } else if (execution_info.bi == NBI) {
                     last_i = n - NBI * BI;
-                } else if (bj == NBJ) {
+                } else if (execution_info.bj == NBJ) {
                     last_j = m - NBJ * BJ;
                 }
 
-                kernel_functor_executor_t(
-                    local_domain, grid, reduction_data, first_i, first_j, last_i, last_j, bi, bj)();
+                kernel_functor_executor_t(local_domain,
+                    grid,
+                    reduction_data,
+                    first_i,
+                    first_j,
+                    last_i,
+                    last_j,
+                    execution_info.bi,
+                    execution_info.bj)();
             }
         };
     };

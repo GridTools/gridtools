@@ -57,6 +57,8 @@ namespace gridtools {
     template <>
     struct strategy_from_id_cuda< enumtype::Naive > {};
 
+    struct execution_info_cuda {};
+
     /**
        @brief specialization for the \ref gridtools::_impl::Block strategy
        Empty as not used in the CUDA backend
@@ -86,9 +88,12 @@ namespace gridtools {
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
-                boost::mpl::for_each< iter_range >(
-                    mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(
-                        local_domain_lists, grid, reduction_data, 0, 0));
+                boost::mpl::for_each< iter_range >(mss_functor< MssComponentsArray,
+                    Grid,
+                    LocalDomainListArray,
+                    BackendIds,
+                    ReductionData,
+                    execution_info_cuda >(local_domain_lists, grid, reduction_data, {}));
             }
         };
     };

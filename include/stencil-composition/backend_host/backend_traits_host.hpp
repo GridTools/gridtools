@@ -208,19 +208,18 @@ namespace gridtools {
             typedef typename RunFunctorArgs::backend_ids_t backend_ids_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_run_functor_arguments< RunFunctorArgs >::value), GT_INTERNAL_ERROR);
-            template < typename LocalDomain, typename Grid, typename ReductionData >
+            template < typename LocalDomain, typename Grid, typename ReductionData, typename ExecutionInfo >
             static void run(LocalDomain &local_domain,
                 const Grid &grid,
                 ReductionData &reduction_data,
-                const uint_t bi,
-                const uint_t bj) {
+                ExecutionInfo &execution_info) {
                 GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
                 GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
                 // each strategy executes a different high level loop for a mss
                 strategy_from_id_host< backend_ids_t::s_strategy_id >::template mss_loop<
-                    RunFunctorArgs >::template run(local_domain, grid, reduction_data, bi, bj);
+                    RunFunctorArgs >::template run(local_domain, grid, reduction_data, execution_info);
             }
         };
 

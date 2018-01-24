@@ -34,6 +34,8 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include <type_traits>
+
 #include "../backend_traits_fwd.hpp"
 #include "../mss_functor.hpp"
 #include "../tile.hpp"
@@ -53,7 +55,7 @@ namespace gridtools {
     */
     template <>
     struct strategy_from_id_mic< enumtype::Block > {
-        using block_size_t = block_size< 0, 0, 0>;
+        using block_size_t = block_size< 0, 0, 0 >;
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
@@ -67,17 +69,100 @@ namespace gridtools {
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
+          private:
+            // meta function to check if an MssComponent can be executed in parallel along k-axis
+            template < typename MssComponents >
+            struct is_parallel {
+                using type =
+                    boost::mpl::bool_< MssComponents::execution_engine_t::type::execution == enumtype::parallel_impl >;
+            };
+
+            // boolean type that is true iff all MssComponents can be executed in parallel along k-axis
+            using all_parallel =
+                typename boost::mpl::fold< typename boost::mpl::transform< typename MssComponentsArray::elements,
+                                               is_parallel< boost::mpl::placeholders::_1 > >::type,
+                    boost::mpl::true_,
+                    boost::mpl::and_< boost::mpl::placeholders::_1, boost::mpl::placeholders::_2 > >::type;
+
             using iter_range = boost::mpl::range_c< uint_t,
                 0,
                 boost::mpl::size< typename MssComponentsArray::elements >::type::value >;
 
+          public:
             template < typename LocalDomainListArray, typename Grid >
             static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
-                boost::mpl::for_each< iter_range >(
-                    mss_functor< MssComponentsArray, Grid, LocalDomainListArray, BackendIds, ReductionData >(
-                        local_domain_lists, grid, reduction_data, 0, 0));
+                run(local_domain_lists, grid, reduction_data, all_parallel());
+            }
+
+          private:
+            template < typename LocalDomainListArray, typename Grid >
+            static void run(LocalDomainListArray &local_domain_lists,
+                const Grid &grid,
+                ReductionData &reduction_data,
+                boost::mpl::true_) {
+                using mss_functor_t = mss_functor< MssComponentsArray,
+                    Grid,
+                    LocalDomainListArray,
+                    BackendIds,
+                    ReductionData,
+                    execution_info_parallel_mic >;
+
+                int_t i_block_size, j_block_size;
+                std::tie(i_block_size, j_block_size) = block_size_mic(grid);
+
+                const int_t i_grid_size = grid.i_high_bound() - grid.i_low_bound() + 1;
+                const int_t j_grid_size = grid.j_high_bound() - grid.j_low_bound() + 1;
+
+                const int_t i_blocks = (i_grid_size + i_block_size - 1) / i_block_size;
+                const int_t j_blocks = (j_grid_size + j_block_size - 1) / j_block_size;
+
+                const int_t k_first = grid.k_min();
+                const int_t k_last = grid.k_max();
+#pragma omp parallel for collapse(3)
+                for (int_t k = k_first; k <= k_last; ++k) {
+                    for (int_t bj = 0; bj < j_blocks; ++bj) {
+                        for (int_t bi = 0; bi < i_blocks; ++bi) {
+                            boost::mpl::for_each< iter_range >(
+                                mss_functor_t(local_domain_lists, grid, reduction_data, {bi, bj, k}));
+                        }
+                    }
+                }
+                reduction_data.reduce();
+            }
+
+            template < typename LocalDomainListArray, typename Grid >
+            static void run(LocalDomainListArray &local_domain_lists,
+                const Grid &grid,
+                ReductionData &reduction_data,
+                boost::mpl::false_) {
+                using mss_functor_t = mss_functor< MssComponentsArray,
+                    Grid,
+                    LocalDomainListArray,
+                    BackendIds,
+                    ReductionData,
+                    execution_info_serial_mic >;
+
+                int_t i_block_size, j_block_size;
+                std::tie(i_block_size, j_block_size) = block_size_mic(grid);
+
+                const int_t i_grid_size = grid.i_high_bound() - grid.i_low_bound() + 1;
+                const int_t j_grid_size = grid.j_high_bound() - grid.j_low_bound() + 1;
+
+                const int_t i_blocks = (i_grid_size + i_block_size - 1) / i_block_size;
+                const int_t j_blocks = (j_grid_size + j_block_size - 1) / j_block_size;
+
+                const int_t k_first = grid.k_min();
+                const int_t k_last = grid.k_max();
+#pragma omp parallel for collapse(2)
+                for (int_t bj = 0; bj < j_blocks; ++bj) {
+                    for (int_t bi = 0; bi < i_blocks; ++bi) {
+                        boost::mpl::for_each< iter_range >(
+                            mss_functor_t(local_domain_lists, grid, reduction_data, {bi, bj}));
+                    }
+                }
+                reduction_data.reduce();
             }
         };
     };
