@@ -482,15 +482,11 @@ namespace gridtools {
          * @param idx given offsets
          * @return index
          */
-        template < typename... Ints >
-        GT_FUNCTION constexpr
-            typename boost::enable_if< typename is_all_integral_or_enum< Ints... >::type, int >::type index(
-                Ints... idx) const {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Ints) > 0) >,
-                                        typename is_all_integral_or_enum< Ints... >::type >::value),
-                GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
-            GRIDTOOLS_STATIC_ASSERT(sizeof...(Ints) == ndims,
-                GT_INTERNAL_ERROR_MSG("Index function called with wrong number of arguments."));
+
+        template < typename... Ints,
+            typename std::enable_if< sizeof...(Ints) == ndims && is_all_integral_or_enum< Ints... >::value,
+                int >::type = 0 >
+        GT_FUNCTION constexpr int index(Ints... idx) const {
 #ifdef NDEBUG
             return index_part< 0 >(idx...) + get_initial_offset();
 #else

@@ -46,7 +46,7 @@ namespace gridtools {
 
     /* check if all given types are integral types */
     template < typename T >
-    using is_integral_or_enum = meta::disjunction< std::is_integral< T >, std::is_enum< T > >;
+    using is_integral_or_enum = meta::bool_constant< std::is_integral< T >::value || std::is_enum< T >::value >;
 
     template < typename... IntTypes >
     using is_all_integral_or_enum = meta::conjunction< is_integral_or_enum< IntTypes >... >;
