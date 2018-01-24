@@ -37,6 +37,8 @@
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
+#include "backend_select.hpp"
+
 template < gridtools::uint_t Id >
 struct functor {
 
@@ -47,8 +49,6 @@ struct functor {
     template < typename Evaluation >
     GT_FUNCTION static void Do(Evaluation &eval) {}
 };
-
-#define backend_t backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
 
 bool predicate() { return false; }
 
