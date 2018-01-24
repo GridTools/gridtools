@@ -36,6 +36,7 @@
 #pragma once
 #include "common/defs.hpp"
 #include "common/array.hpp"
+#include "common/array_dot_product.hpp"
 #include <list>
 #include <vector>
 #include <iostream>

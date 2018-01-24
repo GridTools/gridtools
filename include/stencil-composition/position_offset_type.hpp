@@ -35,26 +35,21 @@
 */
 #pragma once
 
-#include "array.hpp"
+#include <boost/mpl/bool.hpp>
+#include "../common/array.hpp"
+#include "../common/defs.hpp"
 
 namespace gridtools {
-    namespace impl_ {
-        template < typename ForceType, typename... Types >
-        struct forced_or_common_type {
-            using type = ForceType;
-        };
-
-        template < typename... Types >
-        struct forced_or_common_type< void, Types... > {
-            using type = typename std::common_type< Types... >::type;
-        };
-    }
-
-    template < typename ForceType = void, typename... Types >
-    constexpr GT_FUNCTION
-        gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >
-            make_array(Types... values) {
-        return gridtools::array< typename impl_::forced_or_common_type< ForceType, Types... >::type, sizeof...(Types) >{
-            static_cast< typename impl_::forced_or_common_type< ForceType, Types... >::type >(values)...};
-    }
+    /**
+     * @brief The position_offset is an array that keeps the iteration indices over a multidimensional domain.
+     */
+    class position_offset_type : public array< int_t, 4 > {
+      public:
+        constexpr GT_FUNCTION position_offset_type(int_t i0, int_t i1, int_t i2, int_t i3)
+            : array< int_t, 4 >({i0, i1, i2, i3}) {}
+    };
+    template < typename T >
+    struct is_position_offset_type : boost::mpl::false_ {};
+    template <>
+    struct is_position_offset_type< position_offset_type > : boost::mpl::true_ {};
 }
