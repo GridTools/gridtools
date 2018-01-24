@@ -33,5 +33,4 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#define CUDA_EXAMPLE
 #include "tridiagonal.cpp"

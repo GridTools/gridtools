@@ -37,6 +37,7 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
+#include "backend_select.hpp"
 
 /*
   @file
@@ -52,16 +53,6 @@ using namespace gridtools;
 using namespace enumtype;
 
 static const int _value_ = 1;
-
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-#endif
 
 namespace positional_copy_stencil {
     // These are the stencil operators that compose the multistage stencil in this test
@@ -114,8 +105,8 @@ namespace positional_copy_stencil {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -137,7 +128,7 @@ namespace positional_copy_stencil {
 
         auto grid = make_grid(d1, d2, d3);
 
-        auto init = gridtools::make_positional_computation< gridtools::BACKEND >(
+        auto init = gridtools::make_positional_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor
@@ -150,7 +141,7 @@ namespace positional_copy_stencil {
         init->run();
         init->finalize();
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(
+        auto copy = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor

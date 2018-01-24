@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#include "backend_select.hpp"
 #include "gtest/gtest.h"
 #include <stencil-composition/stencil-composition.hpp>
 #include <stencil-composition/stencil-functions/stencil-functions.hpp>
@@ -94,23 +95,14 @@ struct call_copy_functor {
 
 class expandable_parameters : public testing::Test {
   protected:
-#ifdef __CUDACC__
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
     const uint_t d1 = 13;
     const uint_t d2 = 9;
     const uint_t d3 = 7;
     const uint_t halo_size = 0;
 
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t >
+        data_store_t;
 
     storage_info_t meta_;
 
@@ -180,7 +172,7 @@ class expandable_parameters : public testing::Test {
 };
 
 TEST_F(expandable_parameters, copy) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(expand_factor< 2 >(),
+    auto comp = gridtools::make_computation< backend_t >(expand_factor< 2 >(),
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_out(), p_in())));
@@ -213,12 +205,12 @@ TEST_F(expandable_parameters, copy) {
 //}
 
 TEST_F(expandable_parameters, call_proc_copy) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
-        expand_factor< 2 >(),
-        domain,
-        grid,
-        gridtools::make_multistage(
-            execute< forward >(), gridtools::make_stage< call_proc_copy_functor >(p_out(), p_in())));
+    auto comp =
+        gridtools::make_computation< backend_t >(expand_factor< 2 >(),
+            domain,
+            grid,
+            gridtools::make_multistage(execute< forward >(),
+                                                     gridtools::make_stage< call_proc_copy_functor >(p_out(), p_in())));
 
     execute_computation(comp);
 
@@ -230,7 +222,7 @@ TEST_F(expandable_parameters, call_proc_copy) {
 }
 
 TEST_F(expandable_parameters, call_copy) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(expand_factor< 2 >(),
+    auto comp = gridtools::make_computation< backend_t >(expand_factor< 2 >(),
         domain,
         grid,
         gridtools::make_multistage(execute< forward >(), gridtools::make_stage< call_copy_functor >(p_out(), p_in())));
