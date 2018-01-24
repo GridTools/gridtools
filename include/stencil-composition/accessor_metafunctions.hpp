@@ -56,7 +56,7 @@ namespace gridtools {
     struct is_accessor_readonly : boost::mpl::false_ {};
 
     template < typename Accessor >
-    struct is_accessor_readonly< Accessor, typename std::enable_if< Accessor::intend_t::value == enumtype::in >::type >
+    struct is_accessor_readonly< Accessor, typename std::enable_if< Accessor::intend == enumtype::in >::type >
         : boost::mpl::true_ {};
 
     /* Is written is actually "can be written", since it checks if not read only.*/

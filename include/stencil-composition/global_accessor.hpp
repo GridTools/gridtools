@@ -78,13 +78,12 @@ namespace gridtools {
        Calling the parenthesis operator on the global_accessor generates an instance of
        ```global_accessor_with_arguments```.
      */
-    template < uint_t I, enumtype::intend Intend = enumtype::in > // TODO cleanup
+    template < uint_t I >
     struct global_accessor {
 
-        static const constexpr enumtype::intend intent = enumtype::in;          // TODO cleanup
-        typedef enumtype::enum_type< enumtype::intend, enumtype::in > intend_t; // TODO cleanup
+        static const constexpr enumtype::intend intend = enumtype::in;
 
-        typedef global_accessor< I, Intend > type;
+        typedef global_accessor< I > type;
 
         typedef static_uint< I > index_t;
 
@@ -94,7 +93,7 @@ namespace gridtools {
 
         // copy ctor from another global_accessor with different index
         template < uint_t OtherIndex >
-        GT_FUNCTION constexpr global_accessor(const global_accessor< OtherIndex, Intend > &other) {}
+        GT_FUNCTION constexpr global_accessor(const global_accessor< OtherIndex > &other) {}
 
         /** @brief generates a global_accessor_with_arguments and returns it by value */
         template < typename... Args >
