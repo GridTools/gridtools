@@ -41,8 +41,8 @@
 
 TEST(StorageHostTest, Simple) {
     // create two storages
-    gridtools::host_storage< int > s1(2, 0, 0);
-    gridtools::host_storage< int > s2(2, 0, 0);
+    gridtools::host_storage< int > s1(2);
+    gridtools::host_storage< int > s2(2);
     // test the is_storage check
     GRIDTOOLS_STATIC_ASSERT(
         gridtools::is_storage< decltype(s1) >::type::value, "is_storage check is not working anymore");
@@ -73,8 +73,8 @@ TEST(StorageHostTest, Simple) {
 
 TEST(StorageHostTest, InitializedStorage) {
     // create two storages
-    gridtools::host_storage< int > s1(2, 3);
-    gridtools::host_storage< int > s2(2, 5);
+    gridtools::host_storage< int > s1(2, [](int) { return 3; });
+    gridtools::host_storage< int > s2(2, [](int) { return 5; });
     // check values
     EXPECT_EQ(s1.get_cpu_ptr()[0], 3);
     EXPECT_EQ(s1.get_cpu_ptr()[1], 3);

@@ -114,14 +114,9 @@ namespace gridtools {
          */
         template < uint_t N, typename StorageInfo >
         GT_FUNCTION typename boost::enable_if_c< (N == 0), bool >::type equality_check(StorageInfo a, StorageInfo b) {
-            // return (a.template dim< N >() == b.template dim< N >()) &&
-            //        (a.template stride< N >() == b.template stride< N >()) &&
-            //        (a.template unaligned_dim< N >() == b.template unaligned_dim< N >()) &&
-            //        (a.template unaligned_stride< N >() == b.template unaligned_stride< N >()) &&
-            //        (a.length() == b.length()) && (a.total_length() == b.total_length()) &&
-            //        (a.padded_total_length() == b.padded_total_length()) &&
-            //        (a.get_initial_offset() == b.get_initial_offset());
-            return true;
+            return (a.template dim< N >() == b.template dim< N >()) &&
+                   (a.template stride< N >() == b.template stride< N >()) && (a.length() == b.length()) &&
+                   (a.total_length() == b.total_length()) && (a.padded_total_length() == b.padded_total_length());
         }
 
         /*
@@ -131,12 +126,8 @@ namespace gridtools {
          */
         template < uint_t N, typename StorageInfo >
         GT_FUNCTION typename boost::enable_if_c< (N > 0), bool >::type equality_check(StorageInfo a, StorageInfo b) {
-            // return (a.template dim< N >() == b.template dim< N >()) &&
-            //        (a.template stride< N >() == b.template stride< N >()) &&
-            //        (a.template unaligned_dim< N >() == b.template unaligned_dim< N >()) &&
-            //        (a.template unaligned_stride< N >() == b.template unaligned_stride< N >()) &&
-            //        equality_check< N - 1 >(a, b);
-            return true;
+            return (a.template dim< N >() == b.template dim< N >()) &&
+                   (a.template stride< N >() == b.template stride< N >()) && equality_check< N - 1 >(a, b);
         }
     }
 
@@ -205,11 +196,23 @@ namespace gridtools {
         }
 
         template < uint_t SeqFirst, uint_t... SeqRest, typename Int, typename... Ints >
-        int offset(gt_integer_sequence< uint_t, SeqFirst, SeqRest... >, Int idx, Ints... rest) const {
+        constexpr int offset(gt_integer_sequence< uint_t, SeqFirst, SeqRest... >, Int idx, Ints... rest) const {
             return idx * m_strides[SeqFirst] + offset(gt_integer_sequence< uint_t, SeqRest... >{}, rest...);
         }
 
-        int offset(gt_integer_sequence< uint_t >) const { return 0; }
+        constexpr int offset(gt_integer_sequence< uint_t >) const { return 0; }
+
+        template < int... Inds >
+        constexpr int first_index_impl(gt_integer_sequence< int, Inds... >) const {
+            return index(halo_t::template at< Inds >()...);
+        }
+
+        template < uint_t... Ints, typename... Coords >
+        GT_FUNCTION constexpr bool check_bounds(gt_integer_sequence< uint_t, Ints... >, Coords... coords) const {
+            return accumulate(logical_and(),
+                true,
+                ((layout_t::template at< Ints >() < 0) or ((coords >= 0) and (coords < m_dims[Ints])))...);
+        }
 
       public:
         constexpr static uint_t id = Id;
@@ -448,7 +451,13 @@ namespace gridtools {
                 GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
             GRIDTOOLS_STATIC_ASSERT(sizeof...(Ints) == ndims,
                 GT_INTERNAL_ERROR_MSG("Index function called with wrong number of arguments."));
+#ifdef NDEBUG
             return offset(typename make_gt_integer_sequence< uint_t, ndims >::type{}, idx...);
+#else
+            return error_or_return(check_bounds(typename make_gt_integer_sequence< uint_t, ndims >::type{}, idx...),
+                offset(typename make_gt_integer_sequence< uint_t, ndims >::type{}, idx...),
+                "Storage out of bounds access");
+#endif
         }
 
         /*
@@ -462,7 +471,7 @@ namespace gridtools {
         }
 
         GT_FUNCTION constexpr int first_index_of_inner_region() const {
-            return index(halo_t::template at< 0 >(), halo_t::template at< 1 >(), halo_t::template at< 2 >());
+            return first_index_impl(typename make_gt_integer_sequence< int, ndims >::type{});
         }
 
         /*

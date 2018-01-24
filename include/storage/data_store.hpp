@@ -167,7 +167,7 @@ namespace gridtools {
          */
         constexpr data_store(StorageInfo const &info, std::string const &name = "")
             : m_shared_storage(new storage_t(
-                  info.padded_total_length(), info.first_index_of_inner_region(), StorageInfo::alignment_t::value)),
+                  info.padded_total_length(), info.first_index_of_inner_region(), typename StorageInfo::alignment_t{})),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
@@ -177,7 +177,7 @@ namespace gridtools {
          * @param initializer initialization value
          */
         constexpr data_store(StorageInfo const &info, data_t initializer, std::string const &name = "")
-            : m_shared_storage(new storage_t(info.padded_total_length(), initializer)),
+            : m_shared_storage(new storage_t(info.padded_total_length(), [initializer](int) { return initializer; })),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {}
 
         /**
@@ -191,7 +191,7 @@ namespace gridtools {
             typename appropriate_function_t< data_t, StorageInfo >::type const &initializer,
             std::string const &name = "")
             : m_shared_storage(new storage_t(
-                  info.padded_total_length(), info.get_initial_offset(), StorageInfo::alignment_t::value)),
+                  info.padded_total_length(), info.first_index_of_inner_region(), typename StorageInfo::alignment_t{})),
               m_shared_storage_info(new storage_info_t(info)), m_name(name) {
             // initialize the storage with the given lambda
             lambda_initializer(initializer, info, m_shared_storage->get_cpu_ptr());
@@ -236,8 +236,8 @@ namespace gridtools {
                 "This data store has already been allocated.");
             m_shared_storage_info = std::make_shared< storage_info_t >(info);
             m_shared_storage = std::make_shared< storage_t >(m_shared_storage_info->padded_total_length(),
-                m_shared_storage_info->get_initial_offset(),
-                StorageInfo::alignment_t::value);
+                m_shared_storage_info->first_index_of_inner_region(),
+                typename StorageInfo::alignment_t{});
         }
 
         /**

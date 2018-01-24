@@ -42,7 +42,7 @@
 #include "../../common/gt_assert.hpp"
 #include "../common/state_machine.hpp"
 #include "../common/storage_interface.hpp"
-
+#include "../common/alignment.hpp"
 namespace gridtools {
 
     /*
@@ -73,13 +73,14 @@ namespace gridtools {
          * @brief host_storage constructor. Just allocates enough memory on the Host.
          * @param size defines the size of the storage and the allocated space.
          */
-        /*constexpr*/ host_storage(uint_t size, uint_t offset_to_align, uint_t align)
-            : m_allocated_ptr(new data_t[size + align]) {
-            assert((reinterpret_cast< std::uintptr_t >(m_allocated_ptr) % sizeof(data_t)) == 0);
+        template < uint_t Align = 1 >
+        host_storage(uint_t size, uint_t offset_to_align = 0u, alignment< Align > = alignment< 1u >{})
+            : m_allocated_ptr(new data_t[size + Align]), m_cpu_ptr(nullptr) {
+            // New will align addresses according to the size(data_t)
             uint_t delta =
-                ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (align * sizeof(data_t))) /
+                ((reinterpret_cast< std::uintptr_t >(m_allocated_ptr + offset_to_align)) % (Align * sizeof(data_t))) /
                 sizeof(data_t);
-            m_cpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (align - delta);
+            m_cpu_ptr = (delta == 0) ? m_allocated_ptr : m_allocated_ptr + (Align - delta);
         }
 
         /*
@@ -89,7 +90,7 @@ namespace gridtools {
          * @param external_ptr a pointer to the external data
          * @param own ownership information (in this case only externalCPU is valid)
          */
-        explicit constexpr host_storage(uint_t size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
+        explicit host_storage(uint_t size, data_t *external_ptr, ownership own = ownership::ExternalCPU)
             : m_cpu_ptr(external_ptr),
               m_ownership(error_or_return(
                   (own == ownership::ExternalCPU), own, "ownership type must be ExternalCPU when using host_storage")) {
@@ -101,9 +102,12 @@ namespace gridtools {
          * @param size defines the size of the storage and the allocated space.
          * @param initializer initialization value
          */
-        host_storage(uint_t size, data_t initializer) : m_cpu_ptr(new data_t[size]) {
+        template < typename Funct, uint_t Align = 1 >
+        host_storage(
+            uint_t size, Funct initializer, uint_t offset_to_align = 0u, alignment< Align > a = alignment< 1u >{})
+            : host_storage(size, offset_to_align, a) {
             for (uint_t i = 0; i < size; ++i) {
-                m_cpu_ptr[i] = initializer;
+                m_cpu_ptr[i] = initializer(i);
             }
         }
 

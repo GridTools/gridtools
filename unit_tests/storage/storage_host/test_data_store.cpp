@@ -67,7 +67,6 @@ TEST(DataStoreTest, Simple) {
     GRIDTOOLS_STATIC_ASSERT(si.template stride< 0 >() == 9, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(si.template stride< 1 >() == 3, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(si.template stride< 2 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si.get_initial_offset() == 0, "init. offset check failed");
 
     GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 0 >() == 7, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(si_halo.template dim< 1 >() == 5, "dimension check failed.");
@@ -84,7 +83,6 @@ TEST(DataStoreTest, Simple) {
     GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 0 >() == 15, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 1 >() == 3, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(si_halo.template stride< 2 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo.get_initial_offset() == 0, "init. offset check failed");
 
     GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 0 >() == 7, "dimension check failed.");
     GRIDTOOLS_STATIC_ASSERT(si_halo_al.template dim< 1 >() == 5, "dimension check failed.");
@@ -100,7 +98,6 @@ TEST(DataStoreTest, Simple) {
     GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 0 >() == 80, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 1 >() == 16, "stride check failed.");
     GRIDTOOLS_STATIC_ASSERT(si_halo_al.template stride< 2 >() == 1, "stride check failed.");
-    GRIDTOOLS_STATIC_ASSERT(si_halo_al.get_initial_offset() == 0, "init. offset check failed");
 
     // create unallocated data_store
     data_store< host_storage< double >, storage_info_t > ds;

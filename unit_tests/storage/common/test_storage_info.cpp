@@ -45,101 +45,101 @@ TEST(StorageInfo, Strides) {
     {
         storage_info_interface< 0, layout_map< 0, 1, 2 > > si(3, 4, 5);
 
-        EXPECT_EQ((si.stride<0>()), 20);
-        EXPECT_EQ((si.stride<1>()), 5);
-        EXPECT_EQ((si.stride<2>()), 1);
-        EXPECT_EQ((si.padded_total_length()), 3*4*5);
-        EXPECT_EQ((si.total_length()), 3*4*5);
-        EXPECT_EQ((si.length()), 3*4*5);
-   }
-
-   {
-       storage_info_interface< 0, layout_map< 2, 0, 1 > > si(3, 4, 5);
-
-        EXPECT_EQ((si.stride<0>()), 1);
-        EXPECT_EQ((si.stride<1>()), 15);
-        EXPECT_EQ((si.stride<2>()), 3);
-        EXPECT_EQ((si.padded_total_length()), 3*4*5);
-                  EXPECT_EQ((si.total_length()), 3*4*5);
-        EXPECT_EQ((si.total_length()), 3*4*5);
-        EXPECT_EQ((si.length()), 3*4*5);
+        EXPECT_EQ((si.stride< 0 >()), 20);
+        EXPECT_EQ((si.stride< 1 >()), 5);
+        EXPECT_EQ((si.stride< 2 >()), 1);
+        EXPECT_EQ((si.padded_total_length()), 3 * 4 * 5);
+        EXPECT_EQ((si.total_length()), 3 * 4 * 5);
+        EXPECT_EQ((si.length()), 3 * 4 * 5);
     }
-   {
-       storage_info_interface< 0, layout_map< -1, 0, 1 > > si(3, 4, 5);
 
-        EXPECT_EQ((si.stride<0>()), 0);
-        EXPECT_EQ((si.stride<1>()), 5);
-        EXPECT_EQ((si.stride<2>()), 1);
-        EXPECT_EQ((si.padded_total_length()), 4*5);
-        EXPECT_EQ((si.total_length()), 4*5);
-        EXPECT_EQ((si.length()), 4*5);
+    {
+        storage_info_interface< 0, layout_map< 2, 0, 1 > > si(3, 4, 5);
+
+        EXPECT_EQ((si.stride< 0 >()), 1);
+        EXPECT_EQ((si.stride< 1 >()), 15);
+        EXPECT_EQ((si.stride< 2 >()), 3);
+        EXPECT_EQ((si.padded_total_length()), 3 * 4 * 5);
+        EXPECT_EQ((si.total_length()), 3 * 4 * 5);
+        EXPECT_EQ((si.total_length()), 3 * 4 * 5);
+        EXPECT_EQ((si.length()), 3 * 4 * 5);
+    }
+    {
+        storage_info_interface< 0, layout_map< -1, 0, 1 > > si(3, 4, 5);
+
+        EXPECT_EQ((si.stride< 0 >()), 0);
+        EXPECT_EQ((si.stride< 1 >()), 5);
+        EXPECT_EQ((si.stride< 2 >()), 1);
+        EXPECT_EQ((si.padded_total_length()), 4 * 5);
+        EXPECT_EQ((si.total_length()), 4 * 5);
+        EXPECT_EQ((si.length()), 4 * 5);
     }
 }
 
 TEST(StorageInfo, StridesAlignment) {
     {
-        storage_info_interface< 0, layout_map< 0, 1, 2 >, halo<0,0,0>, alignment<32> > si(3, 4, 5);
+        storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 0, 0, 0 >, alignment< 32 > > si(3, 4, 5);
 
-        EXPECT_EQ((si.stride<0>()), 128);
-        EXPECT_EQ((si.stride<1>()), 32);
-        EXPECT_EQ((si.stride<2>()), 1);
-        EXPECT_EQ((si.padded_total_length()), 3*4*32);
-        EXPECT_EQ((si.total_length()), 3*4*5);
-        EXPECT_EQ((si.length()), 3*4*5);
-   }
-
-   {
-       storage_info_interface< 0, layout_map< 2, 0, 1 >, halo<0,0,0>, alignment<32> > si(3, 4, 5);
-
-        EXPECT_EQ((si.stride<0>()), 1);
-        EXPECT_EQ((si.stride<1>()), 32*5);
-        EXPECT_EQ((si.stride<2>()), 32);
-        EXPECT_EQ((si.padded_total_length()), 32*4*5);
-        EXPECT_EQ((si.total_length()), 3*4*5);
-        EXPECT_EQ((si.length()), 3*4*5);
+        EXPECT_EQ((si.stride< 0 >()), 128);
+        EXPECT_EQ((si.stride< 1 >()), 32);
+        EXPECT_EQ((si.stride< 2 >()), 1);
+        EXPECT_EQ((si.padded_total_length()), 3 * 4 * 32);
+        EXPECT_EQ((si.total_length()), 3 * 4 * 5);
+        EXPECT_EQ((si.length()), 3 * 4 * 5);
     }
-   {
-       storage_info_interface< 0, layout_map< -1, 0, 1 >, halo<0,0,0>, alignment<32> > si(3, 4, 5);
 
-        EXPECT_EQ((si.stride<0>()), 0);
-        EXPECT_EQ((si.stride<1>()), 32);
-        EXPECT_EQ((si.stride<2>()), 1);
-        EXPECT_EQ((si.padded_total_length()), 4*32);
-        EXPECT_EQ((si.total_length()), 4*5);
-        EXPECT_EQ((si.length()), 4*5);
+    {
+        storage_info_interface< 0, layout_map< 2, 0, 1 >, halo< 0, 0, 0 >, alignment< 32 > > si(3, 4, 5);
+
+        EXPECT_EQ((si.stride< 0 >()), 1);
+        EXPECT_EQ((si.stride< 1 >()), 32 * 5);
+        EXPECT_EQ((si.stride< 2 >()), 32);
+        EXPECT_EQ((si.padded_total_length()), 32 * 4 * 5);
+        EXPECT_EQ((si.total_length()), 3 * 4 * 5);
+        EXPECT_EQ((si.length()), 3 * 4 * 5);
+    }
+    {
+        storage_info_interface< 0, layout_map< -1, 0, 1 >, halo< 0, 0, 0 >, alignment< 32 > > si(3, 4, 5);
+
+        EXPECT_EQ((si.stride< 0 >()), 0);
+        EXPECT_EQ((si.stride< 1 >()), 32);
+        EXPECT_EQ((si.stride< 2 >()), 1);
+        EXPECT_EQ((si.padded_total_length()), 4 * 32);
+        EXPECT_EQ((si.total_length()), 4 * 5);
+        EXPECT_EQ((si.length()), 4 * 5);
     }
 }
 
 TEST(StorageInfo, StridesAlignmentHalo) {
     {
-        storage_info_interface< 0, layout_map< 0, 1, 2 >, halo<1,2,3>, alignment<32> > si(3, 5, 7);
+        storage_info_interface< 0, layout_map< 0, 1, 2 >, halo< 1, 2, 3 >, alignment< 32 > > si(3, 5, 7);
 
-        EXPECT_EQ((si.stride<0>()), 32*5);
-        EXPECT_EQ((si.stride<1>()), 32);
-        EXPECT_EQ((si.stride<2>()), 1);
-        EXPECT_EQ((si.padded_total_length()), 3*5*32);
-        EXPECT_EQ((si.total_length()), 3*5*7);
-        EXPECT_EQ((si.length()), 1);
-   }
-
-   {
-       storage_info_interface< 0, layout_map< 2, 0, 1 >, halo<1,2,3>, alignment<32> > si(3, 5, 7);
-
-        EXPECT_EQ((si.stride<0>()), 1);
-        EXPECT_EQ((si.stride<1>()), 32*7);
-        EXPECT_EQ((si.stride<2>()), 32);
-        EXPECT_EQ((si.padded_total_length()), 32*5*7);
-        EXPECT_EQ((si.total_length()), 3*5*7);
+        EXPECT_EQ((si.stride< 0 >()), 32 * 5);
+        EXPECT_EQ((si.stride< 1 >()), 32);
+        EXPECT_EQ((si.stride< 2 >()), 1);
+        EXPECT_EQ((si.padded_total_length()), 3 * 5 * 32);
+        EXPECT_EQ((si.total_length()), 3 * 5 * 7);
         EXPECT_EQ((si.length()), 1);
     }
-   {
-       storage_info_interface< 0, layout_map< -1, 0, 1 >, halo<1,2,3>, alignment<32> > si(3, 5, 7);
 
-        EXPECT_EQ((si.stride<0>()), 0);
-        EXPECT_EQ((si.stride<1>()), 32);
-        EXPECT_EQ((si.stride<2>()), 1);
-        EXPECT_EQ((si.padded_total_length()), 5*32);
-        EXPECT_EQ((si.total_length()), 5*7);
+    {
+        storage_info_interface< 0, layout_map< 2, 0, 1 >, halo< 1, 2, 3 >, alignment< 32 > > si(3, 5, 7);
+
+        EXPECT_EQ((si.stride< 0 >()), 1);
+        EXPECT_EQ((si.stride< 1 >()), 32 * 7);
+        EXPECT_EQ((si.stride< 2 >()), 32);
+        EXPECT_EQ((si.padded_total_length()), 32 * 5 * 7);
+        EXPECT_EQ((si.total_length()), 3 * 5 * 7);
+        EXPECT_EQ((si.length()), 1);
+    }
+    {
+        storage_info_interface< 0, layout_map< -1, 0, 1 >, halo< 1, 2, 3 >, alignment< 32 > > si(3, 5, 7);
+
+        EXPECT_EQ((si.stride< 0 >()), 0);
+        EXPECT_EQ((si.stride< 1 >()), 32);
+        EXPECT_EQ((si.stride< 2 >()), 1);
+        EXPECT_EQ((si.padded_total_length()), 5 * 32);
+        EXPECT_EQ((si.total_length()), 5 * 7);
         EXPECT_EQ((si.length()), 1);
     }
 }
@@ -148,28 +148,28 @@ TEST(StorageInfo, IndexVariadic) {
     {
         storage_info_interface< 0, layout_map< 0, 1, 2 > > si(3, 4, 5);
 
-        EXPECT_EQ((si.index(0,0,0)), 0);
-        EXPECT_EQ((si.index(0,0,1)), 1);
-        EXPECT_EQ((si.index(0,1,0)), 5);
-        EXPECT_EQ((si.index(1,0,0)), 20);
+        EXPECT_EQ((si.index(0, 0, 0)), 0);
+        EXPECT_EQ((si.index(0, 0, 1)), 1);
+        EXPECT_EQ((si.index(0, 1, 0)), 5);
+        EXPECT_EQ((si.index(1, 0, 0)), 20);
     }
 
     {
-       storage_info_interface< 0, layout_map< 2, 0, 1 > > si(3, 4, 5);
+        storage_info_interface< 0, layout_map< 2, 0, 1 > > si(3, 4, 5);
 
-        EXPECT_EQ((si.index(0,0,0)), 0);
-        EXPECT_EQ((si.index(0,0,1)), 3);
-        EXPECT_EQ((si.index(0,1,0)), 15);
-        EXPECT_EQ((si.index(1,0,0)), 1);
+        EXPECT_EQ((si.index(0, 0, 0)), 0);
+        EXPECT_EQ((si.index(0, 0, 1)), 3);
+        EXPECT_EQ((si.index(0, 1, 0)), 15);
+        EXPECT_EQ((si.index(1, 0, 0)), 1);
     }
     {
-       storage_info_interface< 0, layout_map< -1, 0, 1 > > si(3, 4, 5);
+        storage_info_interface< 0, layout_map< -1, 0, 1 > > si(3, 4, 5);
 
-        EXPECT_EQ((si.index(0,0,0)), 0);
-        EXPECT_EQ((si.index(0,0,1)), 1);
-        EXPECT_EQ((si.index(0,1,0)), 5);
-        EXPECT_EQ((si.index(1,0,0)), 0);
-        EXPECT_EQ((si.index(1,1,1)), 6);
+        EXPECT_EQ((si.index(0, 0, 0)), 0);
+        EXPECT_EQ((si.index(0, 0, 1)), 1);
+        EXPECT_EQ((si.index(0, 1, 0)), 5);
+        EXPECT_EQ((si.index(1, 0, 0)), 0);
+        EXPECT_EQ((si.index(1, 1, 1)), 6);
     }
 }
 
@@ -230,17 +230,17 @@ TEST(StorageInfo, Simple) {
     }
 
     // storage info has to be constexpr capable
-    // constexpr storage_info_interface< 0, layout_map< 1, 0, 2 > > si(3, 3, 3);
-    // GRIDTOOLS_STATIC_ASSERT(si.padded_total_length() == 27, "storage info is not constexpr anymore");
-    // GRIDTOOLS_STATIC_ASSERT(si.total_length() == 27, "storage info is not constexpr anymore");
-    // GRIDTOOLS_STATIC_ASSERT(si.length() == 27, "storage info is not constexpr anymore");
-    // GRIDTOOLS_STATIC_ASSERT(si.total_length< 0 >() == 3, "storage info is not constexpr anymore");
-    // GRIDTOOLS_STATIC_ASSERT(si.stride< 0 >() == 3, "storage info is not constexpr anymore");
-    // GRIDTOOLS_STATIC_ASSERT(si.stride< 1 >() == 9, "storage info is not constexpr anymore");
-    // GRIDTOOLS_STATIC_ASSERT(si.stride< 2 >() == 1, "storage info is not constexpr anymore");
-    // GRIDTOOLS_STATIC_ASSERT(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
-    // GRIDTOOLS_STATIC_ASSERT(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
-    // GRIDTOOLS_STATIC_ASSERT(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
+    constexpr storage_info_interface< 0, layout_map< 1, 0, 2 > > si(3, 3, 3);
+    GRIDTOOLS_STATIC_ASSERT(si.padded_total_length() == 27, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.total_length() == 27, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.length() == 27, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.total_length< 0 >() == 3, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.stride< 0 >() == 3, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.stride< 1 >() == 9, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.stride< 2 >() == 1, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.index(0, 1, 0) == 9, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.index(1, 0, 0) == 3, "storage info is not constexpr anymore");
+    GRIDTOOLS_STATIC_ASSERT(si.index(0, 0, 1) == 1, "storage info is not constexpr anymore");
 
     // test wiht different dims
     storage_info_interface< 0, layout_map< 1, 2, 3, 0 > > x(5, 7, 8, 2);
@@ -398,10 +398,10 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.stride< 2 >()), 1);
         EXPECT_EQ((x.stride< 3 >()), 32 * 11 * 7);
 
-        EXPECT_EQ(x.index(0, 0, 0, 0), 0); // halo point
-        EXPECT_EQ(x.index(0, 0, 1, 0), 1); // halo point
-        EXPECT_EQ(x.index(0, 0, 2, 0), 2); // halo point
-        EXPECT_EQ(x.index(0, 0, 3, 0), 3); // first data point, aligned
+        EXPECT_EQ(x.index(0, 0, 0, 0), 0);                     // halo point
+        EXPECT_EQ(x.index(0, 0, 1, 0), 1);                     // halo point
+        EXPECT_EQ(x.index(0, 0, 2, 0), 2);                     // halo point
+        EXPECT_THROW(x.index(0, 0, 3, 0), std::runtime_error); // first data point, aligned
     }
     {
         // test with different dims, halo and alignment
@@ -433,11 +433,6 @@ TEST(StorageInfo, Alignment) {
         EXPECT_EQ((x.dim< 1 >()), 7);
         EXPECT_EQ((x.dim< 2 >()), 8);
         EXPECT_EQ((x.dim< 3 >()), 10);
-
-        // EXPECT_EQ((x.unaligned_dim< 0 >()), 7);
-        // EXPECT_EQ((x.unaligned_dim< 1 >()), 1);
-        // EXPECT_EQ((x.unaligned_dim< 2 >()), 1);
-        // EXPECT_EQ((x.unaligned_dim< 3 >()), 10);
 
         EXPECT_EQ((x.stride< 0 >()), 1);
         EXPECT_EQ((x.stride< 1 >()), 0);
@@ -513,7 +508,7 @@ TEST(StorageInfo, BeginEnd) {
     storage_info_interface< 0, layout_map< 1, 2, 0 >, halo< 1, 2, 3 >, alignment< 16 > > z(9, 11, 13);
     EXPECT_EQ(z.length(), 7 * 7 * 7);
     EXPECT_EQ(z.total_length(), 9 * 11 * 13);
-    EXPECT_EQ(z.padded_total_length(), 9 * 16 * 13 + z.get_initial_offset());
+    EXPECT_EQ(z.padded_total_length(), 9 * 16 * 13);
     EXPECT_EQ((z.begin< 0 >()), 1);
     EXPECT_EQ((z.end< 0 >()), 7);
     EXPECT_EQ((z.total_begin< 0 >()), 0);

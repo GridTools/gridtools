@@ -542,8 +542,8 @@ namespace gridtools {
         int_t ptr_offset = BackendTraits::template fields_offset< LocalDomain, BlockSize, ArgT, GridTraits >(sinfo);
         T *base_address = ptr - ptr_offset;
         // assert that the distance between the base address and the requested address is not exceeding the limits
-        int_t dist_to_first = (ptr + offset) - (base_address + sinfo->total_begin());
-        int_t dist_to_last = (ptr + offset) - (base_address + sinfo->total_end());
+        int_t dist_to_first = (ptr + offset) - (base_address);
+        int_t dist_to_last = (ptr + offset) - (base_address + sinfo->total_length());
         return (dist_to_last <= 0) && (dist_to_first >= 0);
     }
 
