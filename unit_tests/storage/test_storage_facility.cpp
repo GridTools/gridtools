@@ -115,7 +115,7 @@ namespace {
             (is_storage_info< storage_info_ty >::type::value), "is_storage_info metafunction is not working anymore");
         GRIDTOOLS_STATIC_ASSERT(
             (boost::is_same< storage_info_ty,
-                mic_storage_info< 0, layout_map< 2, 0, 1 >, halo< 1, 2, 3 >, alignment< 1 > > >::type::value),
+                mic_storage_info< 0, layout_map< 2, 0, 1 >, halo< 1, 2, 3 >, alignment< 8 > > >::type::value),
             "storage info test failed");
 
         // special layout
@@ -123,7 +123,7 @@ namespace {
             special_storage_info_ty;
         GRIDTOOLS_STATIC_ASSERT(
             (boost::is_same< special_storage_info_ty,
-                mic_storage_info< 0, layout_map< 1, 0, -1 >, halo< 1, 2, 3 >, alignment< 1 > > >::type::value),
+                mic_storage_info< 0, layout_map< 1, 0, -1 >, halo< 1, 2, 3 >, alignment< 8 > > >::type::value),
             "storage info test failed");
 
         /*########## DATA STORE CHECKS ########## */
