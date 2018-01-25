@@ -258,7 +258,9 @@ namespace gridtools {
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
          */
-        template < typename... Dims, typename = is_all_integral< Dims... > >
+        template < typename... Dims,
+            typename std::enable_if< sizeof...(Dims) == ndims && is_all_integral_or_enum< Dims... >::value,
+                int >::type = 0 >
         GT_FUNCTION explicit constexpr storage_info_interface(Dims... dims_)
             : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                   handle_masked_dims< LayoutArgs >::extend(dims_))...},
@@ -266,13 +268,7 @@ namespace gridtools {
                   align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                       handle_masked_dims< LayoutArgs >::extend(dims_))...)),
               m_alignment(array< uint_t, sizeof...(Dims) >{(uint_t)handle_masked_dims< LayoutArgs >::extend(dims_)...},
-                  get_strides< layout_t >::get_stride_array(handle_masked_dims< LayoutArgs >::extend(dims_)...)) {
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
-                                        typename is_all_integral_or_enum< Dims... >::type >::value),
-                GT_INTERNAL_ERROR_MSG("Dimensions have to be integral types."));
-            GRIDTOOLS_STATIC_ASSERT((sizeof...(Dims) == ndims),
-                GT_INTERNAL_ERROR_MSG("Number of passed dimensions do not match the layout map length."));
-        }
+                  get_strides< layout_t >::get_stride_array(handle_masked_dims< LayoutArgs >::extend(dims_)...)) {}
 
         using seq =
             gridtools::apply_gt_integer_sequence< typename gridtools::make_gt_integer_sequence< int, ndims >::type >;

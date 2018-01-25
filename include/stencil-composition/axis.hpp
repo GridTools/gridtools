@@ -69,12 +69,12 @@ namespace gridtools {
 
         using full_interval = interval< level< 0, -1 >, level< NIntervals, -1 > >;
 
-        template < typename... IntervalSizes, typename = is_all_integral< IntervalSizes... > >
+        template < typename... IntervalSizes,
+            typename std::enable_if< sizeof...(IntervalSizes) == NIntervals &&
+                                         is_all_integral< IntervalSizes... >::value,
+                int >::type = 0 >
         axis(IntervalSizes... interval_sizes)
-            : interval_sizes_{interval_sizes...} {
-            GRIDTOOLS_STATIC_ASSERT(
-                (sizeof...(interval_sizes) == NIntervals), "Number of intervals does not match the axis");
-        }
+            : interval_sizes_{interval_sizes...} {}
 
         uint_t interval_size(const uint_t index) const { return interval_sizes_[index]; }
         const array< uint_t, NIntervals > &interval_sizes() const { return interval_sizes_; };

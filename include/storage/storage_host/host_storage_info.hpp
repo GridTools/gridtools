@@ -66,16 +66,14 @@ namespace gridtools {
          * @brief host_storage_info constructor.
          * @param dims_ the dimensionality (e.g., 128x128x80)
          */
-        template < typename... Dims, typename = is_all_integral< Dims... > >
-        explicit constexpr host_storage_info(Dims... dims_)
-            : storage_info_interface< Id, Layout, Halo, Alignment >(dims_...) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >, is_all_integral< Dims... > >::value),
-                "Dimensions have to be integral types.");
-        }
+        template < typename... Dims,
+            typename std::enable_if< sizeof...(Dims) == ndims && is_all_integral_or_enum< Dims... >::value,
+                int >::type = 0 >
+        explicit constexpr host_storage_info(Dims... dims)
+            : storage_info_interface< Id, Layout, Halo, Alignment >(dims...) {}
 
         /*
-         * @brief cuda_storage_info constructor.
+         * @brief host_storage_info constructor.
          * @param dims the dimensionality (e.g., 128x128x80)
          * @param strides the strides used to describe a layout of the data in memory
          */

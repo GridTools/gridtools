@@ -778,12 +778,8 @@ namespace gridtools {
             typename ValueType,
             typename Halo = halo< 0, 0, 0, 0 >,
             typename Selector = selector< 1, 1, 1, 1 >,
-            typename... IntTypes
-#if defined(CUDA8) || !defined(__CUDACC__)
-            ,
-            typename Dummy = is_all_integral< IntTypes... >
-#endif
-            >
+            typename... IntTypes,
+            typename std::enable_if< is_all_integral< IntTypes... >, int >::type = 0 >
         data_store_t< LocationType, ValueType, Halo, Selector > make_storage(
             char const *name, IntTypes... extra_dims) const {
             GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "ERROR: location type is wrong");
