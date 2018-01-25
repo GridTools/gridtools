@@ -34,6 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+#include "generic_metafunctions/accumulate.hpp"
 #include "host_device.hpp"
 
 namespace gridtools {
@@ -70,8 +71,6 @@ namespace gridtools {
 #undef constexpr
 #endif
 
-        // TODO can I rename direction by index?
-        static const ushort_t direction = Coordinate;
         static const ushort_t index = Coordinate;
         int_t value;
 

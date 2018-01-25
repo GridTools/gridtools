@@ -161,11 +161,10 @@ namespace gridtools {
         static const uint_t N_DATA_POINTERS =
             total_storages< typename local_domain_t::storage_wrapper_list_t, N_STORAGES >::type::value;
 
-        typedef array< int_t, N_META_STORAGES > array_index_t;
-
       public:
         typedef data_ptr_cached< typename local_domain_t::storage_wrapper_list_t > data_ptr_cached_t;
         typedef strides_cached< N_META_STORAGES - 1, storage_info_ptrs_t > strides_cached_t;
+        typedef array< int_t, N_META_STORAGES > array_index_t;
         // *************** end of type definitions **************
 
       protected:
@@ -182,12 +181,6 @@ namespace gridtools {
         data_ptr_cached_t const &RESTRICT data_pointer() const {
             return static_cast< const IterateDomainImpl * >(this)->data_pointer_impl();
         }
-
-        /**
-           @brief returns the array of pointers to the raw data as const reference
-        */
-        GT_FUNCTION
-        array_index_t const &RESTRICT index() const { return m_index; }
 
       protected:
         /**
@@ -259,25 +252,16 @@ namespace gridtools {
                                         strides()));
         }
 
-        /**@brief getter for the index array */
-        GT_FUNCTION
-        void get_index(array< int_t, N_META_STORAGES > &index) const {
-            set_index_recur< N_META_STORAGES - 1 >::set(m_index, index);
-        }
+        GT_FUNCTION array_index_t const &index() const { return m_index; }
 
         /**@brief method for setting the index array
         * This method is responsible of assigning the index for the memory access at
         * the location (i,j,k). Such index is shared among all the fields contained in the
         * same storage class instance, and it is not shared among different storage instances.
         */
-        // TODO implement the recursive one, as below, performance is better
-        template < typename Value >
-        GT_FUNCTION void set_index(array< Value, N_META_STORAGES > const &index) {
-            set_index_recur< N_META_STORAGES - 1 >::set(index, m_index);
-        }
+        GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
-        GT_FUNCTION
-        void set_index(const int index) { set_index_recur< N_META_STORAGES - 1 >::set(index, m_index); }
+        GT_FUNCTION void reset_index() { m_index = array_index_t{}; }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
            \tparam Coordinate dimension being incremented

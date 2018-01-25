@@ -171,7 +171,7 @@ namespace gridtools {
                 iblock = threadIdx.x % padded_boundary_ + block_size_t::i_size_t::value;
                 jblock = (int)threadIdx.x / padded_boundary_ + max_extent_t::jminus::value;
             }
-            it_domain.set_index(0);
+            it_domain.reset_index();
 
             // initialize the indices
             it_domain.template initialize< 0 >(i + starti, blockIdx.x);

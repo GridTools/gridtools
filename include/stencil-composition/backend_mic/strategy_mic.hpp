@@ -59,34 +59,30 @@ namespace gridtools {
 
         /**
          * @brief loops over all blocks and execute sequentially all mss functors for each block
-         * @tparam MssComponentsArray a meta array with the mss components of all MSS
+         * @tparam MssComponents a meta array with the mss components of all MSS
          * @tparam BackendIds ids of backend
          */
-        template < typename MssComponentsArray, typename BackendIds, typename ReductionData >
+        template < typename MssComponents, typename BackendIds, typename ReductionData >
         struct fused_mss_loop {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+            GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponents, is_mss_components >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
 
           private:
             // meta function to check if an MssComponent can be executed in parallel along k-axis
-            template < typename MssComponents >
+            template < typename MssComps >
             struct is_parallel {
                 using type =
-                    boost::mpl::bool_< MssComponents::execution_engine_t::type::execution == enumtype::parallel_impl >;
+                    boost::mpl::bool_< MssComps::execution_engine_t::type::execution == enumtype::parallel_impl >;
             };
 
             // boolean type that is true iff all MssComponents can be executed in parallel along k-axis
-            using all_parallel =
-                typename boost::mpl::fold< typename boost::mpl::transform< typename MssComponentsArray::elements,
-                                               is_parallel< boost::mpl::placeholders::_1 > >::type,
-                    boost::mpl::true_,
-                    boost::mpl::and_< boost::mpl::placeholders::_1, boost::mpl::placeholders::_2 > >::type;
+            using all_parallel = typename boost::mpl::fold<
+                typename boost::mpl::transform< MssComponents, is_parallel< boost::mpl::placeholders::_1 > >::type,
+                boost::mpl::true_,
+                boost::mpl::and_< boost::mpl::placeholders::_1, boost::mpl::placeholders::_2 > >::type;
 
-            using iter_range = boost::mpl::range_c< uint_t,
-                0,
-                boost::mpl::size< typename MssComponentsArray::elements >::type::value >;
+            using iter_range = boost::mpl::range_c< uint_t, 0, boost::mpl::size< MssComponents >::type::value >;
 
           public:
             template < typename LocalDomainListArray, typename Grid >
@@ -102,7 +98,7 @@ namespace gridtools {
                 const Grid &grid,
                 ReductionData &reduction_data,
                 boost::mpl::true_) {
-                using mss_functor_t = mss_functor< MssComponentsArray,
+                using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,
                     BackendIds,
@@ -137,7 +133,7 @@ namespace gridtools {
                 const Grid &grid,
                 ReductionData &reduction_data,
                 boost::mpl::false_) {
-                using mss_functor_t = mss_functor< MssComponentsArray,
+                using mss_functor_t = mss_functor< MssComponents,
                     Grid,
                     LocalDomainListArray,
                     BackendIds,

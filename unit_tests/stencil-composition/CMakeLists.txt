@@ -3,7 +3,7 @@ fetch_host_tests(.)
 fetch_mic_tests(.)
 fetch_gpu_tests(.)
 
-# collect the cache and redcution tests.
+# collect the cache redcution and conditionals tests.
 #those are only enabled when using structured grids
 if (STRUCTURED_GRIDS)
     fetch_host_tests(caches)
@@ -12,6 +12,8 @@ if (STRUCTURED_GRIDS)
     fetch_host_tests(reductions)
     fetch_mic_tests(reductions)
     fetch_gpu_tests(reductions)
+    fetch_host_tests(conditionals)
+    fetch_gpu_tests(conditionals)
 endif()
 
 # collect the grid specific test cases

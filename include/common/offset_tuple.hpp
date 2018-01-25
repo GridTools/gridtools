@@ -58,26 +58,26 @@ namespace gridtools {
     /**@brief method for initializing the offsets in the placeholder
        Version valid for one dimension
        \param x is an instance of the \ref gridtools::enumtype::dimension class, which contains the offset (x.value) and
-       the dimension index (X::direction)
+       the dimension index (X::index)
     */
     template < ushort_t N, typename X >
     GT_FUNCTION constexpr int_t initialize(X const &x) {
         GRIDTOOLS_STATIC_ASSERT(is_dimension< X >::value,
             "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
-        return (X::direction == N ? x.value : 0);
+        return (X::index == N ? x.value : 0);
     }
 
     /**@brief method for initializing the offsets in the placeholder
        Version valid for arbitrary dimension
        \param x is an instance of the \ref gridtools::dimension class, which contains the offset (x.value) and the
-       dimension index (X::direction)
+       dimension index (X::index)
        \param rest are the remaining arguments, which get considered one at a time in by means of recursive calls
     */
     template < ushort_t N, typename X, typename... Rest >
     GT_FUNCTION constexpr int_t initialize(X const &x, Rest const &... rest) {
         GRIDTOOLS_STATIC_ASSERT(is_dimension< X >::value,
             "you passed an integer to the accessor instead of an instance of ```dimension<>```.");
-        return X::direction == N ? x.value : initialize< N >(rest...);
+        return X::index == N ? x.value : initialize< N >(rest...);
     }
 
     namespace _impl {
@@ -238,7 +238,7 @@ namespace gridtools {
             typename Dummy = typename all_dimensions< dimension< 0 >, Dimensions... >::type >
         GT_FUNCTION constexpr offset_tuple(const uint_t pos, array< int_t, ArrayDim > const &offsets, Dimensions... d) {
             GRIDTOOLS_STATIC_ASSERT((ArrayDim <= NDim),
-                GT_INTERNAL_ERROR_MSG("ERROR, can not speficy offsets with larger dimension than accessor dimensions"));
+                GT_INTERNAL_ERROR_MSG("ERROR, cannot specify offsets with larger dimension than accessor dimensions"));
         }
 
         template < typename... GenericElements,
@@ -279,4 +279,10 @@ namespace gridtools {
 
     template < int_t Index, int_t NDim >
     struct is_offset_tuple< offset_tuple< Index, NDim > > : boost::mpl::true_ {};
+
+    template < typename T >
+    class tuple_size;
+
+    template < int_t Index, int_t NDim >
+    class tuple_size< offset_tuple< Index, NDim > > : public gridtools::static_size_t< NDim > {};
 } // namespace gridtools

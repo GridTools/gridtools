@@ -49,26 +49,13 @@
 #include "../common/offset_tuple_mixed.hpp"
 #include "extent.hpp"
 #include "arg_fwd.hpp"
-#include "dimension_fwd.hpp"
+#include "accessor_metafunctions.hpp"
 
 namespace gridtools {
 
     // forward declaration
     template < int_t Index, int_t NDim >
     struct offset_tuple;
-
-    // metafunction that determines if a type is a valid accessor ctr argument
-    template < typename T >
-    struct is_accessor_ctr_args {
-        typedef typename boost::mpl::or_< typename boost::is_integral< T >::type,
-            typename is_dimension< T >::type >::type type;
-    };
-
-    // metafunction that determines if a variadic pack are valid accessor ctr arguments
-    template < typename... Types >
-    using all_accessor_ctr_args =
-        typename boost::enable_if_c< accumulate(logical_and(), is_accessor_ctr_args< Types >::type::value...),
-            bool >::type;
 
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
@@ -173,7 +160,7 @@ namespace gridtools {
         GT_FUNCTION constexpr accessor_base(First f, Rest... x)
             : m_offsets(f, x...) {
             GRIDTOOLS_STATIC_ASSERT(
-                accumulate(logical_and(), (First::direction <= n_dimensions), (Rest::direction <= n_dimensions)...),
+                accumulate(logical_and(), (First::index <= n_dimensions), (Rest::index <= n_dimensions)...),
                 "trying to access a too high dimension for accessor");
             GRIDTOOLS_STATIC_ASSERT(sizeof...(x) <= n_dimensions - 1,
                 "the number of arguments passed to the offset_tuple constructor exceeds the number of space dimensions "

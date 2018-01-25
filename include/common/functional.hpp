@@ -41,8 +41,6 @@
 
 #include <utility>
 
-#include <boost/utility/result_of.hpp>
-
 namespace gridtools {
     /// Forward the args to constructor.
     template < typename T >
@@ -54,6 +52,31 @@ namespace gridtools {
 
 #ifndef BOOST_RESULT_OF_USE_DECLTYPE
         using result_type = T;
+#endif
+    };
+
+    struct noop {
+        template < typename... Args >
+        void operator()(Args &&...) const {}
+
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+        using result_type = void;
+#endif
+    };
+
+    struct identity {
+        template < typename Arg >
+        Arg operator()(Arg &&arg) const {
+            return arg;
+        }
+
+#ifndef BOOST_RESULT_OF_USE_DECLTYPE
+        template < typename >
+        struct result;
+        template < typename Arg >
+        struct result< identity(Arg &&) > {
+            using type = Arg;
+        };
 #endif
     };
 }

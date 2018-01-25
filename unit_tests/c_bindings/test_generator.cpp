@@ -34,52 +34,76 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-#include <common/permute_to.hpp>
+#include <c_bindings/handle.hpp>
+#include <c_bindings/generator.hpp>
 
-#include <utility>
+#include <sstream>
 
 #include <gtest/gtest.h>
 
-#include <boost/fusion/include/vector.hpp>
-#include <boost/fusion/include/comparison.hpp>
-#include <boost/fusion/include/make_vector.hpp>
-
 namespace gridtools {
+    namespace c_bindings {
+        namespace {
 
-    using boost::fusion::vector;
-    using boost::fusion::make_vector;
+            GT_ADD_GENERATED_DECLARATION(void(), foo);
+            GT_ADD_GENERATED_DECLARATION(gt_handle *(int, double const *, gt_handle *), bar);
+            GT_ADD_GENERATED_DECLARATION(void(int *const *volatile *const *), baz);
 
-    TEST(permute_to, lref) {
-        vector<> src;
-        EXPECT_TRUE(permute_to< vector<> >(src) == make_vector());
+            const char expected_c_interface[] = R"?(
+struct gt_handle;
+
+#ifdef __cplusplus
+extern "C" {
+#else
+typedef struct gt_handle gt_handle;
+#endif
+
+void gt_release(gt_handle*);
+gt_handle* bar(int, double*, gt_handle*);
+void baz(int****);
+void foo();
+
+#ifdef __cplusplus
+}
+#endif
+)?";
+
+            TEST(generator, c_interface) {
+                std::ostringstream strm;
+                EXPECT_EQ(generate_c_interface(strm).str(), expected_c_interface);
+            }
+
+            const char expected_fortran_interface[] = R"?(
+module gt_import
+implicit none
+  interface
+
+    subroutine gt_release(h) bind(c)
+      use iso_c_binding
+      type(c_ptr), value :: h
+    end
+    type(c_ptr) function bar(arg0, arg1, arg2) bind(c)
+      use iso_c_binding
+      integer(c_int), value :: arg0
+      real(c_double), dimension(*) :: arg1
+      type(c_ptr), value :: arg2
+    end
+    subroutine baz(arg0) bind(c)
+      use iso_c_binding
+      type(c_ptr) :: arg0
+    end
+    subroutine foo() bind(c)
+      use iso_c_binding
+    end
+
+  end interface
+end
+)?";
+
+            TEST(generator, fortran_interface) {
+                std::ostringstream strm;
+                EXPECT_EQ(generate_fortran_interface(strm).str(), expected_fortran_interface);
+            }
+        }
     }
-
-    TEST(permute_to, cref) {
-        vector<> const src;
-        EXPECT_TRUE(permute_to< vector<> >(src) == make_vector());
-    }
-
-    template < typename Res, typename... Args >
-    Res testee(Args &&... args) {
-        return permute_to< Res >(make_vector(std::forward< Args >(args)...));
-    }
-
-    TEST(permute_to, empty) { EXPECT_TRUE(testee< vector<> >() == make_vector()); }
-
-    TEST(permute_to, one) { EXPECT_TRUE(testee< vector< int > >(42) == make_vector(42)); }
-
-    TEST(permute_to, functional) {
-        using res_t = vector< int, char, double >;
-        res_t expected{42, 'a', .1};
-        EXPECT_TRUE(testee< res_t >(42, 'a', .1) == expected);
-        EXPECT_TRUE(testee< res_t >(42, .1, 'a') == expected);
-        EXPECT_TRUE(testee< res_t >('a', 42, .1) == expected);
-        EXPECT_TRUE(testee< res_t >('a', .1, 42) == expected);
-        EXPECT_TRUE(testee< res_t >(.1, 42, 'a') == expected);
-        EXPECT_TRUE(testee< res_t >(.1, 'a', 42) == expected);
-    }
-
-    TEST(permute_to, unused_extra_args) { EXPECT_TRUE((testee< vector< int > >('a', 42, .1, 12) == make_vector(42))); }
-
-    TEST(permute_to, duplicates_in_res) { EXPECT_TRUE((testee< vector< int, int > >(42) == make_vector(42, 42))); }
 }

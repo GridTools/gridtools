@@ -42,7 +42,6 @@
 
 #pragma once
 
-#include "common/meta_array.hpp"
 #include "mss_metafunctions.hpp"
 #include "mss_local_domain.hpp"
 #include "mss.hpp"
@@ -105,7 +104,7 @@ namespace gridtools {
         typename ExecutionInfo >
     struct mss_functor {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssLocalDomainArray, is_mss_local_domain >::value), GT_INTERNAL_ERROR);
-        GRIDTOOLS_STATIC_ASSERT((is_meta_array_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
+        GRIDTOOLS_STATIC_ASSERT((is_sequence_of< MssComponentsArray, is_mss_components >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_backend_ids< BackendIds >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_reduction_data< ReductionData >::value), GT_INTERNAL_ERROR);
@@ -161,9 +160,8 @@ namespace gridtools {
         void operator()(Index const &) const {
             typedef typename boost::fusion::result_of::value_at< MssLocalDomainArray, Index >::type mss_local_domain_t;
             GRIDTOOLS_STATIC_ASSERT((is_mss_local_domain< mss_local_domain_t >::value), GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT(
-                (Index::value < boost::mpl::size< typename MssComponentsArray::elements >::value), GT_INTERNAL_ERROR);
-            typedef typename boost::mpl::at< typename MssComponentsArray::elements, Index >::type mss_components_t;
+            GRIDTOOLS_STATIC_ASSERT((Index::value < boost::mpl::size< MssComponentsArray >::value), GT_INTERNAL_ERROR);
+            typedef typename boost::mpl::at< MssComponentsArray, Index >::type mss_components_t;
 
             typedef typename mss_local_domain_list< mss_local_domain_t >::type local_domain_list_t;
             typedef typename mss_local_domain_esf_args_map< mss_local_domain_t >::type local_domain_esf_args_map_t;

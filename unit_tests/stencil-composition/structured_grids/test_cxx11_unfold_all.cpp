@@ -34,10 +34,9 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #include "gtest/gtest.h"
+#include "backend_select.hpp"
 #include <gridtools.hpp>
 #include <stencil-composition/stencil-composition.hpp>
-
-#include "backend_select.hpp"
 
 template < gridtools::uint_t Id >
 struct functor {
@@ -55,8 +54,6 @@ bool predicate() { return false; }
 TEST(unfold_all, test) {
 
     using namespace gridtools;
-
-    conditional< 0 > cond(predicate);
 
     auto grid = make_grid(2, 2, 3);
 
@@ -90,5 +87,5 @@ TEST(unfold_all, test) {
             make_stage< functor< 11 > >(p0(), p1()),
             make_independent(make_stage< functor< 12 > >(p0(), p1()), make_stage< functor< 13 > >(p0(), p1()))));
 
-    auto comp = make_computation< backend_t >(domain, grid, if_(cond, mss1, mss2));
+    auto comp = make_computation< backend_t >(domain, grid, if_(predicate, mss1, mss2));
 }

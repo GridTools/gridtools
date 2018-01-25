@@ -64,10 +64,9 @@ namespace gridtools {
         typedef static_uint< 2 > dim_k_t;
 
         struct select_mss_compute_extent_sizes {
-            template < typename PlaceholdersMap, typename Mss, uint_t RepeatFunctor >
+            template < typename PlaceholdersMap, typename Mss >
             struct apply {
-                typedef
-                    typename compute_extents_of< PlaceholdersMap, RepeatFunctor >::template for_mss< Mss >::type type;
+                typedef typename compute_extents_of< PlaceholdersMap >::template for_mss< Mss >::type type;
             };
         };
 
@@ -110,8 +109,8 @@ namespace gridtools {
 
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.k_max() + 1);
-            const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
-            const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
+            const uint_t threads_i = Backend::n_i_pes(grid.i_high_bound() - grid.i_low_bound());
+            const uint_t threads_j = Backend::n_j_pes(grid.j_high_bound() - grid.j_low_bound());
             constexpr int halo_i = storage_info_t::halo_t::template at< dim_i_t::value >();
             constexpr int halo_j = storage_info_t::halo_t::template at< dim_j_t::value >();
 
@@ -156,8 +155,8 @@ namespace gridtools {
 
             // get all the params (size in i,j,k and number of threads in i,j)
             const uint_t k_size = (grid.k_max() + 1);
-            const uint_t threads_i = Backend::n_i_pes()(grid.i_high_bound() - grid.i_low_bound());
-            const uint_t threads_j = Backend::n_j_pes()(grid.j_high_bound() - grid.j_low_bound());
+            const uint_t threads_i = Backend::n_i_pes(grid.i_high_bound() - grid.i_low_bound());
+            const uint_t threads_j = Backend::n_j_pes(grid.j_high_bound() - grid.j_low_bound());
 
             constexpr int full_block_size = StorageWrapper::tileI_t::s_tile + 2 * MaxExtent::value;
             constexpr int diff_between_blocks = ((storage_info_t::alignment_t::value > 1)

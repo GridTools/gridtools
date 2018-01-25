@@ -36,6 +36,7 @@
 #pragma once
 #include <boost/mpl/for_each.hpp>
 
+#include "../../common/functional.hpp"
 #include "../backend_traits_fwd.hpp"
 #include "../block_size.hpp"
 #include "../empty_iterate_domain_cache.hpp"
@@ -64,52 +65,18 @@ namespace gridtools {
     struct backend_traits_from_id< enumtype::Mic > {
 
         /** This is the function used to extract a pointer out of a given storage info.
-            In the case of Mic backend we have to return the CPU pointer.
+            In the case of Host backend we have to return the CPU pointer.
         */
-        template < typename StorageInfoPtr >
-        static StorageInfoPtr extract_storage_info_ptr(StorageInfoPtr t) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_storage_info< typename boost::decay< decltype(*t) >::type >::value), GT_INTERNAL_ERROR);
-            return t;
-        }
+        using extract_storage_info_ptr_f = identity;
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
-           data_store_field) an appropriate view is returned. When using the Mic backend we return host view instances.
+           data_store_field) an appropriate view is returned. When using the Host backend we return host view instances.
         */
-        template < typename AggregatorType >
-        struct instantiate_view {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-
-            AggregatorType const &m_agg;
-            instantiate_view(AggregatorType &agg) : m_agg(agg) {}
-
-            template < typename ViewFusionMapElem,
-                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            arg_storage_pair< Arg, typename Arg::data_store_t > const &get_arg_storage_pair() const {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
-                return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::data_store_t > >(
-                    m_agg.get_arg_storage_pairs()));
-            }
-
-            // specialization for creating view instance for data stores
-            template < typename ViewFusionMapElem,
-                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            typename boost::enable_if< is_data_store< typename Arg::data_store_t >, void >::type operator()(
-                ViewFusionMapElem &t) const {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
-                // make a view
-                t = make_host_view(get_arg_storage_pair< ViewFusionMapElem >().m_value);
-            }
-
-            // specialization for creating view instance for data store fields
-            template < typename ViewFusionMapElem,
-                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            typename boost::enable_if< is_data_store_field< typename Arg::data_store_t >, void >::type operator()(
-                ViewFusionMapElem &t) const {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
-                // make a view
-                t = make_field_host_view(get_arg_storage_pair< ViewFusionMapElem >().m_value);
-            }
+        struct make_view_f {
+            template < typename S, typename SI >
+            auto operator()(data_store< S, SI > const &src) const GT_AUTO_RETURN(make_host_view(src));
+            template < typename S, uint_t... N >
+            auto operator()(data_store_field< S, N... > const &src) const GT_AUTO_RETURN(make_field_host_view(src));
         };
 
         template < typename Arguments >
@@ -154,6 +121,8 @@ namespace gridtools {
         static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(StorageInfo const *sinfo) {
             return StorageInfo::get_initial_offset();
         }
+
+        using setup_grid_f = noop;
 
         /**
          * @brief main execution of a mss. Defines the IJ loop bounds of this particular block

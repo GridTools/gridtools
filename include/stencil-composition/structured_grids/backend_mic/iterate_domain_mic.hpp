@@ -213,10 +213,7 @@ namespace gridtools {
             m_block_base_j = block_base_j;
         }
 
-        GT_FUNCTION void set_index(int index) {
-            assert(index == 0);
-            m_index_i = m_index_j = m_index_k = m_block_base_i = m_block_base_j = 0;
-        }
+        GT_FUNCTION void reset_index() { m_index_i = m_index_j = m_index_k = m_block_base_i = m_block_base_j = 0; }
 
         template < ushort_t Coordinate >
         GT_FUNCTION void set_block_index(int_t v) {
@@ -228,10 +225,12 @@ namespace gridtools {
                 m_index_k = v;
         }
 
-        GT_FUNCTION void get_index(array< int_t, N_META_STORAGES > &index) const {
+        GT_FUNCTION array< int_t, N_META_STORAGES > index() const {
             using index_range = boost::mpl::range_c< int_t, 0, N_META_STORAGES >;
+            array< int_t, N_META_STORAGES > index;
             index_getter ig(*this, index);
             boost::mpl::for_each< index_range >(ig);
+            return index;
         }
 
         GT_FUNCTION void set_prefetch_distance(int_t prefetch_distance) { m_prefetch_distance = prefetch_distance; }

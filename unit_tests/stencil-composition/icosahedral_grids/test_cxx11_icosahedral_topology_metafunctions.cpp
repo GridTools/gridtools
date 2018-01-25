@@ -67,7 +67,7 @@ TEST(icosahedral_topology_metafunctions, array_dim_initializer) {
     constexpr auto array_ =
         impl::array_dim_initializers< uint_t, 4, location_type< 0, 2 >, selector< 1, 1, 1, 1 > >::apply(
             array< uint_t, 3 >{3, 4, 5});
-    GRIDTOOLS_STATIC_ASSERT((array_.n_dimensions == 4), "error");
+    GRIDTOOLS_STATIC_ASSERT((array_.size() == 4), "error");
     GRIDTOOLS_STATIC_ASSERT((array_[0] == 3), "error");
     GRIDTOOLS_STATIC_ASSERT((array_[1] == 2), "error");
     GRIDTOOLS_STATIC_ASSERT((array_[2] == 4), "error");
@@ -76,7 +76,7 @@ TEST(icosahedral_topology_metafunctions, array_dim_initializer) {
     constexpr auto array2_ =
         impl::array_dim_initializers< uint_t, 6, location_type< 0, 1 >, selector< 1, 1, 0, 1, 1, 1 > >::apply(
             array< uint_t, 3 >{3, 4, 5}, 7, 8);
-    GRIDTOOLS_STATIC_ASSERT((array2_.n_dimensions == 6), "error");
+    GRIDTOOLS_STATIC_ASSERT((array2_.size() == 6), "error");
     GRIDTOOLS_STATIC_ASSERT((array2_[0] == 3), "error");
     GRIDTOOLS_STATIC_ASSERT((array2_[1] == 1), "error");
     GRIDTOOLS_STATIC_ASSERT((array2_[3] == 5), "error");
