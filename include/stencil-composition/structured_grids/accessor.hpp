@@ -43,11 +43,11 @@
 /**
    @file
 
-   @brief File containing the definition of the regular accessor used 
-   to address the storage (at offsets) from whithin the functors.  
-   This accessor is a proxy for a storage class, i.e. it is a light 
-   object used in place of the storage when defining the high level 
-   computations, and it will be bound later on with a specific 
+   @brief File containing the definition of the regular accessor used
+   to address the storage (at offsets) from whithin the functors.
+   This accessor is a proxy for a storage class, i.e. it is a light
+   object used in place of the storage when defining the high level
+   computations, and it will be bound later on with a specific
    instantiation of a storage class.
 
    An accessor can be instantiated directly in the Do
@@ -76,11 +76,11 @@ namespace gridtools {
                moment of the storage instantiation (in the main function)
      */
     template < uint_t ID,
-        enumtype::intend Intend = enumtype::in,
+        enumtype::intent Intent = enumtype::in,
         typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t Number = 3 >
-    struct accessor : public accessor_base< ID, Intend, Extent, Number > {
-        typedef accessor_base< ID, Intend, Extent, Number > super;
+    struct accessor : public accessor_base< ID, Intent, Extent, Number > {
+        typedef accessor_base< ID, Intent, Extent, Number > super;
         typedef typename super::index_t index_t;
         typedef typename super::offset_tuple_t offset_tuple_t;
 

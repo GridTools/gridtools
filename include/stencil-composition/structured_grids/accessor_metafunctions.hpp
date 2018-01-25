@@ -44,11 +44,11 @@ namespace gridtools {
     template < typename T >
     struct is_regular_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
-    struct is_regular_accessor< accessor< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intent Intent, typename Extend, ushort_t Number >
+    struct is_regular_accessor< accessor< ID, Intent, Extend, Number > > : boost::mpl::true_ {};
 
-    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
-    struct is_regular_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intent Intent, typename Extend, ushort_t Number >
+    struct is_regular_accessor< accessor_base< ID, Intent, Extend, Number > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_regular_accessor< const T > : is_regular_accessor< T > {};
@@ -56,28 +56,28 @@ namespace gridtools {
     template < typename T >
     struct is_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
-    struct is_accessor< accessor< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intent Intent, typename Extend, ushort_t Number >
+    struct is_accessor< accessor< ID, Intent, Extend, Number > > : boost::mpl::true_ {};
 
-    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
-    struct is_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intent Intent, typename Extend, ushort_t Number >
+    struct is_accessor< accessor_base< ID, Intent, Extend, Number > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_grid_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
-    struct is_grid_accessor< accessor< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intent Intent, typename Extend, ushort_t Number >
+    struct is_grid_accessor< accessor< ID, Intent, Extend, Number > > : boost::mpl::true_ {};
 
-    template < uint_t ID, enumtype::intend Intend, typename Extend, ushort_t Number >
-    struct is_grid_accessor< accessor_base< ID, Intend, Extend, Number > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intent Intent, typename Extend, ushort_t Number >
+    struct is_grid_accessor< accessor_base< ID, Intent, Extend, Number > > : boost::mpl::true_ {};
 
     // TODO add documentation
     template < typename Accessor, unsigned Ext >
     struct accessor_extend;
 
-    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, unsigned Ext >
-    struct accessor_extend< accessor< ID, Intend, Extend, Number >, Ext > {
-        typedef accessor< ID, Intend, Extend, (Number + Ext) > type;
+    template < ushort_t ID, enumtype::intent Intent, typename Extend, ushort_t Number, unsigned Ext >
+    struct accessor_extend< accessor< ID, Intent, Extend, Number >, Ext > {
+        typedef accessor< ID, Intent, Extend, (Number + Ext) > type;
     };
 
     /**
@@ -87,9 +87,9 @@ namespace gridtools {
     template < typename Accessor, typename ArgsMap, typename Enable = void >
     struct remap_accessor_type {};
 
-    template < ushort_t ID, enumtype::intend Intend, typename Extend, ushort_t Number, typename ArgsMap >
-    struct remap_accessor_type< accessor< ID, Intend, Extend, Number >, ArgsMap > {
-        using type = accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend, Extend, Number >;
+    template < ushort_t ID, enumtype::intent Intent, typename Extend, ushort_t Number, typename ArgsMap >
+    struct remap_accessor_type< accessor< ID, Intent, Extend, Number >, ArgsMap > {
+        using type = accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intent, Extend, Number >;
     };
 
     template < typename ArgsMap, template < typename... > class Expression, typename... Arguments >

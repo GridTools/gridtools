@@ -44,20 +44,20 @@ namespace gridtools {
     template < typename T >
     struct is_regular_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
-    struct is_regular_accessor< accessor< ID, Intend, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intent Intent, typename LocationType, typename Extent, ushort_t FieldDimensions >
+    struct is_regular_accessor< accessor< ID, Intent, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
-    struct is_accessor< accessor< ID, Intend, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intent Intent, typename LocationType, typename Extent, ushort_t FieldDimensions >
+    struct is_accessor< accessor< ID, Intent, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
 
     template < typename T >
     struct is_grid_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
-    struct is_grid_accessor< accessor< ID, Intend, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
+    template < uint_t ID, enumtype::intent Intent, typename LocationType, typename Extent, ushort_t FieldDimensions >
+    struct is_grid_accessor< accessor< ID, Intent, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
 
     /**
      * @brief metafunction that given an accesor and a map, it will remap the index of the accessor according
@@ -67,13 +67,13 @@ namespace gridtools {
     struct remap_accessor_type {};
 
     template < uint_t ID,
-        enumtype::intend Intend,
+        enumtype::intent Intent,
         typename LocationType,
         typename Extent,
         ushort_t FieldDimensions,
         typename ArgsMap >
-    struct remap_accessor_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions >, ArgsMap > {
-        typedef accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intend, LocationType, Extent, FieldDimensions >
+    struct remap_accessor_type< accessor< ID, Intent, LocationType, Extent, FieldDimensions >, ArgsMap > {
+        typedef accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intent, LocationType, Extent, FieldDimensions >
             type;
     };
 

@@ -89,17 +89,17 @@ namespace gridtools {
 
        \param arg the vector accessor
      */
-        template < uint_t ACC_ID, enumtype::intend Intend, typename LocationType, typename Extent, uint_t Size >
+        template < uint_t ACC_ID, enumtype::intent Intent, typename LocationType, typename Extent, uint_t Size >
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
-            accessor< ACC_ID, Intend, LocationType, Extent, Size > >::type
-        operator()(vector_accessor< ACC_ID, Intend, LocationType, Extent, Size > const &arg) const {
+            accessor< ACC_ID, Intent, LocationType, Extent, Size > >::type
+        operator()(vector_accessor< ACC_ID, Intent, LocationType, Extent, Size > const &arg) const {
             typedef typename super::template accessor_return_type<
-                accessor< ACC_ID, Intend, LocationType, Extent, Size > >::type return_t;
+                accessor< ACC_ID, Intent, LocationType, Extent, Size > >::type return_t;
 
             GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), GT_INTERNAL_ERROR);
-            accessor< ACC_ID, Intend, LocationType, Extent, Size > tmp_(arg);
+            accessor< ACC_ID, Intent, LocationType, Extent, Size > tmp_(arg);
             tmp_.template set< 0 >(ID);
-            return super::operator()(static_cast< const accessor< ACC_ID, Intend, LocationType, Extent, Size > >(tmp_));
+            return super::operator()(static_cast< const accessor< ACC_ID, Intent, LocationType, Extent, Size > >(tmp_));
         }
     };
 

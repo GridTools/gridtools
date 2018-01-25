@@ -72,7 +72,7 @@ namespace gridtools {
        @brief object to be accessed regardless the current iteration point
 
        \tparam I unique accessor identifier
-       \tparam Intend the global accessors must me read-only
+       \tparam Intent the global accessors must me read-only
 
        This accessor allows the user to call a user function contained in a user-defined object.
        Calling the parenthesis operator on the global_accessor generates an instance of
@@ -81,7 +81,7 @@ namespace gridtools {
     template < uint_t I >
     struct global_accessor {
 
-        static const constexpr enumtype::intend intend = enumtype::in;
+        static const constexpr enumtype::intent intent = enumtype::in;
 
         typedef global_accessor< I > type;
 

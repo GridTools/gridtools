@@ -80,19 +80,19 @@ namespace gridtools {
      * @tparam I Index of the argument in the function argument list
      * @tparam Extend Bounds over which the function access the argument
      */
-    template < uint_t I, enumtype::intend Intend, typename Extend, ushort_t Dim >
+    template < uint_t I, enumtype::intent Intent, typename Extend, ushort_t Dim >
     struct accessor_base {
 
         // typedef useful when unnecessary indirections are used
-        typedef accessor_base< I, Intend, Extend, Dim > type;
-        template < uint_t II, enumtype::intend It, typename R, ushort_t D >
+        typedef accessor_base< I, Intent, Extend, Dim > type;
+        template < uint_t II, enumtype::intent It, typename R, ushort_t D >
         friend std::ostream &operator<<(std::ostream &s, accessor_base< II, It, R, D > const &x);
 
-        typedef accessor_base< I, Intend, Extend, Dim > base_t;
+        typedef accessor_base< I, Intent, Extend, Dim > base_t;
         static const ushort_t n_dimensions = Dim;
 
         typedef static_uint< I > index_t;
-        static const constexpr enumtype::intend intend = Intend;
+        static const constexpr enumtype::intent intent = Intent;
         typedef Extend extent_t;
         typedef offset_tuple< n_dimensions, n_dimensions > offset_tuple_t;
 
@@ -100,7 +100,7 @@ namespace gridtools {
         offset_tuple_t m_offsets;
 
         // friend of itself with different indices
-        template < uint_t, enumtype::intend, typename, ushort_t >
+        template < uint_t, enumtype::intent, typename, ushort_t >
         friend struct accessor_base;
 
       public:
@@ -123,7 +123,7 @@ namespace gridtools {
 
         // move ctor from another accessor_base with different index
         template < uint_t OtherIndex >
-        GT_FUNCTION constexpr accessor_base(accessor_base< OtherIndex, Intend, Extend, Dim > &&other)
+        GT_FUNCTION constexpr accessor_base(accessor_base< OtherIndex, Intent, Extend, Dim > &&other)
             : m_offsets(std::move(other.m_offsets)) {}
 
         // copy ctor
@@ -132,7 +132,7 @@ namespace gridtools {
 
         // copy ctor from another accessor_base with different index
         template < uint_t OtherIndex >
-        GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intend, Extend, Dim > &other)
+        GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intent, Extend, Dim > &other)
             : m_offsets(other.m_offsets) {}
 
         /**@brief constructor taking the dimension class as argument.
@@ -206,7 +206,7 @@ namespace gridtools {
      * @param n/a Type selector for offset_tuple
      * @return ostream
      */
-    template < uint_t I, enumtype::intend It, typename R, ushort_t D >
+    template < uint_t I, enumtype::intent It, typename R, ushort_t D >
     std::ostream &operator<<(std::ostream &s, accessor_base< I, It, R, D > const &x) {
         s << "[ offset_tuple< " << I << ", " << R() << ", " << It << ", " << D
           // << " (" << x.i()
