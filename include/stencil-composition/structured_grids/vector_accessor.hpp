@@ -75,9 +75,9 @@ namespace gridtools {
     template < uint_t ID, enumtype::intent Intent, typename Extent, uint_t Size >
     struct is_grid_accessor< vector_accessor< ID, Intent, Extent, Size > > : boost::mpl::true_ {};
 
-    template < ushort_t ID, enumtype::intent Intent, typename Extend, ushort_t Number, typename ArgsMap >
-    struct remap_accessor_type< vector_accessor< ID, Intent, Extend, Number >, ArgsMap > {
-        typedef vector_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intent, Extend, Number > type;
+    template < ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, typename ArgsMap >
+    struct remap_accessor_type< vector_accessor< ID, Intent, Extent, Number >, ArgsMap > {
+        typedef vector_accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intent, Extent, Number > type;
     };
 
 } // namespace gridtools

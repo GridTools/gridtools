@@ -78,22 +78,22 @@ namespace gridtools {
      \endverbatim
      *
      * @tparam I Index of the argument in the function argument list
-     * @tparam Extend Bounds over which the function access the argument
+     * @tparam Extent Bounds over which the function access the argument
      */
-    template < uint_t I, enumtype::intent Intent, typename Extend, ushort_t Dim >
+    template < uint_t I, enumtype::intent Intent, typename Extent, ushort_t Dim >
     struct accessor_base {
 
         // typedef useful when unnecessary indirections are used
-        typedef accessor_base< I, Intent, Extend, Dim > type;
+        typedef accessor_base< I, Intent, Extent, Dim > type;
         template < uint_t II, enumtype::intent It, typename R, ushort_t D >
         friend std::ostream &operator<<(std::ostream &s, accessor_base< II, It, R, D > const &x);
 
-        typedef accessor_base< I, Intent, Extend, Dim > base_t;
+        typedef accessor_base< I, Intent, Extent, Dim > base_t;
         static const ushort_t n_dimensions = Dim;
 
         typedef static_uint< I > index_t;
         static const constexpr enumtype::intent intent = Intent;
-        typedef Extend extent_t;
+        typedef Extent extent_t;
         typedef offset_tuple< n_dimensions, n_dimensions > offset_tuple_t;
 
       private:
@@ -123,7 +123,7 @@ namespace gridtools {
 
         // move ctor from another accessor_base with different index
         template < uint_t OtherIndex >
-        GT_FUNCTION constexpr accessor_base(accessor_base< OtherIndex, Intent, Extend, Dim > &&other)
+        GT_FUNCTION constexpr accessor_base(accessor_base< OtherIndex, Intent, Extent, Dim > &&other)
             : m_offsets(std::move(other.m_offsets)) {}
 
         // copy ctor
@@ -132,7 +132,7 @@ namespace gridtools {
 
         // copy ctor from another accessor_base with different index
         template < uint_t OtherIndex >
-        GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intent, Extend, Dim > &other)
+        GT_FUNCTION constexpr accessor_base(const accessor_base< OtherIndex, Intent, Extent, Dim > &other)
             : m_offsets(other.m_offsets) {}
 
         /**@brief constructor taking the dimension class as argument.
@@ -164,7 +164,7 @@ namespace gridtools {
                 "D of the accessor (accessor<Id, extent, D>)");
         }
 
-        static void info() { std::cout << "Arg_type storage with index " << I << " and extent " << Extend() << " "; }
+        static void info() { std::cout << "Arg_type storage with index " << I << " and extent " << Extent() << " "; }
 
         template < short_t Idx >
         GT_FUNCTION constexpr bool end() const {
