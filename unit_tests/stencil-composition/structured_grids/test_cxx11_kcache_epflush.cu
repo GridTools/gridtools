@@ -117,10 +117,10 @@ TEST_F(kcachef, epflush_forward) {
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                        define_caches(cache< K, cache_io_policy::epflush, kfull >(p_out())),
-                                        make_stage< shift_acc_forward_epflush >(p_in() // esf_descriptor
-                                            ,
-                                            p_out())));
+                                          define_caches(cache< K, cache_io_policy::epflush, kfull >(p_out())),
+                                          make_stage< shift_acc_forward_epflush >(p_in() // esf_descriptor
+                                              ,
+                                              p_out())));
 
     kcache_stencil->ready();
 
@@ -173,10 +173,10 @@ TEST_F(kcachef, epflush_backward) {
             m_gridb,
             make_multistage // mss_descriptor
             (execute< backward >(),
-                                        define_caches(cache< K, cache_io_policy::epflush, kfull_b >(p_out())),
-                                        make_stage< shift_acc_backward_epflush >(p_in() // esf_descriptor
-                                            ,
-                                            p_out())));
+                                          define_caches(cache< K, cache_io_policy::epflush, kfull_b >(p_out())),
+                                          make_stage< shift_acc_backward_epflush >(p_in() // esf_descriptor
+                                              ,
+                                              p_out())));
 
     kcache_stencil->ready();
 

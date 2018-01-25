@@ -308,7 +308,7 @@ namespace assembly {
                 grid,
                 make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
                 (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                                            make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+                                              make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp->ready();
         fe_comp->steady();

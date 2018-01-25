@@ -220,12 +220,12 @@ namespace assembly {
         halo_descriptor dj{1, 1, 1, d2 - 3, d2};
         auto grid = make_grid(di, dj, d3 - 1);
 
-        auto fe_comp = make_computation< backend_t >(
-            domain,
-            grid,
-            make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
-            (execute< forward >(), //!\todo parameter used only for overloading purpose?
-                make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
+        auto fe_comp =
+            make_computation< backend_t >(domain,
+                grid,
+                make_multistage        //! \todo all the arguments in the call to make_mss are actually dummy.
+                (execute< forward >(), //!\todo parameter used only for overloading purpose?
+                                              make_stage< integration >(p_phi(), p_psi(), p_jac(), p_f(), p_result())));
 
         fe_comp->ready();
         fe_comp->steady();

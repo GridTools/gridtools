@@ -103,7 +103,7 @@ namespace adv_prepare_tracers {
                 domain_,
                 grid_,
                 make_multistage(enumtype::execute< enumtype::forward >(),
-                                            make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
+                                              make_stage< prepare_tracers >(p_list_out(), p_list_in(), p_rho())));
 
         comp_->ready();
         comp_->steady();

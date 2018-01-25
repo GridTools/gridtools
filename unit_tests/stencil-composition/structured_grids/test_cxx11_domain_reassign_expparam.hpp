@@ -44,8 +44,8 @@
 namespace domain_reassign {
 
     typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< gridtools::float_type,
-        storage_info_t > storage_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< gridtools::float_type, storage_info_t >
+        storage_t;
 
     class gt_example {
 
