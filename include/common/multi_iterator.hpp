@@ -254,15 +254,16 @@ namespace gridtools {
         // TODO makers
         hypercube_view(const array< T, D > &begin, const array< T, D > &end) : begin_{begin}, end_{end} {}
 
-        struct const_iterator {
+        struct grid_iterator {
             array< T, D > pos_;
             const array< T, D > begin_;
             const array< T, D > end_;
-            const_iterator(const array< T, D > &pos, const array< T, D > &begin, const array< T, D > &end)
+
+            grid_iterator(const array< T, D > &pos, const array< T, D > &begin, const array< T, D > &end)
                 : pos_{pos}, begin_{begin}, end_{end} {}
             operator array< T, D >() const { return pos_; }
 
-            const_iterator &operator++() {
+            grid_iterator &operator++() {
                 for (size_t i = 0; i < D; ++i) {
                     size_t index = D - i - 1;
                     if (pos_[index] + 1 < end_[index]) {
@@ -277,22 +278,56 @@ namespace gridtools {
                 return *this;
             }
 
-            array< T, D > &operator*() { return pos_; }
-
-            const_iterator operator++(int) {
-                const_iterator tmp(*this);
+            grid_iterator operator++(int) {
+                grid_iterator tmp(*this);
                 operator++();
                 return tmp;
             }
-            bool operator==(const const_iterator &other) const { return pos_ == other.pos_; }
 
-            bool operator!=(const const_iterator &other) const { return !operator==(other); }
+            array< T, D > &operator*() { return pos_; }
+
+            bool operator==(const grid_iterator &other) const { return pos_ == other.pos_; }
+
+            bool operator!=(const grid_iterator &other) const { return !operator==(other); }
         };
 
-        const_iterator end() const { return const_iterator{end_, end_, end_}; }
-        const_iterator begin() const { return const_iterator{begin_, begin_, end_}; }
+        grid_iterator begin() const { return grid_iterator{begin_, begin_, end_}; }
+        grid_iterator end() const { return grid_iterator{end_, end_, end_}; }
 
+      private:
         array< T, D > begin_;
         array< T, D > end_;
     };
+
+    template < typename IntT >
+    using range_t = array< IntT, 2 >;
+
+    template < typename T >
+    range_t< T > make_range(T left, T right) {
+        return range_t< T >({left, right});
+    }
+
+    // TODO all the makers should actually create a range not a hypercube_view (because of reusability)
+
+    /**
+    * @brief Construct hypercube_view from array of pairs (ranges)
+    */
+    //    template < typename T, size_t Size, typename = all_integral< T > >
+    //    GT_FUNCTION auto make_hypercube_view(const array< range< T >, Size > &range)
+    //        GT_AUTO_RETURN((multi_iterator< T, Size >{range}));
+
+    /**
+    * @brief Construct hypercube_view from a variadic sequence of ranges
+    */
+    template < typename... T, typename = all_integral< T... > >
+    GT_FUNCTION auto make_hypercube_view(range_t< T >... range) GT_AUTO_RETURN(
+        (hypercube_view< typename std::common_type< T... >::type, sizeof...(T) >({range[0]...}, {range[1]...})));
+
+    /**
+    * @brief Construct hypercube_view from a sequence of brace-enclosed initializer lists
+    * (where only the first two entries of each initializer lists are considered)
+    */
+    template < typename... T, typename = all_integral< T... > >
+    GT_FUNCTION auto make_hypercube_view(std::initializer_list< T >... range)
+        GT_AUTO_RETURN(make_hypercube_view(make_range(*range.begin(), *(range.begin() + 1))...));
 }
