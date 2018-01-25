@@ -78,7 +78,8 @@ namespace copy_stencil {
         uint_t d3 = z;
 
         typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< backend_t::s_backend_id >::data_store_field_t< float_type, storage_info_t, 2 > data_store_field_t;
+        typedef storage_traits< backend_t::s_backend_id >::data_store_field_t< float_type, storage_info_t, 2 >
+            data_store_field_t;
         storage_info_t meta_data_(x, y, z);
 
         // Definition of the actual data fields that are used for input/output
