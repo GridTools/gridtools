@@ -69,10 +69,9 @@ namespace gridtools {
     };
 
     /**
-       @brief object to be accessed regardless the current iteration point
+       @brief Object to be accessed regardless of the current iteration point. A global_accessor is always read-only.
 
        \tparam I unique accessor identifier
-       \tparam Intent the global accessors must me read-only
 
        This accessor allows the user to call a user function contained in a user-defined object.
        Calling the parenthesis operator on the global_accessor generates an instance of
