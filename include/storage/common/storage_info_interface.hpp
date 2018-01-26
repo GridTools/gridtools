@@ -59,52 +59,6 @@
 
 namespace gridtools {
 
-    namespace _impl {
-        template < typename Layout, int Max, int i >
-        struct compute_strides {
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &dims) {
-                compute_strides< Layout, Max, i - 1 >::apply(strides, dims);
-                strides[Layout::template find< Max - i >()] =
-                    strides[Layout::template find< Max - i + 1 >()] * dims[Layout::template find< Max - i + 1 >()];
-            }
-        };
-
-        template < typename Layout >
-        struct compute_strides< Layout, -1, -1 > {
-            // Scalar storage - 0-dimensional storage
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &dims) {}
-        };
-
-        template < typename Layout, int Max >
-        struct compute_strides< Layout, Max, 0 > {
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &) {
-                strides[Layout::template find< Max >()] = 1;
-            }
-        };
-
-        template < typename Layout >
-        struct compute_strides< Layout, 0, 0 > {
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &) {
-                strides[Layout::template find< 0 >()] = 1;
-            }
-        };
-
-        template < typename Layout, int Max >
-        struct compute_strides< Layout, Max, Max > {
-            static void apply(
-                array< uint_t, Layout::masked_length > &strides, array< uint_t, Layout::masked_length > const &dims) {
-                compute_strides< Layout, Max, Max - 1 >::apply(strides, dims);
-                strides[Layout::template find< 0 >()] =
-                    strides[Layout::template find< 1 >()] * dims[Layout::template find< 1 >()];
-            }
-        };
-
-    } // namespace _impl
-
     namespace {
 
         /*
@@ -171,12 +125,13 @@ namespace gridtools {
         GT_FUNCTION constexpr storage_info_interface() {}
 
         template < typename T >
-        static constexpr T round_up(T i) {
+        GT_FUNCTION static constexpr T round_up(T i) {
             return (i % alignment_t::value == 0) ? i : (i / alignment_t::value + 1) * alignment_t::value;
         }
 
         template < uint_t... Ints, typename... Dims >
-        static constexpr array< uint_t, ndims > compute_padding(gt_integer_sequence< uint_t, Ints... >, Dims... dims) {
+        GT_FUNCTION static constexpr array< uint_t, ndims > compute_padding(
+            gt_integer_sequence< uint_t, Ints... >, Dims... dims) {
             static_assert(sizeof...(Ints) == sizeof...(Dims), " ");
             return {
                 static_cast< uint_t >((layout_t::template at< Ints >() == max_layout_v) ? round_up(dims) : dims)...};
@@ -196,14 +151,15 @@ namespace gridtools {
         }
 
         template < uint_t SeqFirst, uint_t... SeqRest, typename Int, typename... Ints >
-        constexpr int offset(gt_integer_sequence< uint_t, SeqFirst, SeqRest... >, Int idx, Ints... rest) const {
+        GT_FUNCTION constexpr int offset(
+            gt_integer_sequence< uint_t, SeqFirst, SeqRest... >, Int idx, Ints... rest) const {
             return idx * m_strides[SeqFirst] + offset(gt_integer_sequence< uint_t, SeqRest... >{}, rest...);
         }
 
-        constexpr int offset(gt_integer_sequence< uint_t >) const { return 0; }
+        GT_FUNCTION constexpr int offset(gt_integer_sequence< uint_t >) const { return 0; }
 
         template < int... Inds >
-        constexpr int first_index_impl(gt_integer_sequence< int, Inds... >) const {
+        GT_FUNCTION constexpr int first_index_impl(gt_integer_sequence< int, Inds... >) const {
             return index(halo_t::template at< Inds >()...);
         }
 
@@ -211,7 +167,7 @@ namespace gridtools {
         GT_FUNCTION constexpr bool check_bounds(gt_integer_sequence< uint_t, Ints... >, Coords... coords) const {
             return accumulate(logical_and(),
                 true,
-                ((layout_t::template at< Ints >() < 0) or ((coords >= 0) and (coords < m_dims[Ints])))...);
+                ((layout_t::template at< Ints >() < 0) or (((int)coords >= 0) and (coords < m_dims[Ints])))...);
         }
 
       public:

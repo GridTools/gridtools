@@ -172,7 +172,7 @@ namespace gridtools {
             const uint_t j = Arg::location_t::n_colors::value *
                              (diff_between_blocks * gridDim.x * processing_element_j() * block_size_j);
             // return field offset (Initial storage offset + Alignment correction value + I offset + J offset)
-            return (int)StorageInfo::get_initial_offset() + i + j;
+            return i + j;
         }
 
         /**
@@ -183,7 +183,7 @@ namespace gridtools {
         template < typename LocalDomain, typename PEBlockSize, typename Arg, typename GridTraits, typename StorageInfo >
         GT_FUNCTION static typename boost::enable_if_c< !Arg::is_temporary, int >::type fields_offset(
             StorageInfo const *sinfo) {
-            return StorageInfo::get_initial_offset();
+            return 0;
         }
 
         struct setup_grid_f {

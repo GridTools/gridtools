@@ -59,10 +59,6 @@ void run() {
 
     auto view = gt::make_host_view(s);
 
-    std::cout << i.template padded_length< 0 >() << " <---------------------\n";
-    std::cout << i.template padded_length< 1 >() << " <---------------------\n";
-    std::cout << i.template padded_length< 2 >() << " <---------------------\n";
-
     EXPECT_EQ(reinterpret_cast< std::uintptr_t >(&view(h1, h2, h3)) % a, 0);
     EXPECT_EQ(reinterpret_cast< std::uintptr_t >(&view(
                   h1 + add_or_not< Layout, 0 >(1), h2 + add_or_not< Layout, 1 >(1), h3 + add_or_not< Layout, 2 >(1))) %

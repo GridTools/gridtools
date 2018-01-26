@@ -74,10 +74,10 @@ namespace gridtools {
             static const short_t value = (Max - I) > Max ? I : Max - I;
         };
 
-        static const short_t max = max_value<layout_map< Is... > >::value;
-        typedef layout_map< new_value< Is, max>::value... > type;
+        static const short_t max = max_value< layout_map< Is... > >::value;
+        typedef layout_map< new_value< Is, max >::value... > type;
 
-        static const short_t value = type::value;
+        // static const short_t value = type::value;
     };
 
     template < typename DATALO, typename PROCLO >

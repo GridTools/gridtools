@@ -78,8 +78,8 @@ namespace gridtools {
      * @tparam LayoutArg layout map entry
      * @return return aligned dimension if it should be aligned, otherwise return as is.
      */
-    template < typename Alignment, uint_t MaxLayoutV, int LayoutArg >
-    GT_FUNCTION constexpr uint_t align_dimensions(uint_t dimension) {
+    template < typename Alignment, int_t MaxLayoutV, int LayoutArg, typename Int >
+    GT_FUNCTION constexpr uint_t align_dimensions(Int dimension) {
         GRIDTOOLS_STATIC_ASSERT(
             is_alignment< Alignment >::value, GT_INTERNAL_ERROR_MSG("Passed type is no alignment type"));
         return ((Alignment::value > 1) && (LayoutArg == MaxLayoutV))
@@ -123,7 +123,8 @@ namespace gridtools {
     //         return 0;
     //         // return ((Alignment::value > 1u) && (get_first_stride_dim_halo() > 0))
     //         //            ? static_cast< uint_t >(
-    //         //                  gt_ceil((float)get_first_stride_dim_halo() / (float)Alignment::value) * Alignment::value -
+    //         //                  gt_ceil((float)get_first_stride_dim_halo() / (float)Alignment::value) *
+    //         Alignment::value -
     //         //                  get_first_stride_dim_halo())
     //         //            : 0;
     //     }

@@ -48,7 +48,7 @@ __global__ void check(View view, Ptr *pgres, gt::uint_t h1, gt::uint_t h2, gt::u
 
 template < typename Layout, gt::int_t I >
 constexpr gt::uint_t add_or_not(gt::uint_t x) {
-    return (Layout::find(2) == I) ? 0 : 1;
+    return (Layout::find(1) == I) ? x : 0;
 }
 
 template < typename ValueType, gt::uint_t a, typename Layout >
@@ -72,7 +72,7 @@ void run() {
     cudaMemcpy(pgres, &res, sizeof(int), cudaMemcpyHostToDevice);
     check<<< 1, 1 >>>(view, pgres, h1, h2, h3, a);
     cudaMemcpy(&res, pgres, sizeof(int), cudaMemcpyDeviceToHost);
-    std::cout << std::hex << reinterpret_cast< std::uintptr_t >(res) << std::dec << "\n";
+
     EXPECT_EQ(reinterpret_cast< std::uintptr_t >(res) % a, 0);
 
     cudaMemcpy(pgres, &res, sizeof(int), cudaMemcpyHostToDevice);
@@ -83,7 +83,7 @@ void run() {
         h3 + add_or_not< Layout, 2 >(1),
         a);
     cudaMemcpy(&res, pgres, sizeof(int), cudaMemcpyDeviceToHost);
-    std::cout << std::hex << reinterpret_cast< std::uintptr_t >(res) << std::dec << "\n";
+
     EXPECT_EQ(reinterpret_cast< std::uintptr_t >(res) % a, 0);
 
     cudaMemcpy(pgres, &res, sizeof(int), cudaMemcpyHostToDevice);
@@ -94,7 +94,7 @@ void run() {
         h3 + add_or_not< Layout, 2 >(2),
         a);
     cudaMemcpy(&res, pgres, sizeof(int), cudaMemcpyDeviceToHost);
-    std::cout << std::hex << reinterpret_cast< std::uintptr_t >(res) << std::dec << "\n";
+
     EXPECT_EQ(reinterpret_cast< std::uintptr_t >(res) % a, 0);
 
     cudaFree(pgres);
