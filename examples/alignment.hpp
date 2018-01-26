@@ -89,7 +89,7 @@ namespace aligned_copy_stencil {
             if (threadIdx.x == 0) {
                 auto ptr = (static_cast< float_type * >(it_domain.get().data_pointer().template get< Index >()[0]) +
                             it_domain.get().index()[0]);
-                result_ = (((uintptr_t)ptr & (alignment - 1)) == 0);
+                result_ = (((uintptr_t)ptr & (alignment)) == 0);
             }
             return result_;
         }
