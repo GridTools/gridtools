@@ -124,19 +124,6 @@ namespace gridtools {
          */
         GT_FUNCTION constexpr storage_info_interface() {}
 
-        template < typename T >
-        GT_FUNCTION static constexpr T round_up(T i) {
-            return (i % alignment_t::value == 0) ? i : (i / alignment_t::value + 1) * alignment_t::value;
-        }
-
-        template < uint_t... Ints, typename... Dims >
-        GT_FUNCTION static constexpr array< uint_t, ndims > compute_padding(
-            gt_integer_sequence< uint_t, Ints... >, Dims... dims) {
-            static_assert(sizeof...(Ints) == sizeof...(Dims), " ");
-            return {
-                static_cast< uint_t >((layout_t::template at< Ints >() == max_layout_v) ? round_up(dims) : dims)...};
-        }
-
         template < uint_t Idx, uint_t... Idxs, typename Array, typename Halo = zero_halo< ndims > >
         GT_FUNCTION static constexpr uint_t multiply_if_layout(
             gt_integer_sequence< uint_t, Idx, Idxs... >, Array const &array, Halo h = zero_halo< ndims >{}) {
@@ -180,10 +167,10 @@ namespace gridtools {
         template < typename... Dims, typename = gridtools::all_integral< Dims... > >
         GT_FUNCTION constexpr explicit storage_info_interface(Dims... dims_)
             : m_dims{static_cast< uint_t >(dims_)...},
-              m_padded_dims{compute_padding(typename make_gt_integer_sequence< uint_t, sizeof...(Dims) >::type{},
-                  static_cast< uint_t >(dims_)...)},
+            m_padded_dims{pad_dimensions< alignment_t, max_layout_v, LayoutArgs >(
+                                                                                  handle_masked_dims< LayoutArgs >::extend(dims_))...},
               m_strides(
-                  get_strides< layout_t >::get_stride_array(align_dimensions< alignment_t, max_layout_v, LayoutArgs >(
+                  get_strides< layout_t >::get_stride_array(pad_dimensions< alignment_t, max_layout_v, LayoutArgs >(
                       handle_masked_dims< LayoutArgs >::extend(dims_))...)) {
 
             GRIDTOOLS_STATIC_ASSERT((boost::mpl::and_< boost::mpl::bool_< (sizeof...(Dims) > 0) >,
