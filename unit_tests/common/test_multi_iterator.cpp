@@ -167,27 +167,28 @@ void print(array< T, 3 > a) {
     std::cout << a << std::endl;
 }
 
-TEST(test_hypercube_iterator, 3D) {
-    hypercube_view< size_t, 3 > view{{0, 1, 0}, {2, 2, 2}};
-
-    auto it = view.begin();
-    array< size_t, 3 > tmp = it;
-
-    //    for( int i = 0; i < 3; ++i )
-    //    {
-    //    it++;
-    //    print(it);}
-
-    for (auto it : view) {
-        print(it);
-    }
-    //    std::cout << print(it) << std::endl;
-}
+// TEST(test_hypercube_iterator, 3D) {
+//    hypercube_view< size_t, 3 > view{{0, 1, 0}, {2, 2, 2}};
+//
+//    auto it = view.begin();
+//    array< size_t, 3 > tmp = it;
+//
+//    //    for( int i = 0; i < 3; ++i )
+//    //    {
+//    //    it++;
+//    //    print(it);}
+//
+//    for (auto it : view) {
+//        print(it);
+//    }
+//    //    std::cout << print(it) << std::endl;
+//}
 
 TEST(test_hypercube_iterator, 3D_range) {
+    //    auto hc = make_hypercube(make_range(0, 2), make_range(1, 2), make_range(0, 2));
     auto view = make_hypercube_view(make_range(0, 2), make_range(1, 2), make_range(0, 2));
 
-    auto it = view.begin();
+    //    auto it = view.begin();
     //    array< size_t, 3 > tmp = it;
 
     //    for( int i = 0; i < 3; ++i )
@@ -204,16 +205,7 @@ TEST(test_hypercube_iterator, 3D_range) {
 TEST(test_hypercube_iterator, 3D_brace_enclosed_init_list) {
     auto view = make_hypercube_view({0, 2}, {1, 2}, {0, 2});
 
-    auto it = view.begin();
-    //    array< size_t, 3 > tmp = it;
-
-    //    for( int i = 0; i < 3; ++i )
-    //    {
-    //    it++;
-    //    print(it);}
-
     for (auto it : view) {
         print(it);
     }
-    //    std::cout << print(it) << std::endl;
 }

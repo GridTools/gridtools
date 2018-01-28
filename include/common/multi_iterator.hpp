@@ -247,34 +247,71 @@ namespace gridtools {
     template < typename T = uint_t >
     GT_FUNCTION auto make_multi_iterator() GT_AUTO_RETURN((multi_iterator< T, 0 >{array< pair< T, T >, 0 >{}}));
 
+    template < typename T >
+    class range {
+      private:
+        T begin_;
+        T end_;
+
+      public:
+        range(T b, T e) : begin_{b}, end_{e} {}
+        GT_FUNCTION T begin() const { return begin_; }
+        GT_FUNCTION T end() const { return end_; }
+    };
+
+    template < typename T >
+    range< T > make_range(T b, T e) {
+        return range< T >{b, e};
+    }
+
+    template < typename T, size_t D >
+    class hypercube : public array< range< T >, D > {
+      public:
+        template < typename... T2, typename = all_integral< T2... > >
+        GT_FUNCTION hypercube(const range< T2 > &... r)
+            : array< range< T >, D >{r...} {}
+
+        array< T, D > begin() const {
+            array< T, D > tmp;
+            for (T i = 0; i < D; ++i)
+                tmp[i] = this->operator[](i).begin();
+            return tmp;
+        }
+        array< T, D > end() const {
+            array< T, D > tmp;
+            for (T i = 0; i < D; ++i)
+                tmp[i] = this->operator[](i).end();
+            return tmp;
+        }
+    };
+
     // should end be included?
     template < typename T, size_t D >
     class hypercube_view {
       public:
-        // TODO makers
-        hypercube_view(const array< T, D > &begin, const array< T, D > &end) : begin_{begin}, end_{end} {}
+        hypercube_view(const hypercube< T, D > &range) : range_{range} {}
 
         struct grid_iterator {
             array< T, D > pos_;
-            const array< T, D > begin_;
-            const array< T, D > end_;
+            const hypercube< T, D > range_;
 
-            grid_iterator(const array< T, D > &pos, const array< T, D > &begin, const array< T, D > &end)
-                : pos_{pos}, begin_{begin}, end_{end} {}
+            grid_iterator(const array< T, D > &pos, const hypercube< T, D > &range) : pos_{pos}, range_{range} {}
+
             operator array< T, D >() const { return pos_; }
 
             grid_iterator &operator++() {
-                for (size_t i = 0; i < D; ++i) {
-                    size_t index = D - i - 1;
-                    if (pos_[index] + 1 < end_[index]) {
+                for (T i = 0; i < D; ++i) {
+                    T index = D - i - 1;
+                    if (pos_[index] + 1 < range_[index].end()) {
                         pos_[index]++;
                         return *this;
                     } else {
-                        pos_[index] = begin_[index];
+                        pos_[index] = range_[index].begin();
                     }
                 }
                 // we reached the end
-                pos_ = end_;
+                for (T i = 0; i < D; ++i)
+                    pos_[i] = range_[i].end();
                 return *this;
             }
 
@@ -291,21 +328,47 @@ namespace gridtools {
             bool operator!=(const grid_iterator &other) const { return !operator==(other); }
         };
 
-        grid_iterator begin() const { return grid_iterator{begin_, begin_, end_}; }
-        grid_iterator end() const { return grid_iterator{end_, end_, end_}; }
+        grid_iterator begin() const { return grid_iterator{range_.begin(), range_}; }
+        grid_iterator end() const { return grid_iterator{range_.end(), range_}; }
 
       private:
-        array< T, D > begin_;
-        array< T, D > end_;
+        hypercube< T, D > range_;
     };
 
-    template < typename IntT >
-    using range_t = array< IntT, 2 >;
+    /**
+    * @brief Construct hypercube_view from a variadic sequence of ranges
+    */
+    template < typename... T, typename = all_integral< T... > >
+    GT_FUNCTION auto make_hypercube(range< T >... r)
+        GT_AUTO_RETURN((hypercube< typename std::common_type< T... >::type, sizeof...(T) >{r...}));
 
-    template < typename T >
-    range_t< T > make_range(T left, T right) {
-        return range_t< T >({left, right});
+    /**
+    * @brief Construct hypercube_view from a sequence of brace-enclosed initializer lists
+    * (where only the first two entries of each initializer lists are considered)
+    */
+    template < typename... T, typename = all_integral< T... > >
+    GT_FUNCTION auto make_hypercube(std::initializer_list< T >... r)
+        GT_AUTO_RETURN(make_hypercube(make_range(*r.begin(), *(r.begin() + 1))...));
+
+    template < typename T, size_t D >
+    hypercube_view< T, D > make_hypercube_view(const hypercube< T, D > &hc) {
+        return hypercube_view< T, D >(hc);
     }
+
+    template < typename... T, typename = all_integral< T... > >
+    GT_FUNCTION auto make_hypercube_view(std::initializer_list< T >... r)
+        GT_AUTO_RETURN(make_hypercube(make_range(*r.begin(), *(r.begin() + 1))...));
+
+    template < typename... T >
+    auto make_hypercube_view(T &&... t) GT_AUTO_RETURN(make_hypercube_view(make_hypercube(std::forward< T >(t)...)));
+
+    //    template < typename IntT >
+    //    using range_t = array< IntT, 2 >;
+    //
+    //    template < typename T >
+    //    range_t< T > make_range(T left, T right) {
+    //        return range_t< T >({left, right});
+    //    }
 
     // TODO all the makers should actually create a range not a hypercube_view (because of reusability)
 
@@ -315,19 +378,4 @@ namespace gridtools {
     //    template < typename T, size_t Size, typename = all_integral< T > >
     //    GT_FUNCTION auto make_hypercube_view(const array< range< T >, Size > &range)
     //        GT_AUTO_RETURN((multi_iterator< T, Size >{range}));
-
-    /**
-    * @brief Construct hypercube_view from a variadic sequence of ranges
-    */
-    template < typename... T, typename = all_integral< T... > >
-    GT_FUNCTION auto make_hypercube_view(range_t< T >... range) GT_AUTO_RETURN(
-        (hypercube_view< typename std::common_type< T... >::type, sizeof...(T) >({range[0]...}, {range[1]...})));
-
-    /**
-    * @brief Construct hypercube_view from a sequence of brace-enclosed initializer lists
-    * (where only the first two entries of each initializer lists are considered)
-    */
-    template < typename... T, typename = all_integral< T... > >
-    GT_FUNCTION auto make_hypercube_view(std::initializer_list< T >... range)
-        GT_AUTO_RETURN(make_hypercube_view(make_range(*range.begin(), *(range.begin() + 1))...));
 }
