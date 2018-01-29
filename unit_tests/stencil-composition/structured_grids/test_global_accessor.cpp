@@ -75,7 +75,7 @@ struct functor1 {
 struct functor2 {
     typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 > > sol;
     typedef accessor< 1, enumtype::inout, extent< 0, 0, 0, 0 > > in;
-    typedef global_accessor< 2, enumtype::inout > bd;
+    typedef global_accessor< 2 > bd;
 
     typedef boost::mpl::vector< sol, in, bd > arg_list;
 

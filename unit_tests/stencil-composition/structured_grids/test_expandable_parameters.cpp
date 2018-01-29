@@ -56,6 +56,19 @@ struct copy_functor {
     }
 };
 
+struct copy_functor_with_expression {
+    typedef vector_accessor< 0, enumtype::inout > out;
+    typedef vector_accessor< 1, enumtype::in > in;
+
+    typedef boost::mpl::vector< out, in > arg_list;
+
+    template < typename Evaluation >
+    GT_FUNCTION static void Do(Evaluation &eval) {
+        // use an expression which is equivalent to a copy to simplify the check
+        eval(out{}) = eval(2. * in{} - in{});
+    }
+};
+
 struct call_proc_copy_functor {
     typedef vector_accessor< 0, enumtype::inout > out;
     typedef vector_accessor< 1, enumtype::in > in;
@@ -172,6 +185,24 @@ TEST_F(expandable_parameters, copy) {
     ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
     ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
 }
+
+// TODO this should be enabled when working on a bug fix for expressions with vector_accessors
+// TEST_F(expandable_parameters, copy_with_expression) {
+//    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+//        expand_factor< 2 >(),
+//        domain,
+//        grid,
+//        gridtools::make_multistage(
+//            execute< forward >(), gridtools::make_stage< copy_functor_with_expression >(p_out(), p_in())));
+//
+//    execute_computation(comp);
+//
+//    ASSERT_TRUE(verifier_.verify(grid, in_1, out_1, verifier_halos));
+//    ASSERT_TRUE(verifier_.verify(grid, in_2, out_2, verifier_halos));
+//    ASSERT_TRUE(verifier_.verify(grid, in_3, out_3, verifier_halos));
+//    ASSERT_TRUE(verifier_.verify(grid, in_4, out_4, verifier_halos));
+//    ASSERT_TRUE(verifier_.verify(grid, in_5, out_5, verifier_halos));
+//}
 
 TEST_F(expandable_parameters, call_proc_copy) {
     auto comp =
