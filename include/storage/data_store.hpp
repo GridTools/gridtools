@@ -244,7 +244,7 @@ namespace gridtools {
             m_shared_storage.reset();
         }
 
-        /*
+        /**
          * @brief function to retrieve the (aligned) size of a dimension (e.g., I, J, or K).
          * @tparam Coord queried coordinate
          * @return size of dimension (aligned, e.g. 10x10x10 storage with alignment<32> on I returns 32x10x10)
@@ -255,7 +255,7 @@ namespace gridtools {
             return m_shared_storage_info->template dim< Coord >();
         }
 
-        /*
+        /**
          * @brief function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
          * @tparam Coord queried coordinate
          * @return size of dimension (unaligned, e.g. 10x10x10 storage with alignment<32> on I returns 10x10x10)
@@ -265,7 +265,8 @@ namespace gridtools {
             ASSERT_OR_THROW((m_shared_storage_info.get()), "data_store is in a non-initialized state.");
             return m_shared_storage_info->template unaligned_dim< Coord >();
         }
-        /*
+
+        /**
          * @brief member function to retrieve the total size (dimensions, halos, padding, initial_offset).
          * @return total size
          */
@@ -274,7 +275,7 @@ namespace gridtools {
             return m_shared_storage_info->padded_total_length();
         }
 
-        /*
+        /**
          * @brief member function to retrieve the inner domain size + halo (dimensions, halos, no initial_offset).
          * @return inner domain size + halo
          */
@@ -283,7 +284,7 @@ namespace gridtools {
             return m_shared_storage_info->total_length();
         }
 
-        /*
+        /**
          * @brief member function to retrieve the inner domain size (dimensions, no halos, no initial_offset).
          * @return inner domain size
          */
@@ -366,7 +367,7 @@ namespace gridtools {
         explicit operator bool() const { return valid(); }
     };
 
-    // simple metafunction to check if a type is a cuda_data_store
+    /// @brief simple metafunction to check if a type is a data_store
     template < typename T >
     struct is_data_store : boost::mpl::false_ {};
 

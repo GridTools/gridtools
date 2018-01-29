@@ -145,6 +145,7 @@ namespace gridtools {
         }
     };
 
+    /// @brief simple metafunction to check if a type is a data_field_view
     template < typename T >
     struct is_data_field_view : boost::mpl::false_ {};
 
