@@ -188,7 +188,7 @@ TEST_F(expandable_parameters, copy) {
 
 // TODO this should be enabled when working on a bug fix for expressions with vector_accessors
 TEST_F(expandable_parameters, copy_with_expression) {
-    auto comp = gridtools::make_computation< gridtools::BACKEND >(
+    auto comp = gridtools::make_computation< backend_t >(
         expand_factor< 2 >(),
         domain,
         grid,
