@@ -104,6 +104,17 @@ namespace gridtools {
 
             return super::operator()(tmp_);
         }
+
+        /** @brief method called in the Do methods of the functors
+
+            Overload of the operator() for expressions.
+        */
+        template < typename... Arguments, template < typename... Args > class Expression >
+        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg)
+            -> decltype(expressions::evaluation::value(*this, arg)) {
+            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
+            return expressions::evaluation::value((*this), arg);
+        }
     };
 
     template < typename T >

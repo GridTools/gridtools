@@ -520,17 +520,6 @@ namespace gridtools {
             return get_value(accessor, get_data_pointer(accessor));
         }
 
-        /** @brief method called in the Do methods of the functors
-
-            Overload of the operator() for expressions.
-        */
-        template < typename... Arguments, template < typename... Args > class Expression >
-        GT_FUNCTION auto operator()(Expression< Arguments... > const &arg)
-            -> decltype(expressions::evaluation::value(*this, arg)) {
-            GRIDTOOLS_STATIC_ASSERT((is_expr< Expression< Arguments... > >::value), "invalid expression");
-            return expressions::evaluation::value((*this), arg);
-        }
-
         /** @brief method called in the Do methods of the functors.
 
             partial specializations for int. Here we do not use the typedef int_t, because otherwise the interface would
