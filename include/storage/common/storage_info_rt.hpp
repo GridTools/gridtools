@@ -53,14 +53,12 @@ namespace gridtools {
         std::vector< uint_t > dims_;
         std::vector< uint_t > unaligned_dims_;
         std::vector< uint_t > strides_;
-        //        std::vector< uint_t > unaligned_strides_;
 
       public:
         storage_info_rt(std::vector< uint_t > dims,
             std::vector< uint_t > unaligned_dims,
-            std::vector< uint_t > strides/*,
-                                           std::vector< uint_t > unaligned_strides*/)
-            : dims_(dims), unaligned_dims_(unaligned_dims), strides_(strides)/*, unaligned_strides_(unaligned_strides)*/ {}
+            std::vector< uint_t > strides)
+            : dims_(dims), unaligned_dims_(unaligned_dims), strides_(strides) {}
 
         const std::vector< uint_t > &dims() const { return dims_; }
         const std::vector< uint_t > &unaligned_dims() const { return unaligned_dims_; }
