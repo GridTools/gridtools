@@ -36,6 +36,9 @@
 
 #pragma once
 
+/** \defgroup Distributed-Boundaries
+ */
+
 #include "./bound_bc.hpp"
 #include "../common/boollist.hpp"
 #include "../common/halo_descriptor.hpp"
@@ -72,6 +75,9 @@ namespace gridtools {
             return pairwise_tuple_cat< Tuples... >::apply(ts...);
         };
     } // namespace _workaround
+
+    /** \ingroup Distributed-Boundaries
+     * @{ */
 
     /**
         @brief This class takes a communication traits class and provide a facility to
@@ -249,5 +255,7 @@ namespace gridtools {
         template < typename Stores, uint_t... Ids >
         static void call_unpack(Stores const &stores, gt_integer_sequence< uint_t >) {}
     };
+
+    /** @} */
 
 } // namespace gridtools
