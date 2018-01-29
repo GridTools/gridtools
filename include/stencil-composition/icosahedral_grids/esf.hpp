@@ -88,7 +88,7 @@ namespace gridtools {
             "The type arg_list was not found in a user functor definition. All user functors must have a type alias "
             "called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor "
             "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
-            "using v2=global_accessor<1, enumtype::in>; \n using v3=accessor<2>; \n using "
+            "using v2=global_accessor<1>; \n using v3=accessor<2>; \n using "
             "arg_list=boost::mpl::vector<v1, v3>;");
 
         /** Type member with the mapping between placeholder types (as key) to extents in the operator */
@@ -115,5 +115,36 @@ namespace gridtools {
     struct esf_get_location_type< esf_descriptor< Functor, Grid, LocationType, Color, ArgSequence > > {
         typedef LocationType type;
     };
+
+    template < template < uint_t > class Functor,
+        typename Grid,
+        typename LocationType,
+        typename Extent,
+        typename Color,
+        typename ArgSequence >
+    struct esf_descriptor_with_extent : public esf_descriptor< Functor, Grid, LocationType, Color, ArgSequence > {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "stage descriptor is expecting a extent type");
+    };
+
+    template < template < uint_t > class Functor,
+        typename Grid,
+        typename LocationType,
+        typename Extent,
+        typename Color,
+        typename ArgSequence >
+    struct is_esf_descriptor< esf_descriptor_with_extent< Functor, Grid, LocationType, Extent, Color, ArgSequence > >
+        : boost::mpl::true_ {};
+
+    template < typename ESF >
+    struct is_esf_with_extent : boost::mpl::false_ {};
+
+    template < template < uint_t > class Functor,
+        typename Grid,
+        typename LocationType,
+        typename Extent,
+        typename Color,
+        typename ArgSequence >
+    struct is_esf_with_extent< esf_descriptor_with_extent< Functor, Grid, LocationType, Extent, Color, ArgSequence > >
+        : boost::mpl::true_ {};
 
 } // namespace gridtools

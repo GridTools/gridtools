@@ -43,6 +43,7 @@
 #include "../iterate_domain_metafunctions.hpp"
 #include "stencil-composition/accessor.hpp"
 #include "../iterate_domain_fwd.hpp"
+#include "../position_offset_type.hpp"
 
 namespace gridtools {
 
@@ -135,7 +136,7 @@ namespace gridtools {
                 typename remap_accessor_type< Accessor, esf_args_map_t >::type >;
 
             GT_FUNCTION
-            array< uint_t, 4 > const &position() const { return m_iterate_domain.position(); }
+            position_offset_type const &position() const { return m_iterate_domain.position(); }
 
             GT_FUNCTION
             explicit iterate_domain_remapper_base(const iterate_domain_t &iterate_domain)
@@ -179,9 +180,9 @@ namespace gridtools {
                      *     and to be evaluated by the iterate domain
                      */
                     template < typename Neighbors, typename IterateDomain, typename... Accessors >
-                    GT_FUNCTION static ValueType apply(Neighbors const &__restrict__ neighbors,
+                    GT_FUNCTION static ValueType apply(Neighbors const &RESTRICT neighbors,
                         IterateDomain const &iterate_domain,
-                        Accessors &__restrict__... args_) {
+                        Accessors &RESTRICT... args_) {
                         return iterate_domain._evaluate(get_from_variadic_pack< Idx >::apply(args_...), neighbors);
                     }
                 };
@@ -258,7 +259,7 @@ namespace gridtools {
                     (boost::is_same<
                          typename boost::remove_const< typename boost::remove_reference< NeighborsArray >::type >::type,
                          unsigned int >::value ||
-                        is_array< typename boost::remove_const<
+                        is_position_offset_type< typename boost::remove_const<
                             typename boost::remove_reference< NeighborsArray >::type >::type >::value),
                     GT_INTERNAL_ERROR);
 
@@ -268,8 +269,7 @@ namespace gridtools {
                     reduce_tuple_holder_t;
 
                 template < typename... Accessors >
-                GT_FUNCTION static void apply(
-                    reduce_tuple_holder_t __restrict__ &reducer, Accessors &__restrict__... args) {
+                GT_FUNCTION static void apply(reduce_tuple_holder_t &RESTRICT reducer, Accessors &RESTRICT... args) {
                     // we need to call the user functor (Reduction(arg1, arg2, ..., result) )
                     // However we can make here a direct call, since we first need to dereference the address of each
                     // Accessor

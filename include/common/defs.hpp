@@ -70,15 +70,32 @@
 #define GT_MAX_INDEPENDENT 3
 #define GT_MAX_MSS 10
 
+#if __cplusplus >= 201402L // since c++14
+#define DEPRECATED(func) [[deprecated]] func
+#define DEPRECATED_REASON(func, msg) [[deprecated(#msg)]] func
+#else
 #ifdef __GNUC__
 #define DEPRECATED(func) func __attribute__((deprecated))
+#define DEPRECATED_REASON(func, msg) DEPRECATED(func)
 #elif defined(_MSC_VER)
 #define DEPRECATED(func) __declspec(deprecated) func
+#define DEPRECATED_REASON(func, msg) DEPRECATED(func)
 #else
 #ifndef SUPPRESS_MESSAGES
 #pragma message("WARNING: You need to implement DEPRECATED for this compiler")
 #endif
 #define DEPRECATED(func) func
+#define DEPRECATED_REASON(func, msg) DEPRECATED(func)
+#endif
+#endif
+
+/**
+ * Macro to allow make functions constexpr in c++14 (in case they are not only a return statement)
+ */
+#if __cplusplus >= 201402L
+#define GT_CXX14CONSTEXPR constexpr
+#else
+#define GT_CXX14CONSTEXPR
 #endif
 
 /** Macro to enable additional checks that may catch some errors in user code
@@ -184,7 +201,7 @@ namespace gridtools {
         /*
          * accessor I/O policy
          */
-        enum intend { in, inout };
+        enum intent { in, inout };
 
 #ifdef __CUDACC__
         static const unsigned int vector_width = 32;
@@ -263,6 +280,10 @@ namespace gridtools {
     "GridTools encountered an internal error. Please submit the error message produced by the compiler to the " \
     "GridTools Development Team. \nMessage\n\n" x
 
+#define GT_AUTO_RETURN(expr)          \
+    ->decltype(expr) { return expr; } \
+    static_assert(1, "")
+
 //################ Type aliases for GridTools ################
 
 /**
@@ -307,6 +328,8 @@ namespace gridtools {
     using static_short = boost::mpl::integral_c< short_t, N >;
     template < ushort_t N >
     using static_ushort = boost::mpl::integral_c< ushort_t, N >;
+    template < size_t N >
+    using static_size_t = boost::mpl::integral_c< size_t, N >;
     template < bool B >
     using static_bool = boost::mpl::integral_c< bool, B >;
 

@@ -95,14 +95,14 @@ TEST_F(kcachef, flush_forward) {
     aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
 
     auto kcache_stencil =
-        make_computation< BACKEND >(domain,
+        make_computation< backend_t >(domain,
             m_grid,
             make_multistage // mss_descriptor
             (execute< forward >(),
-                                        define_caches(cache< K, cache_io_policy::flush, kfull >(p_out())),
-                                        make_stage< shift_acc_forward_flush >(p_in() // esf_descriptor
-                                            ,
-                                            p_out())));
+                                          define_caches(cache< K, cache_io_policy::flush, kfull >(p_out())),
+                                          make_stage< shift_acc_forward_flush >(p_in() // esf_descriptor
+                                              ,
+                                              p_out())));
 
     kcache_stencil->ready();
 
@@ -145,14 +145,14 @@ TEST_F(kcachef, flush_backward) {
     aggregator_type< accessor_list > domain((p_out() = m_out), (p_in() = m_in));
 
     auto kcache_stencil =
-        make_computation< BACKEND >(domain,
+        make_computation< backend_t >(domain,
             m_grid,
             make_multistage // mss_descriptor
             (execute< backward >(),
-                                        define_caches(cache< K, cache_io_policy::flush, kfull >(p_out())),
-                                        make_stage< shift_acc_backward_flush >(p_in() // esf_descriptor
-                                            ,
-                                            p_out())));
+                                          define_caches(cache< K, cache_io_policy::flush, kfull >(p_out())),
+                                          make_stage< shift_acc_backward_flush >(p_in() // esf_descriptor
+                                              ,
+                                              p_out())));
 
     kcache_stencil->ready();
 

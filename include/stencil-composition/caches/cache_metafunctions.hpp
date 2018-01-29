@@ -131,29 +131,20 @@ namespace gridtools {
      * of a given accessor
      * @tparam cacheType type of cache
      * @tparam CacheSequence sequence of caches specified by the user
-     * @tparam CacheExtendsMap map of <cache, extent> determining the extent size of each cache
+     * @tparam CacheExtentsMap map of <cache, extent> determining the extent size of each cache
      * @tparam BlockSize the physical domain block size
      * @tparam LocalDomain the fused local domain
      */
 
     template < cache_type cacheType,
         typename CacheSequence,
-        typename CacheExtendsMap,
+        typename CacheExtentsMap,
         typename BlockSize,
         typename LocalDomain >
     struct get_cache_storage_tuple {
         GRIDTOOLS_STATIC_ASSERT((is_sequence_of< CacheSequence, is_cache >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_block_size< BlockSize >::value), GT_INTERNAL_ERROR);
         GRIDTOOLS_STATIC_ASSERT((is_local_domain< LocalDomain >::value), GT_INTERNAL_ERROR);
-
-        /** metafunction extracting the storage type corresponding to an index from the local_domain*/
-        template < typename LocDom, typename Index >
-        struct get_storage {
-            GRIDTOOLS_STATIC_ASSERT(is_local_domain< LocDom >::value, GT_INTERNAL_ERROR);
-            GRIDTOOLS_STATIC_ASSERT((boost::mpl::size< typename LocDom::storage_wrapper_list_t >::value > Index::value),
-                "accessing a storage which is not in the list");
-            typedef typename LocDom::template get_storage< Index >::type type;
-        };
 
         // In order to build a fusion vector here, we first create an mpl vector of pairs, which is then transformed
         // into a fusion vector.
@@ -172,7 +163,7 @@ namespace gridtools {
             typedef typename boost::mpl::if_< is_storage_wrapper< storage_wrapper_t >,
                 cache_storage< Cache,
                                                   block_size_t,
-                                                  typename boost::mpl::at< CacheExtendsMap, Cache >::type,
+                                                  typename boost::mpl::at< CacheExtentsMap, Cache >::type,
                                                   storage_wrapper_t >,
                 boost::mpl::void_ >::type type;
         };

@@ -42,19 +42,15 @@
 #include <storage/storage-facility.hpp>
 #include <common/gt_assert.hpp>
 
-using namespace gridtools;
+#include "backend_select.hpp"
 
-#ifdef __CUDACC__
-#define BACKEND enumtype::Cuda
-#else
-#define BACKEND enumtype::Host
-#endif
+using namespace gridtools;
 
 TEST(StorageFacility, TypesTest) {
 /*########## STORAGE INFO CHECKS ########## */
 #ifdef __CUDACC__
     // storage info check
-    typedef storage_traits< BACKEND >::storage_info_t< 0, 3, halo< 1, 2, 3 > > storage_info_ty;
+    typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 1, 2, 3 > > storage_info_ty;
     GRIDTOOLS_STATIC_ASSERT(
         (is_storage_info< storage_info_ty >::type::value), "is_storage_info metafunction is not working anymore");
     GRIDTOOLS_STATIC_ASSERT(
@@ -63,7 +59,7 @@ TEST(StorageFacility, TypesTest) {
         "storage info test failed");
 
     // special layout
-    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > >
+    typedef storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > >
         special_storage_info_ty;
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< special_storage_info_ty,
@@ -71,7 +67,7 @@ TEST(StorageFacility, TypesTest) {
         "storage info test failed");
 #else
     // storage info check
-    typedef storage_traits< BACKEND >::storage_info_t< 0, 3, halo< 1, 2, 3 > > storage_info_ty;
+    typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 1, 2, 3 > > storage_info_ty;
     GRIDTOOLS_STATIC_ASSERT(
         (is_storage_info< storage_info_ty >::type::value), "is_storage_info metafunction is not working anymore");
     GRIDTOOLS_STATIC_ASSERT(
@@ -80,7 +76,7 @@ TEST(StorageFacility, TypesTest) {
         "storage info test failed");
 
     // special layout
-    typedef storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > >
+    typedef storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0, selector< 1, 1, 0 >, halo< 1, 2, 3 > >
         special_storage_info_ty;
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< special_storage_info_ty,
@@ -89,7 +85,7 @@ TEST(StorageFacility, TypesTest) {
 #endif
 
     /*########## DATA STORE CHECKS ########## */
-    typedef storage_traits< BACKEND >::data_store_t< double, storage_info_ty > data_store_t;
+    typedef storage_traits< backend_t::s_backend_id >::data_store_t< double, storage_info_ty > data_store_t;
     // data store check (data_t is common, storage_info_t was typedefed before)
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< typename data_store_t::storage_info_t, storage_info_ty >::type::value),
         "data store info type is wrong");
@@ -107,7 +103,8 @@ TEST(StorageFacility, TypesTest) {
 #endif
 
     /*########## DATA STORE FIELD CHECKS ########## */
-    typedef storage_traits< BACKEND >::data_store_field_t< double, storage_info_ty, 1, 2, 3 > data_store_field_t;
+    typedef storage_traits< backend_t::s_backend_id >::data_store_field_t< double, storage_info_ty, 1, 2, 3 >
+        data_store_field_t;
     // data store check (data_t is common, storage_info_t was typedefed before)
     GRIDTOOLS_STATIC_ASSERT(
         (boost::is_same< typename data_store_field_t::storage_info_t, storage_info_ty >::type::value),
@@ -129,9 +126,10 @@ __global__ void kernel(View v) {
 #endif
 
 TEST(StorageFacility, ViewTests) {
-    typedef storage_traits< BACKEND >::storage_info_t< 0, 3 > storage_info_ty;
-    typedef storage_traits< BACKEND >::data_store_t< double, storage_info_ty > data_store_t;
-    typedef storage_traits< BACKEND >::data_store_field_t< double, storage_info_ty, 1, 2, 3 > data_store_field_t;
+    typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_ty;
+    typedef storage_traits< backend_t::s_backend_id >::data_store_t< double, storage_info_ty > data_store_t;
+    typedef storage_traits< backend_t::s_backend_id >::data_store_field_t< double, storage_info_ty, 1, 2, 3 >
+        data_store_field_t;
 
     // create a data_store_t
     storage_info_ty si(3, 3, 3);
@@ -174,70 +172,70 @@ TEST(StorageFacility, ViewTests) {
 }
 
 TEST(StorageFacility, LayoutTests) {
-    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 1 >::layout_t layout1_t;
-    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 2 >::layout_t layout2_t;
-    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 3 >::layout_t layout3_t;
-    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 4 >::layout_t layout4_t;
-    typedef typename storage_traits< BACKEND >::storage_info_t< 0, 5 >::layout_t layout5_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 1 >::layout_t layout1_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 2 >::layout_t layout2_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 >::layout_t layout3_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 4 >::layout_t layout4_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 5 >::layout_t layout5_t;
 
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 1, 1 > >::layout_t
-        layout_s5_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 1, 1 > >::layout_t
-        layout_s51_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 1, 1, 1 > >::layout_t
-        layout_s52_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 1, 1 > >::layout_t
-        layout_s53_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 0, 1 > >::layout_t
-        layout_s54_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 1, 0 > >::layout_t
-        layout_s55_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 1, 1, 1, 1 > >::layout_t layout_s5_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 1, 1, 1, 1 > >::layout_t layout_s51_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 0, 1, 1, 1 > >::layout_t layout_s52_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 1, 0, 1, 1 > >::layout_t layout_s53_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 1, 1, 0, 1 > >::layout_t layout_s54_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 1, 1, 1, 0 > >::layout_t layout_s55_t;
 
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 1, 1, 1 > >::layout_t
-        layout_s56_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 0, 1, 1 > >::layout_t
-        layout_s57_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 0, 1 > >::layout_t
-        layout_s58_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 1, 0, 0 > >::layout_t
-        layout_s59_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 0, 1, 1, 1 > >::layout_t layout_s56_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 0, 0, 1, 1 > >::layout_t layout_s57_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 1, 0, 0, 1 > >::layout_t layout_s58_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 1, 1, 0, 0 > >::layout_t layout_s59_t;
 
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 0, 1, 1 > >::layout_t
-        layout_s510_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 1, 0, 1 > >::layout_t
-        layout_s511_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 1, 0 > >::layout_t
-        layout_s512_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 1, 0, 1, 1 > >::layout_t layout_s510_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 0, 1, 0, 1 > >::layout_t layout_s511_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 1, 0, 1, 0 > >::layout_t layout_s512_t;
 
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 0, 1 > >::layout_t
-        layout_s513_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 1, 1, 0 > >::layout_t
-        layout_s514_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 1, 1, 0, 1 > >::layout_t layout_s513_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 0, 1, 1, 0 > >::layout_t layout_s514_t;
 
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 1, 0 > >::layout_t
-        layout_s515_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 1, 1, 1, 0 > >::layout_t layout_s515_t;
 
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 0, 1, 1 > >::layout_t
-        layout_s516_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 0, 0, 1 > >::layout_t
-        layout_s517_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 1, 0, 0, 0 > >::layout_t
-        layout_s518_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 1, 0, 0 > >::layout_t
-        layout_s519_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 1, 1, 0 > >::layout_t
-        layout_s520_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 0, 0, 1, 1 > >::layout_t layout_s516_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 0, 0, 0, 1 > >::layout_t layout_s517_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 1, 0, 0, 0 > >::layout_t layout_s518_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 1, 1, 0, 0 > >::layout_t layout_s519_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 0, 1, 1, 0 > >::layout_t layout_s520_t;
 
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 1, 0, 0, 0, 0 > >::layout_t
-        layout_s521_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 1, 0, 0, 0 > >::layout_t
-        layout_s522_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 1, 0, 0 > >::layout_t
-        layout_s523_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 0, 1, 0 > >::layout_t
-        layout_s524_t;
-    typedef typename storage_traits< BACKEND >::special_storage_info_t< 0, selector< 0, 0, 0, 0, 1 > >::layout_t
-        layout_s525_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 1, 0, 0, 0, 0 > >::layout_t layout_s521_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 1, 0, 0, 0 > >::layout_t layout_s522_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 0, 1, 0, 0 > >::layout_t layout_s523_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 0, 0, 1, 0 > >::layout_t layout_s524_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::special_storage_info_t< 0,
+        selector< 0, 0, 0, 0, 1 > >::layout_t layout_s525_t;
 #ifdef __CUDACC__
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< layout1_t, layout_map< 0 > >::value), "layout type is wrong");
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< layout2_t, layout_map< 1, 0 > >::value), "layout type is wrong");
@@ -372,13 +370,14 @@ TEST(StorageFacility, LayoutTests) {
 }
 
 TEST(StorageFacility, CustomLayoutTests) {
-    typedef typename storage_traits< BACKEND >::custom_layout_storage_info_t< 0, layout_map< 2, 1, 0 > >::layout_t
-        layout3_t;
-    typedef
-        typename storage_traits< BACKEND >::custom_layout_storage_info_t< 0, layout_map< 1, 0 > >::layout_t layout2_t;
-    typedef typename storage_traits< BACKEND >::custom_layout_storage_info_t< 0, layout_map< 0 > >::layout_t layout1_t;
-    typedef typename storage_traits< BACKEND >::custom_layout_storage_info_t< 0, layout_map< 2, -1, 1, 0 > >::layout_t
-        layout4_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::custom_layout_storage_info_t< 0,
+        layout_map< 2, 1, 0 > >::layout_t layout3_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::custom_layout_storage_info_t< 0,
+        layout_map< 1, 0 > >::layout_t layout2_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::custom_layout_storage_info_t< 0,
+        layout_map< 0 > >::layout_t layout1_t;
+    typedef typename storage_traits< backend_t::s_backend_id >::custom_layout_storage_info_t< 0,
+        layout_map< 2, -1, 1, 0 > >::layout_t layout4_t;
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< layout3_t, layout_map< 2, 1, 0 > >::value), "layout type is wrong");
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< layout2_t, layout_map< 1, 0 > >::value), "layout type is wrong");
     GRIDTOOLS_STATIC_ASSERT((boost::is_same< layout1_t, layout_map< 0 > >::value), "layout type is wrong");

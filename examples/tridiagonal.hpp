@@ -48,6 +48,8 @@
 #include <papi.hpp>
 #endif
 
+#include "backend_select.hpp"
+
 /*
   @file This file shows an implementation of the Thomas algorithm, done using stencil operations.
 
@@ -75,10 +77,11 @@ namespace tridiagonal {
     using namespace expressions;
 
     // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, 1 >, level< 1, -2 > > x_internal;
-    typedef gridtools::interval< level< 0, -1 >, level< 0, -1 > > x_first;
-    typedef gridtools::interval< level< 1, -1 >, level< 1, -1 > > x_last;
-    typedef gridtools::interval< level< 0, -1 >, level< 1, 1 > > axis;
+    using axis_t = axis< 1 >;
+    using x_internal = axis_t::full_interval::modify< 1, -1 >;
+    using x_first = axis_t::full_interval::first_level;
+    using x_last = axis_t::full_interval::last_level;
+
     typedef dimension< 3 > z;
 
     struct forward_thomas {
@@ -158,18 +161,8 @@ namespace tridiagonal {
         int collector_execute = pw_new_collector("Execute");
 #endif
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-        typedef gridtools::BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_t;
-        typedef gridtools::BACKEND::storage_traits_t::data_store_t< float_type, meta_t > storage_type;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_t > storage_type;
 
         // Definition of the actual data fields that are used for input/output
         meta_t meta_(d1, d2, d3);
@@ -209,16 +202,7 @@ namespace tridiagonal {
         // order. (I don't particularly like this)
         gridtools::aggregator_type< accessor_list > domain(inf, diag, sup, rhs, out);
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
-
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
+        auto grid = make_grid(d1, d2, axis_t(d3));
 
         /*
           Here we do lot of stuff
@@ -230,7 +214,7 @@ namespace tridiagonal {
           3) The actual domain dimensions
          */
 
-        auto solver = gridtools::make_computation< gridtools::BACKEND >(
+        auto solver = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor
