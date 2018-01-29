@@ -37,6 +37,7 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 #include <tools/verifier.hpp>
+#include "backend_select.hpp"
 
 /*
   @file
@@ -53,22 +54,7 @@ using namespace enumtype;
 
 static const int _value_ = 1;
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< enumtype::Cuda, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Block >
-#else
-#define BACKEND backend< enumtype::Host, enumtype::GRIDBACKEND, enumtype::Naive >
-#endif
-#endif
-
 namespace positional_copy_stencil {
-
-    // This is the definition of the special regions in the "vertical" direction
-    typedef gridtools::interval< level< 0, -1 >, level< 1, -1 > > x_interval;
-    typedef gridtools::interval< level< 0, -2 >, level< 1, 1 > > axis;
-
     // These are the stencil operators that compose the multistage stencil in this test
     template < int V >
     struct init_functor {
@@ -77,7 +63,7 @@ namespace positional_copy_stencil {
         typedef boost::mpl::vector< one, two > arg_list;
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(one()) = static_cast< float_type >(V) * (eval.i() + eval.j() + eval.k());
             eval(two()) = -1.1;
         }
@@ -93,7 +79,7 @@ namespace positional_copy_stencil {
         /* static const auto expression=in(1,0,0)-out(); */
 
         template < typename Evaluation >
-        GT_FUNCTION static void Do(Evaluation &eval, x_interval) {
+        GT_FUNCTION static void Do(Evaluation &eval) {
             eval(out()) = eval(in());
         }
     };
@@ -119,8 +105,8 @@ namespace positional_copy_stencil {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef BACKEND::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
-        typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+        typedef backend_t::storage_traits_t::storage_info_t< 0, 3 > meta_data_t;
+        typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
         // Definition of placeholders. The order of them reflect the order the user will deal with them
         // especially the non-temporary ones, in the construction of the domain
@@ -140,18 +126,9 @@ namespace positional_copy_stencil {
 
         gridtools::aggregator_type< accessor_list > domain(in, out);
 
-        // Definition of the physical dimensions of the problem.
-        // The constructor takes the horizontal plane dimensions,
-        // while the vertical ones are set according the the axis property soon after
-        // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-        uint_t di[5] = {0, 0, 0, d1 - 1, d1};
-        uint_t dj[5] = {0, 0, 0, d2 - 1, d2};
+        auto grid = make_grid(d1, d2, d3);
 
-        gridtools::grid< axis > grid(di, dj);
-        grid.value_list[0] = 0;
-        grid.value_list[1] = d3 - 1;
-
-        auto init = gridtools::make_positional_computation< gridtools::BACKEND >(
+        auto init = gridtools::make_positional_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor
@@ -164,14 +141,14 @@ namespace positional_copy_stencil {
         init->run();
         init->finalize();
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(
-            domain,
-            grid,
-            gridtools::make_multistage // mss_descriptor
-            (execute< forward >(),
-                gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
-                    ,
-                    p_out())));
+        auto copy =
+            gridtools::make_computation< backend_t >(domain,
+                grid,
+                gridtools::make_multistage // mss_descriptor
+                (execute< forward >(),
+                                                         gridtools::make_stage< copy_functor >(p_in() // esf_descriptor
+                                                             ,
+                                                             p_out())));
         copy->ready();
         copy->steady();
         copy->run();

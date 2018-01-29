@@ -53,11 +53,11 @@
 #include "../../common/array_addons.hpp"
 #include "../../common/variadic_pack_metafunctions.hpp"
 #include "../../common/layout_map.hpp"
-#include "../../common/generic_metafunctions/all_integrals.hpp"
+#include "../../common/generic_metafunctions/is_all_integrals.hpp"
 
 namespace gridtools {
 
-    namespace {
+    namespace impl_ {
 
         /*
          * @brief Internal helper function to check if two given storage infos contain the same information.
@@ -252,13 +252,13 @@ namespace gridtools {
         }
 
       public:
-        const static int id = Id;
+        constexpr static uint_t id = Id;
 
         /*
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
          */
-        template < typename... Dims, typename = gridtools::all_integers< Dims... > >
+        template < typename... Dims, typename = gridtools::all_integral< Dims... > >
         GT_FUNCTION explicit constexpr storage_info_interface(Dims... dims_)
             : m_dims{align_dimensions< alignment_t, sizeof...(LayoutArgs), LayoutArgs >(
                   handle_masked_dims< LayoutArgs >::extend(dims_))...},
@@ -288,7 +288,7 @@ namespace gridtools {
         /*
          * @brief storage info copy constructor.
          */
-        GT_FUNCTION constexpr storage_info_interface(storage_info_interface const &other) = default;
+        constexpr storage_info_interface(storage_info_interface const &other) = default;
 
         /*
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
@@ -345,6 +345,68 @@ namespace gridtools {
         GT_FUNCTION constexpr uint_t end() const {
             typedef typename boost::mpl::max_element< typename layout_t::static_layout_vector >::type iter;
             return end_part< true >();
+        }
+
+        /*
+         * @brief Returns the length of a dimension including the halo points (the outer region)
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t total_length() const {
+            return unaligned_dim< Dim >();
+        }
+
+        /*
+         * @brief Returns the length of a dimension excluding the halo points (only the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t length() const {
+            return unaligned_dim< Dim >() - 2 * halo_t::template at< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t total_begin() const {
+            return 0;
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the whole outer
+         * region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t total_end() const {
+            return unaligned_dim< Dim >() - 1;
+        }
+
+        /*
+         * @brief Returns the index of the first element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t begin() const {
+            return halo_t::template at< Dim >();
+        }
+
+        /*
+         * @brief Returns the index of the last element in the specified dimension when iterating in the inner region
+         *
+         * \tparam Dim The index of the dimension
+         */
+        template < uint_t Dim >
+        GT_FUNCTION constexpr uint_t end() const {
+            return begin< Dim >() + length< Dim >() - 1;
         }
 
         /*
@@ -465,7 +527,9 @@ namespace gridtools {
          * @return true if the storage infos are equal, false otherwise
          */
         GT_FUNCTION
-        bool operator==(this_t const &rhs) const { return equality_check< ndims - 1 >(*this, rhs); }
+        bool operator==(this_t const &rhs) const { return impl_::equality_check< ndims - 1 >(*this, rhs); }
+
+        GT_FUNCTION bool operator!=(this_t const &rhs) const { return !operator==(rhs); }
     };
 
     template < typename T >

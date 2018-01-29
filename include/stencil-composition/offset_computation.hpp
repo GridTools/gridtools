@@ -35,11 +35,26 @@
 */
 #pragma once
 
+#include <boost/mpl/eval_if.hpp>
 #include "../common/gt_assert.hpp"
+#include "position_offset_type.hpp"
 
 namespace gridtools {
 
     namespace _impl {
+        // TODO HV: I don't want to understand what is happening in this computation...
+        // Would be good if someone who understands this code could give it a proper name (and potentially refactor!)
+
+        // Case when AccessorOrPositionOffset is an accessor
+        template < typename AccessorOrPositionOffset, unsigned N, typename Enable = void >
+        struct compute_offset_t : boost::mpl::int_< ((AccessorOrPositionOffset::n_dimensions - 1) - N) > {};
+
+        // Case when AccessorOrPositionOffset is a position_offset
+        template < typename AccessorOrPositionOffset, unsigned N >
+        struct compute_offset_t< AccessorOrPositionOffset,
+            N,
+            typename std::enable_if< is_position_offset_type< AccessorOrPositionOffset >::value >::type >
+            : boost::mpl::int_< N > {};
 
         template < typename Max, typename StridesCached, typename Accessor, typename StorageInfo, unsigned N >
         GT_FUNCTION constexpr
@@ -50,9 +65,7 @@ namespace gridtools {
                 GT_INTERNAL_ERROR_MSG("invalid stride array access"));
             typedef boost::mpl::bool_< (val_t::value == Max::value) > is_max_t;
             typedef boost::mpl::bool_< (val_t::value == -1) > is_masked_t;
-            typedef typename boost::mpl::if_< is_array< Accessor >,
-                boost::mpl::int_< N >,
-                boost::mpl::int_< ((Accessor::n_dimensions - 1) - N) > >::type offset_t;
+            typedef typename compute_offset_t< Accessor, N >::type offset_t;
             return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[(uint_t)val_t::value])) *
                    acc.template get< offset_t::value >();
         }
@@ -66,9 +79,7 @@ namespace gridtools {
                 GT_INTERNAL_ERROR_MSG("invalid stride array access"));
             typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == Max::value) > is_max_t;
             typedef boost::mpl::bool_< (StorageInfo::layout_t::template at< N >() == -1) > is_masked_t;
-            typedef typename boost::mpl::if_< is_array< Accessor >,
-                boost::mpl::int_< N >,
-                boost::mpl::int_< ((Accessor::n_dimensions - 1) - N) > >::type offset_t;
+            typedef typename compute_offset_t< Accessor, N >::type offset_t;
             return (is_max_t::value ? 1 : (is_masked_t::value ? 0 : strides[(uint_t)val_t::value])) *
                        acc.template get< offset_t::value >() +
                    apply_accessor< Max, StridesCached, Accessor, StorageInfo, N + 1 >(strides, acc);

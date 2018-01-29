@@ -66,53 +66,23 @@ namespace gridtools {
         /** This is the function used to extract a pointer out of a given storage info.
             In the case of CUDA we have to retrieve the GPU pointer.
         */
-        template < typename StorageInfoPtr >
-        static StorageInfoPtr extract_storage_info_ptr(StorageInfoPtr t) {
-            GRIDTOOLS_STATIC_ASSERT(
-                (is_storage_info< typename boost::decay< decltype(*t) >::type >::value), GT_INTERNAL_ERROR);
-            return t->get_gpu_ptr();
-        }
+        struct extract_storage_info_ptr_f {
+            template < typename StorageInfo >
+            StorageInfo const *operator()(StorageInfo const *t) {
+                GRIDTOOLS_STATIC_ASSERT(is_storage_info< StorageInfo >::value, GT_INTERNAL_ERROR);
+                return t->get_gpu_ptr();
+            }
+        };
 
         /** This is the functor used to generate view instances. According to the given storage (data_store,
            data_store_field) an appropriate view is returned. When using the CUDA backend we return device view
            instances.
         */
-        template < typename AggregatorType >
-        struct instantiate_view {
-            GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
-
-            AggregatorType &m_agg;
-            instantiate_view(AggregatorType &agg) : m_agg(agg) {}
-
-            template < typename ViewFusionMapElem,
-                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            arg_storage_pair< Arg, typename Arg::storage_t > get_arg_storage_pair() const {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
-                return boost::fusion::deref(boost::fusion::find< arg_storage_pair< Arg, typename Arg::storage_t > >(
-                    m_agg.get_arg_storage_pairs()));
-            }
-
-            // specialization for creating view instance for data stores
-            template < typename ViewFusionMapElem,
-                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            typename boost::enable_if< is_data_store< typename Arg::storage_t >, void >::type operator()(
-                ViewFusionMapElem &t) const {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
-                // make a view
-                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
-                    t = make_device_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
-            }
-
-            // specialization for creating view instance for data store fields
-            template < typename ViewFusionMapElem,
-                typename Arg = typename boost::fusion::result_of::first< ViewFusionMapElem >::type >
-            typename boost::enable_if< is_data_store_field< typename Arg::storage_t >, void >::type operator()(
-                ViewFusionMapElem &t) const {
-                GRIDTOOLS_STATIC_ASSERT((is_arg< Arg >::value), GT_INTERNAL_ERROR);
-                // make a view
-                if (get_arg_storage_pair< ViewFusionMapElem >().ptr.get())
-                    t = make_field_device_view(*(get_arg_storage_pair< ViewFusionMapElem >().ptr));
-            }
+        struct make_view_f {
+            template < typename S, typename SI >
+            auto operator()(data_store< S, SI > const &src) const GT_AUTO_RETURN(make_device_view(src));
+            template < typename S, uint_t... N >
+            auto operator()(data_store_field< S, N... > const &src) const GT_AUTO_RETURN(make_field_device_view(src));
         };
 
         template < typename Arguments >
@@ -216,6 +186,14 @@ namespace gridtools {
             return StorageInfo::get_initial_offset();
         }
 
+        struct setup_grid_f {
+            template < typename Grid >
+            void operator()(Grid const &grid) const {
+                GRIDTOOLS_STATIC_ASSERT(is_grid< Grid >::value, GT_INTERNAL_ERROR_MSG("wrong grid type"));
+                grid.clone_to_device();
+            }
+        };
+
         /**
          * @brief main execution of a mss.
          * @tparam RunFunctorArgs run functor arguments
@@ -247,10 +225,7 @@ namespace gridtools {
         /**
          * @brief determines whether ESFs should be fused in one single kernel execution or not for this backend.
          */
-        struct mss_fuse_esfs_strategy {
-            typedef boost::mpl::bool_< true > type;
-            BOOST_STATIC_CONSTANT(bool, value = (type::value));
-        };
+        typedef std::true_type mss_fuse_esfs_strategy;
 
         // high level metafunction that contains the run_esf_functor corresponding to this backend
         typedef boost::mpl::quote2< run_esf_functor_cuda > run_esf_functor_h_t;

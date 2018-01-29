@@ -76,6 +76,39 @@ namespace gridtools {
 
             static const bool value = type::value;
         };
+
+        /**
+           \brief returns the index chosen when the placeholder U was defined
+        */
+        struct l_get_index {
+            template < typename U >
+            struct apply {
+                typedef static_uint< U::index_t::value > type;
+            };
+        };
+
+        template < typename OriginalPlaceholders >
+        struct compute_index_set {
+
+            /**
+             * \brief Get a sequence of the same type as original_placeholders, containing the indexes relative to the
+             * placehoolders
+             * note that the static const indexes are transformed into types using mpl::integral_c
+             */
+            typedef typename boost::mpl::transform< OriginalPlaceholders, l_get_index >::type raw_index_list;
+
+            /**@brief length of the index list eventually with duplicated indices */
+            static const uint_t len = boost::mpl::size< raw_index_list >::value;
+
+            /**
+               @brief filter out duplicates
+               check if the indexes are repeated (a common error is to define 2 types with the same index)
+            */
+            typedef typename boost::mpl::fold< raw_index_list,
+                boost::mpl::set<>,
+                boost::mpl::insert< boost::mpl::_1, boost::mpl::_2 > >::type index_set;
+        };
+
     } // namespace _impl
 
     /**
@@ -102,7 +135,7 @@ namespace gridtools {
             "The type arg_list was not found in a user functor definition. All user functors must have a type alias "
             "called \'arg_list\', which is an MPL vector containing the list of accessors defined in the functor "
             "(NOTE: the \'global_accessor\' types are excluded from this list). Example: \n\n using v1=accessor<0>; \n "
-            "using v2=global_accessor<1, enumtype::in>; \n using v3=accessor<2>; \n using "
+            "using v2=global_accessor<1>; \n using v3=accessor<2>; \n using "
             "arg_list=boost::mpl::vector<v1, v3>;");
 
         GRIDTOOLS_STATIC_ASSERT(_impl::check_arg_list< typename esf_function::arg_list >::value,
@@ -147,5 +180,22 @@ namespace gridtools {
 
     template < typename ESF, typename ArgArray, typename Staggering >
     struct is_esf_descriptor< esf_descriptor< ESF, ArgArray, Staggering > > : boost::mpl::true_ {};
+
+    template < typename ESF, typename Extent, typename ArgArray, typename Staggering = staggered< 0, 0, 0, 0, 0, 0 > >
+    struct esf_descriptor_with_extent : public esf_descriptor< ESF, ArgArray, Staggering > {
+        GRIDTOOLS_STATIC_ASSERT((is_extent< Extent >::value), "stage descriptor is expecting a extent type");
+    };
+
+    template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
+    struct is_esf_descriptor< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > : boost::mpl::true_ {};
+
+    template < typename ESF >
+    struct is_esf_with_extent : boost::mpl::false_ {
+        GRIDTOOLS_STATIC_ASSERT(is_esf_descriptor< ESF >::type::value,
+            GT_INTERNAL_ERROR_MSG("is_esf_with_extents expects an esf_descripto as template argument"));
+    };
+
+    template < typename ESF, typename Extent, typename ArgArray, typename Staggering >
+    struct is_esf_with_extent< esf_descriptor_with_extent< ESF, Extent, ArgArray, Staggering > > : boost::mpl::true_ {};
 
 } // namespace gridtools

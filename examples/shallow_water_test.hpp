@@ -43,6 +43,8 @@
 
 #include <stencil-composition/stencil-composition.hpp>
 
+#include "backend_select.hpp"
+
 /*
   @file
   @brief This file shows an implementation of the "shallow water" stencil
@@ -274,19 +276,10 @@ namespace shallow_water {
             uint_t d2 = y;
             uint_t d3 = z;
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, Block >
-#else
-#define BACKEND backend< Host, Naive >
-#endif
-#endif
             //                      dims  z y x
             //                   strides xy x 1
             typedef gridtools::layout_map< 2, 1, 0 > layout_t;
-            typedef gridtools::BACKEND::storage_type< float_type, layout_t >::type storage_type;
+            typedef backend_t::storage_type< float_type, layout_t >::type storage_type;
 
 /* The nice interface does not compile today (CUDA 6.5) with nvcc (C++11 support not complete yet)*/
 #ifdef __CUDACC__
@@ -342,14 +335,12 @@ namespace shallow_water {
             // The constructor takes the horizontal plane dimensions,
             // while the vertical ones are set according the the axis property soon after
             // gridtools::grid<axis> grid(2,d1-2,2,d2-2);
-            uint_t di[5] = {2, 2, 2, d1 - 3, d1};
-            uint_t dj[5] = {2, 2, 2, d2 - 3, d2};
+            halo_descriptor di{2, 2, 2, d1 - 3, d1};
+            halo_descriptor dj{2, 2, 2, d2 - 3, d2};
 
-            gridtools::grid< axis > grid(di, dj);
-            grid.value_list[0] = 0;
-            grid.value_list[1] = d3 - 1;
+            auto grid = make_grid(di, dj, d3);
 
-            auto shallow_water_stencil = gridtools::make_computation< gridtools::BACKEND, layout_t >(
+            auto shallow_water_stencil = gridtools::make_computation< backend_t, layout_t >(
                 domain,
                 grid,
                 gridtools::make_multistage // mss_descriptor

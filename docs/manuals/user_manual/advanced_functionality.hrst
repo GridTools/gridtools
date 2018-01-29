@@ -1,0 +1,6 @@
+Advanced Functionality
+========================
+
+.. include:: stencil_functions.hrst
+.. include:: conditional_switches.hrst
+.. include:: reductions.hrst
