@@ -91,7 +91,7 @@ namespace gridtools {
        \param arg the vector accessor
      */
         // rvalue
-        template < uint_t ACC_ID, enumtype::intend Intent, typename Extent, uint_t Size >
+        template < uint_t ACC_ID, enumtype::intent Intent, typename Extent, uint_t Size >
         GT_FUNCTION typename super::iterate_domain_t::template accessor_return_type<
             accessor< ACC_ID, Intent, Extent, Size > >::type
         operator()(vector_accessor< ACC_ID, Intent, Extent, Size > const &arg) {

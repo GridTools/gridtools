@@ -55,7 +55,7 @@ namespace gridtools {
        1 color + 2 field/snapshot dimensions)
     */
     template < uint_t ID,
-        enumtype::intend Intent,
+        enumtype::intent Intent,
         typename LocationType,
         typename Extent = extent< 0 >,
         ushort_t NDim = 6 >
@@ -69,10 +69,12 @@ namespace gridtools {
     template < typename T >
     struct is_vector_accessor : boost::mpl::false_ {};
 
-    template < uint_t ID, enumtype::intend Intent, typename LocationType, typename Extent, uint_t Size >
+    template < uint_t ID, enumtype::intent Intent, typename LocationType, typename Extent, uint_t Size >
     struct is_vector_accessor< vector_accessor< ID, Intent, LocationType, Extent, Size > > : boost::mpl::true_ {};
 
-    template < typename T >
-    struct is_any_accessor : boost::mpl::or_< is_accessor< T >, is_vector_accessor< T > > {};
+    template < uint_t ID, enumtype::intent Intent, typename LocationType, typename Extent, uint_t Size >
+    struct is_accessor< vector_accessor< ID, Intent, LocationType, Extent, Size > > : boost::mpl::true_ {};
 
+    template < uint_t ID, enumtype::intent Intent, typename LocationType, typename Extent, uint_t Size >
+    struct is_grid_accessor< vector_accessor< ID, Intent, LocationType, Extent, Size > > : boost::mpl::true_ {};
 } // namespace gridtools

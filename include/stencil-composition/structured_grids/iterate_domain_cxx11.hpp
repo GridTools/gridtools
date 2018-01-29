@@ -163,11 +163,10 @@ namespace gridtools {
         static const uint_t N_DATA_POINTERS =
             total_storages< typename local_domain_t::storage_wrapper_list_t, N_STORAGES >::type::value;
 
-        typedef array< int_t, N_META_STORAGES > array_index_t;
-
       public:
         typedef data_ptr_cached< typename local_domain_t::storage_wrapper_list_t > data_ptr_cached_t;
         typedef strides_cached< N_META_STORAGES - 1, storage_info_ptrs_t > strides_cached_t;
+        typedef array< int_t, N_META_STORAGES > array_index_t;
         // *************** end of type definitions **************
 
       protected:
@@ -184,12 +183,6 @@ namespace gridtools {
         data_ptr_cached_t const &RESTRICT data_pointer() const {
             return static_cast< const IterateDomainImpl * >(this)->data_pointer_impl();
         }
-
-        /**
-           @brief returns the array of pointers to the raw data as const reference
-        */
-        GT_FUNCTION
-        array_index_t const &RESTRICT index() const { return m_index; }
 
       protected:
         /**
@@ -264,25 +257,16 @@ namespace gridtools {
                                         strides()));
         }
 
-        /**@brief getter for the index array */
-        GT_FUNCTION
-        void get_index(array< int_t, N_META_STORAGES > &index) const {
-            set_index_recur< N_META_STORAGES - 1 >::set(m_index, index);
-        }
+        GT_FUNCTION array_index_t const &index() const { return m_index; }
 
         /**@brief method for setting the index array
         * This method is responsible of assigning the index for the memory access at
         * the location (i,j,k). Such index is shared among all the fields contained in the
         * same storage class instance, and it is not shared among different storage instances.
         */
-        // TODO implement the recursive one, as below, performance is better
-        template < typename Value >
-        GT_FUNCTION void set_index(array< Value, N_META_STORAGES > const &index) {
-            set_index_recur< N_META_STORAGES - 1 >::set(index, m_index);
-        }
+        GT_FUNCTION void set_index(array_index_t const &index) { m_index = index; }
 
-        GT_FUNCTION
-        void set_index(const int index) { set_index_recur< N_META_STORAGES - 1 >::set(index, m_index); }
+        GT_FUNCTION void reset_index() { m_index = array_index_t{}; }
 
         /**@brief method for incrementing by 1 the index when moving forward along the given direction
            \tparam Coordinate dimension being incremented
@@ -479,17 +463,18 @@ namespace gridtools {
 
             specialization for the generic accessors placeholders
         */
-        template < uint_t I, enumtype::intend Intend >
-        GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
-            global_accessor< I, Intend > const &accessor) {
-            typedef typename accessor_return_type< global_accessor< I, Intend > >::type return_t;
-            typedef typename global_accessor< I, Intend >::index_t index_t;
+        template < uint_t I >
+        GT_FUNCTION typename accessor_return_type< global_accessor< I > >::type operator()(
+            global_accessor< I > const &accessor) {
+            typedef typename accessor_return_type< global_accessor< I > >::type return_t;
+            typedef typename global_accessor< I >::index_t index_t;
             return *static_cast< return_t * >(data_pointer().template get< index_t::value >()[0]);
         }
 
         /** @brief method called in the Do methods of the functors.
 
-            Specialization for the offset_tuple placeholder (i.e. for extended storages, containg multiple snapshots of
+            Specialization for the offset_tuple placeholder (i.e. for extended storages, containing multiple snapshots
+           of
            data fields with the same dimension and memory layout)*/
         template < typename Accessor >
         GT_FUNCTION
@@ -530,8 +515,7 @@ namespace gridtools {
         operator()(Accessor const &accessor) {
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< Accessor >::value), "Using EVAL is only allowed for an accessor type");
-            GRIDTOOLS_STATIC_ASSERT(
-                (Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions. Did you forget a \"!\"?");
+            GRIDTOOLS_STATIC_ASSERT((Accessor::n_dimensions > 2), "Accessor with less than 3 dimensions.");
 
             return get_value(accessor, get_data_pointer(accessor));
         }

@@ -38,20 +38,10 @@
 #include <cstdint>
 
 #include <stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 #include "benchmarker.hpp"
 
-#ifdef __CUDACC__
-typedef gridtools::halo< 2, 0, 0 > halo_t;
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-typedef gridtools::halo< 0, 0, 2 > halo_t;
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-typedef gridtools::halo< 0, 2, 0 > halo_t;
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
+typedef gridtools::halo< 2, 2, 2 > halo_t;
 
 /**
   @file
@@ -69,8 +59,8 @@ using namespace enumtype;
 
 namespace aligned_copy_stencil {
 
-    typedef BACKEND::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
-    typedef BACKEND::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
+    typedef backend_t::storage_traits_t::storage_info_t< 0, 3, halo_t > meta_data_t;
+    typedef backend_t::storage_traits_t::data_store_t< float_type, meta_data_t > storage_t;
 
     // These are the stencil operators that compose the multistage stencil in this test
     struct copy_functor {
@@ -146,7 +136,7 @@ namespace aligned_copy_stencil {
 
         grid< axis< 1 >::axis_interval_t > grid(di, dj, {halo_t::at< 2 >(), d3 + halo_t::at< 2 >() - 1});
 
-        auto copy = gridtools::make_computation< gridtools::BACKEND >(domain,
+        auto copy = gridtools::make_computation< backend_t >(domain,
             grid,
             gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(), p_out())));
 

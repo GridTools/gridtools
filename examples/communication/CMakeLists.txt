@@ -16,7 +16,7 @@ else(GCL_ONLY)
   endif()
 
 
-  if( USE_GPU )
+  if( ENABLE_CUDA )
     ##set(CMAKE_CXX_FLAGS "${OLD_OPTIONS}")
     if( GCL_MPI )
       if ( USE_MPI_COMPILER )
