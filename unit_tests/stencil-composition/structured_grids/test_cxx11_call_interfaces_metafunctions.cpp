@@ -51,7 +51,7 @@ struct pretent_aggregator {
         using type = double;
     };
 
-    template < gridtools::uint_t I, gridtools::enumtype::intend Intent, typename Range, gridtools::ushort_t N >
+    template < gridtools::uint_t I, gridtools::enumtype::intent Intent, typename Range, gridtools::ushort_t N >
     constexpr value_type operator()(gridtools::accessor< I, Intent, Range, N >) const {
         return static_cast< value_type >(I + 1000);
     }

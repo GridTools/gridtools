@@ -72,7 +72,7 @@ namespace gridtools {
      * @tparam Cache a cache_impl type of the cache for which this class provides storage functionality
      * @tparam BlockSize physical block size (in IJ dims) that determines the size of the cache storage in the
      * scratchpad
-     * @tparam Extend extent at which the cache is used (used also to determine the size of storage)
+     * @tparam Extent extent at which the cache is used (used also to determine the size of storage)
      * @tparam StorageWrapper storage wrapper containing the storage of the arg being cached
      */
     template < typename Cache, typename BlockSize, typename Extent, typename StorageWrapper >

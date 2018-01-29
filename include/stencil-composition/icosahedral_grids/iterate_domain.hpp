@@ -487,15 +487,15 @@ namespace gridtools {
          * It dereferences the value of an accessor given its 4d (i,c,j,k) position_offset
          */
         template < uint_t ID,
-            enumtype::intend Intend,
+            enumtype::intent Intent,
             typename LocationType,
             typename Extent,
             ushort_t FieldDimensions >
         GT_FUNCTION typename std::remove_reference<
-            typename accessor_return_type< accessor< ID, Intend, LocationType, Extent, FieldDimensions > >::type >::type
-        _evaluate(accessor< ID, Intend, LocationType, Extent, FieldDimensions >,
+            typename accessor_return_type< accessor< ID, Intent, LocationType, Extent, FieldDimensions > >::type >::type
+        _evaluate(accessor< ID, Intent, LocationType, Extent, FieldDimensions >,
             position_offset_type const &RESTRICT position_offset) const {
-            using accessor_t = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+            using accessor_t = accessor< ID, Intent, LocationType, Extent, FieldDimensions >;
             GRIDTOOLS_STATIC_ASSERT(
                 (is_accessor< accessor_t >::value), "Using EVAL is only allowed for an accessor type");
 

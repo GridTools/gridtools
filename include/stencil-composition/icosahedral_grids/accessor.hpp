@@ -44,26 +44,26 @@ namespace gridtools {
     * It's a pretty minima implementation.
     */
     template < uint_t ID,
-        enumtype::intend Intend,
+        enumtype::intent Intent,
         typename LocationType,
         typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t FieldDimensions = 4 >
-    struct accessor : public accessor_base< ID, Intend, Extent, FieldDimensions > {
+    struct accessor : public accessor_base< ID, Intent, Extent, FieldDimensions > {
         GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: wrong type");
-        using type = accessor< ID, Intend, LocationType, Extent, FieldDimensions >;
+        using type = accessor< ID, Intent, LocationType, Extent, FieldDimensions >;
         using location_type = LocationType;
         static const uint_t value = ID;
         using index_t = static_uint< ID >;
         using extent_t = Extent;
         location_type location() const { return location_type(); }
 
-        typedef accessor_base< ID, Intend, Extent, FieldDimensions > super;
+        typedef accessor_base< ID, Intent, Extent, FieldDimensions > super;
 
         GT_FUNCTION
         constexpr accessor() : super() {}
 
         /**inheriting all constructors from offset_tuple*/
-        using accessor_base< ID, Intend, Extent, FieldDimensions >::accessor_base;
+        using accessor_base< ID, Intent, Extent, FieldDimensions >::accessor_base;
 
         GT_FUNCTION
         constexpr explicit accessor(array< int_t, FieldDimensions > const &offsets) : super(offsets) {}
@@ -75,9 +75,4 @@ namespace gridtools {
     template < uint_t ID, typename LocationType, ushort_t FieldDimensions = 4 >
     using inout_accessor = accessor< ID, enumtype::inout, LocationType, extent< 0 >, FieldDimensions >;
 
-    template < typename T >
-    struct is_accessor : boost::mpl::false_ {};
-
-    template < uint_t ID, enumtype::intend Intend, typename LocationType, typename Extent, ushort_t FieldDimensions >
-    struct is_accessor< accessor< ID, Intend, LocationType, Extent, FieldDimensions > > : boost::mpl::true_ {};
 } // namespace gridtools

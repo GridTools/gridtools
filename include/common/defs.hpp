@@ -201,7 +201,7 @@ namespace gridtools {
         /*
          * accessor I/O policy
          */
-        enum intend { in, inout };
+        enum intent { in, inout };
 
 #ifdef __CUDACC__
         static const unsigned int vector_width = 32;
