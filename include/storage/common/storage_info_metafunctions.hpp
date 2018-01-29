@@ -169,13 +169,13 @@ namespace gridtools {
 
     template < int... LayoutArgs >
     struct get_strides< layout_map< LayoutArgs... > > {
-        template < typename Dim,
-            typename... Dims,
-            typename std::enable_if< is_all_integral< Dim, Dims... >::value, int >::type = 0 >
-        GT_FUNCTION static constexpr array< uint_t, sizeof...(LayoutArgs) > get_stride_array(Dim d, Dims... ds) {
+        template < typename... Dims,
+            typename std::enable_if< sizeof...(Dims) == sizeof...(LayoutArgs) && is_all_integral< Dims... >::value,
+                int >::type = 0 >
+        GT_FUNCTION static constexpr array< uint_t, sizeof...(LayoutArgs) > get_stride_array(Dims... ds) {
             typedef layout_map< LayoutArgs... > Layout;
             return (array< uint_t, Layout::masked_length >){
-                get_strides_aux< Layout >::template get_stride< LayoutArgs >(d, ds...)...};
+                get_strides_aux< Layout >::template get_stride< LayoutArgs >(ds...)...};
         }
     };
 }

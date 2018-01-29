@@ -287,9 +287,7 @@ namespace gridtools {
 
                 // re-create the run functor arguments, replacing the processing elements block size
                 // with the corresponding, recently computed, block size
-                using run_functor_arguments_cuda_t = meta::replace< RunFunctorArguments,
-                    typename RunFunctorArguments::processing_elements_block_size_t,
-                    cuda_block_size_t >;
+                using run_functor_arguments_cuda_t = meta::replace_at_c< RunFunctorArguments, 1, cuda_block_size_t >;
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);
