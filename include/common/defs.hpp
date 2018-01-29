@@ -146,6 +146,11 @@ namespace gridtools {
     TypeName(const TypeName &);            \
     TypeName &operator=(const TypeName &)
 
+
+/**
+ * @brief Main namespace containing all the provided libraries and
+ * functionalities
+ */
 namespace gridtools {
     /** \namespace enumtype
        @brief enumeration types*/

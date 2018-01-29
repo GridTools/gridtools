@@ -59,7 +59,7 @@ namespace gridtools {
 
     namespace impl_ {
 
-        /*
+        /**
          * @brief Internal helper function to check if two given storage infos contain the same information.
          * The function performs checks on all dimensions. This function is the base case.
          * @return true if the dimension, stride, size, initial_offset, etc. is equal, otherwise false
@@ -75,7 +75,7 @@ namespace gridtools {
                    (a.get_initial_offset() == b.get_initial_offset());
         }
 
-        /*
+        /**
          * @brief Internal helper function to check if two given storage infos contain the same information.
          * The function performs checks on all dimensions. This function is the step case.
          * @return true if the dimension, stride, size, initial_offset, etc. is equal, otherwise false
@@ -90,7 +90,7 @@ namespace gridtools {
         }
     }
 
-    /*
+    /**
      * @brief The storage info interface. This class contains methods that should be implemented by all storage_info
      * implementations.
      * @tparam Id unique ID that should be shared among all storage infos with the same dimensionality.
@@ -122,12 +122,12 @@ namespace gridtools {
         array< uint_t, layout_t::masked_length > m_strides;
         alignment_impl< alignment_t, layout_t, halo_t > m_alignment;
 
-        /*
+        /**
          * @brief private storage info interface constructor
          */
         GT_FUNCTION constexpr storage_info_interface() {}
 
-        /*
+        /**
          * @brief Helper function to check for out of bounds accesses (step case)
          * @param idx offsets that should be checked
          */
@@ -140,7 +140,7 @@ namespace gridtools {
                    check_bounds< N + 1 >(idx...);
         }
 
-        /*
+        /**
          * @brief Helper function to check for out of bounds accesses (base case)
          * @param idx offsets that should be checked
          */
@@ -150,7 +150,7 @@ namespace gridtools {
             return true;
         }
 
-        /*
+        /**
          * @brief Helper function to calculate the index with given offsets (step case)
          * @param first offsets
          * @param ints offsets
@@ -162,7 +162,7 @@ namespace gridtools {
             return first * m_strides.template get< N >() + index_part< N + 1 >(ints..., first);
         }
 
-        /*
+        /**
          * @brief Helper function to calculate the index with given offsets (base case)
          * @param first offsets
          * @param ints offsets
@@ -174,7 +174,7 @@ namespace gridtools {
             return 0;
         }
 
-        /*
+        /**
          * @brief helper function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc (base
          * case).
          * @tparam Args pack of integers
@@ -188,7 +188,7 @@ namespace gridtools {
             return index(indices...);
         }
 
-        /*
+        /**
          * @brief helper function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc (step
          * case).
          * @tparam Args pack of integers
@@ -202,7 +202,7 @@ namespace gridtools {
             return index_part(idx, indices..., idx.template get< sizeof...(Args) >());
         }
 
-        /*
+        /**
          * @brief Helper function to calculate the storage size (step case)
          * @return storage size
          */
@@ -215,7 +215,7 @@ namespace gridtools {
                    size_part< HaloIncluded, AlignedDim, From - 1 >();
         }
 
-        /*
+        /**
          * @brief Helper function to calculate the storage size (base case)
          * @return storage size
          */
@@ -227,7 +227,7 @@ namespace gridtools {
                     (int)((HaloIncluded || masked_dim_t::value) ? 0 : halo_val_t::value));
         }
 
-        /*
+        /**
          * @brief Helper function to calculate the last usable index of the storage (base case)
          * @return index of last data point (either halo or non halo)
          */
@@ -237,7 +237,7 @@ namespace gridtools {
             return index(indices...);
         }
 
-        /*
+        /**
          * @brief Helper function to calculate the last usable index of the storage (step case)
          * @return index of last data point (either halo or non halo)
          */
@@ -254,7 +254,7 @@ namespace gridtools {
       public:
         constexpr static uint_t id = Id;
 
-        /*
+        /**
          * @brief storage info constructor. Additionally to initializing the members the halo
          * region is added to the corresponding dimensions and the alignment is applied.
          */
@@ -285,12 +285,12 @@ namespace gridtools {
                   strides)),
               m_alignment(m_dims, m_strides) {}
 
-        /*
+        /**
          * @brief storage info copy constructor.
          */
         constexpr storage_info_interface(storage_info_interface const &other) = default;
 
-        /*
+        /**
          * @brief member function to retrieve the total size (dimensions, halos, initial_offset, padding).
          * @return total size including dimensions, halos, initial_offset, padding, and initial_offset
          */
@@ -298,21 +298,21 @@ namespace gridtools {
             return size_part< true, true >() + get_initial_offset();
         }
 
-        /*
+        /**
          * @brief member function to retrieve the number of domain elements
          * (dimensions, halos, no initial_offset, no padding).
          * @return number of domain elements
          */
         GT_FUNCTION constexpr uint_t total_length() const { return size_part< true, false >(); }
 
-        /*
+        /**
          * @brief member function to retrieve the number of inner domain elements
          * (dimensions, no halos, no initial_offset, no padding).
          * @return number of inner domain elements
          */
         GT_FUNCTION constexpr uint_t length() const { return size_part< false, false >(); }
 
-        /*
+        /**
          * @brief member function to retrieve the position of the first point.
          * This could also be a halo point.
          * @return position of first accessible point
@@ -323,21 +323,21 @@ namespace gridtools {
             });
         }
 
-        /*
+        /**
          * @brief member function to retrieve the position of the last point.
          * This could also be a halo point.
          * @return position of last accessible point
          */
         GT_FUNCTION constexpr uint_t total_end() const { return end_part< false >(); }
 
-        /*
+        /**
          * @brief member function to retrieve the position of the first point.
          * This could also be a halo point.
          * @return position of first accessible point
          */
         GT_FUNCTION constexpr uint_t begin() const { return index(Halos...); }
 
-        /*
+        /**
          * @brief member function to retrieve the position of the last point.
          * This could also be a halo point.
          * @return position of last accessible point
@@ -347,7 +347,7 @@ namespace gridtools {
             return end_part< true >();
         }
 
-        /*
+        /**
          * @brief Returns the length of a dimension including the halo points (the outer region)
          *
          * \tparam Dim The index of the dimension
@@ -357,7 +357,7 @@ namespace gridtools {
             return unaligned_dim< Dim >();
         }
 
-        /*
+        /**
          * @brief Returns the length of a dimension excluding the halo points (only the inner region
          *
          * \tparam Dim The index of the dimension
@@ -367,7 +367,7 @@ namespace gridtools {
             return unaligned_dim< Dim >() - 2 * halo_t::template at< Dim >();
         }
 
-        /*
+        /**
          * @brief Returns the index of the first element in the specified dimension when iterating in the whole outer
          * region
          *
@@ -378,7 +378,7 @@ namespace gridtools {
             return 0;
         }
 
-        /*
+        /**
          * @brief Returns the index of the last element in the specified dimension when iterating in the whole outer
          * region
          *
@@ -389,7 +389,7 @@ namespace gridtools {
             return unaligned_dim< Dim >() - 1;
         }
 
-        /*
+        /**
          * @brief Returns the index of the first element in the specified dimension when iterating in the inner region
          *
          * \tparam Dim The index of the dimension
@@ -399,7 +399,7 @@ namespace gridtools {
             return halo_t::template at< Dim >();
         }
 
-        /*
+        /**
          * @brief Returns the index of the last element in the specified dimension when iterating in the inner region
          *
          * \tparam Dim The index of the dimension
@@ -409,12 +409,12 @@ namespace gridtools {
             return begin< Dim >() + length< Dim >() - 1;
         }
 
-        /*
+        /**
          * @brief return the array of (aligned) dims, see dim() for details.
          */
         GT_FUNCTION constexpr const array< uint_t, ndims > &dims() const { return m_dims; }
 
-        /*
+        /**
          * @brief member function to retrieve the (aligned) size of a dimension (e.g., I, J, or K)
          * If an alignment is set the "first" dimension is aligned to a given value (e.g., 32). For example
          * a storage info with layout_map<1,2,0> and dimensions 100x110x80 and an alignment of 32 will result
@@ -429,7 +429,7 @@ namespace gridtools {
             return m_dims.template get< Coord >();
         }
 
-        /*
+        /**
          * @brief member function to retrieve the (aligned) stride (e.g., I, J, or K)
          * @tparam Coord queried coordinate
          * @return aligned stride size
@@ -441,12 +441,12 @@ namespace gridtools {
             return m_strides.template get< Coord >();
         }
 
-        /*
+        /**
          * @brief return the array of (aligned) strides, see stride() for details.
          */
         GT_FUNCTION constexpr const array< uint_t, ndims > &strides() const { return m_strides; }
 
-        /*
+        /**
          * @brief member function to retrieve the (unaligned) size of a dimension (e.g., I, J, or K).
          * If an alignment is set the "first" dimension is aligned to a given value (e.g., 32). For example
          * a storage info with layout_map<1,2,0> and dimensions 100x110x80 and an alignment of 32 will result
@@ -463,7 +463,7 @@ namespace gridtools {
                                                                  : dim< Coord >();
         }
 
-        /*
+        /**
          * @brief member function to retrieve the (unaligned) stride (e.g., I, J, or K)
          * @tparam Coord queried coordinate
          * @return unaligned stride size
@@ -476,7 +476,7 @@ namespace gridtools {
                                                                     : stride< Coord >();
         }
 
-        /*
+        /**
          * @brief member function to retrieve an offset (or index) when given offsets in I,J,K, etc.
          * E.g., index(1,2,3) --> 1*strideI + 2*strideJ + 3*strideK + initial_offset
          * @param idx given offsets
@@ -500,7 +500,7 @@ namespace gridtools {
 #endif
         }
 
-        /*
+        /**
          * @brief member function to retrieve an offset (or index) when given an array of offsets in I,J,K, etc.
          * E.g., index(1,2,3) --> 1*strideI + 2*strideJ + 3*strideK + initial_offset
          * @param offsets given offset array
@@ -510,7 +510,7 @@ namespace gridtools {
             return index_part(offsets);
         }
 
-        /*
+        /**
          * @brief function that returns the initial offset. The initial offset
          * has to be added if we use alignment in combination with a halo
          * in the aligned dimension. We want to have the first non halo point
@@ -521,7 +521,7 @@ namespace gridtools {
             return alignment_impl< alignment_t, layout_t, halo_t >::InitialOffset;
         }
 
-        /*
+        /**
          * @brief function to check for equality of two given storage_infos
          * @param rhs right hand side storage info instance
          * @return true if the storage infos are equal, false otherwise
