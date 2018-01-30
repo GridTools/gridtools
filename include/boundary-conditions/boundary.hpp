@@ -43,7 +43,7 @@
 
 #include "./boundary-conditions/predicate.hpp"
 
-/** \defgroup Boundary-Conditions
+/** \defgroup Boundary-Conditions Boundary Conditions
  */
 
 namespace gridtools {
