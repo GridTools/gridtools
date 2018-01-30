@@ -52,20 +52,6 @@ namespace interface {
         return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
     }
 
-    bool test_array() {
-        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
-        GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1), "ERROR");
-        return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
-    }
-
-    bool test_array_and_dim() {
-        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(
-            array< int_t, 3 >{3, 2, -1}, dimension< 1 >(2));
-
-        GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1), "ERROR");
-        return first.get< 2 >() == 3 && first.get< 1 >() == 4 && first.get< 0 >() == -1;
-    }
-
     /** @brief interface with out-of-order optional arguments
      */
     bool test_alternative1() {
@@ -79,20 +65,6 @@ namespace interface {
      */
 
     using namespace expressions;
-
-    bool test_alternative2() {
-
-        constexpr dimension< 1 > i;
-        constexpr dimension< 2 > j;
-        constexpr dimension< 3 > k;
-
-        constexpr dimension< 4 > t;
-        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
-
-        GRIDTOOLS_STATIC_ASSERT(first.get< 3 - 0 >() == -5, "ERROR");
-        return first.get< 3 - 0 >() == -5 && first.get< 3 - 1 >() == 0 && first.get< 3 - 2 >() == 8 &&
-               first.get< 3 - 3 >() == 2;
-    }
 
     /** @brief interface with aliases defined at compile-time
 
@@ -108,31 +80,8 @@ namespace interface {
 
         alias_t first(dimension< 8 >(23), dimension< 3 >(-5));
 
-        GRIDTOOLS_STATIC_ASSERT(alias_t::get_constexpr< 14 >() == 4, "ERROR");
         return first.get< 14 - 6 >() == 2 && first.get< 14 - 0 >() == 4 && first.get< 14 - 14 >() == -3 &&
                first.get< 14 - 7 >() == 23 && first.get< 14 - 2 >() == -5;
-    }
-
-    /** @brief interface with aliases defined at run-time
-
-        allows to split a single field in its different components, assigning an offset to each component.
-        The aforementioned offset can be a run-time value, or can be treated as static const when the instance has the
-       constexpr specifier.
-    */
-    bool test_dynamic_alias() {
-
-        // mixing caompile time and runtime values
-        using t = dimension< 15 >;
-        typedef accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 15 > arg_t;
-        alias< arg_t, t > field1(-3); // records the offset -3 as dynamic values
-        alias< arg_t, t > field2(-1); // records the offset -1 as static const
-
-        return field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 &&
-               field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 &&
-               field1(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -3 &&
-               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 0 >() == 1 &&
-               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 2 >() == -5 &&
-               field2(dimension< 3 >(-5), dimension< 1 >(1)).get< 14 - 14 >() == -1;
     }
 
 } // namespace interface
@@ -149,12 +98,6 @@ TEST(Accessor, is_accessor) {
 
 TEST(Accessor, Trivial) { EXPECT_TRUE(test_trivial()); }
 
-TEST(Accessor, Array) { EXPECT_TRUE(test_array()); }
-
 TEST(Accessor, Alternative) { EXPECT_TRUE(test_alternative1()); }
-
-TEST(Accessor, Cxx11Alternative) { EXPECT_TRUE(test_alternative2()); }
-
-TEST(Accessor, Cxx11DynamicAlias) { EXPECT_TRUE(test_dynamic_alias()); }
 
 TEST(Accessor, Cxx11StaticAlias) { EXPECT_TRUE(test_static_alias()); }

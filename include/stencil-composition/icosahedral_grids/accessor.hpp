@@ -48,25 +48,17 @@ namespace gridtools {
         typename LocationType,
         typename Extent = extent< 0, 0, 0, 0, 0, 0 >,
         ushort_t FieldDimensions = 4 >
-    struct accessor : public accessor_base< ID, Intent, Extent, FieldDimensions > {
+    struct accessor : public accessor_base< FieldDimensions > {
         GRIDTOOLS_STATIC_ASSERT((is_location_type< LocationType >::value), "Error: wrong type");
-        using type = accessor< ID, Intent, LocationType, Extent, FieldDimensions >;
+        using index_t = static_uint< ID >;
+        static constexpr enumtype::intent intent = Intent;
+        using extent_t = Extent;
         using location_type = LocationType;
         static const uint_t value = ID;
-        using index_t = static_uint< ID >;
-        using extent_t = Extent;
         location_type location() const { return location_type(); }
 
-        typedef accessor_base< ID, Intent, Extent, FieldDimensions > super;
-
-        GT_FUNCTION
-        constexpr accessor() : super() {}
-
         /**inheriting all constructors from offset_tuple*/
-        using accessor_base< ID, Intent, Extent, FieldDimensions >::accessor_base;
-
-        GT_FUNCTION
-        constexpr explicit accessor(array< int_t, FieldDimensions > const &offsets) : super(offsets) {}
+        using accessor::accessor_base::accessor_base;
     };
 
     template < uint_t ID, typename LocationType, typename Extent = extent< 0 >, ushort_t FieldDimensions = 4 >
