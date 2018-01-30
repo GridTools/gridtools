@@ -51,7 +51,8 @@
 #include "wrap_type.hpp"
 #include "computation_grammar.hpp"
 
-/** @file This file implements the metafunctions to perform data dependency analysis on a
+/** @file
+    This file implements the metafunctions to perform data dependency analysis on a
     multi-stage computation (MSS). The idea is to assign to each placeholder used in the
     computation an extent that represents the values that need to be accessed by the stages
     of the computation in each iteration point. This "assignment" is done by using an

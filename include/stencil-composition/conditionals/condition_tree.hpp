@@ -35,7 +35,8 @@
 */
 
 /**
- * @file Utilities for dealing with binary trees nodes are gridtools::condition instantiations.
+ * @file
+ * Utilities for dealing with binary trees nodes are gridtools::condition instantiations.
  *
  * Examples of the tree types in the context of this file:
  *   - [some type, that is not gridstool::condition instantiation] - a tree with the only leaf.

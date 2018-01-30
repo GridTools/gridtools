@@ -38,7 +38,9 @@
 #include "../accessor_fwd.hpp"
 #include "../extent.hpp"
 
-/** @file vector accessor */
+/** @file
+    Vector accessor
+*/
 
 namespace gridtools {
 

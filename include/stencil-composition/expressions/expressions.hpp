@@ -45,7 +45,7 @@
    by the user, recognizing the structure and building a syntax tree by recursively nesting
    templates.*/
 
-/** \section expressions Expressions Definition
+/** \insection expressions
     @{
 */
 #include "expr_base.hpp"

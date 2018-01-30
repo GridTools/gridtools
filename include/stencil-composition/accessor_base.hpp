@@ -203,7 +203,7 @@ namespace gridtools {
     /**
      * Printing type information for debug purposes
      * @param s The ostream
-     * @param n/a Type selector for offset_tuple
+     * @param x Type selector for offset_tuple
      * @return ostream
      */
     template < uint_t I, enumtype::intent It, typename R, ushort_t D >
@@ -224,7 +224,7 @@ namespace gridtools {
     /**
      * Printing type information for debug purposes
      * @param s The ostream
-     * @param n/a Type selector for arg to a NON temp
+     * @param * Type selector for arg to a NON temp
      * @return ostream
      */
     template < uint_t I, typename R, typename Location, bool Temporary >
