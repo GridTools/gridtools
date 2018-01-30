@@ -23,8 +23,4 @@ do
     fi
 done
 
-# remove all lines which have a "#"
-sed -i "/^#/d" $object_file
-
-# remove everything before "class my_repository"
-awk "/class my_repository/,0" $object_file > $output_file
+cp $object_file $output_file
