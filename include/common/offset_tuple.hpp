@@ -118,7 +118,7 @@ namespace gridtools {
        Note that if no value is specified for the extra dimension a zero offset is implicitly assumed.
     */
     template < int_t Index, int_t NDim >
-    struct offset_tuple : public offset_tuple< Index - 1, NDim > {
+    struct offset_tuple /* @cond */ : public offset_tuple< Index - 1, NDim > /* @endcond */ {
         static const int_t n_dimensions = NDim;
 
         typedef offset_tuple< Index - 1, NDim > super;

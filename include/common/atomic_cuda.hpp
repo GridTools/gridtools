@@ -86,7 +86,7 @@ namespace gridtools {
     };
 
     /**
-    * @class atomic_cuda - Specialization for float
+    * Specialization for float
     * generic implementation for CUDA that provides atomic functions
     */
     template <>
@@ -156,8 +156,7 @@ namespace gridtools {
     };
 
     /**
-    * @class AtomicCUDA  - specialization for double
-    * specialization for doubles of AtomicCUDA that provides atomic functions
+    * Specialization for doubles of AtomicCUDA that provides atomic functions
     */
     template <>
     class atomic_cuda< double > {
