@@ -71,7 +71,7 @@ using storage_local_quad_t = backend_t::storage_traits_t::data_store_t< float_ty
   @brief This file shows a possible usage of the extension to storages with more than 3 space dimensions.
 
   We recall that the space dimensions simply identify the number of indexes/strides required to access
-  a contiguous chunck of storage. The number of space dimensions is fully arbitrary.
+  a contiguous chunk of storage. The number of space dimensions is fully arbitrary.
 
   In particular, we show how to perform a nested inner loop on the extra dimension(s). Possible scenarios
   where this can be useful could be:
@@ -101,7 +101,7 @@ using storage_local_quad_t = backend_t::storage_traits_t::data_store_t< float_ty
 
 namespace assembly {
 
-    /**this is a user-defined class which will be used from whithin the user functor
+    /**this is a user-defined class which will be used from within the user functor
      by calling its  operator(). It can represent in this case values which are local to the elements
      e.g. values of the basis functions in the quad points. */
     template < typename ValueType, typename Layout, uint_t... Dims >
@@ -155,7 +155,7 @@ namespace assembly {
                         // check the initialization to 0
                         assert(eval(result(i, j, k, di + I, dj + J, dk + K)) == 0.);
                         for (short_t q = 0; q < 2; ++q) {
-                            eval(result(di + I, dj + J, dk + K, qp)) +=
+                            eval(result(di + I, dj + J, dk + K)) +=
                                 eval(phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} * f{i, j, k, di, dj, dk} +
                                      phi(I, J, K, q) * psi(0, 0, 0, q) * jac{i, j, k, qp + q} *
                                          f{i, j, k, di + 1, dj, dk} +
@@ -176,8 +176,6 @@ namespace assembly {
                     }
         }
     };
-
-    std::ostream &operator<<(std::ostream &s, integration const) { return s << "integration"; }
 
     bool test(uint_t d1, uint_t d2, uint_t d3) {
 

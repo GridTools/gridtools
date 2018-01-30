@@ -84,8 +84,8 @@ namespace gridtools {
         array< int_t, Dim > m_offsets;
 
         template < ushort_t Idx >
-        int set_dimension(dimension< Idx > dim) {
-            m_offsets[Idx - 1] = dim.value;
+        int add_dimension(dimension< Idx > dim) {
+            m_offsets[Idx - 1] += dim.value;
             return 0;
         }
 
@@ -110,7 +110,7 @@ namespace gridtools {
                 int >::type = 0 >
         GT_FUNCTION explicit accessor_base(dimension< Is >... ds)
             : m_offsets({}) {
-            noop{}(set_dimension(ds)...);
+            noop{}(add_dimension(ds)...);
         }
 
         template < short_t Idx >
