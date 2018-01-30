@@ -44,6 +44,12 @@ The predicates identify a regoin given a @ref gridtools::direction and its data 
 
 namespace gridtools {
 
+    /** \ingroup Boundary-Conditions
+     * @{
+     */
+
+    /** @brief Default predicate that returns always true, so that the boundary conditions are applied everywhere
+     */
     struct default_predicate {
         template < typename Direction >
         bool operator()(Direction) const {
@@ -51,7 +57,7 @@ namespace gridtools {
         }
     };
 
-    /**@brief predicate returning whether I am or not at the global boundary, based on a processor grid
+    /** @brief predicate returning whether I am or not at the global boundary, based on a processor grid
      */
     template < typename ProcGrid >
     struct proc_grid_predicate {
@@ -64,4 +70,7 @@ namespace gridtools {
             return (m_grid.template proc< I, J, K >() == -1);
         }
     };
+
+    /** @} */
+
 } // namespace gridtools

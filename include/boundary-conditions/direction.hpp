@@ -40,6 +40,11 @@
 @brief definition of direction in a 3D cartesian grid
  */
 namespace gridtools {
+
+    /** \ingroup Boundary-Conditions
+     * @{
+     */
+
     /**
        @brief Enum defining the directions in a discrete Cartesian grid
      */
@@ -94,5 +99,7 @@ namespace gridtools {
         s << "direction<" << I << ", " << J << ", " << K << ">";
         return s;
     }
+
+    /** @} */
 
 } // namespace gridtools

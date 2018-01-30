@@ -37,6 +37,10 @@
 
 namespace gridtools {
 
+    /** \ingroup Boundary-Conditions
+     * @{
+     */
+
     /**
        On all boundary the values ares set to a fixed value,
        which is zero for basic data types.
@@ -84,5 +88,7 @@ namespace gridtools {
       private:
         T value;
     };
+
+    /** @} */
 
 } // namespace gridtools

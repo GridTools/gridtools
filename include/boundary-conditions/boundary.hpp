@@ -43,9 +43,16 @@
 
 #include "./boundary-conditions/predicate.hpp"
 
+/** \defgroup Boundary-Conditions
+ */
+
 namespace gridtools {
 
     namespace _impl {
+        /** \ingroup Boundary-Conditions
+         * @{
+         */
+
         template < enumtype::platform Arch, typename BoundaryFunction, typename Predicate >
         struct select_apply;
 
@@ -81,7 +88,12 @@ namespace gridtools {
             static proper_view_t make(DataF const &df) { return make_device_view< AM >(df); }
         };
 #endif
+        /** @} */
     } // namespace _impl
+
+    /** \ingroup Boundary-Conditions
+     * @{
+     */
 
     /**
        @brief Main interface for boundary condition application.
@@ -109,5 +121,7 @@ namespace gridtools {
                     data_fields)...);
         }
     };
+
+    /** @} */
 
 } // namespace gridtools
