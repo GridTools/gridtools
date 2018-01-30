@@ -36,7 +36,7 @@
 
 #pragma once
 
-/** \defgroup Distributed-Boundaries
+/** \defgroup Distributed-Boundaries Distributed Boundary Conditions
  */
 
 #include "./bound_bc.hpp"
