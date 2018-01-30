@@ -49,8 +49,10 @@ namespace gridtools {
        @brief Enum defining the directions in a discrete Cartesian grid
      */
     enum sign { any_ = -2, minus_ = -1, zero_, plus_ };
+
     /**
        @brief Class defining a direction in a cartesian 3D grid.
+
        The directions correspond to the following:
        - all the three template parameters are either plus or minus: identifies a node on the cell
        \verbatim
