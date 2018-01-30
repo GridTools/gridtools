@@ -52,7 +52,7 @@ namespace gridtools {
      */
     enum sign { any_ = -2, minus_ = -1, zero_, plus_ };
 
-    /**
+    /** \ingroup Boundary-Conditions
        @brief Class defining a direction in a cartesian 3D grid.
 
        The directions correspond to the following:
