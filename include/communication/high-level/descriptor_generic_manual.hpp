@@ -874,7 +874,7 @@ namespace gridtools {
             }
         }
 
-#include <communication/high-level/non_vect_interface.hpp>
+#include "./non_vect_interface.hpp"
     };
 #endif // cudacc
 }

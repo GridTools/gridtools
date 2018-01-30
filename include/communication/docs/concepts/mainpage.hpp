@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
-/** \defgroup GCL
+/** \defgroup GCL Generic Communication Layer
  */
 
 /** \addtogroup GCL
@@ -112,9 +112,97 @@ of a high latency interconnect</b>.</span></p>
 */
 
 /** \page GCL_L3 GCL Level 3
-<h4 class="c4">Processor Grid</h4><p class="c4"><span class="c5">Any two dimensional processor grid object must support the following member functions:</span></p><p class="c1"><span class="c5"></span></p><table border="1" cellpadding="0" cellspacing="0" class="c20"><tr><td class="c12"><p class="c11 c4"><span class="c0">void dims(int &amp;I, int &amp;J) const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p class="c11 c4"><span class="c5">Retreive grid dimensions</span></p></td></tr><tr><td class="c12"><p class="c11 c4"><span class="c0">void coords(int &amp;i, int &amp;j) const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p class="c11 c4"><span class="c5">Retreive calling process coordinates</span></p></td></tr><tr><td class="c12"><p class="c11 c4"><span class="c0">template &lt;int II, int JJ&gt; int proc() const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p class="c11 c4"><span class="c5">Process ID of process in (i+II, j+JJ) &nbsp; &nbsp; &nbsp; (*)</span></p></td></tr><tr><td class="c12"><p class="c11 c4"><span class="c0">int proc(int ii, int jj) const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p class="c11 c4"><span class="c5">Process ID of process in (i+ii, j+jj) &nbsp; &nbsp; &nbsp; (*)</span></p></td></tr>
-</table><p class="c4"><span class="c5">(*) (i,j) are assumed to be the coordinates of the calling process.</span></p><p class="c1"><span class="c5"></span></p><p class="c4"><span class="c5">It is assumed the first dimension is i and the second is j. Construction of the process grid is dependent on the actual class used. The list of the processor grisd available in GCL will be provided with the manual.</span></p><p class="c1"><span class="c5"></span></p><p class="c4"><span class="c5">Any three dimensional processor grid object must support the following member functions:</span></p><p class="c1"><span class="c5"></span></p><table border="1" cellpadding="0" cellspacing="0" class="c20"><tr class="c7"><td class="c12"><p class="c11 c4"><span class="c0">void dims(int &amp;I, int &amp;J, int &amp;K) const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p class="c11 c4"><span class="c5">Retreive grid dimensions</span></p></td></tr><tr class="c7"><td class="c12"><p class="c11 c4"><span class="c0">void coords(int &amp;i, int &amp;j, int &amp;k) const</span></p></td><td class="c2"><p class="c1 c11"><span class="c0"></span></p></td><td class="c6"><p class="c4 c11"><span class="c0">Retreive calling process coordinates</span></p></td></tr><tr class="c7"><td class="c12"><p class="c11 c4"><span class="c0">template &lt;int II, int JJ, int KK&gt; int proc() const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p class="c11 c4"><span class="c5">Process ID of process in (i+II, j+JJ,k+KK) &nbsp; &nbsp; &nbsp; (*)</span></p></td></tr><tr class="c7"><td class="c12"><p class="c11 c4"><span class="c0">int proc(int ii, int jj, int kk) const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p class="c11 c4"><span class="c5">Process ID of process in (i+ii, j+jj, j+kk) &nbsp; &nbsp; &nbsp; (*)</span></p></td></tr></table><p class="c4"><span class="c5">(*) (i,j,k) are assumed to be the coordinates of the calling process.</span></p><p class="c1"><span class="c5"></span></p><h4 class="c4"><a name="h.k2kd75ufcyzl"></a>Processor grids in GCL</h4><p class="c4"><span class="c5">There are four processor grids types immediately available in GCL. The first two are </span><span class="c0">_2D_process_grid_t</span><span class="c5">&nbsp;and </span><span class="c0">_3D_process_grid_t</span><span class="c5">, which provide the interface to create the grid (no construcors)</span></p><p class="c1"><span class="c5"></span></p><p class="c4"><span class="c0">void create(int P, int pid)</span></p><p class="c1"><span class="c5"></span></p><p class="c4"><span class="c5">where P is the number of processes available and pid is the pid of the calling process.</span></p><p class="c1"><span class="c5"></span></p><p class="c4"><span class="c5">The other two are made to make use of a MPI_CART already created. The classes are </span></p><p class="c4"><span class="c0">MPI_2D_process_grid_t</span><span class="c5">&nbsp;and </span><span class="c0">MPI_3D_process_grid_t</span><span class="c5">&nbsp;with the following interfaces</span></p><p class="c1"><span class="c5"></span></p><p class="c4"><span class="c0">MPI_2D_process_grid_t(MPI_Comm comm)</span><span class="c5">, a constructor that receives the communicoator associated with the CART</span></p><p class="c1"><span class="c5"></span></p><p class="c4"><span class="c0">void create(MPI_Comm comm)</span><span class="c5">&nbsp; a creation function hat receives the communicoator associated with the CART</span></p><p class="c1"><span class="c5"></span></p>
-<h4 class="c0"><a name="h.cjmgdgdnspyc"></a>Communication Pattern</h4><p class="c0"><span class="c8">Communication pattern has one template argument that is the processor grid, and interfaces to associate the buffers to the communication </span><span class="c8 c13">channels</span><span class="c8">.</span></p><p class="c0 c10"><span class="c8"></span></p><p class="c0"><span class="c8 c12">Halo_Exchange_2D&lt;PROC_GRID&gt;(proc_grid) he;</span></p><p class="c0"><span class="c8 c12">he.register_buffers(send_buffers, receive_buffers);</span></p><p class="c0"><span class="c8 c12">he.execute();</span></p><p class="c0 c10"><span class="c8"></span></p><p class="c0"><span class="c8">Send and receive buffers are classes that contain the buffers pointers and sizes. Alternatively, buffers can be registered one by one as follows:</span></p><p class="c0 c10"><span class="c8"></span></p><p class="c0"><span class="c8 c12">he.register_send_to_buffer&lt;I,J&gt;(pointer_to_buffer, size);</span></p><p class="c0"><span class="c8 c12">he.register_receive_from_buffer&lt;I,J&gt;(pointer_to_buffer, size);</span></p><p class="c0 c10"><span class="c8"></span></p><p class="c0"><span class="c8">where I and J are the relative coordinates of the processors that are destination or sources of the data, respectively.</span></p><p class="c0 c10"><span></span></p><p class="c0 c10"><span></span></p><table border="1" cellpadding="0" cellspacing="0" class="c5"><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">Halo_Exchange_2D&lt;PROC_GRID&gt;(proc_grid)</span></p></td><td class="c3"><p class="c6 c0"><span>Contructor. Proc_grid must be a processor grid as decsribed above</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">template &lt;int I, int J&gt; void register_send_to_buffer&lt;I,J&gt;(void* ptr, int size)</span></p></td><td class="c3"><p class="c6 c0"><span>Register with the pattern the bufferfor sending data to process (i+I, j+J) &nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">void register_receive_from_buffer&lt;I,J&gt;(void* ptr, int size, int I, int J)</span></p></td><td class="c3"><p class="c6 c0"><span>Register with the pattern the buffer for receiving data from process (i+I, j+J) &nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">template &lt;int I, int J&gt; void set_send_to_size&lt;I,J&gt;(int size)</span></p></td><td class="c3"><p class="c6 c0"><span>Set buffer size for buffert to be sent to process (i+I, j+J) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">void set_send_to_size(int size, int I, int J)</span></p></td><td class="c3"><p class="c6 c0"><span>Set buffer size for buffert to be sent to process (i+I, j+J) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">template &lt;int I, int J&gt; void set_receive_from_size&lt;I,J&gt;(int size)</span></p></td><td class="c3"><p class="c6 c0"><span>Set buffer size for buffert to be received from &nbsp;process (i+I, j+J) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">void set_receive_from_size(int size, int I, int J)</span></p></td><td class="c3"><p class="c6 c0"><span>Set buffer size for buffert to be received from &nbsp;process (i+I, j+J) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span>execute() const</span></p></td><td class="c3"><p class="c6 c0"><span>Function to trigger data exchange.</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span>pre_execute() const</span></p></td><td class="c3"><p class="c6 c0"><span>NECESSARY?</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span>post_execute() const</span></p></td><td class="c3"><p class="c6 c0"><span>NECESSARY?</span></p></td></tr></table><p class="c0"><span class="c8">(*) (i,j) are assumed to be the coordinates of the calling process.</span></p><p class="c0 c10"><span></span></p><p class="c0"><span class="c17 c22">IMPORTANT</span><span class="c17">:</span><span>&nbsp;</span><span class="c17">The pattern is assumed to be </span><span class="c13 c17">regular</span><span>. This means that all processes/threads are assumed to communicate with the same neighbors and with the same sizes. In a non-cyclic case the proper adjustment has to be made by the processes at the boundaries. This assumption is necessary to perform data exchange without exchanging empty messages. Other cases can be handled by other communication patterns, for instance an irregular_halo_exchange pattern in which each process can communicate with arbitrary neighbors with arbitrary sizes.</span></p>
+<h4 class="c4">Processor Grid</h4><p class="c4"><span class="c5">Any two dimensional processor grid object must support
+the following member functions:</span></p><p class="c1"><span class="c5"></span></p><table border="1" cellpadding="0"
+cellspacing="0" class="c20"><tr><td class="c12"><p class="c11 c4"><span class="c0">void dims(int &amp;I, int &amp;J)
+const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p class="c11
+c4"><span class="c5">Retreive grid dimensions</span></p></td></tr><tr><td class="c12"><p class="c11 c4"><span
+class="c0">void coords(int &amp;i, int &amp;j) const</span></p></td><td class="c2"><p class="c1 c11"><span
+class="c5"></span></p></td><td class="c6"><p class="c11 c4"><span class="c5">Retreive calling process
+coordinates</span></p></td></tr><tr><td class="c12"><p class="c11 c4"><span class="c0">template &lt;int II, int JJ&gt;
+int proc() const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p
+class="c11 c4"><span class="c5">Process ID of process in (i+II, j+JJ) &nbsp; &nbsp; &nbsp;
+(*)</span></p></td></tr><tr><td class="c12"><p class="c11 c4"><span class="c0">int proc(int ii, int jj)
+const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p class="c11
+c4"><span class="c5">Process ID of process in (i+ii, j+jj) &nbsp; &nbsp; &nbsp; (*)</span></p></td></tr>
+</table><p class="c4"><span class="c5">(*) (i,j) are assumed to be the coordinates of the calling process.</span></p><p
+class="c1"><span class="c5"></span></p><p class="c4"><span class="c5">It is assumed the first dimension is i and the
+second is j. Construction of the process grid is dependent on the actual class used. The list of the processor grisd
+available in GCL will be provided with the manual.</span></p><p class="c1"><span class="c5"></span></p><p
+class="c4"><span class="c5">Any three dimensional processor grid object must support the following member
+functions:</span></p><p class="c1"><span class="c5"></span></p><table border="1" cellpadding="0" cellspacing="0"
+class="c20"><tr class="c7"><td class="c12"><p class="c11 c4"><span class="c0">void dims(int &amp;I, int &amp;J, int
+&amp;K) const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td class="c6"><p
+class="c11 c4"><span class="c5">Retreive grid dimensions</span></p></td></tr><tr class="c7"><td class="c12"><p
+class="c11 c4"><span class="c0">void coords(int &amp;i, int &amp;j, int &amp;k) const</span></p></td><td class="c2"><p
+class="c1 c11"><span class="c0"></span></p></td><td class="c6"><p class="c4 c11"><span class="c0">Retreive calling
+process coordinates</span></p></td></tr><tr class="c7"><td class="c12"><p class="c11 c4"><span class="c0">template
+&lt;int II, int JJ, int KK&gt; int proc() const</span></p></td><td class="c2"><p class="c1 c11"><span
+class="c5"></span></p></td><td class="c6"><p class="c11 c4"><span class="c5">Process ID of process in (i+II, j+JJ,k+KK)
+&nbsp; &nbsp; &nbsp; (*)</span></p></td></tr><tr class="c7"><td class="c12"><p class="c11 c4"><span class="c0">int
+proc(int ii, int jj, int kk) const</span></p></td><td class="c2"><p class="c1 c11"><span class="c5"></span></p></td><td
+class="c6"><p class="c11 c4"><span class="c5">Process ID of process in (i+ii, j+jj, j+kk) &nbsp; &nbsp; &nbsp;
+(*)</span></p></td></tr></table><p class="c4"><span class="c5">(*) (i,j,k) are assumed to be the coordinates of the
+calling process.</span></p><p class="c1"><span class="c5"></span></p><h4 class="c4"><a
+name="h.k2kd75ufcyzl"></a>Processor grids in GCL</h4><p class="c4"><span class="c5">There are four processor grids types
+immediately available in GCL. The first two are </span><span class="c0">_2D_process_grid_t</span><span
+class="c5">&nbsp;and </span><span class="c0">_3D_process_grid_t</span><span class="c5">, which provide the interface to
+create the grid (no construcors)</span></p><p class="c1"><span class="c5"></span></p><p class="c4"><span class="c0">void
+create(int P, int pid)</span></p><p class="c1"><span class="c5"></span></p><p class="c4"><span class="c5">where P is the
+number of processes available and pid is the pid of the calling process.</span></p><p class="c1"><span
+class="c5"></span></p><p class="c4"><span class="c5">The other two are made to make use of a MPI_CART already created.
+The classes are </span></p><p class="c4"><span class="c0">MPI_2D_process_grid_t</span><span class="c5">&nbsp;and
+</span><span class="c0">MPI_3D_process_grid_t</span><span class="c5">&nbsp;with the following interfaces</span></p><p
+class="c1"><span class="c5"></span></p><p class="c4"><span class="c0">MPI_2D_process_grid_t(MPI_Comm comm)</span><span
+class="c5">, a constructor that receives the communicoator associated with the CART</span></p><p class="c1"><span
+class="c5"></span></p><p class="c4"><span class="c0">void create(MPI_Comm comm)</span><span class="c5">&nbsp; a creation
+function hat receives the communicoator associated with the CART</span></p><p class="c1"><span class="c5"></span></p>
+<h4 class="c0"><a name="h.cjmgdgdnspyc"></a>Communication Pattern</h4><p class="c0"><span class="c8">Communication
+pattern has one template argument that is the processor grid, and interfaces to associate the buffers to the
+communication </span><span class="c8 c13">channels</span><span class="c8">.</span></p><p class="c0 c10"><span
+class="c8"></span></p><p class="c0"><span class="c8 c12">Halo_Exchange_2D&lt;PROC_GRID&gt;(proc_grid) he;</span></p><p
+class="c0"><span class="c8 c12">he.register_buffers(send_buffers, receive_buffers);</span></p><p class="c0"><span
+class="c8 c12">he.execute();</span></p><p class="c0 c10"><span class="c8"></span></p><p class="c0"><span class="c8">Send
+and receive buffers are classes that contain the buffers pointers and sizes. Alternatively, buffers can be registered
+one by one as follows:</span></p><p class="c0 c10"><span class="c8"></span></p><p class="c0"><span class="c8
+c12">he.register_send_to_buffer&lt;I,J&gt;(pointer_to_buffer, size);</span></p><p class="c0"><span class="c8
+c12">he.register_receive_from_buffer&lt;I,J&gt;(pointer_to_buffer, size);</span></p><p class="c0 c10"><span
+class="c8"></span></p><p class="c0"><span class="c8">where I and J are the relative coordinates of the processors that
+are destination or sources of the data, respectively.</span></p><p class="c0 c10"><span></span></p><p class="c0
+c10"><span></span></p><table border="1" cellpadding="0" cellspacing="0" class="c5"><tr><td class="c7"><p class="c6
+c0"><span class="c8 c12">Halo_Exchange_2D&lt;PROC_GRID&gt;(proc_grid)</span></p></td><td class="c3"><p class="c6
+c0"><span>Contructor. Proc_grid must be a processor grid as decsribed above</span></p></td></tr><tr><td class="c7"><p
+class="c6 c0"><span class="c8 c12">template &lt;int I, int J&gt; void register_send_to_buffer&lt;I,J&gt;(void* ptr, int
+size)</span></p></td><td class="c3"><p class="c6 c0"><span>Register with the pattern the bufferfor sending data to
+process (i+I, j+J) &nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">void
+register_receive_from_buffer&lt;I,J&gt;(void* ptr, int size, int I, int J)</span></p></td><td class="c3"><p class="c6
+c0"><span>Register with the pattern the buffer for receiving data from process (i+I, j+J)
+&nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">template &lt;int I, int J&gt;
+void set_send_to_size&lt;I,J&gt;(int size)</span></p></td><td class="c3"><p class="c6 c0"><span>Set buffer size for
+buffert to be sent to process (i+I, j+J) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span
+class="c8 c12">void set_send_to_size(int size, int I, int J)</span></p></td><td class="c3"><p class="c6 c0"><span>Set
+buffer size for buffert to be sent to process (i+I, j+J) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6
+c0"><span class="c8 c12">template &lt;int I, int J&gt; void set_receive_from_size&lt;I,J&gt;(int
+size)</span></p></td><td class="c3"><p class="c6 c0"><span>Set buffer size for buffert to be received from &nbsp;process
+(i+I, j+J) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span class="c8 c12">void set_receive_from_size(int
+size, int I, int J)</span></p></td><td class="c3"><p class="c6 c0"><span>Set buffer size for buffert to be received from
+&nbsp;process (i+I, j+J) &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+&nbsp;(*)</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span>execute() const</span></p></td><td class="c3"><p
+class="c6 c0"><span>Function to trigger data exchange.</span></p></td></tr><tr><td class="c7"><p class="c6
+c0"><span>pre_execute() const</span></p></td><td class="c3"><p class="c6
+c0"><span>NECESSARY?</span></p></td></tr><tr><td class="c7"><p class="c6 c0"><span>post_execute()
+const</span></p></td><td class="c3"><p class="c6 c0"><span>NECESSARY?</span></p></td></tr></table><p class="c0"><span
+class="c8">(*) (i,j) are assumed to be the coordinates of the calling process.</span></p><p class="c0
+c10"><span></span></p><p class="c0"><span class="c17 c22">IMPORTANT</span><span
+class="c17">:</span><span>&nbsp;</span><span class="c17">The pattern is assumed to be </span><span class="c13
+c17">regular</span><span>. This means that all processes/threads are assumed to communicate with the same neighbors and
+with the same sizes. In a non-cyclic case the proper adjustment has to be made by the processes at the boundaries. This
+assumption is necessary to perform data exchange without exchanging empty messages. Other cases can be handled by other
+communication patterns, for instance an irregular_halo_exchange pattern in which each process can communicate with
+arbitrary neighbors with arbitrary sizes.</span></p>
 */
 
 /** \page GCL_L2 GCL Level 2
@@ -127,7 +215,7 @@ of a high latency interconnect</b>.</span></p>
     presenlty) and the other is a generic all-to-all.
     \section L2-HALO_EX Halo Exchange for regular grids
     The Halo exchange pattern is implemented by \link
-    GCL::halo_exchange_dynamic_ut \endlink class. This class takes 4
+    gridtools::halo_exchange_dynamic_ut \endlink class. This class takes 4
     template arguments, the first two of which are worthy being
     explored here in detail.
     Before we proceed, we make clear that this is the main class for
@@ -138,7 +226,7 @@ of a high latency interconnect</b>.</span></p>
     feedback from the users should be evaluated before implementing
     other similar solutions.
     The interface requires two layout maps template arguments ( \link
-    GCL::layout_map \endlink ) one to specify the data layout, the
+    gridtools::layout_map \endlink ) one to specify the data layout, the
     other to specify the relation between data layout and processor
     grid. This is an important asepct that will be explained here and
     also in the introduction.
@@ -150,7 +238,7 @@ of a high latency interconnect</b>.</span></p>
     the layout map in this case specifies in what position each
     dimension is in the increasing stride order. For instance:
     \code
-    GCL::layout_map<1,0,2>
+    gridtools::layout_map<1,0,2>
     \endcode
     Indicates that the first dimension in the data (i) is the second
     in the increasing stride order, while the second (j) is actually
@@ -161,7 +249,7 @@ of a high latency interconnect</b>.</span></p>
     pattern is the map between data coordinates and the processor
     grid coordinates. The following layout specification
     \code
-    GCL::layout_map<1,0,2>
+    gridtools::layout_map<1,0,2>
     \endcode
     would mean: The first dimension in data matches with the second
     dimension of the computing grid, the second is the first, and the
@@ -175,9 +263,9 @@ of a high latency interconnect</b>.</span></p>
     and i the second.
     The first template argument to the pattern would then be
     \code
-    GCL::layout_map<1,0>
+    gridtools::layout_map<1,0>
     \endcode
-    The second template argument is still a \link GCL::layout_map
+    The second template argument is still a \link gridtools::layout_map
     \endlink , but this time it indicates the mapping between data
     and processor grid. The data is still condidered in the user
     convention.
@@ -208,11 +296,11 @@ of a high latency interconnect</b>.</span></p>
     \endcode
     In this case the map between data and the processor grid is:
     \code
-    GCL::layout_map<0,1>
+    gridtools::layout_map<0,1>
     \endcode
     On the other hand, having specified
     \code
-    GCL::layout_map<1,0>
+    gridtools::layout_map<1,0>
     \endcode
     for this map, would imply a layout/distribution like the following:
     \code
@@ -228,10 +316,8 @@ of a high latency interconnect</b>.</span></p>
     dimension in the processor grid. Again, the data coordinates
     ordering is the one the user choose to be the logical order in the
     application, not the increasing stride order.
-    To find an example in 2D refer to
-    test_halo_exchange_2D.cpp
-    while a 3D example can be found in
-    test_halo_exchange.cpp
+    A 3D example can be found in
+    halo_exchange_3D.cpp
     The other template arguments are the type of the elements
     contained in the data arrays and the number of dimensions of
     data. The very last template argument is the architecture in which
@@ -244,7 +330,8 @@ of a high latency interconnect</b>.</span></p>
     processes. An example of contruction, for a 2D case corresponding
     to the previous example, is:
     \code
-    typedef GCL::halo_exchange_dynamic_ut<GCL::layout_map<1,0>, GCL::layout_map<1,0>, pair_t, 2, GCL::gcl_cpu > pattern_type;
+    typedef gridtools::halo_exchange_dynamic_ut<gridtools::layout_map<1,0>, gridtools::layout_map<1,0>, pair_t, 2,
+   gridtools::gcl_cpu > pattern_type;
     pattern_type he(pattern_type::grid_type::period_type(true, true), CartComm);
     \endcode
     Subsequently the halos must be registered.
@@ -275,8 +362,8 @@ of a high latency interconnect</b>.</span></p>
     An example of this code can be found in L2/test/test_halo_exchange_2D.h .
     \subsection L2-NALO_EX_LOWLEVEL Halo Exchange for regular grids at lower level
     The halo exchange for regular grids is implemented at lower level
-    by classes \link GCL::hndlr_descriptor_ut \endlink , \link
-    GCL::hndlr_dynamic_ut \endlink .
+    by classes \link gridtools::hndlr_descriptor_ut \endlink , \link
+    gridtools::hndlr_dynamic_ut \endlink .
     The main idea behing the pattern is that users have a regular
     multidimensional array (called field sometimes here, but array is
     probably more approriate) that is split according to a
@@ -317,9 +404,9 @@ of a high latency interconnect</b>.</span></p>
     \subsection HE_STATIC The static version of the halo exchange
     There are currently to modalities to implement a Level 2 pattern
     using GCL. The first onecan be described as static and is
-    implemented by \link GCL::hndlr_descriptor_ut \endlink. In this
+    implemented by \link gridtools::hndlr_descriptor_ut \endlink. In this
     case each process must describe the halos by using \link
-    GCL::halo_descriptor \endlink. The halo descrition process
+    gridtools::halo_descriptor \endlink. The halo descrition process
     describes with 5 integer parameter each dimension of the arrays by
     increasing strides (the rationale behind this choice is discussed
     in \link MULTI_DIM_ACCESS \endlink ).
@@ -344,12 +431,13 @@ of a high latency interconnect</b>.</span></p>
     decreasing performance.
     Before registering the halo, a pattern must be constructed as an object in the application. To do so
     \code
-    typedef GCL::Halo_Exchange_2D<PROC_GRID_TYPE> pattern_type;
+    typedef gridtools::Halo_Exchange_2D<PROC_GRID_TYPE> pattern_type;
     // This constructor can be used if an mpi cart communicator is already available
-    GCL::hndlr_descriptor_ut<char,2, pattern_type> hd(PROC_GRID_TYPE::period_type(false,true),MPI_COMMUNICATOR);
+    gridtools::hndlr_descriptor_ut<char,2, pattern_type> hd(PROC_GRID_TYPE::period_type(false,true),MPI_COMMUNICATOR);
     // or
     // this constructor can be used if not
-    GCL::hndlr_descriptor_ut<char,2, pattern_type> hd(PROC_GRID_TYPE::period_type(false,true), NPROCS, MY_PROC_ID);
+    gridtools::hndlr_descriptor_ut<char,2, pattern_type> hd(PROC_GRID_TYPE::period_type(false,true), NPROCS,
+   MY_PROC_ID);
     \endcode
 
     The periodicity is specified in order of dimension in the
@@ -408,7 +496,7 @@ of a high latency interconnect</b>.</span></p>
     from semantic issues. Future implementation would probably remove
     the pack and unpack altogether.
     \subsection HE_DYNAMIC The dynamic version of the halo exchange
-    The implementation is found in \link GCL::hndlr_dynamic_ut
+    The implementation is found in \link gridtools::hndlr_dynamic_ut
     \endlink . The difference with the previousis that the actual
     pointers to data are assumed to be unknown at pattern
     instantiation, so that they have to be passed to it just before
@@ -446,9 +534,9 @@ of a high latency interconnect</b>.</span></p>
     something like the following code. First the pattern must be
     constructed. The constructor takes the processing grid.
     \code
-    typedef GCL::_2D_process_grid_t<GCL::gcl_utils::boollist<2> > grid_type;
-    grid_type pgrid(GCL::gcl_utils::boollist<2>(true,true), GCL::PROCS, GCL::PID);
-    GCL::all_to_all_halo<int, grid_type> a2a(pgrid);
+    typedef gridtools::_2D_process_grid_t<gridtools::gcl_utils::boollist<2> > grid_type;
+    grid_type pgrid(gridtools::gcl_utils::boollist<2>(true,true), gridtools::PROCS, gridtools::PID);
+    gridtools::all_to_all_halo<int, grid_type> a2a(pgrid);
     \endcode
     Subsequently, the data to be sent and received must be specified.
     \code
@@ -457,8 +545,8 @@ of a high latency interconnect</b>.</span></p>
     crds[0] = i;
     crds[1] = j; // INCREASING STRIDES
     // INCREASING STRIDES
-    send_block[1] = GCL::halo_descriptor(0,0,j*N,(j+1)*N-1, PJ*N);
-    send_block[0] = GCL::halo_descriptor(0,0,i*N,(i+1)*N-1, N*PI);
+    send_block[1] = gridtools::halo_descriptor(0,0,j*N,(j+1)*N-1, PJ*N);
+    send_block[0] = gridtools::halo_descriptor(0,0,i*N,(i+1)*N-1, N*PI);
     a2a.register_block_to(&dataout[0], send_block, crds);
     }
     }
@@ -481,8 +569,8 @@ of a high latency interconnect</b>.</span></p>
     declare where the data vas to be placed, and this happens with a
     call like the following one:
     \code
-    recv_block[0] = GCL::halo_descriptor(H,H,H,N+H-1, N+2*H);
-    recv_block[1] = GCL::halo_descriptor(H,H,H,N+H-1, N+2*H);
+    recv_block[0] = gridtools::halo_descriptor(H,H,H,N+H-1, N+2*H);
+    recv_block[1] = gridtools::halo_descriptor(H,H,H,N+H-1, N+2*H);
     a2a.register_block_from(&datain[0], recv_block, crds);
     \endcode
     Here recv_block is an array of halo_descriptors with size method,
@@ -515,7 +603,8 @@ of a high latency interconnect</b>.</span></p>
     in which processors are identified by coordinates analogously to the elements of the array.
     Given a processor \f$P=(P_1,\ldots P_D)\f$ its immediate neighbors can be indicated by
     \f[p(\bar\eta)=(P_1+\eta_1,P_2+\eta_2,\ldots, P_D+\eta_D),\f] where \f$\eta_i \in \{-1,0,1\}.\f$
-    Now, fixed \f$p(\bar\eta)\f$, let \f[S_i=\left\{\begin{array}{lr}\eta_i=0,& \mbox{end}_i-\mbox{being}_i+1\\ \eta_i=1,&\mbox{plus}_i\\ \eta_i=-1,&\mbox{minus}_i\\ \end{array}\right.\f]
+    Now, fixed \f$p(\bar\eta)\f$, let \f[S_i=\left\{\begin{array}{lr}\eta_i=0,& \mbox{end}_i-\mbox{being}_i+1\\
+   \eta_i=1,&\mbox{plus}_i\\ \eta_i=-1,&\mbox{minus}_i\\ \end{array}\right.\f]
     The number of elements that need to be placed in the halo region for processor \f$P\f$ (indicated with
     plus and minus in the previous picture) is:
     \f[\prod_{i=1}^D S_i\f]
@@ -539,9 +628,11 @@ of a high latency interconnect</b>.</span></p>
     must be consistent in sending and receiving sided for correctness. Remeber that these ranges are for the region
     outside the begin-end region. For the regions inside that region (the one that must be sent to the neighbors), the
     bound change a little. We address this in what follows.
-    In fact the data to be taken from the inside for sending it to \f$p(\bar\eta)\f$ have to be treted sligthly differently.
+    In fact the data to be taken from the inside for sending it to \f$p(\bar\eta)\f$ have to be treted sligthly
+   differently.
     The sizes are
-    \f[S'_i=\left\{\begin{array}{lr}\eta_i=0,& \mbox{end}_i-\mbox{being}_i+1\\ \eta_i=-1,&\mbox{plus}_i\\ \eta_i=1,&\mbox{minus}_i\\ \end{array}\right.\f]
+    \f[S'_i=\left\{\begin{array}{lr}\eta_i=0,& \mbox{end}_i-\mbox{being}_i+1\\ \eta_i=-1,&\mbox{plus}_i\\
+   \eta_i=1,&\mbox{minus}_i\\ \end{array}\right.\f]
     While the sizes are the same, the bounds are slightly different:
     \f[B'_i=\left\{\begin{array}{lr}\eta_i=0,& \mbox{begin}_i:\mbox{end}_i\\
     \eta_i=-1,&\mbox{begin}_i:\mbox{begin}_i+\mbox{plus}_i-1\\
