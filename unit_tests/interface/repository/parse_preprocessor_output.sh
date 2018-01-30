@@ -26,9 +26,5 @@ done
 # remove all lines which have a "#"
 sed -i "/^#/d" $object_file
 
-# test if clang-format is available
-clang_format_cmd="cat" # if not available use cat to pass through
-command -v clang-format >/dev/null 2>&1 && clang_format_cmd="clang-format"
-
-# removes everything before "class my_repository" and applies clang-format if available
-awk "/class my_repository/,0" $object_file | eval ${clang_format_cmd} > $output_file
+# remove everything before "class my_repository"
+awk "/class my_repository/,0" $object_file > $output_file

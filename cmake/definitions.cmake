@@ -40,6 +40,9 @@ if(NOT ENABLE_CUDA)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mtune=native -march=native")
 endif(NOT ENABLE_CUDA)
 
+## clang tools ##
+find_package(ClangTools)
+
 ## gnu coverage flag ##
 if(GNU_COVERAGE)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
