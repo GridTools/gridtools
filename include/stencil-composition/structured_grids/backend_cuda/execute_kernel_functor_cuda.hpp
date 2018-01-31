@@ -34,7 +34,7 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../../../common/generic_metafunctions/replace_template_arguments.hpp"
+#include "../../../common/generic_metafunctions/meta.hpp"
 #include "../../../common/gt_assert.hpp"
 #include "../../backend_cuda/shared_iterate_domain.hpp"
 #include "../../backend_traits_fwd.hpp"
@@ -282,31 +282,9 @@ namespace gridtools {
 
                 dim3 blocks(nbx, nby, nbz);
 
-// re-create the run functor arguments, replacing the processing elements block size
-// with the corresponding, recently computed, block size
-#if !defined(__CUDACC__)
-                typedef typename replace_template_arguments< RunFunctorArguments,
-                    typename RunFunctorArguments::processing_elements_block_size_t,
-                    cuda_block_size_t >::type run_functor_arguments_cuda_t;
-#else
-                typedef run_functor_arguments< typename RunFunctorArguments::backend_ids_t,
-                    cuda_block_size_t,
-                    typename RunFunctorArguments::physical_domain_block_size_t,
-                    typename RunFunctorArguments::functor_list_t,
-                    typename RunFunctorArguments::esf_sequence_t,
-                    typename RunFunctorArguments::esf_args_map_sequence_t,
-                    typename RunFunctorArguments::loop_intervals_t,
-                    typename RunFunctorArguments::functors_map_t,
-                    typename RunFunctorArguments::extent_sizes_t,
-                    typename RunFunctorArguments::local_domain_t,
-                    typename RunFunctorArguments::cache_sequence_t,
-                    typename RunFunctorArguments::async_esf_map_t,
-                    typename RunFunctorArguments::grid_t,
-                    typename RunFunctorArguments::execution_type_t,
-                    typename RunFunctorArguments::is_reduction_t,
-                    typename RunFunctorArguments::reduction_data_t,
-                    typename RunFunctorArguments::color_t > run_functor_arguments_cuda_t;
-#endif
+                // re-create the run functor arguments, replacing the processing elements block size
+                // with the corresponding, recently computed, block size
+                using run_functor_arguments_cuda_t = meta::replace_at_c< RunFunctorArguments, 1, cuda_block_size_t >;
 
 #ifdef VERBOSE
                 printf("ntx = %d, nty = %d, ntz = %d\n", ntx, nty, ntz);

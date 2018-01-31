@@ -34,11 +34,17 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
 namespace gridtools {
+    template < typename GlobalAccessor, typename... Args >
+    struct global_accessor_with_arguments;
+
+    template < uint_t I >
+    struct global_accessor;
+
     template < typename T >
-    struct is_fusion_vector : boost::mpl::false_ {};
+    struct is_global_accessor;
 
-    template < typename... T >
-    struct is_fusion_vector< boost::fusion::vector< T... > > : boost::mpl::true_ {};
-
+    template < typename T >
+    struct is_global_accessor_with_arguments;
 } // namespace gridtools

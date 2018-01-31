@@ -179,18 +179,18 @@ namespace gridtools {
         template < class First, typename... Args >
         struct package_args< First, Args... > {
             using thefirst = typename std::decay< First >::type;
-            typedef typename boost::mpl::if_c< is_any_accessor< thefirst >::value,
-                thefirst,
-                wrap_reference< thefirst > >::type to_pack;
+            typedef
+                typename boost::mpl::if_c< is_accessor< thefirst >::value, thefirst, wrap_reference< thefirst > >::type
+                    to_pack;
             typedef typename boost::mpl::push_front< typename package_args< Args... >::type, to_pack >::type type;
         };
 
         template < class T >
         struct package_args< T > {
             using thefirst = typename std::decay< T >::type;
-            typedef typename boost::mpl::if_c< is_any_accessor< thefirst >::value,
-                thefirst,
-                wrap_reference< thefirst > >::type to_pack;
+            typedef
+                typename boost::mpl::if_c< is_accessor< thefirst >::value, thefirst, wrap_reference< thefirst > >::type
+                    to_pack;
             typedef boost::mpl::vector1< to_pack > type;
         };
 
@@ -204,12 +204,12 @@ namespace gridtools {
             Used to apply the transformation to a variadic pack.
          */
         template < typename T >
-        GT_FUNCTION typename boost::enable_if_c< is_any_accessor< T >::value, T >::type make_wrap(T const &v) {
+        GT_FUNCTION typename boost::enable_if_c< is_accessor< T >::value, T >::type make_wrap(T const &v) {
             return v;
         }
 
         template < typename T >
-        GT_FUNCTION typename boost::enable_if_c< not is_any_accessor< T >::value, _impl::wrap_reference< T > >::type
+        GT_FUNCTION typename boost::enable_if_c< not is_accessor< T >::value, _impl::wrap_reference< T > >::type
         make_wrap(T const &v) {
             return _impl::wrap_reference< typename std::decay< T >::type >(v);
         }

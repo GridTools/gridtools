@@ -228,6 +228,18 @@ namespace gridtools {
         template < template < class... > class L, class... Ts >
         struct length< L< Ts... > > : std::integral_constant< size_t, sizeof...(Ts) > {};
 
+/**
+ *  NVCC bug workaround: sizeof... works incorrectly within template alias context.
+ */
+#ifdef __CUDACC__
+        template < class... Ts >
+        struct sizeof_3_dots : std::integral_constant< size_t, sizeof...(Ts) > {};
+
+#define GT_SIZEOF_3_DOTS(Ts) ::gridtools::meta::sizeof_3_dots< Ts... >::value
+#else
+#define GT_SIZEOF_3_DOTS(Ts) sizeof...(Ts)
+#endif
+
         /**
          *  Extracts "producing template" from the list.
          *
@@ -631,7 +643,7 @@ namespace gridtools {
 
         template < class... Ts >
         using conjunction =
-            t_< std::is_same< list< bool_constant< Ts::value >... >, repeat< sizeof...(Ts), std::true_type > > >;
+            t_< std::is_same< list< bool_constant< Ts::value >... >, repeat< GT_SIZEOF_3_DOTS(Ts), std::true_type > > >;
 
         template < class... Ts >
         using disjunction = negation< conjunction< negation< Ts >... > >;
@@ -697,5 +709,77 @@ namespace gridtools {
             template < class... Ts >
             struct apply< L< Ts... > > : std::true_type {};
         };
+
+        template < template < class... > class Pred, template < class... > class F, template < class... > class G >
+        struct select {
+            template < class Arg >
+            using apply = typename std::conditional< Pred< Arg >::value, F< Arg >, G< Arg > >::type;
+        };
+
+        template < template < class... > class Pred, template < class... > class F >
+        struct selective_transform {
+            template < class List >
+            using apply = meta::apply< transform< select< Pred, F, id >::template apply >, List >;
+        };
+
+        /**
+         *   replace all Old elements to New within List
+         */
+        template < class List, class Old, class New >
+        using replace =
+            apply< selective_transform< bind< std::is_same, Old, _1 >::template apply, always< New >::template apply >,
+                List >;
+
+        template < template < class... > class Pred, class New >
+        struct replace_one_if_impl {
+            template < class T >
+            using apply = typename std::conditional< Pred< T >::value, New, T >::type;
+        };
+
+        template < class Key >
+        struct is_same_key_impl {
+            template < class Elem >
+            struct apply : std::false_type {};
+            template < template < class... > class L, class... Vals >
+            struct apply< L< Key, Vals... > > : std::true_type {};
+        };
+
+        template < class... NewVals >
+        struct replace_values_impl {
+            template < class MapElem >
+            struct apply;
+            template < template < class... > class L, class Key, class... OldVals >
+            struct apply< L< Key, OldVals... > > {
+                using type = L< Key, NewVals... >;
+            };
+        };
+
+        /**
+         *  replace element in the map by key
+         */
+        template < class Map, class Key, class... NewVals >
+        using mp_replace = apply< selective_transform< is_same_key_impl< Key >::template apply,
+                                      meta_class_t_< replace_values_impl< NewVals... > >::template apply >,
+            Map >;
+
+        template < class N, class New >
+        struct replace_at_impl {
+            template < class T, class M >
+            struct apply {
+                using type = T;
+            };
+            template < class T >
+            struct apply< T, N > {
+                using type = New;
+            };
+        };
+
+        template < class List, class N, class New >
+        using replace_at = apply< transform< meta_class_t_< replace_at_impl< N, New > >::template apply >,
+            List,
+            make_indices_for< List > >;
+
+        template < class List, size_t N, class New >
+        using replace_at_c = replace_at< List, std::integral_constant< size_t, N >, New >;
     }
 }

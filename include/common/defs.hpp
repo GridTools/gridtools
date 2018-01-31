@@ -201,7 +201,7 @@ namespace gridtools {
         /*
          * accessor I/O policy
          */
-        enum intend { in, inout };
+        enum intent { in, inout };
 
 #ifdef __CUDACC__
         static const unsigned int vector_width = 32;
@@ -332,16 +332,5 @@ namespace gridtools {
     using static_size_t = boost::mpl::integral_c< size_t, N >;
     template < bool B >
     using static_bool = boost::mpl::integral_c< bool, B >;
-
-    template < typename T >
-    struct is_static_integral : boost::mpl::false_ {};
-
-    template < typename T, T N >
-    struct is_static_integral< boost::mpl::integral_c< T, N > > : boost::mpl::true_ {};
-    /**
-       @}
-     */
-
-    //######################################################
 
 } // namespace gridtools

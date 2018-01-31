@@ -34,20 +34,17 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include <boost/type_traits/integral_constant.hpp>
+#include <type_traits>
 
 namespace gridtools {
 
     /*
      * @struct is_meta_predicate
-     * Check if it yelds true_type or false_type
+     * Check if it yields true_type or false_type
      */
+    template < typename Pred, typename = void >
+    struct is_meta_predicate : std::false_type {};
+
     template < typename Pred >
-    struct is_meta_predicate : boost::false_type {};
-
-    template <>
-    struct is_meta_predicate< boost::true_type > : boost::true_type {};
-
-    template <>
-    struct is_meta_predicate< boost::false_type > : boost::true_type {};
+    struct is_meta_predicate< Pred, typename std::enable_if< Pred::value || true >::type > : std::true_type {};
 }
