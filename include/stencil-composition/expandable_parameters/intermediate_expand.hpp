@@ -287,7 +287,7 @@ namespace gridtools {
                                     is_condition_tree_of< MssDescriptorTrees, is_computation_token >... >::value),
             "make_computation args should be mss descriptors or condition trees of mss descriptors");
 
-        template < uint N >
+        template < uint_t N >
         using converted_intermediate = intermediate< N,
             IsStateful,
             Backend,

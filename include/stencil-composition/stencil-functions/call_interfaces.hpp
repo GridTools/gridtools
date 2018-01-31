@@ -38,8 +38,8 @@
 #include <boost/fusion/include/as_vector.hpp>
 #include <boost/fusion/include/at_c.hpp>
 #include <boost/fusion/include/vector.hpp>
+#include <boost/fusion/include/mpl.hpp>
 
-#include "../../common/generic_metafunctions/mpl_sequence_to_fusion_vector.hpp"
 #include "../../common/generic_metafunctions/variadic_to_vector.hpp"
 #include "../accessor.hpp"
 #include "../functor_decorator.hpp"
@@ -300,8 +300,7 @@ namespace gridtools {
                 (is_iterate_domain< CallerAggregator >::value or is_function_aggregator< CallerAggregator >::value),
                 "The first argument must be an iterate_domain or a function_aggregator");
 
-            typedef typename boost::fusion::result_of::as_vector<
-                typename mpl_sequence_to_fusion_vector< PassedArguments >::type >::type accessors_list_t;
+            typedef typename boost::fusion::result_of::as_vector< PassedArguments >::type accessors_list_t;
 
             CallerAggregator &m_caller_aggregator;
             accessors_list_t const m_accessors_list;
