@@ -35,11 +35,13 @@
 */
 
 #pragma once
-#include "../accessor_base.hpp"
-#include "../arg.hpp"
-#include "../../common/dimension.hpp"
-#include "../../common/generic_metafunctions/static_if.hpp"
 
+#include <type_traits>
+
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
+#include "../accessor_base.hpp"
+#include "extent.hpp"
 /**
    @file
 
@@ -85,7 +87,11 @@ namespace gridtools {
         using extent_t = Extent;
 
         /**inheriting all constructors from accessor_base*/
-        using accessor::accessor_base::accessor_base;
+        using accessor_base< Number >::accessor_base;
+
+        template < uint_t OtherID, typename std::enable_if< ID != OtherID, int >::type = 0 >
+        GT_FUNCTION accessor(accessor< OtherID, Intent, Extent, Number > const &src)
+            : accessor_base< Number >(src) {}
     };
 
     template < uint_t ID, typename Extent = extent< 0, 0, 0, 0, 0, 0 >, ushort_t Number = 3 >

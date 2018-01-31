@@ -35,6 +35,8 @@
 */
 #pragma once
 
+#include <boost/fusion/include/vector.hpp>
+
 #include "../common/defs.hpp"
 #include "./empty_extent.hpp"
 #include "accessor.hpp"

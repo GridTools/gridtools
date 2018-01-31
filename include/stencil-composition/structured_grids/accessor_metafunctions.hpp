@@ -35,9 +35,9 @@
 */
 #pragma once
 
-#include "accessor_fwd.hpp"
-#include "./accessor.hpp"
 #include "../expressions/expressions.hpp"
+#include "../accessor_metafunctions.hpp"
+#include "accessor.hpp"
 
 namespace gridtools {
 

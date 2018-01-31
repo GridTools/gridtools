@@ -35,26 +35,20 @@
 */
 #pragma once
 
-#include <iostream>
 #include <type_traits>
-#include <boost/fusion/container/vector.hpp>
-#include <boost/fusion/include/for_each.hpp>
-#include <boost/mpl/assert.hpp>
-#include <boost/mpl/for_each.hpp>
-#include <boost/type_traits/integral_constant.hpp>
-
-#include "../gridtools.hpp"
-
-#include "../storage/storage-facility.hpp"
 
 #include "../common/array.hpp"
+#include "../common/defs.hpp"
 #include "../common/dimension.hpp"
-#include "../common/functional.hpp"
-#include "extent.hpp"
-#include "arg_fwd.hpp"
-#include "accessor_metafunctions.hpp"
+#include "../common/host_device.hpp"
+#include "../common/generic_metafunctions/meta.hpp"
 
 namespace gridtools {
+
+    namespace _impl {
+        template < class... Ts >
+        GT_FUNCTION void eval_args(Ts &&...) {}
+    }
 
     /**
      * @brief Type to be used in elementary stencil functions to specify argument mapping and extents
@@ -81,22 +75,19 @@ namespace gridtools {
      */
     template < ushort_t Dim >
     class accessor_base {
+        GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
+
         array< int_t, Dim > m_offsets;
 
         template < ushort_t Idx >
-        int add_dimension(dimension< Idx > dim) {
+        GT_FUNCTION int add_dimension(dimension< Idx > dim) {
+            GRIDTOOLS_STATIC_ASSERT((Idx > 0 && Idx <= Dim), "dimension is out of range");
             m_offsets[Idx - 1] += dim.value;
             return 0;
         }
 
-        template < ushort_t Idx >
-        using is_dimension_index = meta::bool_constant< (Idx > 0 && Idx <= Dim) >;
-
       public:
         static const ushort_t n_dimensions = Dim;
-        // copy ctor
-        GT_FUNCTION
-        constexpr accessor_base(accessor_base const &other) : m_offsets(other.m_offsets) {}
 
         template < class... Ints,
             typename std::enable_if< sizeof...(Ints) <= Dim &&
@@ -105,28 +96,26 @@ namespace gridtools {
         GT_FUNCTION constexpr explicit accessor_base(Ints... offsets)
             : m_offsets({offsets...}) {}
 
-        template < ushort_t... Is,
-            typename std::enable_if< sizeof...(Is) && meta::conjunction< is_dimension_index< Is >... >::value,
-                int >::type = 0 >
-        GT_FUNCTION explicit accessor_base(dimension< Is >... ds)
+        GT_FUNCTION constexpr explicit accessor_base(array< int_t, Dim > const &src) : m_offsets(src) {}
+
+        template < ushort_t I, ushort_t... Is >
+        GT_FUNCTION explicit accessor_base(dimension< I > d, dimension< Is >... ds)
             : m_offsets({}) {
-            noop{}(add_dimension(ds)...);
+            add_dimension(d);
+            _impl::eval_args(add_dimension(ds)...);
         }
 
         template < short_t Idx >
         GT_FUNCTION int_t constexpr get() const {
-            GRIDTOOLS_STATIC_ASSERT(Idx < 0 || Idx <= Dim,
-                "requested accessor index larger than the available "
-                "dimensions. Maybe you made a mistake when setting the "
-                "accessor dimensionality?");
+            GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
+            GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
             return m_offsets[Dim - 1 - Idx];
         }
 
         template < short_t Idx >
         GT_FUNCTION void set(uint_t offset_) {
             GRIDTOOLS_STATIC_ASSERT(Idx >= 0, "requested accessor index lower than zero");
-            GRIDTOOLS_STATIC_ASSERT(
-                Idx < 0 || Idx <= Dim, "requested accessor index larger than the available dimensions");
+            GRIDTOOLS_STATIC_ASSERT(Idx < Dim, "requested accessor index larger than the available dimensions");
             m_offsets[Dim - 1 - Idx] = offset_;
         }
     };

@@ -35,8 +35,11 @@
 */
 
 #pragma once
-#include "accessor_fwd.hpp"
-#include "accessor.hpp"
+#include "../../common/defs.hpp"
+#include "../../common/dimension.hpp"
+#include "../../common/host_device.hpp"
+#include "../accessor_fwd.hpp"
+#include "../accessor_metafunctions.hpp"
 
 namespace gridtools {
 
@@ -56,9 +59,9 @@ namespace gridtools {
 
     template < class Base, ushort_t... Inxs, int_t... Vals >
     struct accessor_mixed< Base, pair_< Inxs, Vals >... > : Base {
-        template < ushort_t... Is >
-        GT_FUNCTION explicit accessor_mixed(dimension< Is >... ds)
-            : Base(dimension< Inxs >(Vals)..., ds...) {}
+        template < class... Ts >
+        GT_FUNCTION explicit accessor_mixed(Ts... args)
+            : Base(dimension< Inxs >(Vals)..., args...) {}
     };
 
     /**

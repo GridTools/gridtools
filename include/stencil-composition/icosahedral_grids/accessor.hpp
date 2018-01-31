@@ -34,6 +34,11 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
+
+#include <type_traits>
+
+#include "../../common/defs.hpp"
+#include "../../common/host_device.hpp"
 #include "../extent.hpp"
 #include "../location_type.hpp"
 #include "../accessor_base.hpp"
@@ -41,7 +46,7 @@
 namespace gridtools {
     /**
     * This is the type of the accessors accessed by a stencil functor.
-    * It's a pretty minima implementation.
+    * It's a pretty minimal implementation.
     */
     template < uint_t ID,
         enumtype::intent Intent,
@@ -57,8 +62,12 @@ namespace gridtools {
         static const uint_t value = ID;
         location_type location() const { return location_type(); }
 
-        /**inheriting all constructors from offset_tuple*/
-        using accessor::accessor_base::accessor_base;
+        /**inheriting all constructors from accessor_base*/
+        using accessor_base< FieldDimensions >::accessor_base;
+
+        template < uint_t OtherID, typename std::enable_if< ID != OtherID, int >::type = 0 >
+        GT_FUNCTION accessor(accessor< OtherID, Intent, LocationType, Extent, FieldDimensions > const &src)
+            : accessor_base< FieldDimensions >(src) {}
     };
 
     template < uint_t ID, typename LocationType, typename Extent = extent< 0 >, ushort_t FieldDimensions = 4 >

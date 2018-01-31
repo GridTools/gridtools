@@ -52,6 +52,12 @@ namespace interface {
         return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
     }
 
+    bool test_array() {
+        constexpr accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 3 > first(array< int_t, 3 >{3, 2, -1});
+        GRIDTOOLS_STATIC_ASSERT((first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1), "ERROR");
+        return first.get< 2 >() == 3 && first.get< 1 >() == 2 && first.get< 0 >() == -1;
+    }
+
     /** @brief interface with out-of-order optional arguments
      */
     bool test_alternative1() {
@@ -97,6 +103,8 @@ TEST(Accessor, is_accessor) {
 }
 
 TEST(Accessor, Trivial) { EXPECT_TRUE(test_trivial()); }
+
+TEST(Accessor, Array) { EXPECT_TRUE(test_array()); }
 
 TEST(Accessor, Alternative) { EXPECT_TRUE(test_alternative1()); }
 
