@@ -72,6 +72,19 @@ namespace interface {
 
     using namespace expressions;
 
+    bool test_alternative2() {
+
+        constexpr dimension< 1 > i;
+        constexpr dimension< 2 > j;
+        constexpr dimension< 3 > k;
+
+        constexpr dimension< 4 > t;
+        accessor< 0, enumtype::inout, extent< 0, 0, 0, 0 >, 4 > first(i - 5, j, dimension< 3 >(8), t + 2);
+
+        return first.get< 3 - 0 >() == -5 && first.get< 3 - 1 >() == 0 && first.get< 3 - 2 >() == 8 &&
+               first.get< 3 - 3 >() == 2;
+    }
+
     /** @brief interface with aliases defined at compile-time
 
         allows to split a single field in its different components, assigning an offset to each component.
@@ -107,5 +120,7 @@ TEST(Accessor, Trivial) { EXPECT_TRUE(test_trivial()); }
 TEST(Accessor, Array) { EXPECT_TRUE(test_array()); }
 
 TEST(Accessor, Alternative) { EXPECT_TRUE(test_alternative1()); }
+
+TEST(Accessor, Cxx11Alternative) { EXPECT_TRUE(test_alternative2()); }
 
 TEST(Accessor, Cxx11StaticAlias) { EXPECT_TRUE(test_static_alias()); }
