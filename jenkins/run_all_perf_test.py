@@ -64,7 +64,7 @@ if __name__ == "__main__":
     commit_hash=None
     for target, prec in product(targets, precs):
         path=build_path("kesch",jplan, target, prec, std)
-        gitrev_cmd='git rev-parse  HEAD '+path 
+        gitrev_cmd='git rev-parse HEAD -- ' + path
         gitrev_out=subprocess.Popen(gitrev_cmd, shell=True, stdout=subprocess.PIPE)
     
         for line in gitrev_out.stdout:
