@@ -124,12 +124,11 @@ namespace gridtools {
 #pragma ivdep
 #pragma omp simd
                     for (int_t i = i_first; i < i_last; ++i) {
-                        auto it_domain = this->m_it_domain;
-                        run_esf_functor_t run_esf(it_domain);
-                        it_domain.template set_block_index< 0 >(i);
+                        run_esf_functor_t run_esf(this->m_it_domain);
+                        this->m_it_domain.template set_block_index< 0 >(i);
                         for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
                              iteration_policy_t::increment(k)) {
-                            it_domain.template set_block_index< 2 >(k);
+                            this->m_it_domain.template set_block_index< 2 >(k);
                             run_esf(index);
 
 #if defined(__INTEL_COMPILER) && !defined(GT_NO_CONSTEXPR_ACCESSES)
