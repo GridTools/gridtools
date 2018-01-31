@@ -4,7 +4,7 @@ macro(add_bindings_library)
     add_custom_command(OUTPUT ${ARGV0}_empty.cpp COMMAND touch ${ARGV0}_empty.cpp)
     add_executable(${ARGV0}_decl_generator ${CMAKE_CURRENT_BINARY_DIR}/${ARGV0}_empty.cpp)
     if (${APPLE})
-        target_link_libraries(${ARGV0}_decl_generator -force_load ${ARGV0} c_bindings_generator_main)
+        target_link_libraries(${ARGV0}_decl_generator -Wl,-force_load ${ARGV0} c_bindings_generator_main)
     else()
         target_link_libraries(${ARGV0}_decl_generator -Wl,--whole-archive ${ARGV0} -Wl,--no-whole-archive
                 c_bindings_generator_main)
