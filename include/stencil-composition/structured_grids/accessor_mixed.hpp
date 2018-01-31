@@ -59,6 +59,7 @@ namespace gridtools {
 
     template < class Base, ushort_t... Inxs, int_t... Vals >
     struct accessor_mixed< Base, pair_< Inxs, Vals >... > : Base {
+        accessor_mixed(accessor_mixed const &) = default;
         template < class... Ts >
         GT_FUNCTION explicit accessor_mixed(Ts... args)
             : Base(dimension< Inxs >(Vals)..., args...) {}
