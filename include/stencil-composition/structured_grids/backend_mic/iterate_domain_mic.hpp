@@ -314,11 +314,11 @@ namespace gridtools {
         template < typename Accessor >
         using cached = typename cache_access_accessor< Accessor >::type;
 
-        template < uint_t I, enumtype::intend Intend >
-        GT_FUNCTION typename accessor_return_type< global_accessor< I, Intend > >::type operator()(
-            global_accessor< I, Intend > const &accessor) {
-            using return_t = typename accessor_return_type< global_accessor< I, Intend > >::type;
-            using index_t = typename global_accessor< I, Intend >::index_t;
+        template < uint_t I >
+        GT_FUNCTION typename accessor_return_type< global_accessor< I > >::type operator()(
+            global_accessor< I > const &accessor) {
+            using return_t = typename accessor_return_type< global_accessor< I > >::type;
+            using index_t = typename global_accessor< I >::index_t;
             return *static_cast< return_t * >(data_pointer().template get< index_t::value >()[0]);
         }
 
