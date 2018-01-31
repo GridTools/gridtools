@@ -12,7 +12,7 @@ import distutils.dir_util as dutil
 def build_path(host, jplan, target, prec, std):
     path="/scratch/jenkins/workspace/"+jplan+"/build_type/release/compiler/gcc/label/"+host+"/mpi/MPI/"
     
-    path=path+"/real_type/"+prec+"/std/"+std+"/target/"+target+"/build/"   
+    path=path+"/real_type/"+prec+"/target/"+target+"/build/"
 
     return path
 
