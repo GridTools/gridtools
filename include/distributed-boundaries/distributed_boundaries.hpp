@@ -112,7 +112,7 @@ namespace gridtools {
                           d);
         \endverbatim
 
-        \tparal CTraits Communication traits. To see an example see gridtools::comm_traits
+        \tparam CTraits Communication traits. To see an example see gridtools::comm_traits
     */
     template < typename CTraits >
     struct distributed_boundaries {
@@ -134,13 +134,13 @@ namespace gridtools {
         /**
             @brief Constructor of distributed_boundaries.
 
-            \param gridtools::halos array of 3 gridtools::halo_desctiptor containing the halo information to be used for
+            \param halos array of 3 gridtools::halo_desctiptor containing the halo information to be used for
            communication
             \param period Periodicity specification, a gridtools::boollist with three elements, one for each dimension.
            true mean the dimension is periodic
             \param max_stores Maximum number of data_stores to be used in communication. PAssing more will couse a
            runtime error (probably segmentation fault), passing less will underutilize the memory
-            \param MPI_Comm MPI communicator to use in the halo update operation.
+            \param CartComm MPI communicator to use in the halo update operation.
         */
         distributed_boundaries(
             array< halo_descriptor, 3 > halos, boollist< 3 > period, uint_t max_stores, MPI_Comm CartComm)

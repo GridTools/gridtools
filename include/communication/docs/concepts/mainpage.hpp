@@ -317,7 +317,7 @@ arbitrary neighbors with arbitrary sizes.</span></p>
     ordering is the one the user choose to be the logical order in the
     application, not the increasing stride order.
     A 3D example can be found in
-    halo_exchange_3D.cpp
+    halo_exchange_3D_all.cpp
     The other template arguments are the type of the elements
     contained in the data arrays and the number of dimensions of
     data. The very last template argument is the architecture in which
@@ -523,7 +523,7 @@ arbitrary neighbors with arbitrary sizes.</span></p>
     features, then the maximum specifiable number is actually compiler
     dependent, otherwhise, the maximum number canno exceed the
     GCL_MAX_FIELDS parameter defined in \link
-    L2/include/gcl_parameters.h \endlink
+    gcl_parameters.hpp \endlink
     \section L2_ALL_TO_ALL All to all with halo specification
     The all to all pattern uses the same halo descriptors used
     previously in L2-HALO_EX halo exchange. The idea is that each
@@ -655,7 +655,7 @@ arbitrary neighbors with arbitrary sizes.</span></p>
     same layout is assumed for the data and the computing grid.
     While this is completely transparent to the library, the
     application may need special attention to the logic. This can be
-    seen in \link test_descriptors_3D.cpp \endlink
+    seen in \link descriptors_3D.cpp \endlink
     In this example the coordinates to the pattern are registered in
     inverse order with respect the tuple ordering (i,j,k). that is k
     has the smallest stride while i has the largest. To fill the data

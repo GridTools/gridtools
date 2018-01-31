@@ -105,7 +105,7 @@ namespace gridtools {
     /** @brief Facility to print direction, useful for debugging
 
         \param s Output stream
-        \param direction Direction to be printed (only type is necessary)
+        \param * direction Direction to be printed (only type is necessary)
      */
     template < sign I, sign J, sign K >
     std::ostream &operator<<(std::ostream &s, direction< I, J, K > const &) {

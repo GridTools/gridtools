@@ -281,7 +281,7 @@ namespace gridtools {
        \tparam Aggregator The aggregator (normally deduced by the argument)
 
        \param grid The grid to check
-       \param aggrs The aggregator
+       \param aggr The aggregator
     */
     template < typename GridTraits, typename Grid, typename Aggregator >
     void check_fields_sizes(Grid const &grid, Aggregator const &aggr) {
