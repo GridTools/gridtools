@@ -124,11 +124,12 @@ namespace gridtools {
 #pragma ivdep
 #pragma omp simd
                     for (int_t i = i_first; i < i_last; ++i) {
-                        run_esf_functor_t run_esf(this->m_it_domain);
-                        this->m_it_domain.template set_block_index< 0 >(i);
+                        auto it_domain = this->m_it_domain;
+                        run_esf_functor_t run_esf(it_domain);
+                        it_domain.template set_block_index< 0 >(i);
                         for (int_t k = k_first; iteration_policy_t::condition(k, k_last);
                              iteration_policy_t::increment(k)) {
-                            this->m_it_domain.template set_block_index< 2 >(k);
+                            it_domain.template set_block_index< 2 >(k);
                             run_esf(index);
 
 #if defined(__INTEL_COMPILER) && !defined(GT_NO_CONSTEXPR_ACCESSES)
@@ -302,15 +303,17 @@ namespace gridtools {
     } // namespace _impl
 
     struct execution_info_serial_mic {
-        int_t bi, bj;
+        int_t i_first, j_first;
+        int_t i_block_size, j_block_size;
     };
 
     struct execution_info_parallel_mic {
-        int_t bi, bj, k;
+        int_t i_first, j_first, k;
+        int_t i_block_size, j_block_size;
     };
 
     template < typename Grid >
-    static std::pair< int_t, int_t > block_size_mic(Grid const &grid) {
+    GT_FUNCTION static std::pair< int_t, int_t > block_size_mic(Grid const &grid) {
         const int_t i_grid_size = grid.i_high_bound() - grid.i_low_bound() + 1;
         const int_t j_grid_size = grid.j_high_bound() - grid.j_low_bound() + 1;
 
@@ -344,76 +347,53 @@ namespace gridtools {
             using strides_cached_t = typename iterate_domain_t::strides_cached_t;
 
           public:
-            execute_kernel_functor_mic(
+            GT_FUNCTION execute_kernel_functor_mic(
                 const local_domain_t &local_domain, const grid_t &grid, reduction_data_t &reduction_data)
                 : m_local_domain(local_domain), m_grid(grid), m_reduction_data(reduction_data) {
-                char *pd = std::getenv("GT_PREFETCH_DIST");
+                /*char *pd = std::getenv("GT_PREFETCH_DIST");
                 if (pd)
                     ::gridtools::_impl::prefetch_distance = std::atoi(pd);
                 else
-                    ::gridtools::_impl::prefetch_distance = 0;
+                    ::gridtools::_impl::prefetch_distance = 0;*/
             }
 
-            void operator()(const execution_info_serial_mic &execution_info) {
+            GT_FUNCTION void operator()(const execution_info_serial_mic &execution_info) {
                 using namespace ::gridtools::_impl;
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
                 data_ptr_cached_t data_ptr;
                 strides_cached_t strides;
-                int_t i_grid_size, j_grid_size, i_block_size, j_block_size, i_blocks, j_blocks;
 
-                init_iteration(it_domain,
-                    data_ptr,
-                    strides,
-                    i_grid_size,
-                    j_grid_size,
-                    i_block_size,
-                    j_block_size,
-                    i_blocks,
-                    j_blocks);
-                const int_t i_first = execution_info.bi * i_block_size + m_grid.i_low_bound();
-                const int_t j_first = execution_info.bj * j_block_size + m_grid.j_low_bound();
+                init_iteration(it_domain, data_ptr, strides);
 
-                const int_t i_bs =
-                    (execution_info.bi == i_blocks - 1) ? i_grid_size - execution_info.bi * i_block_size : i_block_size;
-                const int_t j_bs =
-                    (execution_info.bj == j_blocks - 1) ? j_grid_size - execution_info.bj * j_block_size : j_block_size;
-
-                run_f_on_interval_mic< execution_type_t, RunFunctorArguments > run(
-                    it_domain, m_grid, i_first, j_first, i_bs, j_bs);
+                run_f_on_interval_mic< execution_type_t, RunFunctorArguments > run(it_domain,
+                    m_grid,
+                    execution_info.i_first,
+                    execution_info.j_first,
+                    execution_info.i_block_size,
+                    execution_info.j_block_size);
                 boost::mpl::for_each< loop_intervals_t >(run);
 
                 m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
             }
 
-            void operator()(const execution_info_parallel_mic &execution_info) {
+            GT_FUNCTION void operator()(const execution_info_parallel_mic &execution_info) {
                 using namespace ::gridtools::_impl;
+
                 iterate_domain_t it_domain(m_local_domain, m_reduction_data.initial_value());
 
                 data_ptr_cached_t data_ptr;
                 strides_cached_t strides;
-                int_t i_grid_size, j_grid_size, i_block_size, j_block_size, i_blocks, j_blocks;
 
-                init_iteration(it_domain,
-                    data_ptr,
-                    strides,
-                    i_grid_size,
-                    j_grid_size,
-                    i_block_size,
-                    j_block_size,
-                    i_blocks,
-                    j_blocks);
+                init_iteration(it_domain, data_ptr, strides);
 
-                const int_t i_first = execution_info.bi * i_block_size + m_grid.i_low_bound();
-                const int_t j_first = execution_info.bj * j_block_size + m_grid.j_low_bound();
-
-                const int_t i_bs =
-                    (execution_info.bi == i_blocks - 1) ? i_grid_size - execution_info.bi * i_block_size : i_block_size;
-                const int_t j_bs =
-                    (execution_info.bj == j_blocks - 1) ? j_grid_size - execution_info.bj * j_block_size : j_block_size;
-
-                run_f_on_interval_kparallel_mic< execution_type_t, RunFunctorArguments > run(
-                    it_domain, m_grid, i_first, j_first, i_bs, j_bs, execution_info.k);
+                run_f_on_interval_kparallel_mic< execution_type_t, RunFunctorArguments > run(it_domain,
+                    m_grid,
+                    execution_info.i_first,
+                    execution_info.j_first,
+                    execution_info.i_block_size,
+                    execution_info.j_block_size,
+                    execution_info.k);
                 boost::mpl::for_each< loop_intervals_t >(run);
 
                 m_reduction_data.assign(omp_get_thread_num(), it_domain.reduction_value());
@@ -424,28 +404,13 @@ namespace gridtools {
             const grid_t &m_grid;
             reduction_data_t &m_reduction_data;
 
-            void init_iteration(iterate_domain_t &it_domain,
-                data_ptr_cached_t &data_ptr,
-                strides_cached_t &strides,
-                int_t &i_grid_size,
-                int_t &j_grid_size,
-                int_t &i_block_size,
-                int_t &j_block_size,
-                int_t &i_blocks,
-                int_t &j_blocks) const {
+            GT_FUNCTION void init_iteration(
+                iterate_domain_t &it_domain, data_ptr_cached_t &data_ptr, strides_cached_t &strides) const {
                 it_domain.set_data_pointer_impl(&data_ptr);
                 it_domain.set_strides_pointer_impl(&strides);
 
                 it_domain.template assign_storage_pointers< backend_traits_t >();
                 it_domain.template assign_stride_pointers< backend_traits_t, strides_cached_t >();
-
-                std::tie(i_block_size, j_block_size) = block_size_mic(m_grid);
-
-                i_grid_size = m_grid.i_high_bound() - m_grid.i_low_bound() + 1;
-                j_grid_size = m_grid.j_high_bound() - m_grid.j_low_bound() + 1;
-
-                i_blocks = (i_grid_size + i_block_size - 1) / i_block_size;
-                j_blocks = (j_grid_size + j_block_size - 1) / j_block_size;
             }
         };
 

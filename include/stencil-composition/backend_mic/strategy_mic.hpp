@@ -86,7 +86,8 @@ namespace gridtools {
 
           public:
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
+            GT_FUNCTION static void run(
+                LocalDomainListArray &local_domain_lists, const Grid &grid, ReductionData &reduction_data) {
                 GRIDTOOLS_STATIC_ASSERT((is_grid< Grid >::value), GT_INTERNAL_ERROR);
 
                 run(local_domain_lists, grid, reduction_data, all_parallel());
@@ -94,7 +95,7 @@ namespace gridtools {
 
           private:
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists,
+            GT_FUNCTION static void run(LocalDomainListArray &local_domain_lists,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 boost::mpl::true_) {
@@ -117,11 +118,19 @@ namespace gridtools {
                 const int_t k_first = grid.k_min();
                 const int_t k_last = grid.k_max();
 #pragma omp parallel for collapse(3)
-                for (int_t k = k_first; k <= k_last; ++k) {
-                    for (int_t bj = 0; bj < j_blocks; ++bj) {
+                for (int_t bj = 0; bj < j_blocks; ++bj) {
+                    for (int_t k = k_first; k <= k_last; ++k) {
                         for (int_t bi = 0; bi < i_blocks; ++bi) {
+                            const int_t i_first = bi * i_block_size + grid.i_low_bound();
+                            const int_t j_first = bj * j_block_size + grid.j_low_bound();
+
+                            const int_t i_bs = (bi == i_blocks - 1) ? i_grid_size - bi * i_block_size : i_block_size;
+                            const int_t j_bs = (bj == j_blocks - 1) ? j_grid_size - bj * j_block_size : j_block_size;
+
+                            execution_info_parallel_mic e = {i_first, j_first, k, i_bs, j_bs};
+
                             boost::mpl::for_each< iter_range >(
-                                mss_functor_t(local_domain_lists, grid, reduction_data, {bi, bj, k}));
+                                mss_functor_t(local_domain_lists, grid, reduction_data, e));
                         }
                     }
                 }
@@ -129,7 +138,7 @@ namespace gridtools {
             }
 
             template < typename LocalDomainListArray, typename Grid >
-            static void run(LocalDomainListArray &local_domain_lists,
+            GT_FUNCTION static void run(LocalDomainListArray &local_domain_lists,
                 const Grid &grid,
                 ReductionData &reduction_data,
                 boost::mpl::false_) {
@@ -154,8 +163,15 @@ namespace gridtools {
 #pragma omp parallel for collapse(2)
                 for (int_t bj = 0; bj < j_blocks; ++bj) {
                     for (int_t bi = 0; bi < i_blocks; ++bi) {
-                        boost::mpl::for_each< iter_range >(
-                            mss_functor_t(local_domain_lists, grid, reduction_data, {bi, bj}));
+                        const int_t i_first = bi * i_block_size + grid.i_low_bound();
+                        const int_t j_first = bj * j_block_size + grid.j_low_bound();
+
+                        const int_t i_bs = (bi == i_blocks - 1) ? i_grid_size - bi * i_block_size : i_block_size;
+                        const int_t j_bs = (bj == j_blocks - 1) ? j_grid_size - bj * j_block_size : j_block_size;
+
+                        execution_info_serial_mic e = {i_first, j_first, i_bs, j_bs};
+
+                        boost::mpl::for_each< iter_range >(mss_functor_t(local_domain_lists, grid, reduction_data, e));
                     }
                 }
                 reduction_data.reduce();
