@@ -127,4 +127,11 @@ namespace gridtools {
     tuple< Args... > make_tuple(Args... args) {
         return tuple< Args... >(args...);
     }
+
+    template < typename T >
+    class tuple_size;
+
+    template < typename... Elements >
+    class tuple_size< tuple< Elements... > > : public gridtools::static_size_t< sizeof...(Elements) > {};
+
 } // namespace gridtools

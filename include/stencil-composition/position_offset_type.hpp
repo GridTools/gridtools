@@ -34,19 +34,22 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 #pragma once
-#include "../defs.hpp"
-#include "accumulate.hpp"
+
+#include <boost/mpl/bool.hpp>
+#include "../common/array.hpp"
+#include "../common/defs.hpp"
 
 namespace gridtools {
     /**
-     * @brief checks if all Types in variadic pack fulfill the Condition (true if empty)
+     * @brief The position_offset is an array that keeps the iteration indices over a multidimensional domain.
      */
-    template < template < typename > class Condition, typename... Types >
-    using is_all = boost::mpl::bool_< accumulate(logical_and(), true, Condition< Types >::type::value...) >;
-
-    /**
-     * @brief SFINAE for the case in which all the components of a parameter pack match a certain condition
-     */
-    template < template < typename > class Condition, typename... Types >
-    using all_ = typename boost::enable_if_c< is_all< Condition, Types... >::type::value, bool >::type;
+    class position_offset_type : public array< int_t, 4 > {
+      public:
+        constexpr GT_FUNCTION position_offset_type(int_t i0, int_t i1, int_t i2, int_t i3)
+            : array< int_t, 4 >({i0, i1, i2, i3}) {}
+    };
+    template < typename T >
+    struct is_position_offset_type : boost::mpl::false_ {};
+    template <>
+    struct is_position_offset_type< position_offset_type > : boost::mpl::true_ {};
 }

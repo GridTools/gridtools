@@ -39,6 +39,7 @@
 #include "horizontal_diffusion_repository.hpp"
 #include <tools/verifier.hpp>
 #include "benchmarker.hpp"
+#include "backend_select.hpp"
 
 /**
   @file
@@ -108,16 +109,6 @@ namespace shorizontal_diffusion {
         uint_t d3 = z;
         uint_t halo_size = 2;
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
         typedef horizontal_diffusion::repository::storage_type storage_type;
         typedef horizontal_diffusion::repository::j_storage_type j_storage_type;
 
@@ -155,7 +146,7 @@ namespace shorizontal_diffusion {
 
         auto grid = make_grid(di, dj, d3);
 
-        auto simple_hori_diff = gridtools::make_computation< gridtools::BACKEND >(
+        auto simple_hori_diff = gridtools::make_computation< backend_t >(
             domain,
             grid,
             gridtools::make_multistage // mss_descriptor

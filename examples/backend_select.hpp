@@ -33,21 +33,21 @@
 
   For information: http://eth-cscs.github.io/gridtools/
 */
-#include "gtest/gtest.h"
-#include "common/is_aggregate.hpp"
-#include "common/array.hpp"
-#include "common/pointer.hpp"
+#pragma once
 
-using namespace gridtools;
+#include <stencil-composition/stencil-composition.hpp>
 
-TEST(array, test_is_aggregate) {
-    GRIDTOOLS_STATIC_ASSERT((is_aggregate< int >::value), "Error");
-
-    typedef array< uint_t, 4 > array_t;
-    GRIDTOOLS_STATIC_ASSERT((is_aggregate< array_t >::value), "Error");
-
-    typedef pointer< double > ptr_t;
-    GRIDTOOLS_STATIC_ASSERT((!is_aggregate< ptr_t >::value), "Error");
-
-    ASSERT_TRUE(true);
-}
+#ifdef BACKEND_HOST
+#ifdef BACKEND_STRATEGY_NAIVE
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Naive >;
+#else
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Host, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#endif
+#elif defined(BACKEND_CUDA)
+using backend_t =
+    gridtools::backend< gridtools::enumtype::Cuda, gridtools::enumtype::GRIDBACKEND, gridtools::enumtype::Block >;
+#else
+#error "no backend selected"
+#endif

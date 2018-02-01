@@ -38,6 +38,7 @@
 
 #include <common/gt_assert.hpp>
 #include <stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
@@ -58,15 +59,8 @@ namespace all_args_in_aggregator {
     };
 
     TEST(testdomain, testindices) {
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#define BACKEND_ARCH Host
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_t;
-        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_t > data_store_t;
+        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_t;
+        typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_t > data_store_t;
         typedef arg< 0, data_store_t > p_in;
         typedef tmp_arg< 2, data_store_t > p_tmp;
         typedef arg< 1, data_store_t > p_out;

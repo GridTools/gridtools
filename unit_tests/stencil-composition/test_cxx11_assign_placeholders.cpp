@@ -40,6 +40,8 @@
 #include <storage/storage-facility.hpp>
 #include <stencil-composition/stencil-composition.hpp>
 
+#include "backend_select.hpp"
+
 /*
   This file shows an implementation of the "horizontal diffusion" stencil, similar to the one used in COSMO
  */
@@ -49,21 +51,13 @@ using namespace enumtype;
 
 TEST(assign_placeholders, test) {
 
-#ifdef CUDA_EXAMPLE
-#define BACKEND backend< Cuda, GRIDBACKEND, Block >
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND backend< Host, GRIDBACKEND, Block >
-#else
-#define BACKEND backend< Host, GRIDBACKEND, Naive >
-#endif
-#endif
-
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3, halo< 1, 1, 1 > > storage_info1_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::storage_info_t< 0, 3, halo< 2, 2, 2 > > storage_info2_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info1_t >
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 1, 1, 1 > >
+        storage_info1_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3, halo< 2, 2, 2 > >
+        storage_info2_t;
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info1_t >
         data_store1_t;
-    typedef gridtools::storage_traits< BACKEND::s_backend_id >::data_store_t< float_type, storage_info2_t >
+    typedef gridtools::storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info2_t >
         data_store2_t;
 
     uint_t d1 = 5;

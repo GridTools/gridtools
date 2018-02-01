@@ -299,9 +299,9 @@ namespace gridtools {
          * algorithm
          * we need to use here is find the maximum extent associated to a temporary instead.
          * @tparam TempsPerFunctor vector of vectors containing the list of temporaries written per esf
-         * @tparam ExtendSizes extents associated to each esf (i.e. due to read access patterns of later esf's)
+         * @tparam ExtentSizes extents associated to each esf (i.e. due to read access patterns of later esf's)
          */
-        template < typename TMap, typename Temp, typename TempsPerFunctor, typename ExtendSizes >
+        template < typename TMap, typename Temp, typename TempsPerFunctor, typename ExtentSizes >
         struct associate_extents_map {
             template < typename TTemp >
             struct is_temp_there {
@@ -318,7 +318,7 @@ namespace gridtools {
                 typename boost::is_same< iter, typename boost::mpl::end< TempsPerFunctor >::type >::type,
                 TMap,
                 typename boost::mpl::insert< TMap,
-                    boost::mpl::pair< Temp, typename boost::mpl::at< ExtendSizes, typename iter::pos >::type > >::
+                    boost::mpl::pair< Temp, typename boost::mpl::at< ExtentSizes, typename iter::pos >::type > >::
                     type >::type type;
         };
 
@@ -333,7 +333,7 @@ namespace gridtools {
         struct obtain_map_extents_temporaries_mss {
             GRIDTOOLS_STATIC_ASSERT((is_aggregator_type< AggregatorType >::value), GT_INTERNAL_ERROR);
             GRIDTOOLS_STATIC_ASSERT((is_mss_components< MssComponents >::value), GT_INTERNAL_ERROR);
-            typedef typename MssComponents::extent_sizes_t ExtendSizes;
+            typedef typename MssComponents::extent_sizes_t ExtentSizes;
 
             // filter all the temporary args
             typedef typename boost::mpl::fold< typename AggregatorType::placeholders_t,
@@ -347,7 +347,7 @@ namespace gridtools {
 
             typedef typename boost::mpl::fold< list_of_temporaries,
                 boost::mpl::map0<>,
-                associate_extents_map< boost::mpl::_1, boost::mpl::_2, written_temps_per_functor_t, ExtendSizes > >::
+                associate_extents_map< boost::mpl::_1, boost::mpl::_2, written_temps_per_functor_t, ExtentSizes > >::
                 type type;
         };
 

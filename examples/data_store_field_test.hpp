@@ -37,22 +37,10 @@
 #include <iostream>
 
 #include <stencil-composition/stencil-composition.hpp>
+#include "backend_select.hpp"
 
 using namespace gridtools;
 using namespace enumtype;
-
-#ifdef __CUDACC__
-#define BACKEND_ARCH Cuda
-typedef backend< BACKEND_ARCH, GRIDBACKEND, Block > be;
-#else
-#ifdef BACKEND_BLOCK
-#define BACKEND_ARCH Host
-typedef backend< BACKEND_ARCH, GRIDBACKEND, Block > be;
-#else
-#define BACKEND_ARCH Host
-typedef backend< BACKEND_ARCH, GRIDBACKEND, Naive > be;
-#endif
-#endif
 
 namespace data_store_field_test {
 
@@ -82,10 +70,10 @@ namespace data_store_field_test {
         uint_t d2 = y;
         uint_t d3 = z;
 
-        typedef storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 > storage_info_ty; // storage info type
-        typedef storage_traits< BACKEND_ARCH >::data_store_t< float_type, storage_info_ty >
+        typedef storage_traits< backend_t::s_backend_id >::storage_info_t< 0, 3 > storage_info_ty; // storage info type
+        typedef storage_traits< backend_t::s_backend_id >::data_store_t< float_type, storage_info_ty >
             data_store_t; // data store type
-        typedef storage_traits< BACKEND_ARCH >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 >
+        typedef storage_traits< backend_t::s_backend_id >::data_store_field_t< float_type, storage_info_ty, 1, 2, 3 >
             data_store_field_t; // data store field type with 3 components with size 1, 2, 3
 
         storage_info_ty si(d1, d2, d3);
@@ -129,12 +117,12 @@ namespace data_store_field_test {
 
         auto grid_ = make_grid(di, dj, d3);
 
-        auto comp = make_computation< be >(domain,
+        auto comp = make_computation< backend_t >(domain,
             grid_,
             make_multistage(execute< forward >(),
-                                               define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
-                                               make_stage< A >(p_in(), p_tmp()),
-                                               make_stage< A >(p_tmp(), p_out())));
+                                                      define_caches(cache< IJ, cache_io_policy::local >(p_tmp())),
+                                                      make_stage< A >(p_in(), p_tmp()),
+                                                      make_stage< A >(p_tmp(), p_out())));
 
         comp->ready();
         comp->steady();

@@ -176,6 +176,32 @@ namespace gridtools {
         static_assert(is_instantiation_of< f >::apply< f< int, void > >{}, "");
         static_assert(!is_instantiation_of< f >::apply< g<> >{}, "");
         static_assert(!is_instantiation_of< f >::apply< int >{}, "");
+
+        static_assert(
+            std::is_same< replace< f< int, double, int, double >, double, void >, f< int, void, int, void > >{}, "");
+
+        static_assert(std::is_same< mp_replace< f< g< int, int * >, g< double, double * > >, int, void >,
+                          f< g< int, void >, g< double, double * > > >{},
+            "");
+
+        static_assert(
+            std::is_same< replace_at_c< f< int, double, int, double >, 1, void >, f< int, void, int, double > >{}, "");
+
+        namespace nvcc_sizeof_workaround {
+            template < class... >
+            struct a;
+
+            template < int I >
+            struct b {
+                using c = void;
+            };
+
+            template < class... Ts >
+            using d = b< GT_SIZEOF_3_DOTS(Ts) >;
+
+            template < class... Ts >
+            using e = typename d< a< Ts >... >::c;
+        }
     }
 }
 
