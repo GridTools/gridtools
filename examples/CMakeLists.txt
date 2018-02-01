@@ -106,4 +106,7 @@ else()
 
     add_subdirectory( communication )
 endif(ENABLE_CUDA)
+
+add_subdirectory( interface )
+
 endif(NOT STRUCTURED_GRIDS)

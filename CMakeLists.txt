@@ -44,6 +44,12 @@ add_library(c_bindings_generator_main src/c_bindings/generator_main.cpp)
 target_link_libraries(c_bindings_generator_main c_bindings_generator)
 
 # ===============
+# compile gt_interface
+# ===============
+include(bindings)
+add_bindings_library(gt_interface src/interface/wrapper/wrapper_interface.cpp src/interface/logging.cpp)
+
+# ===============
 # examples and tests
 # ===============
 include (fix_test_case_name)

@@ -37,7 +37,6 @@
 #pragma once
 
 #include "generic_metafunctions/gt_integer_sequence.hpp"
-#include "generic_metafunctions/is_all_integrals.hpp"
 #include "pair.hpp"
 #include "array.hpp"
 #include "defs.hpp"
@@ -62,7 +61,6 @@ namespace gridtools {
             GT_NV_EXEC_CHECK_DISABLE
             template < typename F, typename... Position >
             static GT_FUNCTION void apply(F f, FirstFromRange first_range, Range... range, Position... pos) {
-                GRIDTOOLS_STATIC_ASSERT((is_all_integral< Position... >::value), GT_INTERNAL_ERROR);
 
                 for (uint_t i = first_range.first; i < first_range.second; ++i) {
                     recursive_iterate< Range... >::apply(f, range..., pos..., i);
@@ -94,7 +92,6 @@ namespace gridtools {
             template < typename F, typename BinaryOp, typename InitT, typename... Position >
             static GT_FUNCTION InitT apply(
                 F &&f, BinaryOp &&binop, InitT init, FirstFromRange first_range, Range... range, Position... pos) {
-                GRIDTOOLS_STATIC_ASSERT((is_all_integral< Position... >::value), GT_INTERNAL_ERROR);
 
                 InitT reduction = init;
                 for (uint_t i = first_range.first; i < first_range.second; ++i) {
@@ -199,7 +196,7 @@ namespace gridtools {
     /**
     * @brief Construct multi_iterator from array of pairs (ranges)
     */
-    template < typename T, size_t Size, typename = all_integral< T > >
+    template < typename T, size_t Size >
     GT_FUNCTION auto make_multi_iterator(const array< pair< T, T >, Size > &range)
         GT_AUTO_RETURN((multi_iterator< T, Size >{range}));
 
@@ -208,7 +205,7 @@ namespace gridtools {
     * we assume iteration starts at 0.
     * -> convert to range which starts at 0 in each dim
     */
-    template < typename T, size_t Size, typename = all_integral< T > >
+    template < typename T, size_t Size >
     GT_FUNCTION multi_iterator< T, Size > make_multi_iterator(const array< T, Size > &range) {
         array< pair< T, T >, Size > pair_range;
         for (size_t i = 0; i < Size; ++i)
@@ -219,7 +216,7 @@ namespace gridtools {
     /**
     * @brief Construct multi_iterator from a variadic sequence of pairs (the ranges)
     */
-    template < typename... T, typename = all_integral< T... > >
+    template < typename... T >
     GT_FUNCTION auto make_multi_iterator(
         pair< T, T >... range) GT_AUTO_RETURN((multi_iterator< typename std::common_type< T... >::type, sizeof...(T) >{
         array< pair< typename std::common_type< T... >::type, typename std::common_type< T... >::type >, sizeof...(T) >{
@@ -229,14 +226,14 @@ namespace gridtools {
     * @brief Construct multi_iterator from a variadic sequence of integers (right bounds),
     * assuming iteration starts at 0
     */
-    template < typename... T, typename = all_integral< T... > >
+    template < typename... T >
     GT_FUNCTION auto make_multi_iterator(T... range) GT_AUTO_RETURN(make_multi_iterator(pair< T, T >{0, range}...));
 
     /**
     * @brief Construct multi_iterator from a sequence of brace-enclosed initializer lists
     * (where only the first two entries of each initializer lists are considered)
     */
-    template < typename... T, typename = all_integral< T... > >
+    template < typename... T >
     GT_FUNCTION auto make_multi_iterator(std::initializer_list< T >... range)
         GT_AUTO_RETURN(make_multi_iterator(pair< T, T >(*range.begin(), *(range.begin() + 1))...));
 
