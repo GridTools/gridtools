@@ -44,22 +44,6 @@
 #include "example_wrapper_simple.h"
 #endif
 
-#ifdef USE_TYPE_FLOAT
-#define DATA_TYPE float
-#define GT_PUSH gt_push_float
-#define GT_PULL gt_pull_float
-#elif USE_TYPE_DOUBLE
-#define DATA_TYPE double
-#define GT_PUSH gt_push_double
-#define GT_PULL gt_pull_double
-#elif USE_TYPE_INT
-#define DATA_TYPE int
-#define GT_PUSH gt_push_int
-#define GT_PULL gt_pull_int
-#else
-#error "datatype not defined"
-#endif
-
 typedef struct wrappable {
 } wrappable;
 
