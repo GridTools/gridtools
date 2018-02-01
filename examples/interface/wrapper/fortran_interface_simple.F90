@@ -1,5 +1,15 @@
 PROGRAM interface_fortran_example
 
+#ifdef USE_TYPE_FLOAT
+#define DATA_TYPE REAL
+#elif USE_TYPE_DOUBLE
+#define DATA_TYPE DOUBLE
+#elif USE_TYPE_INT
+#define DATA_TYPE INTEGER
+#else
+#error "datatype not defined"
+#endif
+
 USE gt_import
 USE gt_interface
 USE gt_interface_delegate
@@ -7,8 +17,8 @@ USE iso_c_binding
 
 TYPE(c_ptr) :: dycore_wrapper
 INTEGER, TARGET :: dim(3)
-REAL, DIMENSION(3,4,5) :: in
-REAL, DIMENSION(3,4,5) :: out
+DATA_TYPE, DIMENSION(3,4,5) :: in
+DATA_TYPE, DIMENSION(3,4,5) :: out
 INTEGER :: i,j,k
 LOGICAL :: error
 

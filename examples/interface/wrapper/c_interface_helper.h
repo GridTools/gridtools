@@ -50,29 +50,40 @@
 #error "datatype not defined"
 #endif
 
-int get_index(int *strides, int i, int j, int k) { return i * strides[0] + j * strides[1] + k * strides[2]; }
+int get_index_1(int *strides, int i) { return i * strides[0]; }
+int get_index_2(int *strides, int i, int j) { return i * strides[0] + j * strides[1]; }
+int get_index_3(int *strides, int i, int j, int k) { return i * strides[0] + j * strides[1] + k * strides[2]; }
 
-void make_array_info(int *dims, int *strides, int *size, int Ni, int Nj, int Nk) {
+void make_array_info(int ndims, int *dims, int *strides, int *size) {
 #ifdef C_INTERFACE_EXAMPLE_PADDING // TODO should be moved to a regression test
     int pad = 1;
 #else
     int pad = 0;
 #endif
-    dims[2] = Nk;
-    strides[2] = 1 + pad;
-    dims[1] = Nj;
-    strides[1] = dims[2] * strides[2];
-    dims[0] = Ni;
-    strides[0] = dims[1] * strides[1];
+    strides[ndims - 1] = 1 + pad;
+    for (int d = ndims - 2; d >= 0; d--) {
+        strides[d] = dims[d + 1] * strides[d + 1];
+    }
+    for (int d = ndims; d < 3; d++) {
+        dims[d] = 1;
+        strides[d] = 0;
+    }
 
-    *size = get_index(strides, Ni - 1, Nj - 1, Nk - 1) + 1;
+    // YEAH:
+    if (ndims == 3)
+        *size = get_index_3(strides, dims[0] - 1, dims[1] - 1, dims[2] - 1) + 1;
+    else if (ndims == 2)
+        *size = get_index_2(strides, dims[0] - 1, dims[1] - 1) + 1;
+    else if (ndims == 1)
+        *size = get_index_1(strides, dims[0] - 1) + 1;
 }
 
+#if DIMENSION == 3
 void fill_array(int *dims, int *strides, DATA_TYPE *array, float value) {
     for (int i = 0; i < dims[0]; ++i)
         for (int j = 0; j < dims[1]; ++j)
             for (int k = 0; k < dims[2]; ++k) {
-                array[get_index(strides, i, j, k)] = value;
+                array[get_index_3(strides, i, j, k)] = value;
             }
 }
 
@@ -80,7 +91,7 @@ void fill_array_unique(int *dims, int *strides, DATA_TYPE *array) {
     for (int i = 0; i < dims[0]; ++i)
         for (int j = 0; j < dims[1]; ++j)
             for (int k = 0; k < dims[2]; ++k) {
-                array[get_index(strides, i, j, k)] = i * 100 + j * 10 + k;
+                array[get_index_3(strides, i, j, k)] = i * 100 + j * 10 + k;
             }
 }
 
@@ -88,10 +99,10 @@ bool verify(int *dims, int *strides, DATA_TYPE *expected, DATA_TYPE *actual) {
     for (int i = 0; i < dims[0]; ++i)
         for (int j = 0; j < dims[1]; ++j)
             for (int k = 0; k < dims[2]; ++k) {
-                if (expected[get_index(strides, i, j, k)] != actual[get_index(strides, i, j, k)]) {
+                if (expected[get_index_3(strides, i, j, k)] != actual[get_index_3(strides, i, j, k)]) {
                     printf("expected: %f, actual: %f for index %d/%d/%d\n",
-                        expected[get_index(strides, i, j, k)],
-                        actual[get_index(strides, i, j, k)],
+                        expected[get_index_3(strides, i, j, k)],
+                        actual[get_index_3(strides, i, j, k)],
                         i,
                         j,
                         k);
@@ -100,3 +111,35 @@ bool verify(int *dims, int *strides, DATA_TYPE *expected, DATA_TYPE *actual) {
             }
     return true;
 }
+#elif DIMENSION == 2
+void fill_array(int *dims, int *strides, DATA_TYPE *array, float value) {
+    for (int i = 0; i < dims[0]; ++i)
+        for (int j = 0; j < dims[1]; ++j) {
+            array[get_index_2(strides, i, j)] = value;
+        }
+}
+
+void fill_array_unique(int *dims, int *strides, DATA_TYPE *array) {
+    for (int i = 0; i < dims[0]; ++i)
+        for (int j = 0; j < dims[1]; ++j) {
+            array[get_index_2(strides, i, j)] = i * 100 + j * 10;
+        }
+}
+
+bool verify(int *dims, int *strides, DATA_TYPE *expected, DATA_TYPE *actual) {
+    for (int i = 0; i < dims[0]; ++i)
+        for (int j = 0; j < dims[1]; ++j) {
+            if (expected[get_index_2(strides, i, j)] != actual[get_index_2(strides, i, j)]) {
+                printf("expected: %f, actual: %f for index %d/%d/%d\n",
+                    expected[get_index_2(strides, i, j)],
+                    actual[get_index_2(strides, i, j)],
+                    i,
+                    j);
+                return false;
+            }
+        }
+    return true;
+}
+#else
+#error "Dimension not supported"
+#endif

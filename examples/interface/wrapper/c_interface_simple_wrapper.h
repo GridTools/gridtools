@@ -66,7 +66,14 @@
 using namespace gridtools;
 using namespace enumtype;
 
-using storage_info_t = gridtools::storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 >;
+#if DIMENSION == 3
+using storage_info_t = gridtools::storage_traits< BACKEND_ARCH >::storage_info_t< 0, DIMENSION >;
+#elif DIMENSION == 2
+using storage_info_t = gridtools::storage_traits<
+    BACKEND_ARCH >::special_storage_info_t< 0, gridtools::selector< 1, 1, 0 >, gridtools::halo< 0, 0, 0 > >;
+#else
+#error "Dimension not supported"
+#endif
 using data_store_t = gridtools::storage_traits< BACKEND_ARCH >::data_store_t< DATA_TYPE, storage_info_t >;
 
 struct copy_functor {

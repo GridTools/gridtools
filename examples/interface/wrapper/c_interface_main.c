@@ -55,15 +55,13 @@ typedef struct wrappable {
 #endif
 
 int main() {
-    const int dim = 3;
-    const int Nx = 4;
-    const int Ny = 5;
-    const int Nz = 6;
+    const int dim = DIMENSION;
 
-    int *dims = (int *)malloc(sizeof(int) * dim);
-    int *strides = (int *)malloc(sizeof(int) * dim);
+    int dims[3] = {4, 5, 6};
+
+    int strides[3];
     int size;
-    make_array_info(dims, strides, &size, Nx, Ny, Nz);
+    make_array_info(DIMENSION, dims, strides, &size);
 
     DATA_TYPE *in = (DATA_TYPE *)malloc(sizeof(DATA_TYPE) * size);
     fill_array_unique(dims, strides, in);
@@ -71,9 +69,9 @@ int main() {
     fill_array(dims, strides, out, -1.);
 
 #ifdef C_INTERFACE_EXAMPLE_REPOSITORY
-    gt_handle *my_wrapper = alloc_simple_wrapper(dim, dims);
+    gt_handle *my_wrapper = alloc_simple_wrapper(3, dims);
 #else
-    gt_handle *my_wrapper = alloc_simple_wrapper(dim, dims);
+    gt_handle *my_wrapper = alloc_simple_wrapper(3, dims);
 #endif
     printf("allocated wrapper\n");
 
@@ -120,7 +118,4 @@ int main() {
 
     free(in);
     free(out);
-
-    free(dims);
-    free(strides);
 }
