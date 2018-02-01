@@ -34,6 +34,22 @@
   For information: http://eth-cscs.github.io/gridtools/
 */
 
+#ifdef USE_TYPE_FLOAT
+#define DATA_TYPE float
+#define GT_PUSH gt_push_float
+#define GT_PULL gt_pull_float
+#elif USE_TYPE_DOUBLE
+#define DATA_TYPE double
+#define GT_PUSH gt_push_double
+#define GT_PULL gt_pull_double
+#elif USE_TYPE_INT
+#define DATA_TYPE int
+#define GT_PUSH gt_push_int
+#define GT_PULL gt_pull_int
+#else
+#error "datatype not defined"
+#endif
+
 int get_index(int *strides, int i, int j, int k) { return i * strides[0] + j * strides[1] + k * strides[2]; }
 
 void make_array_info(int *dims, int *strides, int *size, int Ni, int Nj, int Nk) {
@@ -52,7 +68,7 @@ void make_array_info(int *dims, int *strides, int *size, int Ni, int Nj, int Nk)
     *size = get_index(strides, Ni - 1, Nj - 1, Nk - 1) + 1;
 }
 
-void fill_array(int *dims, int *strides, float *array, float value) {
+void fill_array(int *dims, int *strides, DATA_TYPE *array, float value) {
     for (int i = 0; i < dims[0]; ++i)
         for (int j = 0; j < dims[1]; ++j)
             for (int k = 0; k < dims[2]; ++k) {
@@ -60,7 +76,7 @@ void fill_array(int *dims, int *strides, float *array, float value) {
             }
 }
 
-void fill_array_unique(int *dims, int *strides, float *array) {
+void fill_array_unique(int *dims, int *strides, DATA_TYPE *array) {
     for (int i = 0; i < dims[0]; ++i)
         for (int j = 0; j < dims[1]; ++j)
             for (int k = 0; k < dims[2]; ++k) {
@@ -68,7 +84,7 @@ void fill_array_unique(int *dims, int *strides, float *array) {
             }
 }
 
-bool verify(int *dims, int *strides, float *expected, float *actual) {
+bool verify(int *dims, int *strides, DATA_TYPE *expected, DATA_TYPE *actual) {
     for (int i = 0; i < dims[0]; ++i)
         for (int j = 0; j < dims[1]; ++j)
             for (int k = 0; k < dims[2]; ++k) {

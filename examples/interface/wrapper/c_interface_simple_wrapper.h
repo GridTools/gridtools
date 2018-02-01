@@ -53,11 +53,21 @@
 #endif
 #endif
 
+#ifdef USE_TYPE_FLOAT
+#define DATA_TYPE float
+#elif USE_TYPE_DOUBLE
+#define DATA_TYPE double
+#elif USE_TYPE_INT
+#define DATA_TYPE int
+#else
+#error "datatype not defined"
+#endif
+
 using namespace gridtools;
 using namespace enumtype;
 
 using storage_info_t = gridtools::storage_traits< BACKEND_ARCH >::storage_info_t< 0, 3 >;
-using data_store_t = gridtools::storage_traits< BACKEND_ARCH >::data_store_t< float, storage_info_t >;
+using data_store_t = gridtools::storage_traits< BACKEND_ARCH >::data_store_t< DATA_TYPE, storage_info_t >;
 
 struct copy_functor {
 

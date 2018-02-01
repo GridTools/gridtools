@@ -1,6 +1,7 @@
 PROGRAM interface_fortran_example
 
 USE gt_import
+USE gt_interface
 USE gt_interface_delegate
 USE iso_c_binding
 

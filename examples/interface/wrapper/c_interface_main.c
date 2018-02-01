@@ -37,11 +37,27 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include "gt_interface.h"
+#include "interface/wrapper/gt_interface.h"
 #ifdef C_INTERFACE_EXAMPLE_REPOSITORY
 // TODO repository
 #else
 #include "example_wrapper_simple.h"
+#endif
+
+#ifdef USE_TYPE_FLOAT
+#define DATA_TYPE float
+#define GT_PUSH gt_push_float
+#define GT_PULL gt_pull_float
+#elif USE_TYPE_DOUBLE
+#define DATA_TYPE double
+#define GT_PUSH gt_push_double
+#define GT_PULL gt_pull_double
+#elif USE_TYPE_INT
+#define DATA_TYPE int
+#define GT_PUSH gt_push_int
+#define GT_PULL gt_pull_int
+#else
+#error "datatype not defined"
 #endif
 
 typedef struct wrappable {
@@ -65,9 +81,9 @@ int main() {
     int size;
     make_array_info(dims, strides, &size, Nx, Ny, Nz);
 
-    float *in = (float *)malloc(sizeof(float) * size);
+    DATA_TYPE *in = (DATA_TYPE *)malloc(sizeof(DATA_TYPE) * size);
     fill_array_unique(dims, strides, in);
-    float *out = (float *)malloc(sizeof(float) * size);
+    DATA_TYPE *out = (DATA_TYPE *)malloc(sizeof(DATA_TYPE) * size);
     fill_array(dims, strides, out, -1.);
 
 #ifdef C_INTERFACE_EXAMPLE_REPOSITORY
@@ -81,34 +97,34 @@ int main() {
                     // calls to the cuda runtime API
 
     printf("pushing gpu ptrs\n");
-    float *dev_in;
+    DATA_TYPE *dev_in;
     printf("%p\n", dev_in);
-    cudaMalloc((void **)&dev_in, sizeof(float) * size);
+    cudaMalloc((void **)&dev_in, sizeof(DATA_TYPE) * size);
     printf("%p\n", dev_in);
-    cudaMemcpy(dev_in, in, sizeof(float) * size, cudaMemcpyHostToDevice);
-    float *dev_out;
-    cudaMalloc((void **)&dev_out, sizeof(float) * size);
-    cudaMemcpy(dev_out, out, sizeof(float) * size, cudaMemcpyHostToDevice);
+    cudaMemcpy(dev_in, in, sizeof(DATA_TYPE) * size, cudaMemcpyHostToDevice);
+    DATA_TYPE *dev_out;
+    cudaMalloc((void **)&dev_out, sizeof(DATA_TYPE) * size);
+    cudaMemcpy(dev_out, out, sizeof(DATA_TYPE) * size, cudaMemcpyHostToDevice);
 
-    gt_push_float(my_wrapper, "in", dev_in, dim, dims, strides, 0);
-    gt_push_float(my_wrapper, "out", dev_out, dim, dims, strides, 0);
+    GT_PUSH(my_wrapper, "in", dev_in, dim, dims, strides, 0);
+    GT_PUSH(my_wrapper, "out", dev_out, dim, dims, strides, 0);
 
     gt_run(my_wrapper);
 
-    gt_pull_float(my_wrapper, "out", dev_out, dim, dims, strides);
+    GT_PULL(my_wrapper, "out", dev_out, dim, dims, strides);
 
-    cudaMemcpy(in, dev_in, sizeof(float) * size, cudaMemcpyDeviceToHost);
-    cudaMemcpy(out, dev_out, sizeof(float) * size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(in, dev_in, sizeof(DATA_TYPE) * size, cudaMemcpyDeviceToHost);
+    cudaMemcpy(out, dev_out, sizeof(DATA_TYPE) * size, cudaMemcpyDeviceToHost);
 
     cudaFree(dev_in);
     cudaFree(dev_out);
 #else
-    gt_push_float(my_wrapper, "in", in, dim, dims, strides, 0);
-    gt_push_float(my_wrapper, "out", out, dim, dims, strides, 0);
+    GT_PUSH(my_wrapper, "in", in, dim, dims, strides, 0);
+    GT_PUSH(my_wrapper, "out", out, dim, dims, strides, 0);
 
     gt_run(my_wrapper);
 
-    gt_pull_float(my_wrapper, "out", out, dim, dims, strides);
+    GT_PULL(my_wrapper, "out", out, dim, dims, strides);
 #endif
 
     if (verify(dims, strides, in, out))
