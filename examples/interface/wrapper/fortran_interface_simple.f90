@@ -17,9 +17,6 @@ print *, "[Fortran] dim: ", dim(1), dim(2), dim(3)
 print *, "size=", SIZE(SHAPE(in)), "shape: ", SHAPE(IN)
 
 dycore_wrapper = alloc_simple_wrapper(3, dim)
-!call gt_alloc_wrapper(dycore_wrapper,"my_simple_wrapper", 3, C_LOC(dim))
-
-
 
 DO i = 1 , dim(1)
       DO j = 1, dim(2)
@@ -32,12 +29,12 @@ END DO
 
 print *, "in(1,2,3)=", in(1,2,3)
 
-call gt_push(dycore_wrapper, "in", in)
-call gt_push(dycore_wrapper, "out", out)
+!call gt_push(dycore_wrapper, "in", in)
+!call gt_push(dycore_wrapper, "out", out)
 
-call gt_run(dycore_wrapper)
+!call gt_run(dycore_wrapper)
 
-call gt_pull(dycore_wrapper, "out", out)
+!call gt_pull(dycore_wrapper, "out", out)
 
 error = .false.
 DO i = 1 , dim(1)

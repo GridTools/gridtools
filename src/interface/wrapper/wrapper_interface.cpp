@@ -88,6 +88,10 @@ using namespace gridtools;
 template < typename T >
 void gt_push_impl(
     std::shared_ptr< wrappable > m, char *name, T *src_ptr, int ndims, int *dims, int *strides, bool force_copy) {
+
+    //    TODO pointer sharing not implemented, remove the following line
+    force_copy = 1;
+
     LOG_BEGIN("wrapper_functions::gt_push_impl()");
     LOG(info) << "push for " << std::string(name) << " with src ptr " << src_ptr;
     LOG(info) << "dims: " << dims[0] << "/" << dims[1] << "/" << dims[2];             // TODO FIXME
@@ -120,18 +124,27 @@ void gt_push_impl(
     LOG_END()
 }
 
-void gt_push_internal(
+void gt_push_internal_float(
     std::shared_ptr< wrappable > m, char *name, float *ptr, int ndims, int *dims, int *strides, bool force_copy) {
     gt_push_impl(m, name, ptr, ndims, dims, strides, force_copy);
 }
+void gt_push_internal_double(
+    std::shared_ptr< wrappable > m, char *name, double *ptr, int ndims, int *dims, int *strides, bool force_copy) {
+    gt_push_impl(m, name, ptr, ndims, dims, strides, force_copy);
+}
+void gt_push_internal_int(
+    std::shared_ptr< wrappable > m, char *name, int *ptr, int ndims, int *dims, int *strides, bool force_copy) {
+    gt_push_impl(m, name, ptr, ndims, dims, strides, force_copy);
+}
+void gt_push_internal_bool(
+    std::shared_ptr< wrappable > m, char *name, bool *ptr, int ndims, int *dims, int *strides, bool force_copy) {
+    gt_push_impl(m, name, ptr, ndims, dims, strides, force_copy);
+}
 
-// void gt_push_internal(wrappable *m, char *name, double *ptr, int ndims, int *dims, int *strides, bool force_copy) {
-//    gt_push_impl(m, name, ptr, ndims, dims, strides, force_copy);
-//}
-GT_EXPORT_BINDING_7(gt_push, gt_push_internal);
-// GT_EXPORT_BINING_WITH_ARRAY( wrappable, char*, ARRAY, bool)
-
-// GT_EXPORT_BINDING_7(gt_push_export, gt_push);
+GT_EXPORT_BINDING_7(gt_push_float, gt_push_internal_float);
+GT_EXPORT_BINDING_7(gt_push_double, gt_push_internal_double);
+GT_EXPORT_BINDING_7(gt_push_int, gt_push_internal_int);
+GT_EXPORT_BINDING_7(gt_push_bool, gt_push_internal_bool);
 
 template < typename T >
 void gt_pull_impl(std::shared_ptr< wrappable > m, char *name, T *ptr, int ndims, int *dims, int *strides) {
@@ -155,14 +168,25 @@ void gt_pull_impl(std::shared_ptr< wrappable > m, char *name, T *ptr, int ndims,
     LOG_END()
 }
 
-void gt_pull_internal(std::shared_ptr< wrappable > m, char *name, float *ptr, int ndims, int *dims, int *strides) {
+void gt_pull_internal_float(
+    std::shared_ptr< wrappable > m, char *name, float *ptr, int ndims, int *dims, int *strides) {
+    gt_pull_impl(m, name, ptr, ndims, dims, strides);
+}
+void gt_pull_internal_double(
+    std::shared_ptr< wrappable > m, char *name, double *ptr, int ndims, int *dims, int *strides) {
+    gt_pull_impl(m, name, ptr, ndims, dims, strides);
+}
+void gt_pull_internal_int(std::shared_ptr< wrappable > m, char *name, int *ptr, int ndims, int *dims, int *strides) {
+    gt_pull_impl(m, name, ptr, ndims, dims, strides);
+}
+void gt_pull_internal_bool(std::shared_ptr< wrappable > m, char *name, bool *ptr, int ndims, int *dims, int *strides) {
     gt_pull_impl(m, name, ptr, ndims, dims, strides);
 }
 
-// void gt_pull_internal(wrappable *m, char *name, double *ptr, int ndims, int *dims, int *strides) {
-//    gt_pull_impl(m, name, ptr, ndims, dims, strides);
-//}
-GT_EXPORT_BINDING_6(gt_pull, gt_pull_internal);
+GT_EXPORT_BINDING_6(gt_pull_float, gt_pull_internal_float);
+GT_EXPORT_BINDING_6(gt_pull_double, gt_pull_internal_double);
+GT_EXPORT_BINDING_6(gt_pull_int, gt_pull_internal_int);
+GT_EXPORT_BINDING_6(gt_pull_bool, gt_pull_internal_bool);
 
 /**
  * @brief Getter to obtain the wrapper factories. Due to the static initialization order this

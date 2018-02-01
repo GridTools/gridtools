@@ -90,12 +90,12 @@ int main() {
     cudaMalloc((void **)&dev_out, sizeof(float) * size);
     cudaMemcpy(dev_out, out, sizeof(float) * size, cudaMemcpyHostToDevice);
 
-    gt_push(my_wrapper, "in", dev_in, dim, dims, strides, 0);
-    gt_push(my_wrapper, "out", dev_out, dim, dims, strides, 0);
+    gt_push_float(my_wrapper, "in", dev_in, dim, dims, strides, 0);
+    gt_push_float(my_wrapper, "out", dev_out, dim, dims, strides, 0);
 
     gt_run(my_wrapper);
 
-    gt_pull(my_wrapper, "out", dev_out, dim, dims, strides);
+    gt_pull_float(my_wrapper, "out", dev_out, dim, dims, strides);
 
     cudaMemcpy(in, dev_in, sizeof(float) * size, cudaMemcpyDeviceToHost);
     cudaMemcpy(out, dev_out, sizeof(float) * size, cudaMemcpyDeviceToHost);
@@ -103,12 +103,12 @@ int main() {
     cudaFree(dev_in);
     cudaFree(dev_out);
 #else
-    gt_push(my_wrapper, "in", in, dim, dims, strides, 0);
-    gt_push(my_wrapper, "out", out, dim, dims, strides, 0);
+    gt_push_float(my_wrapper, "in", in, dim, dims, strides, 0);
+    gt_push_float(my_wrapper, "out", out, dim, dims, strides, 0);
 
     gt_run(my_wrapper);
 
-    gt_pull(my_wrapper, "out", out, dim, dims, strides);
+    gt_pull_float(my_wrapper, "out", out, dim, dims, strides);
 #endif
 
     if (verify(dims, strides, in, out))
