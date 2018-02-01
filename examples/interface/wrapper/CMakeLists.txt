@@ -36,7 +36,7 @@ endforeach( repotype )
 
 enable_language(Fortran)
 #add_executable( fortran_interface_simple fortran_interface_simple.f90 ${CMAKE_CURRENT_BINARY_DIR}/example_wrapper_simple.f90 ${PROJECT_BINARY_DIR}/gt_interface.f90) #TODO make lib
-add_executable( fortran_interface_simple fortran_interface_simple.f90 wrapper_functions_delegate.f90 ${PROJECT_SOURCE_DIR}/src/interface/wrapper/gt_interface.f90 ${CMAKE_CURRENT_BINARY_DIR}/example_wrapper_simple.f90 ) #TODO make lib
+add_executable( fortran_interface_simple fortran_interface_simple.f90 wrapper_functions_delegate.F90 ${PROJECT_SOURCE_DIR}/src/interface/wrapper/gt_interface.f90 ${CMAKE_CURRENT_BINARY_DIR}/example_wrapper_simple.f90 ) #TODO make lib
 #target_link_libraries( fortran_interface_simple -Wl,--whole-archive gt_interface  -Wl,--no-whole-archive )
 target_link_libraries( fortran_interface_simple -Wl,--whole-archive example_wrapper_simple -Wl,--no-whole-archive )
 #target_compile_definitions( fortran_interface_simple PRIVATE "-fno-underscoring" )
