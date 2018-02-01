@@ -78,6 +78,12 @@ namespace gridtools {
     template < typename Accessor, typename ArgsMap, typename Enable = void >
     struct remap_accessor_type {};
 
+    // TODO(havogt) I have no idea why I end up here...
+    template < typename ArgsMap >
+    struct remap_accessor_type< boost::mpl::void_, ArgsMap > {
+        using type = boost::mpl::void_;
+    };
+
     template < ushort_t ID, enumtype::intent Intent, typename Extent, ushort_t Number, typename ArgsMap >
     struct remap_accessor_type< accessor< ID, Intent, Extent, Number >, ArgsMap > {
         using type = accessor< _impl::get_remap_accessor_id< ID, ArgsMap >(), Intent, Extent, Number >;
