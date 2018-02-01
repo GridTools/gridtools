@@ -53,7 +53,55 @@ using namespace enumtype;
 using namespace expressions;
 
 namespace horizontal_diffusion {
+    struct lap_function {
+        typedef accessor< 0, enumtype::inout > out;
+        typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 1 > > in;
+
+        typedef boost::mpl::vector< out, in > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation eval) {
+            eval(out()) = (gridtools::float_type)4 * eval(in()) -
+                          (eval(in(1, 0, 0)) + eval(in(0, 1, 0)) + eval(in(-1, 0, 0)) + eval(in(0, -1, 0)));
+        }
+    };
+
+    struct flx_function {
+
+        typedef accessor< 0, enumtype::inout > out;
+        typedef accessor< 1, enumtype::in, extent< -1, 2, -1, 1 > > in;
+
+        typedef boost::mpl::vector< out, in > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation eval) {
+            auto lap_hi = call< lap_function >::with(eval, in(1, 0, 0));
+            auto lap_lo = call< lap_function >::with(eval, in(0, 0, 0));
+            auto flx = lap_hi - lap_lo;
+
+            eval(out()) = flx * (eval(in(1, 0, 0)) - eval(in(0, 0, 0))) > 0 ? 0 : flx;
+        }
+    };
+
+    struct fly_function {
+
+        typedef accessor< 0, enumtype::inout > out;
+        typedef accessor< 1, enumtype::in, extent< -1, 1, -1, 2 > > in;
+
+        typedef boost::mpl::vector< out, in > arg_list;
+
+        template < typename Evaluation >
+        GT_FUNCTION static void Do(Evaluation eval) {
+            auto lap_hi = call< lap_function >::with(eval, in(0, 1, 0));
+            auto lap_lo = call< lap_function >::with(eval, in(0, 0, 0));
+            auto fly = lap_hi - lap_lo;
+
+            eval(out()) = fly * (eval(in(0, 1, 0)) - eval(in(0, 0, 0))) > 0 ? 0 : fly;
+        }
+    };
+
     struct out_function {
+
         typedef accessor< 0, enumtype::inout > out;
         typedef accessor< 1, enumtype::in, extent< -2, 2, -2, 2 > > in;
         typedef accessor< 2, enumtype::in > coeff;
@@ -62,43 +110,13 @@ namespace horizontal_diffusion {
 
         template < typename Evaluation >
         GT_FUNCTION static void Do(Evaluation &eval) {
-            auto in_ijm2 = eval(in(0, -2, 0));
+            auto flx_hi = call< flx_function >::with(eval, in(0, 0, 0));
+            auto flx_lo = call< flx_function >::with(eval, in(-1, 0, 0));
 
-            auto in_imjm = eval(in(-1, -1, 0));
-            auto in_ijm = eval(in(0, -1, 0));
-            auto in_ipjm = eval(in(1, -1, 0));
+            auto fly_hi = call< fly_function >::with(eval, in(0, 0, 0));
+            auto fly_lo = call< fly_function >::with(eval, in(0, -1, 0));
 
-            auto in_im2j = eval(in(-2, 0, 0));
-            auto in_imj = eval(in(-1, 0, 0));
-            auto in_ij = eval(in(0, 0, 0));
-            auto in_ipj = eval(in(1, 0, 0));
-            auto in_ip2j = eval(in(2, 0, 0));
-
-            auto in_imjp = eval(in(-1, 1, 0));
-            auto in_ijp = eval(in(0, 1, 0));
-            auto in_ipjp = eval(in(1, 1, 0));
-
-            auto in_ijp2 = eval(in(0, 2, 0));
-
-            auto lap_ij = 4 * in_ij - (in_ipj + in_ijp + in_imj + in_ijm);
-            auto lap_imj = 4 * in_imj - (in_ij + in_imjp + in_im2j + in_imjm);
-            auto lap_ipj = 4 * in_ipj - (in_ip2j + in_ipjp + in_ij + in_ipjm);
-            auto lap_ijm = 4 * in_ijm - (in_ipjm + in_ij + in_imjm + in_ijm2);
-            auto lap_ijp = 4 * in_ijp - (in_ipjp + in_ijp2 + in_imjp + in_ij);
-
-            auto flx_ij = lap_ipj - lap_ij;
-            flx_ij = flx_ij * (in_ipj - in_ij) > 0 ? 0 : flx_ij;
-
-            auto flx_imj = lap_ij - lap_imj;
-            flx_imj = flx_imj * (in_ij - in_imj) > 0 ? 0 : flx_imj;
-
-            auto fly_ij = lap_ijp - lap_ij;
-            fly_ij = fly_ij * (in_ijp - in_ij) > 0 ? 0 : fly_ij;
-
-            auto fly_ijm = lap_ij - lap_ijm;
-            fly_ijm = fly_ijm * (in_ij - in_ijm) > 0 ? 0 : fly_ijm;
-
-            eval(out()) = in_ij - eval(coeff()) * (flx_ij - flx_imj + fly_ij - fly_ijm);
+            eval(out()) = eval(in()) - eval(coeff()) * (flx_hi - flx_lo + fly_hi - fly_lo);
         }
     };
 
