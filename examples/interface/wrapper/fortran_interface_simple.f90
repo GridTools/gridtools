@@ -1,6 +1,7 @@
 PROGRAM interface_fortran_example
 
 USE gt_import
+USE gt_interface_delegate
 USE iso_c_binding
 
 TYPE(c_ptr) :: dycore_wrapper
@@ -29,12 +30,12 @@ END DO
 
 print *, "in(1,2,3)=", in(1,2,3)
 
-!call gt_push(dycore_wrapper, "in", in)
-!call gt_push(dycore_wrapper, "out", out)
+call gt_push(dycore_wrapper, "in", in)
+call gt_push(dycore_wrapper, "out", out)
 
-!call gt_run(dycore_wrapper)
+call gt_run(dycore_wrapper)
 
-!call gt_pull(dycore_wrapper, "out", out)
+call gt_pull(dycore_wrapper, "out", out)
 
 error = .false.
 DO i = 1 , dim(1)
