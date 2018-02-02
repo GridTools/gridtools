@@ -74,6 +74,7 @@ namespace gridtools {
             // TODO maybe: we could actually allow to instantiate one storage_info per storage and allow different
             // dimensions, then the check would be replaced by initializing a storage_info here.
             if (!(m_storage_info_rt.unaligned_dims() == dims)) {
+                // TODO this check is broken, think about masked dimensions
                 LOG(error) << "You are trying to access a data_store where dimensions don't agree.";
             }
             return m_storage_info_rt;
