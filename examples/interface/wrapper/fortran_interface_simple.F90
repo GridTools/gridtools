@@ -3,7 +3,7 @@ PROGRAM interface_fortran_example
 #ifdef USE_TYPE_FLOAT
 #define DATA_TYPE REAL
 #elif USE_TYPE_DOUBLE
-#define DATA_TYPE DOUBLE
+#define DATA_TYPE REAL*8
 #elif USE_TYPE_INT
 #define DATA_TYPE INTEGER
 #else
