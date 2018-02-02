@@ -38,6 +38,7 @@
 #include "../../common/defs.hpp"
 #include "../../common/dimension.hpp"
 #include "../../common/host_device.hpp"
+#include "../../common/generic_metafunctions/meta.hpp"
 #include "../accessor_fwd.hpp"
 #include "../accessor_metafunctions.hpp"
 
@@ -60,11 +61,33 @@ namespace gridtools {
     template < class Base, ushort_t... Inxs, int_t... Vals >
     struct accessor_mixed< Base, pair_< Inxs, Vals >... > : Base {
         template < class... Ts >
-        GT_FUNCTION explicit accessor_mixed(Ts... args)
+        GT_FUNCTION explicit constexpr accessor_mixed(Ts... args)
             : Base(dimension< Inxs >(Vals)..., args...) {}
         template < class OtherBase >
-        GT_FUNCTION accessor_mixed(accessor_mixed< OtherBase, pair_< Inxs, Vals >... > const &src)
+        GT_FUNCTION constexpr accessor_mixed(accessor_mixed< OtherBase, pair_< Inxs, Vals >... > const &src)
             : Base(src) {}
+
+      private:
+        template < ushort_t I >
+        using key_t = std::integral_constant< ushort_t, I >;
+
+        template < int_t Val >
+        using val_t = std::integral_constant< int_t, Val >;
+
+        using offset_map_t = meta::list< meta::list< key_t< Base::n_dimensions - Inxs >, val_t< Vals > >... >;
+
+        template < int_t I >
+        using find_t = meta::mp_find< offset_map_t, key_t< I > >;
+
+      public:
+        template < ushort_t I, class Found = find_t< I > >
+        GT_FUNCTION constexpr typename std::enable_if< !std::is_void< Found >::value, int_t >::type get() const {
+            return meta::second< Found >::value;
+        }
+        template < ushort_t I, class Found = find_t< I > >
+        GT_FUNCTION constexpr typename std::enable_if< std::is_void< Found >::value, int_t >::type get() const {
+            return Base::template get< I >();
+        }
     };
 
     /**

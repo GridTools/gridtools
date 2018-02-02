@@ -41,13 +41,42 @@
 #include "../common/defs.hpp"
 #include "../common/dimension.hpp"
 #include "../common/host_device.hpp"
+#include "../common/generic_metafunctions/gt_integer_sequence.hpp"
 #include "../common/generic_metafunctions/meta.hpp"
 
 namespace gridtools {
 
     namespace _impl {
-        template < class... Ts >
-        GT_FUNCTION void eval_args(Ts &&...) {}
+
+        template < ushort_t I >
+        struct get_dimension_value_f {
+            template < ushort_t J >
+            GT_FUNCTION constexpr int_t operator()(dimension< J > src) const {
+                return 0;
+            }
+            GT_FUNCTION constexpr int_t operator()(dimension< I > src) const { return src.value; }
+        };
+
+        template < ushort_t I >
+        GT_FUNCTION constexpr int_t sum_dimensions() {
+            return 0;
+        }
+
+        template < ushort_t I, class T, class... Ts >
+        GT_FUNCTION constexpr int_t sum_dimensions(T src, Ts... srcs) {
+            return get_dimension_value_f< I >{}(src) + sum_dimensions< I >(srcs...);
+        }
+
+        template < ushort_t Dim, ushort_t... Is, class... Ts >
+        GT_FUNCTION constexpr array< int_t, Dim > make_offsets_impl(
+            gt_integer_sequence< ushort_t, Is... >, Ts... srcs) {
+            return {sum_dimensions< Is + 1 >(srcs...)...};
+        }
+
+        template < ushort_t Dim, class... Ts >
+        GT_FUNCTION constexpr array< int_t, Dim > make_offsets(Ts... srcs) {
+            return make_offsets_impl< Dim >(make_gt_integer_sequence< uint_t, Dim >{}, srcs...);
+        }
     }
 
     /**
@@ -77,14 +106,8 @@ namespace gridtools {
     class accessor_base {
         GRIDTOOLS_STATIC_ASSERT(Dim > 0, "dimension number must be positive");
 
-        array< int_t, Dim > m_offsets;
-
-        template < ushort_t Idx >
-        GT_FUNCTION int add_dimension(dimension< Idx > dim) {
-            GRIDTOOLS_STATIC_ASSERT((Idx > 0 && Idx <= Dim), "dimension is out of range");
-            m_offsets[Idx - 1] += dim.value;
-            return 0;
-        }
+        using offsets_t = array< int_t, Dim >;
+        offsets_t m_offsets;
 
       public:
         static const ushort_t n_dimensions = Dim;
@@ -96,14 +119,11 @@ namespace gridtools {
         GT_FUNCTION constexpr explicit accessor_base(Ints... offsets)
             : m_offsets({offsets...}) {}
 
-        GT_FUNCTION constexpr explicit accessor_base(array< int_t, Dim > const &src) : m_offsets(src) {}
+        GT_FUNCTION constexpr explicit accessor_base(offsets_t const &src) : m_offsets(src) {}
 
         template < ushort_t I, ushort_t... Is >
-        GT_FUNCTION explicit accessor_base(dimension< I > d, dimension< Is >... ds)
-            : m_offsets({}) {
-            add_dimension(d);
-            _impl::eval_args(add_dimension(ds)...);
-        }
+        GT_FUNCTION constexpr explicit accessor_base(dimension< I > d, dimension< Is >... ds)
+            : m_offsets(_impl::make_offsets< Dim >(d, ds...)) {}
 
         template < short_t Idx >
         GT_FUNCTION int_t constexpr get() const {

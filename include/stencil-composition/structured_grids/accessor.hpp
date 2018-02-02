@@ -90,7 +90,7 @@ namespace gridtools {
         using accessor_base< Number >::accessor_base;
 
         template < uint_t OtherID, typename std::enable_if< ID != OtherID, int >::type = 0 >
-        GT_FUNCTION accessor(accessor< OtherID, Intent, Extent, Number > const &src)
+        GT_FUNCTION constexpr accessor(accessor< OtherID, Intent, Extent, Number > const &src)
             : accessor_base< Number >(src) {}
     };
 
