@@ -82,27 +82,20 @@ class wrapped_dycore_repository : public repository_wrapper< bare_dycore_reposit
     using super = repository_wrapper< bare_dycore_repository >;
 
     virtual ~wrapped_dycore_repository() = default;
-    wrapped_dycore_repository(std::vector< uint_t > sizes) : super(sizes[0], sizes[1], sizes[2]) {
-        Logging::enable();
-
-        //        auto grid = make_grid(sizes[0], sizes[1], sizes[2]);
-        //        aggregator_t domain(out(), in());
-        //
-        //        stencil_ = gridtools::make_computation< gridtools::BACKEND >(domain,
-        //            grid,
-        //            gridtools::make_multistage(execute< forward >(), gridtools::make_stage< copy_functor >(p_in(),
-        //            p_out())));
-        //        stencil_->ready();
-    }
+    wrapped_dycore_repository(std::vector< uint_t > sizes) : super(sizes[0], sizes[1], sizes[2]) { Logging::enable(); }
 
     void run() override;
 };
 
+/**
+ * A dycore which predicts that the weather will be the same tomorrow as it is now.
+ */
 class mini_dycore {
   public:
     mini_dycore(std::vector< uint_t > sizes, std::shared_ptr< wrapped_dycore_repository >);
-
     void copy_stencil();
+    void put_a_number(int);
+    void print_numbers();
 
   private:
     std::shared_ptr< wrapped_dycore_repository > repository_;
@@ -110,4 +103,6 @@ class mini_dycore {
     using p_in = arg< 1, data_store_t >;
     using aggregator_t = gridtools::aggregator_type< boost::mpl::vector< p_out, p_in > >;
     std::shared_ptr< gridtools::computation< aggregator_t, gridtools::notype > > stencil_;
+
+    std::vector< int > just_a_collection_of_numbers; // to illustrate what the user can do
 };

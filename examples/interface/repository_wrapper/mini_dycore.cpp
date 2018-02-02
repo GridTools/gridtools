@@ -85,7 +85,22 @@ void mini_dycore::copy_stencil() {
     LOG_END();
 }
 
-GT_EXPORT_BINDING_WITH_SIGNATURE_1(copy_stencil, void(mini_dycore), std::mem_fn(&mini_dycore::copy_stencil));
+GT_EXPORT_BINDING_WITH_SIGNATURE_1(copy_stencil, void(mini_dycore &), std::mem_fn(&mini_dycore::copy_stencil));
+
+void mini_dycore::put_a_number(int number) {
+    just_a_collection_of_numbers.push_back(number);
+    std::cout << just_a_collection_of_numbers.size() << std::endl;
+}
+GT_EXPORT_BINDING_WITH_SIGNATURE_2(put_a_number, void(mini_dycore &, int), std::mem_fn(&mini_dycore::put_a_number));
+
+void mini_dycore::print_numbers() {
+    std::cout << "numbers: ";
+    for (auto n : just_a_collection_of_numbers) {
+        std::cout << "\n" << n;
+    }
+    std::cout << std::endl;
+}
+GT_EXPORT_BINDING_WITH_SIGNATURE_1(print_numbers, void(mini_dycore &), std::mem_fn(&mini_dycore::print_numbers));
 
 mini_dycore alloc_mini_dycore_impl(int ndims, int *dims, std::shared_ptr< wrapped_dycore_repository > repo) {
     std::vector< gridtools::uint_t > sizes(ndims);

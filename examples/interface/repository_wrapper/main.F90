@@ -21,7 +21,7 @@ print *, "[Fortran] dim: ", dim(1), dim(2), dim(3)
 print *, "size=", SIZE(SHAPE(in)), "shape: ", SHAPE(IN)
 
 dycore_repository = alloc_wrapped_dycore_repository(3, dim)
-dycore_repository_explicit = convert_dycore_repo(dycore_repository)
+dycore_repository_explicit = convert_dycore_repo(dycore_repository) !this shouldn't be needed in next release
 dycore = alloc_mini_dycore(3, dim, dycore_repository_explicit);
 
 DO i = 1 , dim(1)
@@ -58,6 +58,12 @@ IF( error ) THEN
 ELSE
     print *, "verified!"
 ENDIF
+
+call put_a_number(dycore, 3)
+call put_a_number(dycore, 8)
+call put_a_number(dycore, 1)
+
+call print_numbers(dycore)
 
 call gt_release(dycore_repository)
 call gt_release(dycore)
