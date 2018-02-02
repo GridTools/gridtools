@@ -71,12 +71,14 @@ struct copy_functor {
     }
 };
 
+// generate a repository of data_stores, see test_repository for a detailed description
 #define MY_FIELDTYPES (data_store_t, (0, 1, 2))
 #define MY_FIELDS (data_store_t, in)(data_store_t, out)
 GRIDTOOLS_MAKE_REPOSITORY(bare_dycore_repository, MY_FIELDTYPES, MY_FIELDS)
 #undef MY_FIELDTYPES
 #undef MY_FIELDS
 
+// wrap the repository with bindings
 class wrapped_dycore_repository : public repository_wrapper< bare_dycore_repository > {
   public:
     using super = repository_wrapper< bare_dycore_repository >;
