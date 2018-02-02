@@ -60,6 +60,6 @@ ELSE
 ENDIF
 
 call gt_release(dycore_repository)
-!gt_release(dycore)
+call gt_release(dycore)
 
 END PROGRAM interface_fortran_example
